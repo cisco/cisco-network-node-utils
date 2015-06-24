@@ -772,14 +772,14 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
 
     # multiple groups with invalid group
     groups = %w(rtp10 test2 bxb100)
-    assert_raises(RuntimeError, "(see CSCuu63677)") do
+    assert_raises(CliError) do
       aaaauthloginservice.groups_method_set(
         groups, AAA_AUTH_LOGIN_SERVICE_METHOD_NONE)
     end
 
     # multiple groups with invalid group
     groups = %w(test4 test2 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       aaaauthloginservice.groups_method_set(
         groups, AAA_AUTH_LOGIN_SERVICE_METHOD_NONE)
     end
@@ -799,7 +799,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
 
     # one invalid group
     groups = ["test1"]
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       aaaauthloginservice.groups_method_set(
         groups, AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED)
     end
@@ -813,7 +813,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
 
     # multiple group with invalid group
     groups = %w(rtp10 test1 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       aaaauthloginservice.groups_method_set(
         groups, AAA_AUTH_LOGIN_SERVICE_METHOD_NONE)
     end

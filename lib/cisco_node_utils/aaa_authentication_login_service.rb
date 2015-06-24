@@ -58,8 +58,11 @@ class AaaAuthenticationLoginService
     g_str = groups.join(" ")
 
     if g_str.empty?
-      @@node.config_set("aaa_auth_login_service", "method",
-        "no", @name, m_str)
+      # cannot remove default local, so do nothing in this case
+      unless m == :local and @name == "default"
+        @@node.config_set("aaa_auth_login_service", "method",
+          "no", @name, m_str)
+      end
     else
       @@node.config_set("aaa_auth_login_service", "groups",
         "no", @name, g_str, m_str)
@@ -109,6 +112,7 @@ class AaaAuthenticationLoginService
   #   none | local | group <group1 [group2, ...]> [none]
   def groups_method_set(grps, m)
     raise TypeError unless grps.is_a? Array
+    raise TypeError unless grps.all? { |x| x.is_a? String }
     raise TypeError unless m.is_a? Symbol
     # only the following 3 are supported (unselected = blank)
     raise ArgumentError unless [:none, :local, :unselected].include? m
