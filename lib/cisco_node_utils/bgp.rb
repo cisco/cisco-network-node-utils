@@ -86,7 +86,7 @@ class RouterBgp
   end
 
   def RouterBgp.enable(state="")
-    @@node.config_set("bgp", "feature", {:state => state})
+    @@node.config_set("bgp", "feature", { :state => state })
   end
 
   # Convert BGP ASN ASDOT+ to ASPLAIN
@@ -103,7 +103,7 @@ class RouterBgp
     high_bits + low_bits
   end
 
-  def router_bgp (asnum, vrf, state="")
+  def router_bgp(asnum, vrf, state="")
     @set_args[:state] = state
     vrf == 'default' ?
       @@node.config_set("bgp", "router", @set_args) :
