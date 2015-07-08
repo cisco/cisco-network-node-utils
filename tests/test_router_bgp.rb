@@ -392,11 +392,8 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.confederation_id = 55.77
-    asplain_value = RouterBgp.dot_to_big("55.77")
-    # TODO: This "works" on the n3k but is displayed in dot notation.
-    # Once the defect is resoved check to see if n9k is consistent.
     assert_equal("55.77", bgp.confederation_id,
-      "bgp confederation_id should be set to '#{asplain_value}'")
+      "bgp confederation_id should be set to '55.77'")
     rescue Cisco::CliError => e
       raise "See CSCuu76828 (6/9/15) - #{e}"
   end
@@ -440,22 +437,21 @@ class TestRouterBgp < CiscoTestCase
       bgp.confederation_peers_set(16)
       assert_equal("15 16", bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be '15 16'")
-      asplain_value = RouterBgp.dot_to_big("55.77")
       bgp.confederation_peers_set(55.77)
-      assert_equal("15 16 #{asplain_value}", bgp.confederation_peers,
+      assert_equal("15 16 55.77", bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 16 #{asplain_value}'")
+        "'15 16 55.77'")
       bgp.confederation_peers_set('18 555 299')
-      assert_equal("15 16 #{asplain_value} 18 555 299",
+      assert_equal("15 16 55.77 18 555 299",
         bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 16 #{asplain_value} 18 555 299'")
+        "'15 16 55.77 18 555 299'")
       bgp.confederation_peers_set(16, remove=true)
-      assert_equal("15 #{asplain_value} 18 555 299",
+      assert_equal("15 55.77 18 555 299",
         bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 #{asplain_value} 18 555 299'")
-      bgp.confederation_peers_set("#{asplain_value} 555", remove=true)
+        "'15 55.77 18 555 299'")
+      bgp.confederation_peers_set("55.77 555", remove=true)
       assert_equal("15 18 299", bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
         "'15 18 299'")
