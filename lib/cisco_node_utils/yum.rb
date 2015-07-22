@@ -58,8 +58,18 @@ module Cisco
       end
     end
 
+    def self.get_vrf
+      # Detect current namespace from agent environment
+      inode = File::Stat.new("/proc/self/ns/net").ino
+      # -L reqd for guestshell's find command
+      vrfname = File.basename(`find -L /var/run/netns/ -inum #{inode}`.chop)
+      vrf = "vrf " + vrfname unless vrfname.empty?
+      vrf
+    end
+
     def self.install(pkg)
-      @@node.config_set("yum", "install", pkg)
+      vrf = self.get_vrf
+      @@node.config_set("yum", "install", pkg, vrf)
 
       # HACK: The current nxos host installer is a multi-part command
       # which may fail at a later stage yet return a false positive;

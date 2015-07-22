@@ -835,7 +835,7 @@ vtp:
 
 yum:
   install:
-    config_set: "install add %s activate"
+    config_set: "install add %s %s activate"
   query:
     config_get: "show install packages"
     # pass in the pkg name, retrieve version
