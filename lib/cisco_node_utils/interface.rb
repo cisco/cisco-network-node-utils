@@ -90,7 +90,7 @@ module Cisco
 
     def description=(desc)
       raise TypeError unless desc.is_a?(String)
-      desc.empty? ?
+      desc.strip.empty? ?
         @@node.config_set("interface", "description", @name, "no", "") :
         @@node.config_set("interface", "description", @name, "", desc)
     rescue Cisco::CliError => e

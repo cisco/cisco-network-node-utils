@@ -4,6 +4,12 @@ Changelog
 (unreleased)
 ------------
 
+### Added
+
+* Added Vrf class for managing Cisco VRF configuration
+
+### Fixed
+
 * Improved logic in Vtp class to handle the presence or absence of
   'feature vtp' and 'vtp domain' configuration.
 * Fixed missing `default_timer_throttle_*` APIs in RouterOspfVrf class.
