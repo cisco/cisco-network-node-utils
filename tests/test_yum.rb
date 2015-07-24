@@ -49,7 +49,6 @@ class TestYum < CiscoTestCase
   end
 
   def test_install
-    begin 
       skip?
       if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
         @device.cmd("install deactivate #{@@pkg}")
@@ -60,9 +59,8 @@ class TestYum < CiscoTestCase
       sleep 20
       s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
       assert(s, "failed to find installed package #{@@pkg}")
-    rescue RuntimeError => e 
+    rescue RuntimeError => e
       assert(false, e.message)
-    end  
   end
 
   def test_remove

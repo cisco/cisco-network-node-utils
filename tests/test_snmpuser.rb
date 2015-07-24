@@ -640,7 +640,7 @@ class TestSnmpUser < CiscoTestCase
    # puts "line: #{line}"
    refute(line.nil?)
    snmpuser.destroy
-  end
+ end
 
  def test_snmpuser_create_with_single_group_auth_sha_priv_aes128_pw_localized
    name = "userv3testauth"
