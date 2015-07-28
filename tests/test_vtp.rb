@@ -227,13 +227,11 @@ class TestVtp < CiscoTestCase
     }
   end
 
-=begin KNOWN_FAILURE
   def test_vtp_password_special_characters
     vtp = vtp_domain("password")
     vtp.password = 'hello!//\\#%$x'
     assert_equal('hello!//\\#%$x', vtp.password)
   end
-=end
 
   def test_vtp_filename_nil
     vtp = vtp_domain("accounting")
