@@ -21,7 +21,7 @@ This document is a HowTo guide for writing new cisco node_utils APIs. The node_u
 
 There are multiple components involved when creating new resources. This document focuses on the cisco node_utils API, command reference YAML files, and minitests.
 
-![1](agent_files.png)
+![1](docs/agent_files.png)
 
 ## <a name="clone">Start here: Clone the Repo</a>
 
