@@ -750,4 +750,16 @@ class TestRouterOspfVrf < CiscoTestCase
       "Error: #{vrf.name} vrf, max timer throttle spf not correct")
     vrf.parent.destroy
   end
+
+  def test_routerospfvrf_noninstantiated
+    routerospf = create_routerospf
+    vrf = RouterOspfVrf.new("absent", "absent", false)
+    vrf.auto_cost
+    vrf.default_metric
+    vrf.log_adjacency
+    vrf.router_id
+    vrf.timer_throttle_lsa
+    vrf.timer_throttle_spf
+    routerospf.destroy
+  end
 end
