@@ -21,7 +21,7 @@ require File.join(File.dirname(__FILE__), 'node')
 
 module Cisco
 class RouterBgp
-  attr_reader :asnum
+  attr_reader :asnum, :vrf
 
   @@node = Cisco::Node.instance
 
@@ -92,7 +92,7 @@ class RouterBgp
   # Convert BGP ASN ASDOT+ to ASPLAIN
   def RouterBgp.dot_to_big(dot_str)
     raise ArgumentError unless dot_str.is_a? String
-    return dot_str unless /\d+.\d+/.match(dot_str)
+    return dot_str unless /\d+\.\d+/.match(dot_str)
     mask = 0b1111111111111111
     high = dot_str.to_i
     low = 0
@@ -104,6 +104,17 @@ class RouterBgp
   end
 
   def router_bgp(asnum, vrf, state="")
+    # Only one bgp autonomous system number is allowed
+    # Raise an error if one is already configured that
+    # differs from the one being created.
+    configured = @@node.config_get("bgp", "router")
+    if !configured.nil? && configured.first.to_s != asnum.to_s
+      raise = %(
+        Changing the BGP Autonomous System Number is not allowed.
+        Current BGP asn: #{configured.first}
+        Attempted change to asn: #{asnum}
+            )
+    end
     @set_args[:state] = state
     vrf == 'default' ?
       @@node.config_set("bgp", "router", @set_args) :
@@ -148,6 +159,17 @@ class RouterBgp
 
   # Attributes:
 
+  # WARNING: BGP defect CSCuv52710 impacts these tests in the following manner.
+  #
+  # If an attempt is made to remove certain features when they not configured
+  # using nxapi, a code: 400 clierror is generated.  This causes problems
+  # when puppet attempts to create a new resource and set the parameter to
+  # it's default value.  To work around this we will call the getter method
+  # and only set the value if it's different then the current value.
+  def workaround_CSCuv52710(test_value, current_value)
+    test_value == current_value
+  end
+
   # Bestpath Getters
   def bestpath_always_compare_med
     match = @@node.config_get("bgp", "bestpath_always_compare_med", @get_args)
@@ -181,36 +203,42 @@ class RouterBgp
 
   # Bestpath Setters
   def bestpath_always_compare_med=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_always_compare_med)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_always_compare_med", @set_args)
     set_args_keys_default()
   end
 
   def bestpath_aspath_multipath_relax=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_aspath_multipath_relax)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_aspath_multipath_relax", @set_args)
     set_args_keys_default()
   end
 
   def bestpath_compare_routerid=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_compare_routerid)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_compare_routerid", @set_args)
     set_args_keys_default()
   end
 
   def bestpath_cost_community_ignore=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_cost_community_ignore)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_cost_community_ignore", @set_args)
     set_args_keys_default()
   end
 
   def bestpath_med_confed=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_med_confed)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_med_confed", @set_args)
     set_args_keys_default()
   end
 
   def bestpath_med_non_deterministic=(enable)
+    return if workaround_CSCuv52710(enable, bestpath_med_non_deterministic)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "bestpath_med_non_deterministic", @set_args)
     set_args_keys_default()
@@ -248,11 +276,13 @@ class RouterBgp
   end
 
   def cluster_id=(id)
-    # In order to remove a bgp cluster id you cannot
-    # simply issue 'no bgp cluster-id'.  IMO this should be possible
-    # because you can only configure a single bgp cluster-id.
+    # In order to remove a bgp cluster_id you cannot simply issue
+    # 'no bgp cluster-id'.  IMO this should be possible because you
+    # can only configure a single bgp cluster-id.
+    #
     # HACK: specify a dummy id when removing the feature.
     # CSCuu76807
+    return if workaround_CSCuv52710(id, cluster_id)
     dummy_id = 1
     id == default_cluster_id ?
       (@set_args[:state], @set_args[:id] = "no", dummy_id) :
@@ -272,11 +302,13 @@ class RouterBgp
   end
 
   def confederation_id=(id)
-    # In order to remove a bgp confed id you cannot
-    # simply issue 'no bgp confederation id'.  IMO this should be possible
+    # In order to remove a bgp confed id you cannot simply issue
+    # 'no bgp confederation id'.  IMO this should be possible
     # because you can only configure a single bgp confed id.
+    #
     # HACK: specify a dummy id when removing the feature.
     # CSCuu76807
+    return if workaround_CSCuv52710(id, confederation_id)
     dummy_id = 1
     id == default_confederation_id ?
       (@set_args[:state], @set_args[:id] = "no", dummy_id) :
@@ -295,12 +327,18 @@ class RouterBgp
     match.nil? ? default_confederation_peers : match.first
   end
 
-  def confederation_peers_set(peers, remove=false)
-    (@set_args[:state], @set_args[:peer_list] = "no", peers) if remove
-    peers == default_confederation_peers ?
-      (@set_args[:state], @set_args[:peer_list] = "no", confederation_peers) :
-      (@set_args[:state], @set_args[:peer_list] = "", peers) unless remove
-    @@node.config_set("bgp", "confederation_peers", @set_args)
+  def confederation_peers_set(peers)
+    return if workaround_CSCuv52710(peers, confederation_peers)
+    # The confederation peers command is additive so we first need to
+    # remove any existing peers.
+    if not confederation_peers.empty?
+      @set_args[:state], @set_args[:peer_list] = 'no', confederation_peers
+      @@node.config_set("bgp", "confederation_peers", @set_args)
+    end
+    unless peers == default_confederation_peers
+      @set_args[:state], @set_args[:peer_list] = '', peers
+      @@node.config_set("bgp", "confederation_peers", @set_args)
+    end
     set_args_keys_default()
   end
 
@@ -331,12 +369,14 @@ class RouterBgp
 
   # Graceful Restart Setters
   def graceful_restart=(enable)
+    return if workaround_CSCuv52710(enable, graceful_restart)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "graceful_restart", @set_args)
     set_args_keys_default()
   end
 
   def graceful_restart_timers_restart=(seconds)
+    return if workaround_CSCuv52710(seconds, graceful_restart_timers_restart)
     seconds == default_graceful_restart_timers_restart ?
       (@set_args[:state], @set_args[:seconds] = "no", "") :
       (@set_args[:state], @set_args[:seconds] = "", seconds)
@@ -345,6 +385,7 @@ class RouterBgp
   end
 
   def graceful_restart_timers_stalepath_time=(seconds)
+    return if workaround_CSCuv52710(seconds, graceful_restart_timers_stalepath_time)
     seconds == default_graceful_restart_timers_stalepath_time ?
       (@set_args[:state], @set_args[:seconds] = "no", "") :
       (@set_args[:state], @set_args[:seconds] = "", seconds)
@@ -353,6 +394,7 @@ class RouterBgp
   end
 
   def graceful_restart_helper=(enable)
+    return if workaround_CSCuv52710(enable, graceful_restart_helper)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "graceful_restart_helper", @set_args)
     set_args_keys_default()
@@ -382,6 +424,7 @@ class RouterBgp
   end
 
   def log_neighbor_changes=(enable)
+    return if workaround_CSCuv52710(enable, log_neighbor_changes)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "log_neighbor_changes", @set_args)
     set_args_keys_default()
@@ -398,6 +441,7 @@ class RouterBgp
   end
 
   def neighbor_fib_down_accelerate=(enable)
+    return if workaround_CSCuv52710(enable, neighbor_fib_down_accelerate)
     @set_args[:state] = (enable ? "" : "no")
     @@node.config_set("bgp", "neighbor_fib_down_accelerate", @set_args)
     set_args_keys_default()
@@ -414,6 +458,7 @@ class RouterBgp
   end
 
   def reconnect_interval=(seconds)
+    return if workaround_CSCuv52710(seconds, reconnect_interval)
     seconds == default_reconnect_interval ?
       (@set_args[:state], @set_args[:seconds] = "no", "") :
       (@set_args[:state], @set_args[:seconds] = "", seconds)
@@ -432,11 +477,11 @@ class RouterBgp
   end
 
   def router_id=(id)
-    # In order to remove a bgp router-id you cannot
-    # simply issue 'no bgp router-id'.  IMO this should be possible
-    # because you can only configure a single bgp router-id.
-    # HACK: specify a dummy id when removing the feature.
-    # CSCuu76807
+    # In order to remove a bgp router-id you cannot simply issue
+    # 'no bgp router-id'.  IMO this should be possible because you can only
+    # configure a single bgp router-id.  I filed CSCuu76807 to track this
+    # issue but it was closed.  Dummy-id specified to work around this.
+    return if workaround_CSCuv52710(id, router_id)
     dummy_id = "1.2.3.4"
     id == default_router_id ?
       (@set_args[:state], @set_args[:id] = "no", dummy_id) :
@@ -472,9 +517,10 @@ class RouterBgp
   end
 
   def suppress_fib_pending=(enable)
-    enable == true ? @set_args[:state] = "" : @set_args[:state] = "no"
-    @@node.config_set("bgp", "suppress_fib_pending", @set_args)
-    set_args_keys_default()
+    return if workaround_CSCuv52710(enable, suppress_fib_pending)
+      enable == true ? @set_args[:state] = "" : @set_args[:state] = "no"
+      @@node.config_set("bgp", "suppress_fib_pending", @set_args)
+      set_args_keys_default()
   end
 
   def default_suppress_fib_pending
@@ -490,13 +536,13 @@ class RouterBgp
   def timer_bgp_keepalive
     keepalive, hold = timer_bgp_keepalive_hold
     return default_timer_bgp_keepalive if keepalive.nil?
-    keepalive
+    keepalive.to_i
   end
 
   def timer_bgp_holdtime
     keepalive, hold = timer_bgp_keepalive_hold
     return default_timer_bgp_holdtime if hold.nil?
-    hold
+    hold.to_i
   end
 
   def timer_bestpath_limit
@@ -511,6 +557,8 @@ class RouterBgp
 
   # BGP Timers Setters
   def timer_bgp_keepalive_hold_set(keepalive, hold)
+    return if workaround_CSCuv52710(keepalive, timer_bgp_keepalive) and
+              workaround_CSCuv52710(hold, timer_bgp_holdtime)
     if keepalive == default_timer_bgp_keepalive and
        hold == default_timer_bgp_holdtime
       @set_args[:state], @set_args[:keepalive],
@@ -523,19 +571,15 @@ class RouterBgp
     set_args_keys_default()
   end
 
-  def timer_bestpath_limit=(seconds)
+  def timer_bestpath_limit_set(seconds, always=false)
+    return if workaround_CSCuv52710(seconds, timer_bestpath_limit) and
+              workaround_CSCuv52710(always, timer_bestpath_limit_always)
+    always ? feature = 'timer_bestpath_limit_always' :
+             feature = 'timer_bestpath_limit'
     seconds == default_timer_bestpath_limit ?
       (@set_args[:state], @set_args[:seconds] = "no", "") :
       (@set_args[:state], @set_args[:seconds] = "", seconds)
-    @@node.config_set("bgp", "timer_bestpath_limit", @set_args)
-    set_args_keys_default()
-  end
-
-  def timer_bestpath_limit_always=(enable)
-    enable == true ?
-      (@set_args[:state], @set_args[:seconds] = "", timer_bestpath_limit) :
-      (@set_args[:state], @set_args[:seconds] = "no", timer_bestpath_limit)
-    @@node.config_set("bgp", "timer_bestpath_limit_always", @set_args)
+    @@node.config_set("bgp", feature, @set_args)
     set_args_keys_default()
   end
 

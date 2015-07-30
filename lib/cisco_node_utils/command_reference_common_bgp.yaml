@@ -132,7 +132,7 @@ bgp:
     default_value: 180
 
   timer_bestpath_limit:
-    config_get_token_append: '/^timers bestpath-limit (\d+)$/'
+    config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
     config_set_append: '<state> timers bestpath-limit <seconds>'
     default_value: 300
 

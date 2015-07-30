@@ -147,7 +147,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(Cisco::CliError) do
+    assert_raises(RuntimeError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end
@@ -435,28 +435,19 @@ class TestRouterBgp < CiscoTestCase
       assert_equal("15", bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be '15'")
       bgp.confederation_peers_set(16)
-      assert_equal("15 16", bgp.confederation_peers,
-        "vrf #{vrf}: bgp confederation_peers list should be '15 16'")
+      assert_equal("16", bgp.confederation_peers,
+        "vrf #{vrf}: bgp confederation_peers list should be '16'")
       bgp.confederation_peers_set(55.77)
-      assert_equal("15 16 55.77", bgp.confederation_peers,
+      assert_equal("55.77", bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 16 55.77'")
-      bgp.confederation_peers_set('18 555 299')
+        "'55.77'")
+      bgp.confederation_peers_set("15 16 55.77 18 555 299")
       assert_equal("15 16 55.77 18 555 299",
         bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be" +
         "'15 16 55.77 18 555 299'")
-      bgp.confederation_peers_set(16, remove=true)
-      assert_equal("15 55.77 18 555 299",
-        bgp.confederation_peers,
-        "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 55.77 18 555 299'")
-      bgp.confederation_peers_set("55.77 555", remove=true)
-      assert_equal("15 18 299", bgp.confederation_peers,
-        "vrf #{vrf}: bgp confederation_peers list should be" +
-        "'15 18 299'")
       bgp.confederation_peers_set("")
-      assert_equal("", bgp.confederation_peers,
+      assert_empty(bgp.confederation_peers,
         "vrf #{vrf}: bgp confederation_peers list should be empty")
       bgp.destroy
     end
@@ -694,10 +685,10 @@ class TestRouterBgp < CiscoTestCase
         vrf = "yamllll"
         bgp = RouterBgp.new(asnum, vrf)
       end
-      bgp.timer_bestpath_limit = 34
+      bgp.timer_bestpath_limit_set(34)
       assert_equal(34, bgp.timer_bestpath_limit,
         "vrf #{vrf}: bgp timer_bestpath_limit should be set to '34'")
-      bgp.timer_bestpath_limit = 300
+      bgp.timer_bestpath_limit_set(300)
       assert_equal(300, bgp.timer_bestpath_limit,
         "vrf #{vrf}: bgp timer_bestpath_limit should be set to '300'")
       bgp.destroy
@@ -723,10 +714,10 @@ class TestRouterBgp < CiscoTestCase
         vrf = "yamllll"
         bgp = RouterBgp.new(asnum, vrf)
       end
-      bgp.timer_bestpath_limit_always = true
+      bgp.timer_bestpath_limit_set(34, true)
       assert(bgp.timer_bestpath_limit_always,
         "vrf #{vrf}: bgp timer_bestpath_limit_always should be enabled")
-      bgp.timer_bestpath_limit_always = false
+      bgp.timer_bestpath_limit_set(34, false)
       refute(bgp.timer_bestpath_limit_always,
         "vrf #{vrf}: bgp timer_bestpath_limit_always should be disabled")
       bgp.destroy
@@ -766,16 +757,16 @@ class TestRouterBgp < CiscoTestCase
       bgp.timer_bgp_keepalive_hold_set(60, 180)
       assert_equal(%w(60 180), bgp.timer_bgp_keepalive_hold,
         "vrf #{vrf}: bgp timer keepalive and hold values should be '60 and 180'")
-      assert_equal('60', bgp.timer_bgp_keepalive,
+      assert_equal(60, bgp.timer_bgp_keepalive,
         "vrf #{vrf}: bgp timer keepalive value should be '60'")
-      assert_equal('180', bgp.timer_bgp_holdtime,
+      assert_equal(180, bgp.timer_bgp_holdtime,
         "vrf #{vrf}: bgp timer keepalive value should be '180'")
       bgp.timer_bgp_keepalive_hold_set(500, 3600)
       assert_equal(%w(500 3600), bgp.timer_bgp_keepalive_hold,
         "vrf #{vrf}: bgp timer keepalive and hold values should be '500 and 3600'")
-      assert_equal('500', bgp.timer_bgp_keepalive,
+      assert_equal(500, bgp.timer_bgp_keepalive,
         "vrf #{vrf}: bgp timer keepalive value should be '500'")
-      assert_equal('3600', bgp.timer_bgp_holdtime,
+      assert_equal(3600, bgp.timer_bgp_holdtime,
         "vrf #{vrf}: bgp timer keepalive value should be '3600'")
       bgp.destroy
     end
