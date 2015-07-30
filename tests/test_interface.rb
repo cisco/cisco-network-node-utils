@@ -225,16 +225,16 @@ SWITCHPORT_SHUTDOWN_HASH = {
 
       # check of description
       assert_equal(v[:description], interface.description,
-                   "Error: Description not configured")
+                   "Error: [#{interface.name}] Description is not configured")
 
       # change description
       interface.description = v[:description_new]
       assert_equal(v[:description_new], interface.description,
-                   "Error: Description not configured")
+                   "Error: [#{interface.name}] Description is not changed")
 
       # get_default check
       assert_equal(v[:default_description], interface.default_description,
-                   "Error: Description, default, not configured")
+                   "Error: [#{interface.name}] Default description is not configured")
     end
   end
 
