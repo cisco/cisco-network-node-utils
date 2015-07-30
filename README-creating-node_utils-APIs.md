@@ -106,10 +106,6 @@ class BashShell
   # Establish connection to node
   @@node = Cisco::Node.instance
 
-  def initialize
-    feature_enable unless feature_enabled
-  end
-
   def feature_enable
     @@node.config_set('bash_shell', 'feature', { :state => ''})
   end
@@ -119,7 +115,7 @@ class BashShell
   end
 
   # Check current state of the configuration
-  def feature_enabled
+  def BashShell.feature_enabled
     feat =  @@node.config_get('bash_shell', 'feature')
     return (!feat.nil? and !feat.empty?)
   rescue Cisco::CliError => e
@@ -202,14 +198,13 @@ class TestBashShell < CiscoTestCase
 
   def test_feature_on
     feat = BashShell.new()
-    assert(feat.feature_enabled)
+    feat.feature_enable
+    assert(BashShell.feature_enabled)
+
+    feat.feature_disable
+    refute(BashShell.feature_enabled)
   end
 
-  def test_feature_off
-    feat = BashShell.new()
-    feat.feature_disable
-    refute(feat.feature_enabled)
-  end
 end
 ```
 
@@ -225,25 +220,29 @@ ruby test_bash_shell.rb -- <node_ip_address> <user> <passwd>
 
 ```bash
 % ruby  test_bash_shell.rb  -- 192.168.0.1 admin admin
-Run options: -- --seed 58235
+Run options: -v -- --seed 23392
 
 # Running tests:
 
+CiscoTestCase#test_placeholder =
 Ruby Version - 1.9.3
 Node in CiscoTestCase Class: 192.168.0.1
 Platform:
-  - name  - n31x-101
-  - type  - N3K-C3132Q-40GX
-  - image -
+  - name  - my_n9k
+  - type  - N9K-C9504
+  - image - bootflash:///n9000-dk9.7.0.3.I2.0.509.bin
 
-.....
+1.79 s = .
+TestBashShell#test_feature_on_off = 1.42 s = .
+TestBashShell#test_placeholder = 0.95 s = .
+TestCase#test_placeholder = 0.81 s = .
 
-Finished tests in 9.179096s, 0.5447 tests/s, 0.2179 assertions/s.
+Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
 
-5 tests, 2 assertions, 0 failures, 0 errors, 0 skips
+4 tests, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-*Note. The minitest harness counts the helper methods as tests which is why the final tally shows 5 tests instead of just 2 tests.*
+*Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
 
 ### <a name="lint">Step 3. rubocop / lint: feature bash-shell</a>
 

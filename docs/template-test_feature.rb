@@ -34,21 +34,19 @@ class Test__CLASS_NAME__ < CiscoTestCase
 
   def no_feature
     # setup/teardown helper. Turn the feature off for a clean testbed.
-    @device.cmd("conf t ; no feature __CLI_NAME__ ; end")
+    @device.cmd('conf t ; no feature __CLI_NAME__ ; end')
     # Flush the cache since we've modified the device outside of the node_utils APIs
     node.cache_flush()
   end
 
   # TESTS
 
-  def test_feature_on
+  def test_feature_on_off
     feat = __CLASS_NAME__.new()
-    assert(feat.feature_enabled)
-  end
+    feat.feature_enable
+    assert(BashShell.feature_enabled)
 
-  def test_feature_off
-    feat = __CLASS_NAME__.new()
     feat.feature_disable
-    refute(feat.feature_enabled)
+    refute(BashShell.feature_enabled)
   end
 end

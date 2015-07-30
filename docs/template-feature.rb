@@ -25,10 +25,6 @@ class __CLASS_NAME__
   # Establish connection to node
   @@node = Cisco::Node.instance
 
-  def initialize
-    feature_enable unless feature_enabled
-  end
-
   def feature_enable
     @@node.config_set('__RESOURCE_NAME__', 'feature', { :state => ''})
   end
@@ -38,7 +34,7 @@ class __CLASS_NAME__
   end
 
   # Check current state of the configuration
-  def feature_enabled
+  def __CLASS_NAME__.feature_enabled
     feat =  @@node.config_get('__RESOURCE_NAME__', 'feature')
     return (!feat.nil? and !feat.empty?)
   rescue Cisco::CliError => e
