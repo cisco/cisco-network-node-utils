@@ -196,7 +196,7 @@ class TestBashShell < CiscoTestCase
     node.cache_flush()
   end
 
-  def test_feature_on
+  def test_feature_on_off
     feat = BashShell.new()
     feat.feature_enable
     assert(BashShell.feature_enabled)
