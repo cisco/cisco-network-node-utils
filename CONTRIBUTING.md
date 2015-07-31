@@ -1,31 +1,33 @@
-# Contributing
+# How to contribute
+Cisco Network Elements support a rich set of features to make networks robust, efficient and secure. The GitHub project [cisco-network-puppet-module](https://github.com/cisco/cisco-network-puppet-module) defines a set of Puppet resource types and providers to manage the network element. Similarly, the GitHub project [cisco-network-chef-cookbook](https://github.com/cisco/cisco-network-chef-cookbook) defines a set of Chef resources and providers for network element management. The providers defined in these projects leverage a common set of Ruby API Objects defined in this project. This object set is expected to grow with contributions from Cisco, Cisco-Partners and third-party alike. Contributions to this project are welcome. To ensure code quality, contributors will be requested to follow few guidelines.
 
-## Submitting an Issue
+## Getting Started
 
-Issues are tracked on GitHub (TODO).
+* Create a [GitHub account](https://github.com/signup/free)
+* Create a [cisco.com](cisco.com) account if you need access to a Network Simulator to test your code.
 
-## Developing a new Feature Provider
+## Making Changes
 
-1. Create a new class file in `lib/cisco_node_utils/`.
-2. Write the class.
-3. Add the class to `lib/cisco_node_utils.rb`.
-4. Create a new minitest file in `tests/`.
-5. Write the minitest. We recommend subclassing the provided `CiscoTestCase`
-   class as it provides numerous helper methods.
-6. Run the minitest. `ruby test_my_feature.rb -- <NX-OS node IP> <user> <pass>`
-7. Once minitest is passing, add the test to `tests/test_all_cisco.rb`.
-8. Run rubocop (`rake rubocop`) and fix any failures.
-9. Proceed to submit a pull request as described below.
+* Fork the repository
+  * Pull a branch under the "develop" branch for your changes.
+  * Follow all guidelines documented in [README-creating-node_utils-APIs](#README-creating-node_utils-APIs.md)
+  * Make changes in your branch.
+* Testing
+  * Create a minitest for new APIs or new functionality
+  * Run all the tests to ensure there was no collateral damage to existing code
+* Committing
+  * Check for unnecessary whitespace with `git diff --check` before committing.
+  * Run `rubocop --lint` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)
+  * Make sure your commit messages clearly describe the problem you are trying to solve and the proposed solution.
 
-## Submitting a Pull Request
+## Submitting Changes
 
-1. Fork the code (https://github.com/cisco/cisco_node_utils/fork) (TODO)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Write your code
-4. Write minitest cases to cover your new code
-5. Verify that minitest passes in full (`ruby tests/test_all_cisco.rb --
-   n3k_test.mycompany.com username password`)
-6. Verify that rubocop also passes (`rake rubocop`).
-7. Commit your changes (`git commit -am 'Add some feature'`)
-8. Push to the branch (`git push origin my-new-feature`)
-9. Create a new Pull Request
+* All contributions you submit to this project are voluntary and subject to the terms of the Apache 2.0 license
+* Submit a pull request to the repository
+* A core team consisting of Cisco and Cisco-Partner employees will looks at Pull Request and provide feedback.
+* After feedback has been given we expect responses within two weeks. After two weeks we may close the pull request if it isn't showing any activity.
+
+# Additional Resources
+
+* [General GitHub documentation](http://help.github.com/)
+* [GitHub pull request documentation](http://help.github.com/send-pull-requests/)
