@@ -246,7 +246,7 @@ Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
 
 ### <a name="lint">Step 3. rubocop / lint: feature bash-shell</a>
 
-robocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
+rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
 
 ```bash
 % rubocop --lint bash_shell.rb
@@ -652,7 +652,7 @@ Finished tests in 37.512356s, 0.1866 tests/s, 0.3199 assertions/s.
 
 ### <a name="comp_lint">Step 4. rubocop / lint: router eigrp</a>
 
-robocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
+rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
 
 ```bash
 % rubocop --lint router_eigrp.rb
