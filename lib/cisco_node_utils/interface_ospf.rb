@@ -24,7 +24,7 @@ require File.join(File.dirname(__FILE__), 'interface')
 
 module Cisco
   class InterfaceOspf
-    attr_reader :interface, :ospf_name, :area
+    attr_reader :interface, :ospf_name
 
     @@node = Node.instance
 
@@ -42,7 +42,6 @@ module Cisco
       raise "interface #{int_name} does not exist" if @interface.nil?
 
       @ospf_name = ospf_name
-      @area = area
 
       if create
         # enable feature ospf if it isn't
@@ -76,9 +75,20 @@ module Cisco
       ints
     end
 
+    def area
+      match = @@node.config_get("interface_ospf", "area", @interface.name)
+      return nil if match.nil?
+      return match[0][1]
+    end
+
+    def area=(a)
+      @@node.config_set("interface_ospf", "area", @interface.name,
+        "", @ospf_name, a)
+    end
+
     def destroy
       @@node.config_set("interface_ospf", "area", @interface.name,
-        "no", @ospf_name, @area)
+        "no", @ospf_name, area)
       # Reset everything else back to default as well:
       self.message_digest = default_message_digest
       message_digest_key_set(default_message_digest_key_id, "", "", "")

@@ -79,6 +79,36 @@ class TestInterfaceOspf < CiscoTestCase
     node.cache_flush
   end
 
+  def test_get_set_area
+    # setup a loopback to use
+    @device.cmd("configure terminal")
+    @device.cmd("interface loopback12")
+    @device.cmd("end")
+    node.cache_flush
+
+    int_ospf = InterfaceOspf.new("loopback12", "12", "0.0.0.0")
+
+    # test invalid
+    assert_raises(CliError) do
+      int_ospf.area = "Blue"
+    end
+
+    # test get/set ip address form
+    int_ospf.area = "0.0.0.4"
+    assert_equal(int_ospf.area, "0.0.0.4")
+
+    # test get/set integer form
+    int_ospf.area = "3"
+    assert_equal(int_ospf.area, "3")
+
+    # cleanup
+    int_ospf.destroy
+    @device.cmd("configure terminal")
+    @device.cmd("no interface loopback12")
+    @device.cmd("end")
+    node.cache_flush
+  end
+
   def test_interfaceospf_collection_empty
     @device.cmd("configure terminal")
     @device.cmd("no feature ospf")
