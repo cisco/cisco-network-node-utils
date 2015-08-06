@@ -10,9 +10,13 @@ bgp:
     config_get_token: '/^router bgp <asnum>$/'
     config_get_token_append:
       - '/^vrf <vrf>$/'
+      - '/^address-family <afi> <safi>$/'
+      - '/^neighbor <address>$/'
     config_set: "router bgp <asnum>"
     config_set_append:
       - "vrf <vrf>"
+      - '/^address-family <afi> <safi>$/'
+      - '/^neighbor <address>$/'
 
   bestpath_always_compare_med:
     config_get_token_append: '/^bestpath always-compare-med$/'
