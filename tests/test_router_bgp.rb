@@ -147,7 +147,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end
