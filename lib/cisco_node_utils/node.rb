@@ -33,11 +33,11 @@ module Cisco
     attr_reader :command, :clierror, :previous
     def initialize(command, clierror, previous)
       @command = command
-      @clierror = clierror
+      @clierror = clierror.rstrip
       @previous = previous
     end
 
-    def message
+    def to_s
       "CliError: '#{@command}' rejected with message:\n'#{@clierror}'"
     end
   end
