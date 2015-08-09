@@ -1,0 +1,51 @@
+# test command config yaml file
+---
+feature-enable:
+  command: |
+          feature tacacs+
+          feature ospf
+          feature bgp
+          feature pim
+          feature msdp
+          feature private-vlan
+          feature udld
+          feature interface-vlan
+          feature hsrp
+          feature lacp
+          feature dhcp
+          feature vtp
+
+feature-disable:
+  command: |
+          no feature tacacs+
+          no feature ospf
+          no feature bgp
+          no feature pim
+          no feature msdp
+          no feature private-vlan
+          no feature udld
+          no feature interface-vlan
+          no feature hsrp
+          no feature lacp
+          no feature dhcp
+          no feature vtp
+
+feature-snmp-comm-acl-ro:
+  command: |
+           snmp-server community networkopercom group network-operator
+           snmp-server community networkopercom use-acl SNMP_RO
+
+feature-snmp-comm-acl-rw:
+  command: |
+           snmp-server community admincom group network-admin
+           snmp-server community admincom use-acl SNMP_RW
+
+feature-int-loopback:
+  command: > 
+          interface loopback0
+            description testloopback
+
+feature-int-portchannel:
+  command: > 
+          interface port-channel100
+            description test-portchannel

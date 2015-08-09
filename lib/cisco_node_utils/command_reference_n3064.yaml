@@ -1,0 +1,13 @@
+# Command Reference N3K, 3064 specific model
+#
+# For documentation please see these files for fields and defaults:
+#   - README_YAML.md
+#   - command_reference_common.yaml
+#
+---
+interface:
+  negotiate_auto_ethernet:
+    config_set: ~
+    config_get: ~
+    config_get_token: ~
+    default_value: false

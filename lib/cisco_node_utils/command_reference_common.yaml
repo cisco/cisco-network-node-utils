@@ -1,0 +1,845 @@
+# Command Reference Common 
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+aaa_authentication_login:
+  ascii_authentication:
+    config_get: "show run aaa all"
+    config_get_token: '/^aaa authentication login ascii-authentication/'
+    config_set: "%s aaa authentication login ascii-authentication"
+    default_value: false
+
+  chap:
+    config_get: "show run aaa all"
+    config_get_token: '/^aaa authentication login chap enable/'
+    config_set: "%s aaa authentication login chap enable"
+    default_value: false
+
+  error_display:
+    config_get: "show run aaa all"
+    config_get_token: '/^aaa authentication login error-enable/'
+    config_set: "%s aaa authentication login error-enable"
+    default_value: false
+
+  mschap:
+    config_get: "show run aaa all"
+    config_get_token: '/^aaa authentication login mschap enable/'
+    config_set: "%s aaa authentication login mschap enable"
+    default_value: false
+
+  mschapv2:
+    config_get: "show run aaa all"
+    config_get_token: '/^aaa authentication login mschapv2 enable/'
+    config_set: "%s aaa authentication login mschapv2 enable"
+    default_value: false
+
+aaa_auth_login_service:
+  groups:
+    config_get: "show aaa authentication"
+    config_get_token: ["TABLE_AuthenMethods", "ROW_AuthenMethods"]
+    # this set is only used when there are groups to configure
+    config_set: "%s aaa authentication login %s group %s %s"
+    default_value: []
+
+  method:
+    config_get: "show aaa authentication"
+    #config_get_token: '/aaa authentication login %s (?:group (?:\S+ )+)?(local|none)$/'
+    config_get_token: '/^\s*%s:.*(local|none)\s*$/'
+    # this set is only used when there are no groups to configure
+    config_set: "%s aaa authentication login %s %s"
+    default_value: :local
+
+  services:
+    config_get: "show run aaa all"
+    #config_get_token: '/^\s*(\S+):/'
+    config_get_token: '/^aaa authentication login (\S+) (?:none|group|local)/'
+
+aaa_server_group:
+  deadtime:
+    default_value: 0
+
+  servers:
+    default_value: []
+
+  source_interface:
+    default_value: ""
+
+  tacacs_deadtime:
+    config_get: "show run tacacs all"
+    config_get_token: ['/^aaa group server tacacs\+ %s/', '/^deadtime (\d+)/']
+    config_set: ["aaa group server tacacs %s", "%s deadtime %s"]
+
+  tacacs_group:
+    config_set: "%s aaa group server tacacs %s"
+
+  tacacs_groups:
+    config_get: "show run tacacs all"
+    config_get_token: '/^aaa group server tacacs\+ (\S+)/'
+
+  tacacs_server:
+    config_set: ["aaa group server tacacs %s", "%s server %s"]
+
+  tacacs_servers:
+    config_get: "show run tacacs all"
+    config_get_token: ['/^aaa group server tacacs\+ %s/', '/^server (\S+)/']
+
+  tacacs_source_interface:
+    config_get: "show run tacacs all"
+    config_get_token: ['/^aaa group server tacacs\+ %s/', '/^source-interface (\S+)/']
+    config_set: ["aaa group server tacacs %s", "%s source-interface %s"]
+
+  tacacs_vrf:
+    config_get: "show run tacacs all"
+    config_get_token: ['/^aaa group server tacacs\+ %s/', '/^use-vrf (\S+)/']
+    config_set: ["aaa group server tacacs %s", "%s use-vrf %s"]
+
+  vrf:
+    default_value: "default"
+
+domain_name:
+  domain_name:
+    # NOTE: This does not account for vrf ip domain-name
+    config_get: "show running-config"
+    config_get_token: '/^ip domain-name (.*)/'
+
+fex:
+  feature:
+    config_get: "show feature-set"
+    config_get_token: '/^fex[\s\d]+(\w+)/'
+    config_set: "%s feature-set fex"
+
+  feature_install:
+    config_set: "%s install feature-set fex"
+
+images:
+  packages:
+    config_get: 'show install patches'
+    # Package state should always be some variant of Active or Inactive
+    config_get_token: '/^(\S+)\s+(\S*[aA]ctive.*)\s*$/'
+
+interface:
+  access_vlan:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^switchport access vlan (.*)$/']
+    config_set: ["interface %s", "switchport access vlan %s"]
+    default_value: 1
+
+  all_interfaces:
+    config_get: "show running interface all"
+    config_get_token: '/^interface (.*)/'
+
+  create:
+    config_set: "interface %s"
+
+  description:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^description (.*)/']
+    config_set: ["interface %s", "%s description %s"]
+    default_value: ""
+
+  destroy:
+    config_set: "no interface %s"
+
+  feature_vlan:
+    config_get: "show running | i ^feature"
+    config_get_token: '/^feature interface-vlan$/'
+    config_set: "%s feature interface-vlan"
+
+  ipv4_addr_mask:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^ip address ([0-9\.]+)[\s\/](.*)/'
+    ]
+    config_set: ["interface %s", "%s ip address %s"]
+
+  ipv4_address:
+    default_value: ~
+
+  ipv4_netmask_length:
+    default_value: ~
+
+  ipv4_proxy_arp:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^ip proxy-arp$/'
+    ]
+    config_set: ["interface %s", "%s ip proxy-arp"]
+    default_value: false
+
+  ipv4_redirects_loopback:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^((?:no )?ip redirects)$/'
+    ]
+    config_set: ["interface %s", "%s ip redirects"]
+    default_value: true
+    test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
+    test_config_result:
+      false: RuntimeError
+      true: RuntimeError
+
+  ipv4_redirects_other_interfaces:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^((?:no )?ip redirects)$/'
+    ]
+    config_set: ["interface %s", "%s ip redirects"]
+    default_value: true
+    test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
+    test_config_result:
+      false: false
+      true: true
+
+  negotiate_auto_ethernet:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^negotiate auto$/'
+    ]
+    config_set: ["interface %s", "%s negotiate auto"]
+    default_value: true
+    test_config_get_regex: [
+    !ruby/regexp '/^\s+no negotiate auto/',
+    !ruby/regexp '/^\s+negotiate auto/'
+    ]
+
+  negotiate_auto_portchannel:
+    config_get: "show running interface all"
+    config_get_token: [
+    '/^interface %s$/i',
+    '/^negotiate auto$/'
+    ]
+    config_set: ["interface %s", "%s negotiate auto"]
+    default_value: false
+    test_config_get_regex: [
+    !ruby/regexp '/^\s+no negotiate auto/',
+    !ruby/regexp '/^\s+negotiate auto/'
+    ]
+
+  negotiate_auto_other_interfaces:
+    default_value: false
+    test_config_result:
+      false: RuntimeError
+      true: RuntimeError
+
+  shutdown:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^shutdown$/']
+    config_set: ["interface %s", "%s shutdown"]
+
+  shutdown_ether_channel:
+    default_value: false
+
+  shutdown_ethernet_noswitchport_noshutdown:
+    default_value: false
+
+  shutdown_ethernet_noswitchport_shutdown:
+    default_value: false
+
+  shutdown_ethernet_switchport_noshutdown:
+    default_value: false
+
+  shutdown_ethernet_switchport_shutdown:
+    default_value: true
+
+  shutdown_loopback:
+    default_value: false
+
+  shutdown_vlan:
+    default_value: true
+
+  shutdown_unknown:
+    default_value: true
+
+  system_default_switchport:
+    config_get: "show running all | include 'system default'"
+    config_get_token: ['/^system default switchport$/']
+    # default_value: n/a. This is a user-configurable system default.
+
+  system_default_switchport_shutdown:
+    config_get: "show running all | include 'system default'"
+    config_get_token: ['/^system default switchport shutdown$/']
+    # default_value: n/a. This is a user-configurable system default.
+
+  system_default_svi_autostate:
+    config_get: "show running all | include 'system default'"
+    config_get_token: ['/^system default interface-vlan autostate$/']
+    # default_value: n/a. This is a user-configurable system default.
+
+  switchport:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^switchport$/']
+    config_set: ["interface %s", "%s switchport"]
+    # default_value: n/a. This is derived from system_default_switchport
+
+  switchport_autostate_exclude:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/(^switchport autostate exclude)/']
+    config_set: ["interface %s", "%s switchport autostate exclude"]
+    default_value: false
+
+  switchport_mode_ethernet:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^switchport mode (.*)$/']
+    config_set: ["interface %s", "%s switchport mode %s"]
+    default_value: "access"
+
+  switchport_mode_port_channel:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^switchport mode (.*)$/']
+    config_set: ["interface %s", "%s switchport mode %s"]
+    default_value: ""
+
+  switchport_mode_other_interfaces:
+    default_value: ""
+
+  switchport_mode_dot1q_tunnel:
+    test_config_result:
+      false: RuntimeError
+
+  svi_autostate:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^autostate$/']
+    config_set: ["interface %s", "%s autostate"]
+    default_value: true
+    test_config_result:
+      false: false
+      true: true
+
+  svi_management:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^management$/']
+    config_set: ["interface %s", "%s management"]
+    default_value: false
+
+  vtp:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^vtp *$/']
+    config_set: ["interface %s", "%s vtp"]
+    default_value: false
+
+interface_ospf:
+  area:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip router ospf (\S+) area (\S+)/']
+    config_set: ["interface %s", "%s ip router ospf %s area %s"]
+
+  cost:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf cost (\d+)/']
+    config_set: ["interface %s", "%s ip ospf cost %s"]
+    default_value: 0
+
+  dead_interval:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf dead-interval (\d+)/']
+    config_set: ["interface %s", "%s ip ospf dead-interval %s"]
+    default_value: 40
+    test_config_result: [262141]
+
+  hello_interval:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf hello-interval (\d+)/']
+    config_set: ["interface %s", "%s ip ospf hello-interval %s"]
+    default_value: 10
+
+  message_digest:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf authentication message-digest/']
+    config_set: ["interface %s", "%s ip ospf authentication message-digest"]
+    default_value: false
+
+  message_digest_alg_type:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+    default_value: 'md5'
+
+  message_digest_enc_type:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ \S+ (\d+)/']
+    default_value: '0'
+
+  message_digest_password:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/']
+
+  message_digest_key_id:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key (\d+)/']
+    default_value: 0
+
+  message_digest_key_set:
+    config_set: ["interface %s", "%s ip ospf message-digest-key %s %s %s %s"]
+
+  passive_interface:
+    config_get: 'show running interface all'
+    config_get_token: ['/^interface %s$/i', '/^\s*ip ospf passive-interface/']
+    config_set: ["interface %s", "%s ip ospf passive-interface"]
+    default_value: false
+
+
+inventory:
+  all:
+    config_get: 'show inventory'
+    config_get_token: ["TABLE_inv", "ROW_inv"]
+
+  chassis:
+    config_get: 'show inventory'
+    config_get_token: ["TABLE_inv", "ROW_inv", {'name': '"Chassis"'}]
+
+  inventory:
+    test_config_get_regex: [
+    !ruby/regexp '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/',
+    !ruby/regexp '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/'
+    ]
+
+  productid:
+    config_get: "show inventory"
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
+
+  serialnum:
+    config_get: "show inventory"
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
+
+  versionid:
+    config_get: "show inventory"
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
+
+memory:
+  total:
+    config_get: 'show system resources'
+    config_get_token: '/Memory.* (\S+) total/'
+
+  used:
+    config_get: 'show system resources'
+    config_get_token: '/Memory.* (\S+) used/'
+
+  free:
+    config_get: 'show system resources'
+    config_get_token: '/Memory.* (\S+) free/'
+
+ospf:
+  _template:
+    config_get: "show running ospf all"
+    config_get_token: '/^router ospf <name>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+    config_set: "router ospf <name>"
+    config_set_append:
+      - "vrf <vrf>"
+
+  auto_cost:
+    config_get_token_append: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
+    config_set_append: "auto-cost reference-bandwidth <cost> <type>"
+    default_value: [40, "Gbps"]
+
+  default_metric:
+    config_get_token_append: '/^default-metric (\d+)?$/'
+    config_set_append: "<state> default-metric <metric>"
+    default_value: 0
+
+  feature:
+    config_get: "show running ospf"
+    config_get_token: '/^feature ospf$/'
+    config_set: "%s feature ospf"
+
+  log_adjacency:
+    config_get_token_append: '/^(log-adjacency-changes)\s*(detail)?$/'
+    config_set_append: "<state> log-adjacency-changes <type>"
+    default_value: :none
+
+  router:
+    config_get: "show running ospf"
+    config_get_token: '/^router ospf (\S+)$/'
+    config_set: "%s router ospf %s"
+
+  router_id:
+    config_get_token_append: '/^router-id (\S+)?$/'
+    config_set_append: "<state> router-id <router_id>"
+    default_value: ""
+
+  timer_throttle_lsa:
+    config_get_token_append: '/^timers throttle lsa (\d+) (\d+) (\d+)$/'
+    config_set_append: "timers throttle lsa <start> <hold> <max>"
+
+  timer_throttle_lsa_start:
+    default_value: 0
+
+  timer_throttle_lsa_hold:
+    default_value: 5000
+
+  timer_throttle_lsa_max:
+    default_value: 5000
+
+  timer_throttle_spf:
+    config_get_token_append: '/^timers throttle spf (\d+) (\d+) (\d+)$/'
+    config_set_append: "timers throttle spf <start> <hold> <max>"
+
+  timer_throttle_spf_start:
+    default_value: 200
+
+  timer_throttle_spf_hold:
+    default_value: 1000
+
+  timer_throttle_spf_max:
+    default_value: 5000
+
+  vrf:
+    config_get_token: ['/^router ospf <name>$/i', '/^vrf\s+(\S+)$/']
+    config_set: ["router ospf <name>", "<state> vrf <vrf>", "end"]
+
+show_system:
+  uptime:
+    config_get: 'show system uptime'
+    config_get_token: '/.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/'
+
+show_version:
+  board:
+    config_get: 'sh version'
+    config_get_token: 'proc_board_id'
+
+  boot_image:
+    config_get: "sh version"
+    config_get_token: "kick_file_name"
+    test_config_get: "sh version | no-more"
+    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
+
+  cpu:
+    config_get: 'sh version'
+    config_get_token: 'cpu_name'
+
+  description:
+    config_get: "sh version"
+    config_get_token: "chassis_id"
+    test_config_get: "sh version | no-more"
+    # Hardware
+    #   cisco Nexus9000 C9396PX Chassis
+    #
+    # Other variants for the line of interest:
+    #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
+    #                                          ^-module_id-ignore!-^
+    #   cisco Nexus3000 C3132Q Chassis
+    #   cisco N3K-C3048TP-1GE
+    test_config_get_regex: !ruby/regexp '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+
+  full:
+    config_get: "sh version"
+
+  header:
+    config_get: "sh version"
+    config_get_token: "header_str"
+
+  host_name:
+    config_get: "sh version"
+    config_get_token: "host_name"
+
+  last_reset_reason:
+    config_get: "sh version"
+    config_get_token: "rr_reason"
+    test_config_get: "sh version | no-more"
+    test_config_get_regex: !ruby/regexp '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
+
+  last_reset_time:
+    config_get: "sh version"
+    config_get_token: "rr_ctime"
+    test_config_get: "sh version | no-more"
+    test_config_get_regex: !ruby/regexp '/.*\nLast reset at \d+ usecs after  (.*)\n/'
+
+  system_image:
+    config_get: "sh version"
+    config_get_token: "isan_file_name"
+    test_config_get: "sh version | no-more"
+    test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
+
+  uptime:
+    config_get: 'show version'
+    config_get_token: '/uptime is (.*)/'
+
+  version:
+    config_get: "sh version"
+    test_config_get: "sh version | no-more"
+    config_get_token: "kickstart_ver_str"
+    test_config_get_regex: [
+    !ruby/regexp /\nkickstart_ver_str\s+(.+)\n/,
+    !ruby/regexp '/.*NXOS:\s+version (.*)\n/'
+    ]
+
+snmp_community:
+  acl:
+    config_get: "show running snmp all"
+    config_get_token: '/^snmp-server community %s use-acl (.*)$/'
+    config_set: "%s snmp-server community %s use-acl %s"
+    default_value: ""
+
+  all_communities:
+    config_get: "show running snmp all"
+    config_get_token: '/^snmp-server community (\S+) /'
+
+  community:
+    config_get: "show running snmp all"
+    config_get_token: '/^snmp-server community (%s) group .*$/'
+    config_set: "%s snmp-server community %s group %s"
+
+  group:
+    config_get: "show running snmp all"
+    config_get_token: '/^snmp-server community %s group (.*)$/'
+    config_set: "snmp-server community %s group %s"
+    default_value: "network-operator"
+
+snmp_group:
+  group:
+    config_get: "show snmp group"
+    config_get_token: "/^Role: (.*)$/"
+    default_value: ""
+
+snmp_server:
+  aaa_user_cache_timeout:
+    config_get: "show snmp internal globals"
+    config_get_token: '/AAA Cache Timeout :(\d+)/'
+    config_set: "%s snmp-server aaa-user cache-timeout %d"
+    default_value: 3600
+
+  contact:
+    config_get: "show snmp"
+    config_get_token: "sys_contact"
+    config_set: "%s snmp-server contact %s"
+    default_value: ""
+
+  global_enforce_priv:
+    config_get: "show run snmp"
+    config_get_token: '/snmp-server globalEnforcePriv/'
+    config_set: "%s snmp-server globalEnforcePriv"
+    default_value: true
+
+  location:
+    config_get: "show snmp"
+    config_get_token: "sys_location"
+    config_set: "%s snmp-server location %s"
+    default_value: ""
+
+  packet_size:
+    config_get: "show snmp internal globals"
+    config_get_token: '/SNMP Max packet size :(\d+)/'
+    config_set: "%s snmp-server packetsize %d"
+    default_value: 1500
+
+  protocol:
+    config_get: "show snmp"
+    config_get_token: "protocol_status"
+    config_set: "%s snmp-server protocol enable"
+    default_value: true
+
+  tcp_session_auth:
+    config_get: "show snmp"
+    config_get_token: "tcp_auth_status"
+    config_set: "%s snmp-server tcp-session %s"
+    default_value: true
+
+
+snmp_user:
+  auth_password:
+    config_get: "show run snmp all"
+    config_get_token: '/snmp-server user (\S+) \S+ auth \S+ (\S+)/'
+    default_value: ""
+
+  # The getter format will not have group info if engine id is configured.
+  auth_password_with_engine_id:
+    config_get: "show run snmp all"
+    config_get_token: '/snmp-server user (\S+) auth \S+ (\S+) .*engineID (\S+)/'
+    default_value: ""
+
+  auth_protocol:
+    default_value: "md5"
+
+  engine_id:
+    default_value: ""
+
+  group:
+    default_value: "network-operator"
+
+  priv_password:
+    config_get: "show run snmp all"
+    config_get_token: '/snmp-server user (\S+) \S+ auth \S+ \S+ priv.*(0x\S+)/'
+    default_value: ""
+
+  # The getter format will not have group info if engine id is configured.
+  priv_password_with_engine_id:
+    config_get: "show run snmp all"
+    config_get_token: '/snmp-server user (\S+) auth \S+ \S+ priv .*(0x\S+) .*engineID (\S+)/'
+    default_value: ""
+
+  priv_protocol:
+    default_value: "des"
+
+  # Config string syntax:
+  # [no] snmp-server user <user> [group] [auth {md5|sha} <passwd1> \
+  #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
+  user:
+    config_get: "show snmp user"
+    config_get_token: ["TABLE_snmp_users", "ROW_snmp_users"]
+    config_set: "%s snmp-server user %s %s %s %s %s %s"
+
+system:
+  resources:
+    config_get: "show system resources"
+    test_config_get: "show system resources | no-more"
+    test_config_get_regex: !ruby/regexp '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'
+      
+tacacs_server:
+  deadtime:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
+    config_set: "%s tacacs-server deadtime %d"
+    default_value: 0
+
+  directed_request:
+    # oddly, directed request must be retrieved from aaa output
+    config_get: "show running aaa all"
+    config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
+    config_set: "%s tacacs-server directed-request"
+    default_value: false
+
+  encryption_type:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+    default_value: 0
+
+  encryption_password:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+    default_value: ""
+
+  encryption:
+    config_set: "%s tacacs-server key %d %s"
+
+  feature:
+    config_get: "show run tacacs all"
+    config_get_token: '/^feature tacacs/'
+    config_set: "%s feature tacacs+"
+
+  source_interface:
+    config_get: "show run tacacs all"
+    config_get_token: '/(no)?\s*ip tacacs source-interface\s+(\S+)?/'
+    config_set: "%s ip tacacs source-interface %s"
+    default_value: ""
+
+  timeout:
+    config_get: "show run tacacs all"
+    config_get_token: '/tacacs-server timeout\s+(\d+)/'
+    config_set: "%s tacacs-server timeout %d"
+    default_value: 5
+
+tacacs_server_host:
+  encryption:
+    config_set: "%s tacacs-server host %s key %s %s"
+
+  encryption_password:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server host %s key \d+\s+(\S+)/'
+    default_value: ""
+
+  encryption_type:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server host %s key (\d+)/'
+
+  host:
+    config_set: "%s tacacs-server host %s"
+
+  hosts:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server host (\S+)/'
+
+  port:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server host %s .*port (\d+)/'
+    config_set: "tacacs-server host %s port %s"
+    default_value: 49
+
+  timeout:
+    config_get: "show run tacacs all"
+    config_get_token: '/^tacacs-server host %s .*timeout (\d+)/'
+    config_set: "%s tacacs-server host %s timeout %s"
+    default_value: 0
+
+virtual_service:
+  services:
+    config_get: 'show virtual-service detail'
+    config_get_token: ["TABLE_detail", "ROW_detail"]
+
+vlan:
+  all_vlans:
+    config_get: "show vlan brief"
+    config_get_token: '/^(\d+)\s/'
+
+  create:
+    config_set: ["vlan %s" , "end"]
+
+  destroy:
+    config_set: "no vlan %s"
+
+  name:
+    config_get: "show vlan brief"
+    config_get_token: '/^%d+\s+(\S+)\s/'
+    config_set: ["vlan %d", "%s name %s", "end"]
+    test_config_result:
+      32: "String exceeded max length of (32)"
+
+  state:
+    config_get: "show vlan brief"
+    config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+    config_set: ["vlan %d", "%s state %s", "end"]
+    default_value: "active"
+
+  shutdown:
+    config_get: "show vlan brief"
+    config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+    config_set: ["vlan %d", "%s shutdown", "end"]
+    default_value: false
+
+vtp:
+  domain:
+    config_get: "show vtp status"
+    config_get_token: "domain_name"
+    config_set: "vtp domain %s"
+
+  feature:
+    config_get: "show running vtp"
+    config_get_token: '/^feature vtp$/'
+    config_set: "%s feature vtp"
+
+  filename:
+    config_get: "show running vtp"
+    config_get_token: '/vtp file (\S+)/'
+    config_set: "%s vtp file %s"
+    default_value: "bootflash:/vlan.dat"
+
+  password:
+    config_get: "show vtp password"
+    config_get_token: "passwd"
+    config_set: "%s vtp password %s"
+    default_value: ""
+
+  version:
+    config_get: "show vtp status"
+    config_get_token: '/VTP\s+version\s+running\s+:\s+(\d+)/'
+    config_set: "vtp version %s"
+    default_value: 1
+    test_config_result:
+      3: "Cisco::CliError"
+
+yum:
+  install:
+    config_set: "install add %s activate"
+  query:
+    config_get: "show install packages"
+    # pass in the pkg name, retrieve version
+    config_get_token: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
+  remove:
+    config_set: "install deactivate %s"
+

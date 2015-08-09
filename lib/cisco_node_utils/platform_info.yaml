@@ -1,0 +1,10 @@
+---
+# This yaml file is read by ciscotest.rb to read
+# device specific information before running unit tests
+
+# Currently the only device specific info we support is
+# an array of ethernet interfaces. More device specific
+# attributes can be added in future.
+
+example_node:
+  interfaces: [Ethernet1/1, Ethernet1/10, Ethernet1/20]

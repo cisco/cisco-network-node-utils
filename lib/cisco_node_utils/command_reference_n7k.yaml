@@ -1,0 +1,48 @@
+# Command Reference N7K
+#
+# For documentation please see these files for fields and defaults:
+#   - README_YAML.md
+#   - command_reference_common.yaml
+#
+---
+interface:
+  admin_state_ethernet_noswitchport_shutdown:
+    default_value: "shutdown"
+
+  ipv4_redirects_loopback:
+    default_value: false
+    config_set: ~
+    config_get: ~
+    config_get_token: ~
+    test_config_result:
+      false: RuntimeError
+      true: RuntimeError
+
+  negotiate_auto_ethernet:
+    config_set: ~
+    config_get: ~
+    config_get_token: ~
+    default_value: false
+
+  negotiate_auto_portchannel:
+    config_set: ~
+    config_get: ~
+    config_get_token:
+    default_value: false
+
+
+inventory:
+  inventory:
+    test_config_get_regex: [!ruby/regexp '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/', !ruby/regexp '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/']
+
+
+show_version:
+  description:
+    test_config_get_regex: !ruby/regexp '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+
+
+vtp:
+  version:
+    test_config_result:
+      3: 3
+

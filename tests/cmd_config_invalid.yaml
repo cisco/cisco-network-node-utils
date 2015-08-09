@@ -1,0 +1,16 @@
+# test command config yaml file
+---
+feature-global_bad_syntax:
+  command: |
+          fature ospf
+
+
+feature-nested_bad_syntax:
+  command: > 
+          interface loopback0
+            descrion testloopback
+
+feature-input_too_long:
+  command: |
+          router ospf bluethisoutputistolongwaytoolong
+
