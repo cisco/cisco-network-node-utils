@@ -10,6 +10,7 @@ Changelog
 * Fixed idempotency and area update issues in interface_ospf class.
 * Updated CliError class definition to make it easier to troubleshoot such
   errors when running Puppet modules that use this gem.
+* Added dotted-decimal munging for the area getter in interface_ospf
 
 0.9.0
 -----

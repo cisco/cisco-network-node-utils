@@ -97,9 +97,10 @@ class TestInterfaceOspf < CiscoTestCase
     int_ospf.area = "0.0.0.4"
     assert_equal(int_ospf.area, "0.0.0.4")
 
-    # test get/set integer form
+    # test get/set integer form.
+    # Note: the area getter will munge the value to dotted decimal.
     int_ospf.area = "3"
-    assert_equal(int_ospf.area, "3")
+    assert_equal(int_ospf.area, "0.0.0.3")
 
     # cleanup
     int_ospf.destroy
@@ -776,7 +777,8 @@ class TestInterfaceOspf < CiscoTestCase
     node.cache_flush
     interface = InterfaceOspf.new("loopback122", "nonexistentOspf", "0")
 
-    assert_equal(interface.area, "0")
+    # Note: the area getter will munge the value to dotted decimal.
+    assert_equal(interface.area, "0.0.0.0")
     assert_equal(interface.hello_interval, interface.default_hello_interval)
 
     interface.destroy

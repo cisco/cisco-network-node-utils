@@ -17,6 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddr'
 require File.join(File.dirname(__FILE__), 'node')
 require File.join(File.dirname(__FILE__), 'interface')
 # Interestingly enough, interface OSPF configuration can exist completely
@@ -78,7 +79,10 @@ module Cisco
     def area
       match = @@node.config_get("interface_ospf", "area", @interface.name)
       return nil if match.nil?
-      return match[0][1]
+      val = match[0][1]
+      # Coerce numeric area to the expected dot-decimal format.
+      val = IPAddr.new(val.to_i, Socket::AF_INET).to_s unless val.match(/\./)
+      val
     end
 
     def area=(a)
