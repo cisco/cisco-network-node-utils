@@ -67,8 +67,8 @@ module Cisco
       vrf
     end
 
-    def self.install(pkg)
-      vrf = get_vrf
+    def self.install(pkg, vrf = nil)
+      vrf = vrf.nil? ? get_vrf : "vrf #{vrf}"
       @@node.config_set("yum", "install", pkg, vrf)
 
       # HACK: The current nxos host installer is a multi-part command

@@ -10,7 +10,9 @@ Changelog
 * Fixed idempotency and area update issues in interface_ospf class.
 * Updated CliError class definition to make it easier to troubleshoot such
   errors when running Puppet modules that use this gem.
-* Added dotted-decimal munging for the area getter in interface_ospf
+* Added dotted-decimal munging for the area getter in interface_ospf.
+* Added n9000_sample*.rpm to /tests for use with minitests.
+* Updated yum install method to include vrf, fixes minitest issue.
 
 0.9.0
 -----

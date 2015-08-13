@@ -55,7 +55,9 @@ class TestYum < CiscoTestCase
         node.cache_flush
         sleep 20
       end
-      Yum.install(@@pkg)
+
+      # Specify "management" vrf for install
+      Yum.install(@@pkg, "management")
       sleep 20
       s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
       assert(s, "failed to find installed package #{@@pkg}")
@@ -82,8 +84,12 @@ class TestYum < CiscoTestCase
   end
 
   def test_package_does_not_exist_error
-    assert_raises(RuntimeError) { Yum.install("bootflash:this_is_not_real.rpm") }
-    assert_raises(RuntimeError) { Yum.install("also_not_real") }
+    assert_raises(RuntimeError) {
+      Yum.install("bootflash:this_is_not_real.rpm", "management")
+    }
+    assert_raises(RuntimeError) {
+      Yum.install("also_not_real", "management")
+    }
   end
 
   def test_query
