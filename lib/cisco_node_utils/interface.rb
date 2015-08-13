@@ -497,5 +497,24 @@ module Cisco
       raise "#{caller[0][/`.*'/][1..-2]} cannot be set unless switchport mode" +
         " is disabled" unless switchport_mode == :disabled
     end
+
+    def vrf
+      vrf = @@node.config_get("interface", "vrf", @name)
+      return "" if vrf.nil?
+      vrf.shift.strip
+    end
+
+    def vrf=(vrf)
+      raise TypeError unless vrf.is_a?(String)
+      vrf.empty? ?
+        @@node.config_set("interface", "vrf", @name, "no", "") :
+        @@node.config_set("interface", "vrf", @name, "", vrf)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_vrf
+      @@node.config_get_default("interface", "vrf")
+    end
   end  # Class
 end    # Module

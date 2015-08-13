@@ -13,6 +13,7 @@ Changelog
 * Added dotted-decimal munging for the area getter in interface_ospf.
 * Added n9000_sample*.rpm to /tests for use with minitests.
 * Updated yum install method to include vrf, fixes minitest issue.
+* Added vrf property to interface provider.
 
 0.9.0
 -----

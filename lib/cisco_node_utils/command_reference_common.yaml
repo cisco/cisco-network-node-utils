@@ -318,6 +318,12 @@ interface:
     config_set: ["interface %s", "%s management"]
     default_value: false
 
+  vrf:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^vrf member (.*)/']
+    config_set: ["interface %s", "%s vrf member %s"]
+    default_value: ""
+
   vtp:
     config_get: "show running interface all"
     config_get_token: ['/^interface %s$/i', '/^vtp *$/']
