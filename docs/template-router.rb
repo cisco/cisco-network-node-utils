@@ -125,4 +125,3 @@ class __CLASS_NAME__
   end
 
 end
-end

@@ -126,7 +126,6 @@ class BashShell
   end
 
 end
-end
 ```
 
 ### <a name="minitest">Step 3. Minitest: feature bash-shell</a>
@@ -477,7 +476,6 @@ class RouterEigrp
     @@node.config_set('eigrp', 'maximum_paths', {:name => @name, :val => val})
   end
 
-end
 end
 ```
 
