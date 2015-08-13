@@ -45,7 +45,7 @@ class TestYum < CiscoTestCase
 
   def skip?
     skip "file bootflash:#{@@pkg_filename} is required. " +
-      "this file can be downloaded from /auto/rtp-core-tftpboot/repo" if @@skip
+      "this file can be found in the cisco_node_utils/tests directory" if @@skip
   end
 
   def test_install
