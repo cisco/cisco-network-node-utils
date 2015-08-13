@@ -85,9 +85,9 @@ cp  docs/template-feature.rb  cisco_network_node_utils/bash_shell.rb
 * Edit `bash_shell.rb` and substitute the placeholder text as shown here:
 
 ```bash
-/__CLASS_NAME__/BashShell/
+/X__CLASS_NAME__X/BashShell/
 
-/__RESOURCE_NAME__/bash_shell/
+/X__RESOURCE_NAME__X/bash_shell/
 ```
 
 #### Example: bash_shell.rb API
@@ -126,6 +126,7 @@ class BashShell
   end
 
 end
+end
 ```
 
 ### <a name="minitest">Step 3. Minitest: feature bash-shell</a>
@@ -143,11 +144,11 @@ cp  docs/template-test_feature.rb  cisco_network_node_utils/tests/test_bash_shel
 * As with the API code, edit `test_bash_shell.rb` and change the placeholder names as shown:
 
 ```bash
-/__CLASS_NAME__/BashShell/
+/X__CLASS_NAME__X/BashShell/
 
-/__RESOURCE_NAME__/bash_shell/
+/X__RESOURCE_NAME__X/bash_shell/
 
-/__CLI_NAME__/bash-shell/
+/X__CLI_NAME__X/bash-shell/
 ```
 
 #### Example: test_bash_shell.rb
@@ -335,13 +336,13 @@ cp  docs/template-router.rb  cisco_network_node_utils/router_eigrp.rb
 * Our new `router_eigrp.rb` requires changes from the original template. Edit `router_eigrp.rb` and change the placeholder names as shown.
 
 ```
-/__CLASS_NAME__/RouterEigrp/
+/X__CLASS_NAME__X/RouterEigrp/
 
-/__RESOURCE_NAME__/eigrp/
+/X__RESOURCE_NAME__X/eigrp/
 
-/__PROPERTY_BOOL__/shutdown/
+/X__PROPERTY_BOOL__X/shutdown/
 
-/__PROPERTY_INT__/maximum_paths/
+/X__PROPERTY_INT__X/maximum_paths/
 ```
 
 *Note that this template only provides example property methods for a few properties. Copy the example methods for additional properties as needed.*
@@ -477,6 +478,7 @@ class RouterEigrp
   end
 
 end
+end
 ```
 
 ### <a name="comp_api">Step 3. Minitest: router eigrp</a>
@@ -489,13 +491,13 @@ cp  docs/template-test_router.rb  cisco_network_node_utils/tests/test_router_eig
 * As with the API code, edit `test_router_eigrp.rb` and change the placeholder names as shown:
 
 ```
-/__CLASS_NAME__/RouterEigrp/
+/X__CLASS_NAME__X/RouterEigrp/
 
-/__RESOURCE_NAME__/eigrp/
+/X__RESOURCE_NAME__X/eigrp/
 
-/__PROPERTY_BOOL__/shutdown/
+/X__PROPERTY_BOOL__X/shutdown/
 
-/__PROPERTY_INT__/maximum_paths/
+/X__PROPERTY_INT__X/maximum_paths/
 ```
 
 * At a minimum, the tests should include coverage for:

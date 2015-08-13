@@ -1,5 +1,5 @@
 #
-# NXAPI implementation of __CLASS_NAME__ class
+# NXAPI implementation of X__CLASS_NAME__X class
 #
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
@@ -20,22 +20,22 @@ module Cisco
 
 # Class name syntax will typically be the resource name in camelCase
 # format; for example: 'tacacs server host' becomes TacacsServerHost.
-class __CLASS_NAME__
+class X__CLASS_NAME__X
 
   # Establish connection to node
   @@node = Cisco::Node.instance
 
   def feature_enable
-    @@node.config_set('__RESOURCE_NAME__', 'feature', { :state => ''})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => ''})
   end
 
   def feature_disable
-    @@node.config_set('__RESOURCE_NAME__', 'feature', { :state => 'no'})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => 'no'})
   end
 
   # Check current state of the configuration
-  def __CLASS_NAME__.feature_enabled
-    feat =  @@node.config_get('__RESOURCE_NAME__', 'feature')
+  def X__CLASS_NAME__X.feature_enabled
+    feat =  @@node.config_get('X__RESOURCE_NAME__X', 'feature')
     return (!feat.nil? and !feat.empty?)
   rescue Cisco::CliError => e
     # This cmd will syntax reject if feature is not
@@ -44,4 +44,5 @@ class __CLASS_NAME__
     raise
   end
 
+end
 end
