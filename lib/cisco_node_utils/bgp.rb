@@ -28,7 +28,7 @@ class RouterBgp
   def initialize(asnum, vrf='default', instantiate=true)
     raise ArgumentError unless vrf.is_a? String
     raise ArgumentError unless vrf.length > 0
-    @asnum = process_asnum(asnum)
+    @asnum = RouterBgp.process_asnum(asnum)
     @vrf = vrf
     @get_args = @set_args = (@vrf == 'default') ?
       { :asnum => @asnum } : { :asnum => @asnum, :vrf => @vrf }
@@ -36,7 +36,7 @@ class RouterBgp
     create if instantiate
   end
 
-  def process_asnum(asnum)
+  def RouterBgp.process_asnum(asnum)
     err_msg = "BGP asnum must be either a 'String' or an" +
               " 'Integer' object"
     raise ArgumentError, err_msg unless asnum.is_a? Integer or

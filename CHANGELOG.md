@@ -7,6 +7,8 @@ Changelog
 ### Added
 
 * Added Vrf class for managing Cisco VRF configuration
+* Added RouterBgpAF class for managing Cisco BGP Address Family
+  configurations
 
 ### Fixed
 

@@ -10,13 +10,12 @@ bgp:
     config_get_token: '/^router bgp <asnum>$/'
     config_get_token_append:
       - '/^vrf <vrf>$/'
-      - '/^address-family <afi> <safi>$/'
-      - '/^neighbor <address>$/'
     config_set: "router bgp <asnum>"
     config_set_append:
       - "vrf <vrf>"
-      - '/^address-family <afi> <safi>$/'
-      - '/^neighbor <address>$/'
+
+  address_family:
+    config_set_append: '<state> address-family <afi> <safi>'
 
   bestpath_always_compare_med:
     config_get_token_append: '/^bestpath always-compare-med$/'
@@ -148,3 +147,34 @@ bgp:
   vrf:
     config_get_token_append: '/^vrf\s+(\S+)$/'
     config_set: ["router bgp <asnum>", "<state> vrf <vrf>", "end"]
+
+bgp_af:
+  _template:
+    config_get: "show running bgp all"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^address-family <afi> <safi>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - 'vrf <vrf>'
+      - 'address-family <afi> <safi>'
+
+  all_afs:
+    config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+  client_to_client:
+    config_get_token_append: '/^client-to-client reflection$/'
+    config_set_append: '<state> client-to-client reflection'
+    default_value: false
+
+  default_information:
+    config_get_token_append: '/^default-information originate$/'
+    config_set_append: '<state> default-information originate'
+    default_value: false
+
+  nexthop_route_map:
+    config_get_token_append: '/^nexthop route-map (.*)$/'
+    config_set_append: '<state> nexthop route-map <route_map>'
+    default_value: ""
+
