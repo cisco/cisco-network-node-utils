@@ -103,7 +103,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## default-information originate
   ##
-  def test_routerbgp_set_get_default_information_originate
+  def test_bgp_address_family_set_get_default_information_originate
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -141,7 +141,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## client-to-client reflection
   ##
-  def test_routerbgp_set_get_client_to_client
+  def test_bgp_address_family_set_get_client_to_client
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -186,7 +186,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## nexthop route-map
   ##
-  def test_routerbgp_set_get_nexthop_route_map
+  def test_bgp_address_family_set_get_nexthop_route_map
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)

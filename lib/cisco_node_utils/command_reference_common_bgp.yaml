@@ -62,6 +62,9 @@ bgp:
     config_set_append: '<state> confederation peers <peer_list>'
     default_value: ""
 
+  create_destroy_neighbor:
+    config_set_append: '<state> neighbor <address>'
+
   feature:
     config_get: "show running bgp"
     config_get_token: '/^feature bgp$/'
@@ -178,3 +181,97 @@ bgp_af:
     config_set_append: '<state> nexthop route-map <route_map>'
     default_value: ""
 
+bgp_neighbor:
+  _template:
+    config_get: "show running bgp all"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^neighbor <address>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - "vrf <vrf>"
+      - "neighbor <address>"
+
+  all_neighbors:
+    config_get_token_append: '/^neighbor (\S+)$/'
+ 
+  description:
+    config_get_token_append: '/^description (.*)/'
+    config_set_append: '<state> description <desc>'
+
+  disable_connected_check:
+    config_get_token_append: '/^disable-connected-check$/'
+    config_set_append: '<state> disable-connected-check'
+
+  dont_capability_negotiate:
+    config_get_token_append: '/^dont-capability-negotiate$/'
+    config_set_append: '<state> dont-capability-negotiate'
+
+  dynamic_capability:
+    config_get_token_append: '/^dynamic-capability$/'
+    config_set_append: '<state> dynamic-capability'
+
+  ebgp_multihop:
+    config_get_token_append: '/^ebgp-multihop (\d+)$/'
+    config_set_append: '<state> ebgp-multihop <ttl>'
+    default_value: 1
+
+  local_as:
+    config_get_token_append: '/^local-as (\d*?.?\d+?)$/'
+    config_set_append: '<state> local-as <local_as>'
+    default_value: 0
+
+  log_neighbor_changes:
+    config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
+    config_set_append: '<state> log-neighbor-changes <disable>'
+    default_value: "default"
+
+  low_memory_exempt:
+    config_get_token_append: '/^low-memory exempt$/'
+    config_set_append: '<state> low-memory exempt'
+
+  password:
+    config_get_token_append: '/^password \d+ (\S+)$/'
+    config_set_append: '<state> password <type> <passwd>'
+
+  password_type:
+    config_get_token_append: '/^password (\d+)/'
+    default_value: 0
+
+  remote_as:
+    config_get_token_append: '/^remote-as (\d*?.?\d+?)$/'
+    config_set_append: '<state> remote-as <remote_as>'
+    default_value: 0
+
+  remove_private_as:
+    config_get_token_append: '/^remove-private-as\s+??(\S+)?\s+??$/'
+    config_set_append: '<state> remove-private-as <option>'
+    default_value: "no"
+
+  shutdown:
+    config_get_token_append: '/^shutdown$/'
+    config_set_append: '<state> shutdown'
+ 
+  suppress_4_byte_as:
+    config_get_token_append: '/^capability suppress 4-byte-as$/'
+    config_set_append: '<state> capability suppress 4-byte-as'
+
+  timers_keepalive_hold:
+    config_get_token_append: '/^timers (\d+) (\d+)$/'
+    config_set_append: '<state> timers <keepalive> <hold>'
+
+  timers_keepalive:
+    default_value: 60
+
+  timers_holdtime:
+    default_value: 180
+
+  transport_passive_only:
+    config_get_token_append: '/^transport connection-mode passive$/'
+    config_set_append: '<state> transport connection-mode passive'
+
+  update_source:
+    config_get_token_append: '/^update-source (\S+)$/'
+    config_set_append: '<state> update-source <interface>'
+    default_value: ""

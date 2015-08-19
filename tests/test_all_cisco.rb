@@ -27,15 +27,13 @@ require File.expand_path("../test_node", __FILE__)
 require File.expand_path("../test_node_ext", __FILE__)
 
 # Feature tests - please keep in alphabetical order
+require.File.expand_path("../test_bgp", __FILE__)
 require File.expand_path("../test_command_config", __FILE__)
 require File.expand_path("../test_interface", __FILE__)
 require File.expand_path("../test_interface_ospf", __FILE__)
 require File.expand_path("../test_interface_svi", __FILE__)
 require File.expand_path("../test_interface_switchport", __FILE__)
 require File.expand_path("../test_platform", __FILE__)
-require File.expand_path("../test_router_bgp", __FILE__)
-# TODO: Follow Jie's method post his commit
-require File.expand_path("../test_bgp_af", __FILE__)
 require File.expand_path("../test_router_ospf", __FILE__)
 require File.expand_path("../test_router_ospf_vrf", __FILE__)
 require File.expand_path("../test_snmpcommunity", __FILE__)

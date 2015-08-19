@@ -331,7 +331,7 @@ class RouterBgp
     return if workaround_CSCuv52710(peers, confederation_peers)
     # The confederation peers command is additive so we first need to
     # remove any existing peers.
-    if not confederation_peers.empty?
+    unless confederation_peers.empty?
       @set_args[:state], @set_args[:peer_list] = 'no', confederation_peers
       @@node.config_set("bgp", "confederation_peers", @set_args)
     end
