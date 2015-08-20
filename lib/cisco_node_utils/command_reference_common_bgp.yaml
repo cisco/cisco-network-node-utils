@@ -199,18 +199,22 @@ bgp_neighbor:
   description:
     config_get_token_append: '/^description (.*)/'
     config_set_append: '<state> description <desc>'
+    default_value: ""
 
   disable_connected_check:
     config_get_token_append: '/^disable-connected-check$/'
     config_set_append: '<state> disable-connected-check'
+    default_value: false
 
   dont_capability_negotiate:
     config_get_token_append: '/^dont-capability-negotiate$/'
     config_set_append: '<state> dont-capability-negotiate'
+    default_value: false
 
   dynamic_capability:
     config_get_token_append: '/^dynamic-capability$/'
     config_set_append: '<state> dynamic-capability'
+    default_value: true
 
   ebgp_multihop:
     config_get_token_append: '/^ebgp-multihop (\d+)$/'
@@ -230,10 +234,12 @@ bgp_neighbor:
   low_memory_exempt:
     config_get_token_append: '/^low-memory exempt$/'
     config_set_append: '<state> low-memory exempt'
+    default_value: false
 
   password:
     config_get_token_append: '/^password \d+ (\S+)$/'
     config_set_append: '<state> password <type> <passwd>'
+    default_value: ""
 
   password_type:
     config_get_token_append: '/^password (\d+)/'
@@ -252,10 +258,12 @@ bgp_neighbor:
   shutdown:
     config_get_token_append: '/^shutdown$/'
     config_set_append: '<state> shutdown'
+    default_value: false
  
   suppress_4_byte_as:
     config_get_token_append: '/^capability suppress 4-byte-as$/'
     config_set_append: '<state> capability suppress 4-byte-as'
+    default_value: false
 
   timers_keepalive_hold:
     config_get_token_append: '/^timers (\d+) (\d+)$/'
@@ -270,6 +278,7 @@ bgp_neighbor:
   transport_passive_only:
     config_get_token_append: '/^transport connection-mode passive$/'
     config_set_append: '<state> transport connection-mode passive'
+    default_value: false
 
   update_source:
     config_get_token_append: '/^update-source (\S+)$/'

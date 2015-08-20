@@ -122,6 +122,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
       description = " "
       neighbor.description = description
       assert(neighbor.description.empty?)
+      description = neighbor.default_description
+      assert_equal(neighbor.description, neighbor.default_description)
       neighbor.destroy
     end
   end
@@ -129,7 +131,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_disable_connected_check
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_disable_connected_check]
       check.each { |value|
         neighbor.disable_connected_check = value
         assert_equal(value, neighbor.disable_connected_check)
@@ -141,7 +143,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_dont_capability_negotiate
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_dont_capability_negotiate]
       check.each { |value|
         neighbor.dont_capability_negotiate = value
         assert_equal(value, neighbor.dont_capability_negotiate)
@@ -153,7 +155,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_dynamic_capability
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_dynamic_capability]
       check.each { |value|
         neighbor.dynamic_capability = value
         assert_equal(value, neighbor.dynamic_capability)
@@ -201,7 +203,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_low_memory_exempt
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_low_memory_exempt]
       check.each { |value|
         neighbor.low_memory_exempt = value
         assert_equal(value, neighbor.low_memory_exempt)
@@ -229,6 +231,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
         # now test removing the password setting
         neighbor.password = " "
         assert(neighbor.password.empty?)
+        # now test default password
+        neighbor.password = neighbor.default_password
+        assert_equal(neighbor.default_password, neighbor.password)
       }
       neighbor.destroy
     end
@@ -283,7 +288,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
       }
 
       neighbor.remove_private_as = neighbor.default_remove_private_as
-      assert_equal(:no, neighbor.remove_private_as)
+      assert_equal(neighbor.default_remove_private_as,
+                   neighbor.remove_private_as)
       neighbor.destroy
     end
   end
@@ -291,7 +297,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_shutdown
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_shutdown]
       check.each { |value|
         neighbor.shutdown = value
         assert_equal(value, neighbor.shutdown)
@@ -303,7 +309,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_suppress_4_byte_as
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_suppress_4_byte_as]
       check.each { |value|
         neighbor.suppress_4_byte_as = value
         assert_equal(value, neighbor.suppress_4_byte_as)
@@ -333,7 +339,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_neighbor_set_get_transport_passive_only
     %w(default test_vrf).each do |vrf|
       neighbor = BgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false]
+      check = [true, false, neighbor.default_transport_passive_only]
       check.each { |value|
         neighbor.transport_passive_only = value
         assert_equal(value, neighbor.transport_passive_only)

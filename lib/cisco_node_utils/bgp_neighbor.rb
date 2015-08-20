@@ -105,6 +105,10 @@ module Cisco
       desc.shift.strip
     end
 
+    def default_description
+      @@node.config_get_default("bgp_neighbor", "description")
+    end
+
     def disable_connected_check=(val)
       set_args_keys(:state => (val) ? "" : "no")
       @@node.config_set("bgp_neighbor", "disable_connected_check", @set_args)
@@ -114,6 +118,10 @@ module Cisco
       result = @@node.config_get("bgp_neighbor", "disable_connected_check",
                                  @get_args)
       result ? true : false
+    end
+
+    def default_disable_connected_check
+      @@node.config_get_default("bgp_neighbor", "disable_connected_check")
     end
 
     def dont_capability_negotiate=(val)
@@ -127,6 +135,10 @@ module Cisco
       result ? true : false
     end
 
+    def default_dont_capability_negotiate
+      @@node.config_get_default("bgp_neighbor", "dont_capability_negotiate")
+    end
+
     def dynamic_capability=(val)
       set_args_keys(:state => (val) ? "" : "no")
       @@node.config_set("bgp_neighbor", "dynamic_capability", @set_args)
@@ -136,6 +148,10 @@ module Cisco
       result = @@node.config_get("bgp_neighbor", "dynamic_capability",
                                  @get_args)
       result ? true : false
+    end
+
+    def default_dynamic_capability
+      @@node.config_get_default("bgp_neighbor", "dynamic_capability")
     end
 
     def ebgp_multihop=(ttl)
@@ -206,6 +222,10 @@ module Cisco
       result ? true : false
     end
 
+    def default_low_memory_exempt
+      @@node.config_get_default("bgp_neighbor", "low_memory_exempt")
+    end
+
     def password=(val)
       val = val.to_s
       if val.strip.empty?
@@ -223,6 +243,10 @@ module Cisco
     def password
       result = @@node.config_get("bgp_neighbor", "password", @get_args)
       result.nil? ? "" : result.first.to_s
+    end
+
+    def default_password
+      @@node.config_get_default("bgp_neighbor", "password")
     end
 
     def password_type=(val)
@@ -294,6 +318,10 @@ module Cisco
       result ? true : false
     end
 
+    def default_shutdown
+      @@node.config_get_default("bgp_neighbor", "shutdown")
+    end
+
     def suppress_4_byte_as=(val)
       set_args_keys(:state => (val) ? "" : "no")
       @@node.config_set("bgp_neighbor", "suppress_4_byte_as", @set_args)
@@ -303,6 +331,10 @@ module Cisco
       result = @@node.config_get("bgp_neighbor", "suppress_4_byte_as",
                                  @get_args)
       result ? true : false
+    end
+
+    def default_suppress_4_byte_as
+      @@node.config_get_default("bgp_neighbor", "suppress_4_byte_as")
     end
 
     def timers_set(keepalive, hold)
@@ -357,6 +389,10 @@ module Cisco
       result = @@node.config_get("bgp_neighbor", "transport_passive_only",
                                  @get_args)
       result ? true : false
+    end
+
+    def default_transport_passive_only
+      @@node.config_get_default("bgp_neighbor", "transport_passive_only")
     end
 
     def update_source=(val)
