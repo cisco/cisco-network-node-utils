@@ -119,10 +119,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
       description = "tested by mini test for vrf #{vrf}"
       neighbor.description = description
       assert_equal(description, neighbor.description)
-      description = " "
-      neighbor.description = description
+      neighbor.description = " "
       assert(neighbor.description.empty?)
-      description = neighbor.default_description
+      neighbor.description = neighbor.default_description
       assert_equal(neighbor.description, neighbor.default_description)
       neighbor.destroy
     end
