@@ -17,20 +17,18 @@
 
 require File.join(File.dirname(__FILE__), 'node')
 module Cisco
-
 # Class name syntax will typically be the resource name in camelCase
 # format; for example: 'tacacs server host' becomes TacacsServerHost.
 class X__CLASS_NAME__X
-
   # Establish connection to node
   @@node = Cisco::Node.instance
 
   def feature_enable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => ''})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => '' })
   end
 
   def feature_disable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => 'no'})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => 'no' })
   end
 
   # Check current state of the configuration
@@ -43,6 +41,5 @@ class X__CLASS_NAME__X
     return false if e.clierror =~ /Syntax error/
     raise
   end
-
 end
 end

@@ -1,0 +1,13 @@
+# Rubocop configuration
+
+inherit_from: ../.rubocop.yml
+
+Style/ClassAndModuleCamelCase:
+  Enabled: false
+
+Style/FileName:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
