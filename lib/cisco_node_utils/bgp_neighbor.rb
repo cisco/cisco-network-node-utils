@@ -22,7 +22,7 @@ require File.join(File.dirname(__FILE__), 'bgp')
 require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
 
 module Cisco
-  class BgpNeighbor
+  class RouterBgpNeighbor
     attr_reader :address, :vrf, :asn
 
     @@node = Node.instance
@@ -44,7 +44,7 @@ module Cisco
       create if instantiate
     end
 
-    def BgpNeighbor.neighbors
+    def RouterBgpNeighbor.neighbors
       hash = {}
       RouterBgp.routers.each {|asn, vrf|
         hash[asn] = {}
@@ -57,8 +57,8 @@ module Cisco
 
           hash[asn][vrf_id] = {}
           neighbor_list.each {|nbr|
-            hash[asn][vrf_id][nbr] = BgpNeighbor.new(asn, vrf_id,
-                                                     nbr, false)
+            hash[asn][vrf_id][nbr] = RouterBgpNeighbor.new(asn, vrf_id,
+                                                           nbr, false)
           }
         }
       }
@@ -224,6 +224,21 @@ module Cisco
 
     def default_low_memory_exempt
       @@node.config_get_default("bgp_neighbor", "low_memory_exempt")
+    end
+
+    def maximum_peers=(val)
+      set_args_keys(:state => (val == default_maximum_peers) ? "no" : "",
+                    :num => (val == default_maximum_peers) ? "" : val)
+      @@node.config_set("bgp_neighbor", "maximum_peers", @set_args)
+    end
+
+    def maximum_peers
+      result = @@node.config_get("bgp_neighbor", "maximum_peers", @get_args)
+      result.nil? ? default_maximum_peers : result.first.to_i
+    end
+
+    def default_maximum_peers
+      @@node.config_get_default("bgp_neighbor", "maximum_peers")
     end
 
     def password=(val)
