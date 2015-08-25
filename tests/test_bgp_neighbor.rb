@@ -88,7 +88,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
           end
           neighbors.each {|addr, neighbor|
              assert_equal(vrf, neighbor.vrf)
-             line = get_bgpneighbor_match_line(neighbor.address, vrf)
+             line = get_bgpneighbor_match_line(neighbor.nbr, vrf)
              refute_nil(line)
           }
       end

@@ -23,7 +23,7 @@ require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
 
 module Cisco
   class RouterBgpNeighbor
-    attr_reader :address, :vrf, :asn
+    attr_reader :nbr, :vrf, :asn
 
     @@node = Node.instance
     raise TypeError if @@node.nil?
@@ -33,12 +33,12 @@ module Cisco
       # for IP/prefix format, such as "1.1.1.1/24" or "2000:123:38::34/64",
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
-      @address, mask = nbr.split('/')
-      @address = IPAddr.new(nbr).to_s
-      @address = @address + '/' + mask unless mask.nil?
+      @nbr, mask = nbr.split('/')
+      @nbr = IPAddr.new(nbr).to_s
+      @nbr = @nbr + '/' + mask unless mask.nil?
       @asn = asn
       @vrf = vrf
-      @get_args = @set_args = { :asnum => @asn, :address => @address, }
+      @get_args = @set_args = { :asnum => @asn, :nbr => @nbr, }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'
 
       create if instantiate
@@ -81,7 +81,7 @@ module Cisco
     end
 
     def set_args_keys_default
-      keys = { :asnum => @asn, :address => @address }
+      keys = { :asnum => @asn, :nbr => @nbr }
       keys[:vrf] = @vrf unless @vrf == 'default'
       @set_args = keys
     end
