@@ -13,7 +13,13 @@ Changelog
 * Added dotted-decimal munging for the area getter in interface_ospf.
 * Added n9000_sample*.rpm to /tests for use with minitests.
 * Updated yum install method to include vrf, fixes minitest issue.
-* Added vrf property to interface provider.
+* Extended cisco_interface with the following attributes:
+  * channel-group
+  * encapsulation dot1q
+  * mtu
+  * speed
+  * switchport trunk allowed and native vlans
+  * vrf member
 
 0.9.0
 -----

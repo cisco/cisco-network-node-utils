@@ -441,6 +441,59 @@ SWITCHPORT_SHUTDOWN_HASH = {
     end
   end
 
+  def test_interface_channel_group_id_change
+    interface = Interface.new(interfaces[0])
+    interface.channel_group_set(3)
+    assert_equal(3, interface.channel_group_id)
+    interface.channel_group_set(4)
+    assert_equal(4, interface.channel_group_id)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_channel_group_id_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.channel_group_set("invalidtest")
+    }
+  end
+
+  def test_interface_channel_group_id_valid
+    interface = Interface.new(interfaces[0])
+    interface.channel_group_set(3)
+    assert_equal(3, interface.channel_group_id)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_channel_group_mode_change
+    interface = Interface.new(interfaces[0])
+    interface.channel_group_set(3, "active")
+    assert_equal("active", interface.channel_group_mode)
+    interface.channel_group_set(3, "passive")
+    assert_equal("passive", interface.channel_group_mode)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_channel_group_mode_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.channel_group_set(3, "test")
+    }
+  end
+
+  def test_interface_channel_group_mode_on
+    interface = Interface.new(interfaces[0])
+    interface.channel_group_set(3)
+    assert_equal("on", interface.channel_group_mode)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_channel_group_mode_valid
+    interface = Interface.new(interfaces[0])
+    interface.channel_group_set(3, "active")
+    assert_equal("active", interface.channel_group_mode)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
   def test_interface_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
@@ -498,6 +551,79 @@ SWITCHPORT_SHUTDOWN_HASH = {
         assert_equal(description.rstrip, interface.description)
       end
     }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_change
+    subif = interfaces[0] + ".1"
+    interface = Interface.new(subif)
+    interface.encapsulation_dot1q = 20
+    assert_equal(20, interface.encapsulation_dot1q)
+    interface.encapsulation_dot1q = 25
+    assert_equal(25, interface.encapsulation_dot1q)
+    interface_ethernet_default(subif)
+  end
+
+  def test_interface_encapsulation_dot1q_invalid
+    subif = interfaces[0] + ".1"
+    interface = Interface.new(subif)
+    assert_raises(RuntimeError) {
+      interface.encapsulation_dot1q = "hello"
+    }
+    interface_ethernet_default(subif)
+  end
+
+  def test_interface_encapsulation_dot1q_valid
+    subif = interfaces[0] + ".1"
+    interface = Interface.new(subif)
+    interface.encapsulation_dot1q = 20
+    assert_equal(20, interface.encapsulation_dot1q)
+    interface_ethernet_default(subif)
+  end
+
+  def test_interface_mtu_change
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
+    interface.mtu = 580
+    assert_equal(580, interface.mtu)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_mtu_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.mtu = "hello"
+    }
+  end
+
+  def test_interface_mtu_valid
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_speed_change
+    interface = Interface.new(interfaces[0])
+    interface.speed = 100
+    assert_equal(100, interface.speed)
+    interface.speed = 1000
+    assert_equal(1000, interface.speed)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_speed_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.speed = "hello"
+    }
+  end
+
+  def test_interface_speed_valid
+    interface = Interface.new(interfaces[0])
+    interface.speed = 100
+    assert_equal(100, interface.speed)
     interface_ethernet_default(interfaces_id[0])
   end
 

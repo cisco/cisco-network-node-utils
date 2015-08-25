@@ -19,6 +19,9 @@ require File.expand_path("../../lib/cisco_node_utils/vtp", __FILE__)
 include Cisco
 
 class TestInterfaceSwitchport < CiscoTestCase
+  DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = "1-4094"
+  DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
+
   def interface_ethernet_default(ethernet_id)
     s = @device.cmd("configure terminal")
     s = @device.cmd("no feature vtp")
@@ -639,6 +642,100 @@ class TestInterfaceSwitchport < CiscoTestCase
         end
       }
     }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_all
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_allowed_vlan = "all"
+    assert_equal(
+      DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
+      interface.switchport_trunk_allowed_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_change
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_allowed_vlan = "20"
+    assert_equal("20", interface.switchport_trunk_allowed_vlan)
+    interface.switchport_trunk_allowed_vlan = "30"
+    assert_equal("30", interface.switchport_trunk_allowed_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_default
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_allowed_vlan =
+      interface.default_switchport_trunk_allowed_vlan
+    assert_equal(
+      DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
+      interface.switchport_trunk_allowed_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_invalid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    assert_raises(RuntimeError) {
+      interface.switchport_trunk_allowed_vlan = "hello"
+    }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_none
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_allowed_vlan = "none"
+    assert_equal("none", interface.switchport_trunk_allowed_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_allowed_vlan_valid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_allowed_vlan = "20, 30"
+    assert_equal("20,30", interface.switchport_trunk_allowed_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_native_vlan_change
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_native_vlan = 20
+    assert_equal(20, interface.switchport_trunk_native_vlan)
+    interface.switchport_trunk_native_vlan = 30
+    assert_equal(30, interface.switchport_trunk_native_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_native_vlan_default
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_native_vlan =
+      interface.default_switchport_trunk_native_vlan
+    assert_equal(
+      DEFAULT_IF_SWITCHPORT_NATIVE_VLAN,
+      interface.switchport_trunk_native_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_native_vlan_invalid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    assert_raises(RuntimeError) {
+      interface.switchport_trunk_native_vlan = "20, 30"
+    }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_switchport_trunk_native_vlan_valid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_enable
+    interface.switchport_trunk_native_vlan = 20
+    assert_equal(20, interface.switchport_trunk_native_vlan)
     interface_ethernet_default(interfaces_id[0])
   end
 
