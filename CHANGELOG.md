@@ -18,6 +18,7 @@ Changelog
   * mtu
   * switchport trunk allowed and native vlans
   * vrf member
+* Move misc READMEs into /docs
 
 0.9.0
 -----
