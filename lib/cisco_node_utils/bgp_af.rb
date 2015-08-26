@@ -18,6 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
 require File.join(File.dirname(__FILE__), 'node')
 require File.join(File.dirname(__FILE__), 'bgp')
 
@@ -30,7 +31,7 @@ module Cisco
         vrf.to_s.empty? or af.to_s.empty?
       err_msg = "‘af’ argument must be an array of two string values containing " +
                 "an afi + safi tuple"
-      raise ArgumentError, err_msg  unless af.is_a? Array or af.length == 2
+      raise ArgumentError, err_msg unless af.is_a? Array or af.length == 2
       @asn = RouterBgp.process_asnum(asn)
       @vrf = vrf
       @afi, @safi = af
@@ -141,6 +142,107 @@ module Cisco
 
     def default_nexthop_route_map
       @@node.config_get_default("bgp_af", "nexthop_route_map")
+    end
+
+    #
+    # Network (Getter/Setter/Default)
+    #
+    # Get list of all networks configured on the device indexed
+    # under the asn/vrf/af specified in @get_args
+    def networks
+      nets = @@node.config_get("bgp_af", "network", @get_args)
+      if nets.nil?
+        default_networks
+      else
+        # Removes nested nil Array elements.
+        nets = nets.map { |e| e.is_a?(Array) ? e.compact : e }.compact
+      end
+    end
+
+    # Add or remove a single network on the device under
+    # the asn/vrf/af specified in @get_args
+    def network_set(network, route_map=nil, remove=false)
+      # Process ip/prefix format
+      network = Utils.process_network_mask(network)
+      state = remove ? 'no' : state = ''
+      route_map = "route-map #{route_map}" unless route_map.nil?
+      set_args_keys(:state => state, :network => network, :route_map => route_map)
+      @@node.config_set("bgp_af", "network", @set_args)
+    end
+
+    # Wrapper for removing networks
+    def network_remove(network, route_map=nil)
+      network_set(network, route_map, true)
+    end
+
+    # Create list of networks to add and/or remove from the
+    # device under asn/vrf/af
+    def networks_delta(should_list)
+      # TODO: Make sure to validate array of arrays containing
+      # [network, routemap] tuples in puppet/chef
+      # Munge:
+      # should_list[0].class should be an array
+      # should_list[1].class should be a string
+
+      # Compact should_list that contains nested arrays elements
+      # to remove any nil items first.
+      # Rebuild should_list without any nil items and process
+      # network mask.
+      should_list_new = []
+      should_list.each { |network, routemap|
+        network = Utils.process_network_mask(network)
+        routemap.nil? ?
+          should_list_new << [network] :
+          should_list_new << [network, routemap]
+      }
+      delta = { :add    => should_list_new - networks,
+                :remove => networks - should_list_new }
+      # If we are updating routemaps for networks that
+      # already exist delete these from the :remove list
+      #
+      # TODO: Investigate better ways to do this given it's
+      # O(N*M) - O(<size of add_list> * <size of remove_list>)
+      delta[:add].each { |net, rtmap|
+        delta[:remove].delete(scrub_remove_list(net, delta[:remove]))
+      }
+      delta
+    end
+
+    def scrub_remove_list(network, remove_list)
+      remove_item = []
+      remove_list.each do |net, rtmap|
+        remove_item = [net, rtmap] if net.to_s == network.to_s
+        return remove_item if remove_item.size > 0
+      end
+      remove_item
+    end
+
+    def networks=(delta_hash)
+      # Nothing to do if both add and remove lists are empty
+      return if delta_hash[:add].size == 0 and
+                delta_hash[:remove].size == 0
+      # Process add list
+      if delta_hash[:add].size > 0
+        CiscoLogger.debug("Adding the following networks to " +
+          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" +
+          "#{delta_hash[:add]}")
+        delta_hash[:add].each { |network, rtmap|
+          network_set(network, rtmap)
+        }
+      end
+      # Process remove list
+      if delta_hash[:remove].size > 0
+        CiscoLogger.debug("Removing the following networks from " +
+          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" +
+          "#{delta_hash[:remove]}")
+        delta_hash[:remove].each { |network, rtmap|
+          network_remove(network, rtmap)
+        }
+      end
+    end
+
+    def default_networks
+      @@node.config_get_default("bgp_af", "network")
     end
   end
 end

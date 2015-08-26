@@ -45,7 +45,7 @@ class TestRouterBgpAF < CiscoTestCase
   ## BGP Address Family
   ## Validate that RouterBgp.afs is empty when bgp is not enabled
   ##
-  def test_bgp_address_family_collection_empty
+  def test_collection_empty
     node.cache_flush
     afs = RouterBgpAF.afs
     assert_empty(afs, "BGP address-family collection is not empty")
@@ -56,7 +56,7 @@ class TestRouterBgpAF < CiscoTestCase
   ## Configure router bgp, some VRF's and address-family statements
   ## - verify that the final instance objects are correctly populated
   ##
-  def test_bgp_address_family_collection_not_empty
+  def test_collection_not_empty
     @device.cmd("configure terminal")
     @device.cmd("feature bgp")
     @device.cmd("router bgp 55")
@@ -103,7 +103,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## default-information originate
   ##
-  def test_bgp_address_family_set_get_default_information_originate
+  def test_set_get_default_information_originate
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -141,7 +141,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## client-to-client reflection
   ##
-  def test_bgp_address_family_set_get_client_to_client
+  def test_set_get_client_to_client
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -186,7 +186,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## nexthop route-map
   ##
-  def test_bgp_address_family_set_get_nexthop_route_map
+  def test_set_get_nexthop_route_map
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -219,5 +219,416 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string,
                  "Error: 'nexthop route-map drop_all' is " +
                    "configured and should not be")
+  end
+
+  ##
+  ## network
+  ##
+  def networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify 'is' and 'should' network list contain
+    # items and are identical
+    #
+    il1.each { |network, rtmap|
+      bgp_af.network_set(network, rtmap)
+    }
+
+    config_list = bgp_af.networks_delta(sl1)
+    assert_empty(config_list[:add],
+      "Error: config_list[:add] should be empty")
+    assert_empty(config_list[:remove],
+      "Error: config_list[:remove] should be empty")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl1.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+
+    # Cleanup for next test section
+    sl1.each { |network, rtmap|
+      bgp_af.network_remove(network, rtmap)
+    }
+    assert_empty(bgp_af.networks,
+      "Error: all networks should have been removed")
+
+    #
+    # Set and verify 'is' and 'should' network list contain
+    # the same number of items but they differ.
+    #
+    il2.each { |network, rtmap|
+      bgp_af.network_set(network, rtmap)
+    }
+
+    config_list = bgp_af.networks_delta(sl2)
+    assert_equal(3, config_list[:add].size,
+      "Error: config_list[:add] should contain 3 items")
+    assert_equal(2, config_list[:remove].size,
+      "Error: config_list[:remove] should contain 2 items")
+    assert_includes(config_list[:add], sl2[0],
+      "Error: config_list[:add] should contain #{sl2[0]}")
+    assert_includes(config_list[:add], sl2[1],
+      "Error: config_list[:add] should contain #{sl2[1]}")
+    assert_includes(config_list[:add], sl2[3],
+      "Error: config_list[:add] should contain #{sl2[3]}")
+    assert_includes(config_list[:remove], il2[1],
+      "Error: config_list[:remove] should contain #{il2[1]}")
+    assert_includes(config_list[:remove], il2[3],
+      "Error: config_list[:remove] should contain #{il2[3]}")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl2.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+  end
+
+  def test_networks_delta_same
+    # Both is_list1(il1) and should_list1(sl1) are identical
+    il1 = sl1 = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    # Item 1, 2 and 4 differ between is_list2(il2) and should_list2(sl2)
+    il2 = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    sl2 = [
+      ['192.168.5.0/24', 'rtmap8'],
+      ['192.168.55.0/24'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.99.0/24'],
+    ]
+    # Test ipv4 unicast, vrf red, default and blue
+    asn, vrf, af = '55', 'red', 'ipv4 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+    asn, vrf, af = '55', 'default', 'ipv4 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+    asn, vrf, af = '55', 'blue', 'ipv4 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+
+    # Both is_list1(il1) and should_list1(sl1) are identical
+    il1 = sl1 = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    # Item 1, 2 and 4 differ between is_list2(il2) and should_list2(sl2)
+    il2 = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    sl2 = [
+      ['2000:123:38::/64', 'rtmap8'],
+      ['2000:123:5::/64'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:9::/64'],
+    ]
+    # Test ipv6 unicast, vrf red, default and blue
+    asn, vrf, af = '55', 'default', 'ipv6 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+    asn, vrf, af = '55', 'red', 'ipv6 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+    asn, vrf, af = '55', 'green', 'ipv6 unicast'
+    networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
+  end
+
+  def networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
+    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify 'is' network list contains more items then
+    # the 'should' network list.
+    #
+    il.each { |network, rtmap|
+      bgp_af.network_set(network, rtmap)
+    }
+
+    config_list = bgp_af.networks_delta(sl)
+    assert_empty(config_list[:add],
+      "Error: config_list[:add] should be empty")
+    assert_equal(1, config_list[:remove].size,
+      "Error: config_list[:remove] should contain one item")
+    assert_equal(il[1], config_list[:remove][0],
+      "Error: config_list[:remove] has the wrong network")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+  end
+
+  def test_networks_delta_is_greaterthan_should
+    # is_list(il) has an additional item 4
+    il = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    sl = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    # Test ipv4 unicast vrf red
+    asn, vrf, af = '55', 'red', 'ipv4 unicast'
+    networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
+
+    # is_list(il) has an additional item 4
+    il = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    sl = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    # Test ipv6 unicast vrf red
+    asn, vrf, af = '55', 'red', 'ipv6 unicast'
+    networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
+  end
+
+  def networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
+    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify 'is' network list contains less items then
+    # the 'should' network list.
+    #
+    il1.each { |network, rtmap|
+      bgp_af.network_set(network, rtmap)
+    }
+
+    config_list = bgp_af.networks_delta(sl1)
+    assert_equal(1, config_list[:add].size,
+      "Error: config_list[:add] should contain 1 item")
+    assert_empty(config_list[:remove],
+      "Error: config_list[:remove] should be empty")
+    assert_equal(sl1[3], config_list[:add][0],
+      "Error: config_list[:add] has the wrong network")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl1.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+
+    # Cleanup for next test section
+    sl1.each { |network, rtmap|
+      bgp_af.network_remove(network, rtmap)
+    }
+    assert_empty(bgp_af.networks,
+      "Error: all networks should have been removed")
+
+    #
+    # Set and verify 'is' network list contains less items then
+    # the 'should' network list and some of the items are
+    # different
+    #
+    il2.each { |network, rtmap|
+      bgp_af.network_set(network, rtmap)
+    }
+
+    config_list = bgp_af.networks_delta(sl2)
+    assert_equal(2, config_list[:add].size,
+      "Error: config_list[:add] should contain 2 items")
+    assert_equal(1, config_list[:remove].size,
+      "Error: config_list[:remove] should contain 1 item")
+    assert_includes(config_list[:add], sl2[0],
+      "Error: config_list[:add] should contain #{sl2[0]}")
+    assert_includes(config_list[:add], sl2[3],
+      "Error: config_list[:add] should contain #{sl2[3]}")
+    assert_includes(config_list[:remove], il2[0],
+      "Error: config_list[:remove] should contain #{il2[0]}")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl2.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+  end
+
+  def test_networks_delta_is_lessthan_should
+    # Lists are identical except for additional item 4 in
+    # should list (sl1)
+    il1 = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3']]
+    sl1 = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    # Item 1 in both lists are different
+    # Additonal item 4 in should list (sl2)
+    il2 = [
+      ['192.168.5.0/24', 'rtmap1'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+    ]
+    sl2 = [
+      ['192.168.55.0/24', 'rtmap55'],
+      ['192.168.6.0/24', 'rtmap2'],
+      ['192.168.7.0/24', 'rtmap3'],
+      ['192.168.9.0/24'],
+    ]
+    # Test ipv4 unicast vrf default
+    asn, vrf, af = '55', 'default', 'ipv4 unicast'
+    networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
+
+    # Lists are identical except for additional item 4 in
+    # should list (sl1)
+    il1 = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3']]
+    sl1 = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    # Item 1 in both lists are different
+    # Additonal item 4 in should list (sl2)
+    il2 = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+    ]
+    sl2 = [
+      ['2000:155:55::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+      ['2000:123:40::/64', 'rtmap3'],
+      ['2000:123:41::/64'],
+    ]
+    # Test ipv6 unicast vrf default
+    asn, vrf, af = '55', 'default', 'ipv6 unicast'
+    networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
+  end
+
+  def test_networks_scale
+    asn = '55'
+    vrf = 'blue'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Configure 50 networks and then add and remove from the list
+    #
+    should_list = []
+    (1..50).each { |x|
+      bgp_af.network_set("192.168.#{x}.5/24", "rtmap#{x}")
+      should_list.push ["192.168.#{x}.0/24", "rtmap#{x}"]
+    }
+
+    config_list = bgp_af.networks_delta(should_list)
+    assert_empty(config_list[:add],
+      "Error: config_list[:add] should be empty")
+    assert_empty(config_list[:remove],
+      "Error: config_list[:remove] should be empty")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    should_list.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+
+    # Change the second half of the list to new values
+    (25..50).each { |x|
+      should_list[x] = ["10.168.#{x}.0/24", "rtmap#{x}"]
+    }
+
+    # Add new values with route maps
+    (51..80).each { |x|
+      should_list[x] = ["10.55.#{x}.0/24", "rtmap#{x}"]
+    }
+
+    # Add new values without route maps
+    (81..90).each { |x|
+      should_list[x] = ["10.55.#{x}.0/24"]
+    }
+
+    # Apply config_list
+    bgp_af.networks = bgp_af.networks_delta(should_list)
+
+    # Verify is_list on device
+    should_list.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
+
+    # Cleanup
+    should_list.each { |network, rtmap|
+      bgp_af.network_remove(network, rtmap)
+    }
+    assert_empty(bgp_af.networks,
+      "Error: all networks should have been removed")
+  end
+
+  def test_networks_routemap_change
+    asn = '55'
+    vrf = 'blue'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    il = [['192.168.5.0/24', 'rtmap1']]
+    sl = [['192.168.5.0/24', 'rtmap2']]
+
+    bgp_af.network_set(il[0][0], il[0][1])
+
+    config_list = bgp_af.networks_delta(sl)
+    assert_equal(1, config_list[:add].size,
+      "Error: config_list[:add] should contain 1 item")
+    assert_empty(config_list[:remove],
+      "Error: config_list[:remove] should be empty")
+    assert_equal('rtmap2', config_list[:add][0][1],
+      "Error: config_list[:add] routemap value should be 'rtmap2'")
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify should_list on device
+    sl.each { |network|
+      assert_includes(bgp_af.networks, network,
+        "Error: device should contain network #{network}")
+    }
   end
 end

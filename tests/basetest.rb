@@ -90,4 +90,8 @@ class TestCase < Test::Unit::TestCase
   def test_placeholder
     # needed so that we don't get a "no tests were specified" error
   end
+
+  def self.test_order
+    :random
+  end
 end
