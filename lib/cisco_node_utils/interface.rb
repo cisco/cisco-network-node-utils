@@ -390,24 +390,6 @@ module Cisco
       @@node.config_get_default("interface", lookup)
     end
 
-    def speed
-      val = @@node.config_get("interface", "speed", @name)
-      return default_speed if val.nil?
-      val.shift.strip.to_i
-    end
-
-    def speed=(val)
-      val.nil? ?
-        @@node.config_set("interface", "speed", @name, "no", "") :
-        @@node.config_set("interface", "speed", @name, "", val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_speed
-      @@node.config_get_default("interface", "speed")
-    end
-
     def switchport
       # This is "switchport", not "switchport mode"
       sw = @@node.config_get("interface", "switchport", @name)

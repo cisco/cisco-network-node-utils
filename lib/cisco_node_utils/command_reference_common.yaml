@@ -286,12 +286,6 @@ interface:
   shutdown_unknown:
     default_value: true
 
-  speed:
-    config_get: "show running interface all"
-    config_get_token: ['/^interface %s$/i', '/^speed (.*)$/']
-    config_set: ["interface %s", "%s speed %s"]
-    default_value: ""
-
   system_default_switchport:
     config_get: "show running all | include 'system default'"
     config_get_token: ['/^system default switchport$/']
