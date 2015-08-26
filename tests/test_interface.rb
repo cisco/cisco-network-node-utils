@@ -441,59 +441,6 @@ SWITCHPORT_SHUTDOWN_HASH = {
     end
   end
 
-  def test_interface_channel_group_id_change
-    interface = Interface.new(interfaces[0])
-    interface.channel_group_set(3)
-    assert_equal(3, interface.channel_group_id)
-    interface.channel_group_set(4)
-    assert_equal(4, interface.channel_group_id)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_channel_group_id_invalid
-    interface = Interface.new(interfaces[0])
-    assert_raises(RuntimeError) {
-      interface.channel_group_set("invalidtest")
-    }
-  end
-
-  def test_interface_channel_group_id_valid
-    interface = Interface.new(interfaces[0])
-    interface.channel_group_set(3)
-    assert_equal(3, interface.channel_group_id)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_channel_group_mode_change
-    interface = Interface.new(interfaces[0])
-    interface.channel_group_set(3, "active")
-    assert_equal("active", interface.channel_group_mode)
-    interface.channel_group_set(3, "passive")
-    assert_equal("passive", interface.channel_group_mode)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_channel_group_mode_invalid
-    interface = Interface.new(interfaces[0])
-    assert_raises(RuntimeError) {
-      interface.channel_group_set(3, "test")
-    }
-  end
-
-  def test_interface_channel_group_mode_on
-    interface = Interface.new(interfaces[0])
-    interface.channel_group_set(3)
-    assert_equal("on", interface.channel_group_mode)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_channel_group_mode_valid
-    interface = Interface.new(interfaces[0])
-    interface.channel_group_set(3, "active")
-    assert_equal("active", interface.channel_group_mode)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
   def test_interface_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
