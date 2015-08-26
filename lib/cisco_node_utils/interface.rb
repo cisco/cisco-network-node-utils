@@ -82,50 +82,6 @@ module Cisco
       @@node.config_get_default("interface", "access_vlan")
     end
 
-    def channel_group
-      group = @@node.config_get("interface", "channel_group", @name)
-      return default_channel_group if group.nil?
-      group.shift
-    end
-
-    def channel_group_id
-      val = channel_group
-      return default_channel_group if val.nil?
-      val.shift.strip.to_i
-    end
-
-    def channel_group_mode
-      val = channel_group
-      return nil if val.empty?
-      val[1].empty? ? default_channel_group_mode : val[1]
-    end
-
-    def channel_group_set(id, mode=nil)
-      feature_lacp_set(true)
-      if id.nil?
-        @@node.config_set("interface", "channel_group", @name, "no", "")
-      elsif mode.nil?
-        @@node.config_set("interface", "channel_group", @name, "", id.to_s)
-      else
-        # channel_group mode cannot be changed unless removed first
-        if channel_group_mode
-          @@node.config_set("interface", "channel_group", @name, "no", "")
-        end
-        cmd_string = id.to_s + " mode " + mode
-        @@node.config_set("interface", "channel_group", @name, "", cmd_string)
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_channel_group
-      @@node.config_get_default("interface", "channel_group")
-    end
-
-    def default_channel_group_mode
-      @@node.config_get_default("interface", "channel_group_mode")
-    end
-
     def description
       desc = @@node.config_get("interface", "description", @name)
       return "" if desc.nil?

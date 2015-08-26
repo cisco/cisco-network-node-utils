@@ -130,18 +130,6 @@ interface:
     config_get: "show running interface all"
     config_get_token: '/^interface (.*)/'
 
-  channel_group:
-    config_get: "show running interface all"
-    config_get_token: [
-      '/^interface %s$/i',
-      '/^channel-group (\d+)(?: mode )?(.*)?$/'
-    ]
-    config_set: ["interface %s", "%s channel-group %s"]
-    default_value: ""
-
-  channel_group_mode:
-    default_value: "on"
-
   create:
     config_set: "interface %s"
 

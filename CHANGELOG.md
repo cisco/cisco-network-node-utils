@@ -14,7 +14,6 @@ Changelog
 * Added n9000_sample*.rpm to /tests for use with minitests.
 * Updated yum install method to include vrf, fixes minitest issue.
 * Extended cisco_interface with the following attributes:
-  * channel-group
   * encapsulation dot1q
   * mtu
   * switchport trunk allowed and native vlans
