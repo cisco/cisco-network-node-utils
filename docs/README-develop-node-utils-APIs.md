@@ -21,7 +21,7 @@ This document is a HowTo guide for writing new cisco node_utils APIs. The node_u
 
 There are multiple components involved when creating new resources. This document focuses on the cisco node_utils API, command reference YAML files, and minitests.
 
-![1](docs/agent_files.png)
+![1](agent_files.png)
 
 ## <a name="clone">Start here: Clone the Repo</a>
 
@@ -52,7 +52,7 @@ Four basic command_reference parameters will be defined for each resource proper
  3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
 
-There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](README_YAML.md) document for more information on the structure and semantics of these files.
+There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
 
 #### Example: YAML Property Definitions for feature bash-shell
 
