@@ -1,8 +1,8 @@
 Changelog
 =========
 
-(unreleased)
-------------
+1.0.0
+-----
 
 * Improved logic in Vtp class to handle the presence or absence of
   'feature vtp' and 'vtp domain' configuration.
