@@ -47,7 +47,7 @@ class Vtp
 
   # Get vtp domain name
   def Vtp.domain
-    @@node.config_get("vtp", "domain")
+    enabled ? @@node.config_get("vtp", "domain") : ""
   end
 
   def domain
@@ -55,11 +55,12 @@ class Vtp
   end
 
   # Set vtp domain name
-  def domain=(domain)
-    raise ArgumentError unless domain and domain.is_a? String and
-                               domain.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
+  def domain=(d)
+    raise ArgumentError unless d and d.is_a? String and
+                               d.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
+    enable unless Vtp.enabled
     begin
-      @@node.config_set("vtp", "domain", domain)
+      @@node.config_set("vtp", "domain", d)
     rescue Cisco::CliError => e
       # cmd will syntax reject when setting name to same name
       raise unless e.clierror =~ /ERROR: Domain name already set to /
@@ -69,9 +70,9 @@ class Vtp
   # Get vtp password
   def password
     # Unfortunately nxapi returns "\\" when the password is not set
-    password = @@node.config_get("vtp", "password")
-    return '' if password.nil?
-    password.gsub(/\\/, '')
+    password = @@node.config_get("vtp", "password") if Vtp.enabled
+    return '' if password.nil? or password == "\\"
+    password
   end
 
   # Set vtp password
@@ -79,9 +80,15 @@ class Vtp
     raise TypeError if password.nil?
     raise TypeError unless password.is_a? String
     raise ArgumentError if password.length > MAX_VTP_PASSWORD_SIZE
-    password == default_password ?
-      @@node.config_set("vtp", "password", "no", "") :
-      @@node.config_set("vtp", "password", "", password)
+    enable unless Vtp.enabled
+    begin
+      password == default_password ?
+        @@node.config_set("vtp", "password", "no", "") :
+        @@node.config_set("vtp", "password", "", password)
+    rescue Cisco::CliError => e
+      raise unless e.clierror =~ /password cannot be set for NULL domain/
+      raise "Setting VTP password requires first setting VTP domain" unless password == default_password
+    end
   end
 
   # Get default vtp password
@@ -98,6 +105,7 @@ class Vtp
   # Set vtp filename
   def filename=(uri)
     raise TypeError if uri.nil?
+    enable unless Vtp.enabled
     uri.empty? ?
       @@node.config_set("vtp", "filename", "no", "") :
       @@node.config_set("vtp", "filename", "", uri)
@@ -110,12 +118,13 @@ class Vtp
 
   # Get vtp version
   def version
-    match = @@node.config_get("vtp", "version")
+    match = @@node.config_get("vtp", "version") if Vtp.enabled
     match.nil? ? default_version : match.first.to_i
   end
 
   # Set vtp version
   def version=(version)
+    enable unless Vtp.enabled
     @@node.config_set("vtp", "version", "#{version}")
   end
 

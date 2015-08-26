@@ -45,24 +45,24 @@ class TestYum < CiscoTestCase
 
   def skip?
     skip "file bootflash:#{@@pkg_filename} is required. " +
-      "this file can be downloaded from /auto/rtp-core-tftpboot/repo" if @@skip
+      "this file can be found in the cisco_node_utils/tests directory" if @@skip
   end
 
   def test_install
-    begin 
       skip?
       if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
         @device.cmd("install deactivate #{@@pkg}")
         node.cache_flush
         sleep 20
       end
-      Yum.install(@@pkg)
+
+      # Specify "management" vrf for install
+      Yum.install(@@pkg, "management")
       sleep 20
       s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
       assert(s, "failed to find installed package #{@@pkg}")
-    rescue RuntimeError => e 
+    rescue RuntimeError => e
       assert(false, e.message)
-    end  
   end
 
   def test_remove
@@ -84,8 +84,12 @@ class TestYum < CiscoTestCase
   end
 
   def test_package_does_not_exist_error
-    assert_raises(RuntimeError) { Yum.install("bootflash:this_is_not_real.rpm") }
-    assert_raises(RuntimeError) { Yum.install("also_not_real") }
+    assert_raises(Cisco::CliError) {
+      Yum.install("bootflash:this_is_not_real.rpm", "management")
+    }
+    assert_raises(RuntimeError) {
+      Yum.install("also_not_real", "management")
+    }
   end
 
   def test_query

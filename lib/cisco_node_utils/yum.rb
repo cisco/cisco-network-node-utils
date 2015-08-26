@@ -28,7 +28,7 @@ module Cisco
       # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
       name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
 
-      # ex n9000_sample-1.0.0-7.0.3.x86_64.rpm 
+      # ex n9000_sample-1.0.0-7.0.3.x86_64.rpm
       name_ver_arch_regex_nx = /^(.*)-([\d\.]+-[\d\.]+)\.(\w{4,})\.rpm$/
 
       # ex: b+z-ip2.x64_64
@@ -52,20 +52,30 @@ module Cisco
         end
       end
       should_ver = pkg_info[2] if pkg_info && pkg_info[3]
-      ver = self.query(query_name)
+      ver = query(query_name)
       if ver.nil? || (!should_ver.nil? && should_ver != ver)
-        raise RuntimeError, "Failed to install the requested rpm"
+        raise "Failed to install the requested rpm"
       end
     end
 
-    def self.install(pkg)
-      @@node.config_set("yum", "install", pkg)
+    def self.get_vrf
+      # Detect current namespace from agent environment
+      inode = File::Stat.new("/proc/self/ns/net").ino
+      # -L reqd for guestshell's find command
+      vrfname = File.basename(`find -L /var/run/netns/ -inum #{inode}`.chop)
+      vrf = "vrf " + vrfname unless vrfname.empty?
+      vrf
+    end
+
+    def self.install(pkg, vrf = nil)
+      vrf = vrf.nil? ? get_vrf : "vrf #{vrf}"
+      @@node.config_set("yum", "install", pkg, vrf)
 
       # HACK: The current nxos host installer is a multi-part command
       # which may fail at a later stage yet return a false positive;
       # therefore a post-validation check is needed here to verify the
       # actual outcome.
-      self.validate(pkg)
+      validate(pkg)
     end
 
     # returns version of package, or false if package doesn't exist

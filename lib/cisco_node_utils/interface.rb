@@ -101,6 +101,24 @@ module Cisco
       @@node.config_get_default("interface", "description")
     end
 
+    def encapsulation_dot1q
+      val = @@node.config_get("interface", "encapsulation_dot1q", @name)
+      return default_encapsulation_dot1q if val.nil?
+      val.shift.strip.to_i
+    end
+
+    def encapsulation_dot1q=(val)
+      val.nil? ?
+        @@node.config_set("interface", "encapsulation_dot1q", @name, "no", "") :
+        @@node.config_set("interface", "encapsulation_dot1q", @name, "", val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_encapsulation_dot1q
+      @@node.config_get_default("interface", "encapsulation_dot1q")
+    end
+
     def fex_feature
       fex = @@node.config_get("fex", "feature")
       raise "fex_feature not found" if fex.nil?
@@ -213,6 +231,33 @@ module Cisco
 
     def default_ipv4_redirects
       @@node.config_get_default("interface", ipv4_redirects_lookup_string)
+    end
+
+    def feature_lacp?
+      not @@node.config_get("interface", "feature_lacp").nil?
+    end
+
+    def feature_lacp_set(val)
+      return if feature_lacp? == val
+      @@node.config_set("interface", "feature_lacp", val ? "" : "no")
+    end
+
+    def mtu
+      mtu = @@node.config_get("interface", "mtu", @name)
+      return default_mtu if mtu.nil?
+      mtu.shift.strip.to_i
+    end
+
+    def mtu=(mtu)
+      mtu.nil? ?
+        @@node.config_set("interface", "mtu", @name, "no", "") :
+        @@node.config_set("interface", "mtu", @name, "", mtu)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_mtu
+      @@node.config_get_default("interface", "mtu")
     end
 
     def negotiate_auto_lookup_string
@@ -401,6 +446,48 @@ module Cisco
         @@node.config_get_default("interface", switchport_mode_lookup_string))
     end
 
+    def switchport_trunk_allowed_vlan
+      val = @@node.config_get(
+        "interface", "switchport_trunk_allowed_vlan", @name)
+      return default_switchport_trunk_allowed_vlan if val.nil?
+      val.shift.strip
+    end
+
+    def switchport_trunk_allowed_vlan=(val)
+      val.nil? ?
+        @@node.config_set(
+          "interface", "switchport_trunk_allowed_vlan", @name, "no", "") :
+        @@node.config_set(
+          "interface", "switchport_trunk_allowed_vlan", @name, "", val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_switchport_trunk_allowed_vlan
+      @@node.config_get_default("interface", "switchport_trunk_allowed_vlan")
+    end
+
+    def switchport_trunk_native_vlan
+      val = @@node.config_get(
+        "interface", "switchport_trunk_native_vlan", @name)
+      return default_switchport_trunk_native_vlan if val.nil?
+      val.shift.strip.to_i
+    end
+
+    def switchport_trunk_native_vlan=(val)
+      val.nil? ?
+        @@node.config_set(
+          "interface", "switchport_trunk_native_vlan", @name, "no", "") :
+        @@node.config_set(
+          "interface", "switchport_trunk_native_vlan", @name, "", val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_switchport_trunk_native_vlan
+      @@node.config_get_default("interface", "switchport_trunk_native_vlan")
+    end
+
     def system_default_switchport
       # This command is a user-configurable system default.
       sys_def = @@node.config_get("interface", "system_default_switchport")
@@ -496,6 +583,25 @@ module Cisco
     def check_switchport_disabled
       raise "#{caller[0][/`.*'/][1..-2]} cannot be set unless switchport mode" +
         " is disabled" unless switchport_mode == :disabled
+    end
+
+    def vrf
+      vrf = @@node.config_get("interface", "vrf", @name)
+      return "" if vrf.nil?
+      vrf.shift.strip
+    end
+
+    def vrf=(vrf)
+      raise TypeError unless vrf.is_a?(String)
+      vrf.empty? ?
+        @@node.config_set("interface", "vrf", @name, "no", "") :
+        @@node.config_set("interface", "vrf", @name, "", vrf)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_vrf
+      @@node.config_get_default("interface", "vrf")
     end
   end  # Class
 end    # Module

@@ -28,6 +28,7 @@ class TestInterface < CiscoTestCase
   @@debug_validate_ipv4_address = "validate_ipv4_address"
   @@debug_validate_ipv4_proxy_arp = "validate_ipv4_proxy_arp"
   @@debug_validate_ipv4_redirects = "validate_ipv4_redirects"
+  @@debug_validate_vrf = "validate_vrf"
   @@debug_test_interface_ipv4_all_interfaces = "test_interface_ipv4_all_interfaces"
 
   # Debug flags, globally defined
@@ -63,7 +64,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
   DEFAULT_IF_IP_NETMASK_LEN = nil
   DEFAULT_IF_IP_PROXY_ARP = false
   DEFAULT_IF_IP_REDIRECTS = true
+  DEFAULT_IF_VRF = ""
   IF_DESCRIPTION_SIZE = 243 # SIZE = VSH Max 255 - "description " keyword
+  IF_VRF_MAX_LENGTH = 32
 
   def interface_ipv4_config(ifname, address, length,
                             config = true, secip = false)
@@ -225,16 +228,16 @@ SWITCHPORT_SHUTDOWN_HASH = {
 
       # check of description
       assert_equal(v[:description], interface.description,
-                   "Error: Description not configured")
+                   "Error: [#{interface.name}] Description is not configured")
 
       # change description
       interface.description = v[:description_new]
       assert_equal(v[:description_new], interface.description,
-                   "Error: Description not configured")
+                   "Error: [#{interface.name}] Description is not changed")
 
       # get_default check
       assert_equal(v[:default_description], interface.default_description,
-                   "Error: Description, default, not configured")
+                   "Error: [#{interface.name}] Default description is not configured")
     end
   end
 
@@ -413,6 +416,31 @@ SWITCHPORT_SHUTDOWN_HASH = {
     end
   end
 
+  def validate_vrf(inttype_h)
+    # Validate the vrf
+    inttype_h.each do | k, v |
+      CiscoTestCase.debug(@@debug_validate_vrf,
+                     @@debug_group_ipv4_all_interfaces,
+                     2,
+                     "Interface: #{k}")
+      interface = v[:interface]
+
+      CiscoTestCase.debug_detail(@@debug_validate_vrf,
+                            @@debug_group_ipv4_all_interfaces,
+                            4,
+                            "Value - #{v[:vrf]}")
+
+      # change vrf
+      interface.vrf = v[:vrf_new]
+      assert_equal(v[:vrf_new], interface.vrf,
+                   "Error: [#{interface.name}] vrf is not changed")
+
+      # set to default vrf
+      assert_equal(v[:default_vrf], interface.default_vrf,
+                   "Error: [#{interface.name}] vrf config found. Should be default vrf")
+    end
+  end
+
   def test_interface_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
@@ -470,6 +498,62 @@ SWITCHPORT_SHUTDOWN_HASH = {
         assert_equal(description.rstrip, interface.description)
       end
     }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_change
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    subif.encapsulation_dot1q = 20
+    assert_equal(20, subif.encapsulation_dot1q)
+    subif.encapsulation_dot1q = 25
+    assert_equal(25, subif.encapsulation_dot1q)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_invalid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    assert_raises(RuntimeError) {
+      subif.encapsulation_dot1q = "hello"
+    }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_valid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    subif.encapsulation_dot1q = 20
+    assert_equal(20, subif.encapsulation_dot1q)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_mtu_change
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
+    interface.mtu = 580
+    assert_equal(580, interface.mtu)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_mtu_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.mtu = "hello"
+    }
+  end
+
+  def test_interface_mtu_valid
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -906,7 +990,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
       :switchport => :disabled,
       :default_switchport => :disabled,
       :access_vlan => DEFAULT_IF_ACCESS_VLAN,
-      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN
+      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN,
+      :vrf_new => "test2",
+      :default_vrf => DEFAULT_IF_VRF,
     }
     inttype_h["Vlan45"] = {
       :address_len => "9.7.1.1/15",
@@ -921,7 +1007,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
       :switchport => :disabled,
       :default_switchport => :disabled,
       :access_vlan => DEFAULT_IF_ACCESS_VLAN,
-      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN
+      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN,
+      :vrf_new => "test2",
+      :default_vrf => DEFAULT_IF_VRF,
     }
     inttype_h["port-channel48"] = {
       :address_len => "10.7.1.1/15",
@@ -936,7 +1024,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
       :switchport => :disabled,
       :default_switchport => :disabled,
       :access_vlan => DEFAULT_IF_ACCESS_VLAN,
-      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN
+      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN,
+      :vrf_new => "test2",
+      :default_vrf => DEFAULT_IF_VRF,
     }
     inttype_h["loopback0"] = {
       :address_len => "11.7.1.1/15",
@@ -950,7 +1040,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
       :switchport => :disabled,
       :default_switchport => :disabled,
       :access_vlan => DEFAULT_IF_ACCESS_VLAN,
-      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN
+      :default_access_vlan => DEFAULT_IF_ACCESS_VLAN,
+      :vrf_new => "test2",
+      :default_vrf => DEFAULT_IF_VRF,
     }
     # Skipping mgmt0 interface since that interface is our 'path' to
     # master should revisit this later
@@ -999,6 +1091,7 @@ SWITCHPORT_SHUTDOWN_HASH = {
     validate_ipv4_proxy_arp(inttype_h)
     validate_ipv4_redirects(inttype_h)
     validate_interface_shutdown(inttype_h)
+    validate_vrf(inttype_h)
 
     # Cleanup the preload configuration
     s = @device.cmd("configure terminal")
@@ -1013,5 +1106,54 @@ SWITCHPORT_SHUTDOWN_HASH = {
     s = @device.cmd("exit")
     s = @device.cmd("end")
     node.cache_flush
+  end
+
+  def test_interface_vrf_default
+    @device.cmd("conf t ; interface loopback1 ; vrf member foo")
+    node.cache_flush
+    interface = Interface.new("loopback1")
+    interface.vrf = interface.default_vrf
+    assert_equal(DEFAULT_IF_VRF, interface.vrf)
+  end
+
+  def test_interface_vrf_empty
+    @device.cmd("conf t ; interface loopback1 ; vrf member foo")
+    node.cache_flush
+    interface = Interface.new("loopback1")
+    interface.vrf = DEFAULT_IF_VRF
+    assert_equal(DEFAULT_IF_VRF, interface.vrf)
+  end
+
+  def test_interface_vrf_invalid_type
+    interface = Interface.new("loopback1")
+    assert_raises(TypeError) {
+      interface.vrf = 1
+    }
+  end
+
+  def test_interface_vrf_exceeds_max_length
+    interface = Interface.new("loopback1")
+    long_string = "a" * (IF_VRF_MAX_LENGTH + 1)
+    assert_raises(RuntimeError) {
+      interface.vrf = long_string
+    }
+  end
+
+  def test_interface_vrf_override
+    interface = Interface.new("loopback1")
+    vrf1 = "test1"
+    vrf2 = "test2"
+    interface.vrf = vrf1
+    interface.vrf = vrf2
+    assert_equal(vrf2, interface.vrf)
+    interface.destroy
+  end
+
+  def test_interface_vrf_valid
+    interface = Interface.new("loopback1")
+    vrf = "test"
+    interface.vrf = vrf
+    assert_equal(vrf, interface.vrf)
+    interface.destroy
   end
 end

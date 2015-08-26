@@ -201,6 +201,12 @@ class RouterOspfVrf
     set_args_keys_delete([:start, :hold, :max])
   end
 
+  def default_timer_throttle_lsa
+    [default_timer_throttle_lsa_start,
+     default_timer_throttle_lsa_hold,
+     default_timer_throttle_lsa_max]
+  end
+
   def default_timer_throttle_lsa_start
     @@node.config_get_default("ospf", "timer_throttle_lsa_start")
   end
@@ -241,6 +247,12 @@ class RouterOspfVrf
     @set_args[:start], @set_args[:hold], @set_args[:max] = start, hold, max
     @@node.config_set("ospf", "timer_throttle_spf", @set_args)
     set_args_keys_delete([:start, :hold, :max])
+  end
+
+  def default_timer_throttle_spf
+    [default_timer_throttle_spf_start,
+     default_timer_throttle_spf_hold,
+     default_timer_throttle_spf_max]
   end
 
   def default_timer_throttle_spf_start
