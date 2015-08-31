@@ -27,7 +27,7 @@ require File.expand_path("../test_node", __FILE__)
 require File.expand_path("../test_node_ext", __FILE__)
 
 # Feature tests - please keep in alphabetical order
-require.File.expand_path("../test_bgp", __FILE__)
+require File.expand_path("../test_bgp", __FILE__)
 require File.expand_path("../test_command_config", __FILE__)
 require File.expand_path("../test_interface", __FILE__)
 require File.expand_path("../test_interface_ospf", __FILE__)
