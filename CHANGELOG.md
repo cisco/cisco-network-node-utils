@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.0
+(unreleased)
 -----
 
 ### Added
@@ -13,6 +13,9 @@ Changelog
 * Added RouterBgpNbrAF class for managing Cisco BGP Neighbor AF configurations
 
 ### Fixed
+
+1.0.0
+-----
 
 * Improved logic in Vtp class to handle the presence or absence of
   'feature vtp' and 'vtp domain' configuration.
