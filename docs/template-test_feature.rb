@@ -19,7 +19,6 @@ require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/X__RESOURCE_NAME__X", __FILE__)
 
 class TestX__CLASS_NAME__X < CiscoTestCase
-
   def setup
     # setup automatically runs at the beginning of each test
     super

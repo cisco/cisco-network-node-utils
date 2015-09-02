@@ -501,6 +501,62 @@ SWITCHPORT_SHUTDOWN_HASH = {
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_interface_encapsulation_dot1q_change
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    subif.encapsulation_dot1q = 20
+    assert_equal(20, subif.encapsulation_dot1q)
+    subif.encapsulation_dot1q = 25
+    assert_equal(25, subif.encapsulation_dot1q)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_invalid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    assert_raises(RuntimeError) {
+      subif.encapsulation_dot1q = "hello"
+    }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_encapsulation_dot1q_valid
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    subif = Interface.new(interfaces[0] + ".1")
+
+    subif.encapsulation_dot1q = 20
+    assert_equal(20, subif.encapsulation_dot1q)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_mtu_change
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
+    interface.mtu = 580
+    assert_equal(580, interface.mtu)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_mtu_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) {
+      interface.mtu = "hello"
+    }
+  end
+
+  def test_interface_mtu_valid
+    interface = Interface.new(interfaces[0])
+    interface.mtu = 1490
+    assert_equal(1490, interface.mtu)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
   def test_interface_shutdown_valid
     interface = Interface.new(interfaces[0])
     interface.shutdown = true

@@ -142,6 +142,17 @@ interface:
   destroy:
     config_set: "no interface %s"
 
+  encapsulation_dot1q:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^encapsulation dot1q (.*)/']
+    config_set: ["interface %s", "%s encapsulation dot1q %s"]
+    default_value: ""
+
+  feature_lacp:
+    config_get: "show running | i ^feature"
+    config_get_token: '/^feature lacp$/'
+    config_set: "%s feature lacp"
+
   feature_vlan:
     config_get: "show running | i ^feature"
     config_get_token: '/^feature interface-vlan$/'
@@ -195,6 +206,12 @@ interface:
     test_config_result:
       false: false
       true: true
+
+  mtu:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^mtu (.*)$/']
+    config_set: ["interface %s", "%s mtu %s"]
+    default_value: ""
 
   negotiate_auto_ethernet:
     config_get: "show running interface all"
@@ -302,6 +319,24 @@ interface:
   switchport_mode_dot1q_tunnel:
     test_config_result:
       false: RuntimeError
+
+  switchport_trunk_allowed_vlan:
+    config_get: "show running interface all"
+    config_get_token: [
+      '/^interface %s$/i',
+      '/^switchport trunk allowed vlan (.*)$/'
+    ]
+    config_set: ["interface %s", "%s switchport trunk allowed vlan %s"]
+    default_value: "all"
+
+  switchport_trunk_native_vlan:
+    config_get: "show running interface all"
+    config_get_token: [
+      '/^interface %s$/i',
+      '/^switchport trunk native vlan (.*)$/'
+    ]
+    config_set: ["interface %s", "%s switchport trunk native vlan %s"]
+    default_value: 1
 
   svi_autostate:
     config_get: "show running interface all"

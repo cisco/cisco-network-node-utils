@@ -19,7 +19,6 @@ require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/router___RESOURCE_NAME__", __FILE__)
 
 class Test__CLASS_NAME__ < CiscoTestCase
-
   def setup
     # setup runs at the beginning of each test
     super
@@ -105,5 +104,4 @@ class Test__CLASS_NAME__ < CiscoTestCase
     rtr.__PROPERTY_BOOL__ = false
     refute(rtr.__PROPERTY_BOOL__, "__PROPERTY_BOOL__ state is not false")
   end
-
 end

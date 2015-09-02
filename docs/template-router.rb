@@ -18,9 +18,7 @@
 require File.join(File.dirname(__FILE__), 'node')
 
 module Cisco
-
 class X__CLASS_NAME__X
-
   attr_reader :name
 
   # Establish connection to node
@@ -60,11 +58,11 @@ class X__CLASS_NAME__X
   end
 
   def feature_enable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', {:state => ''})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => '' })
   end
 
   def feature_disable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', {:state => 'no'})
+    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => 'no' })
   end
 
   # Enable feature and create router instance
@@ -88,7 +86,7 @@ class X__CLASS_NAME__X
   end
 
   def X__RESOURCE_NAME__X_router(state='')
-    @@node.config_set('X__RESOURCE_NAME__X', 'router', {:name => @name, :state => state})
+    @@node.config_set('X__RESOURCE_NAME__X', 'router', { :name => @name, :state => state })
   end
 
   # ----------
@@ -101,13 +99,13 @@ class X__CLASS_NAME__X
   end
 
   def X__PROPERTY_BOOL__X
-    state = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', {:name => @name})
+    state = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', { :name => @name })
     state ? true : false
   end
 
   def X__PROPERTY_BOOL__X=(state)
     state = (state ? '' : 'no')
-    @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', {:name => @name, :state => state})
+    @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', { :name => @name, :state => state })
   end
 
   # Property methods for integer property
@@ -116,13 +114,12 @@ class X__CLASS_NAME__X
   end
 
   def X__PROPERTY_INT__X
-    val = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', {:name => @name})
+    val = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', { :name => @name })
     val.nil? ? default_X__PROPERTY_INT__X : val.first.to_i
   end
 
   def X__PROPERTY_INT__X=(val)
-    @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', {:name => @name, :val => val})
+    @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', { :name => @name, :val => val })
   end
-
 end
 end

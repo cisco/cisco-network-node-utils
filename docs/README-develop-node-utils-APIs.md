@@ -21,7 +21,7 @@ This document is a HowTo guide for writing new cisco node_utils APIs. The node_u
 
 There are multiple components involved when creating new resources. This document focuses on the cisco node_utils API, command reference YAML files, and minitests.
 
-![1](docs/agent_files.png)
+![1](agent_files.png)
 
 ## <a name="clone">Start here: Clone the Repo</a>
 
@@ -52,7 +52,7 @@ Four basic command_reference parameters will be defined for each resource proper
  3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
 
-There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](README_YAML.md) document for more information on the structure and semantics of these files.
+There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
 
 #### Example: YAML Property Definitions for feature bash-shell
 
@@ -98,20 +98,18 @@ This is the completed bash_shell API based on `template-feature.rb`:
 
 require File.join(File.dirname(__FILE__), 'node')
 module Cisco
-
 # Class name syntax will typically be the resource name in camelCase
 # format; for example: 'tacacs server host' becomes TacacsServerHost.
 class BashShell
-
   # Establish connection to node
   @@node = Cisco::Node.instance
 
   def feature_enable
-    @@node.config_set('bash_shell', 'feature', { :state => ''})
+    @@node.config_set('bash_shell', 'feature', { :state => '' })
   end
 
   def feature_disable
-    @@node.config_set('bash_shell', 'feature', { :state => 'no'})
+    @@node.config_set('bash_shell', 'feature', { :state => 'no' })
   end
 
   # Check current state of the configuration
@@ -124,7 +122,6 @@ class BashShell
     return false if e.clierror =~ /Syntax error/
     raise
   end
-
 end
 end
 ```
@@ -177,7 +174,6 @@ require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bash_shell", __FILE__)
 
 class TestBashShell < CiscoTestCase
-
   def setup
     # setup automatically runs at the beginning of each test
     super
@@ -371,9 +367,7 @@ This is the completed `router_eigrp` API based on `template-router.rb`:
 require File.join(File.dirname(__FILE__), 'node')
 
 module Cisco
-
 class RouterEigrp
-
   attr_reader :name
 
   # Establish connection to node
@@ -413,11 +407,11 @@ class RouterEigrp
   end
 
   def feature_enable
-    @@node.config_set('eigrp', 'feature', {:state => ''})
+    @@node.config_set('eigrp', 'feature', { :state => '' })
   end
 
   def feature_disable
-    @@node.config_set('eigrp', 'feature', {:state => 'no'})
+    @@node.config_set('eigrp', 'feature', { :state => 'no' })
   end
 
   # Enable feature and create router instance
@@ -441,7 +435,7 @@ class RouterEigrp
   end
 
   def eigrp_router(state='')
-    @@node.config_set('eigrp', 'router', {:name => @name, :state => state})
+    @@node.config_set('eigrp', 'router', { :name => @name, :state => state })
   end
 
   # ----------
@@ -454,13 +448,13 @@ class RouterEigrp
   end
 
   def shutdown
-    state = @@node.config_get('eigrp', 'shutdown', {:name => @name})
+    state = @@node.config_get('eigrp', 'shutdown', { :name => @name })
     state ? true : false
   end
 
   def shutdown=(state)
     state = (state ? '' : 'no')
-    @@node.config_set('eigrp', 'shutdown', {:name => @name, :state => state})
+    @@node.config_set('eigrp', 'shutdown', { :name => @name, :state => state })
   end
 
   # Property methods for integer property
@@ -469,12 +463,12 @@ class RouterEigrp
   end
 
   def maximum_paths
-    val = @@node.config_get('eigrp', 'maximum_paths', {:name => @name})
+    val = @@node.config_get('eigrp', 'maximum_paths', { :name => @name })
     val.nil? ? default_maximum_paths : val.first.to_i
   end
 
   def maximum_paths=(val)
-    @@node.config_set('eigrp', 'maximum_paths', {:name => @name, :val => val})
+    @@node.config_set('eigrp', 'maximum_paths', { :name => @name, :val => val })
   end
 
 end
@@ -531,7 +525,6 @@ require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/router_eigrp", __FILE__)
 
 class TestRouterEigrp < CiscoTestCase
-
   def setup
     # setup runs at the beginning of each test
     super
@@ -616,7 +609,6 @@ class TestRouterEigrp < CiscoTestCase
     rtr.shutdown = false
     refute(rtr.shutdown, "shutdown state is not false")
   end
-
 end
 ```
 

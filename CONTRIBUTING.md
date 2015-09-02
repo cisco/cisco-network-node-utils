@@ -10,7 +10,7 @@ Cisco Network Elements support a rich set of features to make networks robust, e
 
 * Fork the repository
   * Pull a branch under the "develop" branch for your changes.
-  * Follow all guidelines documented in [README-creating-node_utils-APIs](#README-creating-node_utils-APIs.md)
+  * Follow all guidelines documented in [README-develop-node_utils-APIs](docs/README-develop-node-utils-APIs.md)
   * Make changes in your branch.
 * Testing
   * Create a minitest for new APIs or new functionality
