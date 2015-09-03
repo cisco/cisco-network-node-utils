@@ -249,6 +249,7 @@ module Cisco
     end
 
     def mtu=(mtu)
+      check_switchport_disabled
       mtu.nil? ?
         @@node.config_set("interface", "mtu", @name, "no", "") :
         @@node.config_set("interface", "mtu", @name, "", mtu)
