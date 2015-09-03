@@ -359,6 +359,9 @@ bgp_nbr_af:
     config_set_append: '<state> default-originate <map>'
     default_value: false
 
+  default_originate_route_map:
+    default_value: ~
+
   disable_peer_as_check:
     config_get_token_append: '/^disable-peer-as-check$/'
     config_set_append: '<state> disable-peer-as-check'
@@ -436,5 +439,5 @@ bgp_nbr_af:
   weight:
     config_get_token_append: '/^weight (\d+)$/'
     config_set_append: '<state> weight <int>'
-    default_value: ~
+    default_value: false
 
