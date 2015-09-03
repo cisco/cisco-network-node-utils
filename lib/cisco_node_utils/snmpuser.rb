@@ -204,7 +204,8 @@ class SnmpUser
   # checked for equality. this is done by creating a fake user with the
   # password and then comparing the hashes
   def auth_password_equal?(passwd, is_localized=false)
-    throw TypeError unless passwd.is_a?(String)
+    passwd = passwd.to_s unless passwd.is_a?(String)
+    return true if passwd.empty? && _auth_sym_to_str(auth_protocol).empty?
     return false if passwd.empty? or _auth_sym_to_str(auth_protocol).empty?
     dummypw = passwd
     pw = nil
@@ -239,7 +240,8 @@ class SnmpUser
   end
 
   def priv_password_equal?(passwd, is_localized=false)
-    throw TypeError unless passwd.is_a?(String)
+    passwd = passwd.to_s unless passwd.is_a?(String)
+    return true if passwd.empty? && _auth_sym_to_str(auth_protocol).empty?
     return false if passwd.empty? or _auth_sym_to_str(auth_protocol).empty?
     dummypw = passwd
     pw = nil
@@ -261,12 +263,13 @@ class SnmpUser
                           @engine_id.empty? ? "" : "engineID #{@engine_id}")
 
         # retrieve password hashes
+        dummyau = SnmpUser.auth_password("dummy_user", @engine_id)
         dummypw = SnmpUser.priv_password("dummy_user", @engine_id)
         pw = priv_password
 
         # delete dummy user
         @@node.config_set("snmp_user", "user", "no", "dummy_user", "",
-                          "auth #{_auth_sym_to_str(auth_protocol)} #{dummypw}",
+                          "auth #{_auth_sym_to_str(auth_protocol)} #{dummyau}",
                           "priv #{_priv_sym_to_str(priv_protocol)} #{dummypw}",
                           "localizedkey",
                           @engine_id.empty? ? "" : "engineID #{@engine_id}")
