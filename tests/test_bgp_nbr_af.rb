@@ -52,6 +52,11 @@ class TestRouterBgpNbrAF < CiscoTestCase
     [obj_af, dbg]
   end
 
+  # def test_foo
+  #   af, dbg = clean_af([2, 'red', '1.1.1.1', %w(ipv4 unicast)])
+  #   foo(af, dbg)
+  # end
+
   # AF test matrix
   @@matrix = {
     # 1 => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
@@ -333,42 +338,36 @@ class TestRouterBgpNbrAF < CiscoTestCase
 
   def default_originate(af, dbg)
     # Test basic true
-    af.default_originate = true
+    af.default_originate_set(true)
     assert(af.default_originate,
            "Test 1. #{dbg} Failed to set state to True")
 
     # Test true with route-map
-    af.default_originate = "foo_bar"
-    assert_equal("foo_bar", af.default_originate,
+    af.default_originate_set(true, "foo_bar")
+    assert_equal("foo_bar", af.default_originate_route_map,
                  "Test 2. #{dbg} Failed to set True with Route-map")
 
     # Test false with route-map
-    af.default_originate = false
+    af.default_originate_set(false)
     refute(af.default_originate,
            "Test 3. #{dbg} Failed to set state to False")
 
     # Test true with route-map, from false
-    af.default_originate = "baz_inga"
-    assert_equal("baz_inga", af.default_originate,
-                 "Test 4. #{dbg} Failed to set True with Route-map, " +
+    af.default_originate_set(true, "baz_inga")
+    assert_equal("baz_inga", af.default_originate_route_map,
+                 "Test 4. #{dbg} Failed to set True with Route-map, " \
                  "from false state")
 
+    # Test default route-map, from true
+    af.default_originate_set(true, af.default_default_originate_route_map)
+    refute(af.default_originate_route_map,
+           "Test 5. #{dbg} Failed to set default route-map from existing")
+
     # Test default_state
-    af.default_originate = af.default_default_originate
+    af.default_originate_set(af.default_default_originate)
     refute(af.default_originate,
-           "Test 5. #{dbg} Failed to set state to default")
+           "Test 6. #{dbg} Failed to set state to default")
 
-    # Test empty route-map when no command is present
-    af.default_originate = false
-    af.default_originate = ''
-    assert(af.default_originate,
-           "Test 6a. #{dbg} Failed to set state to True")
-
-    # Test empty route-map when command is present but map is not
-    af.default_originate = true
-    af.default_originate = ''
-    assert(af.default_originate,
-           "Test 6b. #{dbg} Failed to set state to True")
   end
 
   # ---------------------------------

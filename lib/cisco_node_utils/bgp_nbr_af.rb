@@ -114,8 +114,58 @@ class RouterBgpNbrAF
   ########################################################
 
   # -----------------------
+  # <state> advertise-map <map1> exist-map <map2>
+
+  # Returns ['<map1>', '<map2>']
+  def advertise_map_exist
+    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_exist', @get_args)
+    return default_advertise_map_exist if arr.nil?
+    arr.shift
+  end
+
+  def advertise_map_exist=(arr)
+    if arr.empty?
+      state = 'no'
+      map1, map2 = advertise_map_exist
+    else
+      map1, map2 = arr
+    end
+    set_args_keys(:state => state, :map1 => map1, :map2 => map2)
+    @@node.config_set('bgp_nbr_af', 'advertise_map_exist', @set_args)
+  end
+
+  def default_advertise_map_exist
+    @@node.config_get_default('bgp_nbr_af', 'advertise_map_exist')
+  end
+
+  # -----------------------
+  # <state> advertise-map <map1> non-exist-map <map2> }
+
+  # Returns ['<map1>', '<map2>']
+  def advertise_map_non_exist
+    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_non_exist', @get_args)
+    return default_advertise_map_non_exist if arr.nil?
+    arr.shift
+  end
+
+  def advertise_map_non_exist=(arr)
+    if arr.empty?
+      state = 'no'
+      map1, map2 = advertise_map_non_exist
+    else
+      map1, map2 = arr
+    end
+    set_args_keys(:state => state, :map1 => map1, :map2 => map2)
+    @@node.config_set('bgp_nbr_af', 'advertise_map_non_exist', @set_args)
+  end
+
+  def default_advertise_map_non_exist
+    @@node.config_get_default('bgp_nbr_af', 'advertise_map_non_exist')
+  end
+
+  # -----------------------
   # <state> allowas-in <max>
-  # Nvgens as True -OR- True with max-occurrences
+  # Nvgens as True -OR- max-occurrences integer
   def allowas_in_get
     val = @@node.config_get('bgp_nbr_af', 'allowas_in', @get_args)
     return nil if val.nil?
@@ -143,56 +193,6 @@ class RouterBgpNbrAF
 
   def default_allowas_in_max
     @@node.config_get_default('bgp_nbr_af', 'allowas_in_max')
-  end
-
-  # -----------------------
-  # <state> advertise-map <map1> exist-map <map2>
-
-  # Returns True, False, or ['<map1>', '<map2>']
-  def advertise_map_exist
-    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_exist', @get_args)
-    return default_advertise_map_exist if arr.nil?
-    arr.shift
-  end
-
-  def advertise_map_exist=(arr)
-    if arr.empty?
-      state = 'no'
-      map1, map2 = advertise_map_exist
-    else
-      map1, map2 = arr
-    end
-    set_args_keys(:state => state, :map1 => map1, :map2 => map2)
-    @@node.config_set('bgp_nbr_af', 'advertise_map_exist', @set_args)
-  end
-
-  def default_advertise_map_exist
-    @@node.config_get_default('bgp_nbr_af', 'advertise_map_exist')
-  end
-
-  # -----------------------
-  # <state> advertise-map <map1> non-exist-map <map2> }
-
-  # Returns True, False, or ['<map1>', '<map2>']
-  def advertise_map_non_exist
-    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_non_exist', @get_args)
-    return default_advertise_map_non_exist if arr.nil?
-    arr.shift
-  end
-
-  def advertise_map_non_exist=(arr)
-    if arr.empty?
-      state = 'no'
-      map1, map2 = advertise_map_non_exist
-    else
-      map1, map2 = arr
-    end
-    set_args_keys(:state => state, :map1 => map1, :map2 => map2)
-    @@node.config_set('bgp_nbr_af', 'advertise_map_non_exist', @set_args)
-  end
-
-  def default_advertise_map_non_exist
-    @@node.config_get_default('bgp_nbr_af', 'advertise_map_non_exist')
   end
 
   # -----------------------
@@ -275,23 +275,36 @@ class RouterBgpNbrAF
 
   # -----------------------
   # <state> default-originate [ route-map <map> ]
-  # Nvgens as True -OR- True with 'route-map <map>'
-  def default_originate
+  # Nvgens as True with optional 'route-map <map>'
+  def default_originate_get
     val = @@node.config_get('bgp_nbr_af', 'default_originate', @get_args)
-    return default_default_originate if val.nil?
+    return nil if val.nil?
     val = val.shift
-    val = (val[/route-map/]) ? val.split.last : true
+    (val[/route-map/]) ? val.split.last : true
   end
 
-  def default_originate=(val)
-    state = (val == false) ? 'no' : ''
-    val = (val.is_a? String and not val.empty?) ? "route-map #{val}" : ''
-    set_args_keys(:state => state, :map => val)
+  def default_originate
+    default_originate_get.nil? ? false : true
+  end
+
+  def default_originate_route_map
+    val = default_originate_get
+    return default_default_originate_route_map if val.nil?
+    val.is_a?(String) ? val : nil
+  end
+
+  def default_originate_set(state, map = nil)
+    map = "route-map #{map}" unless map.nil?
+    set_args_keys(:state => (state ? '' : 'no'), :map => map)
     @@node.config_set('bgp_nbr_af', 'default_originate', @set_args)
   end
 
   def default_default_originate
     @@node.config_get_default('bgp_nbr_af', 'default_originate')
+  end
+
+  def default_default_originate_route_map
+    @@node.config_get_default('bgp_nbr_af', 'default_originate_route_map')
   end
 
   # -----------------------
@@ -324,6 +337,7 @@ class RouterBgpNbrAF
       state = 'no'
       # Current filter list name is required for removal
       str = filter_list_in
+      return if str.nil?
     end
     set_args_keys(:state => state, :str => str)
     @@node.config_set('bgp_nbr_af', 'filter_list_in', @set_args)
@@ -484,7 +498,7 @@ class RouterBgpNbrAF
   end
 
   def send_community=(val)
-    state, val = 'no', 'both' if val == 'none'
+    state, val = 'no', 'both' if val[/none/]
     if val[/extended|standard/]
       case send_community
       when /both/
@@ -510,7 +524,7 @@ class RouterBgpNbrAF
 
   # -----------------------
   # <state> soft-reconfiguration inbound <always>
-  # Nvgens as True -OR- True with 'always' keyword
+  # Nvgens as True with optional 'always' keyword
   def soft_reconfiguration_in_get
     val = @@node.config_get('bgp_nbr_af', 'soft_reconfiguration_in', @get_args)
     return nil if val.nil?
