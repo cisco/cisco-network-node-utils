@@ -33,9 +33,7 @@ module Cisco
       # for IP/prefix format, such as "1.1.1.1/24" or "2000:123:38::34/64",
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
-      @nbr, mask = nbr.split('/')
-      @nbr = IPAddr.new(nbr).to_s
-      @nbr = @nbr + '/' + mask unless mask.nil?
+      @nbr = RouterBgpNeighbor.nbr_munge(nbr)
       @asn = asn
       @vrf = vrf
       @get_args = @set_args = { :asnum => @asn, :nbr => @nbr, }
@@ -68,6 +66,17 @@ module Cisco
       # means the error was caused by feature is not enabled.
       raise unless e.clierror =~ /Syntax error/
       return {}
+    end
+
+    def RouterBgpNeighbor.nbr_munge(nbr)
+      # 'nbr' supports multiple formats which can nvgen differently:
+      #   1.1.1.1      nvgens 1.1.1.1
+      #   1.1.1.1/16   nvgens 1.1.0.0/16
+      #   200:2::20/64 nvgens 200:2::/64
+      addr, mask = nbr.split('/')
+      addr = IPAddr.new(nbr).to_s
+      addr = addr + '/' + mask unless mask.nil?
+      addr
     end
 
     def create
