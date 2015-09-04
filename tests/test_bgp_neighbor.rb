@@ -203,11 +203,15 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_local_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      local_asnum = [42, "1.1", neighbor.default_local_as]
+      local_asnum = [42, "52", "1.1", neighbor.default_local_as]
       local_asnum.each { |asnum|
         neighbor.local_as = asnum
         assert_equal(asnum, neighbor.local_as)
       }
+      # test a negative value
+      assert_raises(ArgumentError) do
+        neighbor.local_as = "52 15"
+      end
       neighbor.destroy
     end
   end

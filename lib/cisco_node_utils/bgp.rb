@@ -43,8 +43,8 @@ class RouterBgp
                                         asnum.is_a? String
     if asnum.is_a? String
       # Match ASDOT '1.5' or ASPLAIN '55' strings
-      raise ArgumentError unless /\d+.?\d+?/.match(asnum)
-      asnum = RouterBgp.dot_to_big(asnum) if /\d+.\d+/.match(asnum)
+      raise ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
+      asnum = RouterBgp.dot_to_big(asnum) if /\d+\.\d+/.match(asnum)
     end
     asnum.to_i
   end

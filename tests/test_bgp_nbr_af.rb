@@ -114,7 +114,7 @@ class TestRouterBgpNbrAF < CiscoTestCase
       nbr += (nbr[/:/]) ? '/64' : '/16'
       dbg = sprintf("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNbrAF.new(asn, vrf, nbr, af, true)
-      nbr_munged = RouterBgpNbrAF.nbr_munge(nbr)
+      nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
       afs = RouterBgpNbrAF.afs
       assert(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to create AF")
@@ -126,7 +126,7 @@ class TestRouterBgpNbrAF < CiscoTestCase
       nbr += (nbr[/:/]) ? '/64' : '/16'
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
-      nbr_munged = RouterBgpNbrAF.nbr_munge(nbr)
+      nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
       afs = RouterBgpNbrAF.afs
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
