@@ -61,18 +61,6 @@ class RouterBgpNbrAF
     return {}
   end
 
-  def RouterBgpNbrAF.nbr_munge(nbr)
-    # TBD: MOVE THIS INTO RouterBgpNeighbor
-    # 'nbr' supports multiple formats which can nvgen differently:
-    #   1.1.1.1      nvgens 1.1.1.1
-    #   1.1.1.1/16   nvgens 1.1.0.0/16
-    #   200:2::20/64 nvgens 200:2::/64
-    addr, mask = nbr.split('/')
-    addr = IPAddr.new(nbr).to_s
-    addr = addr + '/' + mask unless mask.nil?
-    addr
-  end
-
   def validate_args(asn, vrf, nbr, af)
     asn = RouterBgp.process_asnum(asn)
     raise ArgumentError unless
@@ -82,7 +70,7 @@ class RouterBgpNbrAF
     raise ArgumentError, "'af' must be an array specifying afi and safi" unless
       af.is_a? Array or af.length == 2
 
-    nbr = RouterBgpNbrAF.nbr_munge(nbr)
+    nbr = RouterBgpNeighbor.nbr_munge(nbr)
     @asn, @vrf, @nbr = asn, vrf, nbr
     @afi, @safi = af
     set_args_keys_default
