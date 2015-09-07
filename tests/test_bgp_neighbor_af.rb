@@ -20,7 +20,7 @@
 require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp_nbr_af", __FILE__)
+require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor_af", __FILE__)
 
 class TestRouterBgpNeighborAF < CiscoTestCase
   @@reset_feat = true
