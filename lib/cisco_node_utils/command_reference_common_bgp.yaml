@@ -298,7 +298,7 @@ bgp_neighbor:
     config_set_append: '<state> update-source <interface>'
     default_value: ""
 
-bgp_nbr_af:
+bgp_neighbor_af:
   _template:
     config_get: 'show running bgp all'
     config_get_token: '/^router bgp <asnum>$/'

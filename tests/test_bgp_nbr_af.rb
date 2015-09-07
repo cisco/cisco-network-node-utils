@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# RouterBgpNbrAF Unit Tests
+# RouterBgpNeighborAF Unit Tests
 #
 # August 2015 Chris Van Heuveln
 #
@@ -22,7 +22,7 @@ require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp_nbr_af", __FILE__)
 
-class TestRouterBgpNbrAF < CiscoTestCase
+class TestRouterBgpNeighborAF < CiscoTestCase
   @@reset_feat = true
 
   def setup
@@ -44,7 +44,7 @@ class TestRouterBgpNbrAF < CiscoTestCase
     obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr, true)
     obj_nbr.remote_as = ebgp ? asn + 1 : asn
 
-    obj_af = RouterBgpNbrAF.new(asn, vrf, nbr, af, true)
+    obj_af = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
 
     # clean up address-family only
     obj_af.destroy
@@ -86,8 +86,8 @@ class TestRouterBgpNbrAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
-      obj[k] = RouterBgpNbrAF.new(asn, vrf, nbr, af, true)
-      afs = RouterBgpNbrAF.afs
+      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+      afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr].key?(af),
              "#{dbg} Failed to create AF")
     end
@@ -97,7 +97,7 @@ class TestRouterBgpNbrAF < CiscoTestCase
       asn, vrf, nbr, af = v
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k].destroy
-      afs = RouterBgpNbrAF.afs
+      afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr].key?(af),
              "#{dbg} Failed to destroy AF")
     end
@@ -113,9 +113,9 @@ class TestRouterBgpNbrAF < CiscoTestCase
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
       dbg = sprintf("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
-      obj[k] = RouterBgpNbrAF.new(asn, vrf, nbr, af, true)
+      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
-      afs = RouterBgpNbrAF.afs
+      afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to create AF")
     end
@@ -127,7 +127,7 @@ class TestRouterBgpNbrAF < CiscoTestCase
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
       nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
-      afs = RouterBgpNbrAF.afs
+      afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
     end

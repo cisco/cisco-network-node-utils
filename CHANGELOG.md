@@ -7,10 +7,10 @@ Unreleased
 ### Added
 
 * Added Vrf class for managing Cisco VRF configuration
-* Added RouterBgpAF class for managing Cisco BGP Address Family
-  configurations
+* Added RouterBgp class for managing Cisco BGP configurations
+* Added RouterBgpAF class for managing Cisco BGP Address Family configurations
 * Added RouterBgpNeighbor class for managing Cisco BGP Neighbor configurations
-* Added RouterBgpNbrAF class for managing Cisco BGP Neighbor AF configurations
+* Added RouterBgpNeighborAF class for managing Cisco BGP Neighbor AF configurations
 
 ### Fixed
 

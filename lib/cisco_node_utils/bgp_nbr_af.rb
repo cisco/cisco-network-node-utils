@@ -1,5 +1,5 @@
 #
-# NXAPI implementation of RouterBgpNbrAF class
+# NXAPI implementation of RouterBgpNeighborAF class
 #
 # August 2015 Chris Van Heuveln
 #
@@ -21,7 +21,7 @@ require File.join(File.dirname(__FILE__), 'node')
 require File.join(File.dirname(__FILE__), 'bgp')
 
 module Cisco
-class RouterBgpNbrAF
+class RouterBgpNeighborAF
   @@node = Cisco::Node.instance
 
   def initialize(asn, vrf, nbr, af, instantiate=true)
@@ -29,7 +29,7 @@ class RouterBgpNbrAF
     create if instantiate
   end
 
-  def RouterBgpNbrAF.afs
+  def RouterBgpNeighborAF.afs
     af_hash = {}
     RouterBgp.routers.each { |asn, vrfs|
       af_hash[asn] = {}
@@ -44,12 +44,12 @@ class RouterBgpNbrAF
         nbrs.each { |nbr|
           af_hash[asn][vrf][nbr] = {}
           get_args[:nbr] = nbr
-          afs = @@node.config_get('bgp_nbr_af', 'all_afs', get_args)
+          afs = @@node.config_get('bgp_neighbor_af', 'all_afs', get_args)
 
           next if afs.nil?
           afs.each { |af|
             af_hash[asn][vrf][nbr][af] =
-              RouterBgpNbrAF.new(asn, vrf, nbr, af, false)
+              RouterBgpNeighborAF.new(asn, vrf, nbr, af, false)
           }
         }
       }
@@ -106,7 +106,7 @@ class RouterBgpNbrAF
 
   # Returns ['<map1>', '<map2>']
   def advertise_map_exist
-    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_exist', @get_args)
+    arr = @@node.config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
     return default_advertise_map_exist if arr.nil?
     arr.shift
   end
@@ -119,11 +119,11 @@ class RouterBgpNbrAF
       map1, map2 = arr
     end
     set_args_keys(:state => state, :map1 => map1, :map2 => map2)
-    @@node.config_set('bgp_nbr_af', 'advertise_map_exist', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'advertise_map_exist', @set_args)
   end
 
   def default_advertise_map_exist
-    @@node.config_get_default('bgp_nbr_af', 'advertise_map_exist')
+    @@node.config_get_default('bgp_neighbor_af', 'advertise_map_exist')
   end
 
   # -----------------------
@@ -131,7 +131,7 @@ class RouterBgpNbrAF
 
   # Returns ['<map1>', '<map2>']
   def advertise_map_non_exist
-    arr = @@node.config_get('bgp_nbr_af', 'advertise_map_non_exist', @get_args)
+    arr = @@node.config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
     return default_advertise_map_non_exist if arr.nil?
     arr.shift
   end
@@ -144,18 +144,18 @@ class RouterBgpNbrAF
       map1, map2 = arr
     end
     set_args_keys(:state => state, :map1 => map1, :map2 => map2)
-    @@node.config_set('bgp_nbr_af', 'advertise_map_non_exist', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'advertise_map_non_exist', @set_args)
   end
 
   def default_advertise_map_non_exist
-    @@node.config_get_default('bgp_nbr_af', 'advertise_map_non_exist')
+    @@node.config_get_default('bgp_neighbor_af', 'advertise_map_non_exist')
   end
 
   # -----------------------
   # <state> allowas-in <max>
   # Nvgens as True -OR- max-occurrences integer
   def allowas_in_get
-    val = @@node.config_get('bgp_nbr_af', 'allowas_in', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'allowas_in', @get_args)
     return nil if val.nil?
     val = val.shift.split.last.to_i
   end
@@ -172,38 +172,38 @@ class RouterBgpNbrAF
 
   def allowas_in_set(state, max = nil)
     set_args_keys(:state => (state ? '' : 'no'), :max => max)
-    @@node.config_set('bgp_nbr_af', 'allowas_in', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'allowas_in', @set_args)
   end
 
   def default_allowas_in
-    @@node.config_get_default('bgp_nbr_af', 'allowas_in')
+    @@node.config_get_default('bgp_neighbor_af', 'allowas_in')
   end
 
   def default_allowas_in_max
-    @@node.config_get_default('bgp_nbr_af', 'allowas_in_max')
+    @@node.config_get_default('bgp_neighbor_af', 'allowas_in_max')
   end
 
   # -----------------------
   # <state> as-override
   def as_override
-    state = @@node.config_get('bgp_nbr_af', 'as_override', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'as_override', @get_args)
     state ? true : false
   end
 
   def as_override=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'as_override', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'as_override', @set_args)
   end
 
   def default_as_override
-    @@node.config_get_default('bgp_nbr_af', 'as_override')
+    @@node.config_get_default('bgp_neighbor_af', 'as_override')
   end
 
   # -----------------------
   # <state> capability additional-paths receive <disable>
   # Nvgens as True -OR- True with 'disable' keyword
   def cap_add_paths_receive_get
-    val = @@node.config_get('bgp_nbr_af', 'cap_add_paths_receive', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'cap_add_paths_receive', @get_args)
     return nil if val.nil?
     (val.shift[/disable/]) ? 'disable' : true
   end
@@ -219,22 +219,22 @@ class RouterBgpNbrAF
   def cap_add_paths_receive_set(state, disable = false)
     set_args_keys(:state => (state ? '' : 'no'),
                   :disable => (disable ? 'disable' : ''))
-    @@node.config_set('bgp_nbr_af', 'cap_add_paths_receive', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'cap_add_paths_receive', @set_args)
   end
 
   def default_cap_add_paths_receive
-    @@node.config_get_default('bgp_nbr_af', 'cap_add_paths_receive')
+    @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_receive')
   end
 
   def default_cap_add_paths_receive_disable
-    @@node.config_get_default('bgp_nbr_af', 'cap_add_paths_receive_disable')
+    @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_receive_disable')
   end
 
   # -----------------------
   # <state> capability additional-paths send <disable>
   # Nvgens as True -OR- True with 'disable' keyword
   def cap_add_paths_send_get
-    val = @@node.config_get('bgp_nbr_af', 'cap_add_paths_send', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'cap_add_paths_send', @get_args)
     return nil if val.nil?
     (val.shift[/disable/]) ? 'disable' : true
   end
@@ -250,22 +250,22 @@ class RouterBgpNbrAF
   def cap_add_paths_send_set(state, disable = false)
     set_args_keys(:state => (state ? '' : 'no'),
                   :disable => (disable ? 'disable' : ''))
-    @@node.config_set('bgp_nbr_af', 'cap_add_paths_send', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'cap_add_paths_send', @set_args)
   end
 
   def default_cap_add_paths_send
-    @@node.config_get_default('bgp_nbr_af', 'cap_add_paths_send')
+    @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_send')
   end
 
   def default_cap_add_paths_send_disable
-    @@node.config_get_default('bgp_nbr_af', 'cap_add_paths_send_disable')
+    @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_send_disable')
   end
 
   # -----------------------
   # <state> default-originate [ route-map <map> ]
   # Nvgens as True with optional 'route-map <map>'
   def default_originate_get
-    val = @@node.config_get('bgp_nbr_af', 'default_originate', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'default_originate', @get_args)
     return nil if val.nil?
     val = val.shift
     (val[/route-map/]) ? val.split.last : true
@@ -284,37 +284,37 @@ class RouterBgpNbrAF
   def default_originate_set(state, map = nil)
     map = "route-map #{map}" unless map.nil?
     set_args_keys(:state => (state ? '' : 'no'), :map => map)
-    @@node.config_set('bgp_nbr_af', 'default_originate', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'default_originate', @set_args)
   end
 
   def default_default_originate
-    @@node.config_get_default('bgp_nbr_af', 'default_originate')
+    @@node.config_get_default('bgp_neighbor_af', 'default_originate')
   end
 
   def default_default_originate_route_map
-    @@node.config_get_default('bgp_nbr_af', 'default_originate_route_map')
+    @@node.config_get_default('bgp_neighbor_af', 'default_originate_route_map')
   end
 
   # -----------------------
   # <state> disable-peer-as-check
   def disable_peer_as_check
-    state = @@node.config_get('bgp_nbr_af', 'disable_peer_as_check', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'disable_peer_as_check', @get_args)
     state ? true : default_disable_peer_as_check
   end
 
   def disable_peer_as_check=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'disable_peer_as_check', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'disable_peer_as_check', @set_args)
   end
 
   def default_disable_peer_as_check
-    @@node.config_get_default('bgp_nbr_af', 'disable_peer_as_check')
+    @@node.config_get_default('bgp_neighbor_af', 'disable_peer_as_check')
   end
 
   # -----------------------
   # <state> filter-list <str> in
   def filter_list_in
-    str = @@node.config_get('bgp_nbr_af', 'filter_list_in', @get_args)
+    str = @@node.config_get('bgp_neighbor_af', 'filter_list_in', @get_args)
     return default_filter_list_in if str.nil?
     str.shift.strip
   end
@@ -328,17 +328,17 @@ class RouterBgpNbrAF
       return if str.nil?
     end
     set_args_keys(:state => state, :str => str)
-    @@node.config_set('bgp_nbr_af', 'filter_list_in', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'filter_list_in', @set_args)
   end
 
   def default_filter_list_in
-    @@node.config_get_default('bgp_nbr_af', 'filter_list_in')
+    @@node.config_get_default('bgp_neighbor_af', 'filter_list_in')
   end
 
   # -----------------------
   # <state> filter-list <str> out
   def filter_list_out
-    str = @@node.config_get('bgp_nbr_af', 'filter_list_out', @get_args)
+    str = @@node.config_get('bgp_neighbor_af', 'filter_list_out', @get_args)
     return default_filter_list_out if str.nil?
     str.shift.strip
   end
@@ -351,11 +351,11 @@ class RouterBgpNbrAF
       str = filter_list_out
     end
     set_args_keys(:state => state, :str => str)
-    @@node.config_set('bgp_nbr_af', 'filter_list_out', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'filter_list_out', @set_args)
   end
 
   def default_filter_list_out
-    @@node.config_get_default('bgp_nbr_af', 'filter_list_out')
+    @@node.config_get_default('bgp_neighbor_af', 'filter_list_out')
   end
 
   # -----------------------
@@ -365,7 +365,7 @@ class RouterBgpNbrAF
   # <opt> : optional = [ restart <interval> | warning-only ]
   #
   def max_prefix_get
-    str = @@node.config_get('bgp_nbr_af', 'max_prefix', @get_args)
+    str = @@node.config_get('bgp_neighbor_af', 'max_prefix', @get_args)
     return nil if str.nil?
 
     regexp = Regexp.new('maximum-prefix (?<limit>\d+)' +
@@ -382,7 +382,7 @@ class RouterBgpNbrAF
     end
     set_args_keys(:state => (limit.nil? ? 'no' : ''), :limit => limit,
                   :threshold => threshold, :opt => opt)
-    @@node.config_set('bgp_nbr_af', 'max_prefix', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'max_prefix', @set_args)
   end
 
   def max_prefix_limit
@@ -410,67 +410,67 @@ class RouterBgpNbrAF
   end
 
   def default_max_prefix_limit
-    @@node.config_get_default('bgp_nbr_af', 'max_prefix_limit')
+    @@node.config_get_default('bgp_neighbor_af', 'max_prefix_limit')
   end
 
   def default_max_prefix_interval
-    @@node.config_get_default('bgp_nbr_af', 'max_prefix_interval')
+    @@node.config_get_default('bgp_neighbor_af', 'max_prefix_interval')
   end
 
   def default_max_prefix_threshold
-    @@node.config_get_default('bgp_nbr_af', 'max_prefix_threshold')
+    @@node.config_get_default('bgp_neighbor_af', 'max_prefix_threshold')
   end
 
   def default_max_prefix_warning
-    @@node.config_get_default('bgp_nbr_af', 'max_prefix_warning')
+    @@node.config_get_default('bgp_neighbor_af', 'max_prefix_warning')
   end
 
   # -----------------------
   # <state> next-hop-self
   def next_hop_self
-    state = @@node.config_get('bgp_nbr_af', 'next_hop_self', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'next_hop_self', @get_args)
     state ? true : false
   end
 
   def next_hop_self=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'next_hop_self', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'next_hop_self', @set_args)
   end
 
   def default_next_hop_self
-    @@node.config_get_default('bgp_nbr_af', 'next_hop_self')
+    @@node.config_get_default('bgp_neighbor_af', 'next_hop_self')
   end
 
   # -----------------------
   # <state> next-hop-third-party
   def next_hop_third_party
-    state = @@node.config_get('bgp_nbr_af', 'next_hop_third_party', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'next_hop_third_party', @get_args)
     state ? true : false
   end
 
   def next_hop_third_party=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'next_hop_third_party', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'next_hop_third_party', @set_args)
   end
 
   def default_next_hop_third_party
-    @@node.config_get_default('bgp_nbr_af', 'next_hop_third_party')
+    @@node.config_get_default('bgp_neighbor_af', 'next_hop_third_party')
   end
 
   # -----------------------
   # <state route-reflector-client
   def route_reflector_client
-    state = @@node.config_get('bgp_nbr_af', 'route_reflector_client', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
     state ? true : false
   end
 
   def route_reflector_client=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'route_reflector_client', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'route_reflector_client', @set_args)
   end
 
   def default_route_reflector_client
-    @@node.config_get_default('bgp_nbr_af', 'route_reflector_client')
+    @@node.config_get_default('bgp_neighbor_af', 'route_reflector_client')
   end
 
   # -----------------------
@@ -478,7 +478,7 @@ class RouterBgpNbrAF
   # NOTE: 'standard' is default and does not nvgen -CSCuv86246
   # Returns: none, both, extended, or standard
   def send_community
-    val = @@node.config_get('bgp_nbr_af', 'send_community', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'send_community', @get_args)
     return default_send_community if val.nil?
     val = val.shift.split.last
     return 'standard' if val[/send-community/]  # Workaround for CSCuv86246
@@ -498,23 +498,23 @@ class RouterBgpNbrAF
         # This is an additive property therefore remove the entire command
         # when switching from: ext <--> std
         set_args_keys(:state => 'no', :attr => 'both')
-        @@node.config_set('bgp_nbr_af', 'send_community', @set_args)
+        @@node.config_set('bgp_neighbor_af', 'send_community', @set_args)
         state = ''
       end
     end
     set_args_keys(:state => state, :attr => val)
-    @@node.config_set('bgp_nbr_af', 'send_community', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'send_community', @set_args)
   end
 
   def default_send_community
-    @@node.config_get_default('bgp_nbr_af', 'send_community')
+    @@node.config_get_default('bgp_neighbor_af', 'send_community')
   end
 
   # -----------------------
   # <state> soft-reconfiguration inbound <always>
   # Nvgens as True with optional 'always' keyword
   def soft_reconfiguration_in_get
-    val = @@node.config_get('bgp_nbr_af', 'soft_reconfiguration_in', @get_args)
+    val = @@node.config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
     return nil if val.nil?
     (val.shift[/always/]) ? 'always' : true
   end
@@ -530,21 +530,21 @@ class RouterBgpNbrAF
   def soft_reconfiguration_in_set(state, always = false)
     set_args_keys(:state => (state ? '' : 'no'),
                   :always => (always ? 'always' : ''))
-    @@node.config_set('bgp_nbr_af', 'soft_reconfiguration_in', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'soft_reconfiguration_in', @set_args)
   end
 
   def default_soft_reconfiguration_in
-    @@node.config_get_default('bgp_nbr_af', 'soft_reconfiguration_in')
+    @@node.config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in')
   end
 
   def default_soft_reconfiguration_in_always
-    @@node.config_get_default('bgp_nbr_af', 'soft_reconfiguration_in_always')
+    @@node.config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in_always')
   end
 
   # -----------------------
   # <state> soo <str>
   def soo
-    str = @@node.config_get('bgp_nbr_af', 'soo', @get_args)
+    str = @@node.config_get('bgp_neighbor_af', 'soo', @get_args)
     return default_soo if str.nil?
     str.shift.strip
   end
@@ -553,33 +553,33 @@ class RouterBgpNbrAF
     str.strip! unless str.nil?
     state, str = 'no', soo if str == default_soo
     set_args_keys(:state => state, :str => str)
-    @@node.config_set('bgp_nbr_af', 'soo', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'soo', @set_args)
   end
 
   def default_soo
-    @@node.config_get_default('bgp_nbr_af', 'soo')
+    @@node.config_get_default('bgp_neighbor_af', 'soo')
   end
 
   # -----------------------
   # <state> suppress-inactive
   def suppress_inactive
-    state = @@node.config_get('bgp_nbr_af', 'suppress_inactive', @get_args)
+    state = @@node.config_get('bgp_neighbor_af', 'suppress_inactive', @get_args)
     state ? true : false
   end
 
   def suppress_inactive=(state)
     set_args_keys(:state => (state ? '' : 'no'))
-    @@node.config_set('bgp_nbr_af', 'suppress_inactive', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'suppress_inactive', @set_args)
   end
 
   def default_suppress_inactive
-    @@node.config_get_default('bgp_nbr_af', 'suppress_inactive')
+    @@node.config_get_default('bgp_neighbor_af', 'suppress_inactive')
   end
 
   # -----------------------
   # <state> unsuppress-map <str>
   def unsuppress_map
-    str = @@node.config_get('bgp_nbr_af', 'unsuppress_map', @get_args)
+    str = @@node.config_get('bgp_neighbor_af', 'unsuppress_map', @get_args)
     return default_unsuppress_map if str.nil?
     str.shift.strip
   end
@@ -591,28 +591,28 @@ class RouterBgpNbrAF
       str = unsuppress_map
     end
     set_args_keys(:state => state, :str => str)
-    @@node.config_set('bgp_nbr_af', 'unsuppress_map', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'unsuppress_map', @set_args)
   end
 
   def default_unsuppress_map
-    @@node.config_get_default('bgp_nbr_af', 'unsuppress_map')
+    @@node.config_get_default('bgp_neighbor_af', 'unsuppress_map')
   end
 
   # -----------------------
   # <state> weight <int>
   def weight
-    int = @@node.config_get('bgp_nbr_af', 'weight', @get_args)
+    int = @@node.config_get('bgp_neighbor_af', 'weight', @get_args)
     int.nil? ? default_weight : int.shift
   end
 
   def weight=(int)
     state, int = 'no', '' if int == default_weight
     set_args_keys(:state => state, :int => int)
-    @@node.config_set('bgp_nbr_af', 'weight', @set_args)
+    @@node.config_set('bgp_neighbor_af', 'weight', @set_args)
   end
 
   def default_weight
-    @@node.config_get_default('bgp_nbr_af', 'weight')
+    @@node.config_get_default('bgp_neighbor_af', 'weight')
   end
 end
 end
