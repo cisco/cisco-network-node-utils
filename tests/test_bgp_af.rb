@@ -184,9 +184,9 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
-  ## nexthop route-map
+  ## next_hop route-map
   ##
-  def test_set_get_nexthop_route_map
+  def test_set_get_next_hop_route_map
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -195,8 +195,8 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify
     #
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.nexthop_route_map = "drop_all"
-    assert_match(bgp_af.nexthop_route_map, "drop_all",
+    bgp_af.next_hop_route_map = "drop_all"
+    assert_match(bgp_af.next_hop_route_map, "drop_all",
                  "Error: nexthop route-map not set")
     pattern = 'nexthop route-map drop_all'
     af_string = get_bgp_af_cfg(asn, vrf, af)
@@ -211,7 +211,7 @@ class TestRouterBgpAF < CiscoTestCase
     #
 
     # Do a 'no nexthop route-map drop_all'
-    bgp_af.nexthop_route_map = bgp_af.default_nexthop_route_map
+    bgp_af.next_hop_route_map = bgp_af.default_next_hop_route_map
     pattern = 'nexthop route-map drop_all'
     af_string = get_bgp_af_cfg(asn, vrf, af)
 

@@ -127,21 +127,21 @@ module Cisco
     #
     # Next Hop route map (Getter/Setter/Default)
     #
-    def nexthop_route_map
-      route_map = @@node.config_get("bgp_af", "nexthop_route_map", @get_args)
+    def next_hop_route_map
+      route_map = @@node.config_get("bgp_af", "next_hop_route_map", @get_args)
       return "" if route_map.nil?
       route_map.shift.strip
     end
 
-    def nexthop_route_map=(route_map)
+    def next_hop_route_map=(route_map)
       route_map.strip!
-      state, route_map = "no", nexthop_route_map if route_map.empty?
+      state, route_map = "no", next_hop_route_map if route_map.empty?
       set_args_keys(:state => state, :route_map => route_map)
-      @@node.config_set("bgp_af", "nexthop_route_map", @set_args)
+      @@node.config_set("bgp_af", "next_hop_route_map", @set_args)
     end
 
-    def default_nexthop_route_map
-      @@node.config_get_default("bgp_af", "nexthop_route_map")
+    def default_next_hop_route_map
+      @@node.config_get_default("bgp_af", "next_hop_route_map")
     end
 
     #
