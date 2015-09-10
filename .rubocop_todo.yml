@@ -365,6 +365,7 @@ Style/NumericLiterals:
 # Offense count: 47
 # Cop supports --auto-correct.
 Style/ParallelAssignment:
+  Enabled: false
   Exclude:
     - 'lib/cisco_node_utils/bgp.rb'
     - 'lib/cisco_node_utils/bgp_af.rb'

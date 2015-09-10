@@ -82,10 +82,12 @@ class RouterBgpNeighborAF
     @get_args = @set_args = keys
   end
 
+  # rubocop:disable Style/AccessorMethodName
   def set_args_keys(hash = {})
     set_args_keys_default
     @set_args = @get_args.merge!(hash) unless hash.empty?
   end
+  # rubocop:enable Style/AccessorMethodNamefor
 
   def create
     set_args_keys(:state => '')
@@ -368,9 +370,9 @@ class RouterBgpNeighborAF
     str = @@node.config_get('bgp_neighbor_af', 'max_prefix', @get_args)
     return nil if str.nil?
 
-    regexp = Regexp.new('maximum-prefix (?<limit>\d+)' +
-                        ' *(?<threshold>\d+)?' +
-                        ' *(?<opt>restart|warning-only)?' +
+    regexp = Regexp.new('maximum-prefix (?<limit>\d+)' \
+                        ' *(?<threshold>\d+)?' \
+                        ' *(?<opt>restart|warning-only)?' \
                         ' *(?<interval>\d+)?')
     regexp.match(str.shift)
   end

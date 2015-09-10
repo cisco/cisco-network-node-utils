@@ -206,10 +206,10 @@ class TestRouterBgpNeighbor < CiscoTestCase
       local_asnum = [42, "52", "1.1", neighbor.default_local_as]
       local_asnum.each { |asnum|
         neighbor.local_as = asnum
-        unless asnum == "52"
-          assert_equal(asnum, neighbor.local_as)
-        else
+        if asnum == "52"
           assert_equal(asnum.to_i, neighbor.local_as)
+        else
+          assert_equal(asnum, neighbor.local_as)
         end
       }
       # test a negative value

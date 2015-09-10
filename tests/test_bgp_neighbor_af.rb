@@ -39,7 +39,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def clean_af(af_args, ebgp = true)
     # Most tests only need an address-family cleanup
     asn, vrf, nbr, af = af_args
-    dbg = sprintf("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
+    dbg = format("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
 
     obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr, true)
     obj_nbr.remote_as = ebgp ? asn + 1 : asn
@@ -85,7 +85,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     obj = {}
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
-      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
+      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr].key?(af),
@@ -95,7 +95,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # Destroys
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
-      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
+      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k].destroy
       afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr].key?(af),
@@ -112,7 +112,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
-      dbg = sprintf("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
+      dbg = format("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
       afs = RouterBgpNeighborAF.afs
@@ -124,7 +124,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
-      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
+      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
       nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
       afs = RouterBgpNeighborAF.afs
@@ -231,7 +231,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       # Set to default
       af.send("#{k}=", af.send("default_#{k}"))
       assert_empty(af.send(k),
-                   "Test 3. #{dbg} [#{k}] did not set to default " +
+                   "Test 3. #{dbg} [#{k}] did not set to default " \
                    "'[default_#{k}]'")
     end
   end
@@ -262,7 +262,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # Test true with value, from false
     af.allowas_in_set(true, 4)
     assert_equal(4, af.allowas_in_max,
-                 "Test 4. #{dbg} Failed to set True with Value, " +
+                 "Test 4. #{dbg} Failed to set True with Value, " \
                  "from false state")
 
     # Test default_state
@@ -304,7 +304,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       # Test true with disable, from false
       af.send("#{k}_set", true, true)
       assert(af.send("#{k}_disable"),
-             "Test 4. #{dbg} [#{k}_set] Failed to set True with disable " +
+             "Test 4. #{dbg} [#{k}_set] Failed to set True with disable " \
              "from false")
 
       # Test default_state
@@ -317,13 +317,13 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       def_disable = af.send("default_#{k}_disable")
       af.send("#{k}_set", true, def_disable)
       assert_equal(def_disable, af.send("#{k}_disable"),
-                   "Test 6. #{dbg} [#{k}_set] Failed to set True with " +
+                   "Test 6. #{dbg} [#{k}_set] Failed to set True with " \
                    "default disable")
 
       # Test false with true disable state
       af.send("#{k}_set", false, true)
       refute(af.send("#{k}_disable"),
-             "Test 7. #{dbg} [#{k}_set] Failed to set False with True " +
+             "Test 7. #{dbg} [#{k}_set] Failed to set False with True " \
              "disable state")
     end
   end
@@ -367,7 +367,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.default_originate_set(af.default_default_originate)
     refute(af.default_originate,
            "Test 6. #{dbg} Failed to set state to default")
-
   end
 
   # ---------------------------------
