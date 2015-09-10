@@ -223,10 +223,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_log_neighbor_changes
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [:true, :false, :default]
+      check = [:enable, :disable, :inherit, "enable", "disable", "inherit",
+               neighbor.default_log_neighbor_changes]
       check.each { |value|
         neighbor.log_neighbor_changes = value
-        assert_equal(value, neighbor.log_neighbor_changes)
+        assert_equal(value.to_sym, neighbor.log_neighbor_changes)
       }
       neighbor.destroy
     end
@@ -328,10 +329,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_remove_private_as_options
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      options = [:all, :"replace-as"]
+      options = [:enable, :disable, :all, :"replace-as", "enable", "disable",
+                 "all", "replace-as", neighbor.default_remove_private_as]
       options.each { |option|
         neighbor.remove_private_as = option
-        assert_equal(option, neighbor.remove_private_as)
+        assert_equal(option.to_sym, neighbor.remove_private_as)
       }
 
       neighbor.remove_private_as = neighbor.default_remove_private_as

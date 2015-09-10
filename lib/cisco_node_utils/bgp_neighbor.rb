@@ -200,10 +200,12 @@ module Cisco
     end
 
     def log_neighbor_changes=(val)
+      val = val.to_sym
       if val == default_log_neighbor_changes
         set_args_keys(:state => "no", :disable => "")
       else
-        set_args_keys(:state =>"", :disable => (val == :true) ? "" : "disable")
+        set_args_keys(:state =>"",
+                      :disable => (val == :enable) ? "" : "disable")
       end
       @@node.config_set("bgp_neighbor", "log_neighbor_changes", @set_args)
     end
@@ -212,8 +214,8 @@ module Cisco
       result = @@node.config_get("bgp_neighbor", "log_neighbor_changes",
                                  @get_args)
       return default_log_neighbor_changes if result.nil?
-      return :false if /disable/.match(result.first)
-      :true
+      return :disable if /disable/.match(result.first)
+      :enable
     end
 
     def default_log_neighbor_changes
@@ -313,18 +315,20 @@ module Cisco
     end
 
     def remove_private_as=(val)
+      val = val.to_sym
       if val == default_remove_private_as
         set_args_keys(:state => "no", :option => "")
       else
-        set_args_keys(:state => "", :option => val.to_s)
+        set_args_keys(:state => "",
+                      :option => (val == :enable) ? "" : val.to_s)
       end
       @@node.config_set("bgp_neighbor", "remove_private_as", @set_args)
     end
 
     def remove_private_as
       result = @@node.config_get("bgp_neighbor", "remove_private_as", @get_args)
-      (result.nil? or result.first.nil?) ? default_remove_private_as
-                                         : result.first.to_sym
+      return default_remove_private_as if result.nil?
+      result.first.nil? ? :enable : result.first.to_sym
     end
 
     def default_remove_private_as
