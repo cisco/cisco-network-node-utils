@@ -337,7 +337,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     if cmd_ref.config_set
       assert(interface.switchport_autostate_exclude,
              "Error: interface, access, autostate exclude not enabled")
-    elsif
+    else
       assert_equal(interface.default_switchport_autostate_exclude,
                    interface.switchport_autostate_exclude,
                    "Error: interface, access, autostate exclude not disabled")
@@ -370,7 +370,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     if cmd_ref.config_set
       assert(interface.switchport_autostate_exclude,
              "Error: interface, access, autostate exclude not enabled")
-    elsif
+    else
       assert_equal(interface.default_switchport_autostate_exclude,
                    interface.switchport_autostate_exclude,
                    "Error: interface, access, autostate exclude not disabled")
@@ -498,7 +498,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
 
-    assert_raises (RuntimeError) do
+    assert_raises RuntimeError do
       interface.switchport_autostate_exclude = true
     end
     svi.destroy
@@ -508,7 +508,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   def test_set_switchport_autostate_true_unsupported_mgmt0
     svi = Interface.new('Vlan23')
     interface = Interface.new("mgmt0")
-    assert_raises (RuntimeError) do
+    assert_raises RuntimeError do
       interface.switchport_autostate_exclude = true
     end
     svi.destroy
@@ -560,7 +560,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
 
-    assert_raises (RuntimeError) do
+    assert_raises RuntimeError do
       interface.switchport_autostate_exclude = false
     end
     svi.destroy

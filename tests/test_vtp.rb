@@ -292,7 +292,7 @@ class TestVtp < CiscoTestCase
   # Decides whether to check for a raised Exception or an equal value.
   def assert_result(expected_result, err_msg, &block)
     if /Error/ =~ expected_result.to_s
-      expected_result = eval(expected_result) if expected_result.is_a?(String)
+      expected_result = Object.const_get(expected_result) if expected_result.is_a?(String)
       assert_raises(expected_result, &block)
     else
       value = block.call

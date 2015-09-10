@@ -6,42 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 1
-# Configuration parameters: AllowSafeAssignment.
-Lint/AssignmentInCondition:
-  Exclude:
-    - 'tests/test_interface.rb'
-
-# Offense count: 2
-Lint/ConditionPosition:
-  Exclude:
-    - 'tests/test_interface_switchport.rb'
-
-# Offense count: 4
-Lint/DuplicateMethods:
-  Exclude:
-    - 'lib/cisco_node_utils/node.rb'
-
-# Offense count: 1
-Lint/Eval:
-  Exclude:
-    - 'tests/test_vtp.rb'
-
-# Offense count: 1
-Lint/FormatParameterMismatch:
-  Exclude:
-    - 'lib/cisco_node_utils/vlan.rb'
-
-# Offense count: 1
-Lint/HandleExceptions:
-  Exclude:
-    - 'lib/cisco_node_utils/command_reference.rb'
-
-# Offense count: 3
-Lint/ParenthesesAsGroupedExpression:
-  Exclude:
-    - 'tests/test_interface_switchport.rb'
-
 # Offense count: 3
 Lint/RescueException:
   Exclude:
@@ -70,20 +34,9 @@ Lint/UnusedBlockArgument:
     - 'tests/test_snmpuser.rb'
     - 'tests/test_tacacs_server_host.rb'
 
-# Offense count: 7
-# Cop supports --auto-correct.
-Lint/UnusedMethodArgument:
-  Exclude:
-    - 'lib/cisco_node_utils/node.rb'
-
 # Offense count: 345
 Lint/UselessAssignment:
   Enabled: false
-
-# Offense count: 25
-Lint/UselessSetterCall:
-  Exclude:
-    - 'tests/test_snmpserver.rb'
 
 # Offense count: 154
 Metrics/AbcSize:
