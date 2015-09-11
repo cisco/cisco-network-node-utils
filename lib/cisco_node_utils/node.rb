@@ -61,14 +61,75 @@ module Cisco
     #
     # @raise [IndexError] if the given (feature, name) pair is not in the
     #        CommandReference data or if the data doesn't have values defined
-    #        for the 'config_get' and 'config_get_token' fields.
+    #        for the 'config_get' and (optional) 'config_get_token' fields.
     # @raise [Cisco::CliError] if the given command is rejected by the device.
     #
     # @param feature [String]
     # @param name [String]
-    # @return [String]
+    # @return [String, Hash, Array]
     # @example config_get("show_version", "system_image")
-    def config_get(feature, name)
+    # @example config_get("ospf", "router_id",
+    #                      {:name => "green", :vrf => "one"})
+    def config_get(feature, name, *args)
+      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      ref = @cmd_ref.lookup(feature, name)
+
+      begin
+        token = build_config_get_token(feature, ref, args)
+      rescue IndexError, TypeError
+        # IndexError if value is not set, TypeError if set to nil explicitly
+        token = nil
+      end
+      if token.kind_of?(String) and token[0] == '/' and token[-1] == '/'
+        raise RuntimeError unless args.length == token.scan(/%/).length
+        # convert string to regexp and replace %s with args
+        token = Regexp.new(sprintf(token, *args)[1..-2])
+        text = build_config_get(feature, ref, :ascii)
+        return Cisco.find_ascii(text, token)
+      elsif token.kind_of?(String)
+        hash = build_config_get(feature, ref, :structured)
+        return hash[token]
+
+      elsif token.kind_of?(Array)
+        # Array of /regexps/ -> ascii, array of strings/ints -> structured
+        if token[0].kind_of?(String) and
+           token[0][0] == '/' and
+           (token[0][-1] == '/' or token[0][-2..-1] == '/i')
+
+          token = token_str_to_regexp(token, args)
+          text = build_config_get(feature, ref, :ascii)
+          return Cisco.find_ascii(text, token[-1], *token[0..-2])
+
+        else
+          result = build_config_get(feature, ref, :structured)
+          begin
+            token.each do |token|
+              # if token is a hash and result is an array, check each
+              # array index (which should return another hash) to see if
+              # it contains the matching key/value pairs specified in token,
+              # and return the first match (or nil)
+              if token.kind_of?(Hash)
+                raise "Expected array, got #{result.class}" unless result.kind_of?(Array)
+                result = result.select { |x| token.all? { |k, v| x[k] == v } }
+                raise "Multiple matches found for #{token}" if result.length > 1
+                raise "No match found for #{token}" if result.length == 0
+                result = result[0]
+              else # result is array or hash
+                raise "No key \"#{token}\" in #{result}" if result[token].nil?
+                result = result[token]
+              end
+            end
+            return result
+          rescue Exception => e
+            # TODO: logging user story, Syslog isn't available here
+            # Syslog.debug(e.message)
+            return nil
+          end
+        end
+      elsif token.nil?
+        return show(ref.config_get, :structured)
+      end
+      raise TypeError("Unclear to handle config_get_token #{token}")
     end
 
     # Uses CommandReference to lookup the default value for a given
@@ -82,6 +143,9 @@ module Cisco
     # @return [String]
     # @example config_get_default("vtp", "file")
     def config_get_default(feature, name)
+      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      ref = @cmd_ref.lookup(feature, name)
+      ref.default_value
     end
 
     # Uses CommandReference to look up the given config command(s) of interest
@@ -95,7 +159,41 @@ module Cisco
     # @param name [String]
     # @param args [*String] zero or more args to be substituted into the cmdref.
     # @example config_set("vtp", "domain", "example.com")
+    # @example config_set("ospf", "router_id",
+    #  {:name => "green", :vrf => "one", :state => "",
+    #   :router_id => "192.0.0.1"})
     def config_set(feature, name, *args)
+      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      ref = @cmd_ref.lookup(feature, name)
+      config_set = build_config_set(feature, ref, args)
+      if config_set.is_a?(String)
+        param_count = config_set.scan(/%/).length
+      elsif config_set.is_a?(Array)
+        param_count = config_set.join(" ").scan(/%/).length
+      else
+        raise TypeError, "%{config_set.class} not supported for config_set"
+      end
+      unless args[0].is_a? Hash
+        if param_count != args.length
+          raise ArgumentError.new("Wrong number of params - expected: " +
+                                "#{param_count} actual: #{args.length}")
+        end
+      end
+      if config_set.is_a?(String)
+        config(sprintf(config_set, *args))
+      elsif config_set.is_a?(Array)
+        new_config_set = []
+        config_set.each do |line|
+          param_count = line.scan(/%/).length
+          if param_count > 0
+            new_config_set << sprintf(line, *args)
+            args = args[param_count..-1]
+          else
+            new_config_set << line
+          end
+        end
+        config(new_config_set)
+      end
     end
 
     # Clear the cache of CLI output results.
@@ -104,9 +202,9 @@ module Cisco
     # whenever a config_set() is called, but providers may also call this
     # to explicitly force the cache to be cleared.
     def cache_flush
+      @client.cache_flush
     end
 
-    # END NODE API
     # Here and below are implementation details and private APIs that most
     # providers shouldn't need to know about or use.
 
@@ -143,10 +241,6 @@ module Cisco
 
     # hidden as well
     attr_reader :client
-
-    def cache_flush
-      @client.cache_flush
-    end
 
     def cache_enable?
       @client.cache_enable?
@@ -315,148 +409,6 @@ module Cisco
       config_set.flatten!
       config_set.compact!
       config_set
-    end
-
-    # Convenience wrapper for show(command, :structured).
-    # Uses CommandReference to look up the given show command and key
-    # of interest, executes that command, and returns the value corresponding
-    # to that key.
-    #
-    # @raise [IndexError] if the given (feature, name) pair is not in the
-    #        CommandReference data or if the data doesn't have values defined
-    #        for the 'config_get' and (optional) 'config_get_token' fields.
-    # @raise [Cisco::CliError] if the given command is rejected by the device.
-    #
-    # @param feature [String]
-    # @param name [String]
-    # @return [String, Hash, Array]
-    # @example config_get("show_version", "system_image")
-    # @example config_get("ospf", "router_id",
-    #                      {:name => "green", :vrf => "one"})
-    def config_get(feature, name, *args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
-
-      begin
-        token = build_config_get_token(feature, ref, args)
-      rescue IndexError, TypeError
-        # IndexError if value is not set, TypeError if set to nil explicitly
-        token = nil
-      end
-      if token.kind_of?(String) and token[0] == '/' and token[-1] == '/'
-        raise RuntimeError unless args.length == token.scan(/%/).length
-        # convert string to regexp and replace %s with args
-        token = Regexp.new(sprintf(token, *args)[1..-2])
-        text = build_config_get(feature, ref, :ascii)
-        return Cisco.find_ascii(text, token)
-      elsif token.kind_of?(String)
-        hash = build_config_get(feature, ref, :structured)
-        return hash[token]
-
-      elsif token.kind_of?(Array)
-        # Array of /regexps/ -> ascii, array of strings/ints -> structured
-        if token[0].kind_of?(String) and
-           token[0][0] == '/' and
-           (token[0][-1] == '/' or token[0][-2..-1] == '/i')
-
-          token = token_str_to_regexp(token, args)
-          text = build_config_get(feature, ref, :ascii)
-          return Cisco.find_ascii(text, token[-1], *token[0..-2])
-
-        else
-          result = build_config_get(feature, ref, :structured)
-          begin
-            token.each do |token|
-              # if token is a hash and result is an array, check each
-              # array index (which should return another hash) to see if
-              # it contains the matching key/value pairs specified in token,
-              # and return the first match (or nil)
-              if token.kind_of?(Hash)
-                raise "Expected array, got #{result.class}" unless result.kind_of?(Array)
-                result = result.select { |x| token.all? { |k, v| x[k] == v } }
-                raise "Multiple matches found for #{token}" if result.length > 1
-                raise "No match found for #{token}" if result.length == 0
-                result = result[0]
-              else # result is array or hash
-                raise "No key \"#{token}\" in #{result}" if result[token].nil?
-                result = result[token]
-              end
-            end
-            return result
-          rescue Exception => e
-            # TODO: logging user story, Syslog isn't available here
-            # Syslog.debug(e.message)
-            return nil
-          end
-        end
-      elsif token.nil?
-        return show(ref.config_get, :structured)
-      end
-      raise TypeError("Unclear to handle config_get_token #{token}")
-    end
-
-    # Uses CommandReference to lookup the default value for a given
-    # feature and feature property.
-    #
-    # @raise [IndexError] if the given (feature, name) pair is not in the
-    #        CommandReference data or if the data doesn't have values defined
-    #        for the 'default_value' field.
-    # @param feature [String]
-    # @param name [String]
-    # @return [String]
-    # @example config_get_default("vtp", "file")
-    def config_get_default(feature, name)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
-      ref.default_value
-    end
-
-    # Uses CommandReference to look up the given config command(s) of interest
-    # and then applies the configuration.
-    #
-    # @raise [IndexError] if no relevant cmd_ref config_set exists
-    # @raise [ArgumentError] if too many or too few args are provided.
-    # @raise [Cisco::CliError] if any command is rejected by the device.
-    #
-    # @param feature [String]
-    # @param name [String]
-    # @param args [*String] zero or more args to be substituted into the cmdref.
-    # @example config_set("vtp", "domain", "example.com")
-    # @example config_set("ospf", "router_id",
-    #  {:name => "green", :vrf => "one", :state => "",
-    #   :router_id => "192.0.0.1"})
-    def config_set(feature, name, *args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
-      config_set = build_config_set(feature, ref, args)
-      if config_set.is_a?(String)
-        param_count = config_set.scan(/%/).length
-      elsif config_set.is_a?(Array)
-        param_count = config_set.join(" ").scan(/%/).length
-      else
-        raise TypeError, "%{config_set.class} not supported for config_set"
-      end
-      unless args[0].is_a? Hash
-        if param_count != args.length
-          raise ArgumentError.new("Wrong number of params - expected: " +
-                                "#{param_count} actual: #{args.length}")
-        end
-      end
-      if config_set.is_a?(String)
-        config(sprintf(config_set, *args))
-      elsif config_set.is_a?(Array)
-        new_config_set = []
-        config_set.each do |line|
-          param_count = line.scan(/%/).length
-          if param_count > 0
-            new_config_set << sprintf(line, *args)
-            args = args[param_count..-1]
-          else
-            new_config_set << line
-          end
-        end
-        config(new_config_set)
-      end
     end
 
     # Send a config command to the device.

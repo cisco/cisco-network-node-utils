@@ -211,7 +211,7 @@ interface:
     config_get: "show running interface all"
     config_get_token: ['/^interface %s$/i', '/^mtu (.*)$/']
     config_set: ["interface %s", "%s mtu %s"]
-    default_value: ""
+    default_value: 1500
 
   negotiate_auto_ethernet:
     config_get: "show running interface all"

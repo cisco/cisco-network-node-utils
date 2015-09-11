@@ -1054,8 +1054,8 @@ SWITCHPORT_SHUTDOWN_HASH = {
     # pre-configure
     inttype_h.each do | k, v |
       # puts "TEST: pre-config hash key : #{k}"
-      if !(/^Vlan\d./).match(k.to_s).nil? ||
-         s = @device.cmd("configure terminal")
+      unless (/^Vlan\d./).match(k.to_s).nil?
+        s = @device.cmd("configure terminal")
         s = @device.cmd("feature interface-vlan")
         s = @device.cmd("end")
         node.cache_flush

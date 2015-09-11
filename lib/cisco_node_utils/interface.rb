@@ -108,7 +108,7 @@ module Cisco
     end
 
     def encapsulation_dot1q=(val)
-      val.nil? ?
+      val.to_s.empty? ?
         @@node.config_set("interface", "encapsulation_dot1q", @name, "no", "") :
         @@node.config_set("interface", "encapsulation_dot1q", @name, "", val)
     rescue Cisco::CliError => e
@@ -248,10 +248,9 @@ module Cisco
       mtu.shift.strip.to_i
     end
 
-    def mtu=(mtu)
-      mtu.nil? ?
-        @@node.config_set("interface", "mtu", @name, "no", "") :
-        @@node.config_set("interface", "mtu", @name, "", mtu)
+    def mtu=(val)
+      check_switchport_disabled
+      @@node.config_set("interface", "mtu", @name, "", val)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end

@@ -82,7 +82,7 @@ module Cisco
     end
 
     def default_vlan_name
-      "VLAN%04d" % @vlan_id
+      sprintf('VLAN%04d', @vlan_id)
     end
 
     def state

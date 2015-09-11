@@ -101,11 +101,7 @@ module CommandReference
       # that it could be a constant in Ruby so attempt to convert it to a Constant.
       if value.is_a?(String) and not value.empty?
         if value[0].chr == value[0].chr.upcase
-          begin
-            value = Object.const_get(value) if Object.const_defined?(value)
-          rescue NameError
-            # debug("#{value} looks like a constant but is not")
-          end
+          value = Object.const_get(value) if Object.const_defined?(value)
         end
       end
       value
