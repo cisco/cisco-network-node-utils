@@ -260,15 +260,14 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_bgpneighbor_set_get_password_and_type
+  def test_bgpneighbor_set_get_password
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
       passwords = { :cleartext => "test",
                     :"3des" => "386c0565965f89de",
                     :cisco_type_7 => "046E1803362E595C260E0B240619050A2D" }
       passwords.each { |type, password|
-        neighbor.password_type = type
-        neighbor.password = password
+        neighbor.password_set(password, type)
         if type == :cleartext
           assert_equal(:"3des", neighbor.password_type)
           assert_equal(passwords[:"3des"], neighbor.password)
@@ -277,10 +276,10 @@ class TestRouterBgpNeighbor < CiscoTestCase
           assert_equal(password, neighbor.password)
         end
         # now test removing the password setting
-        neighbor.password = " "
+        neighbor.password_set(" ")
         assert(neighbor.password.empty?)
         # now test default password
-        neighbor.password = neighbor.default_password
+        neighbor.password_set(neighbor.default_password)
         assert_equal(neighbor.default_password, neighbor.password)
       }
       neighbor.destroy
@@ -295,20 +294,19 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
       # Test 1: if we don't set password type, default should be cleartext,
       # we can verify by checking return type to be :3des, and encrypted text.
-      neighbor.password = password
+      neighbor.password_set(password)
       assert_equal(expected_password, neighbor.password)
       assert_equal(:"3des", neighbor.password_type)
       # clear password
-      neighbor.password = ""
+      neighbor.password_set("")
       assert(neighbor.password.empty?)
 
       # Test 2: we set explicitly the password type to be default password type:
       # cleartext, and verify.
-      neighbor.password_type = neighbor.default_password_type
-      neighbor.password = password
+      neighbor.password_set(password, neighbor.default_password_type)
       assert_equal(expected_password, neighbor.password)
       assert_equal(:"3des", neighbor.password_type)
-      neighbor.password = ""
+      neighbor.password_set("")
       assert(neighbor.password.empty?)
       neighbor.destroy
     end

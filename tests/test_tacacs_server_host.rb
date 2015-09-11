@@ -112,7 +112,7 @@ class TestTacacsServerHost < CiscoTestCase
     node.cache_flush
 
     line = get_tacacsserverhost_match_line(host_name)
-    hosts = TacacsServerHost.hosts()
+    hosts = TacacsServerHost.hosts
 
     refute_nil(line, "Error: Tacacs Host not found")
     assert_equal(host_name, line.captures[0],

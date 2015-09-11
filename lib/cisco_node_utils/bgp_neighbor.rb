@@ -252,15 +252,15 @@ module Cisco
       @@node.config_get_default("bgp_neighbor", "maximum_peers")
     end
 
-    def password=(val)
+    def password_set(val, type=nil)
       val = val.to_s
       if val.strip.empty?
         set_args_keys(:state => "no", :type =>"", :passwd => "")
       else
         set_args_keys(:state => "",
-                      :type => @password_type.nil? ?
-                               Encryption.symbol_to_cli(password_type)
-                               : @password_type,
+                      :type => type.nil? ?
+                               Encryption.symbol_to_cli(default_password_type)
+                               : Encryption.symbol_to_cli(type),
                       :passwd => val.to_s)
       end
       @@node.config_set("bgp_neighbor", "password", @set_args)
@@ -275,22 +275,18 @@ module Cisco
       @@node.config_get_default("bgp_neighbor", "password")
     end
 
-    def password_type=(val)
-      @password_type = Cisco::Encryption.symbol_to_cli(val)
-    end
-
     def password_type
       result = @@node.config_get("bgp_neighbor", "password_type", @get_args)
       if result.nil?
         result = default_password_type
       else
-        result = result.first.to_i
+        result = Encryption.cli_to_symbol(result.first.to_i)
       end
-      Encryption.cli_to_symbol(result)
     end
 
     def default_password_type
-      @@node.config_get_default("bgp_neighbor", "password_type")
+      result = @@node.config_get_default("bgp_neighbor", "password_type")
+      Encryption.cli_to_symbol(result)
     end
 
     def remote_as=(val)
