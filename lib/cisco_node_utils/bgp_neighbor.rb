@@ -118,34 +118,38 @@ module Cisco
       @@node.config_get_default("bgp_neighbor", "description")
     end
 
-    def disable_connected_check=(val)
-      set_args_keys(:state => (val) ? "" : "no")
-      @@node.config_set("bgp_neighbor", "disable_connected_check", @set_args)
+    def connected_check=(val)
+      # the cli is "disable-connected-check", therefore when val is true, we
+      # need to set set state to "no"
+      set_args_keys(:state => (val) ? "no" : "")
+      @@node.config_set("bgp_neighbor", "connected_check", @set_args)
     end
 
-    def disable_connected_check
-      result = @@node.config_get("bgp_neighbor", "disable_connected_check",
+    def connected_check
+      result = @@node.config_get("bgp_neighbor", "connected_check",
                                  @get_args)
-      result ? true : false
+      result ? false : true
     end
 
-    def default_disable_connected_check
-      @@node.config_get_default("bgp_neighbor", "disable_connected_check")
+    def default_connected_check
+      @@node.config_get_default("bgp_neighbor", "connected_check")
     end
 
-    def dont_capability_negotiate=(val)
-      set_args_keys(:state => (val) ? "" : "no")
-      @@node.config_set("bgp_neighbor", "dont_capability_negotiate", @set_args)
+    def capability_negotiation=(val)
+      # the cli is "dont-capability-negotiate". Therefore when val is true, we
+      # need to set state to "no"
+      set_args_keys(:state => (val) ? "no" : "")
+      @@node.config_set("bgp_neighbor", "capability_negotiation", @set_args)
     end
 
-    def dont_capability_negotiate
-      result = @@node.config_get("bgp_neighbor", "dont_capability_negotiate",
+    def capability_negotiation
+      result = @@node.config_get("bgp_neighbor", "capability_negotiation",
                                  @get_args)
-      result ? true : false
+      result ? false : true
     end
 
-    def default_dont_capability_negotiate
-      @@node.config_get_default("bgp_neighbor", "dont_capability_negotiate")
+    def default_capability_negotiation
+      @@node.config_get_default("bgp_neighbor", "capability_negotiation")
     end
 
     def dynamic_capability=(val)

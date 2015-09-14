@@ -209,15 +209,15 @@ bgp_neighbor:
     config_set_append: '<state> description <desc>'
     default_value: ""
 
-  disable_connected_check:
+  connected_check:
     config_get_token_append: '/^disable-connected-check$/'
     config_set_append: '<state> disable-connected-check'
-    default_value: false
+    default_value: true
 
-  dont_capability_negotiate:
+  capability_negotiation:
     config_get_token_append: '/^dont-capability-negotiate$/'
     config_set_append: '<state> dont-capability-negotiate'
-    default_value: false
+    default_value: true
 
   dynamic_capability:
     config_get_token_append: '/^dynamic-capability$/'

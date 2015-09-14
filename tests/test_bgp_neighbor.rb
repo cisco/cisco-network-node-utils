@@ -152,25 +152,25 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_bgpneighbor_set_get_disable_connected_check
+  def test_bgpneighbor_set_get_connected_check
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false, neighbor.default_disable_connected_check]
+      check = [true, false, neighbor.default_connected_check]
       check.each { |value|
-        neighbor.disable_connected_check = value
-        assert_equal(value, neighbor.disable_connected_check)
+        neighbor.connected_check = value
+        assert_equal(value, neighbor.connected_check)
       }
       neighbor.destroy
     end
   end
 
-  def test_bgpneighbor_set_get_dont_capability_negotiate
+  def test_bgpneighbor_set_get_capability_negotiation
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [true, false, neighbor.default_dont_capability_negotiate]
+      check = [true, false, neighbor.default_capability_negotiation]
       check.each { |value|
-        neighbor.dont_capability_negotiate = value
-        assert_equal(value, neighbor.dont_capability_negotiate)
+        neighbor.capability_negotiation = value
+        assert_equal(value, neighbor.capability_negotiation)
       }
       neighbor.destroy
     end
