@@ -29,15 +29,13 @@ class TestRouterOspfVrf < CiscoTestCase
 
   # @option routers [Cisco::RouterOspf] list of objects
   def ospf_routers_destroy(routers)
-    routers.each { |name, router|
-      router.destroy
-    }
+    routers.each_value(&:destroy)
   end
 
   # @option vrfs [Cisco::RouterOspfVrf] list of objects
   # @option routername [String] ospf instance name
   def ospf_vrfs_destroy(vrfs, routername)
-    vrfs[routername].each { |name, vrf|
+    vrfs[routername].each_value { |vrf|
       vrf.destroy if vrf.name != "default"
     }
   end
@@ -131,11 +129,11 @@ class TestRouterOspfVrf < CiscoTestCase
   end
 
   def create_routerospf(ospfname="ospfTest")
-    routerospf = RouterOspf.new(ospfname)
+    RouterOspf.new(ospfname)
   end
 
   def create_routerospfvrf(router="Wolfpack", name="default")
-    vrf = RouterOspfVrf.new(router, name)
+    RouterOspfVrf.new(router, name)
   end
 
   def test_routerospfvrf_collection_size
@@ -175,27 +173,27 @@ class TestRouterOspfVrf < CiscoTestCase
     # pre-populate values
     ospf_h.each do | k, v|
       # Assuming all values are in hash
-      s = @device.cmd("configure terminal")
-      s = @device.cmd("feature ospf")
-      s = @device.cmd("router ospf #{k}")
-      s = @device.cmd("vrf #{v[:vrf]}")
-      s = @device.cmd("auto-cost reference-bandwidth #{v[:cov]}")
-      s = @device.cmd("default-metric #{v[:dm]}")
-      s = @device.cmd("router-id #{v[:id]}")
-      s = @device.cmd("timers throttle lsa #{v[:l1]} #{v[:l2]} #{v[:l3]}")
-      s = @device.cmd("timers throttle spf #{v[:s1]} #{v[:s2]} #{v[:s3]}")
-      s = @device.cmd("end")
+      @device.cmd("configure terminal")
+      @device.cmd("feature ospf")
+      @device.cmd("router ospf #{k}")
+      @device.cmd("vrf #{v[:vrf]}")
+      @device.cmd("auto-cost reference-bandwidth #{v[:cov]}")
+      @device.cmd("default-metric #{v[:dm]}")
+      @device.cmd("router-id #{v[:id]}")
+      @device.cmd("timers throttle lsa #{v[:l1]} #{v[:l2]} #{v[:l3]}")
+      @device.cmd("timers throttle spf #{v[:s1]} #{v[:s2]} #{v[:s3]}")
+      @device.cmd("end")
       node.cache_flush
     end
 
     routers = RouterOspf.routers
     # validate the collection
-    routers.each do |routername, router|
+    routers.each_key do |routername|
       vrfs = RouterOspfVrf.vrfs
       refute_empty(vrfs, "Error: Collection is empty")
       hv = ospf_h.fetch(routername.to_s)
       next if hv.nil?
-      vrfs[routername].each do | name, vrf|
+      vrfs[routername].each_value do |vrf|
         auto_cost_value = [] << hv[:cov] << hv[:cot]
         assert_equal(hv[:vrf], vrf.name,
                      "Error: Collection, vrf name")
@@ -213,22 +211,18 @@ class TestRouterOspfVrf < CiscoTestCase
                      "Error: Collection, timer throttle spf")
       end
       ospf_vrfs_destroy(vrfs, routername)
-      vrfs=nil
     end
     ospf_routers_destroy(routers)
-    routers=nil
   end
 
   def test_routerospfvrf_create_vrf_nil
-    assert_raises(TypeError) do
-      routerospf = RouterOspfVrf.new(nil, "testvrf")
-    end
+    assert_raises(TypeError) { RouterOspfVrf.new(nil, "testvrf") }
   end
 
   def test_routerospfvrf_create_name_zero_length
     routerospf = RouterOspf.new("testOspf")
     assert_raises(ArgumentError) do
-      routerospfvrf = RouterOspfVrf.new("testOspf", "")
+      RouterOspfVrf.new("testOspf", "")
     end
     routerospf.destroy
   end
@@ -669,7 +663,7 @@ class TestRouterOspfVrf < CiscoTestCase
         :cot => RouterOspfVrf::OSPF_AUTO_COST[:mbps], :dm => 30000,
         :id => "10.0.0.4", :l1=>230, :l2 => 730, :l3 => 2030, :s1 => 400,
         :s2 => 700, :s3 => 2100
-      }
+      },
     }
 
     s = @device.cmd("configure terminal")
@@ -696,7 +690,7 @@ class TestRouterOspfVrf < CiscoTestCase
 
     routers = RouterOspf.routers
     # validate the collection
-    routers.each do |routername, router|
+    routers.each_key do |routername|
       vrfs = RouterOspfVrf.vrfs
       refute_empty(vrfs, "Error: Collection is empty")
       puts "%Error: ospf_h does not have hash key #{routername}" unless ospf_h.key?(routername)
@@ -721,10 +715,8 @@ class TestRouterOspfVrf < CiscoTestCase
                      "Error: Collection, timer throttle spf")
       end
       ospf_vrfs_destroy(vrfs, routername)
-      vrfs=nil
     end
     ospf_routers_destroy(routers)
-    routers=nil
   end
 
   def test_routerospfvrf_timer_throttle_lsa_start_hold_max

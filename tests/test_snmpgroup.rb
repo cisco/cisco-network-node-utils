@@ -21,18 +21,16 @@ class TestSnmpGroup < CiscoTestCase
     snmpgroups = SnmpGroup.groups
     assert_equal(false, snmpgroups.empty?(),
                  "SnmpGroup collection is empty")
-    snmpgroups = nil
   end
 
   def test_snmpgroup_collection_valid
     snmpgroups = SnmpGroup.groups
     s = @device.cmd("show snmp group | include Role | no-more")
-    snmpgroups.each do |name, snmpgroup|
+    snmpgroups.each_value do |snmpgroup|
       line = /Role:\s#{snmpgroup.name}/.match(s)
       # puts "line: #{line}"
       assert_equal(false, line.nil?)
     end
-    snmpgroups = nil
   end
 
   def test_snmpgroup_exists_with_name_empty

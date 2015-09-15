@@ -33,7 +33,7 @@ class TestNode < TestCase
 
   def test_node_create_not_allowed
     assert_raises(NoMethodError) do
-      node = Node.new
+      Node.new
     end
   end
 

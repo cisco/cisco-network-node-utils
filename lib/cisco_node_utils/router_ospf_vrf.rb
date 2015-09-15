@@ -178,19 +178,19 @@ class RouterOspfVrf
   end
 
   def timer_throttle_lsa_start
-    start, hold, max = timer_throttle_lsa
+    start, _hold, _max = timer_throttle_lsa
     return default_timer_throttle_lsa_start if start.nil?
     start
   end
 
   def timer_throttle_lsa_hold
-    start, hold, max = timer_throttle_lsa
+    _start, hold, _max = timer_throttle_lsa
     return default_timer_throttle_lsa_hold if hold.nil?
     hold
   end
 
   def timer_throttle_lsa_max
-    start, hold, max = timer_throttle_lsa
+    _start, _hold, max = timer_throttle_lsa
     return default_timer_throttle_lsa_max if max.nil?
     max
   end
@@ -226,19 +226,19 @@ class RouterOspfVrf
   end
 
   def timer_throttle_spf_start
-    start, hold, max = timer_throttle_spf
+    start, _hold, _max = timer_throttle_spf
     return default_timer_throttle_spf_start if start.nil?
     start
   end
 
   def timer_throttle_spf_hold
-    start, hold, max = timer_throttle_spf
+    _start, hold, _max = timer_throttle_spf
     return default_timer_throttle_spf_hold if hold.nil?
     hold
   end
 
   def timer_throttle_spf_max
-    start, hold, max = timer_throttle_spf
+    _start, _hold, max = timer_throttle_spf
     return default_timer_throttle_spf_max if max.nil?
     max
   end

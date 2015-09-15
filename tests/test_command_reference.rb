@@ -65,9 +65,7 @@ class TestCmdRef < MiniTest::Unit::TestCase
 feature\a\e:
   name\b\f:
     default_value:\vtrue")
-    assert_raises(RuntimeError) do
-      load_file
-    end
+    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_feature_no_name
@@ -83,7 +81,7 @@ feature\a\e:
 feature:
   name:")
     assert_raises(RuntimeError) do
-      reference = load_file
+      load_file
     end
   end
 
@@ -107,9 +105,7 @@ feature:
   name:
     config_get: 'show feature'
 ")
-    assert_raises(RuntimeError) do
-      reference = load_file
-    end
+    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_name
@@ -119,9 +115,7 @@ feature:
     default_value: false
   name:
     config_get: 'show feature'")
-    assert_raises(RuntimeError) do
-      reference = load_file
-    end
+    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_param
@@ -130,9 +124,7 @@ feature:
   name:
     default_value: false
     default_value: true")
-    assert_raises(RuntimeError) do
-      reference = load_file
-    end
+    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_unsupported_key
@@ -141,9 +133,7 @@ feature:
   name:
     config_get: 'show feature'
     what_is_this: \"I don't even\"")
-    assert_raises(RuntimeError) do
-      reference = load_file
-    end
+    assert_raises(RuntimeError) { load_file }
   end
 
 =begin
@@ -156,9 +146,7 @@ zzz:
 zzy:
   name:
     default_value: false")
-    self.assert_raises(RuntimeError) do
-      reference = load_file
-    end
+    self.assert_raises(RuntimeError) { load_file }
   end
 =end
 

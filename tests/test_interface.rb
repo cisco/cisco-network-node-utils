@@ -70,18 +70,18 @@ SWITCHPORT_SHUTDOWN_HASH = {
 
   def interface_ipv4_config(ifname, address, length,
                             config = true, secip = false)
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface #{ifname}")
+    @device.cmd("configure terminal")
+    @device.cmd("interface #{ifname}")
     if config == true
-      s = @device.cmd("no switchport")
-      s = @device.cmd("ip address #{address}/#{length}") if secip != true
-      s = @device.cmd("ip address #{address}/#{length} secondary") if secip == true
+      @device.cmd("no switchport")
+      @device.cmd("ip address #{address}/#{length}") if secip != true
+      @device.cmd("ip address #{address}/#{length} secondary") if secip == true
     else
       # this will both primary and secondary
-      s = @device.cmd("no ip address")
-      s = @device.cmd("switchport")
+      @device.cmd("no ip address")
+      @device.cmd("switchport")
     end
-    s = @device.cmd("end")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -100,13 +100,13 @@ SWITCHPORT_SHUTDOWN_HASH = {
   end
 
   def create_interface(ifname=interfaces[0])
-    interface = Interface.new(ifname)
+    Interface.new(ifname)
   end
 
   def interface_ethernet_default(ethernet_id)
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("default interface ethernet #{ethernet_id}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("default interface ethernet #{ethernet_id}")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -175,7 +175,6 @@ SWITCHPORT_SHUTDOWN_HASH = {
           result = interface.default_shutdown
           assert_equal(ref.default_value, result, "Error: #{interface.name}, " +
                        "(#{lookup_string}), shutdown is #{result}, incorrect")
-          ref = nil
         else # port-channel and loopback interfaces
           assert_equal(interface.default_shutdown, v[:default_shutdown],
                        "default shutdown state (#{lookup_string}), incorrect")
@@ -603,10 +602,10 @@ SWITCHPORT_SHUTDOWN_HASH = {
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     interface.switchport_mode = :disabled
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface #{interfaces[0]}")
-    s = @device.cmd("ip address 192.168.1.100 255.255.255.0")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface #{interfaces[0]}")
+    @device.cmd("ip address 192.168.1.100 255.255.255.0")
+    @device.cmd("end")
     node.cache_flush
     prefixes = interface.prefixes
     assert_equal(1, prefixes.size)
@@ -620,10 +619,10 @@ SWITCHPORT_SHUTDOWN_HASH = {
     interface = Interface.new(interfaces[0] )
     interface.switchport_mode = :access
     interface.switchport_mode = :disabled
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface #{interfaces[0]}")
-    s = @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface #{interfaces[0]}")
+    @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
+    @device.cmd("end")
     node.cache_flush
     prefixes = interface.prefixes
     assert_equal(2, prefixes.size)
@@ -637,11 +636,11 @@ SWITCHPORT_SHUTDOWN_HASH = {
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     interface.switchport_mode = :disabled
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface #{interfaces[0]}")
-    s = @device.cmd("ip address 192.168.1.100 255.255.255.0")
-    s = @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface #{interfaces[0]}")
+    @device.cmd("ip address 192.168.1.100 255.255.255.0")
+    @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
+    @device.cmd("end")
     node.cache_flush
     prefixes = interface.prefixes
     assert_equal(3, prefixes.size)
@@ -667,7 +666,7 @@ SWITCHPORT_SHUTDOWN_HASH = {
 
     if config_set
       # skip test if cli not supported on interface
-      s = @device.cmd("conf t; interface #{interface}")
+      @device.cmd("conf t; interface #{interface}")
       s = @device.cmd("negotiate auto")
       unless s[/% Invalid command/]
 
@@ -710,9 +709,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
     assert(ref, "Error, reference not found")
 
     inf_name = "port-channel10"
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface port-channel 10")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface port-channel 10")
+    @device.cmd("end")
     node.cache_flush()
     interface = Interface.new(inf_name)
     default = ref.default_value
@@ -721,17 +720,17 @@ SWITCHPORT_SHUTDOWN_HASH = {
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface port-channel 10")
-    s = @device.cmd("no switchport")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface port-channel 10")
+    @device.cmd("no switchport")
+    @device.cmd("end")
     node.cache_flush()
     negotiate_auto_helper(interface, default, ref)
 
     # Cleanup
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no interface port-channel 10")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("no interface port-channel 10")
+    @device.cmd("end")
     node.cache_flush()
   end
 
@@ -751,10 +750,10 @@ SWITCHPORT_SHUTDOWN_HASH = {
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface #{interfaces[0]}")
-    s = @device.cmd("no switchport")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface #{interfaces[0]}")
+    @device.cmd("no switchport")
+    @device.cmd("end")
     node.cache_flush()
     negotiate_auto_helper(interface, default, ref)
 
@@ -769,9 +768,9 @@ SWITCHPORT_SHUTDOWN_HASH = {
     assert(ref, "Error, reference not found")
 
     inf_name = "loopback2"
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface loopback 2")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface loopback 2")
+    @device.cmd("end")
     node.cache_flush()
     interface = Interface.new(inf_name)
 
@@ -786,16 +785,14 @@ SWITCHPORT_SHUTDOWN_HASH = {
     }
 
     # Cleanup
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no interface loopback 2")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("no interface loopback 2")
+    @device.cmd("end")
     node.cache_flush()
   end
 
   def test_interfaces_not_empty
-    interfaces = Interface.interfaces
-    refute_empty(interfaces, "Error: interfaces collection empty")
-    interfaces = nil
+    refute_empty(Interface.interfaces, "Error: interfaces collection empty")
   end
 
   def test_interface_ipv4_addr_mask_set_address_invalid
@@ -1055,26 +1052,26 @@ SWITCHPORT_SHUTDOWN_HASH = {
     inttype_h.each do | k, v |
       # puts "TEST: pre-config hash key : #{k}"
       unless (/^Vlan\d./).match(k.to_s).nil?
-        s = @device.cmd("configure terminal")
-        s = @device.cmd("feature interface-vlan")
-        s = @device.cmd("end")
+        @device.cmd("configure terminal")
+        @device.cmd("feature interface-vlan")
+        @device.cmd("end")
         node.cache_flush
       end
 
       # puts "TEST: pre-config k: v '#{k} : #{v}'"
-      s = @device.cmd("configure terminal")
-      s = @device.cmd("interface #{k}")
+      @device.cmd("configure terminal")
+      @device.cmd("interface #{k}")
       if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
          !(/^port-channel\d/).match(k.to_s).nil?
-        s = @device.cmd("no switchport")
+        @device.cmd("no switchport")
       end
       # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
-      s = @device.cmd("ip address #{v[:address_len]}") unless v[:address_len].nil?
-      s = @device.cmd("ip proxy-arp") if !v[:proxy_arp].nil? && v[:proxy_arp] == true
-      s = @device.cmd("ip redirects") if !v[:redirects].nil? && v[:redirects] == true
-      s = @device.cmd("description #{v[:description]}") unless v[:description].nil?
-      s = @device.cmd("exit")
-      s = @device.cmd("end")
+      @device.cmd("ip address #{v[:address_len]}") unless v[:address_len].nil?
+      @device.cmd("ip proxy-arp") if !v[:proxy_arp].nil? && v[:proxy_arp] == true
+      @device.cmd("ip redirects") if !v[:redirects].nil? && v[:redirects] == true
+      @device.cmd("description #{v[:description]}") unless v[:description].nil?
+      @device.cmd("exit")
+      @device.cmd("end")
 
       # Create an Interface instance and associate it
       v[:interface] = Interface.new(k, false)
@@ -1094,17 +1091,17 @@ SWITCHPORT_SHUTDOWN_HASH = {
     validate_vrf(inttype_h)
 
     # Cleanup the preload configuration
-    s = @device.cmd("configure terminal")
-    inttype_h.each do | k, v |
+    @device.cmd("configure terminal")
+    inttype_h.each_key do |k|
       if !(/^Ethernet\d.\d/).match(k.to_s).nil?
-        s = @device.cmd("default interface #{k}")
+        @device.cmd("default interface #{k}")
       else
-        s = @device.cmd("no interface #{k}")
+        @device.cmd("no interface #{k}")
       end
     end
-    s = @device.cmd("no feature interface-vlan")
-    s = @device.cmd("exit")
-    s = @device.cmd("end")
+    @device.cmd("no feature interface-vlan")
+    @device.cmd("exit")
+    @device.cmd("end")
     node.cache_flush
   end
 

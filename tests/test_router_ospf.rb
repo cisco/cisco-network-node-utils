@@ -17,19 +17,19 @@ require File.expand_path("../../lib/cisco_node_utils/router_ospf", __FILE__)
 
 class TestRouterOspf < CiscoTestCase
   def routerospf_routers_destroy(routers)
-    routers.each { |name, router| router.destroy }
+    routers.each_value(&:destroy)
   end
 
   def get_routerospf_match_line(name)
     s = @device.cmd("show run | include '^router ospf .*'")
     cmd = "router ospf"
-    line = /#{cmd}\s#{name}/.match(s)
+    /#{cmd}\s#{name}/.match(s)
   end
 
   def test_routerospf_collection_empty
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no feature ospf")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("no feature ospf")
+    @device.cmd("end")
     node.cache_flush
     routers = RouterOspf.routers
     assert_equal(true, routers.empty?(),
@@ -37,27 +37,26 @@ class TestRouterOspf < CiscoTestCase
   end
 
   def test_routerospf_collection_not_empty
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("feature ospf")
-    s = @device.cmd("router ospf TestOSPF")
-    s = @device.cmd("router ospf 100")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("feature ospf")
+    @device.cmd("router ospf TestOSPF")
+    @device.cmd("router ospf 100")
+    @device.cmd("end")
     node.cache_flush
     routers = RouterOspf.routers
     assert_equal(false, routers.empty?(),
                  "RouterOspf collection is empty")
     # validate the collection
-    routers.each do |name, router|
+    routers.each_key do |name|
       line = get_routerospf_match_line(name)
       assert_equal(false, line.nil?)
     end
     routerospf_routers_destroy(routers)
-    routers=nil
   end
 
   def test_routerospf_create_name_zero_length
     assert_raises(ArgumentError) do
-      ospf = RouterOspf.new("")
+      RouterOspf.new("")
     end
   end
 
@@ -159,6 +158,5 @@ class TestRouterOspf < CiscoTestCase
     assert_equal(false, line.nil?,
                  "Error: #{name}, instance not found")
     ospf_2.destroy
-    routers = nil
   end
 end

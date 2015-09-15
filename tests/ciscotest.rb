@@ -56,7 +56,7 @@ class CiscoTestCase < TestCase
       begin
         platform_info = PlatformInfo.new(node.host_name)
         @@interfaces = platform_info.get_value_from_key("interfaces")
-      rescue Exception => e
+      rescue RuntimeError => e
         # If there is a problem reading platform_info.yaml, assign default values
         default_interfaces = ["Ethernet1/1", "Ethernet1/2", "Ethernet1/3"]
         puts "Caught exception: #{e}, assigning interfaces to default - #{default_interfaces}"

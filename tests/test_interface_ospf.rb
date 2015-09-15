@@ -25,9 +25,7 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def routerospf_routers_destroy(routers)
-    routers.each { |name, router|
-      routerospf_router_destroy(router)
-    }
+    routers.each_value { |router| routerospf_router_destroy(router) }
   end
 
   def interface_switchport_enable(ifname, enable)
@@ -47,7 +45,7 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def interfaceospf_interfaces_destroy(interfaces)
-    interfaces.each { |name, interface|
+    interfaces.each_value { |interface|
       interfaceospf_interface_destroy(interface)
     }
   end
@@ -55,8 +53,7 @@ class TestInterfaceOspf < CiscoTestCase
   def get_interfaceospf_match_line(name, pattern)
     s = @device.cmd("show run interface all | " +
                     "sec \"interface .#{name[1..-1]}$\" | no-more")
-    line = pattern.match(s)
-    line
+    pattern.match(s)
   end
 
   def create_routerospf(ospfname="ospfTest")
@@ -64,12 +61,12 @@ class TestInterfaceOspf < CiscoTestCase
     @device.cmd("feature ospf")
     @device.cmd("end")
     node.cache_flush
-    routerospf = RouterOspf.new(ospfname, false)
+    RouterOspf.new(ospfname, false)
   end
 
   def create_interfaceospf(routerospf, ifname=interfaces[0], area="0.0.0.0")
     interface_switchport_enable(ifname, false)
-    interfaceospf = InterfaceOspf.new(ifname, routerospf.name, area)
+    InterfaceOspf.new(ifname, routerospf.name, area)
   end
 
   def interface_ethernet_default(ethernet_id=interfaces_id[0])
@@ -119,7 +116,7 @@ class TestInterfaceOspf < CiscoTestCase
     node.cache_flush
 
     routers = RouterOspf.routers()
-    routers.each do |name, router|
+    routers.each_value do |router|
       interfaces = InterfaceOspf.interfaces(router.name)
       assert_empty(interfaces,
                    "InterfaceOspf collection is not empty")
@@ -149,7 +146,7 @@ class TestInterfaceOspf < CiscoTestCase
 
     routers = RouterOspf.routers()
     # validate the collection
-    routers.each do |name, router|
+    routers.each_value do |router|
       interfaces = InterfaceOspf.interfaces(router.name)
       refute_empty(interfaces,
                    "InterfaceOspf collection is empty")
@@ -194,7 +191,7 @@ class TestInterfaceOspf < CiscoTestCase
 
   def test_interfaceospf_create_routerospf_nil
     assert_raises(TypeError) do
-      ospf = InterfaceOspf.new(interfaces[0], nil, "0.0.0.0")
+      InterfaceOspf.new(interfaces[0], nil, "0.0.0.0")
     end
   end
 
@@ -202,7 +199,7 @@ class TestInterfaceOspf < CiscoTestCase
     name = "ospfTest"
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
-      interface = InterfaceOspf.new("", ospf.name, "0.0.0.0")
+      InterfaceOspf.new("", ospf.name, "0.0.0.0")
     end
     routerospf_router_destroy(ospf)
   end
@@ -211,7 +208,7 @@ class TestInterfaceOspf < CiscoTestCase
     name = "ospfTest"
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
-      interface = InterfaceOspf.new(interfaces[0], ospf.name, "")
+      InterfaceOspf.new(interfaces[0], ospf.name, "")
     end
     routerospf_router_destroy(ospf)
   end
@@ -492,28 +489,22 @@ class TestInterfaceOspf < CiscoTestCase
     ospf_h["ospfTest"] = {
       interfaces[0].downcase => {
         :area => "0.0.0.0", :cost => 10, :hello => 30, :dead => 120,
-        :pass => true,
-      },
+        :pass => true },
       interfaces[1].downcase => {
-        :area => "1.1.1.38", :dead => 40, :pass => false,
-      },
+        :area => "1.1.1.38", :dead => 40, :pass => false },
       "vlan101" => {
         :area => "2.2.2.101", :cost => 5, :hello => 20, :dead => 80,
-        :pass => true,
-      },
+        :pass => true },
     }
     ospf_h["TestOspfInt"] = {
       interfaces[2].downcase => {
-        :area => "0.0.0.19",
-      },
+        :area => "0.0.0.19" },
       "vlan290" => {
         :area => "2.2.2.29", :cost => 200, :hello => 30, :dead => 120,
-        :pass => true,
-      },
+        :pass => true },
       "port-channel100" => {
         :area => "3.2.2.29", :cost => 25, :hello => 50, :dead => 200,
-        :pass => false,
-      },
+        :pass => false },
     }
     # enable feature ospf
     @device.cmd("configure terminal")
@@ -615,19 +606,17 @@ class TestInterfaceOspf < CiscoTestCase
       # node.debug=true
       interfaceospf_interfaces_destroy(interfaces)
       # node.debug=true
-      interfaces=nil
     end # interfaces hash
     # clean up
     routerospf_routers_destroy(routers)
-    routers=nil
 
     # disable feature interface-vlan
     @device.cmd("configure terminal")
     @device.cmd("no feature interface-vlan")
     @device.cmd("end")
     # clean up port channel
-    ospf_h.each do | k, v|
-      v.each do | k1, v1|
+    ospf_h.each_value do |v|
+      v.each_key do |k1|
         unless (/^port-channel\d/).match(k1.to_s).nil?
           @device.cmd("configure terminal")
           @device.cmd("no interface #{k1}")

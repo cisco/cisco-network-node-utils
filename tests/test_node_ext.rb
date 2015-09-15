@@ -93,10 +93,10 @@ vrf blue",
 
   def test_node_config_get_invalid
     assert_raises IndexError do # no entry
-      result = node.config_get("feature", "name")
+      node.config_get("feature", "name")
     end
     assert_raises IndexError do # entry but no config_get
-      result = node.config_get("show_system", "resources")
+      node.config_get("show_system", "resources")
     end
   end
 
@@ -107,27 +107,23 @@ vrf blue",
 
   def test_node_config_get_default_invalid
     assert_raises IndexError do # no name entry
-      result = node.config_get_default("show_version", "foobar")
+      node.config_get_default("show_version", "foobar")
     end
     assert_raises IndexError do # no feature entry
-      result = node.config_get_default("feature", "name")
+      node.config_get_default("feature", "name")
     end
     assert_raises IndexError do # no default_value defined
-      result = node.config_get_default("show_version", "version")
+      node.config_get_default("show_version", "version")
     end
   end
 
   def test_node_config_set
-    result = node.config_set("snmp_server",
-                                          "aaa_user_cache_timeout",
-                                          "", 100)
+    node.config_set("snmp_server", "aaa_user_cache_timeout", "", 100)
     run = node.client.show("show run all | inc snmp")
     val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
     assert_equal("100", val)
 
-    result = node.config_set("snmp_server",
-                                          "aaa_user_cache_timeout",
-                                          "no", 100)
+    node.config_set("snmp_server", "aaa_user_cache_timeout", "no", 100)
     run = node.client.show("show run all | inc snmp")
     val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
     assert_equal("3600", val)
@@ -135,23 +131,23 @@ vrf blue",
 
   def test_node_config_set_invalid
     assert_raises IndexError do
-      result = node.config_set("feature", "name")
+      node.config_set("feature", "name")
     end
     assert_raises IndexError do # feature exists but no config_set
-      result = node.config_set("show_version", "system_image")
+      node.config_set("show_version", "system_image")
     end
     assert_raises ArgumentError do # not enough args
-      result = node.config_set("vtp", "domain")
+      node.config_set("vtp", "domain")
     end
     assert_raises ArgumentError do # too many args
-      result = node.config_set("vtp", "domain", "example.com", "baz")
+      node.config_set("vtp", "domain", "example.com", "baz")
     end
   end
 
   def test_node_cli_caching
-    s = @device.cmd("conf t ; ip domain-name minitest ; end")
+    @device.cmd("conf t ; ip domain-name minitest ; end")
     dom1 = node.domain_name
-    s = @device.cmd("conf t ; no ip domain-name minitest ; end")
+    @device.cmd("conf t ; no ip domain-name minitest ; end")
     dom2 = node.domain_name
     assert_equal(dom1, dom2) # cached output was used for dom2
 

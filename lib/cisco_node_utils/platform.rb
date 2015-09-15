@@ -61,9 +61,11 @@ class Platform
     raise "failed to retrieve platform memory information" if
       total.nil? or used.nil? or free.nil?
 
-    { 'total' => total.first,
+    {
+      'total' => total.first,
       'used'  => used.first,
-      'free'  => free.first, }
+      'free'  => free.first,
+    }
   end
 
   # ex: 'Processor Board ID FOC15430TEY'
@@ -97,10 +99,12 @@ class Platform
   def Platform.chassis
     chas = @@node.config_get("inventory", "chassis")
     return nil if chas.nil?
-    { 'descr' => chas['desc'].tr('"', ''),
+    {
+      'descr' => chas['desc'].tr('"', ''),
       'pid'   => chas['productid'],
       'vid'   => chas['vendorid'],
-      'sn'    => chas['serialnum'], }
+      'sn'    => chas['serialnum'],
+    }
   end
 
   # returns hash of hashes with inner keys "name", "descr", "pid", "vid", "sn"
@@ -166,17 +170,22 @@ class Platform
     virts.each { |serv|
       virts_hsh[serv['name']] = {
         'package_info' => { 'name'     => serv['package_name'],
-                            'path'     => serv['ova_path'], },
+                            'path'     => serv['ova_path'],
+        },
         'application'  => { 'name'     => serv['application_name'],
                             'version'  => serv['application_version'],
-                            'descr'    => serv['application_description'], },
+                            'descr'    => serv['application_description'],
+        },
         'signing'      => { 'key_type' => serv['key_type'],
-                            'method'   => serv['signing_method'], },
+                            'method'   => serv['signing_method'],
+        },
         'licensing'    => { 'name'     => serv['licensing_name'],
-                            'version'  => serv['licensing_version'], },
+                            'version'  => serv['licensing_version'],
+        },
         'reservation'  => { 'disk'     => serv['disk_reservation'],
                             'memory'   => serv['memory_reservation'],
-                            'cpu'      => serv['cpu_reservation'], },
+                            'cpu'      => serv['cpu_reservation'],
+        },
       }
     }
     virts_hsh

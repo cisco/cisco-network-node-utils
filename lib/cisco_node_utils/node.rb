@@ -103,24 +103,24 @@ module Cisco
         else
           result = build_config_get(feature, ref, :structured)
           begin
-            token.each do |token|
+            token.each do |t|
               # if token is a hash and result is an array, check each
               # array index (which should return another hash) to see if
               # it contains the matching key/value pairs specified in token,
               # and return the first match (or nil)
-              if token.kind_of?(Hash)
+              if t.kind_of?(Hash)
                 raise "Expected array, got #{result.class}" unless result.kind_of?(Array)
-                result = result.select { |x| token.all? { |k, v| x[k] == v } }
-                raise "Multiple matches found for #{token}" if result.length > 1
-                raise "No match found for #{token}" if result.length == 0
+                result = result.select { |x| t.all? { |k, v| x[k] == v } }
+                raise "Multiple matches found for #{t}" if result.length > 1
+                raise "No match found for #{t}" if result.length == 0
                 result = result[0]
               else # result is array or hash
-                raise "No key \"#{token}\" in #{result}" if result[token].nil?
-                result = result[token]
+                raise "No key \"#{t}\" in #{result}" if result[t].nil?
+                result = result[t]
               end
             end
             return result
-          rescue Exception => e
+          rescue RuntimeError
             # TODO: logging user story, Syslog isn't available here
             # Syslog.debug(e.message)
             return nil

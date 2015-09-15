@@ -20,9 +20,9 @@ include Cisco
 
 class TestVlan < CiscoTestCase
   def interface_ethernet_default(ethernet_id)
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("default interface ethernet #{ethernet_id}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("default interface ethernet #{ethernet_id}")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -33,16 +33,12 @@ class TestVlan < CiscoTestCase
   end
 
   def test_vlan_create_invalid
-    e = assert_raises(CliError) do
-      v = Vlan.new(5000)
-    end
+    e = assert_raises(CliError) { Vlan.new(5000) }
     assert_match(/Invalid value.range/, e.message)
   end
 
   def test_vlan_create_invalid_non_numeric_vlan
-    e = assert_raises(ArgumentError) do
-      v = Vlan.new("fred")
-    end
+    e = assert_raises(ArgumentError) { Vlan.new("fred") }
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
@@ -134,7 +130,6 @@ class TestVlan < CiscoTestCase
     end
     ref = cmd_ref.lookup("vlan", "name")
     assert(ref, "Error, reference not found for vlan name")
-    ref = nil
     v.destroy
   end
 
@@ -195,10 +190,7 @@ class TestVlan < CiscoTestCase
   end
 
   def test_vlan_shutdown_valid
-    shutdown_states = [
-      true,
-      false
-    ]
+    shutdown_states = [true, false]
     v = Vlan.new(1000)
     shutdown_states.each { | start |
       shutdown_states.each { | finish |

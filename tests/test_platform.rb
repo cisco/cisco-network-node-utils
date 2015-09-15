@@ -49,13 +49,11 @@ class TestPlatform < CiscoTestCase
     arr = @device.cmd('sh sys reso').scan(/(\S+) total.* (\S+) used.* (\S+) free/).flatten
     mem_hsh = { 'total' => arr[0],
                 'used'  => arr[1],
-                'free'  => arr[2], }
+                'free'  => arr[2] }
     # used and free memory change rapidly, compare total and sums of free + used
     assert_equal(mem_hsh['total'], Platform.memory['total'])
-    assert_equal(
-      mem_hsh['used'].to_i + mem_hsh['free'].to_i,
-      Platform.memory['used'].to_i + Platform.memory['free'].to_i
-    )
+    assert_equal(mem_hsh['used'].to_i + mem_hsh['free'].to_i,
+                 Platform.memory['used'].to_i + Platform.memory['free'].to_i)
     # assert(Platform.memory.has_key?('used'), "Platform memory has no key 'used'")
     # assert(Platform.memory.has_key?('free'), "Platform memory has no key 'free'")
   end
@@ -109,7 +107,8 @@ class TestPlatform < CiscoTestCase
     chas_hsh = { 'descr' => arr[0],
                  'pid'   => arr[1],
                  'vid'   => arr[2],
-                 'sn'    => arr[3], }
+                 'sn'    => arr[3],
+    }
     assert_equal(chas_hsh, Platform.chassis)
   end
 
@@ -122,7 +121,8 @@ class TestPlatform < CiscoTestCase
       slots_hsh_hsh[slot[0]] = { 'descr' => slot[1],
                                  'pid'   => slot[2],
                                  'vid'   => slot[3],
-                                 'sn'    => slot[4], }
+                                 'sn'    => slot[4],
+      }
     }
     assert_equal(slots_hsh_hsh, Platform.slots)
   end
@@ -138,7 +138,8 @@ class TestPlatform < CiscoTestCase
       pwr_hsh_hsh[pwr[0]] = { 'descr' => pwr[1],
                               'pid'   => pwr[2],
                               'vid'   => pwr[3],
-                              'sn'    => pwr[4], }
+                              'sn'    => pwr[4],
+      }
     }
     assert_equal(pwr_hsh_hsh, Platform.power_supplies)
   end
@@ -154,7 +155,8 @@ class TestPlatform < CiscoTestCase
       fan_hsh_hsh[fan[0]] = { 'descr' => fan[1],
                               'pid'   => fan[2],
                               'vid'   => fan[3],
-                              'sn'    => fan[4], }
+                              'sn'    => fan[4],
+      }
     }
     assert_equal(fan_hsh_hsh, Platform.fans)
   end
@@ -169,17 +171,22 @@ class TestPlatform < CiscoTestCase
       vir_arr.each { |serv|
         vir_hsh_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
-                              'path'     => serv['ova_path'], },
+                              'path'     => serv['ova_path'],
+          },
           'application'  => { 'name'     => serv['application_name'],
                               'version'  => serv['application_version'],
-                              'descr'    => serv['application_description'], },
+                              'descr'    => serv['application_description'],
+          },
           'signing'      => { 'key_type' => serv['key_type'],
-                              'method'   => serv['signing_method'], },
+                              'method'   => serv['signing_method'],
+          },
           'licensing'    => { 'name'     => serv['licensing_name'],
-                              'version'  => serv['licensing_version'], },
+                              'version'  => serv['licensing_version'],
+          },
           'reservation'  => { 'disk'     => serv['disk_reservation'],
                               'memory'   => serv['memory_reservation'],
-                              'cpu'      => serv['cpu_reservation'], },
+                              'cpu'      => serv['cpu_reservation'],
+          },
         }
       }
     end

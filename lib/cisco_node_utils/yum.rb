@@ -40,7 +40,7 @@ module Cisco
     end
 
     def self.validate(pkg)
-      file_name = pkg.strip.gsub(':', '/').split('/').last
+      file_name = pkg.strip.tr(':', '/').split('/').last
       pkg_info = Yum.decompose_name(file_name)
       if pkg_info.nil?
         query_name = file_name
