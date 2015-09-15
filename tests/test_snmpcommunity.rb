@@ -16,9 +16,7 @@ require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/snmpcommunity", __FILE__)
 
 def cleanup_snmp_communities(snmpcommunities)
-  snmpcommunities.each { |name, snmpcommunity|
-    snmpcommunity.destroy
-  }
+  snmpcommunities.each_value(&:destroy)
 end
 
 def cleanup_snmpcommunity(community)
@@ -39,9 +37,9 @@ class TestSnmpCommunity < CiscoTestCase
       pattern = /#{cmd_prefix}\s\S+\sgroup\s\S+/
       until (md = pattern.match(s)).nil?
         # puts "md : #{md}"
-        ret = @device.cmd("configure terminal")
-        ret = @device.cmd("no #{md}")
-        ret = @device.cmd("end")
+        @device.cmd("configure terminal")
+        @device.cmd("no #{md}")
+        @device.cmd("end")
         node.cache_flush
         s = md.post_match
       end
@@ -52,10 +50,10 @@ class TestSnmpCommunity < CiscoTestCase
 
   def test_snmpcommunity_collection_not_empty
       # This test require some snmp community exist in device
-      s = @device.cmd("configure terminal")
-      s = @device.cmd("snmp-server community com1 group network-admin")
-      s = @device.cmd("snmp-server community com2")
-      s = @device.cmd("end")
+      @device.cmd("configure terminal")
+      @device.cmd("snmp-server community com1 group network-admin")
+      @device.cmd("snmp-server community com2")
+      @device.cmd("end")
       node.cache_flush
       snmpcommunities = SnmpCommunity.communities()
       assert_equal(false, snmpcommunities.empty?(),
@@ -65,10 +63,10 @@ class TestSnmpCommunity < CiscoTestCase
 
   def test_snmpcommunity_collection_valid
       # This test require some snmp community exist in device
-      s = @device.cmd("configure terminal")
-      s = @device.cmd("snmp-server community com12 group network-operator")
-      s = @device.cmd("snmp-server community com22 group network-admin")
-      s = @device.cmd("end")
+      @device.cmd("configure terminal")
+      @device.cmd("snmp-server community com12 group network-operator")
+      @device.cmd("snmp-server community com22 group network-admin")
+      @device.cmd("end")
       node.cache_flush
       # get collection
       snmpcommunities = SnmpCommunity.communities()
@@ -80,30 +78,29 @@ class TestSnmpCommunity < CiscoTestCase
         assert_equal(false, line.nil?)
       end
       cleanup_snmp_communities(snmpcommunities)
-      snmpcommunities = nil
   end
 
   def test_snmpcommunity_create_name_nil
     assert_raises(TypeError) do
-      snmpcommunity = SnmpCommunity.new(nil, "network-operator")
+      SnmpCommunity.new(nil, "network-operator")
     end
   end
 
   def test_snmpcommunity_create_group_nil
     assert_raises(TypeError) do
-      snmpcommunity = SnmpCommunity.new("test", nil)
+      SnmpCommunity.new("test", nil)
     end
   end
 
   def test_snmpcommunity_create_name_zero_length
     assert_raises(Cisco::CliError) do
-      snmpcommunity = SnmpCommunity.new("", "network-operator")
+      SnmpCommunity.new("", "network-operator")
     end
   end
 
   def test_snmpcommunity_create_group_zero_length
     assert_raises(Cisco::CliError) do
-      snmpcommunity = SnmpCommunity.new("test", "")
+      SnmpCommunity.new("test", "")
     end
   end
 
@@ -113,8 +110,7 @@ class TestSnmpCommunity < CiscoTestCase
       name += "c"
     }
     assert_raises(Cisco::CliError) do
-      snmpcommunity = SnmpCommunity.new(name,
-                                        "network-operator")
+      SnmpCommunity.new(name, "network-operator")
     end
   end
 
@@ -124,7 +120,7 @@ class TestSnmpCommunity < CiscoTestCase
       group += "g"
     }
     assert_raises(Cisco::CliError) do
-      snmpcommunity = SnmpCommunity.new("test", group)
+      SnmpCommunity.new("test", group)
     end
   end
 
@@ -132,8 +128,7 @@ class TestSnmpCommunity < CiscoTestCase
     name = "ciscotest"
     group = "network-operator-invalid"
     assert_raises(Cisco::CliError) do
-      snmpcommunity = SnmpCommunity.new(name,
-                                        group)
+      SnmpCommunity.new(name, group)
     end
   end
 

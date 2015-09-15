@@ -29,7 +29,7 @@ def load_yaml(test_type=:positive)
   else
     raise TypeError
   end
-  config_hash = YAML.load(File.read(path))
+  YAML.load(File.read(path))
 end
 
 class TestCommandConfig < CiscoTestCase
@@ -64,14 +64,13 @@ class TestCommandConfig < CiscoTestCase
 
   def send_device_config(config_cmd_hash)
     config_cmd_hash.each do |k, v|
-      v.each do |k1, v1|
+      v.each_value do |v1|
         # Send commands
         cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, "  ")}\n  end\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
-          output = node.config(cfg_string)
-          # puts "output : #{output}"
+          node.config(cfg_string)
           # make sure config is present in success case
           compare_with_results(v1, k)
         rescue CliError => e
@@ -79,7 +78,7 @@ class TestCommandConfig < CiscoTestCase
           refute(known_failure, "ERROR: port channel not present")
           raise
         end
-      end # k1, v1
+      end
     end
   end
 
@@ -125,7 +124,7 @@ class TestCommandConfig < CiscoTestCase
 
     # Remove 1024 loopback interfaces
     cfg_hash_remove = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
-    cfg_hash_remove ["loopback-int-add"]["command"] = "#{build_int_scale_config(add=false)}"
+    cfg_hash_remove ["loopback-int-add"]["command"] = "#{build_int_scale_config(false)}"
     begin
       send_device_config(cfg_hash_remove)
     rescue Timeout::Error
@@ -138,15 +137,13 @@ class TestCommandConfig < CiscoTestCase
   end
 
   def test_invalid_config
-    cfg_hash = load_yaml(test_type=:negative)
-    cfg_hash.each do |k, v|
-      v.each do |k1, v1|
+    cfg_hash = load_yaml(:negative)
+    cfg_hash.each_value do |v|
+      v.each_value do |v1|
         cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, "  ")}\n  end\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
-        assert_raises(CliError) do
-          output = node.config(cfg_string)
-        end
-      end # k1, v1
+        assert_raises(CliError) { node.config(cfg_string) }
+      end
     end
   end
 

@@ -24,17 +24,17 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def setup
     super
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no feature vtp")
-    s = @device.cmd("no feature interface-vlan")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("no feature vtp")
+    @device.cmd("no feature interface-vlan")
+    @device.cmd("end")
     node.cache_flush
   end
 
   def interface_ethernet_default(ethernet_id)
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("default interface ethernet #{ethernet_id}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("default interface ethernet #{ethernet_id}")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -56,16 +56,16 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def set_cmd_ref_system_default_switchport(state="")
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("#{state} system default switchport")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("#{state} system default switchport")
+    @device.cmd("end")
     node.cache_flush
   end
 
   def set_cmd_ref_system_default_switchport_shutdown(state="")
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("#{state} system default switchport shutdown")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("#{state} system default switchport shutdown")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -114,10 +114,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("vtp")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("vtp")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -131,10 +131,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("no vtp")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("no vtp")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -148,10 +148,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("vtp")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("vtp")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -325,11 +325,11 @@ class TestInterfaceSwitchport < CiscoTestCase
   def test_switchport_autostate_enabled_access
     svi = Interface.new('Vlan23')
     interface = Interface.new(interfaces[0])
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("switchport")
-    s = @device.cmd("switchport autostate exclude")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("switchport")
+    @device.cmd("switchport autostate exclude")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -359,10 +359,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     svi = Interface.new('Vlan23')
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("switchport autostate exclude")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("switchport autostate exclude")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -384,10 +384,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     svi = Interface.new('Vlan23')
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface ethernet #{interfaces_id[0]}")
-    s = @device.cmd("no switchport autostate exclude")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface ethernet #{interfaces_id[0]}")
+    @device.cmd("no switchport autostate exclude")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 

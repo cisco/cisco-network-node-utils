@@ -31,7 +31,7 @@ class TestTacacsServerHost < CiscoTestCase
 
   def test_tacacsserverhost_collection_empty
     hosts = TacacsServerHost.hosts
-    hosts.each { |name, host| host.destroy }
+    hosts.each_value(&:destroy)
     hosts = TacacsServerHost.hosts
 
     assert_empty(hosts, "Error: Tacacs Host collection is not empty")
@@ -58,19 +58,15 @@ class TestTacacsServerHost < CiscoTestCase
                    "Error: Tacacs Host #{name} port mismatch")
     }
 
-    hosts_hash.each { |name, host| hosts[name].destroy }
+    hosts_hash.each_key { |name| hosts[name].destroy }
   end
 
   def test_tacacsserverhost_create_server_nil
-    assert_raises(TypeError) do
-      host = TacacsServerHost.new(nil)
-    end
+    assert_raises(TypeError) { TacacsServerHost.new(nil) }
   end
 
   def test_tacacsserverhost_create_name_zero_length
-    assert_raises(ArgumentError) do
-      host = TacacsServerHost.new("")
-    end
+    assert_raises(ArgumentError) { TacacsServerHost.new("") }
   end
 
   def test_tacacsserverhost_create_valid
@@ -106,9 +102,9 @@ class TestTacacsServerHost < CiscoTestCase
   def test_tacacsserverhost_get_name_preconfigured
     host_name = "testhost"
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name}")
+    @device.cmd("end")
     node.cache_flush
 
     line = get_tacacsserverhost_match_line(host_name)
@@ -121,17 +117,17 @@ class TestTacacsServerHost < CiscoTestCase
     assert_equal(host_name, hosts[host_name].name,
                  "Error: #{host_name} name get value mismatch")
 
-    hosts.each { |name, host| host.destroy }
+    hosts.each_value(&:destroy)
   end
 
   def test_tacacsserverhost_get_name_formats
     host_name = "testhost.example.com"
     host_ip = "192.168.1.1"
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name}")
-    s = @device.cmd("tacacs-server host #{host_ip}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name}")
+    @device.cmd("tacacs-server host #{host_ip}")
+    @device.cmd("end")
     node.cache_flush
 
     line_name = get_tacacsserverhost_match_line(host_name)
@@ -152,7 +148,7 @@ class TestTacacsServerHost < CiscoTestCase
     assert_equal(host_ip, hosts[host_ip].name,
                  "Error: #{host_ip} name get value mismatch")
 
-    hosts.each { |name, host| host.destroy }
+    hosts.each_value(&:destroy)
   end
 
   def test_tacacsserverhost_get_port
@@ -165,9 +161,9 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     port = 1138
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name} port #{port}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name} port #{port}")
+    @device.cmd("end")
     node.cache_flush
     assert_equal(port, host.port, "Error: Tacacs Host port incorrect")
 
@@ -203,8 +199,7 @@ class TestTacacsServerHost < CiscoTestCase
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*timeout'")[/^tacacs.*timeout.*$/]
     if s
-      s = @device.cmd("conf t ; no #{s} ; end")
-      # puts "s is >#{s}<"
+      @device.cmd("conf t ; no #{s} ; end")
       node.cache_flush
     end
 
@@ -217,9 +212,9 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     timeout = 30
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name} timeout #{timeout}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name} timeout #{timeout}")
+    @device.cmd("end")
     node.cache_flush
     assert_equal(timeout, host.timeout, "Error: Tacacs Host timeout incorrect")
 
@@ -280,9 +275,9 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     enctype = TACACS_SERVER_ENC_NONE
     sh_run_enctype = TACACS_SERVER_ENC_CISCO_TYPE_7
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name} key #{enctype} TEST")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name} key #{enctype} TEST")
+    @device.cmd("end")
     node.cache_flush
     assert_equal(sh_run_enctype, host.encryption_type,
                  "Error: Tacacs Host encryption type incorrect")
@@ -310,9 +305,9 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     pass = "TEST"
     sh_run_pass = "WAWY"
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("tacacs-server host #{host_name} key 0 #{pass}")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("tacacs-server host #{host_name} key 0 #{pass}")
+    @device.cmd("end")
     node.cache_flush
     assert_equal(sh_run_pass, host.encryption_password,
                  "Error: Tacacs Host encryption password incorrect")
@@ -359,8 +354,7 @@ class TestTacacsServerHost < CiscoTestCase
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*host'")[/^tacacs.*host.*$/]
     if s
-      s = @device.cmd("conf t ; no #{s} ; end")
-      # puts "s is >#{s}<"
+      @device.cmd("conf t ; no #{s} ; end")
       node.cache_flush
     end
 

@@ -33,7 +33,7 @@ class PlatformInfo
 
     begin
       project_info_hash = YAML.load_file(File.join(File.dirname(__FILE__), "platform_info.yaml"))
-    rescue Exception => e
+    rescue RuntimeError
       raise "Error - could not open platform file - platform_info.yaml"
     end
 

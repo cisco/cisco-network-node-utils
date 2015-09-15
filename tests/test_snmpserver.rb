@@ -248,7 +248,6 @@ class TestSnmpServer < CiscoTestCase
   def test_snmpserver_packetsize_set_default
     snmpserver = SnmpServer.new
 
-    packetsize = DEFAULT_SNMP_SERVER_PACKET_SIZE
     s = @device.cmd("show run snmp all | no-more")
     cmd='snmp-server packetsize'
     line = /#{cmd} (\d+)/.match(s)
@@ -348,7 +347,6 @@ class TestSnmpServer < CiscoTestCase
     snmpserver = SnmpServer.new
     # set default
     snmpserver.protocol=true
-    device_enabled = snmpserver.protocol?
     cmd='^snmp-server protocol enable'
     s = @device.cmd("show run snmp all | i '#{cmd}'")
     assert_match(/#{cmd}/, s)
@@ -409,7 +407,6 @@ class TestSnmpServer < CiscoTestCase
   def test_snmpserver_tcp_session_auth_get_enabled
     snmpserver = SnmpServer.new
     snmpserver.tcp_session_auth=true
-    device_enabled = snmpserver.tcp_session_auth?
     cmd='^snmp-server tcp-session auth'
     s = @device.cmd("show run snmp all | i '#{cmd}'")
     assert_match(/#{cmd}/, s)

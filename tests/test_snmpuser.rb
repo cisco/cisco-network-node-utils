@@ -44,7 +44,7 @@ class TestSnmpUser < CiscoTestCase
     unless @test_users.empty?
       @device.cmd('configure t')
       @test_users.each { |name|
-        s = @device.cmd("no snmp-server user #{name}")
+        @device.cmd("no snmp-server user #{name}")
       }
       @device.cmd('end')
       node.cache_flush
@@ -73,15 +73,15 @@ class TestSnmpUser < CiscoTestCase
     args_list = [
       ['Empty name',
        ['', ['network-admin'],
-        :none, '', :none, '', false, '']
+        :none, '', :none, '', false, ''],
       ],
       ['Auth password but no authproto',
        ['userv3testUnknownAuth', ['network-admin'],
-        :none, 'test12345', :none, '', false, '']
+        :none, 'test12345', :none, '', false, ''],
       ],
       ['Priv password but no privproto',
        ['userv3testUnknownPriv', ['network-admin'],
-        :sha, "test12345", :none, "test12345", false, '']
+        :sha, "test12345", :none, "test12345", false, ''],
       ],
     ]
     args_list.each do |msg, args|
@@ -94,15 +94,15 @@ class TestSnmpUser < CiscoTestCase
       ['Cleartext password with localized key',
        ['userv3testauthsha1', ['network-admin'],
         :sha, 'test123456', :none, '', true, # localized key
-        '']
+        ''],
       ],
       ['NX-OS Password must be at least 8 characters',
        ['userv3testauthsha2', ['network-admin'],
-        :sha, 'test', :none, '', false, '']
+        :sha, 'test', :none, '', false, ''],
       ],
       ['Invalid group name',
        ['userv3test', ['network-admin123'],
-        :none, '', :none, '', false, '']
+        :none, '', :none, '', false, ''],
       ],
     ]
     args_list.each do |msg, args|

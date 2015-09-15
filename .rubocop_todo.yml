@@ -6,38 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 3
-Lint/RescueException:
-  Exclude:
-    - 'lib/cisco_node_utils/node.rb'
-    - 'lib/cisco_node_utils/platform_info.rb'
-    - 'tests/ciscotest.rb'
-
-# Offense count: 1
-Lint/ShadowingOuterLocalVariable:
-  Exclude:
-    - 'lib/cisco_node_utils/node.rb'
-
-# Offense count: 31
-# Cop supports --auto-correct.
-Lint/UnusedBlockArgument:
-  Exclude:
-    - 'lib/cisco_node_utils/command_reference.rb'
-    - 'tests/test_command_config.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_interface_svi.rb'
-    - 'tests/test_router_ospf.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpcommunity.rb'
-    - 'tests/test_snmpgroup.rb'
-    - 'tests/test_snmpuser.rb'
-    - 'tests/test_tacacs_server_host.rb'
-
-# Offense count: 345
-Lint/UselessAssignment:
-  Enabled: false
-
 # Offense count: 154
 Metrics/AbcSize:
   Max: 143
@@ -73,12 +41,6 @@ Metrics/ParameterLists:
 # Offense count: 23
 Metrics/PerceivedComplexity:
   Max: 26
-
-# Offense count: 1
-# Cop supports --auto-correct.
-Performance/StringReplacement:
-  Exclude:
-    - 'lib/cisco_node_utils/yum.rb'
 
 # Offense count: 11
 Style/AccessorMethodName:
@@ -384,24 +346,4 @@ Style/StringLiterals:
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/StringLiteralsInInterpolation:
-  Enabled: false
-
-# Offense count: 39
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleForMultiline, SupportedStyles.
-Style/TrailingComma:
-  Exclude:
-    - 'lib/cisco_node_utils/command_reference.rb'
-    - 'lib/cisco_node_utils/interface.rb'
-    - 'lib/cisco_node_utils/platform.rb'
-    - 'lib/cisco_node_utils/router_ospf_vrf.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_interface_switchport.rb'
-    - 'tests/test_platform.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-
-# Offense count: 1
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/VariableName:
   Enabled: false

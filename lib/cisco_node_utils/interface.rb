@@ -165,8 +165,8 @@ module Cisco
     def ipv4_address
       val = ipv4_addr_mask
       return default_ipv4_address if val.nil?
-      addr, mask = val.shift
-      addr
+      # val is [[addr, mask]] - we just want the addr
+      val.shift.first
     end
 
     def default_ipv4_address
@@ -176,8 +176,8 @@ module Cisco
     def ipv4_netmask_length
       val = ipv4_addr_mask
       return default_ipv4_netmask_length if val.nil?
-      addr, mask = val.shift
-      mask.to_i
+      # val is [[addr, mask]] - we just want the mask
+      val.shift.last.to_i
     end
 
     def default_ipv4_netmask_length

@@ -35,9 +35,9 @@ class TestSvi < CiscoTestCase
   end
 
   def set_cmd_ref_system_default_svi_autostate(state="")
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("#{state}system default interface-vlan autostate")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("#{state}system default interface-vlan autostate")
+    @device.cmd("end")
     node.cache_flush
   end
 
@@ -66,21 +66,15 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_create_vlan_invalid
-    assert_raises(CliError) do
-      svi = Interface.new('10.1.1.1')
-    end
+    assert_raises(CliError) { Interface.new('10.1.1.1') }
   end
 
   def test_svi_create_vlan_invalid_value
-    assert_raises(CliError) do
-      svi = Interface.new('Vlan0')
-    end
+    assert_raises(CliError) { Interface.new('Vlan0') }
   end
 
   def test_svi_create_vlan_nil
-    assert_raises(TypeError) do
-      svi = Interface.new(nil)
-    end
+    assert_raises(TypeError) { Interface.new(nil) }
   end
 
   def test_svi_name
@@ -101,10 +95,10 @@ class TestSvi < CiscoTestCase
   def test_svi_get_autostate_false
     svi = Interface.new('Vlan23')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface vlan 23")
-    s = @device.cmd("no autostate")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface vlan 23")
+    @device.cmd("no autostate")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
     ref = get_cmd_ref_autostate
@@ -118,10 +112,10 @@ class TestSvi < CiscoTestCase
   def test_svi_get_autostate_true
     svi = Interface.new('Vlan23')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface vlan 23")
-    s = @device.cmd("autostate")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface vlan 23")
+    @device.cmd("autostate")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -167,10 +161,10 @@ class TestSvi < CiscoTestCase
   def test_svi_get_management_true
     svi = Interface.new('Vlan23')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("interface vlan 23")
-    s = @device.cmd("management")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("interface vlan 23")
+    @device.cmd("management")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
 
@@ -237,8 +231,8 @@ class TestSvi < CiscoTestCase
       end
     end
 
-    svis.each do |id, svi|
-      s = @device.cmd("conf t ; no interface #{id} ; end") if id[/^vlan/]
+    svis.each_key do |id|
+      @device.cmd("conf t ; no interface #{id} ; end") if id[/^vlan/]
     end
   end
 

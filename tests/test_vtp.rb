@@ -77,7 +77,7 @@ class TestVtp < CiscoTestCase
   end
 
   def test_vtp_create_valid
-    vtp = vtp_domain("accounting")
+    vtp_domain("accounting")
     s = @device.cmd("show run vtp | incl '^vtp domain'")
     assert_match(/^vtp domain accounting/, s,
                  "Error: failed to create vtp domain")
@@ -85,16 +85,16 @@ class TestVtp < CiscoTestCase
 
   def test_vtp_domain_name_change
     vtp = vtp_domain("accounting")
-    vtp_new = vtp_domain("uplink")
+    vtp_domain("uplink")
     assert_equal("uplink", vtp.domain,
                  "Error: vtp domain name incorrect")
   end
 
   def test_vtp_create_preconfig_no_change
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("feature vtp")
-    s = @device.cmd("vtp domain accounting")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("feature vtp")
+    @device.cmd("vtp domain accounting")
+    @device.cmd("end")
 
     # Flush the cache since we've modified the device
     node.cache_flush()
@@ -176,9 +176,9 @@ class TestVtp < CiscoTestCase
   def test_vtp_password_get
     vtp = vtp_domain("accounting")
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("vtp password cisco123")
-    s = @device.cmd("end")
+    @device.cmd("configure terminal")
+    @device.cmd("vtp password cisco123")
+    @device.cmd("end")
     # Flush the cache since we've modified the device
     node.cache_flush()
     assert_equal("cisco123", vtp.password,
@@ -285,8 +285,6 @@ class TestVtp < CiscoTestCase
       vtp.version = 3
       vtp.version
     }
-
-    ref = nil
   end
 
   # Decides whether to check for a raised Exception or an equal value.

@@ -54,7 +54,7 @@ module CommandReference
     attr_reader :sources
     attr_reader :hash
 
-    @@KEYS = %w(default_value
+    @@keys = %w(default_value
                 config_set config_set_append
                 config_get config_get_token config_get_token_append
                 test_config_get test_config_get_regex test_config_result)
@@ -73,7 +73,7 @@ module CommandReference
     # Overwrite values from more specific references.
     def merge(values, file)
       values.each { |key, value|
-        unless @@KEYS.include?(key)
+        unless @@keys.include?(key)
           raise "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         if value.nil?
@@ -113,7 +113,7 @@ module CommandReference
     end
 
     def method_missing(method_name, *args, &block)
-      super(method_name, *args, &block) unless @@KEYS.include?(method_name.to_s)
+      super(method_name, *args, &block) unless @@keys.include?(method_name.to_s)
       method_name = method_name.to_s
       unless @hash.include?(method_name)
         raise IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
@@ -264,8 +264,8 @@ module CommandReference
       if node.class.ancestors.any? { |name| /Psych/ =~ name.to_s }
         # A Psych::Node::Mapping instance has an Array of children in
         # the format [key1, val1, key2, val2]
-        key_children = node.children.select.each_with_index { |n, i| i.even? }
-        val_children = node.children.select.each_with_index { |n, i| i.odd? }
+        key_children = node.children.select.each_with_index { |_, i| i.even? }
+        val_children = node.children.select.each_with_index { |_, i| i.odd? }
       else
         # Syck::Map nodes have a .children method but it doesn't work :-(
         # Instead we access the node.value which is a hash.
@@ -390,8 +390,8 @@ module CommandReference
     # Check that all resources were pulled in correctly.
     def valid?
       complete_status = true
-      @hash.each { |feature, names|
-        names.each { |name, ref|
+      @hash.each_value { |names|
+        names.each_value { |ref|
           status = ref.valid?
           debug "Reference does not contain all supported values:\n#{ref}" unless status
           complete_status = (status and complete_status)
@@ -401,11 +401,7 @@ module CommandReference
     end
 
     def to_s
-      @hash.each { |feature, names|
-        names.each { |name, ref|
-          ref.to_s
-        }
-      }
+      @hash.each_value { |names| names.each_value(&:to_s) }
     end
   end
 end

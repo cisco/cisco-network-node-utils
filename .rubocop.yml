@@ -3,9 +3,7 @@
 inherit_from: .rubocop_todo.yml
 
 Style/TrailingComma:
-  # TODO instead of turning this off, maybe set:
-  # EnforcedStyleForMultiline: consistent_comma
-  Enabled: false
+  EnforcedStyleForMultiline: comma
 
 # Because an SnmpServer cannot be destroyed, we end most of the SnmpServer
 # test cases by explicitly returning the configuration to default.
