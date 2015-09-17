@@ -76,17 +76,17 @@ class TestRouterBgpNeighbor < CiscoTestCase
     @device.cmd("neighbor 2000:123:38::/64")
     @device.cmd("end")
     node.cache_flush
-    neighbors = RouterBgpNeighbor.neighbors
-    refute_empty(neighbors, "BGP neighbor collection is empty")
+    bgp_neighbors = RouterBgpNeighbor.neighbors
+    refute_empty(bgp_neighbors, "BGP neighbor collection is empty")
     # validate the collection
-    neighbors.each do |asnum, vrfs|
+    bgp_neighbors.each_value do |vrfs|
       vrfs.each do |vrf, neighbors|
           if vrf == 'default'
             assert_equal(1, neighbors.size)
           else
             assert_equal(3, neighbors.size)
           end
-          neighbors.each {|addr, neighbor|
+          neighbors.each_value {|neighbor|
              assert_equal(vrf, neighbor.vrf)
              line = get_bgpneighbor_match_line(neighbor.nbr, vrf)
              refute_nil(line)
@@ -99,7 +99,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     address = { "1.1.1.1" => "1.1.1.1",
                 "2.2.2.2/24" => "2.2.2.0/24",
                 "2000::2" => "2000::2",
-                "2000:123:38::34/64" => "2000:123:38::/64", }
+                "2000:123:38::34/64" => "2000:123:38::/64",
+    }
     vrfs = %w(default red)
     vrfs.each {|vrf|
       address.each { |addr, expected_addr|
@@ -138,8 +139,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
       }
     }
     # Now test if the description has been correctly set
-    RouterBgpNeighbor.neighbors.each do |asnum, vrfs|
-      vrfs.each do |vrf, neighbors|
+    RouterBgpNeighbor.neighbors.each_value do |bgp_vrfs|
+      bgp_vrfs.each do |vrf, neighbors|
         neighbors.each {|addr, neighbor|
           assert_equal("#{vrf}:#{addr}", neighbor.description)
           neighbor.description = ""
@@ -373,7 +374,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
                   :hold => neighbor.default_timers_holdtime },
                 { :keep => neighbor.default_timers_keepalive,
                   :hold => 90 },
-                { :keep => 40, :hold => neighbor.default_timers_holdtime },]
+                { :keep => 40, :hold => neighbor.default_timers_holdtime },
+               ]
       timers.each { |timer|
         neighbor.timers_set(timer[:keep], timer[:hold])
         assert_equal(timer[:keep], neighbor.timers_keepalive)

@@ -155,7 +155,7 @@ module Cisco
         default_networks
       else
         # Removes nested nil Array elements.
-        nets = nets.map { |e| e.is_a?(Array) ? e.compact : e }.compact
+        nets.map { |e| e.is_a?(Array) ? e.compact : e }.compact
       end
     end
 
@@ -164,7 +164,7 @@ module Cisco
     def network_set(network, route_map=nil, remove=false)
       # Process ip/prefix format
       network = Utils.process_network_mask(network)
-      state = remove ? 'no' : state = ''
+      state = remove ? 'no' : ''
       route_map = "route-map #{route_map}" unless route_map.nil?
       set_args_keys(:state => state, :network => network, :route_map => route_map)
       @@node.config_set("bgp_af", "network", @set_args)
@@ -202,7 +202,7 @@ module Cisco
       #
       # TODO: Investigate better ways to do this given it's
       # O(N*M) - O(<size of add_list> * <size of remove_list>)
-      delta[:add].each { |net, rtmap|
+      delta[:add].each { |net, _|
         delta[:remove].delete(scrub_remove_list(net, delta[:remove]))
       }
       delta

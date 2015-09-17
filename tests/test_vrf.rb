@@ -23,10 +23,10 @@ class TestVrf < CiscoTestCase
   def setup
     super
     vrfs=Vrf.vrfs
-    vrfs.each { |id, vrf|
+    vrfs.each_value { |vrf|
       if vrf.name =~ /^test_vrf/
-         s = @device.cmd("conf t")
-         s = @device.cmd("no vrf context #{vrf.name}")
+         @device.cmd("conf t")
+         @device.cmd("no vrf context #{vrf.name}")
          node.cache_flush
       end
     }
@@ -69,10 +69,7 @@ class TestVrf < CiscoTestCase
   end
 
   def test_vrf_shutdown_valid
-    shutdown_states = [
-      true,
-      false
-    ]
+    shutdown_states = [true, false]
     v = Vrf.new("test_vrf_shutdown")
     shutdown_states.each { | start |
       shutdown_states.each { | finish |

@@ -109,11 +109,10 @@ class RouterBgp
     # differs from the one being created.
     configured = @@node.config_get("bgp", "router")
     if !configured.nil? && configured.first.to_s != asnum.to_s
-      raise = %(
+      raise %(
         Changing the BGP Autonomous System Number is not allowed.
         Current BGP asn: #{configured.first}
-        Attempted change to asn: #{asnum}
-            )
+        Attempted change to asn: #{asnum})
     end
     @set_args[:state] = state
     vrf == 'default' ?
@@ -534,13 +533,13 @@ class RouterBgp
   end
 
   def timer_bgp_keepalive
-    keepalive, hold = timer_bgp_keepalive_hold
+    keepalive, _hold = timer_bgp_keepalive_hold
     return default_timer_bgp_keepalive if keepalive.nil?
     keepalive.to_i
   end
 
   def timer_bgp_holdtime
-    keepalive, hold = timer_bgp_keepalive_hold
+    _keepalive, hold = timer_bgp_keepalive_hold
     return default_timer_bgp_holdtime if hold.nil?
     hold.to_i
   end
@@ -585,8 +584,7 @@ class RouterBgp
 
   # BGP Timers Defaults
   def default_timer_bgp_keepalive_hold
-    values = ["#{default_timer_bgp_keepalive}",
-              "#{default_timer_bgp_holdtime}"]
+    ["#{default_timer_bgp_keepalive}", "#{default_timer_bgp_holdtime}"]
   end
 
   def default_timer_bgp_keepalive

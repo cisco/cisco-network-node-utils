@@ -97,7 +97,7 @@ module Cisco
     # we need to mask the address using the prefix length so that they
     # are converted to '1.1.1.0/24' or '2000:123:38::/64'
     def Utils.process_network_mask(network)
-      address, mask = network.split('/')
+      mask = network.split('/')[1]
       address = IPAddr.new(network).to_s
       network = address + '/' + mask unless mask.nil?
       network

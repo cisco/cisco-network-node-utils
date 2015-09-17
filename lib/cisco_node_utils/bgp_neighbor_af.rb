@@ -17,6 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
 require File.join(File.dirname(__FILE__), 'node')
 require File.join(File.dirname(__FILE__), 'bgp')
 
@@ -70,7 +71,7 @@ class RouterBgpNeighborAF
     raise ArgumentError, "'af' must be an array specifying afi and safi" unless
       af.is_a? Array or af.length == 2
 
-    nbr = RouterBgpNeighbor.nbr_munge(nbr)
+    nbr = Utils.process_network_mask(nbr)
     @asn, @vrf, @nbr = asn, vrf, nbr
     @afi, @safi = af
     set_args_keys_default
@@ -159,7 +160,7 @@ class RouterBgpNeighborAF
   def allowas_in_get
     val = @@node.config_get('bgp_neighbor_af', 'allowas_in', @get_args)
     return nil if val.nil?
-    val = val.shift.split.last.to_i
+    val.shift.split.last.to_i
   end
 
   def allowas_in
@@ -382,7 +383,7 @@ class RouterBgpNeighborAF
     unless opt.nil?
       opt = opt.respond_to?(:to_i) ? "restart #{opt}" : 'warning-only'
     end
-    set_args_keys(:state => (limit.nil? ? 'no' : ''), :limit => limit,
+    set_args_keys(:state => state, :limit => limit,
                   :threshold => threshold, :opt => opt)
     @@node.config_set('bgp_neighbor_af', 'max_prefix', @set_args)
   end

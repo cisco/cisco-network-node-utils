@@ -18,6 +18,7 @@
 # limitations under the License.
 
 require File.expand_path("../ciscotest", __FILE__)
+require File.expand_path("../../lib/cisco_node_utils/cisco_cmn_utils", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor_af", __FILE__)
@@ -114,7 +115,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       nbr += (nbr[/:/]) ? '/64' : '/16'
       dbg = format("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
-      nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
+      nbr_munged = Utils.process_network_mask(nbr)
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to create AF")
@@ -126,7 +127,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       nbr += (nbr[/:/]) ? '/64' : '/16'
       dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
-      nbr_munged = RouterBgpNeighbor.nbr_munge(nbr)
+      nbr_munged = Utils.process_network_mask(nbr)
       afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
@@ -146,29 +147,33 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # These properties have simple boolean states. As such we can use a common
     # set of tests to validate each property.
     props = [
-      :as_override, :disable_peer_as_check,
-      :next_hop_self, :next_hop_third_party,
+      :as_override,
+      :disable_peer_as_check,
+      :next_hop_self,
+      :next_hop_third_party,
       :suppress_inactive,
     ]
 
-    props.each { |k|
-      # Call setter.
-      af.send("#{k}=", false)
+    # Call setter to false, then validate with getter
+    props.each { |k| af.send("#{k}=", false) }
+    props.each do |k|
+      refute(af.send(k), "Test 1. #{dbg} [#{k}=] did not set false")
+    end
 
-      # Validate with getter
-      refute(af.send(k),
-             "Test 1. #{dbg} [#{k}=] did not set false")
+    # Call setter to true, then validate with getter
+    props.each { |k| af.send("#{k}=", true) }
+    props.each do |k|
+      assert(af.send(k), "Test 2. #{dbg} [#{k}=] did not set true")
+    end
 
-      af.send("#{k}=", true)
-      assert(af.send(k),
-             "Test 2. #{dbg} [#{k}=] did not set true")
-
-      # Set to default
-      def_val = af.send("default_#{k}")
-      af.send("#{k}=", def_val)
-      assert_equal(def_val, af.send(k),
+    # Set to default and validate
+    def_val = {}
+    props.each { |k| def_val[k] = af.send("default_#{k}") }
+    props.each { |k| af.send("#{k}=", def_val[k]) }
+    props.each do |k|
+      assert_equal(def_val[k], af.send(k),
                    "Test 3. #{dbg} [#{k}=] did not set to default")
-    }
+    end
   end
 
   # ---------------------------------

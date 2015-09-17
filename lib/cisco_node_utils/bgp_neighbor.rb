@@ -33,10 +33,10 @@ module Cisco
       # for IP/prefix format, such as "1.1.1.1/24" or "2000:123:38::34/64",
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
-      @nbr = RouterBgpNeighbor.nbr_munge(nbr)
+      @nbr = Utils.process_network_mask(nbr)
       @asn = asn
       @vrf = vrf
-      @get_args = @set_args = { :asnum => @asn, :nbr => @nbr, }
+      @get_args = @set_args = { :asnum => @asn, :nbr => @nbr }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'
 
       create if instantiate
@@ -68,17 +68,6 @@ module Cisco
       return {}
     end
 
-    def RouterBgpNeighbor.nbr_munge(nbr)
-      # 'nbr' supports multiple formats which can nvgen differently:
-      #   1.1.1.1      nvgens 1.1.1.1
-      #   1.1.1.1/16   nvgens 1.1.0.0/16
-      #   200:2::20/64 nvgens 200:2::/64
-      addr, mask = nbr.split('/')
-      addr = IPAddr.new(nbr).to_s
-      addr = addr + '/' + mask unless mask.nil?
-      addr
-    end
-
     def create
       set_args_keys(:state => "")
       @@node.config_set("bgp", "create_destroy_neighbor", @set_args)
@@ -104,7 +93,7 @@ module Cisco
       raise TypeError unless desc.is_a?(String)
       desc.strip!
       set_args_keys({ :state => desc.empty? ? "no" : "",
-                      :desc  => desc, })
+                      :desc  => desc })
       @@node.config_set("bgp_neighbor", "description", @set_args)
     end
 
@@ -282,9 +271,9 @@ module Cisco
     def password_type
       result = @@node.config_get("bgp_neighbor", "password_type", @get_args)
       if result.nil?
-        result = default_password_type
+        default_password_type
       else
-        result = Encryption.cli_to_symbol(result.first.to_i)
+        Encryption.cli_to_symbol(result.first.to_i)
       end
     end
 
@@ -384,13 +373,13 @@ module Cisco
     end
 
     def timers_keepalive
-      keepalive, hold = timers_keepalive_hold
+      keepalive, _hold = timers_keepalive_hold
       return default_timers_keepalive if keepalive.nil?
       keepalive.to_i
     end
 
     def timers_holdtime
-      keepalive, hold = timers_keepalive_hold
+      _keepalive, hold = timers_keepalive_hold
       return default_timers_holdtime if hold.nil?
       hold.to_i
     end
@@ -404,8 +393,7 @@ module Cisco
     end
 
     def default_timers_keepalive_hold
-      values = ["#{default_timers_keepalive}",
-                "#{default_timers_holdtime}"]
+      ["#{default_timers_keepalive}", "#{default_timers_holdtime}"]
     end
 
     def transport_passive_only=(val)

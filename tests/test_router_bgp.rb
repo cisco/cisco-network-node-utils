@@ -63,20 +63,19 @@ class TestRouterBgp < CiscoTestCase
     routers.each do |asnum, vrfs|
       line = get_routerbgp_match_line(asnum)
       refute_nil(line)
-      vrfs.each do |name, vrf|
+      vrfs.each_key do |name|
         unless name == 'default'
           line = get_routerbgp_match_line(asnum, name)
           refute_nil(line)
         end
       end
     end
-    routers=nil
   end
 
   def test_routerbgp_create_asnum_invalid
     ["", 55.5, "Fifty_Five"].each do |test|
       assert_raises(ArgumentError, "#{test} not a valid asn") do
-        bgp = RouterBgp.new(test)
+        RouterBgp.new(test)
       end
     end
   end
@@ -84,7 +83,7 @@ class TestRouterBgp < CiscoTestCase
   def test_routerbgp_create_vrf_invalid
     ["", 55].each do |test|
       assert_raises(ArgumentError, "#{test} not a valid vrf name") do
-        bgp = RouterBgp.new(88, test)
+        RouterBgp.new(88, test)
       end
     end
   end
@@ -92,7 +91,7 @@ class TestRouterBgp < CiscoTestCase
   def test_routerbgp_create_vrfname_zero_length
     asnum = 55
     assert_raises(ArgumentError) do
-      bgp = RouterBgp.new(asnum, "")
+      RouterBgp.new(asnum, "")
     end
   end
 
@@ -135,7 +134,6 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
 
     s = @device.cmd("show run all | no-more")
-    cmd = "feature bgp"
     line = /"feature bgp"/.match(s)
     assert_nil(line, "Error: 'feature bgp' still configured")
   end
@@ -147,7 +145,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(Cisco::CliError) do
+    assert_raises(RuntimeError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end

@@ -85,7 +85,7 @@ class TestRouterBgpAF < CiscoTestCase
       vrfs.each do |vrf, afs|
         refute_empty(afs, "Error: No Address Family found")
         assert(vrf.length > 0, "Error: No VRF found")
-        afs.each do |af_key, af|
+        afs.each_key do |af_key|
           afi = af_key[0]
           safi = af_key[1]
           assert(afi.length > 0, "Error: AFI length is zero")
