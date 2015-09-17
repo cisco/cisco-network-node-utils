@@ -25,7 +25,7 @@ require 'test/unit'
 begin
   require 'cisco_nxapi'
 rescue LoadError
-  require File.expand_path("../../../cisco_nxapi/lib/cisco_nxapi")
+  require File.expand_path('../../../cisco_nxapi/lib/cisco_nxapi')
 end
 
 class TestCase < Test::Unit::TestCase
@@ -34,9 +34,9 @@ class TestCase < Test::Unit::TestCase
   @@password = nil
 
   def process_arguments
-    if ARGV.length != 3 and ARGV.length != 4
-      puts "Usage:"
-      puts "  ruby test_nxapi.rb [options] -- <address> <username> <password> [debug]"
+    if ARGV.length != 3 && ARGV.length != 4
+      puts 'Usage:'
+      puts '  ruby test_nxapi.rb [options] -- <address> <username> <password> [debug]'
       exit
     end
 
@@ -48,12 +48,12 @@ class TestCase < Test::Unit::TestCase
     @@password = ARGV[2]
 
     if ARGV.length == 4
-        if ARGV[3] == "debug"
-            CiscoLogger.debug_enable
-        else
-            puts "Only 'debug' is allowed"
-            exit
-        end
+      if ARGV[3] == 'debug'
+        CiscoLogger.debug_enable
+      else
+        puts "Only 'debug' is allowed"
+        exit
+      end
     end
   end
 
@@ -74,10 +74,10 @@ class TestCase < Test::Unit::TestCase
   end
 
   def setup
-    @device = Net::Telnet.new("Host" => address, "Timeout" => 240)
+    @device = Net::Telnet.new('Host' => address, 'Timeout' => 240)
     @device.login(username, password)
   rescue Errno::ECONNREFUSED
-    puts "Connection refused - please check that the IP address is correct"
+    puts 'Connection refused - please check that the IP address is correct'
     puts "  and that you have enabled 'feature telnet' on the UUT"
     exit
   end

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'basetest')
-require File.expand_path("../../lib/cisco_node_utils/platform_info", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/node", __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/platform_info', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
 
 include Cisco
 
@@ -40,7 +40,7 @@ class CiscoTestCase < TestCase
     super
     node # Connect to device
     # Record the platform we're running on
-    puts "Platform:"
+    puts 'Platform:'
     puts "  - name  - #{@@node.host_name}"
     puts "  - type  - #{@@node.product_id}"
     puts "  - image - #{@@node.system}\n\n"
@@ -55,10 +55,10 @@ class CiscoTestCase < TestCase
       # Build the platform_info, used for interface lookup
       begin
         platform_info = PlatformInfo.new(node.host_name)
-        @@interfaces = platform_info.get_value_from_key("interfaces")
+        @@interfaces = platform_info.get_value_from_key('interfaces')
       rescue RuntimeError => e
         # If there is a problem reading platform_info.yaml, assign default values
-        default_interfaces = ["Ethernet1/1", "Ethernet1/2", "Ethernet1/3"]
+        default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
         puts "Caught exception: #{e}, assigning interfaces to default - #{default_interfaces}"
         @@interfaces = default_interfaces
       end
@@ -70,7 +70,7 @@ class CiscoTestCase < TestCase
     unless @@interfaces_id
       @@interfaces_id = []
       interfaces.each { |interface|
-        id = interface.split("Ethernet")[1]
+        id = interface.split('Ethernet')[1]
         @@interfaces_id << id
       }
     end
@@ -111,9 +111,9 @@ class CiscoTestCase < TestCase
   #   data -   Data to be displayed. Must be a fully formatted string.
   def self.debug(method, group, indent, data)
     if (@@debug_flag) &&
-       (((@@debug_method == method) || (@@debug_method == "all")) ||
-       ((@@debug_group == group) || (@@debug_group == "all")))
-      indent_spaces = " " * indent
+       (((@@debug_method == method) || (@@debug_method == 'all')) ||
+       ((@@debug_group == group) || (@@debug_group == 'all')))
+      indent_spaces = ' ' * indent
       puts "#{indent_spaces}#{method} - #{data}"
     end
   end
@@ -127,9 +127,9 @@ class CiscoTestCase < TestCase
   #   data -   Data to be displayed. Must be a fully formatted string.
   def self.debug_detail(method, group, indent, data)
     if (@@debug_detail) &&
-       (((@@debug_method == method) || (@@debug_method == "all")) ||
-       ((@@debug_group == group) || (@@debug_group == "all")))
-      indent_spaces = " " * indent
+       (((@@debug_method == method) || (@@debug_method == 'all')) ||
+       ((@@debug_group == group) || (@@debug_group == 'all')))
+      indent_spaces = ' ' * indent
       puts "#{indent_spaces}#{method} - #{data}"
     end
   end

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/platform", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/platform', __FILE__)
 
 class TestPlatform < CiscoTestCase
   def test_system_image
@@ -37,7 +37,7 @@ class TestPlatform < CiscoTestCase
     # hardware type returns a different value depending on whether you use the
     # ascii or show output of nxapi, but show appears to be substring of ascii
     assert(s.include?(Platform.hardware_type),
-      "Expected '#{s}' to contain '#{Platform.hardware_type}'")
+           "Expected '#{s}' to contain '#{Platform.hardware_type}'")
   end
 
   def test_cpu
@@ -130,7 +130,7 @@ class TestPlatform < CiscoTestCase
   def test_power_supplies
     pwr_arr_arr = @device.cmd('sh inv | no-m')
                   .scan(/NAME:\s+"(Power Supply \d+)"#{@@inv_cmn_re}/)
-    refute_empty(pwr_arr_arr, "Regex scan failed to match show inventory output")
+    refute_empty(pwr_arr_arr, 'Regex scan failed to match show inventory output')
 
     # convert to array of power supply hashes
     pwr_hsh_hsh = {}
@@ -147,7 +147,7 @@ class TestPlatform < CiscoTestCase
   def test_fans
     fan_arr_arr = @device.cmd('sh inv | no-m')
                   .scan(/NAME:\s+"(Fan \d+)"#{@@inv_cmn_re}/)
-    refute_empty(fan_arr_arr, "Regex scan failed to match show inventory output")
+    refute_empty(fan_arr_arr, 'Regex scan failed to match show inventory output')
 
     # convert to array of fan hashes
     fan_hsh_hsh = {}
@@ -163,12 +163,13 @@ class TestPlatform < CiscoTestCase
 
   def test_virtual_services
     # this would be beyond ugly to parse from ascii, utilize config_get
-    vir_arr = node.config_get("virtual_service", "services")
+    vir_arr = node.config_get('virtual_service', 'services')
     vir_arr = [vir_arr] if vir_arr.is_a? Hash
     # convert to expected format
     vir_hsh_hsh = {}
     unless vir_arr.nil?
       vir_arr.each { |serv|
+        # rubocop:disable Style/AlignHash, Style/ExtraSpacing
         vir_hsh_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
                               'path'     => serv['ova_path'],
@@ -188,6 +189,7 @@ class TestPlatform < CiscoTestCase
                               'cpu'      => serv['cpu_reservation'],
           },
         }
+        # rubocop:enable Style/AlignHash, Style/ExtraSpacing
       }
     end
     assert_equal(vir_hsh_hsh, Platform.virtual_services)

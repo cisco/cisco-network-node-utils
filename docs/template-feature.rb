@@ -17,29 +17,29 @@
 
 require File.join(File.dirname(__FILE__), 'node')
 module Cisco
-# Class name syntax will typically be the resource name in camelCase
-# format; for example: 'tacacs server host' becomes TacacsServerHost.
-class X__CLASS_NAME__X
-  # Establish connection to node
-  @@node = Cisco::Node.instance
+  # Class name syntax will typically be the resource name in camelCase
+  # format; for example: 'tacacs server host' becomes TacacsServerHost.
+  class X__CLASS_NAME__X
+    # Establish connection to node
+    @@node = Cisco::Node.instance
 
-  def feature_enable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => '' })
-  end
+    def feature_enable
+      @@node.config_set('X__RESOURCE_NAME__X', 'feature', { state: '' })
+    end
 
-  def feature_disable
-    @@node.config_set('X__RESOURCE_NAME__X', 'feature', { :state => 'no' })
-  end
+    def feature_disable
+      @@node.config_set('X__RESOURCE_NAME__X', 'feature', { state: 'no' })
+    end
 
-  # Check current state of the configuration
-  def X__CLASS_NAME__X.feature_enabled
-    feat =  @@node.config_get('X__RESOURCE_NAME__X', 'feature')
-    return (!feat.nil? and !feat.empty?)
-  rescue Cisco::CliError => e
-    # This cmd will syntax reject if feature is not
-    # enabled. Just catch the reject and return false.
-    return false if e.clierror =~ /Syntax error/
-    raise
+    # Check current state of the configuration
+    def self.feature_enabled
+      feat = @@node.config_get('X__RESOURCE_NAME__X', 'feature')
+      return (!feat.nil? and !feat.empty?)
+    rescue Cisco::CliError => e
+      # This cmd will syntax reject if feature is not
+      # enabled. Just catch the reject and return false.
+      return false if e.clierror =~ /Syntax error/
+      raise
+    end
   end
-end
 end

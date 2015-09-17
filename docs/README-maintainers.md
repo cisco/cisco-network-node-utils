@@ -1,6 +1,6 @@
 # Maintainers Guide
 
-Guidelines for the core maintainers of the cisco-network-node-utils project - above and beyond the [general developer guidelines](https://github.com/cisco/cisco-network-node-utils/blob/master/CONTRIBUTING.md).
+Guidelines for the core maintainers of the cisco-network-node-utils project - above and beyond the [general developer guidelines](../CONTRIBUTING.md).
 
 ## Accepting Pull Requests
 

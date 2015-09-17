@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/interface", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/interface', __FILE__)
 
 include Cisco
 
 class TestSvi < CiscoTestCase
   def get_cmd_ref_autostate
-    ref = cmd_ref.lookup("interface", "svi_autostate")
-    assert(ref, "Error, reference not found for autostate")
+    ref = cmd_ref.lookup('interface', 'svi_autostate')
+    assert(ref, 'Error, reference not found for autostate')
     ref
   end
 
@@ -34,35 +34,35 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def set_cmd_ref_system_default_svi_autostate(state="")
-    @device.cmd("configure terminal")
+  def set_cmd_ref_system_default_svi_autostate(state='')
+    @device.cmd('configure terminal')
     @device.cmd("#{state}system default interface-vlan autostate")
-    @device.cmd("end")
+    @device.cmd('end')
     node.cache_flush
   end
 
   def test_svi_prop_nil_when_ethernet
     intf = Interface.new(interfaces[0])
     assert_nil(intf.svi_autostate,
-               "Error: svi_autostate should be nil when interface is ethernet")
+               'Error: svi_autostate should be nil when interface is ethernet')
     assert_nil(intf.svi_management,
-               "Error: svi_management should be nil when interface is ethernet")
+               'Error: svi_management should be nil when interface is ethernet')
   end
 
   def test_svi_create_valid
     svi = Interface.new('Vlan23')
-    s = @device.cmd("show run interface all | inc Vlan")
-    cmd="interface Vlan1"
-    assert(s.include?(cmd), "Error: Failed to create svi Vlan1")
+    s = @device.cmd('show run interface all | inc Vlan')
+    cmd = 'interface Vlan1'
+    assert(s.include?(cmd), 'Error: Failed to create svi Vlan1')
 
-    cmd="interface Vlan23"
-    assert(s.include?(cmd), "Error: Failed to create svi Vlan23")
+    cmd = 'interface Vlan23'
+    assert(s.include?(cmd), 'Error: Failed to create svi Vlan23')
     svi.destroy
 
     # Verify that svi23 got removed now that we invoked svi.destroy
-    s = @device.cmd("show run interface all | inc Vlan")
-    cmd="interface Vlan23"
-    refute(s.include?(cmd), "Error: svi Vlan23 still configured")
+    s = @device.cmd('show run interface all | inc Vlan')
+    cmd = 'interface Vlan23'
+    refute(s.include?(cmd), 'Error: svi Vlan23 still configured')
   end
 
   def test_svi_create_vlan_invalid
@@ -79,51 +79,51 @@ class TestSvi < CiscoTestCase
 
   def test_svi_name
     svi = Interface.new('Vlan23')
-    assert_equal("vlan23", svi.name, "Error: svi vlan name is wrong")
+    assert_equal('vlan23', svi.name, 'Error: svi vlan name is wrong')
     svi.destroy
   end
 
   def test_svi_assignment
     svi = Interface.new('Vlan23')
     svi.svi_management = true
-    assert(svi.svi_management, "Error: svi svi_management, false")
+    assert(svi.svi_management, 'Error: svi svi_management, false')
     svi_extra = svi
-    assert(svi_extra.svi_management, "Error: new svi svi_management, false")
+    assert(svi_extra.svi_management, 'Error: new svi svi_management, false')
     svi.destroy
   end
 
   def test_svi_get_autostate_false
     svi = Interface.new('Vlan23')
 
-    @device.cmd("configure terminal")
-    @device.cmd("interface vlan 23")
-    @device.cmd("no autostate")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('interface vlan 23')
+    @device.cmd('no autostate')
+    @device.cmd('end')
     # Flush the cache since we've modified the device
-    node.cache_flush()
+    node.cache_flush
     ref = get_cmd_ref_autostate
     result = ref.default_value
     result = false if ref.config_set
     assert_equal(result, svi.svi_autostate,
-                 "Error: svi autostate not correct.")
+                 'Error: svi autostate not correct.')
     svi.destroy
   end
 
   def test_svi_get_autostate_true
     svi = Interface.new('Vlan23')
 
-    @device.cmd("configure terminal")
-    @device.cmd("interface vlan 23")
-    @device.cmd("autostate")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('interface vlan 23')
+    @device.cmd('autostate')
+    @device.cmd('end')
     # Flush the cache since we've modified the device
-    node.cache_flush()
+    node.cache_flush
 
     ref = get_cmd_ref_autostate
     result = ref.default_value
     result = true if ref.config_set
     assert_equal(result, svi.svi_autostate,
-                 "Error: svi autostate not correct.")
+                 'Error: svi autostate not correct.')
     svi.destroy
   end
 
@@ -131,7 +131,7 @@ class TestSvi < CiscoTestCase
     ref = get_cmd_ref_autostate
     svi = Interface.new('Vlan23')
     assert_result(ref.test_config_result(false),
-                  "Error: svi autostate not set to false") {
+                  'Error: svi autostate not set to false') {
       svi.svi_autostate = false
     }
     svi.destroy
@@ -141,7 +141,7 @@ class TestSvi < CiscoTestCase
     svi = Interface.new('Vlan23')
     ref = get_cmd_ref_autostate
     assert_result(ref.test_config_result(true),
-                  "Error: svi autostate not set to true") {
+                  'Error: svi autostate not set to true') {
       svi.svi_autostate = true
     }
     svi.destroy
@@ -152,7 +152,7 @@ class TestSvi < CiscoTestCase
     ref = get_cmd_ref_autostate
     default_value = ref.default_value
     assert_result(ref.test_config_result(default_value),
-                  "Error: svi autostate not set to default") {
+                  'Error: svi autostate not set to default') {
       svi.svi_autostate = default_value
     }
     svi.destroy
@@ -161,12 +161,12 @@ class TestSvi < CiscoTestCase
   def test_svi_get_management_true
     svi = Interface.new('Vlan23')
 
-    @device.cmd("configure terminal")
-    @device.cmd("interface vlan 23")
-    @device.cmd("management")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('interface vlan 23')
+    @device.cmd('management')
+    @device.cmd('end')
     # Flush the cache since we've modified the device
-    node.cache_flush()
+    node.cache_flush
 
     assert(svi.svi_management)
     svi.destroy
@@ -202,10 +202,10 @@ class TestSvi < CiscoTestCase
     ref = get_cmd_ref_autostate
     # Have to account for interface Vlan1 why we add 1 to count
     (2..count + 1).each do |i|
-      str = "Vlan" + i.to_s
+      str = 'Vlan' + i.to_s
       svi = Interface.new(str)
       assert_result(ref.test_config_result(false),
-                    "Error: svi autostate not set to false") {
+                    'Error: svi autostate not set to false') {
         svi.svi_autostate = false
       }
       svi.svi_management = true
@@ -219,9 +219,9 @@ class TestSvi < CiscoTestCase
       when /^vlan1$/
         result = true if ref.config_set
         assert_equal(result, svi.svi_autostate,
-                     "Error: svis collection, Vlan1, incorrect autostate")
+                     'Error: svis collection, Vlan1, incorrect autostate')
         refute(svi.svi_management,
-               "Error: svis collection, Vlan1, incorrect management")
+               'Error: svis collection, Vlan1, incorrect management')
       when /^vlan/
         result = false if ref.config_set
         assert_equal(result, svi.svi_autostate,
@@ -239,23 +239,23 @@ class TestSvi < CiscoTestCase
   def test_svi_create_interface_description
     svi = Interface.new('Vlan23')
 
-    description = "Test description"
+    description = 'Test description'
     svi.description = description
     assert_equal(description, svi.description,
-                 "Error: Description not configured")
+                 'Error: Description not configured')
     svi.destroy
   end
 
   def test_system_default_svi_autostate_on_off
-    interface = Interface.new("Eth1/1")
+    interface = Interface.new('Eth1/1')
 
-    set_cmd_ref_system_default_svi_autostate("no ")
+    set_cmd_ref_system_default_svi_autostate('no ')
     refute(interface.system_default_svi_autostate,
-           "Test for disabled - failed")
+           'Test for disabled - failed')
 
     # common default is enabled
-    set_cmd_ref_system_default_svi_autostate("")
+    set_cmd_ref_system_default_svi_autostate('')
     assert(interface.system_default_svi_autostate,
-           "Test for enabled - failed")
+           'Test for enabled - failed')
   end
 end

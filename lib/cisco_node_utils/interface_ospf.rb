@@ -30,17 +30,17 @@ module Cisco
     @@node = Node.instance
 
     def initialize(int_name, ospf_name, area, create=true)
-      raise TypeError unless int_name.is_a? String
-      raise TypeError unless ospf_name.is_a? String
-      raise TypeError unless area.is_a? String
-      raise ArgumentError unless int_name.length > 0
-      raise ArgumentError unless ospf_name.length > 0
-      raise ArgumentError unless area.length > 0
+      fail TypeError unless int_name.is_a? String
+      fail TypeError unless ospf_name.is_a? String
+      fail TypeError unless area.is_a? String
+      fail ArgumentError unless int_name.length > 0
+      fail ArgumentError unless ospf_name.length > 0
+      fail ArgumentError unless area.length > 0
 
       # normalize
       int_name = int_name.downcase
       @interface = Interface.interfaces[int_name]
-      raise "interface #{int_name} does not exist" if @interface.nil?
+      fail "interface #{int_name} does not exist" if @interface.nil?
 
       @ospf_name = ospf_name
 
@@ -48,21 +48,21 @@ module Cisco
         # enable feature ospf if it isn't
         RouterOspf.enable unless RouterOspf.enabled
 
-        @@node.config_set("interface_ospf", "area", @interface.name,
-          "", @ospf_name, area)
+        @@node.config_set('interface_ospf', 'area', @interface.name,
+                          '', @ospf_name, area)
       end
     end
 
     # can't re-use Interface.interfaces because we need to filter based on
     # "ip router ospf <name>", which Interface doesn't retrieve
-    def InterfaceOspf.interfaces(ospf_name=nil)
-      raise TypeError unless ospf_name.is_a? String or ospf_name.nil?
+    def self.interfaces(ospf_name=nil)
+      fail TypeError unless ospf_name.is_a? String or ospf_name.nil?
       ints = {}
 
-      intf_list = @@node.config_get("interface", "all_interfaces")
+      intf_list = @@node.config_get('interface', 'all_interfaces')
       return ints if intf_list.nil?
       intf_list.each do |name|
-        match = @@node.config_get("interface_ospf", "area", name)
+        match = @@node.config_get('interface_ospf', 'area', name)
         next if match.nil?
         # should only be a single match under a given interface
         match = match.first
@@ -77,7 +77,7 @@ module Cisco
     end
 
     def area
-      match = @@node.config_get("interface_ospf", "area", @interface.name)
+      match = @@node.config_get('interface_ospf', 'area', @interface.name)
       return nil if match.nil?
       val = match[0][1]
       # Coerce numeric area to the expected dot-decimal format.
@@ -86,57 +86,57 @@ module Cisco
     end
 
     def area=(a)
-      @@node.config_set("interface_ospf", "area", @interface.name,
-        "", @ospf_name, a)
+      @@node.config_set('interface_ospf', 'area', @interface.name,
+                        '', @ospf_name, a)
     end
 
     def destroy
-      @@node.config_set("interface_ospf", "area", @interface.name,
-        "no", @ospf_name, area)
+      @@node.config_set('interface_ospf', 'area', @interface.name,
+                        'no', @ospf_name, area)
       # Reset everything else back to default as well:
       self.message_digest = default_message_digest
-      message_digest_key_set(default_message_digest_key_id, "", "", "")
+      message_digest_key_set(default_message_digest_key_id, '', '', '')
       self.cost = default_cost
       self.hello_interval = default_hello_interval
-      @@node.config_set("interface_ospf", "dead_interval",
-                        @interface.name, "no", "")
+      @@node.config_set('interface_ospf', 'dead_interval',
+                        @interface.name, 'no', '')
       self.passive_interface = default_passive_interface if passive_interface
     end
 
     def default_message_digest
-      @@node.config_get_default("interface_ospf", "message_digest")
+      @@node.config_get_default('interface_ospf', 'message_digest')
     end
 
     def message_digest
-      not @@node.config_get("interface_ospf", "message_digest",
+      not @@node.config_get('interface_ospf', 'message_digest',
                             @interface.name).nil?
     end
 
     # interface %s
     #   %s ip ospf authentication message-digest
     def message_digest=(enable)
-      @@node.config_set("interface_ospf", "message_digest", @interface.name,
-                        enable ? "" : "no")
+      @@node.config_set('interface_ospf', 'message_digest', @interface.name,
+                        enable ? '' : 'no')
     end
 
     def default_message_digest_key_id
-      @@node.config_get_default("interface_ospf", "message_digest_key_id")
+      @@node.config_get_default('interface_ospf', 'message_digest_key_id')
     end
 
     def message_digest_key_id
-      match = @@node.config_get("interface_ospf", "message_digest_key_id",
+      match = @@node.config_get('interface_ospf', 'message_digest_key_id',
                                 @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_message_digest_key_id : match.first.to_i
     end
 
     def default_message_digest_algorithm_type
-      @@node.config_get_default("interface_ospf",
-                                "message_digest_alg_type").to_sym
+      @@node.config_get_default('interface_ospf',
+                                'message_digest_alg_type').to_sym
     end
 
     def message_digest_algorithm_type
-      match = @@node.config_get("interface_ospf", "message_digest_alg_type",
+      match = @@node.config_get('interface_ospf', 'message_digest_alg_type',
                                 @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_message_digest_algorithm_type :
@@ -145,11 +145,11 @@ module Cisco
 
     def default_message_digest_encryption_type
       Encryption.cli_to_symbol(
-        @@node.config_get_default("interface_ospf", "message_digest_enc_type"))
+        @@node.config_get_default('interface_ospf', 'message_digest_enc_type'))
     end
 
     def message_digest_encryption_type
-      match = @@node.config_get("interface_ospf", "message_digest_enc_type",
+      match = @@node.config_get('interface_ospf', 'message_digest_enc_type',
                                 @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_message_digest_encryption_type :
@@ -157,7 +157,7 @@ module Cisco
     end
 
     def message_digest_password
-      match = @@node.config_get("interface_ospf", "message_digest_password",
+      match = @@node.config_get('interface_ospf', 'message_digest_password',
                                 @interface.name)
       match.nil? ? nil : match.first
     end
@@ -167,89 +167,89 @@ module Cisco
     def message_digest_key_set(keyid, algtype, enctype, enc)
       current_keyid = message_digest_key_id
       if keyid == default_message_digest_key_id && current_keyid != keyid
-        @@node.config_set("interface_ospf", "message_digest_key_set",
-                          @interface.name, "no", current_keyid,
-                          "", "", "")
+        @@node.config_set('interface_ospf', 'message_digest_key_set',
+                          @interface.name, 'no', current_keyid,
+                          '', '', '')
       elsif keyid != default_message_digest_key_id
-        raise TypeError unless enc.is_a?(String)
-        raise ArgumentError unless enc.length > 0
+        fail TypeError unless enc.is_a?(String)
+        fail ArgumentError unless enc.length > 0
         enctype = Encryption.symbol_to_cli(enctype)
-        @@node.config_set("interface_ospf", "message_digest_key_set",
-                          @interface.name, "", keyid, algtype, enctype, enc)
+        @@node.config_set('interface_ospf', 'message_digest_key_set',
+                          @interface.name, '', keyid, algtype, enctype, enc)
       end
     end
 
     def cost
-      match = @@node.config_get("interface_ospf", "cost", @interface.name)
+      match = @@node.config_get('interface_ospf', 'cost', @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_cost : match.first.to_i
     end
 
     def default_cost
-      @@node.config_get_default("interface_ospf", "cost")
+      @@node.config_get_default('interface_ospf', 'cost')
     end
 
     # interface %s
     #   ip ospf cost %d
     def cost=(c)
       if c == default_cost
-        @@node.config_set("interface_ospf", "cost", @interface.name, "no", "")
+        @@node.config_set('interface_ospf', 'cost', @interface.name, 'no', '')
       else
-        @@node.config_set("interface_ospf", "cost", @interface.name, "", c)
+        @@node.config_set('interface_ospf', 'cost', @interface.name, '', c)
       end
     end
 
     def hello_interval
-      match = @@node.config_get("interface_ospf", "hello_interval",
+      match = @@node.config_get('interface_ospf', 'hello_interval',
                                 @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_hello_interval : match.first.to_i
     end
 
     def default_hello_interval
-      @@node.config_get_default("interface_ospf", "hello_interval")
+      @@node.config_get_default('interface_ospf', 'hello_interval')
     end
 
     # interface %s
     #   ip ospf hello-interval %d
     def hello_interval=(interval)
-      @@node.config_set("interface_ospf", "hello_interval",
-                        @interface.name, "", interval.to_i)
+      @@node.config_set('interface_ospf', 'hello_interval',
+                        @interface.name, '', interval.to_i)
     end
 
     def dead_interval
-      match = @@node.config_get("interface_ospf", "dead_interval",
+      match = @@node.config_get('interface_ospf', 'dead_interval',
                                 @interface.name)
       # regex in yaml returns an array result, use .first to get match
       match.nil? ? default_dead_interval : match.first.to_i
     end
 
     def default_dead_interval
-      @@node.config_get_default("interface_ospf", "dead_interval")
+      @@node.config_get_default('interface_ospf', 'dead_interval')
     end
 
     # interface %s
     #   ip ospf dead-interval %d
     def dead_interval=(interval)
-      @@node.config_set("interface_ospf", "dead_interval",
-                        @interface.name, "", interval.to_i)
+      @@node.config_set('interface_ospf', 'dead_interval',
+                        @interface.name, '', interval.to_i)
     end
 
     def default_passive_interface
-      @@node.config_get_default("interface_ospf", "passive_interface")
+      @@node.config_get_default('interface_ospf', 'passive_interface')
     end
 
     def passive_interface
-      not @@node.config_get("interface_ospf", "passive_interface",
+      not @@node.config_get('interface_ospf', 'passive_interface',
                             @interface.name).nil?
     end
 
     # interface %s
     #   %s ip ospf passive-interface
     def passive_interface=(enable)
-      raise TypeError unless enable == true or enable == false
-      @@node.config_set("interface_ospf", "passive_interface", @interface.name,
-                        enable ? "" : "no")
+      fail TypeError unless enable == true or enable == false
+      @@node.config_set('interface_ospf', 'passive_interface', @interface.name,
+                        enable ? '' : 'no')
     end
   end
 end

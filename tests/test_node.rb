@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../basetest", __FILE__)
+require File.expand_path('../basetest', __FILE__)
 
-require File.expand_path("../../lib/cisco_node_utils/node", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/command_reference", __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/command_reference', __FILE__)
 
 include Cisco
 
@@ -76,7 +76,7 @@ class TestNode < TestCase
   def test_node_connect_username_zero_length
     node = Node.instance
     assert_raises(ArgumentError) do
-      node.connect(address, "", password)
+      node.connect(address, '', password)
     end
   end
 
@@ -97,7 +97,7 @@ class TestNode < TestCase
   def test_node_connect_password_zero_length
     node = Node.instance
     assert_raises(ArgumentError) do
-      node.connect(address, username, "")
+      node.connect(address, username, '')
     end
   end
 

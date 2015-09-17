@@ -26,19 +26,19 @@ module Cisco
     attr_reader :name, :vlan_id
 
     @@node = Node.instance
-    raise TypeError if @@node.nil?
+    fail TypeError if @@node.nil?
 
     def initialize(vlan_id, instantiate=true)
       @vlan_id = vlan_id.to_s
-      raise ArgumentError,
-        "Invalid value(non-numeric Vlan id)" unless @vlan_id[/^\d+$/]
+      fail ArgumentError,
+           'Invalid value(non-numeric Vlan id)' unless @vlan_id[/^\d+$/]
 
       create if instantiate
     end
 
-    def Vlan.vlans
+    def self.vlans
       hash = {}
-      vlan_list = @@node.config_get("vlan", "all_vlans")
+      vlan_list = @@node.config_get('vlan', 'all_vlans')
       return hash if vlan_list.nil?
 
       vlan_list.each do |id|
@@ -48,11 +48,11 @@ module Cisco
     end
 
     def create
-      @@node.config_set("vlan", "create", @vlan_id)
+      @@node.config_set('vlan', 'create', @vlan_id)
     end
 
     def destroy
-      @@node.config_set("vlan", "destroy", @vlan_id)
+      @@node.config_set('vlan', 'destroy', @vlan_id)
     end
 
     def cli_error_check(result)
@@ -60,21 +60,21 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      raise result[2]["body"] unless result[2]["body"].empty?
+      fail result[2]['body'] unless result[2]['body'].empty?
     end
 
     def vlan_name
-      result = @@node.config_get("vlan", "name", @vlan_id)
+      result = @@node.config_get('vlan', 'name', @vlan_id)
       return default_vlan_name if result.nil?
       result.shift
     end
 
     def vlan_name=(str)
-      raise TypeError unless str.is_a?(String)
+      fail TypeError unless str.is_a?(String)
       if str.empty?
-        result = @@node.config_set("vlan", "name", @vlan_id, "no", "")
+        result = @@node.config_set('vlan', 'name', @vlan_id, 'no', '')
       else
-        result = @@node.config_set("vlan", "name", @vlan_id, "", str)
+        result = @@node.config_set('vlan', 'name', @vlan_id, '', str)
       end
       cli_error_check(result)
     rescue CliError => e
@@ -86,22 +86,22 @@ module Cisco
     end
 
     def state
-      result = @@node.config_get("vlan", "state", @vlan_id)
+      result = @@node.config_get('vlan', 'state', @vlan_id)
       return default_state if result.nil?
       case result.first
       when /act/
-        return "active"
+        return 'active'
       when /sus/
-        return "suspend"
+        return 'suspend'
       end
     end
 
     def state=(str)
       str = str.to_s
       if str.empty?
-        result = @@node.config_set("vlan", "state", @vlan_id, "no", "")
+        result = @@node.config_set('vlan', 'state', @vlan_id, 'no', '')
       else
-        result = @@node.config_set("vlan", "state", @vlan_id, "", str)
+        result = @@node.config_set('vlan', 'state', @vlan_id, '', str)
       end
       cli_error_check(result)
     rescue CliError => e
@@ -109,26 +109,26 @@ module Cisco
     end
 
     def default_state
-      @@node.config_get_default("vlan", "state")
+      @@node.config_get_default('vlan', 'state')
     end
 
     def shutdown
-      result = @@node.config_get("vlan", "shutdown", @vlan_id)
+      result = @@node.config_get('vlan', 'shutdown', @vlan_id)
       return default_shutdown if result.nil?
       # valid result is either: "active"(aka no shutdown) or "shutdown"
       result.first[/shut/] ? true : false
     end
 
     def shutdown=(val)
-      no_cmd = (val) ? "" : "no"
-      result = @@node.config_set("vlan", "shutdown", @vlan_id, no_cmd)
+      no_cmd = (val) ? '' : 'no'
+      result = @@node.config_set('vlan', 'shutdown', @vlan_id, no_cmd)
       cli_error_check(result)
     rescue CliError => e
       raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
-      @@node.config_get_default("vlan", "shutdown")
+      @@node.config_get_default('vlan', 'shutdown')
     end
 
     def add_interface(interface)

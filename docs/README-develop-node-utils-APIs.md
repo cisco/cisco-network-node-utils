@@ -240,7 +240,7 @@ Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
 
 *Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
 
-### <a name="lint">Step 3. rubocop / lint: feature bash-shell</a>
+### <a name="lint">Step 4. rubocop / lint: feature bash-shell</a>
 
 rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
 
@@ -475,7 +475,7 @@ end
 end
 ```
 
-### <a name="comp_api">Step 3. Minitest: router eigrp</a>
+### <a name="comp_minitest">Step 3. Minitest: router eigrp</a>
 
 * Use `template-test_router.rb` to build the minitest for `router_eigrp.rb`:
 

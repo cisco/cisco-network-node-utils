@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/yum", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/yum', __FILE__)
 
 class TestYum < CiscoTestCase
   @@skip = false
@@ -44,25 +44,25 @@ class TestYum < CiscoTestCase
   end
 
   def skip?
-    skip "file bootflash:#{@@pkg_filename} is required. " +
-      "this file can be found in the cisco_node_utils/tests directory" if @@skip
+    skip "file bootflash:#{@@pkg_filename} is required. " \
+      'this file can be found in the cisco_node_utils/tests directory' if @@skip
   end
 
   def test_install
-      skip?
-      if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-        @device.cmd("install deactivate #{@@pkg}")
-        node.cache_flush
-        sleep 20
-      end
-
-      # Specify "management" vrf for install
-      Yum.install(@@pkg, "management")
+    skip?
+    if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
+      @device.cmd("install deactivate #{@@pkg}")
+      node.cache_flush
       sleep 20
-      s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-      assert(s, "failed to find installed package #{@@pkg}")
-    rescue RuntimeError => e
-      assert(false, e.message)
+    end
+
+    # Specify "management" vrf for install
+    Yum.install(@@pkg, 'management')
+    sleep 20
+    s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
+    assert(s, "failed to find installed package #{@@pkg}")
+  rescue RuntimeError => e
+    assert(false, e.message)
   end
 
   def test_remove
@@ -80,15 +80,15 @@ class TestYum < CiscoTestCase
 
   def test_ambiguous_package_error
     skip?
-    assert_raises(RuntimeError) { Yum.query("busybox") }
+    assert_raises(RuntimeError) { Yum.query('busybox') }
   end
 
   def test_package_does_not_exist_error
     assert_raises(Cisco::CliError) {
-      Yum.install("bootflash:this_is_not_real.rpm", "management")
+      Yum.install('bootflash:this_is_not_real.rpm', 'management')
     }
     assert_raises(RuntimeError) {
-      Yum.install("also_not_real", "management")
+      Yum.install('also_not_real', 'management')
     }
   end
 
