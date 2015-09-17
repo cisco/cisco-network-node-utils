@@ -71,7 +71,7 @@ module Cisco
     # @example config_get("ospf", "router_id",
     #                      {:name => "green", :vrf => "one"})
     def config_get(feature, name, *args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
 
       begin
@@ -81,7 +81,7 @@ module Cisco
         token = nil
       end
       if token.kind_of?(String) and token[0] == '/' and token[-1] == '/'
-        raise RuntimeError unless args.length == token.scan(/%/).length
+        fail RuntimeError unless args.length == token.scan(/%/).length
         # convert string to regexp and replace %s with args
         token = Regexp.new(sprintf(token, *args)[1..-2])
         text = build_config_get(feature, ref, :ascii)
@@ -109,13 +109,13 @@ module Cisco
               # it contains the matching key/value pairs specified in token,
               # and return the first match (or nil)
               if t.kind_of?(Hash)
-                raise "Expected array, got #{result.class}" unless result.kind_of?(Array)
+                fail "Expected array, got #{result.class}" unless result.kind_of?(Array)
                 result = result.select { |x| t.all? { |k, v| x[k] == v } }
-                raise "Multiple matches found for #{t}" if result.length > 1
-                raise "No match found for #{t}" if result.length == 0
+                fail "Multiple matches found for #{t}" if result.length > 1
+                fail "No match found for #{t}" if result.length == 0
                 result = result[0]
               else # result is array or hash
-                raise "No key \"#{t}\" in #{result}" if result[t].nil?
+                fail "No key \"#{t}\" in #{result}" if result[t].nil?
                 result = result[t]
               end
             end
@@ -129,7 +129,7 @@ module Cisco
       elsif token.nil?
         return show(ref.config_get, :structured)
       end
-      raise TypeError("Unclear to handle config_get_token #{token}")
+      fail TypeError("Unclear to handle config_get_token #{token}")
     end
 
     # Uses CommandReference to lookup the default value for a given
@@ -143,7 +143,7 @@ module Cisco
     # @return [String]
     # @example config_get_default("vtp", "file")
     def config_get_default(feature, name)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
       ref.default_value
     end
@@ -163,19 +163,19 @@ module Cisco
     #  {:name => "green", :vrf => "one", :state => "",
     #   :router_id => "192.0.0.1"})
     def config_set(feature, name, *args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
       config_set = build_config_set(feature, ref, args)
       if config_set.is_a?(String)
         param_count = config_set.scan(/%/).length
       elsif config_set.is_a?(Array)
-        param_count = config_set.join(" ").scan(/%/).length
+        param_count = config_set.join(' ').scan(/%/).length
       else
-        raise TypeError, "%{config_set.class} not supported for config_set"
+        fail TypeError, '%{config_set.class} not supported for config_set'
       end
       unless args[0].is_a? Hash
         if param_count != args.length
-          raise ArgumentError.new("Wrong number of params - expected: " +
+          fail ArgumentError.new('Wrong number of params - expected: ' \
                                 "#{param_count} actual: #{args.length}")
         end
       end
@@ -213,7 +213,7 @@ module Cisco
     # For unit testing - we won't know the node connection info at load time.
     @@lazy_connect = false
 
-    def Node.lazy_connect=(val)
+    def self.lazy_connect=(val)
       @@lazy_connect = val
     end
 
@@ -269,7 +269,7 @@ module Cisco
     def token_str_to_regexp(token, args)
       unless args[0].is_a? Hash
         expected_args = token.join.scan(/%/).length
-        raise "Given #{args.length} args, but token #{token} requires " +
+        fail "Given #{args.length} args, but token #{token} requires " \
           "#{expected_args}" unless args.length == expected_args
       end
       # replace all %s with *args
@@ -304,7 +304,7 @@ module Cisco
       replace = regexp.scan(/<(\S+)>/).flatten.map(&:to_sym)
       replace.each do |item|
         regexp = regexp.sub "<#{item}>",
-          values[item].to_s if values.key?(item)
+                            values[item].to_s if values.key?(item)
       end
       # Only return lines that actually replaced ids or did not have any
       # ids to replace. Implicit nil returned if not.
@@ -329,7 +329,7 @@ module Cisco
     # @param ref [CommandReference::CmdRef]
     # @return [String, Array]
     def build_config_get_token(feature, ref, args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       # Why clone token? A bug in some ruby versions caused token to convert
       # to type Regexp unexpectedly. The clone hard copy resolved it.
 
@@ -341,7 +341,7 @@ module Cisco
       # Use _template yaml entry if config_get_token_append
       if ref.to_s[/config_get_token_append/]
         # Get yaml feature template:
-        template = @cmd_ref.lookup(feature, "_template")
+        template = @cmd_ref.lookup(feature, '_template')
         # Process config_get_token: from template:
         token.push(replace_token_ids(template.config_get_token, options))
         # Process config_get_token_append sequence: from template:
@@ -366,13 +366,13 @@ module Cisco
     # @param type [Symbol]
     # @return [String, Array]
     def build_config_get(feature, ref, type)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       # Use feature name config_get string if present
       # else use feature template: config_get
-      if ref.hash.key?("config_get")
+      if ref.hash.key?('config_get')
         return show(ref.config_get, type)
       else
-        template = @cmd_ref.lookup(feature, "_template")
+        template = @cmd_ref.lookup(feature, '_template')
         return show(template.config_get, type)
       end
     end
@@ -385,7 +385,7 @@ module Cisco
     # @param ref [CommandReference::CmdRef]
     # @return [String, Array]
     def build_config_set(feature, ref, args)
-      raise "lazy_connect specified but did not request connect" unless @cmd_ref
+      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       # If the options are presented as type Hash process as
       # key-value replacement pairs
       return ref.config_set unless args[0].is_a?(Hash)
@@ -394,7 +394,7 @@ module Cisco
       # Use _template yaml entry if config_set_append
       if ref.to_s[/config_set_append/]
         # Get yaml feature template:
-        template = @cmd_ref.lookup(feature, "_template")
+        template = @cmd_ref.lookup(feature, '_template')
         # Process config_set: from template:
         config_set.push(replace_token_ids(template.config_set, options))
         # Process config_set_append sequence: from template:
@@ -435,52 +435,52 @@ module Cisco
 
     # @return [String] such as "Cisco Nexus Operating System (NX-OS) Software"
     def os
-       o = config_get("show_version", "header")
-       raise "failed to retrieve operating system information" if o.nil?
-       o.split("\n")[0]
+      o = config_get('show_version', 'header')
+      fail 'failed to retrieve operating system information' if o.nil?
+      o.split("\n")[0]
     end
 
     # @return [String] such as "6.0(2)U5(1) [build 6.0(2)U5(0.941)]"
     def os_version
-      config_get("show_version", "version")
+      config_get('show_version', 'version')
     end
 
     # @return [String] such as "Nexus 3048 Chassis"
     def product_description
-      config_get("show_version", "description")
+      config_get('show_version', 'description')
     end
 
     # @return [String] such as "N3K-C3048TP-1GE"
     def product_id
       if @cmd_ref
-        return config_get("inventory", "productid")
+        return config_get('inventory', 'productid')
       else
         # We use this function to *find* the appropriate CommandReference
-        entries = show("show inventory", :structured)
-        return entries["TABLE_inv"]["ROW_inv"][0]["productid"]
+        entries = show('show inventory', :structured)
+        return entries['TABLE_inv']['ROW_inv'][0]['productid']
       end
     end
 
     # @return [String] such as "V01"
     def product_version_id
-      config_get("inventory", "versionid")
+      config_get('inventory', 'versionid')
     end
 
     # @return [String] such as "FOC1722R0ET"
     def product_serial_number
-      config_get("inventory", "serialnum")
+      config_get('inventory', 'serialnum')
     end
 
     # @return [String] such as "bxb-oa-n3k-7"
     def host_name
-      config_get("show_version", "host_name")
+      config_get('show_version', 'host_name')
     end
 
     # @return [String] such as "example.com"
     def domain_name
-      result = config_get("domain_name", "domain_name")
+      result = config_get('domain_name', 'domain_name')
       if result.nil?
-        return ""
+        return ''
       else
         return result[0]
       end
@@ -489,8 +489,8 @@ module Cisco
     # @return [Integer] System uptime, in seconds
     def system_uptime
       cache_flush
-      t = config_get("show_system", "uptime")
-      raise "failed to retrieve system uptime" if t.nil?
+      t = config_get('show_system', 'uptime')
+      fail 'failed to retrieve system uptime' if t.nil?
       t = t.shift
       # time units: t = ["0", "23", "15", "49"]
       t.map!(&:to_i)
@@ -500,8 +500,8 @@ module Cisco
 
     # @return [String] timestamp of last reset time
     def last_reset_time
-      output = config_get("show_version", "last_reset_time")
-      return "" if output.nil?
+      output = config_get('show_version', 'last_reset_time')
+      return '' if output.nil?
       # NX-OS may provide leading/trailing whitespace:
       # " Sat Oct 25 00:39:25 2014\n"
       # so be sure to strip() it down to the actual string.
@@ -510,26 +510,26 @@ module Cisco
 
     # @return [String] such as "Reset Requested by CLI command reload"
     def last_reset_reason
-      config_get("show_version", "last_reset_reason")
+      config_get('show_version', 'last_reset_reason')
     end
 
     # @return [Float] combined user/kernel CPU utilization
     def system_cpu_utilization
-      output = config_get("system", "resources")
-      raise "failed to retrieve cpu utilization" if output.nil?
-      output["cpu_state_user"].to_f + output["cpu_state_kernel"].to_f
+      output = config_get('system', 'resources')
+      fail 'failed to retrieve cpu utilization' if output.nil?
+      output['cpu_state_user'].to_f + output['cpu_state_kernel'].to_f
     end
 
     # @return [String] such as
     #   "bootflash:///n3000-uk9-kickstart.6.0.2.U5.0.941.bin"
     def boot
-      config_get("show_version", "boot_image")
+      config_get('show_version', 'boot_image')
     end
 
     # @return [String] such as
     #   "bootflash:///n3000-uk9.6.0.2.U5.0.941.bin"
     def system
-      config_get("show_version", "system_image")
+      config_get('show_version', 'system_image')
     end
   end
 
@@ -550,8 +550,8 @@ module Cisco
   #   => 'example.com'
   def find_one_ascii(body, regex_query, *parent_cfg)
     matches = find_ascii(body, regex_query, *parent_cfg)
-    return "" if matches.nil?
-    raise RuntimeError if matches.length > 1
+    return '' if matches.nil?
+    fail RuntimeError if matches.length > 1
     matches[0]
   end
   module_function :find_one_ascii
@@ -607,7 +607,7 @@ module Cisco
     match_row_index = rows.index { |row| regex_query =~ row }
     return nil if match_row_index.nil?
 
-    cur = match_row_index+1
+    cur = match_row_index + 1
     subconfig = []
 
     until (/\A\s+.*/ =~ rows[cur]).nil? or cur == rows.length

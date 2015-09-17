@@ -15,8 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/X__RESOURCE_NAME__X", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/X__RESOURCE_NAME__X', __FILE__)
 
 class TestX__CLASS_NAME__X < CiscoTestCase
   def setup
@@ -35,13 +35,13 @@ class TestX__CLASS_NAME__X < CiscoTestCase
     # setup/teardown helper. Turn the feature off for a clean testbed.
     @device.cmd('conf t ; no feature X__CLI_NAME__X ; end')
     # Flush the cache since we've modified the device outside of the node_utils APIs
-    node.cache_flush()
+    node.cache_flush
   end
 
   # TESTS
 
   def test_feature_on_off
-    feat = X__CLASS_NAME__X.new()
+    feat = X__CLASS_NAME__X.new
     feat.feature_enable
     assert(BashShell.feature_enabled)
 

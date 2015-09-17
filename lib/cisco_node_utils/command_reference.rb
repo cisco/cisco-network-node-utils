@@ -30,7 +30,7 @@ module CommandReference
       if expression.is_a? Regexp
         @regex = expression
       else
-        raise ArgumentError
+        fail ArgumentError
       end
     end
 
@@ -38,7 +38,7 @@ module CommandReference
       if file.is_a? String
         @file = file
       else
-        raise ArgumentError
+        fail ArgumentError
       end
     end
 
@@ -60,7 +60,7 @@ module CommandReference
                 test_config_get test_config_get_regex test_config_result)
 
     def initialize(feature, name, ref, source)
-      raise ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
+      fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
 
       @feature = feature
       @name = name
@@ -74,12 +74,12 @@ module CommandReference
     def merge(values, file)
       values.each { |key, value|
         unless @@keys.include?(key)
-          raise "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
+          fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         if value.nil?
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
-          if key == "default_value"
+          if key == 'default_value'
             @hash[key] = value
           else
             @hash.delete(key)
@@ -108,7 +108,7 @@ module CommandReference
     end
 
     def test_config_result(value)
-      result = @hash["test_config_result"][value]
+      result = @hash['test_config_result'][value]
       convert_to_constant(result)
     end
 
@@ -116,7 +116,7 @@ module CommandReference
       super(method_name, *args, &block) unless @@keys.include?(method_name.to_s)
       method_name = method_name.to_s
       unless @hash.include?(method_name)
-        raise IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+        fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
       end
       # puts("get #{method_name}: '#{@hash[method_name]}'")
       @hash[method_name]
@@ -124,7 +124,7 @@ module CommandReference
 
     # Print useful debugging information about the object.
     def to_s
-      str = ""
+      str = ''
       str << "Command: #{@feature} #{@name}\n"
       @hash.each { |key, value|
         str << "  #{key}: #{value}\n"
@@ -148,7 +148,7 @@ module CommandReference
     end
 
     def self.debug=(value)
-      raise ArgumentError, "Debug must be boolean" unless value == true or value == false
+      fail ArgumentError, 'Debug must be boolean' unless value == true or value == false
       @@debug = value
     end
 
@@ -171,16 +171,16 @@ module CommandReference
         platforms = [
           CommandPlatformFile.new(//,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_common.yaml")),
+                                            'command_reference_common.yaml')),
           CommandPlatformFile.new(/N9K/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n9k.yaml")),
+                                            'command_reference_n9k.yaml')),
           CommandPlatformFile.new(/N7K/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n7k.yaml")),
+                                            'command_reference_n7k.yaml')),
           CommandPlatformFile.new(/C3064/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n3064.yaml")),
+                                            'command_reference_n3064.yaml')),
         ]
         # Build array
         platforms.each { |reference|
@@ -206,7 +206,7 @@ module CommandReference
 
         reference_yaml.each { |feature, names|
           if names.nil? or names.empty?
-            raise "No names under feature #{feature}: #{names}"
+            fail "No names under feature #{feature}: #{names}"
           elsif @hash[feature].nil?
             @hash[feature] = {}
           else
@@ -228,7 +228,7 @@ module CommandReference
         }
       }
 
-      raise "Missing values in CommandReference." unless valid?
+      fail 'Missing values in CommandReference.' unless valid?
     end
 
     # Get the command reference
@@ -239,9 +239,7 @@ module CommandReference
         # happens if @hash[feature] doesn't exist
         value = nil
       end
-      if value.nil?
-        raise IndexError, "No CmdRef defined for #{feature}, #{name}"
-      end
+      fail IndexError, "No CmdRef defined for #{feature}, #{name}" if value.nil?
       value
     end
 
@@ -321,7 +319,7 @@ module CommandReference
       dup = key_arr.detect { |e| key_arr.index(e) != key_arr.rindex(e) }
       if dup
         msg = "Duplicate #{label} '#{dup}'#{parents} in #{filename}!"
-        raise msg
+        fail msg
       end
 
 =begin
@@ -359,7 +357,7 @@ module CommandReference
 
     # Read in yaml file.
     def load_yaml(yaml_file)
-      raise "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
+      fail "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
       # Parse YAML file into a tree of nodes
       # Psych::SyntaxError doesn't inherit from StandardError in some versions,
       # so we want to explicitly catch it if using Psych.

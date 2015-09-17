@@ -22,15 +22,15 @@ class Platform
   @@node = Cisco::Node.instance
 
   # ex: 'n3500-uk9.6.0.2.A3.0.40.bin'
-  def Platform.system_image
-    @@node.config_get("show_version", "boot_image")
+  def self.system_image
+    @@node.config_get('show_version', 'boot_image')
   end
 
   # returns package hash with state values
   # ex: { 'n3000-uk9.6.0.2.U1.1.CSCaa12345.bin' => 'inactive committed',
   #       'n3000-uk9.6.0.2.U1.1.CSCaa12346.bin' => 'active', }
-  def Platform.packages
-    pkgs = @@node.config_get("images", "packages")
+  def self.packages
+    pkgs = @@node.config_get('images', 'packages')
     return {} if pkgs.nil?
     pkg_hsh = {}
     pkgs.each { |p|
@@ -40,25 +40,25 @@ class Platform
   end
 
   # ex: 'Cisco Nexus3064 Chassis ("48x10GE + 16x10G/4x40G Supervisor")'
-  def Platform.hardware_type
-    @@node.config_get("show_version", "description")
+  def self.hardware_type
+    @@node.config_get('show_version', 'description')
   end
 
   # ex: 'Intel(R) Celeron(R) CPU P450'
-  def Platform.cpu
-    @@node.config_get("show_version", "cpu")
+  def self.cpu
+    @@node.config_get('show_version', 'cpu')
   end
 
   # return hash with keys "total", "used", "free"
   # ex: { 'total' => '16402252K',
   #       'used'  => '5909004K',
   #       'free'  => '10493248K' }
-  def Platform.memory
-    total = @@node.config_get("memory", "total")
-    used = @@node.config_get("memory", "used")
-    free = @@node.config_get("memory", "free")
+  def self.memory
+    total = @@node.config_get('memory', 'total')
+    used = @@node.config_get('memory', 'used')
+    free = @@node.config_get('memory', 'free')
 
-    raise "failed to retrieve platform memory information" if
+    fail 'failed to retrieve platform memory information' if
       total.nil? or used.nil? or free.nil?
 
     {
@@ -69,26 +69,26 @@ class Platform
   end
 
   # ex: 'Processor Board ID FOC15430TEY'
-  def Platform.board
-    @@node.config_get("show_version", "board")
+  def self.board
+    @@node.config_get('show_version', 'board')
   end
 
   # ex: '1 day(s), 21 hour(s), 46 minute(s), 54 second(s)'
-  def Platform.uptime
-    u = @@node.config_get("show_version", "uptime")
-    raise "failed to retrieve platform uptime" if u.nil?
+  def self.uptime
+    u = @@node.config_get('show_version', 'uptime')
+    fail 'failed to retrieve platform uptime' if u.nil?
     u.first
   end
 
   # ex: '23113 usecs after  Mon Jul  1 15:24:29 2013'
-  def Platform.last_reset
-    r = @@node.config_get("show_version", "last_reset_time")
+  def self.last_reset
+    r = @@node.config_get('show_version', 'last_reset_time')
     r.nil? ? nil : r.strip
   end
 
   # ex: 'Reset Requested by CLI command reload'
-  def Platform.reset_reason
-    @@node.config_get("show_version", "last_reset_reason")
+  def self.reset_reason
+    @@node.config_get('show_version', 'last_reset_reason')
   end
 
   # returns chassis hash with keys "descr", "pid", "vid", "sn"
@@ -96,8 +96,8 @@ class Platform
   #       'pid'   => 'N9K-C9396PX',
   #       'vid'   => 'V02',
   #       'sn'    => 'SAL1812NTBP' }
-  def Platform.chassis
-    chas = @@node.config_get("inventory", "chassis")
+  def self.chassis
+    chas = @@node.config_get('inventory', 'chassis')
     return nil if chas.nil?
     {
       'descr' => chas['desc'].tr('"', ''),
@@ -113,9 +113,9 @@ class Platform
   #                     'vid'   => 'V02',
   #                     'sn'    => 'SAL1812NTBP' },
   #       'Slot 2' => { ... }}
-  def Platform.inventory_of(type)
+  def self.inventory_of(type)
     @@node.cache_flush # TODO: investigate why this is needed
-    inv = @@node.config_get("inventory", "all")
+    inv = @@node.config_get('inventory', 'all')
     return {} if inv.nil?
     inv.select! { |x| x['name'].include? type }
     return {} if inv.empty?
@@ -131,17 +131,17 @@ class Platform
   end
 
   # returns array of hashes with keys "name", "descr", "pid", "vid", "sn"
-  def Platform.slots
+  def self.slots
     Platform.inventory_of('Slot')
   end
 
   # returns array of hashes with keys "name", "descr", "pid", "vid", "sn"
-  def Platform.power_supplies
+  def self.power_supplies
     Platform.inventory_of('Power Supply')
   end
 
   # returns array of hashes with keys "name", "descr", "pid", "vid", "sn"
-  def Platform.fans
+  def self.fans
     Platform.inventory_of('Fan')
   end
 
@@ -160,14 +160,15 @@ class Platform
   #                            'memory'   => '0 MB',
   #                            'cpu'      => '0% system CPU' }},
   #      { ... }}
-  def Platform.virtual_services
-    virts = @@node.config_get("virtual_service", "services")
+  def self.virtual_services
+    virts = @@node.config_get('virtual_service', 'services')
     return [] if virts.nil?
     # NXAPI returns hash instead of array if there's only 1
     virts = [virts] if virts.is_a? Hash
     # convert to expected format
     virts_hsh = {}
     virts.each { |serv|
+      # rubocop:disable Style/AlignHash, Style/ExtraSpacing
       virts_hsh[serv['name']] = {
         'package_info' => { 'name'     => serv['package_name'],
                             'path'     => serv['ova_path'],
@@ -187,6 +188,7 @@ class Platform
                             'cpu'      => serv['cpu_reservation'],
         },
       }
+      # rubocop:enable Style/AlignHash, Style/ExtraSpacing
     }
     virts_hsh
   end

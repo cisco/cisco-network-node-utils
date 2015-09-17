@@ -26,6 +26,6 @@ Currently supports NX-OS nodes.
   spec.add_development_dependency 'minitest', '>= 2.5.1', '< 5.0.0'
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'rubocop', '~> 0.32'
+  spec.add_development_dependency 'rubocop', '~> 0.34'
   spec.add_runtime_dependency 'cisco_nxapi', '~> 1.0'
 end

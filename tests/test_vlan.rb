@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/vlan", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/interface", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/vlan', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/interface', __FILE__)
 
 include Cisco
 
 class TestVlan < CiscoTestCase
   def interface_ethernet_default(ethernet_id)
-    @device.cmd("configure terminal")
+    @device.cmd('configure terminal')
     @device.cmd("default interface ethernet #{ethernet_id}")
-    @device.cmd("end")
+    @device.cmd('end')
     node.cache_flush
   end
 
   def test_vlan_collection_not_empty
     vlans = Vlan.vlans
-    assert_equal(false, vlans.empty?(), "VLAN collection is empty")
-    assert(vlans.key?("1"), "VLAN 1 does not exist")
+    assert_equal(false, vlans.empty?, 'VLAN collection is empty')
+    assert(vlans.key?('1'), 'VLAN 1 does not exist')
   end
 
   def test_vlan_create_invalid
@@ -38,47 +38,47 @@ class TestVlan < CiscoTestCase
   end
 
   def test_vlan_create_invalid_non_numeric_vlan
-    e = assert_raises(ArgumentError) { Vlan.new("fred") }
+    e = assert_raises(ArgumentError) { Vlan.new('fred') }
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
   def test_vlan_create_and_destroy
     v = Vlan.new(1000)
     vlans = Vlan.vlans
-    assert(vlans.key?("1000"), "Error: failed to create vlan 1000")
+    assert(vlans.key?('1000'), 'Error: failed to create vlan 1000')
 
     v.destroy
     vlans = Vlan.vlans
-    refute(vlans.key?("1000"), "Error: failed to destroy vlan 1000")
+    refute(vlans.key?('1000'), 'Error: failed to destroy vlan 1000')
   end
 
   def test_vlan_name_default_1000
     v = Vlan.new(1000)
     assert_equal(v.default_vlan_name, v.vlan_name,
-                 "Error: Vlan name not initialized to default")
+                 'Error: Vlan name not initialized to default')
 
-    name = "Uplink-Chicago"
+    name = 'Uplink-Chicago'
     v.vlan_name = name
     assert_equal(name, v.vlan_name, "Error: Vlan name not updated to #{name}")
 
     v.vlan_name = v.default_vlan_name
     assert_equal(v.default_vlan_name, v.vlan_name,
-                 "Error: Vlan name not restored to default")
+                 'Error: Vlan name not restored to default')
     v.destroy
   end
 
   def test_vlan_name_default_40
     v = Vlan.new(40)
     assert_equal(v.default_vlan_name, v.vlan_name,
-                 "Error: Vlan name not initialized to default")
+                 'Error: Vlan name not initialized to default')
 
-    name = "Uplink-Chicago"
+    name = 'Uplink-Chicago'
     v.vlan_name = name
     assert_equal(name, v.vlan_name, "Error: Vlan name not updated to #{name}")
 
     v.vlan_name = v.default_vlan_name
     assert_equal(v.default_vlan_name, v.vlan_name,
-                 "Error: Vlan name not restored to default")
+                 'Error: Vlan name not restored to default')
     v.destroy
   end
 
@@ -100,16 +100,16 @@ class TestVlan < CiscoTestCase
 
   def test_vlan_name_zero_length
     v = Vlan.new(1000)
-    v.vlan_name = ""
-    assert("", v.vlan_name)
+    v.vlan_name = ''
+    assert('', v.vlan_name)
     v.destroy
   end
 
   def test_vlan_name_length_valid
     v = Vlan.new(1000)
-    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
-    name = ""
-    1.upto(VLAN_NAME_SIZE - 1) { | i |
+    alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    name = ''
+    1.upto(VLAN_NAME_SIZE - 1) { |i|
       begin
         name += alphabet[i % alphabet.size, 1]
         # puts "n is #{name}"
@@ -124,12 +124,12 @@ class TestVlan < CiscoTestCase
 
   def test_vlan_name_too_long
     v = Vlan.new(1000)
-    name = "a" * VLAN_NAME_SIZE
-    assert_raises(RuntimeError, "vlan misconfig did not raise RuntimeError") do
+    name = 'a' * VLAN_NAME_SIZE
+    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
       v.vlan_name = name
     end
-    ref = cmd_ref.lookup("vlan", "name")
-    assert(ref, "Error, reference not found for vlan name")
+    ref = cmd_ref.lookup('vlan', 'name')
+    assert(ref, 'Error, reference not found for vlan name')
     v.destroy
   end
 
@@ -141,10 +141,10 @@ class TestVlan < CiscoTestCase
     v.destroy
     # start test
     v1 = Vlan.new(1000)
-    v1.vlan_name = "test"
+    v1.vlan_name = 'test'
     v2 = Vlan.new(1001)
-    assert_raises(RuntimeError, "vlan misconfig did not raise RuntimeError") do
-      v2.vlan_name = "test"
+    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
+      v2.vlan_name = 'test'
     end
     v1.destroy
     v2.destroy
@@ -152,14 +152,14 @@ class TestVlan < CiscoTestCase
 
   def test_vlan_state_extended
     v = Vlan.new(2000)
-    v.state = "suspend"
+    v.state = 'suspend'
     v.destroy
   end
 
   def test_vlan_state_invalid
     v = Vlan.new(1000)
     assert_raises(RuntimeError) do
-      v.state = "unknown"
+      v.state = 'unknown'
     end
     v.destroy
   end
@@ -167,14 +167,14 @@ class TestVlan < CiscoTestCase
   def test_vlan_state_valid
     states = %w(unknown active suspend)
     v = Vlan.new(1000)
-    states.each { | start |
-      states.each { | finish |
-        if start != "unknown" &&
-           finish != "unknown"
+    states.each { |start|
+      states.each { |finish|
+        if start != 'unknown' &&
+           finish != 'unknown'
           v.state = start
-          assert_equal(start, v.state, "start")
+          assert_equal(start, v.state, 'start')
           v.state = finish
-          assert_equal(finish, v.state, "finish")
+          assert_equal(finish, v.state, 'finish')
         end
       }
     }
@@ -183,8 +183,8 @@ class TestVlan < CiscoTestCase
 
   def test_vlan_shutdown_extended
     v = Vlan.new(2000)
-    assert_raises(RuntimeError, "vlan misconfig did not raise RuntimeError") do
-      v.shutdown = "shutdown"
+    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
+      v.shutdown = 'shutdown'
     end
     v.destroy
   end
@@ -192,12 +192,12 @@ class TestVlan < CiscoTestCase
   def test_vlan_shutdown_valid
     shutdown_states = [true, false]
     v = Vlan.new(1000)
-    shutdown_states.each { | start |
-      shutdown_states.each { | finish |
+    shutdown_states.each { |start|
+      shutdown_states.each { |finish|
         v.shutdown = start
-        assert_equal(start, v.shutdown, "start")
+        assert_equal(start, v.shutdown, 'start')
         v.shutdown = finish
-        assert_equal(finish, v.shutdown, "finish")
+        assert_equal(finish, v.shutdown, 'finish')
       }
     }
     v.destroy
@@ -208,7 +208,7 @@ class TestVlan < CiscoTestCase
     interfaces = Interface.interfaces
     interfaces_added_to_vlan = []
     count = 3
-    interfaces.each { | name, interface |
+    interfaces.each { |name, interface|
       if interface.name.match(/ethernet/) && count > 0
         interfaces_added_to_vlan << name
         interface.switchport_mode = :access
@@ -218,9 +218,9 @@ class TestVlan < CiscoTestCase
     }
 
     interfaces = v.interfaces
-    interfaces.each { | name, interface |
+    interfaces.each { |name, interface|
       assert_includes(interfaces_added_to_vlan, name)
-      assert_equal(v.vlan_id, interface.access_vlan, "Interface.access_vlan")
+      assert_equal(v.vlan_id, interface.access_vlan, 'Interface.access_vlan')
       v.remove_interface(interface)
     }
 

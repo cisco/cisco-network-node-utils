@@ -20,7 +20,7 @@
 
 require 'minitest/autorun'
 require 'tempfile'
-require File.expand_path("../../lib/cisco_node_utils/command_reference", __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/command_reference', __FILE__)
 
 class TestCmdRef < MiniTest::Unit::TestCase
   include CommandReference
@@ -34,7 +34,7 @@ class TestCmdRef < MiniTest::Unit::TestCase
   end
 
   def load_file
-    CommandReference.new("", [@input_file.path])
+    CommandReference.new('', [@input_file.path])
   end
 
   def write(string)
@@ -49,7 +49,7 @@ class TestCmdRef < MiniTest::Unit::TestCase
   end
 
   def test_load_whitespace_only
-    write("   ")
+    write('   ')
     reference = load_file
     assert(reference.empty?)
   end
@@ -70,7 +70,7 @@ feature\a\e:
 
   def test_load_feature_no_name
     # should error out
-    write("feature:")
+    write('feature:')
     assert_raises(RuntimeError) do
       load_file
     end
@@ -92,7 +92,7 @@ feature:
     default_value: true")
     reference = load_file
     assert(!reference.empty?)
-    ref = reference.lookup("feature", "name")
+    ref = reference.lookup('feature', 'name')
     assert_equal(true, ref.default_value)
   end
 
@@ -136,19 +136,17 @@ feature:
     assert_raises(RuntimeError) { load_file }
   end
 
-=begin
-  # Alphabetization of features is not enforced at this time.
-  def test_load_features_unalphabetized
-    write("
-zzz:
-  name:
-    default_value: true
-zzy:
-  name:
-    default_value: false")
-    self.assert_raises(RuntimeError) { load_file }
-  end
-=end
+  #   # Alphabetization of features is not enforced at this time.
+  #   def test_load_features_unalphabetized
+  #     write("
+  # zzz:
+  #   name:
+  #     default_value: true
+  # zzy:
+  #   name:
+  #     default_value: false")
+  #     self.assert_raises(RuntimeError) { load_file }
+  #   end
 
   def type_check(obj, cls)
     assert(obj.is_a?(cls), "#{obj} should be #{cls} but is #{obj.class}")
@@ -165,7 +163,7 @@ feature:
     test_config_get_regex: !ruby/regexp '/hello world/'
 ")
     reference = load_file
-    ref = reference.lookup("feature", "name")
+    ref = reference.lookup('feature', 'name')
     type_check(ref.default_value, TrueClass)
     type_check(ref.config_get, String)
     type_check(ref.config_get_token, Regexp)
@@ -174,18 +172,18 @@ feature:
   end
 
   def test_load_common
-    reference = CommandReference.new("")
+    reference = CommandReference.new('')
     assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
     # Some spot checks
-    type_check(reference.lookup("vtp", "feature").config_get_token, String)
-    type_check(reference.lookup("vtp", "version").default_value, Integer)
+    type_check(reference.lookup('vtp', 'feature').config_get_token, String)
+    type_check(reference.lookup('vtp', 'version').default_value, Integer)
   end
 
   def test_load_n9k
-    reference = CommandReference.new("N9K-C9396PX")
+    reference = CommandReference.new('N9K-C9396PX')
     assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
     assert(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
@@ -193,7 +191,7 @@ feature:
   end
 
   def test_load_n7k
-    reference = CommandReference.new("N7K-C7010")
+    reference = CommandReference.new('N7K-C7010')
     assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
     assert(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
@@ -201,7 +199,7 @@ feature:
   end
 
   def test_load_n3k_3064
-    reference = CommandReference.new("N3K-C3064PQ-10GE")
+    reference = CommandReference.new('N3K-C3064PQ-10GE')
     assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
     refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })

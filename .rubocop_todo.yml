@@ -52,48 +52,18 @@ Style/AccessorMethodName:
     - 'tests/test_interface_switchport.rb'
     - 'tests/test_tacacs_server.rb'
 
-# Offense count: 103
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/AlignParameters:
-  Exclude:
-    - 'lib/cisco_node_utils/cisco_cmn_utils.rb'
-    - 'lib/cisco_node_utils/interface.rb'
-    - 'lib/cisco_node_utils/interface_ospf.rb'
-    - 'lib/cisco_node_utils/node.rb'
-    - 'lib/cisco_node_utils/snmpuser.rb'
-    - 'lib/cisco_node_utils/tacacs_server.rb'
-    - 'lib/cisco_node_utils/tacacs_server_host.rb'
-    - 'lib/cisco_node_utils/vlan.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_node_ext.rb'
-    - 'tests/test_platform.rb'
-    - 'tests/test_router_ospf.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpuser.rb'
 
-# Offense count: 62
-# Cop supports --auto-correct.
+# Offense count: 60
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/AndOr:
   Enabled: false
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/BlockComments:
-  Exclude:
-    - 'tests/test_command_reference.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_switchport.rb'
-
-# Offense count: 93
-# Cop supports --auto-correct.
+# Offense count: 83
 # Configuration parameters: EnforcedStyle, SupportedStyles, ProceduralMethods, FunctionalMethods, IgnoredMethods.
 Style/BlockDelimiters:
   Enabled: false
 
 # Offense count: 12
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/BracesAroundHashParameters:
   Exclude:
@@ -105,19 +75,6 @@ Style/BracesAroundHashParameters:
 Style/CaseEquality:
   Exclude:
     - 'lib/cisco_node_utils/configparser_lib.rb'
-
-# Offense count: 7
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/ClassCheck:
-  Exclude:
-    - 'lib/cisco_node_utils/configparser_lib.rb'
-    - 'lib/cisco_node_utils/node.rb'
-
-# Offense count: 59
-# Cop supports --auto-correct.
-Style/ClassMethods:
-  Enabled: false
 
 # Offense count: 64
 Style/ClassVars:
@@ -131,27 +88,6 @@ Style/Documentation:
 Style/DoubleNegation:
   Exclude:
     - 'lib/cisco_node_utils/snmpuser.rb'
-
-# Offense count: 29
-# Cop supports --auto-correct.
-# Configuration parameters: AllowForAlignment.
-Style/ExtraSpacing:
-  Exclude:
-    - 'docs/template-feature.rb'
-    - 'docs/template-router.rb'
-    - 'docs/template-test_router.rb'
-    - 'lib/cisco_node_utils/cisco_cmn_utils.rb'
-    - 'lib/cisco_node_utils/configparser_lib.rb'
-    - 'lib/cisco_node_utils/interface.rb'
-    - 'lib/cisco_node_utils/platform.rb'
-    - 'lib/cisco_node_utils/router_ospf.rb'
-    - 'tests/test_command_config.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_platform.rb'
-    - 'tests/test_router_ospf.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpuser.rb'
 
 # Offense count: 5
 # Configuration parameters: EnforcedStyle, SupportedStyles.
@@ -170,57 +106,6 @@ Style/GuardClause:
     - 'lib/cisco_node_utils/tacacs_server_host.rb'
     - 'tests/basetest.rb'
     - 'tests/test_yum.rb'
-
-# Offense count: 171
-# Cop supports --auto-correct.
-# Configuration parameters: SupportedStyles, UseHashRocketsWithSymbolValues.
-Style/HashSyntax:
-  EnforcedStyle: hash_rockets
-
-# Offense count: 27
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/IndentationConsistency:
-  Exclude:
-    - 'tests/test_interface.rb'
-    - 'tests/test_snmpuser.rb'
-
-# Offense count: 40
-# Cop supports --auto-correct.
-# Configuration parameters: Width.
-Style/IndentationWidth:
-  Enabled: false
-
-# Offense count: 20
-# Cop supports --auto-correct.
-Style/LineEndConcatenation:
-  Exclude:
-    - 'lib/cisco_node_utils/cisco_cmn_utils.rb'
-    - 'lib/cisco_node_utils/interface.rb'
-    - 'lib/cisco_node_utils/node.rb'
-    - 'tests/test_command_config.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_yum.rb'
-
-# Offense count: 79
-# Cop supports --auto-correct.
-Style/MethodCallParentheses:
-  Exclude:
-    - 'docs/template-test_feature.rb'
-    - 'docs/template-test_router.rb'
-    - 'lib/cisco_node_utils/configparser_lib.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_interface_svi.rb'
-    - 'tests/test_interface_switchport.rb'
-    - 'tests/test_router_ospf.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpcommunity.rb'
-    - 'tests/test_snmpgroup.rb'
-    - 'tests/test_snmpuser.rb'
-    - 'tests/test_vlan.rb'
-    - 'tests/test_vtp.rb'
 
 # Offense count: 10
 # Configuration parameters: EnforcedStyle, SupportedStyles.
@@ -248,7 +133,6 @@ Style/Next:
     - 'tests/test_vlan.rb'
 
 # Offense count: 24
-# Cop supports --auto-correct.
 Style/Not:
   Exclude:
     - 'lib/cisco_node_utils/command_reference.rb'
@@ -259,17 +143,6 @@ Style/Not:
     - 'lib/cisco_node_utils/tacacs_server.rb'
     - 'lib/cisco_node_utils/tacacs_server_host.rb'
     - 'lib/cisco_node_utils/vtp.rb'
-
-# Offense count: 17
-# Cop supports --auto-correct.
-Style/NumericLiterals:
-  MinDigits: 7
-
-# Offense count: 9
-# Cop supports --auto-correct.
-Style/ParallelAssignment:
-  Exclude:
-    - 'lib/cisco_node_utils/router_ospf_vrf.rb'
 
 # Offense count: 1
 # Configuration parameters: NamePrefix, NamePrefixBlacklist.
@@ -283,67 +156,7 @@ Style/RaiseArgs:
   Enabled: false
 
 # Offense count: 3
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles, AllowInnerSlashes.
 Style/RegexpLiteral:
   Exclude:
     - 'tests/test_interface.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
-Style/RescueEnsureAlignment:
-  Enabled: false
-
-# Offense count: 112
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SignalException:
-  Enabled: false
-
-# Offense count: 69
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleInsidePipes, SupportedStyles.
-Style/SpaceAroundBlockParameters:
-  Exclude:
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_interface_switchport.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpuser.rb'
-    - 'tests/test_vlan.rb'
-    - 'tests/test_vtp.rb'
-
-# Offense count: 37
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SpaceAroundEqualsInParameterDefault:
-  Enabled: false
-
-# Offense count: 108
-# Cop supports --auto-correct.
-# Configuration parameters: MultiSpaceAllowedForOperators.
-Style/SpaceAroundOperators:
-  Exclude:
-    - 'lib/cisco_node_utils/node.rb'
-    - 'lib/cisco_node_utils/snmpuser.rb'
-    - 'tests/test_command_config.rb'
-    - 'tests/test_interface.rb'
-    - 'tests/test_interface_ospf.rb'
-    - 'tests/test_interface_svi.rb'
-    - 'tests/test_interface_switchport.rb'
-    - 'tests/test_router_ospf.rb'
-    - 'tests/test_router_ospf_vrf.rb'
-    - 'tests/test_snmpcommunity.rb'
-    - 'tests/test_snmpserver.rb'
-
-# Offense count: 2603
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/StringLiterals:
-  Enabled: false
-
-# Offense count: 18
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/StringLiteralsInInterpolation:
-  Enabled: false
