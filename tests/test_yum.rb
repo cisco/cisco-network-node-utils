@@ -15,32 +15,35 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/yum', __FILE__)
 
+# TestYum - Minitest for Yum node utility class
 class TestYum < CiscoTestCase
+  # rubocop:disable Style/ClassVars
   @@skip = false
   @@run_setup = true
   @@pkg = 'n9000_sample'
   @@pkg_ver = '1.0.0-7.0.3'
   @@pkg_filename = 'n9000_sample-1.0.0-7.0.3.x86_64.rpm'
+  # rubocop:enable Style/ClassVars
 
   def setup
     super
     # only run check once (can't use initialize because @device isn't ready)
-    if @@run_setup
-      s = @device.cmd("show file bootflash:#{@@pkg_filename} cksum")
-      if s[/No such file/]
-        @@skip = true
-      else
-        # add pkg to the repo
-        # normally this could be accomplished by first installing via full path
-        # but that would make these tests order dependent
-        unless @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-          @device.cmd("install add bootflash:#{@@pkg_filename}")
-          # Wait for install to complete
-          sleep 30
-        end
+    return unless @@run_setup
+
+    s = @device.cmd("show file bootflash:#{@@pkg_filename} cksum")
+    if s[/No such file/]
+      @@skip = true # rubocop:disable Style/ClassVars
+    else
+      # add pkg to the repo
+      # normally this could be accomplished by first installing via full path
+      # but that would make these tests order dependent
+      unless @device.cmd("show install package | include #{@@pkg}")[/@patching/]
+        @device.cmd("install add bootflash:#{@@pkg_filename}")
+        # Wait for install to complete
+        sleep 30
       end
-      @@run_setup = false
     end
+    @@run_setup = false # rubocop:disable Style/ClassVars
   end
 
   def skip?
@@ -84,12 +87,12 @@ class TestYum < CiscoTestCase
   end
 
   def test_package_does_not_exist_error
-    assert_raises(Cisco::CliError) {
+    assert_raises(Cisco::CliError) do
       Yum.install('bootflash:this_is_not_real.rpm', 'management')
-    }
-    assert_raises(RuntimeError) {
+    end
+    assert_raises(RuntimeError) do
       Yum.install('also_not_real', 'management')
-    }
+    end
   end
 
   def test_query

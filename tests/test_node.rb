@@ -21,6 +21,7 @@ include Cisco
 
 Node.lazy_connect = true # we'll specify the connection info later
 
+# TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
   end

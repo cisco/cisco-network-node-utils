@@ -19,14 +19,15 @@ DEFAULT_SNMP_USER_AUTH_PASSWORD = ''
 DEFAULT_SNMP_USER_PRIV_PASSWORD = ''
 DEFAULT_SNMP_USER_GROUP_NAME = 'network-operator'
 
+# TestSnmpUser - Minitest for SnmpUser node utility class
 class TestSnmpUser < CiscoTestCase
-  @@existing_users = nil
+  @@existing_users = nil # rubocop:disable Style/ClassVars
 
   def setup
     super
     @test_users = []
     # Get the list of users that exist on the node when we first begin
-    @@existing_users ||= SnmpUser.users.keys
+    @@existing_users ||= SnmpUser.users.keys # rubocop:disable Style/ClassVars
   end
 
   def create_user(name, opts='')
@@ -43,9 +44,7 @@ class TestSnmpUser < CiscoTestCase
   def teardown
     unless @test_users.empty?
       @device.cmd('configure t')
-      @test_users.each { |name|
-        @device.cmd("no snmp-server user #{name}")
-      }
+      @test_users.each { |name| @device.cmd("no snmp-server user #{name}") }
       @device.cmd('end')
       node.cache_flush
     end
@@ -57,7 +56,7 @@ class TestSnmpUser < CiscoTestCase
       node.cache_flush
       delta = SnmpUser.users.keys - @@existing_users
     end
-    @@existing_users = SnmpUser.users.keys
+    @@existing_users = SnmpUser.users.keys # rubocop:disable Style/ClassVars
     assert_empty(delta, 'Users not deleted after test!')
   end
 
@@ -118,7 +117,7 @@ class TestSnmpUser < CiscoTestCase
 
     found_tester = false
     found_tester2 = false
-    snmpusers.each_value { |snmpuser|
+    snmpusers.each_value do |snmpuser|
       if snmpuser.name == 'tester'
         assert_equal('22:22:22:22:23:22', snmpuser.engine_id)
         destroy_user(snmpuser)
@@ -128,7 +127,7 @@ class TestSnmpUser < CiscoTestCase
         destroy_user(snmpuser)
         found_tester2 = true
       end
-    }
+    end
     assert(found_tester)
     assert(found_tester2)
   end

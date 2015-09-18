@@ -19,6 +19,7 @@ require File.expand_path('../../lib/cisco_node_utils/router_ospf', __FILE__)
 
 include Cisco
 
+# TestInterfaceOspf - Minitest for InterfaceOspf node utility class.
 class TestInterfaceOspf < CiscoTestCase
   def routerospf_router_destroy(router)
     router.destroy
@@ -45,9 +46,9 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def interfaceospf_interfaces_destroy(interfaces)
-    interfaces.each_value { |interface|
+    interfaces.each_value do |interface|
       interfaceospf_interface_destroy(interface)
-    }
+    end
   end
 
   def get_interfaceospf_match_line(name, pattern)
@@ -617,11 +618,10 @@ class TestInterfaceOspf < CiscoTestCase
     # clean up port channel
     ospf_h.each_value do |v|
       v.each_key do |k1|
-        unless (/^port-channel\d/).match(k1.to_s).nil?
-          @device.cmd('configure terminal')
-          @device.cmd("no interface #{k1}")
-          @device.cmd('end')
-        end
+        next if (/^port-channel\d/).match(k1.to_s).nil?
+        @device.cmd('configure terminal')
+        @device.cmd("no interface #{k1}")
+        @device.cmd('end')
       end # v each
     end # ospf_h each
     node.cache_flush

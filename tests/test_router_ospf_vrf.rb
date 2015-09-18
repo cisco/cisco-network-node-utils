@@ -16,6 +16,7 @@ require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/router_ospf', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/router_ospf_vrf', __FILE__)
 
+# TestRouterOspfVrf - Minitest for RouterOspfVrf node utility class
 class TestRouterOspfVrf < CiscoTestCase
   def setup
     # Disable feature ospf before each test to ensure we
@@ -35,9 +36,7 @@ class TestRouterOspfVrf < CiscoTestCase
   # @option vrfs [Cisco::RouterOspfVrf] list of objects
   # @option routername [String] ospf instance name
   def ospf_vrfs_destroy(vrfs, routername)
-    vrfs[routername].each_value { |vrf|
-      vrf.destroy if vrf.name != 'default'
-    }
+    vrfs[routername].each_value { |vrf| vrf.destroy if vrf.name != 'default' }
   end
 
   def get_routerospfvrf_match_line(router, vrfname)

@@ -15,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/snmpserver', __FILE__)
 
+# TestSnmpServer - Minitest for SnmpServer node utility
 class TestSnmpServer < CiscoTestCase
   DEFAULT_SNMP_SERVER_AAA_USER_CACHE_TIMEOUT = 3600
   DEFAULT_SNMP_SERVER_LOCATION = ''

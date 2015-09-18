@@ -54,10 +54,12 @@ module CommandReference
     attr_reader :sources
     attr_reader :hash
 
+    # rubocop:disable Style/ClassVars
     @@keys = %w(default_value
                 config_set config_set_append
                 config_get config_get_token config_get_token_append
                 test_config_get test_config_get_regex test_config_result)
+    # rubocop:enable Style/ClassVars
 
     def initialize(feature, name, ref, source)
       fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
@@ -72,7 +74,7 @@ module CommandReference
 
     # Overwrite values from more specific references.
     def merge(values, file)
-      values.each { |key, value|
+      values.each do |key, value|
         unless @@keys.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
@@ -87,7 +89,7 @@ module CommandReference
         else
           @hash[key] = value
         end
-      }
+      end
       @sources << file
     end
 
@@ -99,7 +101,7 @@ module CommandReference
       # then leave value untouched.
       # If value is a string and the first letter is uppercase this indicates
       # that it could be a constant in Ruby so attempt to convert it to a Constant.
-      if value.is_a?(String) and not value.empty?
+      if value.is_a?(String) && !value.empty?
         if value[0].chr == value[0].chr.upcase
           value = Object.const_get(value) if Object.const_defined?(value)
         end
@@ -126,30 +128,25 @@ module CommandReference
     def to_s
       str = ''
       str << "Command: #{@feature} #{@name}\n"
-      @hash.each { |key, value|
-        str << "  #{key}: #{value}\n"
-      }
+      @hash.each { |key, value| str << "  #{key}: #{value}\n" }
       str
     end
 
     # Check that all necessary values have been populated.
     def valid?
-      return false unless @feature and @name
+      return false unless @feature && @name
       true
     end
   end
 
   # Builds reference hash for the platform specified in the product id.
   class CommandReference
-    @@debug = false
-
-    def self.debug
-      @@debug
-    end
+    attr_reader :debug
+    @debug = false
 
     def self.debug=(value)
-      fail ArgumentError, 'Debug must be boolean' unless value == true or value == false
-      @@debug = value
+      fail ArgumentError, 'Debug must be boolean' unless value == true || value == false
+      @debug = value
     end
 
     attr_reader :files, :product_id
@@ -183,9 +180,9 @@ module CommandReference
                                             'command_reference_n3064.yaml')),
         ]
         # Build array
-        platforms.each { |reference|
+        platforms.each do |reference|
           @files << reference.file if reference.match(@product_id)
-        }
+        end
       end
 
       build_cmd_ref
@@ -200,19 +197,19 @@ module CommandReference
 
       reference_yaml = {}
 
-      @files.each { |file|
+      @files.each do |file|
         debug "Processing file '#{file}'"
         reference_yaml = load_yaml(file)
 
-        reference_yaml.each { |feature, names|
-          if names.nil? or names.empty?
+        reference_yaml.each do |feature, names|
+          if names.nil? || names.empty?
             fail "No names under feature #{feature}: #{names}"
           elsif @hash[feature].nil?
             @hash[feature] = {}
           else
             debug "  Merging feature '#{feature}' retrieved from '#{file}'."
           end
-          names.each { |name, values|
+          names.each do |name, values|
             debug "  Processing feature '#{feature}' name '#{name}'"
             if @hash[feature][name].nil?
               begin
@@ -224,9 +221,9 @@ module CommandReference
               debug "  Merging feature '#{feature}' name '#{name}' from '#{file}'."
               @hash[feature][name].merge(values, file)
             end
-          }
-        }
-      }
+          end
+        end
+      end
 
       fail 'Missing values in CommandReference.' unless valid?
     end
@@ -249,14 +246,14 @@ module CommandReference
 
     # Print debug statements
     def debug(text)
-      puts "DEBUG: #{text}" if @@debug
+      puts "DEBUG: #{text}" if @debug
     end
 
-    def is_mapping?(node)
+    def mapping?(node)
       # Need to handle both Syck::Map and Psych::Nodes::Mapping
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }
     end
-    private :is_mapping?
+    private :mapping?
 
     def get_keys_values_from_map(node)
       if node.class.ancestors.any? { |name| /Psych/ =~ name.to_s }
@@ -285,7 +282,7 @@ module CommandReference
     # @param depth Depth into the node tree
     # @param parents String describing parents of this node, for messages
     def validate_yaml(node, filename, depth=0, parents=nil)
-      return unless node and (is_mapping?(node) or node.children)
+      return unless node && (mapping?(node) || node.children)
       # Psych wraps everything in a Document instance, while
       # Syck does not. To keep the "depth" counting consistent,
       # we need to ignore Documents.
@@ -293,10 +290,10 @@ module CommandReference
       debug "Validating #{node.class} at depth #{depth}"
 
       # No special validation for non-mapping nodes - just recurse
-      unless is_mapping?(node)
-        node.children.each { |child|
+      unless mapping?(node)
+        node.children.each do |child|
           validate_yaml(child, filename, depth, parents)
-        }
+        end
         return
       end
 
@@ -332,7 +329,7 @@ module CommandReference
       if depth == 1
         last_key = nil
         key_arr.each do |key|
-          if last_key and key < last_key
+          if last_key && key < last_key
             raise RuntimeError, "features out of order (#{last_key} > #{key})"
           end
           last_key = key
@@ -388,13 +385,13 @@ module CommandReference
     # Check that all resources were pulled in correctly.
     def valid?
       complete_status = true
-      @hash.each_value { |names|
-        names.each_value { |ref|
+      @hash.each_value do |names|
+        names.each_value do |ref|
           status = ref.valid?
           debug "Reference does not contain all supported values:\n#{ref}" unless status
-          complete_status = (status and complete_status)
-        }
-      }
+          complete_status = (status && complete_status)
+        end
+      end
       complete_status
     end
 

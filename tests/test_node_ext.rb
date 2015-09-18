@@ -14,10 +14,10 @@
 
 require File.expand_path('../ciscotest', __FILE__)
 
+# TestNodeExt - Minitest for abstracted Node APIs
 class TestNodeExt < CiscoTestCase
-  # Test cases for abstracted Node APIs
-
-  @@show_run_ospf = "\
+  def show_run_ospf
+    "\
 router ospf foo
  vrf red
   log-adjacency-changes
@@ -29,9 +29,10 @@ router ospf bar
 !
 router ospf baz
  log-adjacency-changes detail"
+  end
 
   def test_node_find_subconfig
-    result = find_subconfig(@@show_run_ospf, /router ospf bar/)
+    result = find_subconfig(show_run_ospf, /router ospf bar/)
     assert_equal("\
 log-adjacency-changes
 vrf red
@@ -50,21 +51,21 @@ vrf blue",
   def test_node_find_ascii
     # Find an entry in the parent submode, ignoring nested submodes
     assert_equal(['log-adjacency-changes'],
-                 find_ascii(@@show_run_ospf, /^log-adjacency-changes.*$/,
+                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
                             /router ospf bar/))
     # Find an entry in a nested submode
     assert_equal(['log-adjacency-changes detail'],
-                 find_ascii(@@show_run_ospf, /^log-adjacency-changes.*$/,
+                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
                             /router ospf bar/, /vrf red/))
     # Submode exists but does not have a match
-    assert_nil(find_ascii(@@show_run_ospf, /^log-adjacency-changes.*$/,
+    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
                           /router ospf bar/, /vrf blue/))
     # Submode does not exist
-    assert_nil(find_ascii(@@show_run_ospf, /^log-adjacency-changes.*$/,
+    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
                           /router ospf bar/, /vrf green/))
 
     # Entry exists in submode only
-    assert_nil(find_ascii(@@show_run_ospf, /^log-adjacency-changes.*$/,
+    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
                           /router ospf foo/))
   end
 

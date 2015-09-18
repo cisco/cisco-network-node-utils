@@ -1,6 +1,3 @@
-#
-# NXAPI implementation of RouterOspf class
-#
 # November 2014, Chris Van Heuveln
 #
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
@@ -17,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-  class RouterOspf
+  # RouterOspf - node utility class for process-level OSPF config management
+  class RouterOspf < NodeUtil
     attr_reader :name
-
-    @@node = Cisco::Node.instance
 
     def initialize(name, instantiate=true)
       fail ArgumentError unless name.length > 0
@@ -34,7 +30,7 @@ module Cisco
 
     # Create a hash of all router ospf instances
     def self.routers
-      ospf_ids = @@node.config_get('ospf', 'router')
+      ospf_ids = config_get('ospf', 'router')
       return {} if ospf_ids.nil?
 
       hash = {}
@@ -49,8 +45,8 @@ module Cisco
     end
 
     def self.enabled
-      feat = @@node.config_get('ospf', 'feature')
-      return (!feat.nil? and !feat.empty?)
+      feat = config_get('ospf', 'feature')
+      return (!feat.nil? && !feat.empty?)
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -58,11 +54,11 @@ module Cisco
     end
 
     def self.enable(state='')
-      @@node.config_set('ospf', 'feature', state)
+      config_set('ospf', 'feature', state)
     end
 
     def ospf_router(name, state='')
-      @@node.config_set('ospf', 'router', state, name)
+      config_set('ospf', 'router', state, name)
     end
 
     def enable_create_router_ospf(name)
@@ -81,7 +77,7 @@ module Cisco
 
     # Destroy one router ospf instance
     def destroy
-      ospf_ids = @@node.config_get('ospf', 'router')
+      ospf_ids = config_get('ospf', 'router')
       return if ospf_ids.nil?
       if ospf_ids.size == 1
         RouterOspf.enable('no')
