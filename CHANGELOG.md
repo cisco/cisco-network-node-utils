@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.1
+-----
+
+* Updated to fix broken documentation links.
+
 1.0.0
 -----
 
