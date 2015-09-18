@@ -4,8 +4,12 @@ Changelog
 Unreleased
 ----------
 
-* Fixed broken documentation links.
 * Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
+
+1.0.1
+-----
+
+* Updated to fix broken documentation links.
 
 1.0.0
 -----
