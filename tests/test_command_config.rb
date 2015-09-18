@@ -32,6 +32,7 @@ def load_yaml(test_type=:positive)
   YAML.load(File.read(path))
 end
 
+# TestCommandConfig - Minitest for ConfigParser module
 class TestCommandConfig < CiscoTestCase
   include ConfigParser
 

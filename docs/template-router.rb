@@ -1,6 +1,3 @@
-#
-# NXAPI implementation of X__CLASS_NAME__X class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-  class X__CLASS_NAME__X
+  # X__CLASS_NAME__X - node utility class for X__CLASS_NAME__X config management.
+  class X__CLASS_NAME__X < NodeUtil
     attr_reader :name
-
-    # Establish connection to node
-    @@node = Cisco::Node.instance
 
     # name: name of the router instance
     # instantiate: true = create router instance
@@ -34,7 +29,7 @@ module Cisco
 
     # Create a hash of all current router instances.
     def self.routers
-      instances = @@node.config_get('X__RESOURCE_NAME__X', 'router')
+      instances = config_get('X__RESOURCE_NAME__X', 'router')
       return {} if instances.nil?
       hash = {}
       instances.each do |name|
@@ -42,14 +37,14 @@ module Cisco
       end
       return hash
     rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
+      # CLI will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
       return {}
     end
 
     def feature_enabled
-      feat = @@node.config_get('X__RESOURCE_NAME__X', 'feature')
-      return (!feat.nil? and !feat.empty?)
+      feat = config_get('X__RESOURCE_NAME__X', 'feature')
+      return !(feat.nil? || feat.empty?)
     rescue Cisco::CliError => e
       # This cmd will syntax reject if feature is not
       # enabled. Just catch the reject and return false.
@@ -58,11 +53,11 @@ module Cisco
     end
 
     def feature_enable
-      @@node.config_set('X__RESOURCE_NAME__X', 'feature', { state: '' })
+      config_set('X__RESOURCE_NAME__X', 'feature', state: '')
     end
 
     def feature_disable
-      @@node.config_set('X__RESOURCE_NAME__X', 'feature', { state: 'no' })
+      config_set('X__RESOURCE_NAME__X', 'feature', state: 'no')
     end
 
     # Enable feature and create router instance
@@ -73,7 +68,7 @@ module Cisco
 
     # Destroy a router instance; disable feature on last instance
     def destroy
-      ids = @@node.config_get('X__RESOURCE_NAME__X', 'router')
+      ids = config_get('X__RESOURCE_NAME__X', 'router')
       return if ids.nil?
       if ids.size == 1
         feature_disable
@@ -81,12 +76,12 @@ module Cisco
         X__RESOURCE_NAME__X_router('no')
       end
     rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
+      # CLI will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
     end
 
     def X__RESOURCE_NAME__X_router(state='')
-      @@node.config_set('X__RESOURCE_NAME__X', 'router', { name: @name, state: state })
+      config_set('X__RESOURCE_NAME__X', 'router', name: @name, state: state)
     end
 
     # ----------
@@ -95,31 +90,31 @@ module Cisco
 
     # Property methods for boolean property
     def default_X__PROPERTY_BOOL__X
-      @@node.config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X')
+      config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X')
     end
 
     def X__PROPERTY_BOOL__X
-      state = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', { name: @name })
+      state = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', name: @name)
       state ? true : false
     end
 
     def X__PROPERTY_BOOL__X=(state)
       state = (state ? '' : 'no')
-      @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', { name: @name, state: state })
+      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', name: @name, state: state)
     end
 
     # Property methods for integer property
     def default_X__PROPERTY_INT__X
-      @@node.config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X')
+      config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X')
     end
 
     def X__PROPERTY_INT__X
-      val = @@node.config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', { name: @name })
+      val = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', name: @name)
       val.nil? ? default_X__PROPERTY_INT__X : val.first.to_i
     end
 
     def X__PROPERTY_INT__X=(val)
-      @@node.config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', { name: @name, val: val })
+      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', name: @name, val: val)
     end
   end
 end

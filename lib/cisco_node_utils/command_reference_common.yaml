@@ -452,6 +452,15 @@ inventory:
     config_get: "show inventory"
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
 
+nameserver:
+  all_nameservers:
+    config_get: 'show hosts'
+    config_get_token: '/Name servers.* (\S+)$/'
+  create:
+    config_set: 'ip name-server %s'
+  destroy:
+    config_set: "no ip name-server %s"
+
 memory:
   total:
     config_get: 'show system resources'

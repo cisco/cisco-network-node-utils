@@ -96,33 +96,31 @@ This is the completed bash_shell API based on `template-feature.rb`:
 
 ```ruby
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
+
 module Cisco
-# Class name syntax will typically be the resource name in camelCase
-# format; for example: 'tacacs server host' becomes TacacsServerHost.
-class BashShell
-  # Establish connection to node
-  @@node = Cisco::Node.instance
+  # Class name syntax will typically be the resource name in camelCase
+  # format; for example: 'tacacs server host' becomes TacacsServerHost.
+  class BashShell
+    def feature_enable
+      config_set('bash_shell', 'feature', state: '')
+    end
 
-  def feature_enable
-    @@node.config_set('bash_shell', 'feature', { :state => '' })
-  end
+    def feature_disable
+      config_set('bash_shell', 'feature', state: 'no' )
+    end
 
-  def feature_disable
-    @@node.config_set('bash_shell', 'feature', { :state => 'no' })
+    # Check current state of the configuration
+    def self.feature_enabled
+      feat = config_get('bash_shell', 'feature')
+      return !(feat.nil? || feat.empty?)
+    rescue Cisco::CliError => e
+      # This cmd will syntax reject if feature is not
+      # enabled. Just catch the reject and return false.
+      return false if e.clierror =~ /Syntax error/
+      raise
+    end
   end
-
-  # Check current state of the configuration
-  def BashShell.feature_enabled
-    feat =  @@node.config_get('bash_shell', 'feature')
-    return (!feat.nil? and !feat.empty?)
-  rescue Cisco::CliError => e
-    # This cmd will syntax reject if feature is not
-    # enabled. Just catch the reject and return false.
-    return false if e.clierror =~ /Syntax error/
-    raise
-  end
-end
 end
 ```
 
@@ -153,9 +151,6 @@ cp  docs/template-test_feature.rb  cisco_network_node_utils/tests/test_bash_shel
 This is the completed `bash_shell` minitest based on `template-test_feature.rb`:
 
 ```ruby
-#
-# Minitest for BashShell class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -173,6 +168,7 @@ This is the completed `bash_shell` minitest based on `template-test_feature.rb`:
 require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/bash_shell", __FILE__)
 
+# TestBashShell - Minitest for BashShell node utility class
 class TestBashShell < CiscoTestCase
   def setup
     # setup automatically runs at the beginning of each test
@@ -189,11 +185,11 @@ class TestBashShell < CiscoTestCase
   def no_feature
     # setup/teardown helper. Turn the feature off for a clean testbed.
     @device.cmd('conf t ; no feature bash-shell ; end')
-    node.cache_flush()
+    node.cache_flush
   end
 
   def test_feature_on_off
-    feat = BashShell.new()
+    feat = BashShell.new
     feat.feature_enable
     assert(BashShell.feature_enabled)
 
@@ -240,16 +236,16 @@ Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
 
 *Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
 
-### <a name="lint">Step 4. rubocop / lint: feature bash-shell</a>
+### <a name="lint">Step 4. rubocop: feature bash-shell</a>
 
-rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
+rubocop is a Ruby static analysis tool. Run rubocop to validate the new code:
 
 ```bash
-% rubocop --lint bash_shell.rb
-Inspecting 1 file
-.
+% rubocop lib/cisco_node_utils/bash_shell.rb tests/test_bash_shell.rb
+Inspecting 2 files
+..
 
-1 file inspected, no offenses detected
+2 files inspected, no offenses detected
 ```
 
 ## <a name="complex">Advanced Example: router eigrp</a>
@@ -347,9 +343,6 @@ cp  docs/template-router.rb  cisco_network_node_utils/router_eigrp.rb
 This is the completed `router_eigrp` API based on `template-router.rb`:
 
 ```ruby
-#
-# NXAPI implementation of RouterEigrp class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -364,114 +357,111 @@ This is the completed `router_eigrp` API based on `template-router.rb`:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-class RouterEigrp
-  attr_reader :name
+  # RouterEigrp - node utility class for EIGRP config management.
+  class RouterEigrp < NodeUtil
+    attr_reader :name
 
-  # Establish connection to node
-  @@node = Cisco::Node.instance
-
-  # name: name of the router instance
-  # instantiate: true = create router instance
-  def initialize(name, instantiate=true)
-    raise ArgumentError unless name.length > 0
-    @name = name
-    create if instantiate
-  end
-
-  # Create a hash of all current router instances.
-  def RouterEigrp.routers
-    instances = @@node.config_get('eigrp', 'router')
-    return {} if instances.nil?
-    hash = {}
-    instances.each do |name|
-      hash[name] = RouterEigrp.new(name, false)
+    # name: name of the router instance
+    # instantiate: true = create router instance
+    def initialize(name, instantiate=true)
+      fail ArgumentError unless name.length > 0
+      @name = name
+      create if instantiate
     end
-    return hash
-  rescue Cisco::CliError => e
-    # cmd will syntax reject when feature is not enabled
-    raise unless e.clierror =~ /Syntax error/
-    return {}
-  end
 
-  def feature_enabled
-    feat =  @@node.config_get('eigrp', 'feature')
-    return (!feat.nil? and !feat.empty?)
-  rescue Cisco::CliError => e
-    # This cmd will syntax reject if feature is not
-    # enabled. Just catch the reject and return false.
-    return false if e.clierror =~ /Syntax error/
-    raise
-  end
-
-  def feature_enable
-    @@node.config_set('eigrp', 'feature', { :state => '' })
-  end
-
-  def feature_disable
-    @@node.config_set('eigrp', 'feature', { :state => 'no' })
-  end
-
-  # Enable feature and create router instance
-  def create
-    feature_enable unless feature_enabled
-    eigrp_router
-  end
-
-  # Destroy a router instance; disable feature on last instance
-  def destroy
-    ids = @@node.config_get('eigrp', 'router')
-    return if ids.nil?
-    if ids.size == 1
-      feature_disable
-    else
-      eigrp_router('no')
+    # Create a hash of all current router instances.
+    def self.routers
+      instances = config_get('eigrp', 'router')
+      return {} if instances.nil?
+      hash = {}
+      instances.each do |name|
+        hash[name] = RouterEigrp.new(name, false)
+      end
+      return hash
+    rescue Cisco::CliError => e
+      # CLI will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
-  rescue Cisco::CliError => e
-    # cmd will syntax reject when feature is not enabled
-    raise unless e.clierror =~ /Syntax error/
+
+    def feature_enabled
+      feat =  config_get('eigrp', 'feature')
+      return !(feat.nil? || feat.empty?)
+    rescue Cisco::CliError => e
+      # This cmd will syntax reject if feature is not
+      # enabled. Just catch the reject and return false.
+      return false if e.clierror =~ /Syntax error/
+      raise
+    end
+
+    def feature_enable
+      config_set('eigrp', 'feature', state: '')
+    end
+
+    def feature_disable
+      config_set('eigrp', 'feature', state: 'no')
+    end
+
+    # Enable feature and create router instance
+    def create
+      feature_enable unless feature_enabled
+      eigrp_router
+    end
+
+    # Destroy a router instance; disable feature on last instance
+    def destroy
+      ids = config_get('eigrp', 'router')
+      return if ids.nil?
+      if ids.size == 1
+        feature_disable
+      else
+        eigrp_router('no')
+      end
+    rescue Cisco::CliError => e
+      # CLI will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+    end
+
+    def eigrp_router(state='')
+      config_set('eigrp', 'router', name: @name, state: state)
+    end
+
+    # ----------
+    # PROPERTIES
+    # ----------
+
+    # Property methods for boolean property
+    def default_shutdown
+      config_get_default('eigrp', 'shutdown')
+    end
+
+    def shutdown
+      state = config_get('eigrp', 'shutdown', name: @name)
+      state ? true : false
+    end
+
+    def shutdown=(state)
+      state = (state ? '' : 'no')
+      config_set('eigrp', 'shutdown', name: @name, state: state)
+    end
+
+    # Property methods for integer property
+    def default_maximum_paths
+      config_get_default('eigrp', 'maximum_paths')
+    end
+
+    def maximum_paths
+      val = config_get('eigrp', 'maximum_paths', name: @name)
+      val.nil? ? default_maximum_paths : val.first.to_i
+    end
+
+    def maximum_paths=(val)
+      config_set('eigrp', 'maximum_paths', name: @name, val: val)
+    end
   end
-
-  def eigrp_router(state='')
-    @@node.config_set('eigrp', 'router', { :name => @name, :state => state })
-  end
-
-  # ----------
-  # PROPERTIES
-  # ----------
-
-  # Property methods for boolean property
-  def default_shutdown
-    @@node.config_get_default('eigrp', 'shutdown')
-  end
-
-  def shutdown
-    state = @@node.config_get('eigrp', 'shutdown', { :name => @name })
-    state ? true : false
-  end
-
-  def shutdown=(state)
-    state = (state ? '' : 'no')
-    @@node.config_set('eigrp', 'shutdown', { :name => @name, :state => state })
-  end
-
-  # Property methods for integer property
-  def default_maximum_paths
-    @@node.config_get_default('eigrp', 'maximum_paths')
-  end
-
-  def maximum_paths
-    val = @@node.config_get('eigrp', 'maximum_paths', { :name => @name })
-    val.nil? ? default_maximum_paths : val.first.to_i
-  end
-
-  def maximum_paths=(val)
-    @@node.config_set('eigrp', 'maximum_paths', { :name => @name, :val => val })
-  end
-
-end
 end
 ```
 
@@ -504,9 +494,6 @@ cp  docs/template-test_router.rb  cisco_network_node_utils/tests/test_router_eig
 This is the completed `test_router_eigrp` minitest based on `template-test_router.rb`:
 
 ```ruby
-#
-# Minitest for RouterEigrp class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -524,6 +511,7 @@ This is the completed `test_router_eigrp` minitest based on `template-test_route
 require File.expand_path("../ciscotest", __FILE__)
 require File.expand_path("../../lib/cisco_node_utils/router_eigrp", __FILE__)
 
+# TestRouterEigrp - Minitest for RouterEigrp node utility class
 class TestRouterEigrp < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
@@ -539,14 +527,14 @@ class TestRouterEigrp < CiscoTestCase
 
   def no_feature_eigrp
     # Turn the feature off for a clean test.
-    @device.cmd("conf t ; no feature eigrp ; end")
-    node.cache_flush()
+    @device.cmd('conf t ; no feature eigrp ; end')
+    node.cache_flush
   end
 
   # TESTS
 
   def test_router_create_destroy_one
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
     s = @device.cmd("show runn | i 'router eigrp #{id}'")
     assert_match(s, /^router eigrp #{id}$/,
@@ -563,9 +551,9 @@ class TestRouterEigrp < CiscoTestCase
   end
 
   def test_router_create_destroy_multiple
-    id1 = "blue"
+    id1 = 'blue'
     rtr1 = RouterEigrp.new(id1)
-    id2 = "red"
+    id2 = 'red'
     rtr2 = RouterEigrp.new(id2)
 
     s = @device.cmd("show runn | i 'router eigrp'")
@@ -588,26 +576,26 @@ class TestRouterEigrp < CiscoTestCase
   end
 
   def test_router_maximum_paths
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
-    val = 5   # This value depends on property bounds
+    val = 5 # This value depends on property bounds
     rtr.maximum_paths = val
     assert_equal(rtr.maximum_paths, val, "maximum_paths is not #{val}")
 
     # Get default value from yaml
-    val = node.config_get_default("eigrp", "maximum_paths")
+    val = node.config_get_default('eigrp', 'maximum_paths')
     rtr.maximum_paths = val
     assert_equal(rtr.maximum_paths, val, "maximum_paths is not #{val}")
   end
 
   def test_router_shutdown
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
     rtr.shutdown = true
-    assert(rtr.shutdown, "shutdown state is not true")
+    assert(rtr.shutdown, 'shutdown state is not true')
 
     rtr.shutdown = false
-    refute(rtr.shutdown, "shutdown state is not false")
+    refute(rtr.shutdown, 'shutdown state is not false')
   end
 end
 ```
@@ -642,16 +630,16 @@ Finished tests in 37.512356s, 0.1866 tests/s, 0.3199 assertions/s.
 7 tests, 12 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### <a name="comp_lint">Step 4. rubocop / lint: router eigrp</a>
+### <a name="comp_lint">Step 4. rubocop: router eigrp</a>
 
-rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
+rubocop is a Ruby static analysis tool. Run rubocop to validate the new code:
 
 ```bash
-% rubocop --lint router_eigrp.rb
-Inspecting 1 file
-.
+% rubocop lib/cisco_node_utils/router_eigrp.rb tests/test_router_eigrp.rb
+Inspecting 2 file
+..
 
-1 file inspected, no offenses detected
+2 file inspected, no offenses detected
 ```
 
 ## Conclusion

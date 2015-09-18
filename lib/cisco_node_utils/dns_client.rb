@@ -1,7 +1,7 @@
 #
-# NXAPI implementation of SnmpGroup class
+# NXAPI implementation of DnsClient class
 #
-# February 2015, Chris Van Heuveln
+# September 2015, Hunter Haugen
 #
 # Copyright (c) 2015 Cisco and/or its affiliates.
 #
@@ -21,34 +21,38 @@
 # purpose of group; thus this provider utility does not create snmp groups
 # and is limited to reporting group (role) existence only.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require File.join(File.dirname(__FILE__), 'node')
 
 module Cisco
-  # SnmpGroup - node utility class for SNMP group configuration management
-  class SnmpGroup < NodeUtil
+  class DnsClient
     attr_reader :name
 
-    def initialize(name)
+    @@node = Cisco::Node.instance
+
+    def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
       @name = name
+      create if instantiate
     end
 
-    def self.groups
-      group_ids = config_get('snmp_group', 'group')
-      return {} if group_ids.nil?
+    def self.nameservers
+      hosts = @@node.config_get('nameserver','all_nameservers')
+      return {} if hosts.nil?
 
       hash = {}
-      group_ids.each do |name|
-        hash[name] = SnmpGroup.new(name)
+      hosts.each do |name|
+        hash[name] = name
+        hash[name] = self.new(name, false)
       end
       hash
     end
 
-    def self.exists?(group)
-      fail ArgumentError if group.empty?
-      fail TypeError unless group.is_a? String
-      groups = config_get('snmp_group', 'group')
-      (!groups.nil? && groups.include?(group))
+    def create
+      @@node.config_set('nameserver', 'create', @name)
+    end
+
+    def destroy
+      @@node.config_set('nameserver', 'destroy', @name)
     end
   end
 end

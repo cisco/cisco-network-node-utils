@@ -1,6 +1,3 @@
-#
-# Minitest for __CLASS_NAME__ class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/router___RESOURCE_NAME__', __FILE__)
 
+# Test__CLASS_NAME__ - Minitest for __CLASS_NAME__ node utility class
 class Test__CLASS_NAME__ < CiscoTestCase
   def setup
     # setup runs at the beginning of each test

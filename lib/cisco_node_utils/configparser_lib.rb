@@ -30,6 +30,7 @@
 
 module Cisco
   module ConfigParser
+    # Configuration class - helper for dealing with config CLI
     class Configuration
       attr_accessor :configuration
 
@@ -178,7 +179,7 @@ module Cisco
       # @return [Boolean] true when command is
       #         'exit' or 'end', else false
       def special_command?(command)
-        (/^(?:exit|end)/ === command)
+        command =~ /^(?:exit|end)/
       end # special_command?
 
       # Fetch ConfigParser::Configuration object containing config_line

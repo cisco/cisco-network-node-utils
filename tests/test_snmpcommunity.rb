@@ -23,6 +23,7 @@ def cleanup_snmpcommunity(community)
   community.destroy
 end
 
+# TestSnmpCommunity - Minitest for SnmpCommunity node utility
 class TestSnmpCommunity < CiscoTestCase
   SNMP_COMMUNITY_NAME_STR = 128
   SNMP_GROUP_NAME_STR = 128
@@ -105,20 +106,14 @@ class TestSnmpCommunity < CiscoTestCase
   end
 
   def test_snmpcommunity_create_name_too_long
-    name = 'co'
-    SNMP_COMMUNITY_NAME_STR.times {
-      name += 'c'
-    }
+    name = 'co' + 'c' * SNMP_COMMUNITY_NAME_STR
     assert_raises(Cisco::CliError) do
       SnmpCommunity.new(name, 'network-operator')
     end
   end
 
   def test_snmpcommunity_create_group_too_long
-    group = 'gr'
-    SNMP_GROUP_NAME_STR.times {
-      group += 'g'
-    }
+    group = 'gr' + 'g' * SNMP_GROUP_NAME_STR
     assert_raises(Cisco::CliError) do
       SnmpCommunity.new('test', group)
     end

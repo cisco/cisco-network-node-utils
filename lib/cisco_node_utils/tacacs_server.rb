@@ -1,5 +1,3 @@
-# TacacsServer provider class
-#
 # Mike Wiebe, January 2015
 #
 # Copyright (c) 2015 Cisco and/or its affiliates.
@@ -16,24 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 
+# Add some TACACS+ server related constants to the Cisco namespace
 module Cisco
   TACACS_SERVER_ENC_NONE = 0
   TACACS_SERVER_ENC_CISCO_TYPE_7 = 7
   TACACS_SERVER_ENC_UNKNOWN = 8
 
-  class TacacsServer
-    @@node = Cisco::Node.instance
-
+  # TacacsServer - node utility class for TACACS+ server config management
+  class TacacsServer < NodeUtil
     def initialize(instantiate=true)
-      enable if instantiate and not TacacsServer.enabled
+      enable if instantiate && !TacacsServer.enabled
     end
 
     # Check feature enablement
     def self.enabled
-      feat = @@node.config_get('tacacs_server', 'feature')
-      return (!feat.nil? and !feat.empty?)
+      feat = config_get('tacacs_server', 'feature')
+      return !(feat.nil? || feat.empty?)
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -42,12 +40,12 @@ module Cisco
 
     # Enable tacacs_server feature
     def enable
-      @@node.config_set('tacacs_server', 'feature', '')
+      config_set('tacacs_server', 'feature', '')
     end
 
     # Disable tacacs_server feature
     def destroy
-      @@node.config_set('tacacs_server', 'feature', 'no')
+      config_set('tacacs_server', 'feature', 'no')
     end
 
     # --------------------
@@ -57,63 +55,67 @@ module Cisco
     # Set timeout
     def timeout=(timeout)
       # 'no tacacs timeout' will fail, just set it to the requested timeout value.
-      @@node.config_set('tacacs_server', 'timeout', '', timeout)
+      config_set('tacacs_server', 'timeout', '', timeout)
     end
 
     # Get timeout
     def timeout
-      match = @@node.config_get('tacacs_server', 'timeout')
+      match = config_get('tacacs_server', 'timeout')
       match.nil? ? TacacsServer.default_timeout : match.first.to_i
     end
 
     # Get default timeout
     def self.default_timeout
-      @@node.config_get_default('tacacs_server', 'timeout')
+      config_get_default('tacacs_server', 'timeout')
     end
 
     # Set deadtime
     def deadtime=(deadtime)
       # 'no tacacs deadtime' will fail, just set it to the requested timeout value.
-      @@node.config_set('tacacs_server', 'deadtime', '', deadtime)
+      config_set('tacacs_server', 'deadtime', '', deadtime)
     end
 
     # Get deadtime
     def deadtime
-      match = @@node.config_get('tacacs_server', 'deadtime')
+      match = config_get('tacacs_server', 'deadtime')
       match.nil? ? TacacsServer.default_deadtime : match.first.to_i
     end
 
     # Get default deadtime
     def self.default_deadtime
-      @@node.config_get_default('tacacs_server', 'deadtime')
+      config_get_default('tacacs_server', 'deadtime')
     end
 
     # Set directed_request
     def directed_request=(state)
       fail TypeError unless state == true || state == false
-      state == TacacsServer.default_directed_request ?
-        @@node.config_set('tacacs_server', 'directed_request', 'no') :
-        @@node.config_set('tacacs_server', 'directed_request', '')
+      if state == TacacsServer.default_directed_request
+        config_set('tacacs_server', 'directed_request', 'no')
+      else
+        config_set('tacacs_server', 'directed_request', '')
+      end
     end
 
     # Check if directed request is enabled
     def directed_request?
-      match = @@node.config_get('tacacs_server', 'directed_request')
+      match = config_get('tacacs_server', 'directed_request')
       return TacacsServer.default_directed_request if match.nil?
       match.first[/^no/] ? false : true
     end
 
     # Get default directed_request
     def self.default_directed_request
-      @@node.config_get_default('tacacs_server', 'directed_request')
+      config_get_default('tacacs_server', 'directed_request')
     end
 
     # Set source interface
     def source_interface=(name)
       fail TypeError unless name.is_a? String
-      name.empty? ?
-        @@node.config_set('tacacs_server', 'source_interface', 'no', '') :
-        @@node.config_set('tacacs_server', 'source_interface', '', name)
+      if name.empty?
+        config_set('tacacs_server', 'source_interface', 'no', '')
+      else
+        config_set('tacacs_server', 'source_interface', '', name)
+      end
     end
 
     # Get source interface
@@ -121,7 +123,7 @@ module Cisco
       # Sample output
       # ip tacacs source-interface Ethernet1/1
       # no tacacs source-interface
-      match = @@node.config_get('tacacs_server', 'source_interface')
+      match = config_get('tacacs_server', 'source_interface')
       return TacacsServer.default_source_interface if match.nil?
       # match_data will contain one of the following
       # [nil, " Ethernet1/1"] or ["no", nil]
@@ -130,29 +132,29 @@ module Cisco
 
     # Get default source interface
     def self.default_source_interface
-      @@node.config_get_default('tacacs_server', 'source_interface')
+      config_get_default('tacacs_server', 'source_interface')
     end
 
     # Get encryption type used for the key
     def encryption_type
-      match = @@node.config_get('tacacs_server', 'encryption_type')
+      match = config_get('tacacs_server', 'encryption_type')
       match.nil? ? TACACS_SERVER_ENC_UNKNOWN : match[0][0].to_i
     end
 
     # Get default encryption type
     def self.default_encryption_type
-      @@node.config_get_default('tacacs_server', 'encryption_type')
+      config_get_default('tacacs_server', 'encryption_type')
     end
 
     # Get encryption password
     def encryption_password
-      match = @@node.config_get('tacacs_server', 'encryption_password')
+      match = config_get('tacacs_server', 'encryption_password')
       match.nil? ? TacacsServer.default_encryption_password : match[0][1]
     end
 
     # Get default encryption password
     def self.default_encryption_password
-      @@node.config_get_default('tacacs_server', 'encryption_password')
+      config_get_default('tacacs_server', 'encryption_password')
     end
 
     # Set encryption type and password
@@ -163,12 +165,12 @@ module Cisco
         # need to unset it. Otherwise the box is not configured with key, we
         # don't need to do anything
         if encryption_type != TACACS_SERVER_ENC_UNKNOWN
-          @@node.config_set('tacacs_server', 'encryption', 'no',
-                            encryption_type,
-                            encryption_password)
+          config_set('tacacs_server', 'encryption', 'no',
+                     encryption_type,
+                     encryption_password)
         end
       else
-        @@node.config_set('tacacs_server', 'encryption', '', enctype, password)
+        config_set('tacacs_server', 'encryption', '', enctype, password)
       end
     end
   end

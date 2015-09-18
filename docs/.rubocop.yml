@@ -2,12 +2,12 @@
 
 inherit_from: ../.rubocop.yml
 
+# The wildcards in the templates make the following cops unhappy. Too bad!
 Style/ClassAndModuleCamelCase:
   Enabled: false
 
 Style/FileName:
   Enabled: false
 
-Metrics/LineLength:
+Style/MethodName:
   Enabled: false
-

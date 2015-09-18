@@ -15,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/router_ospf', __FILE__)
 
+# TestRouterOspf - Minitest for the RouterOspf node utility class.
 class TestRouterOspf < CiscoTestCase
   def routerospf_routers_destroy(routers)
     routers.each_value(&:destroy)
