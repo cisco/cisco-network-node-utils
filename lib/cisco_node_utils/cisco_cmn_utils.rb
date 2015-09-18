@@ -96,12 +96,11 @@ module Cisco
     # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
     # we need to mask the address using the prefix length so that they
     # are converted to '1.1.1.0/24' or '2000:123:38::/64'
-    def Utils.process_network_mask(network)
+    def self.process_network_mask(network)
       mask = network.split('/')[1]
       address = IPAddr.new(network).to_s
       network = address + '/' + mask unless mask.nil?
       network
     end
-
   end # class Utils
 end   # module Cisco

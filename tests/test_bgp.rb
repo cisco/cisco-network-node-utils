@@ -22,7 +22,7 @@ gem 'minitest', '>= 2.5.1', '< 5.0.0'
 require 'minitest/autorun'
 
 # BGP Feature tests - we keep the tests in logical order
-require File.expand_path("../test_router_bgp", __FILE__)
-require File.expand_path("../test_bgp_af", __FILE__)
-require File.expand_path("../test_bgp_neighbor", __FILE__)
-require File.expand_path("../test_bgp_neighbor_af", __FILE__)
+require File.expand_path('../test_router_bgp', __FILE__)
+require File.expand_path('../test_bgp_af', __FILE__)
+require File.expand_path('../test_bgp_neighbor', __FILE__)
+require File.expand_path('../test_bgp_neighbor_af', __FILE__)

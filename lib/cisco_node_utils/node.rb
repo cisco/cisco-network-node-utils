@@ -33,7 +33,8 @@ module Cisco
     attr_reader :command, :clierror, :previous
     def initialize(command, clierror, previous)
       @command = command
-      @clierror = clierror.rstrip
+      @clierror = clierror
+      @clierror = @clierror.rstrip if @clierror.kind_of? String
       @previous = previous
     end
 

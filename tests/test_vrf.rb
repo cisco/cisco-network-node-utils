@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/vrf", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/vrf', __FILE__)
 
 include Cisco
 
@@ -22,73 +22,73 @@ class TestVrf < CiscoTestCase
 
   def setup
     super
-    vrfs=Vrf.vrfs
+    vrfs = Vrf.vrfs
     vrfs.each_value { |vrf|
       if vrf.name =~ /^test_vrf/
-         @device.cmd("conf t")
-         @device.cmd("no vrf context #{vrf.name}")
-         node.cache_flush
+        @device.cmd('conf t')
+        @device.cmd("no vrf context #{vrf.name}")
+        node.cache_flush
       end
     }
   end
 
   def test_vrf_collection_not_empty
     vrfs = Vrf.vrfs
-    refute_empty(vrfs, "VRF collection is empty")
-    assert(vrfs.key?("management"), "VRF management does not exist")
+    refute_empty(vrfs, 'VRF collection is empty')
+    assert(vrfs.key?('management'), 'VRF management does not exist')
   end
 
   def test_vrf_create_and_destroy
-    v = Vrf.new("test_vrf")
+    v = Vrf.new('test_vrf')
     vrfs = Vrf.vrfs
-    assert(vrfs.key?("test_vrf"), "Error: failed to create vrf test_vrf")
+    assert(vrfs.key?('test_vrf'), 'Error: failed to create vrf test_vrf')
 
     v.destroy
     vrfs = Vrf.vrfs
-    refute(vrfs.key?("test_vrf"), "Error: failed to destroy vrf test_vrf")
+    refute(vrfs.key?('test_vrf'), 'Error: failed to destroy vrf test_vrf')
   end
 
   def test_vrf_name_type_invalid
-    assert_raises(TypeError, "Wrong vrf name type did not raise type error") do
+    assert_raises(TypeError, 'Wrong vrf name type did not raise type error') do
       Vrf.new(1000)
     end
   end
 
   def test_vrf_name_zero_length
     assert_raises(Cisco::CliError, "Zero length name didn't raise CliError") do
-      Vrf.new("")
+      Vrf.new('')
     end
   end
 
   def test_vrf_name_too_long
-    name = "a" * VRF_NAME_SIZE
+    name = 'a' * VRF_NAME_SIZE
     assert_raises(Cisco::CliError,
-                  "vrf name misconfig did not raise CliError") do
+                  'vrf name misconfig did not raise CliError') do
       Vrf.new(name)
     end
   end
 
   def test_vrf_shutdown_valid
     shutdown_states = [true, false]
-    v = Vrf.new("test_vrf_shutdown")
-    shutdown_states.each { | start |
-      shutdown_states.each { | finish |
+    v = Vrf.new('test_vrf_shutdown')
+    shutdown_states.each { |start|
+      shutdown_states.each { |finish|
         v.shutdown = start
-        assert_equal(start, v.shutdown, "start")
+        assert_equal(start, v.shutdown, 'start')
         v.shutdown = finish
-        assert_equal(finish, v.shutdown, "finish")
+        assert_equal(finish, v.shutdown, 'finish')
       }
     }
     v.destroy
   end
 
   def test_vrf_description
-    vrf = Vrf.new("test_vrf_description")
-    vrf.description = "tested by minitest"
-    assert_equal("tested by minitest", vrf.description,
-                 "failed to set description")
-    vrf.description = " "
-    assert_empty(vrf.description, "failed to remove description")
+    vrf = Vrf.new('test_vrf_description')
+    vrf.description = 'tested by minitest'
+    assert_equal('tested by minitest', vrf.description,
+                 'failed to set description')
+    vrf.description = ' '
+    assert_empty(vrf.description, 'failed to remove description')
     vrf.destroy
   end
 end

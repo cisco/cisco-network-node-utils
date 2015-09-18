@@ -17,30 +17,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor', __FILE__)
 
 class TestRouterBgpNeighbor < CiscoTestCase
   @@asn = 55
-  @@addr = "1.1.1.1"
+  @@addr = '1.1.1.1'
 
   def setup
     # Disable feature bgp before each test to ensure we
     # are starting with a clean slate for each test.
     super
-    @device.cmd("configure terminal")
-    @device.cmd("no feature bgp")
-    @device.cmd("feature bgp")
-    @device.cmd("router bgp 55")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('no feature bgp')
+    @device.cmd('feature bgp')
+    @device.cmd('router bgp 55')
+    @device.cmd('end')
     node.cache_flush
   end
 
   def teardown
-    @device.cmd("configure terminal")
-    @device.cmd("no feature bgp")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('no feature bgp')
+    @device.cmd('end')
     node.cache_flush
   end
 
@@ -58,48 +58,48 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   def test_bgpneighbor_collection_empty
-    @device.cmd("configure terminal")
-    @device.cmd("no feature bgp")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('no feature bgp')
+    @device.cmd('end')
     node.cache_flush
     neighbors = RouterBgpNeighbor.neighbors
-    assert_empty(neighbors, "BGP neighbor collection is not empty")
+    assert_empty(neighbors, 'BGP neighbor collection is not empty')
   end
 
   def test_bgpneighbor_collection_not_empty
-    @device.cmd("configure terminal")
-    @device.cmd("router bgp 55")
-    @device.cmd("neighbor 1.1.1.1")
-    @device.cmd("vrf red")
-    @device.cmd("neighbor 2.2.2.0/24")
-    @device.cmd("neighbor 2000::2")
-    @device.cmd("neighbor 2000:123:38::/64")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('router bgp 55')
+    @device.cmd('neighbor 1.1.1.1')
+    @device.cmd('vrf red')
+    @device.cmd('neighbor 2.2.2.0/24')
+    @device.cmd('neighbor 2000::2')
+    @device.cmd('neighbor 2000:123:38::/64')
+    @device.cmd('end')
     node.cache_flush
     bgp_neighbors = RouterBgpNeighbor.neighbors
-    refute_empty(bgp_neighbors, "BGP neighbor collection is empty")
+    refute_empty(bgp_neighbors, 'BGP neighbor collection is empty')
     # validate the collection
     bgp_neighbors.each_value do |vrfs|
       vrfs.each do |vrf, neighbors|
-          if vrf == 'default'
-            assert_equal(1, neighbors.size)
-          else
-            assert_equal(3, neighbors.size)
-          end
-          neighbors.each_value {|neighbor|
-             assert_equal(vrf, neighbor.vrf)
-             line = get_bgpneighbor_match_line(neighbor.nbr, vrf)
-             refute_nil(line)
-          }
+        if vrf == 'default'
+          assert_equal(1, neighbors.size)
+        else
+          assert_equal(3, neighbors.size)
+        end
+        neighbors.each_value {|neighbor|
+          assert_equal(vrf, neighbor.vrf)
+          line = get_bgpneighbor_match_line(neighbor.nbr, vrf)
+          refute_nil(line)
+        }
       end
     end
   end
 
   def test_bgpneighbor_create_destroy
-    address = { "1.1.1.1" => "1.1.1.1",
-                "2.2.2.2/24" => "2.2.2.0/24",
-                "2000::2" => "2000::2",
-                "2000:123:38::34/64" => "2000:123:38::/64",
+    address = { '1.1.1.1'            => '1.1.1.1',
+                '2.2.2.2/24'         => '2.2.2.0/24',
+                '2000::2'            => '2000::2',
+                '2000:123:38::34/64' => '2000:123:38::/64',
     }
     vrfs = %w(default red)
     vrfs.each {|vrf|
@@ -120,7 +120,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
       description = "tested by mini test for vrf #{vrf}"
       neighbor.description = description
       assert_equal(description, neighbor.description)
-      neighbor.description = " "
+      neighbor.description = ' '
       assert(neighbor.description.empty?)
       neighbor.description = neighbor.default_description
       assert_equal(neighbor.description, neighbor.default_description)
@@ -130,7 +130,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
   def test_bgpneighbor_set_get_multiple_descriptions
     # First create multiple routers with multiple desriptions.
-    address = ["1.1.1.1", "2.2.2.0/24", "2000::2", "2000:123:38::/64"]
+    address = ['1.1.1.1', '2.2.2.0/24', '2000::2', '2000:123:38::/64']
     vrfs = %w(default red)
     vrfs.each {|vrf|
       address.each { |addr|
@@ -143,7 +143,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
       bgp_vrfs.each do |vrf, neighbors|
         neighbors.each {|addr, neighbor|
           assert_equal("#{vrf}:#{addr}", neighbor.description)
-          neighbor.description = ""
+          neighbor.description = ''
           assert(neighbor.description.empty?)
           neighbor.description = neighbor.default_description
           assert_equal(neighbor.description, neighbor.default_description)
@@ -204,10 +204,10 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_local_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      local_asnum = [42, "52", "1.1", neighbor.default_local_as]
+      local_asnum = [42, '52', '1.1', neighbor.default_local_as]
       local_asnum.each { |asnum|
         neighbor.local_as = asnum
-        if asnum == "52"
+        if asnum == '52'
           assert_equal(asnum.to_i, neighbor.local_as)
         else
           assert_equal(asnum, neighbor.local_as)
@@ -215,7 +215,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
       }
       # test a negative value
       assert_raises(ArgumentError) do
-        neighbor.local_as = "52 15"
+        neighbor.local_as = '52 15'
       end
       neighbor.destroy
     end
@@ -224,7 +224,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_log_neighbor_changes
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      check = [:enable, :disable, :inherit, "enable", "disable", "inherit",
+      check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
                neighbor.default_log_neighbor_changes]
       check.each { |value|
         neighbor.log_neighbor_changes = value
@@ -249,7 +249,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_maximum_peers
     # only "address/prefix" type of neighbor address will accept
     # maximum_peers command
-    addr = "1.1.1.0/24"
+    addr = '1.1.1.0/24'
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, addr)
       peers = [200, neighbor.default_maximum_peers]
@@ -264,9 +264,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_password
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      passwords = { :cleartext => "test",
-                    :"3des" => "386c0565965f89de",
-                    :cisco_type_7 => "046E1803362E595C260E0B240619050A2D" }
+      passwords = { :cleartext    => 'test',
+                    :"3des"       => '386c0565965f89de',
+                    :cisco_type_7 => '046E1803362E595C260E0B240619050A2D' }
       passwords.each { |type, password|
         neighbor.password_set(password, type)
         if type == :cleartext
@@ -277,7 +277,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
           assert_equal(password, neighbor.password)
         end
         # now test removing the password setting
-        neighbor.password_set(" ")
+        neighbor.password_set(' ')
         assert(neighbor.password.empty?)
         # now test default password
         neighbor.password_set(neighbor.default_password)
@@ -290,8 +290,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_default_password_type
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      password = "test"
-      expected_password = "386c0565965f89de"
+      password = 'test'
+      expected_password = '386c0565965f89de'
 
       # Test 1: if we don't set password type, default should be cleartext,
       # we can verify by checking return type to be :3des, and encrypted text.
@@ -299,7 +299,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
       assert_equal(expected_password, neighbor.password)
       assert_equal(:"3des", neighbor.password_type)
       # clear password
-      neighbor.password_set("")
+      neighbor.password_set('')
       assert(neighbor.password.empty?)
 
       # Test 2: we set explicitly the password type to be default password type:
@@ -307,7 +307,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
       neighbor.password_set(password, neighbor.default_password_type)
       assert_equal(expected_password, neighbor.password)
       assert_equal(:"3des", neighbor.password_type)
-      neighbor.password_set("")
+      neighbor.password_set('')
       assert(neighbor.password.empty?)
       neighbor.destroy
     end
@@ -316,7 +316,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_remote_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      remote_asnum = [42, "1.1", neighbor.default_remote_as]
+      remote_asnum = [42, '1.1', neighbor.default_remote_as]
       remote_asnum.each { |asnum|
         neighbor.remote_as = asnum
         assert_equal(asnum, neighbor.remote_as)
@@ -328,8 +328,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_remove_private_as_options
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      options = [:enable, :disable, :all, :"replace-as", "enable", "disable",
-                 "all", "replace-as", neighbor.default_remove_private_as]
+      options = [:enable, :disable, :all, :"replace-as", 'enable', 'disable',
+                 'all', 'replace-as', neighbor.default_remove_private_as]
       options.each { |option|
         neighbor.remove_private_as = option
         assert_equal(option.to_sym, neighbor.remove_private_as)
@@ -369,12 +369,12 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_timers
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      timers = [{ :keep => 40, :hold => 90 },
-                { :keep => neighbor.default_timers_keepalive,
-                  :hold => neighbor.default_timers_holdtime },
-                { :keep => neighbor.default_timers_keepalive,
-                  :hold => 90 },
-                { :keep => 40, :hold => neighbor.default_timers_holdtime },
+      timers = [{ keep: 40, hold: 90 },
+                { keep: neighbor.default_timers_keepalive,
+                  hold: neighbor.default_timers_holdtime },
+                { keep: neighbor.default_timers_keepalive,
+                  hold: 90 },
+                { keep: 40, hold: neighbor.default_timers_holdtime },
                ]
       timers.each { |timer|
         neighbor.timers_set(timer[:keep], timer[:hold])
@@ -400,7 +400,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_update_source
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      interfaces = ["loopback1", "Ethernet1/1", "ethernet1/1",
+      interfaces = ['loopback1', 'Ethernet1/1', 'ethernet1/1',
                     neighbor.default_update_source]
       interfaces.each { |interface|
         neighbor.update_source = interface

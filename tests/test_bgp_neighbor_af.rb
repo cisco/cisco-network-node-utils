@@ -17,11 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/cisco_cmn_utils", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp_neighbor_af", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/cisco_cmn_utils', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor_af', __FILE__)
 
 class TestRouterBgpNeighborAF < CiscoTestCase
   @@reset_feat = true
@@ -29,18 +29,18 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def setup
     super
     if @@reset_feat
-      @device.cmd("conf t ; no feature bgp ; feature bgp ; end")
+      @device.cmd('conf t ; no feature bgp ; feature bgp ; end')
       @@reset_feat = false
     else
       # Just ensure that feature is enabled
-      @device.cmd("conf t ; feature bgp ; end")
+      @device.cmd('conf t ; feature bgp ; end')
     end
   end
 
-  def clean_af(af_args, ebgp = true)
+  def clean_af(af_args, ebgp=true)
     # Most tests only need an address-family cleanup
     asn, vrf, nbr, af = af_args
-    dbg = format("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
+    dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
 
     obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr, true)
     obj_nbr.remote_as = ebgp ? asn + 1 : asn
@@ -61,14 +61,14 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   # AF test matrix
   @@matrix = {
     # 1 => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
-    2 => [1, 'default', '10:1::1', %w(ipv4 unicast)],
-    3 => [1, 'default', '10:1::1', %w(ipv6 multicast)],
-    4 => [1, 'default', '10:1::1', %w(ipv6 unicast)],
-    5 => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6 => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
-    7 => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8 => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
-    9 => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
+    2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
+    3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
+    4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
+    5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
+    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
+    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
+    9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
     10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
     11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
     12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
@@ -113,7 +113,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
-      dbg = format("[VRF %s NBR %s AF %s]", vrf, nbr, af.join('/'))
+      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
       afs = RouterBgpNeighborAF.afs
@@ -188,9 +188,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # These properties have a common string value (route-map), allowing them
     # to use a common set of tests to validate each property.
     props = {
-      :filter_list_in => "filt-in-name",
-      :filter_list_out => "filt-out-name",
-      :unsuppress_map => "unsupp-map-name",
+      filter_list_in:  'filt-in-name',
+      filter_list_out: 'filt-out-name',
+      unsuppress_map:  'unsupp-map-name',
     }
 
     props.each do |k, v|
@@ -268,7 +268,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.allowas_in_set(true, 4)
     assert_equal(4, af.allowas_in_max,
                  "Test 4. #{dbg} Failed to set True with Value, " \
-                 "from false state")
+                 'from false state')
 
     # Test default_state
     af.allowas_in_set(af.default_allowas_in)
@@ -310,7 +310,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       af.send("#{k}_set", true, true)
       assert(af.send("#{k}_disable"),
              "Test 4. #{dbg} [#{k}_set] Failed to set True with disable " \
-             "from false")
+             'from false')
 
       # Test default_state
       def_state = af.send("default_#{k}")
@@ -323,13 +323,13 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       af.send("#{k}_set", true, def_disable)
       assert_equal(def_disable, af.send("#{k}_disable"),
                    "Test 6. #{dbg} [#{k}_set] Failed to set True with " \
-                   "default disable")
+                   'default disable')
 
       # Test false with true disable state
       af.send("#{k}_set", false, true)
       refute(af.send("#{k}_disable"),
              "Test 7. #{dbg} [#{k}_set] Failed to set False with True " \
-             "disable state")
+             'disable state')
     end
   end
 
@@ -348,8 +348,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
            "Test 1. #{dbg} Failed to set state to True")
 
     # Test true with route-map
-    af.default_originate_set(true, "foo_bar")
-    assert_equal("foo_bar", af.default_originate_route_map,
+    af.default_originate_set(true, 'foo_bar')
+    assert_equal('foo_bar', af.default_originate_route_map,
                  "Test 2. #{dbg} Failed to set True with Route-map")
 
     # Test false with route-map
@@ -358,10 +358,10 @@ class TestRouterBgpNeighborAF < CiscoTestCase
            "Test 3. #{dbg} Failed to set state to False")
 
     # Test true with route-map, from false
-    af.default_originate_set(true, "baz_inga")
-    assert_equal("baz_inga", af.default_originate_route_map,
+    af.default_originate_set(true, 'baz_inga')
+    assert_equal('baz_inga', af.default_originate_route_map,
                  "Test 4. #{dbg} Failed to set True with Route-map, " \
-                 "from false state")
+                 'from false state')
 
     # Test default route-map, from true
     af.default_originate_set(true, af.default_default_originate_route_map)
@@ -388,14 +388,17 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(limit, af.max_prefix_limit,
                  "Test 1. #{dbg} Failed to set limit to '#{limit}'")
 
-    limit, threshold, = 99, 49
+    limit = 99
+    threshold = 49
     af.max_prefix_set(limit, threshold)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 2a. #{dbg} Failed to set limit to '#{limit}'")
     assert_equal(threshold, af.max_prefix_threshold,
                  "Test 2b. #{dbg} Failed to set threshold to '#{threshold}'")
 
-    limit, threshold, interval = 98, 48, 28
+    limit = 98
+    threshold = 48
+    interval = 28
     af.max_prefix_set(limit, threshold, interval)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 3a. #{dbg} Failed to set limit to '#{limit}'")
@@ -404,7 +407,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(interval, af.max_prefix_interval,
                  "Test 3c. #{dbg} Failed to set interval to '#{interval}'")
 
-    limit, threshold, warning = 97, nil, true
+    limit = 97
+    threshold = nil
+    warning = true
     af.max_prefix_set(limit, threshold, warning)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 4a. #{dbg} Failed to set limit to '#{limit}'")
@@ -413,7 +418,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(warning, af.max_prefix_warning,
                  "Test 4c. #{dbg} Failed to set warning to '#{warning}'")
 
-    limit, threshold, interval = 96, nil, 26
+    limit = 96
+    threshold = nil
+    interval = 26
     af.max_prefix_set(limit, threshold, interval)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 5a. #{dbg} Failed to set limit to '#{limit}'")
@@ -422,7 +429,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(interval, af.max_prefix_interval,
                  "Test 5c. #{dbg} Failed to set interval to '#{interval}'")
 
-    limit, threshold, warning = 95, 45, true
+    limit = 95
+    threshold = 45
+    warning = true
     af.max_prefix_set(limit, threshold, warning)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 6a. #{dbg} Failed to set limit to '#{limit}'")
@@ -499,21 +508,21 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   end
 
   def send_community(af, dbg)
-    v = "both"
+    v = 'both'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 1a. #{dbg} Failed to set '#{v}' from None")
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 1b. #{dbg} Failed to set '#{v}' from 'both'")
-    v = "extended"
+    v = 'extended'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 2a. #{dbg} Failed to set '#{v}' from 'both'")
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 2b. #{dbg} Failed to set '#{v}' from 'extended'")
-    v = "standard"
+    v = 'standard'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 3a. #{dbg} Failed to set '#{v}' from 'extended'")
@@ -521,31 +530,31 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(v, af.send_community,
                  "Test 3b. #{dbg} Failed to set '#{v}' from 'standard'")
 
-    v = "extended"
+    v = 'extended'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 4. #{dbg} Failed to set '#{v}' from 'standard'")
 
-    v = "both"
+    v = 'both'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 5. #{dbg} Failed to set '#{v}' from 'extended'")
 
-    v = "standard"
+    v = 'standard'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 6. #{dbg} Failed to set '#{v}' from 'both'")
-    v = "both"
+    v = 'both'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 7. #{dbg} Failed to set '#{v}' from 'standard'")
 
-    v = "none"
+    v = 'none'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 8. #{dbg} Failed to remove send-community")
 
-    v = "both"
+    v = 'both'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 9. #{dbg} Failed to set '#{v}' from None")
@@ -606,7 +615,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   end
 
   def soo(af, dbg)
-    val = "1.1.1.1:1"
+    val = '1.1.1.1:1'
 
     if dbg.include?('default')
       assert_raises(CliError, "Test 1. #{dbg}[soo=] did not raise CliError") {
@@ -622,7 +631,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
                  "Test 2. #{dbg} Failed to set '#{val}'")
 
     # Change to new string
-    val = "2:2"
+    val = '2:2'
     af.soo = val
     assert_equal(val, af.soo,
                  "Test 3. #{dbg} Failed to change to '#{val}'")

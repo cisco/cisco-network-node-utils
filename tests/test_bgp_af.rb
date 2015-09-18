@@ -17,26 +17,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bgp_af", __FILE__)
+require File.expand_path('../ciscotest', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/bgp_af', __FILE__)
 
 class TestRouterBgpAF < CiscoTestCase
   def setup
     super
     # Disable and enable feature bgp before each test to ensure we
     # are starting with a clean slate for each test.
-    @device.cmd("configure terminal")
-    @device.cmd("no feature bgp")
-    @device.cmd("feature bgp")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('no feature bgp')
+    @device.cmd('feature bgp')
+    @device.cmd('end')
     node.cache_flush
   end
 
   def get_bgp_af_cfg(asn, vrf, af)
     afi, safi = af
     string =
-      @device.cmd("show run bgp all | sec 'bgp #{asn}' |  sec 'vrf #{vrf}' | " +
+      @device.cmd("show run bgp all | sec 'bgp #{asn}' |  sec 'vrf #{vrf}' | " \
                   "sec 'address-family #{afi} #{safi}' | no-more")
     string
   end
@@ -48,7 +48,7 @@ class TestRouterBgpAF < CiscoTestCase
   def test_collection_empty
     node.cache_flush
     afs = RouterBgpAF.afs
-    assert_empty(afs, "BGP address-family collection is not empty")
+    assert_empty(afs, 'BGP address-family collection is not empty')
   end
 
   ##
@@ -57,40 +57,40 @@ class TestRouterBgpAF < CiscoTestCase
   ## - verify that the final instance objects are correctly populated
   ##
   def test_collection_not_empty
-    @device.cmd("configure terminal")
-    @device.cmd("feature bgp")
-    @device.cmd("router bgp 55")
-    @device.cmd("address-family ipv4 unicast")
-    @device.cmd("vrf red")
-    @device.cmd("address-family ipv4 unicast")
-    @device.cmd("vrf blue")
-    @device.cmd("address-family ipv6 multicast")
-    @device.cmd("vrf orange")
-    @device.cmd("address-family ipv4 multicast")
-    @device.cmd("vrf black")
-    @device.cmd("address-family ipv6 unicast")
-    @device.cmd("end")
+    @device.cmd('configure terminal')
+    @device.cmd('feature bgp')
+    @device.cmd('router bgp 55')
+    @device.cmd('address-family ipv4 unicast')
+    @device.cmd('vrf red')
+    @device.cmd('address-family ipv4 unicast')
+    @device.cmd('vrf blue')
+    @device.cmd('address-family ipv6 multicast')
+    @device.cmd('vrf orange')
+    @device.cmd('address-family ipv4 multicast')
+    @device.cmd('vrf black')
+    @device.cmd('address-family ipv6 unicast')
+    @device.cmd('end')
     node.cache_flush
 
     # Construct a hash of routers, vrfs, afs
     routers = RouterBgpAF.afs
-    refute_empty(routers, "Error: BGP address_family collection is empty")
+    refute_empty(routers, 'Error: BGP address_family collection is empty')
 
     # Validate the collection
     routers.each do |asn, vrfs|
       assert((asn.kind_of? Fixnum),
-             "Error: Autonomous number must be a fixed number")
-      refute_empty(vrfs, "Error: Collection is empty")
+             'Error: Autonomous number must be a fixed number')
+      refute_empty(vrfs, 'Error: Collection is empty')
 
       vrfs.each do |vrf, afs|
-        refute_empty(afs, "Error: No Address Family found")
-        assert(vrf.length > 0, "Error: No VRF found")
+        refute_empty(afs, 'Error: No Address Family found')
+        assert(vrf.length > 0, 'Error: No VRF found')
         afs.each_key do |af_key|
           afi = af_key[0]
           safi = af_key[1]
-          assert(afi.length > 0, "Error: AFI length is zero")
-          assert_match(/^ipv[46]/, afi, "Error: AFI must be ipv4 or ipv6")
-          assert(safi.length > 0, "Error: SAFI length is zero")
+          assert(afi.length > 0, 'Error: AFI length is zero')
+          assert_match(/^ipv[46]/, afi, 'Error: AFI must be ipv4 or ipv6')
+          assert(safi.length > 0, 'Error: SAFI length is zero')
         end
       end
     end
@@ -114,14 +114,14 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af = RouterBgpAF.new(asn, vrf, af)
     bgp_af.default_information_originate = true
     assert(bgp_af.default_information_originate,
-           "Error: default-information originate not set")
+           'Error: default-information originate not set')
     pattern = 'default-information originate'
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
     # Expect it to match
     assert_match(pattern, af_string,
-                 "Error: 'default_information originate' is not" +
-                   " configured and should be")
+                 "Error: 'default_information originate' is not" \
+                   ' configured and should be')
 
     #
     # Unset and verify
@@ -134,8 +134,8 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Expect it not to match
     refute_match(pattern, af_string,
-                 "Error: 'default_information originate' " +
-                   "is configured and should not be")
+                 "Error: 'default_information originate' " \
+                   'is configured and should not be')
   end
 
   ##
@@ -195,16 +195,16 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify
     #
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.next_hop_route_map = "drop_all"
-    assert_match(bgp_af.next_hop_route_map, "drop_all",
-                 "Error: nexthop route-map not set")
+    bgp_af.next_hop_route_map = 'drop_all'
+    assert_match(bgp_af.next_hop_route_map, 'drop_all',
+                 'Error: nexthop route-map not set')
     pattern = 'nexthop route-map drop_all'
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
     # Expect it to match
     assert_match(pattern, af_string,
-                 "Error: 'nexthop route-map drop_all' is " +
-                   "not configured and should be")
+                 "Error: 'nexthop route-map drop_all' is " \
+                   'not configured and should be')
 
     #
     # Unset and verify
@@ -217,8 +217,8 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Expect it not to match
     refute_match(pattern, af_string,
-                 "Error: 'nexthop route-map drop_all' is " +
-                   "configured and should not be")
+                 "Error: 'nexthop route-map drop_all' is " \
+                   'configured and should not be')
   end
 
   ##
@@ -238,9 +238,9 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl1)
     assert_empty(config_list[:add],
-      "Error: config_list[:add] should be empty")
+                 'Error: config_list[:add] should be empty')
     assert_empty(config_list[:remove],
-      "Error: config_list[:remove] should be empty")
+                 'Error: config_list[:remove] should be empty')
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -248,7 +248,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     sl1.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
 
     # Cleanup for next test section
@@ -256,7 +256,7 @@ class TestRouterBgpAF < CiscoTestCase
       bgp_af.network_remove(network, rtmap)
     }
     assert_empty(bgp_af.networks,
-      "Error: all networks should have been removed")
+                 'Error: all networks should have been removed')
 
     #
     # Set and verify 'is' and 'should' network list contain
@@ -268,19 +268,19 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl2)
     assert_equal(3, config_list[:add].size,
-      "Error: config_list[:add] should contain 3 items")
+                 'Error: config_list[:add] should contain 3 items')
     assert_equal(2, config_list[:remove].size,
-      "Error: config_list[:remove] should contain 2 items")
+                 'Error: config_list[:remove] should contain 2 items')
     assert_includes(config_list[:add], sl2[0],
-      "Error: config_list[:add] should contain #{sl2[0]}")
+                    "Error: config_list[:add] should contain #{sl2[0]}")
     assert_includes(config_list[:add], sl2[1],
-      "Error: config_list[:add] should contain #{sl2[1]}")
+                    "Error: config_list[:add] should contain #{sl2[1]}")
     assert_includes(config_list[:add], sl2[3],
-      "Error: config_list[:add] should contain #{sl2[3]}")
+                    "Error: config_list[:add] should contain #{sl2[3]}")
     assert_includes(config_list[:remove], il2[1],
-      "Error: config_list[:remove] should contain #{il2[1]}")
+                    "Error: config_list[:remove] should contain #{il2[1]}")
     assert_includes(config_list[:remove], il2[3],
-      "Error: config_list[:remove] should contain #{il2[3]}")
+                    "Error: config_list[:remove] should contain #{il2[3]}")
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -288,7 +288,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     sl2.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
   end
 
@@ -314,11 +314,17 @@ class TestRouterBgpAF < CiscoTestCase
       ['192.168.99.0/24'],
     ]
     # Test ipv4 unicast, vrf red, default and blue
-    asn, vrf, af = '55', 'red', 'ipv4 unicast'
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv4 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
-    asn, vrf, af = '55', 'default', 'ipv4 unicast'
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv4 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
-    asn, vrf, af = '55', 'blue', 'ipv4 unicast'
+    asn = '55'
+    vrf = 'blue'
+    af = 'ipv4 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
 
     # Both is_list1(il1) and should_list1(sl1) are identical
@@ -342,11 +348,17 @@ class TestRouterBgpAF < CiscoTestCase
       ['2000:123:9::/64'],
     ]
     # Test ipv6 unicast, vrf red, default and blue
-    asn, vrf, af = '55', 'default', 'ipv6 unicast'
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv6 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
-    asn, vrf, af = '55', 'red', 'ipv6 unicast'
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv6 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
-    asn, vrf, af = '55', 'green', 'ipv6 unicast'
+    asn = '55'
+    vrf = 'green'
+    af = 'ipv6 unicast'
     networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
   end
 
@@ -364,11 +376,11 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl)
     assert_empty(config_list[:add],
-      "Error: config_list[:add] should be empty")
+                 'Error: config_list[:add] should be empty')
     assert_equal(1, config_list[:remove].size,
-      "Error: config_list[:remove] should contain one item")
+                 'Error: config_list[:remove] should contain one item')
     assert_equal(il[1], config_list[:remove][0],
-      "Error: config_list[:remove] has the wrong network")
+                 'Error: config_list[:remove] has the wrong network')
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -376,7 +388,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     sl.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
   end
 
@@ -394,7 +406,9 @@ class TestRouterBgpAF < CiscoTestCase
       ['192.168.9.0/24'],
     ]
     # Test ipv4 unicast vrf red
-    asn, vrf, af = '55', 'red', 'ipv4 unicast'
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv4 unicast'
     networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
 
     # is_list(il) has an additional item 4
@@ -410,7 +424,9 @@ class TestRouterBgpAF < CiscoTestCase
       ['2000:123:41::/64'],
     ]
     # Test ipv6 unicast vrf red
-    asn, vrf, af = '55', 'red', 'ipv6 unicast'
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv6 unicast'
     networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
   end
 
@@ -428,11 +444,11 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl1)
     assert_equal(1, config_list[:add].size,
-      "Error: config_list[:add] should contain 1 item")
+                 'Error: config_list[:add] should contain 1 item')
     assert_empty(config_list[:remove],
-      "Error: config_list[:remove] should be empty")
+                 'Error: config_list[:remove] should be empty')
     assert_equal(sl1[3], config_list[:add][0],
-      "Error: config_list[:add] has the wrong network")
+                 'Error: config_list[:add] has the wrong network')
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -440,7 +456,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     sl1.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
 
     # Cleanup for next test section
@@ -448,7 +464,7 @@ class TestRouterBgpAF < CiscoTestCase
       bgp_af.network_remove(network, rtmap)
     }
     assert_empty(bgp_af.networks,
-      "Error: all networks should have been removed")
+                 'Error: all networks should have been removed')
 
     #
     # Set and verify 'is' network list contains less items then
@@ -461,15 +477,15 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl2)
     assert_equal(2, config_list[:add].size,
-      "Error: config_list[:add] should contain 2 items")
+                 'Error: config_list[:add] should contain 2 items')
     assert_equal(1, config_list[:remove].size,
-      "Error: config_list[:remove] should contain 1 item")
+                 'Error: config_list[:remove] should contain 1 item')
     assert_includes(config_list[:add], sl2[0],
-      "Error: config_list[:add] should contain #{sl2[0]}")
+                    "Error: config_list[:add] should contain #{sl2[0]}")
     assert_includes(config_list[:add], sl2[3],
-      "Error: config_list[:add] should contain #{sl2[3]}")
+                    "Error: config_list[:add] should contain #{sl2[3]}")
     assert_includes(config_list[:remove], il2[0],
-      "Error: config_list[:remove] should contain #{il2[0]}")
+                    "Error: config_list[:remove] should contain #{il2[0]}")
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -477,7 +493,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     sl2.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
   end
 
@@ -508,7 +524,9 @@ class TestRouterBgpAF < CiscoTestCase
       ['192.168.9.0/24'],
     ]
     # Test ipv4 unicast vrf default
-    asn, vrf, af = '55', 'default', 'ipv4 unicast'
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv4 unicast'
     networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
 
     # Lists are identical except for additional item 4 in
@@ -537,7 +555,9 @@ class TestRouterBgpAF < CiscoTestCase
       ['2000:123:41::/64'],
     ]
     # Test ipv6 unicast vrf default
-    asn, vrf, af = '55', 'default', 'ipv6 unicast'
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv6 unicast'
     networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
   end
 
@@ -558,9 +578,9 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(should_list)
     assert_empty(config_list[:add],
-      "Error: config_list[:add] should be empty")
+                 'Error: config_list[:add] should be empty')
     assert_empty(config_list[:remove],
-      "Error: config_list[:remove] should be empty")
+                 'Error: config_list[:remove] should be empty')
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -568,7 +588,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     should_list.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
 
     # Change the second half of the list to new values
@@ -592,7 +612,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify is_list on device
     should_list.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
 
     # Cleanup
@@ -600,7 +620,7 @@ class TestRouterBgpAF < CiscoTestCase
       bgp_af.network_remove(network, rtmap)
     }
     assert_empty(bgp_af.networks,
-      "Error: all networks should have been removed")
+                 'Error: all networks should have been removed')
   end
 
   def test_networks_routemap_change
@@ -616,11 +636,11 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_list = bgp_af.networks_delta(sl)
     assert_equal(1, config_list[:add].size,
-      "Error: config_list[:add] should contain 1 item")
+                 'Error: config_list[:add] should contain 1 item')
     assert_empty(config_list[:remove],
-      "Error: config_list[:remove] should be empty")
+                 'Error: config_list[:remove] should be empty')
     assert_equal('rtmap2', config_list[:add][0][1],
-      "Error: config_list[:add] routemap value should be 'rtmap2'")
+                 "Error: config_list[:add] routemap value should be 'rtmap2'")
 
     # Apply config_list
     bgp_af.networks = config_list
@@ -628,7 +648,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Verify should_list on device
     sl.each { |network|
       assert_includes(bgp_af.networks, network,
-        "Error: device should contain network #{network}")
+                      "Error: device should contain network #{network}")
     }
   end
 end
