@@ -20,6 +20,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
 
+# TestRouterBgp - Minitest for RouterBgp class
 class TestRouterBgp < CiscoTestCase
   def setup
     # Disable feature bgp before each test to ensure we
@@ -33,9 +34,11 @@ class TestRouterBgp < CiscoTestCase
 
   def get_routerbgp_match_line(as_number, vrf='default')
     s = @device.cmd("show run | section '^router bgp .*'")
-    vrf == 'default' ?
-      line = /router bgp\s#{as_number}/.match(s) :
+    if vrf == 'default'
+      line = /router bgp\s#{as_number}/.match(s)
+    else
       line = /vrf #{vrf}/.match(s)
+    end
     line
   end
 
@@ -386,7 +389,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_set_get_confed_id_CSCuu76828
+  def test_routerbgp_set_get_confed_id_CSCuu76828 # rubocop:disable Style/MethodName
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.confederation_id = 55.77

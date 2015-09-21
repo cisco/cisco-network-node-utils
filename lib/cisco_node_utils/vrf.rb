@@ -16,14 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-  class Vrf
+  # Vrf - node utility class for VRF configuration management
+  class Vrf < NodeUtil
     attr_reader :name
-
-    @@node = Node.instance
-    fail TypeError if @@node.nil?
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -34,7 +32,7 @@ module Cisco
 
     def self.vrfs
       hash = {}
-      vrf_list = @@node.config_get('vrf', 'all_vrfs')
+      vrf_list = config_get('vrf', 'all_vrfs')
       return hash if vrf_list.nil?
 
       vrf_list.each do |id|
@@ -45,15 +43,15 @@ module Cisco
     end
 
     def create
-      @@node.config_set('vrf', 'create', @args)
+      config_set('vrf', 'create', @args)
     end
 
     def destroy
-      @@node.config_set('vrf', 'destroy', @args)
+      config_set('vrf', 'destroy', @args)
     end
 
     def description
-      desc = @@node.config_get('vrf', 'description', @args)
+      desc = config_get('vrf', 'description', @args)
       return '' if desc.nil?
       desc.shift.strip
     end
@@ -62,20 +60,19 @@ module Cisco
       fail TypeError unless desc.is_a?(String)
       desc.strip!
       no_cmd = desc.empty? ? 'no' : ''
-      @@node.config_set('vrf', 'description',
-                        { vrf: @name, state: no_cmd, desc: desc })
+      config_set('vrf', 'description', vrf: @name, state: no_cmd, desc: desc)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def shutdown
-      result = @@node.config_get('vrf', 'shutdown', @args)
+      result = config_get('vrf', 'shutdown', @args)
       result ? true : false
     end
 
     def shutdown=(val)
       no_cmd = (val) ? '' : 'no'
-      @@node.config_set('vrf', 'shutdown', { vrf: @name, state: no_cmd })
+      config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end

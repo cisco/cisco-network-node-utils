@@ -17,19 +17,19 @@ require File.expand_path('../../lib/cisco_node_utils/vrf', __FILE__)
 
 include Cisco
 
+# TestVrf - Minitest for Vrf node utility class
 class TestVrf < CiscoTestCase
   VRF_NAME_SIZE = 33
 
   def setup
     super
     vrfs = Vrf.vrfs
-    vrfs.each_value { |vrf|
-      if vrf.name =~ /^test_vrf/
-        @device.cmd('conf t')
-        @device.cmd("no vrf context #{vrf.name}")
-        node.cache_flush
-      end
-    }
+    vrfs.each_value do |vrf|
+      next unless vrf.name =~ /^test_vrf/
+      @device.cmd('conf t')
+      @device.cmd("no vrf context #{vrf.name}")
+      node.cache_flush
+    end
   end
 
   def test_vrf_collection_not_empty
@@ -71,14 +71,14 @@ class TestVrf < CiscoTestCase
   def test_vrf_shutdown_valid
     shutdown_states = [true, false]
     v = Vrf.new('test_vrf_shutdown')
-    shutdown_states.each { |start|
-      shutdown_states.each { |finish|
+    shutdown_states.each do |start|
+      shutdown_states.each do |finish|
         v.shutdown = start
         assert_equal(start, v.shutdown, 'start')
         v.shutdown = finish
         assert_equal(finish, v.shutdown, 'finish')
-      }
-    }
+      end
+    end
     v.destroy
   end
 

@@ -18,13 +18,12 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
-require File.join(File.dirname(__FILE__), 'node')
+require File.join(File.dirname(__FILE__), 'node_util')
 require File.join(File.dirname(__FILE__), 'bgp')
 
 module Cisco
-  class RouterBgpNeighborAF
-    @@node = Cisco::Node.instance
-
+  # RouterBgpNeighborAF - node utility class for BGP per-neighbor, per-AF config
+  class RouterBgpNeighborAF < NodeUtil
     def initialize(asn, vrf, nbr, af, instantiate=true)
       validate_args(asn, vrf, nbr, af)
       create if instantiate
@@ -32,29 +31,29 @@ module Cisco
 
     def self.afs
       af_hash = {}
-      RouterBgp.routers.each { |asn, vrfs|
+      RouterBgp.routers.each do |asn, vrfs|
         af_hash[asn] = {}
 
-        vrfs.keys.each { |vrf|
+        vrfs.keys.each do |vrf|
           af_hash[asn][vrf] = {}
           get_args = { asnum: asn }
           get_args[:vrf] = vrf unless (vrf == 'default')
 
-          nbrs = @@node.config_get('bgp_neighbor', 'all_neighbors', get_args)
+          nbrs = config_get('bgp_neighbor', 'all_neighbors', get_args)
           next if nbrs.nil?
-          nbrs.each { |nbr|
+          nbrs.each do |nbr|
             af_hash[asn][vrf][nbr] = {}
             get_args[:nbr] = nbr
-            afs = @@node.config_get('bgp_neighbor_af', 'all_afs', get_args)
+            afs = config_get('bgp_neighbor_af', 'all_afs', get_args)
 
             next if afs.nil?
-            afs.each { |af|
+            afs.each do |af|
               af_hash[asn][vrf][nbr][af] =
                 RouterBgpNeighborAF.new(asn, vrf, nbr, af, false)
-            }
-          }
-        }
-      }
+            end
+          end
+        end
+      end
       af_hash
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
@@ -65,11 +64,11 @@ module Cisco
     def validate_args(asn, vrf, nbr, af)
       asn = RouterBgp.process_asnum(asn)
       fail ArgumentError unless
-        vrf.is_a?(String) and (vrf.length > 0)
+        vrf.is_a?(String) && (vrf.length > 0)
       fail ArgumentError unless
-        nbr.is_a?(String) and (nbr.length > 0)
+        nbr.is_a?(String) && (nbr.length > 0)
       fail ArgumentError, "'af' must be an array specifying afi and safi" unless
-        af.is_a? Array or af.length == 2
+        af.is_a?(Array) || af.length == 2
 
       nbr = Utils.process_network_mask(nbr)
       @asn = asn
@@ -94,12 +93,12 @@ module Cisco
 
     def create
       set_args_keys(state: '')
-      @@node.config_set('bgp_neighbor', 'af', @set_args)
+      config_set('bgp_neighbor', 'af', @set_args)
     end
 
     def destroy
       set_args_keys(state: 'no')
-      @@node.config_set('bgp_neighbor', 'af', @set_args)
+      config_set('bgp_neighbor', 'af', @set_args)
     end
 
     ########################################################
@@ -111,7 +110,7 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_exist
-      arr = @@node.config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
+      arr = config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
       return default_advertise_map_exist if arr.nil?
       arr.shift
     end
@@ -124,11 +123,11 @@ module Cisco
         map1, map2 = arr
       end
       set_args_keys(state: state, map1: map1, map2: map2)
-      @@node.config_set('bgp_neighbor_af', 'advertise_map_exist', @set_args)
+      config_set('bgp_neighbor_af', 'advertise_map_exist', @set_args)
     end
 
     def default_advertise_map_exist
-      @@node.config_get_default('bgp_neighbor_af', 'advertise_map_exist')
+      config_get_default('bgp_neighbor_af', 'advertise_map_exist')
     end
 
     # -----------------------
@@ -136,7 +135,7 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_non_exist
-      arr = @@node.config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
+      arr = config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
       return default_advertise_map_non_exist if arr.nil?
       arr.shift
     end
@@ -149,18 +148,18 @@ module Cisco
         map1, map2 = arr
       end
       set_args_keys(state: state, map1: map1, map2: map2)
-      @@node.config_set('bgp_neighbor_af', 'advertise_map_non_exist', @set_args)
+      config_set('bgp_neighbor_af', 'advertise_map_non_exist', @set_args)
     end
 
     def default_advertise_map_non_exist
-      @@node.config_get_default('bgp_neighbor_af', 'advertise_map_non_exist')
+      config_get_default('bgp_neighbor_af', 'advertise_map_non_exist')
     end
 
     # -----------------------
     # <state> allowas-in <max>
     # Nvgens as True -OR- max-occurrences integer
     def allowas_in_get
-      val = @@node.config_get('bgp_neighbor_af', 'allowas_in', @get_args)
+      val = config_get('bgp_neighbor_af', 'allowas_in', @get_args)
       return nil if val.nil?
       val.shift.split.last.to_i
     end
@@ -171,44 +170,44 @@ module Cisco
 
     def allowas_in_max
       val = allowas_in_get
-      val = default_allowas_in_max if val.nil? or val.zero? # workaround for CSCuv86255
+      val = default_allowas_in_max if val.nil? || val.zero? # workaround for CSCuv86255
       val
     end
 
     def allowas_in_set(state, max=nil)
       set_args_keys(state: (state ? '' : 'no'), max: max)
-      @@node.config_set('bgp_neighbor_af', 'allowas_in', @set_args)
+      config_set('bgp_neighbor_af', 'allowas_in', @set_args)
     end
 
     def default_allowas_in
-      @@node.config_get_default('bgp_neighbor_af', 'allowas_in')
+      config_get_default('bgp_neighbor_af', 'allowas_in')
     end
 
     def default_allowas_in_max
-      @@node.config_get_default('bgp_neighbor_af', 'allowas_in_max')
+      config_get_default('bgp_neighbor_af', 'allowas_in_max')
     end
 
     # -----------------------
     # <state> as-override
     def as_override
-      state = @@node.config_get('bgp_neighbor_af', 'as_override', @get_args)
+      state = config_get('bgp_neighbor_af', 'as_override', @get_args)
       state ? true : false
     end
 
     def as_override=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'as_override', @set_args)
+      config_set('bgp_neighbor_af', 'as_override', @set_args)
     end
 
     def default_as_override
-      @@node.config_get_default('bgp_neighbor_af', 'as_override')
+      config_get_default('bgp_neighbor_af', 'as_override')
     end
 
     # -----------------------
     # <state> capability additional-paths receive <disable>
     # Nvgens as True -OR- True with 'disable' keyword
     def cap_add_paths_receive_get
-      val = @@node.config_get('bgp_neighbor_af', 'cap_add_paths_receive', @get_args)
+      val = config_get('bgp_neighbor_af', 'cap_add_paths_receive', @get_args)
       return nil if val.nil?
       (val.shift[/disable/]) ? 'disable' : true
     end
@@ -224,22 +223,22 @@ module Cisco
     def cap_add_paths_receive_set(state, disable=false)
       set_args_keys(state:   (state ? '' : 'no'),
                     disable: (disable ? 'disable' : ''))
-      @@node.config_set('bgp_neighbor_af', 'cap_add_paths_receive', @set_args)
+      config_set('bgp_neighbor_af', 'cap_add_paths_receive', @set_args)
     end
 
     def default_cap_add_paths_receive
-      @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_receive')
+      config_get_default('bgp_neighbor_af', 'cap_add_paths_receive')
     end
 
     def default_cap_add_paths_receive_disable
-      @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_receive_disable')
+      config_get_default('bgp_neighbor_af', 'cap_add_paths_receive_disable')
     end
 
     # -----------------------
     # <state> capability additional-paths send <disable>
     # Nvgens as True -OR- True with 'disable' keyword
     def cap_add_paths_send_get
-      val = @@node.config_get('bgp_neighbor_af', 'cap_add_paths_send', @get_args)
+      val = config_get('bgp_neighbor_af', 'cap_add_paths_send', @get_args)
       return nil if val.nil?
       (val.shift[/disable/]) ? 'disable' : true
     end
@@ -255,22 +254,22 @@ module Cisco
     def cap_add_paths_send_set(state, disable=false)
       set_args_keys(state:   (state ? '' : 'no'),
                     disable: (disable ? 'disable' : ''))
-      @@node.config_set('bgp_neighbor_af', 'cap_add_paths_send', @set_args)
+      config_set('bgp_neighbor_af', 'cap_add_paths_send', @set_args)
     end
 
     def default_cap_add_paths_send
-      @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_send')
+      config_get_default('bgp_neighbor_af', 'cap_add_paths_send')
     end
 
     def default_cap_add_paths_send_disable
-      @@node.config_get_default('bgp_neighbor_af', 'cap_add_paths_send_disable')
+      config_get_default('bgp_neighbor_af', 'cap_add_paths_send_disable')
     end
 
     # -----------------------
     # <state> default-originate [ route-map <map> ]
     # Nvgens as True with optional 'route-map <map>'
     def default_originate_get
-      val = @@node.config_get('bgp_neighbor_af', 'default_originate', @get_args)
+      val = config_get('bgp_neighbor_af', 'default_originate', @get_args)
       return nil if val.nil?
       val = val.shift
       (val[/route-map/]) ? val.split.last : true
@@ -289,37 +288,37 @@ module Cisco
     def default_originate_set(state, map=nil)
       map = "route-map #{map}" unless map.nil?
       set_args_keys(state: (state ? '' : 'no'), map: map)
-      @@node.config_set('bgp_neighbor_af', 'default_originate', @set_args)
+      config_set('bgp_neighbor_af', 'default_originate', @set_args)
     end
 
     def default_default_originate
-      @@node.config_get_default('bgp_neighbor_af', 'default_originate')
+      config_get_default('bgp_neighbor_af', 'default_originate')
     end
 
     def default_default_originate_route_map
-      @@node.config_get_default('bgp_neighbor_af', 'default_originate_route_map')
+      config_get_default('bgp_neighbor_af', 'default_originate_route_map')
     end
 
     # -----------------------
     # <state> disable-peer-as-check
     def disable_peer_as_check
-      state = @@node.config_get('bgp_neighbor_af', 'disable_peer_as_check', @get_args)
+      state = config_get('bgp_neighbor_af', 'disable_peer_as_check', @get_args)
       state ? true : default_disable_peer_as_check
     end
 
     def disable_peer_as_check=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'disable_peer_as_check', @set_args)
+      config_set('bgp_neighbor_af', 'disable_peer_as_check', @set_args)
     end
 
     def default_disable_peer_as_check
-      @@node.config_get_default('bgp_neighbor_af', 'disable_peer_as_check')
+      config_get_default('bgp_neighbor_af', 'disable_peer_as_check')
     end
 
     # -----------------------
     # <state> filter-list <str> in
     def filter_list_in
-      str = @@node.config_get('bgp_neighbor_af', 'filter_list_in', @get_args)
+      str = config_get('bgp_neighbor_af', 'filter_list_in', @get_args)
       return default_filter_list_in if str.nil?
       str.shift.strip
     end
@@ -333,17 +332,17 @@ module Cisco
         return if str.nil?
       end
       set_args_keys(state: state, str: str)
-      @@node.config_set('bgp_neighbor_af', 'filter_list_in', @set_args)
+      config_set('bgp_neighbor_af', 'filter_list_in', @set_args)
     end
 
     def default_filter_list_in
-      @@node.config_get_default('bgp_neighbor_af', 'filter_list_in')
+      config_get_default('bgp_neighbor_af', 'filter_list_in')
     end
 
     # -----------------------
     # <state> filter-list <str> out
     def filter_list_out
-      str = @@node.config_get('bgp_neighbor_af', 'filter_list_out', @get_args)
+      str = config_get('bgp_neighbor_af', 'filter_list_out', @get_args)
       return default_filter_list_out if str.nil?
       str.shift.strip
     end
@@ -356,11 +355,11 @@ module Cisco
         str = filter_list_out
       end
       set_args_keys(state: state, str: str)
-      @@node.config_set('bgp_neighbor_af', 'filter_list_out', @set_args)
+      config_set('bgp_neighbor_af', 'filter_list_out', @set_args)
     end
 
     def default_filter_list_out
-      @@node.config_get_default('bgp_neighbor_af', 'filter_list_out')
+      config_get_default('bgp_neighbor_af', 'filter_list_out')
     end
 
     # -----------------------
@@ -370,7 +369,7 @@ module Cisco
     # <opt> : optional = [ restart <interval> | warning-only ]
     #
     def max_prefix_get
-      str = @@node.config_get('bgp_neighbor_af', 'max_prefix', @get_args)
+      str = config_get('bgp_neighbor_af', 'max_prefix', @get_args)
       return nil if str.nil?
 
       regexp = Regexp.new('maximum-prefix (?<limit>\d+)' \
@@ -387,7 +386,7 @@ module Cisco
       end
       set_args_keys(state: state, limit: limit,
                     threshold: threshold, opt: opt)
-      @@node.config_set('bgp_neighbor_af', 'max_prefix', @set_args)
+      config_set('bgp_neighbor_af', 'max_prefix', @set_args)
     end
 
     def max_prefix_limit
@@ -415,67 +414,67 @@ module Cisco
     end
 
     def default_max_prefix_limit
-      @@node.config_get_default('bgp_neighbor_af', 'max_prefix_limit')
+      config_get_default('bgp_neighbor_af', 'max_prefix_limit')
     end
 
     def default_max_prefix_interval
-      @@node.config_get_default('bgp_neighbor_af', 'max_prefix_interval')
+      config_get_default('bgp_neighbor_af', 'max_prefix_interval')
     end
 
     def default_max_prefix_threshold
-      @@node.config_get_default('bgp_neighbor_af', 'max_prefix_threshold')
+      config_get_default('bgp_neighbor_af', 'max_prefix_threshold')
     end
 
     def default_max_prefix_warning
-      @@node.config_get_default('bgp_neighbor_af', 'max_prefix_warning')
+      config_get_default('bgp_neighbor_af', 'max_prefix_warning')
     end
 
     # -----------------------
     # <state> next-hop-self
     def next_hop_self
-      state = @@node.config_get('bgp_neighbor_af', 'next_hop_self', @get_args)
+      state = config_get('bgp_neighbor_af', 'next_hop_self', @get_args)
       state ? true : false
     end
 
     def next_hop_self=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'next_hop_self', @set_args)
+      config_set('bgp_neighbor_af', 'next_hop_self', @set_args)
     end
 
     def default_next_hop_self
-      @@node.config_get_default('bgp_neighbor_af', 'next_hop_self')
+      config_get_default('bgp_neighbor_af', 'next_hop_self')
     end
 
     # -----------------------
     # <state> next-hop-third-party
     def next_hop_third_party
-      state = @@node.config_get('bgp_neighbor_af', 'next_hop_third_party', @get_args)
+      state = config_get('bgp_neighbor_af', 'next_hop_third_party', @get_args)
       state ? true : false
     end
 
     def next_hop_third_party=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'next_hop_third_party', @set_args)
+      config_set('bgp_neighbor_af', 'next_hop_third_party', @set_args)
     end
 
     def default_next_hop_third_party
-      @@node.config_get_default('bgp_neighbor_af', 'next_hop_third_party')
+      config_get_default('bgp_neighbor_af', 'next_hop_third_party')
     end
 
     # -----------------------
     # <state route-reflector-client
     def route_reflector_client
-      state = @@node.config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
+      state = config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
       state ? true : false
     end
 
     def route_reflector_client=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'route_reflector_client', @set_args)
+      config_set('bgp_neighbor_af', 'route_reflector_client', @set_args)
     end
 
     def default_route_reflector_client
-      @@node.config_get_default('bgp_neighbor_af', 'route_reflector_client')
+      config_get_default('bgp_neighbor_af', 'route_reflector_client')
     end
 
     # -----------------------
@@ -483,7 +482,7 @@ module Cisco
     # NOTE: 'standard' is default and does not nvgen -CSCuv86246
     # Returns: none, both, extended, or standard
     def send_community
-      val = @@node.config_get('bgp_neighbor_af', 'send_community', @get_args)
+      val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
       val = val.shift.split.last
       return 'standard' if val[/send-community/] # Workaround for CSCuv86246
@@ -506,23 +505,23 @@ module Cisco
           # This is an additive property therefore remove the entire command
           # when switching from: ext <--> std
           set_args_keys(state: 'no', attr: 'both')
-          @@node.config_set('bgp_neighbor_af', 'send_community', @set_args)
+          config_set('bgp_neighbor_af', 'send_community', @set_args)
           state = ''
         end
       end
       set_args_keys(state: state, attr: val)
-      @@node.config_set('bgp_neighbor_af', 'send_community', @set_args)
+      config_set('bgp_neighbor_af', 'send_community', @set_args)
     end
 
     def default_send_community
-      @@node.config_get_default('bgp_neighbor_af', 'send_community')
+      config_get_default('bgp_neighbor_af', 'send_community')
     end
 
     # -----------------------
     # <state> soft-reconfiguration inbound <always>
     # Nvgens as True with optional 'always' keyword
     def soft_reconfiguration_in_get
-      val = @@node.config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
+      val = config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
       return nil if val.nil?
       (val.shift[/always/]) ? 'always' : true
     end
@@ -538,21 +537,21 @@ module Cisco
     def soft_reconfiguration_in_set(state, always=false)
       set_args_keys(state:  (state ? '' : 'no'),
                     always: (always ? 'always' : ''))
-      @@node.config_set('bgp_neighbor_af', 'soft_reconfiguration_in', @set_args)
+      config_set('bgp_neighbor_af', 'soft_reconfiguration_in', @set_args)
     end
 
     def default_soft_reconfiguration_in
-      @@node.config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in')
+      config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in')
     end
 
     def default_soft_reconfiguration_in_always
-      @@node.config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in_always')
+      config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in_always')
     end
 
     # -----------------------
     # <state> soo <str>
     def soo
-      str = @@node.config_get('bgp_neighbor_af', 'soo', @get_args)
+      str = config_get('bgp_neighbor_af', 'soo', @get_args)
       return default_soo if str.nil?
       str.shift.strip
     end
@@ -564,33 +563,33 @@ module Cisco
         str = soo
       end
       set_args_keys(state: state, str: str)
-      @@node.config_set('bgp_neighbor_af', 'soo', @set_args)
+      config_set('bgp_neighbor_af', 'soo', @set_args)
     end
 
     def default_soo
-      @@node.config_get_default('bgp_neighbor_af', 'soo')
+      config_get_default('bgp_neighbor_af', 'soo')
     end
 
     # -----------------------
     # <state> suppress-inactive
     def suppress_inactive
-      state = @@node.config_get('bgp_neighbor_af', 'suppress_inactive', @get_args)
+      state = config_get('bgp_neighbor_af', 'suppress_inactive', @get_args)
       state ? true : false
     end
 
     def suppress_inactive=(state)
       set_args_keys(state: (state ? '' : 'no'))
-      @@node.config_set('bgp_neighbor_af', 'suppress_inactive', @set_args)
+      config_set('bgp_neighbor_af', 'suppress_inactive', @set_args)
     end
 
     def default_suppress_inactive
-      @@node.config_get_default('bgp_neighbor_af', 'suppress_inactive')
+      config_get_default('bgp_neighbor_af', 'suppress_inactive')
     end
 
     # -----------------------
     # <state> unsuppress-map <str>
     def unsuppress_map
-      str = @@node.config_get('bgp_neighbor_af', 'unsuppress_map', @get_args)
+      str = config_get('bgp_neighbor_af', 'unsuppress_map', @get_args)
       return default_unsuppress_map if str.nil?
       str.shift.strip
     end
@@ -602,17 +601,17 @@ module Cisco
         str = unsuppress_map
       end
       set_args_keys(state: state, str: str)
-      @@node.config_set('bgp_neighbor_af', 'unsuppress_map', @set_args)
+      config_set('bgp_neighbor_af', 'unsuppress_map', @set_args)
     end
 
     def default_unsuppress_map
-      @@node.config_get_default('bgp_neighbor_af', 'unsuppress_map')
+      config_get_default('bgp_neighbor_af', 'unsuppress_map')
     end
 
     # -----------------------
     # <state> weight <int>
     def weight
-      int = @@node.config_get('bgp_neighbor_af', 'weight', @get_args)
+      int = config_get('bgp_neighbor_af', 'weight', @get_args)
       int.nil? ? default_weight : int.shift
     end
 
@@ -622,11 +621,11 @@ module Cisco
         int = ''
       end
       set_args_keys(state: state, int: int)
-      @@node.config_set('bgp_neighbor_af', 'weight', @set_args)
+      config_set('bgp_neighbor_af', 'weight', @set_args)
     end
 
     def default_weight
-      @@node.config_get_default('bgp_neighbor_af', 'weight')
+      config_get_default('bgp_neighbor_af', 'weight')
     end
   end
 end

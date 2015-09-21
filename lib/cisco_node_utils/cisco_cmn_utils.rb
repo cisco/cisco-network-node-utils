@@ -93,6 +93,7 @@ module Cisco
     end
   end # class ChefUtils
 
+  # General utility class
   class Utils
     require 'ipaddr'
     # Helper utility method for ip/prefix format networks.

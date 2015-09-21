@@ -23,14 +23,15 @@ require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor_af', __FILE__)
 
+# TestRouterBgpNeighborAF - Minitest for RouterBgpNeighborAF class
 class TestRouterBgpNeighborAF < CiscoTestCase
-  @@reset_feat = true
+  @@reset_feat = true # rubocop:disable Style/ClassVars
 
   def setup
     super
     if @@reset_feat
       @device.cmd('conf t ; no feature bgp ; feature bgp ; end')
-      @@reset_feat = false
+      @@reset_feat = false # rubocop:disable Style/ClassVars
     else
       # Just ensure that feature is enabled
       @device.cmd('conf t ; feature bgp ; end')
@@ -40,7 +41,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def clean_af(af_args, ebgp=true)
     # Most tests only need an address-family cleanup
     asn, vrf, nbr, af = af_args
-    dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
+    dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
 
     obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr, true)
     obj_nbr.remote_as = ebgp ? asn + 1 : asn
@@ -59,7 +60,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   # end
 
   # AF test matrix
-  @@matrix = {
+  @@matrix = { # rubocop:disable Style/ClassVars
     # 1 => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
     2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
     3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
@@ -86,7 +87,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     obj = {}
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
-      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af)
+      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr].key?(af),
@@ -96,7 +97,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # Destroys
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
-      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af)
+      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k].destroy
       afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr].key?(af),
@@ -113,7 +114,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
-      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
+      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
       afs = RouterBgpNeighborAF.afs
@@ -125,14 +126,14 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
-      dbg = format('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
+      dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
       nbr_munged = Utils.process_network_mask(nbr)
       afs = RouterBgpNeighborAF.afs
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
     end
-    @@reset_feat = true
+    @@reset_feat = true # rubocop:disable Style/ClassVars
   end
 
   # ---------------------------------
@@ -504,7 +505,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       af, dbg = clean_af(af_args)
       send_community(af, dbg)
     end
-    @@reset_feat = true
+    @@reset_feat = true # rubocop:disable Style/ClassVars
   end
 
   def send_community(af, dbg)
@@ -618,9 +619,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     val = '1.1.1.1:1'
 
     if dbg.include?('default')
-      assert_raises(CliError, "Test 1. #{dbg}[soo=] did not raise CliError") {
+      assert_raises(CliError, "Test 1. #{dbg}[soo=] did not raise CliError") do
         af.soo = val
-      }
+      end
       # SOO is only allowed in non-default VRF
       return
     end

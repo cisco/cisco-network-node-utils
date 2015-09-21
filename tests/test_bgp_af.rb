@@ -21,6 +21,7 @@ require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/bgp_af', __FILE__)
 
+# TestRouterBgpAF - Minitest for RouterBgpAF class
 class TestRouterBgpAF < CiscoTestCase
   def setup
     super
@@ -232,9 +233,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' and 'should' network list contain
     # items and are identical
     #
-    il1.each { |network, rtmap|
-      bgp_af.network_set(network, rtmap)
-    }
+    il1.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.networks_delta(sl1)
     assert_empty(config_list[:add],
@@ -246,15 +245,13 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    sl1.each { |network|
+    sl1.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
 
     # Cleanup for next test section
-    sl1.each { |network, rtmap|
-      bgp_af.network_remove(network, rtmap)
-    }
+    sl1.each { |network, rtmap| bgp_af.network_remove(network, rtmap) }
     assert_empty(bgp_af.networks,
                  'Error: all networks should have been removed')
 
@@ -262,9 +259,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' and 'should' network list contain
     # the same number of items but they differ.
     #
-    il2.each { |network, rtmap|
-      bgp_af.network_set(network, rtmap)
-    }
+    il2.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.networks_delta(sl2)
     assert_equal(3, config_list[:add].size,
@@ -286,10 +281,10 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    sl2.each { |network|
+    sl2.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
   end
 
   def test_networks_delta_same
@@ -370,9 +365,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' network list contains more items then
     # the 'should' network list.
     #
-    il.each { |network, rtmap|
-      bgp_af.network_set(network, rtmap)
-    }
+    il.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.networks_delta(sl)
     assert_empty(config_list[:add],
@@ -386,10 +379,10 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    sl.each { |network|
+    sl.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
   end
 
   def test_networks_delta_is_greaterthan_should
@@ -438,9 +431,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' network list contains less items then
     # the 'should' network list.
     #
-    il1.each { |network, rtmap|
-      bgp_af.network_set(network, rtmap)
-    }
+    il1.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.networks_delta(sl1)
     assert_equal(1, config_list[:add].size,
@@ -454,15 +445,13 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    sl1.each { |network|
+    sl1.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
 
     # Cleanup for next test section
-    sl1.each { |network, rtmap|
-      bgp_af.network_remove(network, rtmap)
-    }
+    sl1.each { |network, rtmap| bgp_af.network_remove(network, rtmap) }
     assert_empty(bgp_af.networks,
                  'Error: all networks should have been removed')
 
@@ -471,9 +460,7 @@ class TestRouterBgpAF < CiscoTestCase
     # the 'should' network list and some of the items are
     # different
     #
-    il2.each { |network, rtmap|
-      bgp_af.network_set(network, rtmap)
-    }
+    il2.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.networks_delta(sl2)
     assert_equal(2, config_list[:add].size,
@@ -491,10 +478,10 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    sl2.each { |network|
+    sl2.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
   end
 
   def test_networks_delta_is_lessthan_should
@@ -571,10 +558,10 @@ class TestRouterBgpAF < CiscoTestCase
     # Configure 50 networks and then add and remove from the list
     #
     should_list = []
-    (1..50).each { |x|
+    (1..50).each do |x|
       bgp_af.network_set("192.168.#{x}.5/24", "rtmap#{x}")
       should_list.push ["192.168.#{x}.0/24", "rtmap#{x}"]
-    }
+    end
 
     config_list = bgp_af.networks_delta(should_list)
     assert_empty(config_list[:add],
@@ -586,39 +573,31 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify is_list on device
-    should_list.each { |network|
+    should_list.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
 
     # Change the second half of the list to new values
-    (25..50).each { |x|
-      should_list[x] = ["10.168.#{x}.0/24", "rtmap#{x}"]
-    }
+    (25..50).each { |x| should_list[x] = ["10.168.#{x}.0/24", "rtmap#{x}"] }
 
     # Add new values with route maps
-    (51..80).each { |x|
-      should_list[x] = ["10.55.#{x}.0/24", "rtmap#{x}"]
-    }
+    (51..80).each { |x| should_list[x] = ["10.55.#{x}.0/24", "rtmap#{x}"] }
 
     # Add new values without route maps
-    (81..90).each { |x|
-      should_list[x] = ["10.55.#{x}.0/24"]
-    }
+    (81..90).each { |x| should_list[x] = ["10.55.#{x}.0/24"] }
 
     # Apply config_list
     bgp_af.networks = bgp_af.networks_delta(should_list)
 
     # Verify is_list on device
-    should_list.each { |network|
+    should_list.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
 
     # Cleanup
-    should_list.each { |network, rtmap|
-      bgp_af.network_remove(network, rtmap)
-    }
+    should_list.each { |network, rtmap| bgp_af.network_remove(network, rtmap) }
     assert_empty(bgp_af.networks,
                  'Error: all networks should have been removed')
   end
@@ -646,9 +625,9 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.networks = config_list
 
     # Verify should_list on device
-    sl.each { |network|
+    sl.each do |network|
       assert_includes(bgp_af.networks, network,
                       "Error: device should contain network #{network}")
-    }
+    end
   end
 end
