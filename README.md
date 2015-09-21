@@ -96,6 +96,32 @@ See [CHANGELOG](CHANGELOG.md) for a list of changes.
 
 See [CONTRIBUTING](CONTRIBUTING.md) for developer and contributor guidelines.
 
+## Learning Resources
+
+* Chef
+  * [https://learn.chef.io/](https://learn.chef.io/)
+  * [https://en.wikipedia.org/wiki/Chef_(software)](https://en.wikipedia.org/wiki/Chef_(software))
+* Puppet
+  * [https://learn.puppetlabs.com/](https://learn.puppetlabs.com/)
+  * [https://en.wikipedia.org/wiki/Puppet_(software)](https://en.wikipedia.org/wiki/Puppet_(software))
+* Markdown (for editing documentation)
+  * [https://help.github.com/articles/markdown-basics/](https://help.github.com/articles/markdown-basics/)
+* Ruby
+  * [https://en.wikipedia.org/wiki/Ruby_(programming_language)](https://en.wikipedia.org/wiki/Ruby_(programming_language))
+  * [https://www.codecademy.com/tracks/ruby](https://www.codecademy.com/tracks/ruby)
+  * [https://rubymonk.com/](https://rubymonk.com/)
+  * [https://www.codeschool.com/paths/ruby](https://www.codeschool.com/paths/ruby)
+* Ruby Gems
+  * [http://guides.rubygems.org/](http://guides.rubygems.org/)
+  * [https://en.wikipedia.org/wiki/RubyGems](https://en.wikipedia.org/wiki/RubyGems)
+* YAML
+  * [https://en.wikipedia.org/wiki/YAML](https://en.wikipedia.org/wiki/YAML)
+  * [http://www.yaml.org/start.html](http://www.yaml.org/start.html)
+* Yum
+  * [https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified](https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified)
+  * [https://www.centos.org/docs/5/html/yum/](https://www.centos.org/docs/5/html/yum/)
+  * [http://www.linuxcommand.org/man_pages](http://www.linuxcommand.org/man_pages/yum8.html)
+
 ## License
 
 Copyright (c) 2013-2015 Cisco and/or its affiliates.
