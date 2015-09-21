@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Add some general-purpose constants and APIs to the Cisco namespace
 module Cisco
   # global constants
   DEFAULT_INSTANCE_NAME = 'default'
 
+  # Encryption - helper class for translating encryption type CLI
   class Encryption
     # password encryption types
     def self.cli_to_symbol(cli)
@@ -56,6 +58,7 @@ module Cisco
     end
   end
 
+  # ChefUtils - helper class for Chef code generation
   class ChefUtils
     def self.generic_prop_set(klass, rlbname, props)
       props.each do |prop|

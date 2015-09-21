@@ -17,36 +17,8 @@ require File.expand_path('../../lib/cisco_node_utils/interface', __FILE__)
 
 include Cisco
 
+# TestInterface - Minitest for general functionality of the Interface class.
 class TestInterface < CiscoTestCase
-  # Global class variables for debugs
-  @@debug_group_ipv4_all_interfaces = 'interface_ipv4_all_interfaces'
-  @@debug_validate_interfaces_not_empty = 'validate_interfaces_not_empty'
-  @@debug_validate_interface_shutdown = 'validate_interface_shutdown'
-  @@debug_validate_get_switchport = 'validate_get_switchport'
-  @@debug_validate_description = 'validate_description'
-  @@debug_validate_get_access_vlan = 'validate_get_access_vlan'
-  @@debug_validate_ipv4_address = 'validate_ipv4_address'
-  @@debug_validate_ipv4_proxy_arp = 'validate_ipv4_proxy_arp'
-  @@debug_validate_ipv4_redirects = 'validate_ipv4_redirects'
-  @@debug_validate_vrf = 'validate_vrf'
-  @@debug_test_interface_ipv4_all_interfaces = 'test_interface_ipv4_all_interfaces'
-
-  # Debug flags, globally defined
-  #
-  # debug_flag - Flag to control if debugs are displayed, can take
-  #              true/false as values.
-  # debug_detail - Flag to control if detailed debugs are displayed, can take
-  #                true/false as values.
-  # debug_method - The method name to be displayed, can take any string
-  #                or the string 'all' if all debugs should be turned
-  #                on.
-  # debug_group - The method name to be displayed, can take any string
-  #               or the string 'all' if all debugs should be turned on.
-  CiscoTestCase.debug_flag = false
-  CiscoTestCase.debug_detail = false
-  CiscoTestCase.debug_method = ''
-  CiscoTestCase.debug_group = @@debug_group_ipv4_all_interfaces
-
   # rubocop:disable Style/AlignHash
   SWITCHPORT_SHUTDOWN_HASH = {
     'shutdown_ethernet_switchport_shutdown'     =>
@@ -79,7 +51,7 @@ class TestInterface < CiscoTestCase
       @device.cmd("ip address #{address}/#{length}") if secip != true
       @device.cmd("ip address #{address}/#{length} secondary") if secip == true
     else
-      # this will both primary and secondary
+      # This will remove both primary and secondary
       @device.cmd('no ip address')
       @device.cmd('switchport')
     end
@@ -93,9 +65,9 @@ class TestInterface < CiscoTestCase
     line
   end
 
-  def get_interface_count
+  def interface_count
     output = @device.cmd('show run interface all | inc interface | no-more')
-    # next line needs to be done because sh run interface all also shows
+    # Next line needs to be done because sh run interface all also shows
     # ospf interface related config
     arr = output.split("\n").select { |str| str.start_with?('interface') }
     arr.count
@@ -113,54 +85,44 @@ class TestInterface < CiscoTestCase
   end
 
   def validate_interfaces_not_empty
-    CiscoTestCase.debug(@@debug_validate_interfaces_not_empty,
-                        @@debug_group_ipv4_all_interfaces,
-                        2, 'Interface')
     interfaces = Interface.interfaces
     refute_empty(interfaces, 'Error: interfaces collection empty')
 
     # Get number of interfaces
-    int_size = get_interface_count
+    int_size = interface_count
     assert_equal(int_size, interfaces.size,
                  'Error: Interfaces collection size not correct')
   end
 
-  def get_system_default_switchport_shutdown
+  def system_default_switchport_shutdown
     state = []
     s = @device.cmd("sh run all | in \"system default switchport\"")
 
-    s.split("\n")[1..-2].each { |line|
+    s.split("\n")[1..-2].each do |line|
       state << line unless line.include?('fabricpath')
-    }
+    end
     state
   end
 
-  def set_system_default_switchport_shutdown(state)
+  def system_default_switchport_shutdown_set(state)
     @device.cmd('configure terminal')
-    state.each { |config_line|
-      @device.cmd(config_line)
-    }
+    state.each { |config_line| @device.cmd(config_line) }
     @device.cmd('end')
     node.cache_flush
   end
 
   def validate_interface_shutdown(inttype_h)
-    state = get_system_default_switchport_shutdown
+    state = system_default_switchport_shutdown
 
     # Validate the collection
     inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_interface_shutdown,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
-
       interface = v[:interface]
 
-      SWITCHPORT_SHUTDOWN_HASH.each { |lookup_string, config_array|
+      SWITCHPORT_SHUTDOWN_HASH.each do |lookup_string, config_array|
         # puts "lookup_string: #{lookup_string}"
 
         # Configure the system default shwitchport and shutdown settings
-        set_system_default_switchport_shutdown(config_array)
+        system_default_switchport_shutdown_set(config_array)
 
         interface.shutdown = false
         refute(interface.shutdown, "Error: #{interface.name} shutdown is not false")
@@ -177,24 +139,20 @@ class TestInterface < CiscoTestCase
           result = interface.default_shutdown
           assert_equal(ref.default_value, result, "Error: #{interface.name}, " \
                        "(#{lookup_string}), shutdown is #{result}, incorrect")
-        else # port-channel and loopback interfaces
+        else # Port-channel and loopback interfaces
           assert_equal(interface.default_shutdown, v[:default_shutdown],
                        "default shutdown state (#{lookup_string}), incorrect")
         end
-      }
+      end
     end
-    set_system_default_switchport_shutdown(state)
+    system_default_switchport_shutdown_set(state)
   end
 
   # set_switchport is handled else where since it changes the
   # interface to L2 and that would affect the idea of this test.
   def validate_get_switchport(inttype_h)
     # Validate the collection
-    inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_get_switchport,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
+    inttype_h.each_value do |v|
       interface = v[:interface]
 
       # Adding a check for getting the switchport_mode on a interfaces
@@ -215,23 +173,14 @@ class TestInterface < CiscoTestCase
 
   def validate_description(inttype_h)
     # Validate the description
-    inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_description,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
+    inttype_h.each_value do |v|
       interface = v[:interface]
 
-      CiscoTestCase.debug_detail(@@debug_validate_description,
-                                 @@debug_group_ipv4_all_interfaces,
-                                 4,
-                                 "Value - #{v[:description]}")
-
-      # check of description
+      # Check of description
       assert_equal(v[:description], interface.description,
                    "Error: [#{interface.name}] Description is not configured")
 
-      # change description
+      # Change description
       interface.description = v[:description_new]
       assert_equal(v[:description_new], interface.description,
                    "Error: [#{interface.name}] Description is not changed")
@@ -244,11 +193,7 @@ class TestInterface < CiscoTestCase
 
   def validate_get_access_vlan(inttype_h)
     # Validate the collection
-    inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_get_access_vlan,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
+    inttype_h.each_value do |v|
       interface = v[:interface]
 
       assert_equal(v[:access_vlan], interface.access_vlan,
@@ -263,21 +208,13 @@ class TestInterface < CiscoTestCase
   def validate_ipv4_address(inttype_h)
     # Validate the collection
     inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_ipv4_address,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
       interface = v[:interface]
 
-      # verify existing value
+      # Verify existing value
       address = v[:address_len].split('/').first
       length = v[:address_len].split('/').last.to_i
 
-      CiscoTestCase.debug_detail(@@debug_validate_ipv4_address,
-                                 @@debug_group_ipv4_all_interfaces,
-                                 4,
-                                 "Address/Length: #{address}/#{length}")
-      pattern = (/^\s+ip address #{address}\/#{length}/)
+      pattern = %r{^\s+ip address #{address}/#{length}}
       line = get_interface_match_line(interface.name, pattern)
 
       refute_nil(line, "Error: ipv4 address #{address}/#{length} " \
@@ -287,7 +224,7 @@ class TestInterface < CiscoTestCase
       assert_equal(length, interface.ipv4_netmask_length,
                    "Error: ipv4 netmask length get value mismatch for #{k}")
 
-      # get default
+      # Get default
       assert_equal(DEFAULT_IF_IP_ADDRESS, interface.default_ipv4_address,
                    "Error: ipv4 address get default value mismatch for #{k}")
 
@@ -299,7 +236,7 @@ class TestInterface < CiscoTestCase
       # Unconfigure ipaddress
       interface.ipv4_addr_mask_set(interface.default_ipv4_address,
                                    interface.default_ipv4_netmask_length)
-      pattern = (/^\s+ip address #{address}\/#{length}/)
+      pattern = %r{^\s+ip address #{address}/#{length}}
       line = get_interface_match_line(interface.name, pattern)
 
       assert_nil(line, "Error: ipv4 address still present in CLI for #{k}")
@@ -317,10 +254,6 @@ class TestInterface < CiscoTestCase
       # Skipping loopback, proxy arp not supported
       next if (k == 'loopback0')
 
-      CiscoTestCase.debug(@@debug_validate_ipv4_proxy_arp,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
       interface = v[:interface]
 
       # puts "value - #{v[:proxy_arp]}"
@@ -340,12 +273,12 @@ class TestInterface < CiscoTestCase
       assert_equal(!v[:proxy_arp], interface.ipv4_proxy_arp,
                    "Error: ip proxy-arp get value 'false' mismatch")
 
-      # get default
+      # Get default
       assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                    interface.default_ipv4_proxy_arp,
                    'Error: ip proxy arp get default value mismatch')
 
-      # get default and set
+      # Get default and set
       interface.ipv4_proxy_arp = interface.default_ipv4_proxy_arp
       line = get_interface_match_line(interface.name, pattern)
       assert_nil(line, 'Error: default ip proxy-arp set failed')
@@ -358,10 +291,6 @@ class TestInterface < CiscoTestCase
   def validate_ipv4_redirects(inttype_h)
     # Validate the collection
     inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_ipv4_redirects,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
       interface = v[:interface]
 
       if k.include?('loopback')
@@ -387,9 +316,7 @@ class TestInterface < CiscoTestCase
         pattern = ref.test_config_get_regex[0]
 
         if k.include?('loopback')
-          assert_raises(Cisco::CliError) {
-            interface.ipv4_redirects = true
-          }
+          assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
         else
           interface.ipv4_redirects = true
           assert(interface.ipv4_redirects, "Couldn't set redirects to true")
@@ -407,36 +334,27 @@ class TestInterface < CiscoTestCase
                      'ipv4 redirects default incorrect')
 
         # Make sure setter fails
-        assert_raises(ref.test_config_result(true)) {
+        assert_raises(ref.test_config_result(true)) do
           interface.ipv4_redirects = true
-        }
-        assert_raises(ref.test_config_result(false)) {
+        end
+        assert_raises(ref.test_config_result(false)) do
           interface.ipv4_redirects = false
-        }
+        end
       end
     end
   end
 
   def validate_vrf(inttype_h)
     # Validate the vrf
-    inttype_h.each do |k, v|
-      CiscoTestCase.debug(@@debug_validate_vrf,
-                          @@debug_group_ipv4_all_interfaces,
-                          2,
-                          "Interface: #{k}")
+    inttype_h.each_value do |v|
       interface = v[:interface]
 
-      CiscoTestCase.debug_detail(@@debug_validate_vrf,
-                                 @@debug_group_ipv4_all_interfaces,
-                                 4,
-                                 "Value - #{v[:vrf]}")
-
-      # change vrf
+      # Change vrf
       interface.vrf = v[:vrf_new]
       assert_equal(v[:vrf_new], interface.vrf,
                    "Error: [#{interface.name}] vrf is not changed")
 
-      # set to default vrf
+      # Set to default vrf
       assert_equal(v[:default_vrf], interface.default_vrf,
                    "Error: [#{interface.name}] vrf config found. Should be default vrf")
     end
@@ -481,9 +399,7 @@ class TestInterface < CiscoTestCase
   def test_interface_description_too_long
     interface = Interface.new(interfaces[0])
     description = 'a' * (IF_DESCRIPTION_SIZE + 1)
-    assert_raises(RuntimeError) {
-      interface.description = description
-    }
+    assert_raises(RuntimeError) { interface.description = description }
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -491,14 +407,13 @@ class TestInterface < CiscoTestCase
     interface = Interface.new(interfaces[0])
     alphabet = 'abcdefghijklmnopqrstuvwxyz 0123456789'
     description = ''
-    1.upto(IF_DESCRIPTION_SIZE) { |i|
+    1.upto(IF_DESCRIPTION_SIZE) do |i|
       description += alphabet[i % alphabet.size, 1]
-      if i == IF_DESCRIPTION_SIZE
-        # puts("description (#{i}): #{description}")
-        interface.description = description
-        assert_equal(description.rstrip, interface.description)
-      end
-    }
+      next unless i == IF_DESCRIPTION_SIZE
+      # puts("description (#{i}): #{description}")
+      interface.description = description
+      assert_equal(description.rstrip, interface.description)
+    end
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -519,9 +434,7 @@ class TestInterface < CiscoTestCase
     interface.switchport_mode = :disabled
     subif = Interface.new(interfaces[0] + '.1')
 
-    assert_raises(RuntimeError) {
-      subif.encapsulation_dot1q = 'hello'
-    }
+    assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -546,9 +459,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_invalid
     interface = Interface.new(interfaces[0])
-    assert_raises(RuntimeError) {
-      interface.mtu = 'hello'
-    }
+    assert_raises(RuntimeError) { interface.mtu = 'hello' }
   end
 
   def test_interface_mtu_valid
@@ -666,7 +577,7 @@ class TestInterface < CiscoTestCase
     end
 
     if config_set
-      # skip test if cli not supported on interface
+      # Skip test if cli not supported on interface
       @device.cmd("conf t; interface #{interface}")
       s = @device.cmd('negotiate auto')
       unless s[/% Invalid command/]
@@ -677,7 +588,7 @@ class TestInterface < CiscoTestCase
 
         pattern = cmd_ref.test_config_get_regex[0]
         line = get_interface_match_line(interface.name, pattern)
-        # TBD needs to get the result from cmd_ref.test_config_get_result[0]
+        # TODO: needs to get the result from cmd_ref.test_config_get_result[0]
         assert_nil(line, "Error: #{inf_name} no negotiate auto cfg mismatch")
 
         pattern = cmd_ref.test_config_get_regex[1]
@@ -778,12 +689,12 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.negotiate_auto, ref.default_value,
                  "Error: #{inf_name} negotiate auto value mismatch")
 
-    assert_raises(ref.test_config_result(true)) {
+    assert_raises(ref.test_config_result(true)) do
       interface.negotiate_auto = true
-    }
-    assert_raises(ref.test_config_result(false)) {
+    end
+    assert_raises(ref.test_config_result(false)) do
       interface.negotiate_auto = false
-    }
+    end
 
     # Cleanup
     @device.cmd('configure terminal')
@@ -824,7 +735,7 @@ class TestInterface < CiscoTestCase
 
     # setter, getter
     interface.ipv4_addr_mask_set(address, length)
-    pattern = (/^\s+ip address #{address}\/#{length}/)
+    pattern = %r{^\s+ip address #{address}/#{length}}
     line = get_interface_match_line(interface.name, pattern)
     refute_nil(line, 'Error: ipv4 address missing in CLI')
     assert_equal(address, interface.ipv4_address,
@@ -969,11 +880,6 @@ class TestInterface < CiscoTestCase
   # NOTE - Changes to this method may require new validation methods
   #        to be created or existing ones to be modified.
   def test_interface_ipv4_all_interfaces
-    CiscoTestCase.debug(@@debug_test_interface_ipv4_all_interfaces,
-                        @@debug_group_ipv4_all_interfaces,
-                        0,
-                        'test_interface_ipv4_all_interfaces')
-
     inttype_h = {}
     inttype_h[interfaces[0]] = {
       address_len:         '8.7.1.1/15',
@@ -1046,7 +952,7 @@ class TestInterface < CiscoTestCase
     # master should revisit this later
 
     # Set system defaults to "factory" values prior to initial test.
-    set_system_default_switchport_shutdown(
+    system_default_switchport_shutdown_set(
       SWITCHPORT_SHUTDOWN_HASH['shutdown_ethernet_noswitchport_shutdown'])
 
     # pre-configure
@@ -1124,17 +1030,13 @@ class TestInterface < CiscoTestCase
 
   def test_interface_vrf_invalid_type
     interface = Interface.new('loopback1')
-    assert_raises(TypeError) {
-      interface.vrf = 1
-    }
+    assert_raises(TypeError) { interface.vrf = 1 }
   end
 
   def test_interface_vrf_exceeds_max_length
     interface = Interface.new('loopback1')
     long_string = 'a' * (IF_VRF_MAX_LENGTH + 1)
-    assert_raises(RuntimeError) {
-      interface.vrf = long_string
-    }
+    assert_raises(RuntimeError) { interface.vrf = long_string }
   end
 
   def test_interface_vrf_override

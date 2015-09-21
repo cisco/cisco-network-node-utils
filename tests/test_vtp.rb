@@ -15,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/vtp', __FILE__)
 
+# TestVtp - Minitest for Vtp node utility class
 class TestVtp < CiscoTestCase
   def setup
     super
@@ -206,25 +207,18 @@ class TestVtp < CiscoTestCase
     vtp = vtp_domain('accounting')
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     password = ''
-    1.upto(Vtp::MAX_VTP_PASSWORD_SIZE - 1) { |i|
-      begin
-        password += alphabet[i % alphabet.size, 1]
-        vtp.password = password
-        assert_equal(password.rstrip, vtp.password,
-                     'Error: vtp password not set')
-      end
-    }
+    1.upto(Vtp::MAX_VTP_PASSWORD_SIZE - 1) do |i|
+      password += alphabet[i % alphabet.size, 1]
+      vtp.password = password
+      assert_equal(password.rstrip, vtp.password,
+                   'Error: vtp password not set')
+    end
   end
 
   def test_vtp_password_too_long
     vtp = vtp_domain('accounting')
-    password = 'a'
-    Vtp::MAX_VTP_PASSWORD_SIZE.times {
-      password += 'a'
-    }
-    assert_raises(ArgumentError) {
-      vtp.password = password
-    }
+    password = 'a' * (Vtp::MAX_VTP_PASSWORD_SIZE + 1)
+    assert_raises(ArgumentError) { vtp.password = password }
   end
 
   def test_vtp_password_special_characters
@@ -281,10 +275,10 @@ class TestVtp < CiscoTestCase
     ref = cmd_ref.lookup('vtp', 'version')
     assert(ref, 'Error, reference not found for vtp version3')
 
-    assert_result(ref.test_config_result(3), 'Error: vtp version3 error') {
+    assert_result(ref.test_config_result(3), 'Error: vtp version3 error') do
       vtp.version = 3
       vtp.version
-    }
+    end
   end
 
   # Decides whether to check for a raised Exception or an equal value.

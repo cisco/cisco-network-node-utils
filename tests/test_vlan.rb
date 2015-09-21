@@ -18,6 +18,7 @@ require File.expand_path('../../lib/cisco_node_utils/interface', __FILE__)
 
 include Cisco
 
+# TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
   def interface_ethernet_default(ethernet_id)
     @device.cmd('configure terminal')
@@ -109,7 +110,7 @@ class TestVlan < CiscoTestCase
     v = Vlan.new(1000)
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     name = ''
-    1.upto(VLAN_NAME_SIZE - 1) { |i|
+    1.upto(VLAN_NAME_SIZE - 1) do |i|
       begin
         name += alphabet[i % alphabet.size, 1]
         # puts "n is #{name}"
@@ -118,7 +119,7 @@ class TestVlan < CiscoTestCase
           assert_equal(name, v.vlan_name)
         end
       end
-    }
+    end
     v.destroy
   end
 
@@ -167,17 +168,15 @@ class TestVlan < CiscoTestCase
   def test_vlan_state_valid
     states = %w(unknown active suspend)
     v = Vlan.new(1000)
-    states.each { |start|
-      states.each { |finish|
-        if start != 'unknown' &&
-           finish != 'unknown'
-          v.state = start
-          assert_equal(start, v.state, 'start')
-          v.state = finish
-          assert_equal(finish, v.state, 'finish')
-        end
-      }
-    }
+    states.each do |start|
+      states.each do |finish|
+        next if start == 'unknown' || finish == 'unknown'
+        v.state = start
+        assert_equal(start, v.state, 'start')
+        v.state = finish
+        assert_equal(finish, v.state, 'finish')
+      end
+    end
     v.destroy
   end
 
@@ -192,14 +191,14 @@ class TestVlan < CiscoTestCase
   def test_vlan_shutdown_valid
     shutdown_states = [true, false]
     v = Vlan.new(1000)
-    shutdown_states.each { |start|
-      shutdown_states.each { |finish|
+    shutdown_states.each do |start|
+      shutdown_states.each do |finish|
         v.shutdown = start
         assert_equal(start, v.shutdown, 'start')
         v.shutdown = finish
         assert_equal(finish, v.shutdown, 'finish')
-      }
-    }
+      end
+    end
     v.destroy
   end
 
@@ -208,21 +207,20 @@ class TestVlan < CiscoTestCase
     interfaces = Interface.interfaces
     interfaces_added_to_vlan = []
     count = 3
-    interfaces.each { |name, interface|
-      if interface.name.match(/ethernet/) && count > 0
-        interfaces_added_to_vlan << name
-        interface.switchport_mode = :access
-        v.add_interface(interface)
-        count -= 1
-      end
-    }
+    interfaces.each do |name, interface|
+      next unless interface.name.match(/ethernet/) && count > 0
+      interfaces_added_to_vlan << name
+      interface.switchport_mode = :access
+      v.add_interface(interface)
+      count -= 1
+    end
 
     interfaces = v.interfaces
-    interfaces.each { |name, interface|
+    interfaces.each do |name, interface|
       assert_includes(interfaces_added_to_vlan, name)
       assert_equal(v.vlan_id, interface.access_vlan, 'Interface.access_vlan')
       v.remove_interface(interface)
-    }
+    end
 
     interfaces = v.interfaces
     assert(interfaces.empty?)
@@ -233,9 +231,7 @@ class TestVlan < CiscoTestCase
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) {
-      v.add_interface(interface)
-    }
+    assert_raises(RuntimeError) { v.add_interface(interface) }
     v.destroy
     interface_ethernet_default(interfaces_id[0])
   end
@@ -246,9 +242,7 @@ class TestVlan < CiscoTestCase
     interface.switchport_mode = :access
     v.add_interface(interface)
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) {
-      v.remove_interface(interface)
-    }
+    assert_raises(RuntimeError) { v.remove_interface(interface) }
 
     v.destroy
     interface_ethernet_default(interfaces_id[0])

@@ -21,6 +21,7 @@ DEFAULT_TACACS_SERVER_HOST_PORT = 49
 DEFAULT_TACACS_SERVER_HOST_TIMEOUT = 0
 DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD = ''
 
+# TestTacacsServerHost - Minitest for TacacsServerHost node utility
 class TestTacacsServerHost < CiscoTestCase
   def get_tacacsserverhost_match_line(host_name)
     s = @device.cmd('show run all | no-more')
@@ -42,21 +43,21 @@ class TestTacacsServerHost < CiscoTestCase
     hosts_hash['testhost1'] = 1138
     hosts_hash['testhost2'] = DEFAULT_TACACS_SERVER_HOST_PORT
 
-    hosts_hash.each { |name, port|
+    hosts_hash.each do |name, port|
       host = TacacsServerHost.new(name)
       host.port = port
-    }
+    end
 
     hosts = TacacsServerHost.hosts
     refute_empty(hosts, 'Error: Tacacs Host collection is empty')
-    hosts_hash.each { |name, port|
+    hosts_hash.each do |name, port|
       # host must have been created to be found in the list
       assert(hosts.include?(name),
              "Error: Tacacs Host #{name} not in collection")
       # port numbers differentiate the hosts
       assert_equal(port, hosts[name].port,
                    "Error: Tacacs Host #{name} port mismatch")
-    }
+    end
 
     hosts_hash.each_key { |name| hosts[name].destroy }
   end

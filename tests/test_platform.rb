@@ -15,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/platform', __FILE__)
 
+# TestPlatform - Minitest for Platform class
 class TestPlatform < CiscoTestCase
   def test_system_image
     s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
@@ -98,10 +99,12 @@ class TestPlatform < CiscoTestCase
   # Everything from DESCR onwards follows the same general format so we
   # can define a single base regexp and extend it as needed for Chassis, Slot,
   # Power Supply, and Fan inventory entries.
-  @@inv_cmn_re = /.*DESCR:\s+"(.*)"\s*\nPID:\s+(\S+).*VID:\s+(\S+).*SN:\s+(\S+)/
+  def inv_cmn_re
+    /.*DESCR:\s+"(.*)"\s*\nPID:\s+(\S+).*VID:\s+(\S+).*SN:\s+(\S+)/
+  end
 
   def test_chassis
-    arr = @device.cmd('sh inv | no-m').scan(/NAME:\s+"Chassis"#{@@inv_cmn_re}/)
+    arr = @device.cmd('sh inv | no-m').scan(/NAME:\s+"Chassis"#{inv_cmn_re}/)
     arr = arr.flatten
     # convert to hash
     chas_hsh = { 'descr' => arr[0],
@@ -114,50 +117,50 @@ class TestPlatform < CiscoTestCase
 
   def test_slots
     slots_arr_arr = @device.cmd('sh inv | no-m')
-                    .scan(/NAME:\s+"(Slot \d+)"#{@@inv_cmn_re}/)
+                    .scan(/NAME:\s+"(Slot \d+)"#{inv_cmn_re}/)
     # convert to array of slot hashes
     slots_hsh_hsh = {}
-    slots_arr_arr.each { |slot|
+    slots_arr_arr.each do |slot|
       slots_hsh_hsh[slot[0]] = { 'descr' => slot[1],
                                  'pid'   => slot[2],
                                  'vid'   => slot[3],
                                  'sn'    => slot[4],
       }
-    }
+    end
     assert_equal(slots_hsh_hsh, Platform.slots)
   end
 
   def test_power_supplies
     pwr_arr_arr = @device.cmd('sh inv | no-m')
-                  .scan(/NAME:\s+"(Power Supply \d+)"#{@@inv_cmn_re}/)
+                  .scan(/NAME:\s+"(Power Supply \d+)"#{inv_cmn_re}/)
     refute_empty(pwr_arr_arr, 'Regex scan failed to match show inventory output')
 
     # convert to array of power supply hashes
     pwr_hsh_hsh = {}
-    pwr_arr_arr.each { |pwr|
+    pwr_arr_arr.each do |pwr|
       pwr_hsh_hsh[pwr[0]] = { 'descr' => pwr[1],
                               'pid'   => pwr[2],
                               'vid'   => pwr[3],
                               'sn'    => pwr[4],
       }
-    }
+    end
     assert_equal(pwr_hsh_hsh, Platform.power_supplies)
   end
 
   def test_fans
     fan_arr_arr = @device.cmd('sh inv | no-m')
-                  .scan(/NAME:\s+"(Fan \d+)"#{@@inv_cmn_re}/)
+                  .scan(/NAME:\s+"(Fan \d+)"#{inv_cmn_re}/)
     refute_empty(fan_arr_arr, 'Regex scan failed to match show inventory output')
 
     # convert to array of fan hashes
     fan_hsh_hsh = {}
-    fan_arr_arr.each { |fan|
+    fan_arr_arr.each do |fan|
       fan_hsh_hsh[fan[0]] = { 'descr' => fan[1],
                               'pid'   => fan[2],
                               'vid'   => fan[3],
                               'sn'    => fan[4],
       }
-    }
+    end
     assert_equal(fan_hsh_hsh, Platform.fans)
   end
 
@@ -168,7 +171,7 @@ class TestPlatform < CiscoTestCase
     # convert to expected format
     vir_hsh_hsh = {}
     unless vir_arr.nil?
-      vir_arr.each { |serv|
+      vir_arr.each do |serv|
         # rubocop:disable Style/AlignHash, Style/ExtraSpacing
         vir_hsh_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
@@ -190,7 +193,7 @@ class TestPlatform < CiscoTestCase
           },
         }
         # rubocop:enable Style/AlignHash, Style/ExtraSpacing
-      }
+      end
     end
     assert_equal(vir_hsh_hsh, Platform.virtual_services)
   end

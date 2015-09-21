@@ -15,6 +15,7 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/snmpgroup', __FILE__)
 
+# TestSnmpGroup - Minitest for SnmpGroup node utility.
 class TestSnmpGroup < CiscoTestCase
   # NXOS snmp groups will not be empty
   def test_snmpgroup_collection_not_empty

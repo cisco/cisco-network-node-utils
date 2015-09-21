@@ -23,6 +23,7 @@ require 'singleton'
 require 'cisco_nxapi'
 require File.join(File.dirname(__FILE__), 'command_reference')
 
+# Add node management classes and APIs to the Cisco namespace.
 module Cisco
   # Error class raised by the config_set and config_get APIs if the
   # device encounters an issue trying to act on the requested CLI.
@@ -47,7 +48,6 @@ module Cisco
   # Singleton representing the network node (switch/router) that is
   # running this code. The singleton is lazily instantiated, meaning that
   # it doesn't exist until some client requests it (with Node.instance())
-
   class Node
     include Singleton
 
@@ -81,7 +81,7 @@ module Cisco
         # IndexError if value is not set, TypeError if set to nil explicitly
         token = nil
       end
-      if token.kind_of?(String) and token[0] == '/' and token[-1] == '/'
+      if token.kind_of?(String) && token[0] == '/' && token[-1] == '/'
         fail RuntimeError unless args.length == token.scan(/%/).length
         # convert string to regexp and replace %s with args
         token = Regexp.new(sprintf(token, *args)[1..-2])
@@ -93,9 +93,9 @@ module Cisco
 
       elsif token.kind_of?(Array)
         # Array of /regexps/ -> ascii, array of strings/ints -> structured
-        if token[0].kind_of?(String) and
-           token[0][0] == '/' and
-           (token[0][-1] == '/' or token[0][-2..-1] == '/i')
+        if token[0].kind_of?(String) &&
+           token[0][0] == '/' &&
+           (token[0][-1] == '/' || token[0][-2..-1] == '/i')
 
           token = token_str_to_regexp(token, args)
           text = build_config_get(feature, ref, :ascii)
@@ -176,8 +176,8 @@ module Cisco
       end
       unless args[0].is_a? Hash
         if param_count != args.length
-          fail ArgumentError.new('Wrong number of params - expected: ' \
-                                "#{param_count} actual: #{args.length}")
+          fail ArgumentError, 'Wrong number of params - expected: ' \
+          "#{param_count} actual: #{args.length}"
         end
       end
       if config_set.is_a?(String)
@@ -212,16 +212,20 @@ module Cisco
     attr_reader :cmd_ref, :client
 
     # For unit testing - we won't know the node connection info at load time.
-    @@lazy_connect = false
+    @lazy_connect = false
 
-    def self.lazy_connect=(val)
-      @@lazy_connect = val
+    class << self
+      attr_reader :lazy_connect
+    end
+
+    class << self
+      attr_writer :lazy_connect
     end
 
     def initialize
       @client = nil
       @cmd_ref = nil
-      connect unless @@lazy_connect
+      connect unless self.class.lazy_connect
     end
 
     def to_s
@@ -276,13 +280,13 @@ module Cisco
       # replace all %s with *args
       token.map! { |str| sprintf(str, *args.shift(str.scan(/%/).length)) }
       # convert all to Regexp objects
-      token.map! { |str|
+      token.map! do |str|
         if str[-2..-1] == '/i'
           Regexp.new(str[1..-3], Regexp::IGNORECASE)
         else
           Regexp.new(str[1..-2])
         end
-      }
+      end
       token
     end
 
@@ -576,7 +580,7 @@ module Cisco
   #   bgp_afs = find_ascii(show_run_bgp, /^address-family (.*)/,
   #                        /^router bgp #{ASN}/)
   def find_ascii(body, regex_query, *parent_cfg)
-    return nil if body.nil? or regex_query.nil?
+    return nil if body.nil? || regex_query.nil?
 
     # get subconfig
     parent_cfg.each { |p| body = find_subconfig(body, p) }
@@ -588,7 +592,7 @@ module Cisco
       match = body.split("\n").map { |s| s.scan(regex_query) }
       match = match.flatten(1)
       return nil if match.empty?
-      match = match.flatten if match[0].is_a?(Array) and match[0].length == 1
+      match = match.flatten if match[0].is_a?(Array) && match[0].length == 1
       return match
     end
   end
@@ -602,7 +606,7 @@ module Cisco
   # @return [String, nil] the subsection of body, de-indented
   # appropriately, or nil if no such subsection exists.
   def find_subconfig(body, regex_query)
-    return nil if body.nil? or regex_query.nil?
+    return nil if body.nil? || regex_query.nil?
 
     rows = body.split("\n")
     match_row_index = rows.index { |row| regex_query =~ row }
@@ -611,7 +615,7 @@ module Cisco
     cur = match_row_index + 1
     subconfig = []
 
-    until (/\A\s+.*/ =~ rows[cur]).nil? or cur == rows.length
+    until (/\A\s+.*/ =~ rows[cur]).nil? || cur == rows.length
       subconfig << rows[cur]
       cur += 1
     end

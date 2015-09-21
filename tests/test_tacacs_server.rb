@@ -15,8 +15,9 @@
 require File.expand_path('../ciscotest', __FILE__)
 require File.expand_path('../../lib/cisco_node_utils/tacacs_server', __FILE__)
 
+# TestTacacsServer - Minitest for TacacsServer node utility
 class TestTacacsServer < CiscoTestCase
-  def get_tacacsserver_feature
+  def tacacsserver_feature
     s = @device.cmd('show run all | no-more')
     cmd = 'feature tacacs+'
     /#{cmd}/.match(s)
@@ -39,7 +40,7 @@ class TestTacacsServer < CiscoTestCase
 
   def test_tacacsserver_create_valid
     tacacs = TacacsServer.new
-    line = get_tacacsserver_feature
+    line = tacacsserver_feature
     refute_nil(line, 'Error: Tacacs feature not set')
     tacacs.destroy
   end
@@ -379,10 +380,10 @@ class TestTacacsServer < CiscoTestCase
 
   def test_tacacsserver_destroy
     tacacs = TacacsServer.new
-    line = get_tacacsserver_feature
+    line = tacacsserver_feature
     refute_nil(line, 'Error: Tacacs feature not set')
     tacacs.destroy
-    line = get_tacacsserver_feature
+    line = tacacsserver_feature
     assert_nil(line, 'Error: Tacacs feature still present')
   end
 end

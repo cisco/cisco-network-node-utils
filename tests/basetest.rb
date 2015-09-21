@@ -28,10 +28,14 @@ rescue LoadError
   require File.expand_path('../../../cisco_nxapi/lib/cisco_nxapi')
 end
 
+# TestCase - common base class for all minitest cases in this module.
+#   Most node utility tests should inherit from CiscoTestCase instead.
 class TestCase < Test::Unit::TestCase
+  # rubocop:disable Style/ClassVars
   @@address = nil
   @@username = nil
   @@password = nil
+  # rubocop:enable Style/ClassVars
 
   def process_arguments
     if ARGV.length != 3 && ARGV.length != 4
@@ -43,17 +47,18 @@ class TestCase < Test::Unit::TestCase
     # Record the version of Ruby we got invoked with.
     puts "\nRuby Version - #{RUBY_VERSION}"
 
+    # rubocop:disable Style/ClassVars
     @@address = ARGV[0]
     @@username = ARGV[1]
     @@password = ARGV[2]
+    # rubocop:enable Style/ClassVars
 
-    if ARGV.length == 4
-      if ARGV[3] == 'debug'
-        CiscoLogger.debug_enable
-      else
-        puts "Only 'debug' is allowed"
-        exit
-      end
+    return unless ARGV.length == 4
+    if ARGV[3] == 'debug'
+      CiscoLogger.debug_enable
+    else
+      puts "Only 'debug' is allowed"
+      exit
     end
   end
 

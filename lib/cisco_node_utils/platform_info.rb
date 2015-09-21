@@ -28,7 +28,7 @@ class PlatformInfo
   #                             UTs are to be run
   #
   def initialize(device_name)
-    fail 'device name must be specified in PlatformInfo constructor.' if device_name.nil? or device_name.empty?
+    fail 'device name must be specified in PlatformInfo constructor.' if device_name.nil? || device_name.empty?
     @platform_info_hash = {}
 
     begin

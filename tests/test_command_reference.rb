@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 #
-# Unit testing for CommandReference and CmdRef classes.
 # November 2014, Glenn F. Matthews
 #
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
@@ -22,6 +21,7 @@ require 'minitest/autorun'
 require 'tempfile'
 require File.expand_path('../../lib/cisco_node_utils/command_reference', __FILE__)
 
+# TestCmdRef - Minitest for CommandReference and CmdRef classes.
 class TestCmdRef < MiniTest::Unit::TestCase
   include CommandReference
 
