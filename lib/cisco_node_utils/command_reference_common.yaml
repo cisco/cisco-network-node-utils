@@ -98,6 +98,13 @@ aaa_server_group:
   vrf:
     default_value: "default"
 
+dnsclient:
+  name_server:
+    config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+    config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
+    config_set: '<state> ip name-server <ip>'
+    default_value: ''
+
 domain_name:
   domain_name:
     # NOTE: This does not account for vrf ip domain-name
