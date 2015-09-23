@@ -1,5 +1,6 @@
 # CiscoNodeUtils - Cisco Node Utilities
 
+[![Gem Version](https://badge.fury.io/rb/cisco_node_utils.svg)](http://badge.fury.io/rb/cisco_node_utils)
 [![Build Status](https://travis-ci.org/cisco/cisco-network-node-utils.svg?branch=develop)](https://travis-ci.org/cisco/cisco-network-node-utils)
 
 The CiscoNodeUtils gem provides utilities for management of Cisco network
