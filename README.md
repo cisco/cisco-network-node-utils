@@ -1,5 +1,7 @@
 # CiscoNodeUtils - Cisco Node Utilities
 
+[![Build Status](https://travis-ci.org/cisco/cisco-network-node-utils.svg?branch=develop)](https://travis-ci.org/cisco/cisco-network-node-utils)
+
 The CiscoNodeUtils gem provides utilities for management of Cisco network
 nodes. It is designed to work with Puppet and Chef as well as other
 open source management tools. This release supports Cisco NX-OS nodes
