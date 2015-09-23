@@ -50,7 +50,6 @@ module Cisco
 
     def destroy
       config_set('tacacs_server_host', 'host', 'no', @name)
-      @hosts.delete(@name) unless @hosts.nil?
     end
 
     def port
