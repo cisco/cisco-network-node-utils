@@ -1,14 +1,44 @@
 # CiscoNodeUtils - Cisco Node Utilities
+--
 
 [![Gem Version](https://badge.fury.io/rb/cisco_node_utils.svg)](http://badge.fury.io/rb/cisco_node_utils)
 [![Build Status](https://travis-ci.org/cisco/cisco-network-node-utils.svg?branch=develop)](https://travis-ci.org/cisco/cisco-network-node-utils)
+
+--
+##### Documentation Workflow Map
+
+This workflow map aids *users*, *developers* and *maintainers* of the CiscoNodeUtils project in selecting the appropriate document(s) for their task.
+
+* User Guides - the remainder of this document is aimed at end users
+* Developer Guides
+  * [CONTRIBUTING.md](CONTRIBUTING.md) : Contribution guidelines
+  * [README-develop-node-utils-APIs.md](docs/README-develop-node-utils-APIs.md) : Developing new CiscoNodeUtils APIs
+* Maintainers Guides
+  * [README-maintainers.md](docs/README-maintainers.md) : Guidelines for core maintainers of the CiscoNodeUtils project
+  * All developer guides apply to maintainers as well
+
+Please see [Learning Resources](#resources) for additional references.
+
+--
+#### Table of Contents
+
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Examples](#examples)
+4. [Documentation](#documentation)
+5. [Changelog](#changelog)
+6. [Learning Resources](#resources)
+7. [License Information](#license_info)
+
+
+## <a name="overview">Overview</a>
 
 The CiscoNodeUtils gem provides utilities for management of Cisco network
 nodes. It is designed to work with Puppet and Chef as well as other
 open source management tools. This release supports Cisco NX-OS nodes
 running NX-OS 7.0(3)I2(1) and later.
 
-## Installation
+## <a name="installation">Installation</a>
 
 To install the CiscoNodeUtils, use the following command:
 
@@ -19,7 +49,8 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## Examples
+## <a name="examples">Examples</a>
+
 
 These utilities can be used directly on a Cisco device (as used by Puppet
 and Chef) or can run on a workstation and point to a Cisco device (as used
@@ -53,7 +84,8 @@ version = node.config_get("show_version", "system_image")
 node.config_set("vtp", "domain", "mycompany.com")
 ```
 
-## Documentation
+## <a name="documentation">Documentation</a>
+
 
 ### Node
 
@@ -91,15 +123,14 @@ code duplication between the Cisco Puppet modules and the Cisco Chef cookbooks.
 Generally speaking, Puppet and Chef should only interact with the feature
 provider classes, and not directly call into `CommandReference` or `Node`.
 
-## Changelog
+## <a name="changelog">Changelog</a>
+
 
 See [CHANGELOG](CHANGELOG.md) for a list of changes.
 
-## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md) for developer and contributor guidelines.
+## <a name="resources">Learning Resources</a>
 
-## Learning Resources
 
 * Chef
   * [https://learn.chef.io/](https://learn.chef.io/)
@@ -125,7 +156,8 @@ See [CONTRIBUTING](CONTRIBUTING.md) for developer and contributor guidelines.
   * [https://www.centos.org/docs/5/html/yum/](https://www.centos.org/docs/5/html/yum/)
   * [http://www.linuxcommand.org/man_pages](http://www.linuxcommand.org/man_pages/yum8.html)
 
-## License
+## <a name="license_info">License Information</a>
+
 
 Copyright (c) 2013-2015 Cisco and/or its affiliates.
 
