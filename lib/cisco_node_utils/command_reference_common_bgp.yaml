@@ -1,4 +1,4 @@
-# Command Reference Common BGP 
+# Command Reference Common BGP
 #
 # For documentation please see:
 #   - README_YAML.md
@@ -153,7 +153,7 @@ bgp:
 
 bgp_af:
   _template:
-    config_get: "show running bgp all"
+    config_get: 'show running bgp all'
     config_get_token: '/^router bgp <asnum>$/'
     config_get_token_append:
       - '/^vrf <vrf>$/'
@@ -166,6 +166,26 @@ bgp_af:
   all_afs:
     config_get_token_append: '/^address-family (\S+) (\S+)$/'
 
+  additional_paths_send:
+    config_get_token_append: '/^additional-paths send$/'
+    config_set_append: '<state> additional-paths send'
+    default_value: false
+
+  additional_paths_receive:
+    config_get_token_append: '/^additional-paths receive$/'
+    config_set_append: '<state> additional-paths receive'
+    default_value: false
+
+  additional_paths_install:
+    config_get_token_append: '/^additional-paths install backup$/'
+    config_set_append: '<state> additional-paths install backup'
+    default_value: false
+
+  additional_paths_selection:
+    config_get_token_append: '/^additional-paths selection route-map (.*)$/'
+    config_set_append: '<state> additional-paths selection route-map <route_map>'
+    default_value: ""
+
   client_to_client:
     config_get_token_append: '/^client-to-client reflection$/'
     config_set_append: '<state> client-to-client reflection'
@@ -175,6 +195,16 @@ bgp_af:
     config_get_token_append: '/^default-information originate$/'
     config_set_append: '<state> default-information originate'
     default_value: false
+
+  dampen_igp_metric:
+    config_get_token_append: '/^dampen-igp-metric (\d+)$/'
+    config_set_append: '<state> dampen-igp-metric <num>'
+    default_value: false
+
+  dampening:
+    config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
+    config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
+    default_value: ""
 
   next_hop_route_map:
     config_get_token_append: '/^nexthop route-map (.*)$/'
@@ -203,7 +233,7 @@ bgp_neighbor:
 
   all_neighbors:
     config_get_token_append: '/^neighbor (\S+)$/'
- 
+
   description:
     config_get_token_append: '/^description (.*)/'
     config_set_append: '<state> description <desc>'
@@ -272,7 +302,7 @@ bgp_neighbor:
     config_get_token_append: '/^shutdown$/'
     config_set_append: '<state> shutdown'
     default_value: false
- 
+
   suppress_4_byte_as:
     config_get_token_append: '/^capability suppress 4-byte-as$/'
     config_set_append: '<state> capability suppress 4-byte-as'
@@ -440,4 +470,3 @@ bgp_neighbor_af:
     config_get_token_append: '/^weight (\d+)$/'
     config_set_append: '<state> weight <int>'
     default_value: false
-

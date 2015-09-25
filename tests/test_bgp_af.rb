@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 # RouterBgpAF Unit Tests
 #
 # Richard Wellum, August, 2015
@@ -40,6 +41,20 @@ class TestRouterBgpAF < CiscoTestCase
       @device.cmd("show run bgp all | sec 'bgp #{asn}' |  sec 'vrf #{vrf}' | " \
                   "sec 'address-family #{afi} #{safi}' | no-more")
     string
+  end
+
+  # show bgp ipv4 unicast dampening parameters
+  # Route Flap Dampening Parameters for VRF default Address family IPv4 Unicast:
+  # Default values in use:
+  # Half-life time                 : 15 mins
+  # Suppress penalty               : 2000
+  # Reuse penalty                  : 750
+  # Max suppress time              : 45 mins
+  # Max suppress penalty           : 6000
+  def get_bgp_af_dampening_params(_asn, vrf, af)
+    afi = af.first
+    safi = af.last
+    @device.cmd("show bgp vrf #{vrf} #{afi} #{safi} dampening parameters")
   end
 
   ##
@@ -104,7 +119,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## default-information originate
   ##
-  def test_set_get_default_information_originate
+  def test_default_information_originate
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -116,10 +131,10 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.default_information_originate = true
     assert(bgp_af.default_information_originate,
            'Error: default-information originate not set')
-    pattern = 'default-information originate'
+
+    pattern = /^ *default-information originate$/
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it to match
     assert_match(pattern, af_string,
                  "Error: 'default_information originate' is not" \
                    ' configured and should be')
@@ -130,10 +145,10 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Do a 'no default-information originate'
     bgp_af.default_information_originate = false
-    pattern = 'default-information originate'
+
+    pattern = /^ *default-information originate$/
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it not to match
     refute_match(pattern, af_string,
                  "Error: 'default_information originate' " \
                    'is configured and should not be')
@@ -142,32 +157,30 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## client-to-client reflection
   ##
-  def test_set_get_client_to_client
+  def test_client_to_client
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
 
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    pattern = 'client-to-client'
-
+    pattern = /^ *client-to-client reflection$/
     #
     # Default is 'client-to-client' is configured
     #
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it to match
     assert_match(pattern, af_string,
-                 "Error: 'client-to-client' is not configured")
+                 "Error: 'client-to-client reflection' is not configured " \
+                   'and should be')
     #
     # Unset and verify
     #
 
     # Do a 'no client-to-client reflection'
     bgp_af.client_to_client = false
-    pattern = 'no client-to-client'
+    pattern = /^ *no client-to-client reflection$/
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Fail if pattern IS NOT matched, expects it to match
     assert_match(pattern, af_string,
                  "Error: 'no client-to-client' is not configured and should be")
 
@@ -179,7 +192,6 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.client_to_client = true
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it not to match
     refute_match(pattern, af_string,
                  "Error: 'no client-to-client' is configured and should not be")
   end
@@ -187,7 +199,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## next_hop route-map
   ##
-  def test_set_get_next_hop_route_map
+  def test_next_hop_route_map
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
@@ -199,10 +211,9 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.next_hop_route_map = 'drop_all'
     assert_match(bgp_af.next_hop_route_map, 'drop_all',
                  'Error: nexthop route-map not set')
-    pattern = 'nexthop route-map drop_all'
+    pattern = /^ *nexthop route-map drop_all$/
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it to match
     assert_match(pattern, af_string,
                  "Error: 'nexthop route-map drop_all' is " \
                    'not configured and should be')
@@ -213,13 +224,387 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Do a 'no nexthop route-map drop_all'
     bgp_af.next_hop_route_map = bgp_af.default_next_hop_route_map
-    pattern = 'nexthop route-map drop_all'
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    # Expect it not to match
     refute_match(pattern, af_string,
                  "Error: 'nexthop route-map drop_all' is " \
                    'configured and should not be')
+  end
+
+  ##
+  ## additional_paths
+  ##
+  def test_additional_paths
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    pattern_send = 'additional-paths send'
+    pattern_receive = 'additional-paths receive'
+    pattern_install = 'additional-paths install backup'
+
+    #
+    # Default is not configured
+    #
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    [pattern_send, pattern_receive, pattern_install].each do |pat|
+      refute_match(pat, af_string,
+                   "Error: '#{pat}' is configured but should not be")
+    end
+
+    #
+    # Test default and getter methods
+    #
+    assert_equal(bgp_af.default_additional_paths_send,
+                 bgp_af.additional_paths_send)
+    assert_equal(bgp_af.default_additional_paths_receive,
+                 bgp_af.additional_paths_receive)
+    assert_equal(bgp_af.default_additional_paths_install,
+                 bgp_af.additional_paths_install)
+
+    #
+    # Set and verify
+    #
+
+    # Do a 'additional-paths send, receive, install'
+    bgp_af.additional_paths_send = true
+    bgp_af.additional_paths_receive = true
+    bgp_af.additional_paths_install = true
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    [pattern_send, pattern_receive, pattern_install].each do |pat|
+      assert_match(pat, af_string,
+                   "Error: '#{pat}' is not configured and should be")
+    end
+
+    #
+    # Test getter
+    #
+
+    assert(bgp_af.additional_paths_send)
+    assert(bgp_af.additional_paths_receive)
+    assert(bgp_af.additional_paths_install)
+
+    #
+    # Unset and verify
+    #
+
+    # Do a 'no additional-paths send, receive, install'
+    bgp_af.additional_paths_send = false
+    bgp_af.additional_paths_receive = false
+    bgp_af.additional_paths_install = false
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    [pattern_send, pattern_receive, pattern_install].each do |pat|
+      refute_match(pat, af_string,
+                   "Error: '#{pat}' is configured but should not be")
+    end
+  end
+
+  ##
+  ## additional_paths_selection route-map
+  ##
+  def test_additional_paths_selection
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+
+    #
+    # Set and verify
+    #
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    bgp_af.additional_paths_selection = 'drop_all'
+
+    assert_equal(bgp_af.additional_paths_selection, 'drop_all',
+                 'Error: additional-paths selection route-map not set')
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+    pattern = /^ *additional-paths selection route-map drop_all$/
+
+    assert_match(pattern, af_string,
+                 "Error: 'additional-paths selection route-map drop_all' is " \
+                   'not configured and should be')
+
+    #
+    # Test getter
+    #
+    pattern = /^ *drop_all$/
+    assert_match(pattern, bgp_af.additional_paths_selection,
+                 "Error: 'route-map drop_all' is not configured and should be")
+
+    #
+    # Unset and verify
+    #
+
+    # Do a 'no additional-paths selection route-map drop_all'
+    bgp_af.additional_paths_selection =
+      bgp_af.default_additional_paths_selection
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    refute_match(pattern, af_string,
+                 "Error: 'additional-paths selection route-map drop_all' is " \
+                   'configured and should not be')
+  end
+
+  ##
+  ## get_dampen_igp_metric
+  ##
+  def test_dampen_igp_metric
+    asn = '44'
+    vrf = 'green'
+    af = %w(ipv4 multicast)
+
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Default is 600
+    #
+    pattern = /^ *dampen-igp-metric 600$/
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampen-igp-metric 600' is not configured " \
+                   'and should be')
+
+    #
+    # Test getter
+    #
+    assert_equal(bgp_af.dampen_igp_metric, 600,
+                 'Error: dampen_igp_metric should be 600')
+    #
+    # Set and verify
+    #
+
+    # Do a 'dampen-igp-metric 555'
+    pattern = /^ *dampen-igp-metric 555$/
+    bgp_af.dampen_igp_metric = 555
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampen-igp-metric 555' is not configured " \
+                   'and should be')
+    #
+    # Test getter
+    #
+    assert_equal(bgp_af.dampen_igp_metric, 555,
+                 'Error: dampen_igp_metric should be 555')
+    #
+    # Unset and verify
+    #
+
+    # Set to default, 'no dampen... should be configured
+    bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    pattern = /^ *no dampen-igp-metric$/
+    assert_match(pattern, af_string,
+                 "Error: 'dampen-igp-metric' is still configured")
+
+    #
+    # Test default
+    #
+    refute(bgp_af.default_dampen_igp_metric, 'Error: default should not be set')
+  end
+
+  ##
+  ## dampening
+  ##
+  def test_dampening
+    asn = '101'
+
+    ############################################
+    # Set and verify 'dampening' with defaults #
+    ############################################
+    vrf = 'orange'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    # Test no dampening configured
+    assert_nil(bgp_af.dampening)
+
+    pattern = /^ *dampening$/
+
+    bgp_af.dampening = []
+
+    # Check property got set
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampening' is not configured and should be")
+
+    # Check properties got set
+    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+
+    pattern_params1 = 'Half-life time                 : 15 mins'
+    pattern_params2 = 'Suppress penalty               : 2000'
+    pattern_params3 = 'Reuse penalty                  : 750'
+    pattern_params4 = 'Max suppress time              : 45 mins'
+    pattern_params5 = 'Max suppress penalty           : 6000'
+
+    error = ("Error: 'dampening' properties are incorrect")
+
+    assert_match(pattern_params1, af_string, error)
+    assert_match(pattern_params2, af_string, error)
+    assert_match(pattern_params3, af_string, error)
+    assert_match(pattern_params4, af_string, error)
+    assert_match(pattern_params5, af_string, error)
+
+    # Check getter
+    assert_empty(bgp_af.dampening, 'Error: dampening is configured and ' \
+                 'should not be')
+
+    #
+    # Unset and verify
+    #
+    bgp_af.dampening = nil
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+    pattern = /^ *dampening$/
+
+    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+
+    #
+    # Test Getter
+    #
+    assert_nil(bgp_af.dampening)
+
+    bgp_af.destroy
+
+    #############################################
+    # Set and verify 'dampening' with overrides #
+    #############################################
+    vrf = 'green'
+    af = %w(ipv4 multicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    bgp_af.dampening = %w(1 2 3 4)
+
+    # Check property got set
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+    pattern = /^ *dampening 1 2 3 4$/
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampening' is not configured and should be")
+
+    # Check properties got set
+    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+
+    pattern_params1 = 'Half-life time                 : 1 mins'
+    pattern_params2 = 'Suppress penalty               : 3'
+    pattern_params3 = 'Reuse penalty                  : 2'
+    pattern_params4 = 'Max suppress time              : 4 mins'
+    pattern_params5 = 'Max suppress penalty           : 32'
+
+    error = ("Error: 'dampening' properties are incorrect")
+
+    assert_match(pattern_params1, af_string, error)
+    assert_match(pattern_params2, af_string, error)
+    assert_match(pattern_params3, af_string, error)
+    assert_match(pattern_params4, af_string, error)
+    assert_match(pattern_params5, af_string, error)
+
+    # Check getter
+    assert_equal(bgp_af.dampening, %w(1 2 3 4),
+                 'Error: dampening getter did not match')
+
+    #
+    # Unset and verify
+    #
+    bgp_af.dampening = nil
+
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+    pattern = /^ *dampening$/
+
+    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+
+    #############################################
+    # Set and verify 'dampening' with route-map #
+    #############################################
+    vrf = 'brown'
+    af = %w(ipv6 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    bgp_af.dampening = 'DropAllTraffic'
+    pattern = /^ *dampening route-map DropAllTraffic$/
+
+    # Check property got set
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampening' is not configured and should be")
+
+    # Check properties got set
+    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+    pattern_params = 'Dampening policy configured: DropAllTraffic'
+
+    assert_match(pattern_params, af_string,
+                 'Error: dampening properties DropAllTraffic is not ' \
+                   'configured and should be')
+
+    # Check getter
+    assert_equal(bgp_af.dampening, 'DropAllTraffic',
+                 'Error: dampening getter did not match')
+
+    #
+    # Unset and verify
+    #
+    bgp_af.dampening = nil
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+    pattern = /^ *dampening$/
+
+    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+
+    #############################################
+    # Set and verify 'dampening' with default   #
+    #############################################
+    vrf = 'sangria'
+    af = %w(ipv4 multicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    bgp_af.dampening = bgp_af.default_dampening
+
+    # Check property got set
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    assert_match(pattern, af_string,
+                 "Error: 'dampening' is not configured and should be")
+
+    # Check properties got set
+    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+
+    pattern_params1 = 'Half-life time                 : 15 mins'
+    pattern_params2 = 'Suppress penalty               : 2000'
+    pattern_params3 = 'Reuse penalty                  : 750'
+    pattern_params4 = 'Max suppress time              : 45 mins'
+    pattern_params5 = 'Max suppress penalty           : 6000'
+
+    error = ("Error: 'dampening' properties are incorrect")
+
+    assert_match(pattern_params1, af_string, error)
+    assert_match(pattern_params2, af_string, error)
+    assert_match(pattern_params3, af_string, error)
+    assert_match(pattern_params4, af_string, error)
+    assert_match(pattern_params5, af_string, error)
+
+    # Check getter
+    assert_empty(bgp_af.dampening, 'Error: dampening not configured ' \
+                 'and should be')
+
+    #
+    # Unset and verify
+    #
+    bgp_af.dampening = nil
+    af_string = get_bgp_af_cfg(asn, vrf, af)
+
+    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
   end
 
   ##
