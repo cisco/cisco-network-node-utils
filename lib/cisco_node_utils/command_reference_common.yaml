@@ -452,14 +452,17 @@ inventory:
     config_get: "show inventory"
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
 
-nameserver:
-  all_nameservers:
-    config_get: 'show hosts'
-    config_get_token: '/Name servers.* (\S+)$/'
-  create:
-    config_set: 'ip name-server %s'
-  destroy:
-    config_set: "no ip name-server %s"
+ntp_server:
+  server:
+    config_get: "show running-config all | include 'ntp server'"
+    config_get_token: '/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/'
+    config_set: '<state> ntp server <ip> <prefer>'
+    default_value: ''
+
+  prefer:
+    config_get: "show running-config all | include 'ntp server(.*)(prefer)'"
+    config_get_token: '/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/'
+    default_value: ''
 
 memory:
   total:
