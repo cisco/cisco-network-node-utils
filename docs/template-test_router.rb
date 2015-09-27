@@ -13,7 +13,8 @@
 # limitations under the License.
 
 require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/router___RESOURCE_NAME__', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/router___RESOURCE_NAME__',
+                         __FILE__)
 
 # Test__CLASS_NAME__ - Minitest for __CLASS_NAME__ node utility class
 class Test__CLASS_NAME__ < CiscoTestCase
@@ -32,7 +33,8 @@ class Test__CLASS_NAME__ < CiscoTestCase
   def no_feature___RESOURCE_NAME__
     # Turn the feature off for a clean test.
     @device.cmd('conf t ; no feature __RESOURCE_NAME__ ; end')
-    # Flush the cache since we've modified the device outside of the node_utils APIs
+    # Flush the cache since we've modified the device outside of
+    # the node_utils APIs
     node.cache_flush
   end
 

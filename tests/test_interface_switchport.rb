@@ -105,7 +105,8 @@ class TestInterfaceSwitchport < CiscoTestCase
       refute(interface.switchport_vtp,
              'Error: interface, access, vtp not disabled')
     rescue RuntimeError => e
-      msg = "[#{interfaces[0]}] switchport_mode is not supported on this interface"
+      msg = "[#{interfaces[0]}] switchport_mode is not supported " \
+            'on this interface'
       assert_equal(msg.downcase, e.message)
     end
     interface_ethernet_default(interfaces_id[0])
@@ -610,7 +611,8 @@ class TestInterfaceSwitchport < CiscoTestCase
           assert_equal(finish, interface.switchport_mode,
                        "Error: Switchport mode, #{finish}, not as expected")
         rescue RuntimeError => e
-          msg = "[#{interfaces[0]}] switchport_mode is not supported on this interface"
+          msg = "[#{interfaces[0]}] switchport_mode is not supported " \
+                'on this interface'
           assert_equal(msg.downcase, e.message)
         end
       end
@@ -637,7 +639,8 @@ class TestInterfaceSwitchport < CiscoTestCase
           assert_equal(finish, interface.switchport_mode,
                        "Error: Switchport mode, #{finish}, not as expected")
         rescue RuntimeError => e
-          msg = "[#{interfaces[0]}] switchport_mode is not supported on this interface"
+          msg = "[#{interfaces[0]}] switchport_mode is not supported " \
+                'on this interface'
           assert_equal(msg.downcase, e.message)
         end
       end
@@ -741,7 +744,8 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   # TODO: Run this test at your peril as it can cause timeouts for this test and
   # others - 'no feature-set fex' states:
-  # "Feature-set Operation may take up to 30 minutes depending on the size of configuration."
+  # "Feature-set Operation may take up to 30 minutes depending on the
+  #  size of configuration."
   #
   #   def test_interface_switchport_fex_feature
   #     test_matrix = {

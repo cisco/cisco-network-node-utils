@@ -27,13 +27,14 @@ module Cisco
     def initialize(ntpserver_id, prefer, instantiate=true)
       @ntpserver_id = ntpserver_id.to_s
       @ntpserver_prefer = prefer
-      fail ArgumentError,
-           'Invalid value(IP is not an IP address)' unless @ntpserver_id[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
-      fail ArgumentError,
-           'Invalid value(prefer must be true or false)' unless @ntpserver_prefer == true ||
-                                                                @ntpserver_prefer == false ||
-                                                                @ntpserver_prefer.nil?
-
+      unless @ntpserver_id[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
+        fail ArgumentError, 'Invalid value(IP is not an IP address)'
+      end
+      unless @ntpserver_prefer == true ||
+             @ntpserver_prefer == false ||
+             @ntpserver_prefer.nil?
+        fail ArgumentError, 'Invalid value(prefer must be true or false)'
+      end
       create if instantiate
     end
 
@@ -58,7 +59,8 @@ module Cisco
     end
 
     def destroy
-      config_set('ntp_server', 'server', state: 'no', ip: @ntpserver_id, prefer: '')
+      config_set('ntp_server', 'server',
+                 state: 'no', ip: @ntpserver_id, prefer: '')
     end
 
     def prefer

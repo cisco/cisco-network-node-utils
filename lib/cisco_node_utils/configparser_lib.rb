@@ -39,7 +39,9 @@ module Cisco
       # @raise [ArgumentError] if config_str is not a String
       # @param config_str [String] to parse
       def initialize(config_str)
-        fail ArgumentError, 'Argument is not a String.' unless config_str.kind_of? String
+        unless config_str.kind_of? String
+          fail ArgumentError, 'Argument is not a String.'
+        end
 
         @configuration = {}
         @ordered_keys = []
@@ -164,11 +166,13 @@ module Cisco
         indent_level = config_str.match(/^\s*/)
         @indent = indent_level.to_s # capture indentation of level
         escaped_indent = Regexp.escape(@indent)
-        @ordered_keys = config_str.scan(/^#{escaped_indent}\S.*\n/) # find current configuration mode lines
+        # Find current configuration mode lines
+        @ordered_keys = config_str.scan(/^#{escaped_indent}\S.*\n/)
         @ordered_keys.each do |config_line|
           command = config_line.strip
           escaped_cmd = Regexp.escape(config_line)
-          submode_string = config_str.match(/^(?:#{escaped_cmd})((?:#{escaped_indent}\s.+\n)*)/).captures.join
+          submode_string = config_str.match(
+            /^(?:#{escaped_cmd})((?:#{escaped_indent}\s.+\n)*)/).captures.join
           @configuration[command] = Configuration.new(submode_string)
         end
       end # parse

@@ -36,7 +36,8 @@ class TestNameServer < CiscoTestCase
     # Turn the feature off for a clean test.
     @device.cmd('conf t ; no ip name-server 8.8.8.8 ; end')
     @device.cmd('conf t ; no ip name-server 2001:4860:4860::8888 ; end')
-    # Flush the cache since we've modified the device outside of the node_utils APIs
+    # Flush the cache since we've modified the device outside of
+    # the node_utils APIs
     node.cache_flush
   end
 

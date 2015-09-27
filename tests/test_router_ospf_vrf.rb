@@ -120,11 +120,15 @@ class TestRouterOspfVrf < CiscoTestCase
 
   def example_test_match_submode_line
     pattern = (/\s+timers throttle lsa (.*)/)
-    puts "vrf submode timer lsa: #{get_routerospfvrf_match_submode_line('ospfTest', 'default', pattern)}"
-    puts "vrf submode timer lsa: #{get_routerospfvrf_match_submode_line('TestOSPF', 'vrftest1', pattern)}"
-    puts "vrf submode timer spf1: #{get_routerospfvrf_match_submode_line('ospftest', 'vrftest', pattern)}"
+    puts 'vrf submode timer lsa: ' +
+      get_routerospfvrf_match_submode_line('ospfTest', 'default', pattern).to_s
+    puts 'vrf submode timer lsa: ' +
+      get_routerospfvrf_match_submode_line('TestOSPF', 'vrftest1', pattern).to_s
+    puts 'vrf submode timer spf1: ' +
+      get_routerospfvrf_match_submode_line('ospftest', 'vrftest', pattern).to_s
     pattern = (/\s+router-id (.*)/)
-    puts "vrf submode: #{get_routerospfvrf_match_submode_line('ospfTest', 'testvrf', pattern)}"
+    puts 'vrf submode: ' +
+      get_routerospfvrf_match_submode_line('ospfTest', 'testvrf', pattern).to_s
   end
 
   def create_routerospf(ospfname='ospfTest')
@@ -388,7 +392,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf.name} vrf, log-adjacency detail missing in CLI")
     assert_equal(:detail, vrf.log_adjacency,
-                 "Error: #{vrf.name} vrf, log-adjacency detail get value mismatch")
+                 "Error: #{vrf.name} vrf, " \
+                 'log-adjacency detail get value mismatch')
 
     # set default log adjacency
     vrf.log_adjacency = vrf.default_log_adjacency
@@ -445,7 +450,8 @@ class TestRouterOspfVrf < CiscoTestCase
 
     # Make sure default vrf is set to :none
     assert_equal(:none, vrf_default.log_adjacency,
-                 "Error: #{vrf_default.name} vrf_default, log-adjacency get value mismatch")
+                 "Error: #{vrf_default.name} vrf_default, " \
+                 'log-adjacency get value mismatch')
 
     routerospf.destroy
   end
@@ -507,7 +513,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf.name} vrf, timer throttle lsa missing in CLI")
     assert_equal(lsa, vrf.timer_throttle_lsa,
-                 "Error: #{vrf.name} vrf, timer throttle lsa get values mismatch")
+                 "Error: #{vrf.name} vrf, timer throttle lsa " \
+                 'get values mismatch')
     vrf.parent.destroy
   end
 
@@ -525,7 +532,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf.name} vrf, timer throttle lsa missing in CLI")
     assert_equal(lsa, vrf.timer_throttle_lsa,
-                 "Error: #{vrf.name} vrf, timer throttle lsa get values mismatch")
+                 "Error: #{vrf.name} vrf, timer throttle lsa " \
+                 'get values mismatch')
 
     lsa = [] << 300 << 700 << 2000
     # set lsa
@@ -537,7 +545,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf1.name} vrf, timer throttle lsa missing in CLI")
     assert_equal(lsa, vrf1.timer_throttle_lsa,
-                 "Error: #{vrf1.name} vrf, timer throttle lsa get values mismatch")
+                 "Error: #{vrf1.name} vrf, timer throttle lsa " \
+                 'get values mismatch')
 
     routerospf.destroy
   end
@@ -571,7 +580,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf.name} vrf, timer throttle spf missing in CLI")
     assert_equal(spf, vrf.timer_throttle_spf,
-                 "Error: #{vrf.name} vrf, timer throttle spf get values mismatch")
+                 "Error: #{vrf.name} vrf, timer throttle spf " \
+                 'get values mismatch')
     vrf.parent.destroy
   end
 
@@ -589,7 +599,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf.name} vrf, timer throttle spf missing in CLI")
     assert_equal(spf, vrf.timer_throttle_spf,
-                 "Error: #{vrf.name} vrf, timer throttle spf get values mismatch")
+                 "Error: #{vrf.name} vrf, timer throttle spf " \
+                 'get values mismatch')
 
     spf = [] << 300 << 700 << 2000
     # set spf
@@ -601,7 +612,8 @@ class TestRouterOspfVrf < CiscoTestCase
     refute_nil(line,
                "Error: #{vrf1.name} vrf, timer throttle spf missing in CLI")
     assert_equal(spf, vrf1.timer_throttle_spf,
-                 "Error: #{vrf1.name} vrf, timer throttle spf get values mismatch")
+                 "Error: #{vrf1.name} vrf, timer throttle spf " \
+                 'get values mismatch')
 
     routerospf.destroy
   end
@@ -616,11 +628,14 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(spf[2], vrf.default_timer_throttle_spf_max,
                  'Error: default timer throttle max not correct')
     assert_equal(spf[0], vrf.timer_throttle_spf_start,
-                 "Error: #{vrf.name} vrf, default timer throttle spf not correct")
+                 "Error: #{vrf.name} vrf, " \
+                 'default timer throttle spf not correct')
     assert_equal(spf[1], vrf.timer_throttle_spf_hold,
-                 "Error: #{vrf.name} vrf, default timer throttle hold not correct")
+                 "Error: #{vrf.name} vrf, " \
+                 'default timer throttle hold not correct')
     assert_equal(spf[2], vrf.timer_throttle_spf_max,
-                 "Error: #{vrf.name} vrf, default timer throttle max not correct")
+                 "Error: #{vrf.name} vrf, " \
+                 'default timer throttle max not correct')
     vrf.parent.destroy
   end
 
@@ -694,7 +709,9 @@ class TestRouterOspfVrf < CiscoTestCase
     routers.each_key do |routername|
       vrfs = RouterOspfVrf.vrfs
       refute_empty(vrfs, 'Error: Collection is empty')
-      puts "%Error: ospf_h does not have hash key #{routername}" unless ospf_h.key?(routername)
+      unless ospf_h.key?(routername)
+        puts "%Error: ospf_h does not have hash key #{routername}"
+      end
       ospfh = ospf_h.fetch(routername)
       vrfs[routername].each do |name, vrf|
         puts "%Error: hash key #{routername} not found" unless ospfh.key?(name)

@@ -100,7 +100,8 @@ module CommandReference
       # If value is a string and it is empty OR the first letter is lower case
       # then leave value untouched.
       # If value is a string and the first letter is uppercase this indicates
-      # that it could be a constant in Ruby so attempt to convert it to a Constant.
+      # that it could be a constant in Ruby, so attempt to convert it
+      # to a Constant.
       if value.is_a?(String) && !value.empty?
         if value[0].chr == value[0].chr.upcase
           value = Object.const_get(value) if Object.const_defined?(value)
@@ -145,7 +146,8 @@ module CommandReference
     @debug = false
 
     def self.debug=(value)
-      fail ArgumentError, 'Debug must be boolean' unless value == true || value == false
+      fail ArgumentError, 'Debug must be boolean' unless value == true ||
+                                                         value == false
       @debug = value
     end
 
@@ -164,7 +166,8 @@ module CommandReference
         @files = files
       else
         @files = []
-        # Hashes are unordered in Ruby 1.8.7. Instead, we use an array of objects.
+        # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
+        # of objects.
         platforms = [
           CommandPlatformFile.new(//,
                                   File.join(File.dirname(__FILE__),
@@ -218,7 +221,8 @@ module CommandReference
                 raise "Invalid data for '#{feature}', '#{name}': #{e}"
               end
             else
-              debug "  Merging feature '#{feature}' name '#{name}' from '#{file}'."
+              debug "  Merging feature '#{feature}' name '#{name}' " \
+                    "from '#{file}'."
               @hash[feature][name].merge(values, file)
             end
           end
@@ -286,7 +290,9 @@ module CommandReference
       # Psych wraps everything in a Document instance, while
       # Syck does not. To keep the "depth" counting consistent,
       # we need to ignore Documents.
-      depth += 1 unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
+      unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
+        depth += 1
+      end
       debug "Validating #{node.class} at depth #{depth}"
 
       # No special validation for non-mapping nodes - just recurse
@@ -388,7 +394,8 @@ module CommandReference
       @hash.each_value do |names|
         names.each_value do |ref|
           status = ref.valid?
-          debug "Reference does not contain all supported values:\n#{ref}" unless status
+          debug('Reference does not contain all supported values:' \
+                "\n#{ref}") unless status
           complete_status = (status && complete_status)
         end
       end

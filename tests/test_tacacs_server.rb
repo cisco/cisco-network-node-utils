@@ -27,7 +27,8 @@ class TestTacacsServer < CiscoTestCase
   # to use 'sh run tacacs all' but that does not work for 'directed-request'
   # why 'sh run aaa all' is used.
   def get_tacacsserver_match_line(name)
-    s = @device.cmd('show run tacacs all | no-more ; show run aaa all | no-more')
+    s = @device.cmd('show run tacacs all | no-more ; ' \
+                    'show run aaa all | no-more')
     cmd = 'tacacs-server'
     pattern = (/#{cmd} #{name}/)
     pattern.match(s)
@@ -96,7 +97,8 @@ class TestTacacsServer < CiscoTestCase
     @device.cmd('conf t ; no feature tacacs+ ; end')
     node.cache_flush
     tacacs = TacacsServer.new
-    assert_equal(node.config_get_default('tacacs_server', 'encryption_password'),
+    assert_equal(node.config_get_default('tacacs_server',
+                                         'encryption_password'),
                  tacacs.encryption_password,
                  'Error: Tacacs Server, encryption password incorrect')
     tacacs.destroy
@@ -120,7 +122,8 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_default_encryption_password
-    assert_equal(node.config_get_default('tacacs_server', 'encryption_password'),
+    assert_equal(node.config_get_default('tacacs_server',
+                                         'encryption_password'),
                  TacacsServer.default_encryption_password,
                  'Error: Tacacs Server, default encryption password incorrect')
   end
@@ -261,7 +264,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_directed_request
-    @device.cmd('conf t ; feature tacacs ; tacacs-server directed-request ; end')
+    config('feature tacacs', 'tacacs-server directed-request')
     # Flush the cache since we've modified the device
     node.cache_flush
     tacacs = TacacsServer.new
@@ -282,7 +285,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_set_directed_request
-    @device.cmd('conf t ; feature tacacs ; tacacs-server directed-request ; end')
+    config('feature tacacs', 'tacacs-server directed-request')
     state = true
     tacacs = TacacsServer.new
     tacacs.directed_request = state

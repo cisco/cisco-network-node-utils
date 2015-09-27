@@ -30,15 +30,11 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def interface_switchport_enable(ifname, enable)
-    @device.cmd('configure terminal')
-    @device.cmd("interface #{ifname}")
     if enable == true
-      @device.cmd('switchport')
+      config("interface #{ifname}", 'switchport')
     else
-      @device.cmd('no switchport')
+      config("interface #{ifname}", 'no switchport')
     end
-    @device.cmd('end')
-    node.cache_flush
   end
 
   def interfaceospf_interface_destroy(interface)
@@ -58,10 +54,7 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def create_routerospf(ospfname='ospfTest')
-    @device.cmd('configure terminal')
-    @device.cmd('feature ospf')
-    @device.cmd('end')
-    node.cache_flush
+    config('feature ospf')
     RouterOspf.new(ospfname, false)
   end
 
@@ -71,18 +64,12 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def interface_ethernet_default(ethernet_id=interfaces_id[0])
-    @device.cmd('configure terminal')
-    @device.cmd("default interface ethernet #{ethernet_id}")
-    @device.cmd('end')
-    node.cache_flush
+    config("default interface ethernet #{ethernet_id}")
   end
 
   def test_get_set_area
     # setup a loopback to use
-    @device.cmd('configure terminal')
-    @device.cmd('interface loopback12')
-    @device.cmd('end')
-    node.cache_flush
+    config('interface loopback12')
 
     int_ospf = InterfaceOspf.new('loopback12', '12', '0.0.0.0')
 
@@ -102,19 +89,11 @@ class TestInterfaceOspf < CiscoTestCase
 
     # cleanup
     int_ospf.destroy
-    @device.cmd('configure terminal')
-    @device.cmd('no interface loopback12')
-    @device.cmd('end')
-    node.cache_flush
+    config('no interface loopback12')
   end
 
   def test_interfaceospf_collection_empty
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf')
-    @device.cmd('feature ospf')
-    @device.cmd('router ospf TestOSPF')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature ospf', 'feature ospf', 'router ospf TestOSPF')
 
     routers = RouterOspf.routers()
     routers.each_value do |router|
@@ -133,17 +112,15 @@ class TestInterfaceOspf < CiscoTestCase
     # pre-configure
     interface_switchport_enable(ifname1, false)
     interface_switchport_enable(ifname2, false)
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf')
-    @device.cmd('feature ospf')
-    @device.cmd("router ospf #{ospf1}")
-    @device.cmd("interface #{ifname1}")
-    @device.cmd("ip router ospf #{ospf1} area 0.0.0.0")
-    @device.cmd("router ospf #{ospf2}")
-    @device.cmd("interface #{ifname2}")
-    @device.cmd("ip router ospf #{ospf2} area 10.6.6.1")
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature ospf',
+           'feature ospf',
+           "router ospf #{ospf1}",
+           "interface #{ifname1}",
+           "ip router ospf #{ospf1} area 0.0.0.0",
+           "router ospf #{ospf2}",
+           "interface #{ifname2}",
+           "ip router ospf #{ospf2} area 10.6.6.1",
+          )
 
     routers = RouterOspf.routers()
     # validate the collection
@@ -440,7 +417,8 @@ class TestInterfaceOspf < CiscoTestCase
     pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
     line = get_interfaceospf_match_line(ifname, pattern)
     refute_nil(line,
-               "Error: 'ip router ospf #{ospf.name} area #{area}' not configured")
+               "Error: 'ip router ospf #{ospf.name} area #{area}' " \
+               'is not configured')
     interfaceospf_interface_destroy(interface)
     interfaceospf_interface_destroy(interface1)
     routerospf_router_destroy(ospf)
@@ -481,69 +459,66 @@ class TestInterfaceOspf < CiscoTestCase
     interface_ethernet_default(interfaces_id[2])
   end
 
-  def test_interfaceospf_collection_multiple_interface
-    s = @device.cmd('conf t ; int port-channel 42 ; descr foo ; end')
-    known_failure = s[/ERROR:.*port channel not present/]
-    refute(known_failure, 'ERROR: port channel not present')
-
-    ospf_h = Hash.new { |h, k| h[k] = {} }
-    ospf_h['ospfTest'] = {
-      interfaces[0].downcase => {
-        area: '0.0.0.0', cost: 10, hello: 30, dead: 120,
-        pass: true },
-      interfaces[1].downcase => {
-        area: '1.1.1.38', dead: 40, pass: false },
-      'vlan101'              => {
-        area: '2.2.2.101', cost: 5, hello: 20, dead: 80,
-        pass: true },
-    }
-    ospf_h['TestOspfInt'] = {
-      interfaces[2].downcase => {
-        area: '0.0.0.19' },
-      'vlan290'              => {
-        area: '2.2.2.29', cost: 200, hello: 30, dead: 120,
-        pass: true },
-      'port-channel100'      => {
-        area: '3.2.2.29', cost: 25, hello: 50, dead: 200,
-        pass: false },
-    }
-    # enable feature ospf
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf') # cleanup prev configs
-    @device.cmd('feature ospf')
-    @device.cmd('feature interface-vlan')
-    @device.cmd('default interface interfaces[0] ')
-    @device.cmd('default interface interfaces[1] ')
-    @device.cmd('default interface interfaces[2] ')
-    @device.cmd('end')
-
-    # pre-configure
-    ospf_h.each do |k, v|
+  def configure_from_hash(hash)
+    hash.each do |k, v|
       # puts "TEST: pre-config hash key : #{k}"
-      @device.cmd('configure terminal')
-      @device.cmd("router ospf #{k}")
-      @device.cmd('end')
+      config("router ospf #{k}")
       v.each do |k1, v1|
         # puts "TEST: pre-config k1: v1 '#{k1} : #{v1}'"
-        @device.cmd('configure terminal')
-        @device.cmd("interface #{k1}")
+        cfg = ["interface #{k1}"]
         if !(/^ethernet\d.\d/).match(k1.to_s).nil? ||
            !(/^port-channel\d/).match(k1.to_s).nil?
-          @device.cmd('no switchport')
+          cfg << 'no switchport'
           # puts "switchport disable: #{k1}"
         end
         # puts "k1: #{k1}, k:  #{k},   area   #{v1[:area]}"
-        @device.cmd("ip router ospf #{k} area #{v1[:area]}")
-        @device.cmd("ip ospf cost #{v1[:cost]}") unless v1[:cost].nil?
-        @device.cmd("ip ospf hello-interval #{v1[:hello]}") unless v1[:hello].nil?
-        @device.cmd("ip ospf dead-interval #{v1[:dead]}") unless v1[:dead].nil?
-        @device.cmd('ip ospf passive-interface') if !v1[:pass].nil? &&
-                                                    v1[:pass] == true
-        @device.cmd('exit')
+        cfg << "ip router ospf #{k} area #{v1[:area]}"
+        cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost].nil?
+        cfg << "ip ospf hello-interval #{v1[:hello]}" unless v1[:hello].nil?
+        cfg << "ip ospf dead-interval #{v1[:dead]}" unless v1[:dead].nil?
+        cfg << 'ip ospf passive-interface' if !v1[:pass].nil? &&
+                                              v1[:pass] == true
+        config(*cfg)
       end
-      @device.cmd('end')
     end
-    node.cache_flush
+  end
+
+  def test_interfaceospf_collection_multiple_interface
+    s = config('int port-channel 42', 'descr foo')
+    known_failure = s[/ERROR:.*port channel not present/]
+    refute(known_failure, 'ERROR: port channel not present')
+
+    # rubocop:disable Style/AlignHash
+    ospf_h = {
+      'ospfTest' => {
+        interfaces[0].downcase => {
+          area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
+        interfaces[1].downcase => {
+          area: '1.1.1.38', dead: 40, pass: false },
+        'vlan101'              => {
+          area: '2.2.2.101', cost: 5, hello: 20, dead: 80, pass: true },
+      },
+      'TestOspfInt' => {
+        interfaces[2].downcase => {
+          area: '0.0.0.19' },
+        'vlan290'              => {
+          area: '2.2.2.29', cost: 200, hello: 30, dead: 120, pass: true },
+        'port-channel100'      => {
+          area: '3.2.2.29', cost: 25, hello: 50, dead: 200, pass: false },
+      },
+    }
+    # rubocop:enable Style/AlignHash
+    # enable feature ospf
+    config('no feature ospf',
+           'feature ospf',
+           'feature interface-vlan',
+           'default interface interfaces[0]',
+           'default interface interfaces[1]',
+           'default interface interfaces[2]',
+          )
+
+    # pre-configure
+    configure_from_hash(ospf_h)
 
     routers = RouterOspf.routers()
     # validate the collection
@@ -558,50 +533,28 @@ class TestInterfaceOspf < CiscoTestCase
         assert_includes(ospfh, ifname)
         hv = ospfh.fetch(ifname)
         pattern = (/\s+ip router ospf #{name} area #{hv[:area]}/)
-        line = get_interfaceospf_match_line(ifname, pattern)
-        refute_nil(line, "Error: ip router ospf #{name} area #{hv[:area]} "\
+        refute_nil(get_interfaceospf_match_line(ifname, pattern),
+                   "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
-        # check the cost
-        if hv[:cost].nil?
-          # using default check, since not configured anything
-          assert_equal(node.config_get_default('interface_ospf', 'cost'),
-                       interface.cost,
-                       'Error: get default cost failed')
-        else
-          assert_equal(hv[:cost], interface.cost,
-                       'Error: get cost failed')
-        end
-        # check the hello
-        if hv[:hello].nil?
-          assert_equal(node.config_get_default('interface_ospf',
-                                               'hello_interval'),
-                       interface.hello_interval,
-                       'Error: get default hello interval failed')
-        else
-          assert_equal(hv[:hello], interface.hello_interval,
-                       'Error: get hello interval failed')
-        end
-        # check the dead
-        if hv[:dead].nil?
-          assert_equal(node.config_get_default('interface_ospf',
-                                               'dead_interval'),
-                       interface.dead_interval,
-                       'Error: get dead interval failed')
-        else
-          assert_equal(hv[:dead], interface.dead_interval,
-                       'Error: get dead interval failed')
-        end
+        # check the cost (or default if not set)
+        hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
+        assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
+        # check the hello or default
+        hv[:hello] ||= node.config_get_default('interface_ospf',
+                                               'hello_interval')
+        assert_equal(hv[:hello], interface.hello_interval,
+                     'Error: get hello interval failed')
+        # check the dead or default
+        hv[:dead] ||= node.config_get_default('interface_ospf',
+                                              'dead_interval')
+        assert_equal(hv[:dead], interface.dead_interval,
+                     'Error: get dead interval failed')
         # check passive interface
-        if hv[:pass].nil?
-          assert_equal(node.config_get_default('interface_ospf',
-                                               'passive_interface'),
-                       interface.passive_interface,
-                       'Error: passive interface get failed')
-        else
-          assert_equal(hv[:pass], interface.passive_interface,
-                       'Error: passive interface get failed')
-        end
+        hv[:pass] ||= node.config_get_default('interface_ospf',
+                                              'passive_interface')
+        assert_equal(hv[:pass], interface.passive_interface,
+                     'Error: passive interface get failed')
       end
       # cleanup interfaces
       # node.debug=true
@@ -612,16 +565,12 @@ class TestInterfaceOspf < CiscoTestCase
     routerospf_routers_destroy(routers)
 
     # disable feature interface-vlan
-    @device.cmd('configure terminal')
-    @device.cmd('no feature interface-vlan')
-    @device.cmd('end')
+    config('no feature interface-vlan')
     # clean up port channel
     ospf_h.each_value do |v|
       v.each_key do |k1|
         next if (/^port-channel\d/).match(k1.to_s).nil?
-        @device.cmd('configure terminal')
-        @device.cmd("no interface #{k1}")
-        @device.cmd('end')
+        config("no interface #{k1}")
       end # v each
     end # ospf_h each
     node.cache_flush
@@ -760,9 +709,7 @@ class TestInterfaceOspf < CiscoTestCase
 
   def test_interfaceospf_nonexistent
     # If the interface does exist but the OSPF instance does not, this is OK
-    @device.cmd('configure terminal')
-    @device.cmd('interface loopback122')
-    @device.cmd('end')
+    config('interface loopback122')
     node.cache_flush
     interface = InterfaceOspf.new('loopback122', 'nonexistentOspf', '0')
 
@@ -773,9 +720,7 @@ class TestInterfaceOspf < CiscoTestCase
     interface.destroy
 
     # If the interface doesn't exist, InterfaceOspf should raise an error
-    @device.cmd('configure terminal')
-    @device.cmd('no interface loopback122')
-    @device.cmd('end')
+    config('no interface loopback122')
     node.cache_flush
     assert_raises(RuntimeError) do
       interface = InterfaceOspf.new('loopback122', 'nonexistentOspf', '0')

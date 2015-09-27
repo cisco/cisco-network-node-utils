@@ -366,7 +366,9 @@ vrf blue",
 
   def test_node_get_system_uptime
     node.cache_flush
+    # rubocop:disable Metrics/LineLength
     pattern = /.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/
+    # rubocop:enable Metrics/LineLength
 
     s = @device.cmd('show system uptime | no-more')
     node_uptime = node.system_uptime
@@ -374,8 +376,12 @@ vrf blue",
     md = pattern.match(s)
     assert(md, "Error, no match found for #{pattern}")
 
-    observed_system_uptime =
-      (md[1].to_i * 86_400) + (md[2].to_i * 3600) + (md[3].to_i * 60) + (md[4].to_i)
+    observed_system_uptime = (
+      (md[1].to_i * 86_400) +
+      (md[2].to_i * 3600) +
+      (md[3].to_i * 60) +
+      (md[4].to_i)
+    )
     delta = node_uptime - observed_system_uptime
     assert(delta < 10,
            "Error, System uptime delta is (#{delta}), expected (delta < 10)")

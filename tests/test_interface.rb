@@ -78,9 +78,7 @@ class TestInterface < CiscoTestCase
   end
 
   def interface_ethernet_default(ethernet_id)
-    @device.cmd('configure terminal')
-    @device.cmd("default interface ethernet #{ethernet_id}")
-    @device.cmd('end')
+    config("default interface ethernet #{ethernet_id}")
     node.cache_flush
   end
 
@@ -105,10 +103,7 @@ class TestInterface < CiscoTestCase
   end
 
   def system_default_switchport_shutdown_set(state)
-    @device.cmd('configure terminal')
-    state.each { |config_line| @device.cmd(config_line) }
-    @device.cmd('end')
-    node.cache_flush
+    config(*state)
   end
 
   def validate_interface_shutdown(inttype_h)
@@ -125,10 +120,12 @@ class TestInterface < CiscoTestCase
         system_default_switchport_shutdown_set(config_array)
 
         interface.shutdown = false
-        refute(interface.shutdown, "Error: #{interface.name} shutdown is not false")
+        refute(interface.shutdown,
+               "Error: #{interface.name} shutdown is not false")
 
         interface.shutdown = true
-        assert(interface.shutdown, "Error: #{interface.name} shutdown is not true")
+        assert(interface.shutdown,
+               "Error: #{interface.name} shutdown is not true")
 
         # Test default shutdown state
         if k.downcase.include?('ethernet') # Ethernet interfaces
@@ -167,7 +164,8 @@ class TestInterface < CiscoTestCase
       # get_default check
       assert_equal(v[:default_switchport],
                    interface.default_switchport_mode,
-                   "Error: #{interface.name}, switchport mode, default, not correct")
+                   "Error: #{interface.name}, switchport mode, default, " \
+                   'not correct')
     end
   end
 
@@ -187,7 +185,8 @@ class TestInterface < CiscoTestCase
 
       # get_default check
       assert_equal(v[:default_description], interface.default_description,
-                   "Error: [#{interface.name}] Default description is not configured")
+                   "Error: [#{interface.name}] Default description " \
+                   'is not configured')
     end
   end
 
@@ -356,7 +355,8 @@ class TestInterface < CiscoTestCase
 
       # Set to default vrf
       assert_equal(v[:default_vrf], interface.default_vrf,
-                   "Error: [#{interface.name}] vrf config found. Should be default vrf")
+                   "Error: [#{interface.name}] vrf config found. " \
+                   'Should be default vrf')
     end
   end
 
@@ -514,11 +514,8 @@ class TestInterface < CiscoTestCase
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled
-  #     @device.cmd("configure terminal")
-  #     @device.cmd("interface #{interfaces[0]}")
-  #     @device.cmd("ip address 192.168.1.100 255.255.255.0")
-  #     @device.cmd("end")
-  #     node.cache_flush
+  #     config("interface #{interfaces[0]}",
+  #            'ip address 192.168.1.100 255.255.255.0')
   #     prefixes = interface.prefixes
   #     assert_equal(1, prefixes.size)
   #     assert(prefixes.has_key?("192.168.1.100"))
@@ -532,10 +529,8 @@ class TestInterface < CiscoTestCase
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled
   #     @device.cmd("configure terminal")
-  #     @device.cmd("interface #{interfaces[0]}")
-  #     @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
-  #     @device.cmd("end")
-  #     node.cache_flush
+  #     config("interface #{interfaces[0]}",
+  #            'ipv6 address fd56:31f7:e4ad:5585::1/64")
   #     prefixes = interface.prefixes
   #     assert_equal(2, prefixes.size)
   #     assert(prefixes.has_key?("fd56:31f7:e4ad:5585::1"))
@@ -544,16 +539,13 @@ class TestInterface < CiscoTestCase
   #     interface_ethernet_default(interfaces_id[0])
   #   end
   #
-  #   def test_interface_get_prefix_list_with_both_ip4_and_ipv6_address_assignments
+  #   def test_interface_prefix_list_with_both_ip4_and_ipv6_address_assignments
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled
-  #     @device.cmd("configure terminal")
-  #     @device.cmd("interface #{interfaces[0]}")
-  #     @device.cmd("ip address 192.168.1.100 255.255.255.0")
-  #     @device.cmd("ipv6 address fd56:31f7:e4ad:5585::1/64")
-  #     @device.cmd("end")
-  #     node.cache_flush
+  #     config("interface #{interfaces[0]}",
+  #            'ip address 192.168.1.100 255.255.255.0',
+  #            'ipv6 address fd56:31f7:e4ad:5585::1/64')
   #     prefixes = interface.prefixes
   #     assert_equal(3, prefixes.size)
   #     assert(prefixes.has_key?("192.168.1.100"))
@@ -606,7 +598,8 @@ class TestInterface < CiscoTestCase
     else
       # check the get
       assert_equal(interface.negotiate_auto, default,
-                   "Error: #{inf_name} negotiate auto value should be same as default")
+                   "Error: #{inf_name} negotiate auto value " \
+                   'should be same as default')
 
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
@@ -621,10 +614,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     inf_name = 'port-channel10'
-    @device.cmd('configure terminal')
-    @device.cmd('interface port-channel 10')
-    @device.cmd('end')
-    node.cache_flush
+    config('interface port-channel 10')
     interface = Interface.new(inf_name)
     default = ref.default_value
 
@@ -632,18 +622,11 @@ class TestInterface < CiscoTestCase
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    @device.cmd('configure terminal')
-    @device.cmd('interface port-channel 10')
-    @device.cmd('no switchport')
-    @device.cmd('end')
-    node.cache_flush
+    config('interface port-channel 10', 'no switchport')
     negotiate_auto_helper(interface, default, ref)
 
     # Cleanup
-    @device.cmd('configure terminal')
-    @device.cmd('no interface port-channel 10')
-    @device.cmd('end')
-    node.cache_flush
+    config('no interface port-channel 10')
   end
 
   def test_negotiate_auto_ethernet
@@ -662,11 +645,7 @@ class TestInterface < CiscoTestCase
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    @device.cmd('configure terminal')
-    @device.cmd("interface #{interfaces[0]}")
-    @device.cmd('no switchport')
-    @device.cmd('end')
-    node.cache_flush
+    config("interface #{interfaces[0]}", 'no switchport')
     negotiate_auto_helper(interface, default, ref)
 
     # Cleanup
@@ -680,10 +659,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     inf_name = 'loopback2'
-    @device.cmd('configure terminal')
-    @device.cmd('interface loopback 2')
-    @device.cmd('end')
-    node.cache_flush
+    config('interface loopback 2')
     interface = Interface.new(inf_name)
 
     assert_equal(interface.negotiate_auto, ref.default_value,
@@ -697,10 +673,7 @@ class TestInterface < CiscoTestCase
     end
 
     # Cleanup
-    @device.cmd('configure terminal')
-    @device.cmd('no interface loopback 2')
-    @device.cmd('end')
-    node.cache_flush
+    config('no interface loopback 2')
   end
 
   def test_interfaces_not_empty
@@ -959,9 +932,7 @@ class TestInterface < CiscoTestCase
     inttype_h.each do |k, v|
       # puts "TEST: pre-config hash key : #{k}"
       unless (/^Vlan\d./).match(k.to_s).nil?
-        @device.cmd('configure terminal')
-        @device.cmd('feature interface-vlan')
-        @device.cmd('end')
+        config('feature interface-vlan')
         node.cache_flush
       end
 
@@ -974,8 +945,10 @@ class TestInterface < CiscoTestCase
       end
       # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
       @device.cmd("ip address #{v[:address_len]}") unless v[:address_len].nil?
-      @device.cmd('ip proxy-arp') if !v[:proxy_arp].nil? && v[:proxy_arp] == true
-      @device.cmd('ip redirects') if !v[:redirects].nil? && v[:redirects] == true
+      @device.cmd('ip proxy-arp') if !v[:proxy_arp].nil? &&
+                                     v[:proxy_arp] == true
+      @device.cmd('ip redirects') if !v[:redirects].nil? &&
+                                     v[:redirects] == true
       @device.cmd("description #{v[:description]}") unless v[:description].nil?
       @device.cmd('exit')
       @device.cmd('end')
@@ -1013,16 +986,14 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_vrf_default
-    @device.cmd('conf t ; interface loopback1 ; vrf member foo')
-    node.cache_flush
+    config('interface loopback1', 'vrf member foo')
     interface = Interface.new('loopback1')
     interface.vrf = interface.default_vrf
     assert_equal(DEFAULT_IF_VRF, interface.vrf)
   end
 
   def test_interface_vrf_empty
-    @device.cmd('conf t ; interface loopback1 ; vrf member foo')
-    node.cache_flush
+    config('interface loopback1', 'vrf member foo')
     interface = Interface.new('loopback1')
     interface.vrf = DEFAULT_IF_VRF
     assert_equal(DEFAULT_IF_VRF, interface.vrf)

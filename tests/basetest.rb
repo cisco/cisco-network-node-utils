@@ -40,7 +40,8 @@ class TestCase < Test::Unit::TestCase
   def process_arguments
     if ARGV.length != 3 && ARGV.length != 4
       puts 'Usage:'
-      puts '  ruby test_nxapi.rb [options] -- <address> <username> <password> [debug]'
+      puts '  ruby test_nxapi.rb [options] -- ' \
+           '<address> <username> <password> [debug]'
       exit
     end
 
@@ -90,6 +91,10 @@ class TestCase < Test::Unit::TestCase
   def teardown
     @device.close unless @device.nil?
     GC.start
+  end
+
+  def config(*args)
+    @device.cmd("configure terminal\n" + args.join("\n") + "\nend")
   end
 
   def test_placeholder

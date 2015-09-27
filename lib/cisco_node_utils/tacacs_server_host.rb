@@ -101,7 +101,8 @@ module Cisco
                      encryption_password)
         end
       else
-        config_set('tacacs_server_host', 'encryption', '', @name, enctype, password)
+        config_set('tacacs_server_host', 'encryption',
+                   '', @name, enctype, password)
       end
     end
 

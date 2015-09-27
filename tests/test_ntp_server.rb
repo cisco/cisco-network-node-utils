@@ -36,7 +36,8 @@ class TestNtpServer < CiscoTestCase
     # Turn the feature off for a clean test.
     @device.cmd('conf t ; no ntpserver 130.88.203.12 ; end')
     @device.cmd('conf t ; no ntpserver 194.207.34.9 ; end')
-    # Flush the cache since we've modified the device outside of the node_utils APIs
+    # Flush the cache since we've modified the device outside of
+    # the node_utils APIs
     node.cache_flush
   end
 

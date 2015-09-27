@@ -364,8 +364,8 @@ module Cisco
 
     def switchport_autostate_exclude=(val)
       # cannot configure autostate unless feature vlan is enabled
-      fail 'switchport mode must be configured before switchport autostate' unless
-        switchport
+      fail('switchport mode must be configured before ' \
+           'switchport autostate') unless switchport
       feature_vlan_set(true)
       config_set('interface', 'switchport_autostate_exclude',
                  @name, val ? '' : 'no')

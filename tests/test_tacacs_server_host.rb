@@ -13,7 +13,8 @@
 # limitations under the License.
 
 require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/tacacs_server_host', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/tacacs_server_host',
+                         __FILE__)
 
 include Cisco
 

@@ -34,7 +34,7 @@ module Cisco
     attr_reader :command, :clierror, :previous
     def initialize(command, clierror, previous)
       @command = command
-      @clierror = clierror.rstrip
+      @clierror = clierror.rstrip if clierror.kind_of? String
       @previous = previous
     end
 
@@ -80,16 +80,17 @@ module Cisco
         # IndexError if value is not set, TypeError if set to nil explicitly
         token = nil
       end
-      if token.kind_of?(String) && token[0] == '/' && token[-1] == '/'
-        fail RuntimeError unless args.length == token.scan(/%/).length
-        # convert string to regexp and replace %s with args
-        token = Regexp.new(sprintf(token, *args)[1..-2])
-        text = build_config_get(feature, ref, :ascii)
-        return Cisco.find_ascii(text, token)
-      elsif token.kind_of?(String)
-        hash = build_config_get(feature, ref, :structured)
-        return hash[token]
-
+      if token.kind_of?(String)
+        if token[0] == '/' && token[-1] == '/'
+          fail RuntimeError unless args.length == token.scan(/%/).length
+          # convert string to regexp and replace %s with args
+          token = Regexp.new(sprintf(token, *args)[1..-2])
+          text = build_config_get(feature, ref, :ascii)
+          return Cisco.find_ascii(text, token)
+        else
+          hash = build_config_get(feature, ref, :structured)
+          return hash[token]
+        end
       elsif token.kind_of?(Array)
         # Array of /regexps/ -> ascii, array of strings/ints -> structured
         if token[0].kind_of?(String) &&
@@ -102,29 +103,7 @@ module Cisco
 
         else
           result = build_config_get(feature, ref, :structured)
-          begin
-            token.each do |t|
-              # if token is a hash and result is an array, check each
-              # array index (which should return another hash) to see if
-              # it contains the matching key/value pairs specified in token,
-              # and return the first match (or nil)
-              if t.kind_of?(Hash)
-                fail "Expected array, got #{result.class}" unless result.kind_of?(Array)
-                result = result.select { |x| t.all? { |k, v| x[k] == v } }
-                fail "Multiple matches found for #{t}" if result.length > 1
-                fail "No match found for #{t}" if result.length == 0
-                result = result[0]
-              else # result is array or hash
-                fail "No key \"#{t}\" in #{result}" if result[t].nil?
-                result = result[t]
-              end
-            end
-            return result
-          rescue RuntimeError
-            # TODO: logging user story, Syslog isn't available here
-            # Syslog.debug(e.message)
-            return nil
-          end
+          return config_get_handle_structured(token, result)
         end
       elsif token.nil?
         return show(ref.config_get, :structured)
@@ -413,6 +392,33 @@ module Cisco
       config_set.flatten!
       config_set.compact!
       config_set
+    end
+
+    # Helper method for config_get().
+    # @param token [Array, Hash] lookup sequence
+    # @param result [Array, Hash] structured output from node
+    def config_get_handle_structured(token, result)
+      token.each do |t|
+        # if token is a hash and result is an array, check each
+        # array index (which should return another hash) to see if
+        # it contains the matching key/value pairs specified in token,
+        # and return the first match (or nil)
+        if t.kind_of?(Hash)
+          fail "Expected array, got #{result.class}" unless result.is_a? Array
+          result = result.select { |x| t.all? { |k, v| x[k] == v } }
+          fail "Multiple matches found for #{t}" if result.length > 1
+          fail "No match found for #{t}" if result.length == 0
+          result = result[0]
+        else # result is array or hash
+          fail "No key \"#{t}\" in #{result}" if result[t].nil?
+          result = result[t]
+        end
+      end
+      result
+    rescue RuntimeError
+      # TODO: logging user story, Syslog isn't available here
+      # Syslog.debug(e.message)
+      nil
     end
 
     # Send a config command to the device.

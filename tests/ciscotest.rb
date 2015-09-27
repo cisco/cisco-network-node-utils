@@ -53,6 +53,12 @@ class CiscoTestCase < TestCase
     node.cmd_ref
   end
 
+  def config(*args)
+    result = super
+    node.cache_flush
+    result
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
@@ -61,9 +67,11 @@ class CiscoTestCase < TestCase
         platform_info = PlatformInfo.new(node.host_name)
         @@interfaces = platform_info.get_value_from_key('interfaces')
       rescue RuntimeError => e
-        # If there is a problem reading platform_info.yaml, assign default values
+        # If there is a problem reading platform_info.yaml,
+        # assign default values
         default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
-        puts "Caught exception: #{e}, assigning interfaces to default - #{default_interfaces}"
+        puts "Caught exception: #{e}, assigning interfaces to default " \
+             "- #{default_interfaces}"
         @@interfaces = default_interfaces
       end
       # rubocop:enable Style/ClassVars

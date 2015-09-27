@@ -24,12 +24,14 @@
 require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-  # NameServer - node utility class for DNS client name server configuration management
+  # NameServer - node utility class for DNS client name server config management
   class NameServer < NodeUtil
     attr_reader :name
 
     def initialize(name, instantiate=true)
-      fail TypeError, "Expected a string, got a #{name.inspect}" unless name.is_a?(String)
+      unless name.is_a? String
+        fail TypeError, "Expected a string, got a #{name.inspect}"
+      end
       @name = name
       create if instantiate
     end
