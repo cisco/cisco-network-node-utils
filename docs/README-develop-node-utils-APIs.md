@@ -10,30 +10,38 @@
  * [Step 2. Create the node_utils API: feature bash-shell](#api)
  * [Step 3. Create the Minitest: feature bash-shell](#minitest)
  * [Step 4. rubocop / lint: feature bash-shell](#lint)
- * [Step 5. Build the gem](#gem)
+ * [Step 5. Build and Install the gem](#gem)
 * [Advanced Example: router eigrp](#complex)
  * [Step 1. YAML Definitions: router eigrp](#comp_yaml)
  * [Step 2. Create the node_utils API: router eigrp](#comp_api)
  * [Step 3. Create the Minitest: router eigrp](#comp_minitest)
  * [Step 4. rubocop / lint: router eigrp](#comp_lint)
- * [Step 5. Build the gem](#comp_gem)
+ * [Step 5. Build and Install the gem](#comp_gem)
 
 ## <a name="overview">Overview</a>
 
-This document is a HowTo guide for writing new cisco-network-node-utils APIs. The APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).
+This document is a HowTo guide for writing new cisco_node_utils APIs. The APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).
 
-There are multiple components involved when creating new resources. This document focuses on the  cisco-network-node-utils API, command reference YAML files, and minitests.
+There are multiple components involved when creating new resources. This document focuses on the cisco_node_utils API, command reference YAML files, and minitests.
 
 ![1](agent_files.png)
 
 ## <a name="prerequisites">Before You Begin</a>
 
-This development guide uses tools that are packaged as gems that need to be installed on your workstation.
+This development guide uses tools that are packaged as gems that need to be installed on your server.
 
 ```bash
 gem install cisco_nxapi
 gem install rubocop
 gem install minitest --version 4.3.2
+```
+
+**NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update your `PATH` to include `~/.gem/ruby/x.x.x/bin`
+
+```bash
+gem install --user-install cisco_nxapi
+gem install --user-install rubocop
+gem install --user-install minitest --version 4.3.2
 ```
 
 ## <a name="clone">Start here: Fork and Clone the Repo</a>
@@ -47,7 +55,28 @@ git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
 ```
 
+As a best practice go ahead and create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+
+```bash
+git branch feature/bash-shell
+git branch feature/eigrp
+git branch
+* develop
+  feature/bash-shell
+  feature/eigrp
+```
+
 ## <a name="simple">Basic Example: feature bash-shell</a>
+
+Before you start working on the bash-shell feature, checkout the feature branch you created earlier.
+
+```bash
+git checkout feature/bash-shell
+git branch
+  develop
+* feature/bash-shell
+  feature/eigrp
+```
 
 Writing a new node_utils API is often easier to understand through example code. The NX-OS CLI for `feature bash-shell` is a simple on / off style configuration and therefore a good candidate for a simple API:
 
@@ -142,7 +171,7 @@ end
 
 ### <a name="minitest">Step 3. Minitest: feature bash-shell</a>
 
-* A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `cisco-network-node-utils/tests/`
+* A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `tests/`
 
 * Tests may use `@device.cmd("show ...")` to access the CLI directly set up tests and validate expected outcomes. The tests directory contains many examples of how these are used.
 
@@ -252,7 +281,6 @@ Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
 
 *Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
 
-
 ### <a name="lint">Step 4. rubocop: feature bash-shell</a>
 
 rubocop is a Ruby static analysis tool. Run rubocop to validate the new code:
@@ -265,9 +293,9 @@ Inspecting 2 files
 2 files inspected, no offenses detected
 ```
 
-### <a name="gem">Step 5. Build the gem</a>
+### <a name="gem">Step 5. Build and Install the gem</a>
 
-Your final step is to build the gem that contains your new APIs.
+Your final step is to build and install the gem that contains your new APIs.
 
 From the root of the cisco-network-node-utils repository issue the following command.
 
@@ -279,7 +307,28 @@ gem build cisco_node_utils.gemspec
   File: cisco_node_utils-1.0.1.gem
 ```
 
+Copy the new gem to your NX-OS device and then install it.
+
+```bash
+n9k#gem install --local /bootflash/cisco_node_utils-1.0.1.gem
+Successfully installed cisco_node_utils-1.0.1
+Parsing documentation for cisco_node_utils-1.0.1
+Installing ri documentation for cisco_node_utils-1.0.1
+Done installing documentation for cisco_node_utils after 2 seconds
+1 gem installed
+```
+
 ## <a name="complex">Advanced Example: router eigrp</a>
+
+Before you start working on the eigrp feature, checkout the feature branch you created earlier.
+
+```bash
+git checkout feature/eigrp
+git branch
+  develop
+  feature/bash-shell
+* feature/eigrp
+```
 
 Now that we have a basic example working we can move on to a slightly more complex cli.
 `router eigrp` requires feature enablement and supports multiple eigrp instances. It also has multiple configuration levels for vrf and address-family.
@@ -303,7 +352,7 @@ Example:
 
 As with the earlier example, `router eigrp` will need YAML definitions in the common file:
 
-`cisco-network-node-utils/lib/cisco_node_utils/command_reference_common.yaml`
+`lib/cisco_node_utils/command_reference_common.yaml`
 
 The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
 
@@ -347,13 +396,13 @@ eigrp:
 * Add a new entry: `require "cisco_node_utils/router_eigrp"` to the master list in:
 
 ```
-cisco-network-node-utils/lib/cisco_node_utils.rb
+lib/cisco_node_utils.rb
 ```
 
 * The `template-router.rb` file provides a basic router API that we will use as the basis for `router_eigrp.rb`:
 
 ```bash
-cp  docs/template-router.rb  cisco-network-node-utils/router_eigrp.rb
+cp  docs/template-router.rb  lib/cisco_node_utils/router_eigrp.rb
 ```
 
 * Our new `router_eigrp.rb` requires changes from the original template. Edit `router_eigrp.rb` and change the placeholder names as shown.
@@ -501,7 +550,7 @@ end
 * Use `template-test_router.rb` to build the minitest for `router_eigrp.rb`:
 
 ```
-cp  docs/template-test_router.rb  cisco-network-node-utils/tests/test_router_eigrp.rb
+cp  docs/template-test_router.rb  tests/test_router_eigrp.rb
 ```
 * As with the API code, edit `test_router_eigrp.rb` and change the placeholder names as shown:
 
@@ -673,9 +722,9 @@ Inspecting 2 file
 2 file inspected, no offenses detected
 ```
 
-### <a name="comp_gem">Step 5. Build the gem</a>
+### <a name="gem">Step 5. Build and Install the gem</a>
 
-Your final step is to build the gem that contains your new APIs.
+Your final step is to build and install the gem that contains your new APIs.
 
 From the root of the cisco-network-node-utils repository issue the following command.
 
@@ -685,6 +734,17 @@ gem build cisco_node_utils.gemspec
   Name: cisco_node_utils
   Version: 1.0.1
   File: cisco_node_utils-1.0.1.gem
+```
+
+Copy the new gem to your NX-OS device and then install it.
+
+```bash
+n9k#gem install --local /bootflash/cisco_node_utils-1.0.1.gem
+Successfully installed cisco_node_utils-1.0.1
+Parsing documentation for cisco_node_utils-1.0.1
+Installing ri documentation for cisco_node_utils-1.0.1
+Done installing documentation for cisco_node_utils after 2 seconds
+1 gem installed
 ```
 
 ## Conclusion
