@@ -53,6 +53,10 @@ module Cisco
       hash
     end
 
+    def ==(other)
+      name == other.name && prefer == other.prefer
+    end
+
     def create
       config_set('ntp_server', 'server', state: '', ip: @ntpserver_id,
                   prefer: @ntpserver_prefer ? 'prefer' : '')
@@ -61,6 +65,10 @@ module Cisco
     def destroy
       config_set('ntp_server', 'server',
                  state: 'no', ip: @ntpserver_id, prefer: '')
+    end
+
+    def name
+      @ntpserver_id
     end
 
     def prefer

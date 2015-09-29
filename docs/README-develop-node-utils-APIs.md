@@ -191,6 +191,8 @@ cp  docs/template-test_feature.rb  tests/test_tunnel.rb
 /X__CLI_NAME__X/tunnel/
 ```
 
+* Add your new test script to the master list of test cases in `tests/test_all_cisco.rb`: `require File.expand_path('../test_tunnel', __FILE__)`
+
 #### Example: test_tunnel.rb
 
 This is the completed `tunnel` minitest based on `template-test_feature.rb`:
@@ -569,6 +571,8 @@ cp  docs/template-test_router.rb  tests/test_router_eigrp.rb
   * creating & destroying multiple `router eigrp` instances
   * feature disablement when removing last `router eigrp`
   * testing each property state
+
+* Add your new test script to the master list of test cases in `tests/test_all_cisco.rb`: `require File.expand_path('../test_router_eigrp', __FILE__)`
 
 #### Example: test_router_eigrp.rb
 This is the completed `test_router_eigrp` minitest based on `template-test_router.rb`:

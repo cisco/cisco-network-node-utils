@@ -589,7 +589,7 @@ module Cisco
 
     # get subconfig
     parent_cfg.each { |p| body = find_subconfig(body, p) }
-    if body.nil?
+    if body.nil? || body.empty?
       return nil
     else
       # find matches and return as array of String if it only does one

@@ -49,6 +49,10 @@ module Cisco
       hash
     end
 
+    def ==(other)
+      name == other.name
+    end
+
     def create
       config_set('dnsclient', 'name_server', state: '', ip: @name)
     end

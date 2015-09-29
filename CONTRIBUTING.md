@@ -14,16 +14,19 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Make changes in your branch.
 * Testing
   * Create a minitest for new APIs or new functionality
+  * Make sure your new minitest file(s) are included in `tests/test_all_cisco.rb`
   * Run all the tests to ensure there was no collateral damage to existing code
 * Committing
   * Check for unnecessary whitespace with `git diff --check` before committing.
-  * Run `rubocop --lint` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)
+  * Run `rubocop` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)
   * Make sure your commit messages clearly describe the problem you are trying to solve and the proposed solution.
+  * Be sure to update `CHANGELOG.md` with a note about what you have added or fixed.
 
 ## Submitting Changes
 
 * All contributions you submit to this project are voluntary and subject to the terms of the Apache 2.0 license
 * Submit a pull request to the repository
+  * Include output of all added or modified minitest scripts.
 * A core team consisting of Cisco and Cisco-Partner employees will looks at Pull Request and provide feedback.
 * After feedback has been given we expect responses within two weeks. After two weeks we may close the pull request if it isn't showing any activity.
 

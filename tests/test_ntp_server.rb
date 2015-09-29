@@ -63,6 +63,7 @@ class TestNtpServer < CiscoTestCase
 
     ntp1 = Cisco::NtpServer.new(id1, false)
     ntp2 = Cisco::NtpServer.new(id2, true)
+    refute_equal(ntp1, ntp2)
     assert_includes(Cisco::NtpServer.ntpservers, id1)
     assert_includes(Cisco::NtpServer.ntpservers, id2)
     assert_equal(Cisco::NtpServer.ntpservers[id1], ntp1)

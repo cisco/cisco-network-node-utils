@@ -4,9 +4,16 @@ Changelog
 Unreleased
 ----------
 
-* Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
+### Added
+
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
-* Added support for ntp_server
+* Added support for name_server (@jonnytpuppet)
+* Added support for ntp_server (@hunner)
+
+### Fixed
+
+* Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
+* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 
 1.0.1
 -----
