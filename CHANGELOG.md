@@ -6,6 +6,7 @@ Unreleased
 
 * Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
+* Added support for ntp_server
 
 1.0.1
 -----
