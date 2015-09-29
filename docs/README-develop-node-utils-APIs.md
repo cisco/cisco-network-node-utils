@@ -722,7 +722,7 @@ Inspecting 2 file
 2 file inspected, no offenses detected
 ```
 
-### <a name="gem">Step 5. Build and Install the gem</a>
+### <a name="comp_gem">Step 5. Build and Install the gem</a>
 
 The final step is to build and install the gem that contains the new APIs.
 
