@@ -1,8 +1,7 @@
 Changelog
 =========
 
-Unreleased
-----------
+## [Unreleased]
 
 ### Added
 
@@ -15,13 +14,11 @@ Unreleased
 * Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
 * Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 
-1.0.1
------
+## [v1.0.1]
 
 * Updated to fix broken documentation links.
 
-1.0.0
------
+## [v1.0.0]
 
 * Improved logic in Vtp class to handle the presence or absence of
   'feature vtp' and 'vtp domain' configuration.
@@ -39,8 +36,11 @@ Unreleased
   * vrf member
 * Move misc READMEs into /docs
 
-0.9.0
------
+## 0.9.0
 
 * First public release, corresponding to Early Field Trial (EFT) of
   Cisco NX-OS 7.0(3)I2(1).
+
+[unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
+[v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
