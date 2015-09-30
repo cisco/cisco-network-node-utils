@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+
+# Update the git hooks if they've changed
+$(git rev-parse --show-toplevel)/bin/git/update-hooks

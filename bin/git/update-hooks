@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Based on:
+# http://stackoverflow.com/questions/3462955/putting-git-hooks-into-repository
+
+# Where hooks are stored in the repo
+SRC_DIR="$(git rev-parse --show-toplevel)/git_hooks"
+
+# Where hooks need to be installed
+HOOK_DIR="$(git rev-parse --show-toplevel)/.git/hooks"
+
+echo "Updating git hooks..."
+
+for file in $SRC_DIR/*; do
+    hook=${file##*/}
+    if [ ! -e "$HOOK_DIR/$hook" ] ; then
+        echo "Enabling new '$hook' hook..."
+        cp $SRC_DIR/$hook $HOOK_DIR/$hook
+    else
+        diff $HOOK_DIR/$hook $SRC_DIR/$hook >> /dev/null
+        if [ $? -ne 0 ] ; then
+            echo "Hook '$hook' has changed:"
+            echo
+            diff -u $HOOK_DIR/$hook $SRC_DIR/$hook
+            echo
+            echo "Updating hook '$hook'..."
+            cp -f $SRC_DIR/$hook $HOOK_DIR/$hook
+        fi
+    fi
+done
+
+echo "Done!"
