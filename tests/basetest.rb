@@ -25,7 +25,7 @@ require 'test/unit'
 begin
   require 'cisco_nxapi'
 rescue LoadError
-  require File.expand_path('../../../cisco_nxapi/lib/cisco_nxapi')
+  require File.expand_path('../../../cisco-nxapi/lib/cisco_nxapi')
 end
 
 # TestCase - common base class for all minitest cases in this module.
