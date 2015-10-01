@@ -10,6 +10,11 @@ Metrics/ClassLength:
 Metrics/CyclomaticComplexity:
   Max: 17
 
+# Template files have long lines before tag replacement
+Metrics/LineLength:
+  Exclude:
+    - docs/*.rb
+
 Metrics/MethodLength:
   Max: 113
 
