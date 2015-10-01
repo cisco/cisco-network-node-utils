@@ -827,6 +827,12 @@ tacacs_server_host:
     config_set: "%s tacacs-server host %s timeout %s"
     default_value: 0
 
+tunnel:
+  feature:
+    config_get: 'show running section feature'  # get current tunnel config state
+    config_get_token: '/^feature tunnel$/'   # Match only 'feature tunnel'
+    config_set: '<state> feature tunnel'     # Config needed to enable/disable
+
 virtual_service:
   services:
     config_get: 'show virtual-service detail'
