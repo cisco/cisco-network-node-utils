@@ -395,7 +395,7 @@ eigrp:
 
 ### <a name="comp_api">Step 2. cisco_node_utils API: router eigrp</a>
 
-* Add a new entry: `require "cisco_node_utils/router_eigrp"` to the master list in:
+* Add a new entry: `require 'cisco_node_utils/router_eigrp'` to the master list in:
 
 ```
 lib/cisco_node_utils.rb
