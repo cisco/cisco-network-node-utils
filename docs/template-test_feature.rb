@@ -43,9 +43,9 @@ class TestX__CLASS_NAME__X < CiscoTestCase
   def test_feature_on_off
     feat = X__CLASS_NAME__X.new
     feat.feature_enable
-    assert(BashShell.feature_enabled)
+    assert(X__CLASS_NAME__X.feature_enabled)
 
     feat.feature_disable
-    refute(BashShell.feature_enabled)
+    refute(X__CLASS_NAME__X.feature_enabled)
   end
 end
