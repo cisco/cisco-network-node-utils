@@ -31,9 +31,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def create_user(name, opts='')
-    @device.cmd("conf t ; snmp-server user #{name} #{opts} ; end")
+    config("snmp-server user #{name} #{opts}")
     @test_users.push(name)
-    node.cache_flush
   end
 
   def destroy_user(user)
@@ -43,10 +42,8 @@ class TestSnmpUser < CiscoTestCase
 
   def teardown
     unless @test_users.empty?
-      @device.cmd('configure t')
-      @test_users.each { |name| @device.cmd("no snmp-server user #{name}") }
-      @device.cmd('end')
-      node.cache_flush
+      cfg = @test_users.collect { |name| "no snmp-server user #{name}" }
+      config(*cfg)
     end
     super
     delta = SnmpUser.users.keys - @@existing_users

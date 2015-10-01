@@ -17,11 +17,25 @@ Changelog
   * If using [git-flow]:
     * `git flow release start` and `git flow hotfix start` will automatically update `CHANGELOG.md` and `version.rb` for the new release version
     * `git flow release finish` will automatically bump the version number for the develop branch.
+* Minitest enhancements:
+  * Code coverage calculation using [SimpleCov]
+  * Full Minitest suite can be run by `rake test`
+  * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
+* Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 
 ### Fixed
 
 * Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
 * Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
+* Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
+
+### Changed
+
+* Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
+
+### Removed
+
+* Removed `test_all_cisco.rb` as `rake test` can auto-discover all tests.
 
 ## [v1.0.1]
 
@@ -51,6 +65,7 @@ Changelog
   Cisco NX-OS 7.0(3)I2(1).
 
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
+[SimpleCov]: https://github.com/colszowka/simplecov
 
 [unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

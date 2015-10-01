@@ -32,10 +32,7 @@ class TestX__CLASS_NAME__X < CiscoTestCase
 
   def no_feature_X__RESOURCE_NAME__X
     # Turn the feature off for a clean test.
-    @device.cmd('conf t ; no feature X__RESOURCE_NAME__X ; end')
-    # Flush the cache since we've modified the device outside of
-    # the node_utils APIs
-    node.cache_flush
+    config('no feature X__RESOURCE_NAME__X')
   end
 
   # TESTS

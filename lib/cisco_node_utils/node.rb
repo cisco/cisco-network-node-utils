@@ -164,12 +164,8 @@ module Cisco
         new_config_set = []
         config_set.each do |line|
           param_count = line.scan(/%/).length
-          if param_count > 0
-            new_config_set << sprintf(line, *args)
-            args = args[param_count..-1]
-          else
-            new_config_set << line
-          end
+          new_config_set << sprintf(line, *args.first(param_count))
+          args = args[param_count..-1]
         end
         config(new_config_set)
       end
@@ -221,9 +217,6 @@ module Cisco
     def reload
       @client.reload
     end
-
-    # hidden as well
-    attr_reader :client
 
     def cache_enable?
       @client.cache_enable?

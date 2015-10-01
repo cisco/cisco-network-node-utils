@@ -21,12 +21,14 @@ include Cisco
 
 # TestInterfaceOspf - Minitest for InterfaceOspf node utility class.
 class TestInterfaceOspf < CiscoTestCase
-  def routerospf_router_destroy(router)
-    router.destroy
+  def setup
+    super
+    config 'no feature ospf'
   end
 
-  def routerospf_routers_destroy(routers)
-    routers.each_value { |router| routerospf_router_destroy(router) }
+  def teardown
+    config 'no feature ospf'
+    super
   end
 
   def interface_switchport_enable(ifname, enable)
@@ -34,16 +36,6 @@ class TestInterfaceOspf < CiscoTestCase
       config("interface #{ifname}", 'switchport')
     else
       config("interface #{ifname}", 'no switchport')
-    end
-  end
-
-  def interfaceospf_interface_destroy(interface)
-    interface.destroy
-  end
-
-  def interfaceospf_interfaces_destroy(interfaces)
-    interfaces.each_value do |interface|
-      interfaceospf_interface_destroy(interface)
     end
   end
 
@@ -61,10 +53,6 @@ class TestInterfaceOspf < CiscoTestCase
   def create_interfaceospf(routerospf, ifname=interfaces[0], area='0.0.0.0')
     interface_switchport_enable(ifname, false)
     InterfaceOspf.new(ifname, routerospf.name, area)
-  end
-
-  def interface_ethernet_default(ethernet_id=interfaces_id[0])
-    config("default interface ethernet #{ethernet_id}")
   end
 
   def test_get_set_area
@@ -88,7 +76,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(int_ospf.area, '0.0.0.3')
 
     # cleanup
-    int_ospf.destroy
     config('no interface loopback12')
   end
 
@@ -101,7 +88,6 @@ class TestInterfaceOspf < CiscoTestCase
       assert_empty(interfaces,
                    'InterfaceOspf collection is not empty')
     end
-    routerospf_routers_destroy(routers)
   end
 
   def test_interfaceospf_collection_not_empty
@@ -160,11 +146,7 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.message_digest_key_id,
                      'Error: message digest key get failed')
       end
-      interfaceospf_interfaces_destroy(interfaces)
     end
-    routerospf_routers_destroy(routers)
-    interface_ethernet_default(interfaces_id[2])
-    interface_ethernet_default(interfaces_id[1])
   end
 
   def test_interfaceospf_create_routerospf_nil
@@ -179,7 +161,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_raises(ArgumentError) do
       InterfaceOspf.new('', ospf.name, '0.0.0.0')
     end
-    routerospf_router_destroy(ospf)
   end
 
   def test_interfaceospf_create_interface_area_zero_length
@@ -188,7 +169,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_raises(ArgumentError) do
       InterfaceOspf.new(interfaces[0], ospf.name, '')
     end
-    routerospf_router_destroy(ospf)
   end
 
   def test_routerospf_create_valid
@@ -205,9 +185,6 @@ class TestInterfaceOspf < CiscoTestCase
                  'Error: interface name get value mismatch ')
     assert_equal(area, interface.area,
                  'Error: area get value mismatch ')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default(interfaces_id[1])
   end
 
   def test_interfaceospf_destroy
@@ -241,18 +218,12 @@ class TestInterfaceOspf < CiscoTestCase
     line = get_interfaceospf_match_line(ifname, pattern)
     assert_nil(line,
                "Error: 'ip ospf #{ospf.name} passive interface' not removed")
-
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default(interfaces_id[1])
   end
 
   def test_routerospf_get_parent
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     assert_equal(ospf.name, interface.ospf_name)
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_cost_invalid_range
@@ -266,9 +237,6 @@ class TestInterfaceOspf < CiscoTestCase
     # assert_raises(RuntimeError) do
     #  interface.cost = 0
     # end
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_cost
@@ -289,9 +257,6 @@ class TestInterfaceOspf < CiscoTestCase
     line = get_interfaceospf_match_line(interface.interface.name, pattern)
     assert_nil(line,
                'Error: default cost set failed')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_hello_interval_invalid_range
@@ -305,9 +270,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_raises(CliError) do
       interface.hello_interval = 0
     end
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_hello_interval
@@ -329,9 +291,6 @@ class TestInterfaceOspf < CiscoTestCase
     line = get_interfaceospf_match_line(interface.interface.name, pattern)
     assert_nil(line,
                'Error: default hello-interval set failed')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_dead_interval_invalid_range
@@ -349,9 +308,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_raises(CliError) do
       interface.dead_interval = 0
     end
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_dead_interval
@@ -372,9 +328,6 @@ class TestInterfaceOspf < CiscoTestCase
     line = get_interfaceospf_match_line(interface.interface.name, pattern)
     refute_nil(line,
                'Error: default dead-interval set failed')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_passive_interface
@@ -391,14 +344,10 @@ class TestInterfaceOspf < CiscoTestCase
 
     # get default and set
     interface.passive_interface = interface.default_passive_interface
-    node.cache_flush
     pattern = (/\s+no ip ospf passive-interface/)
     line = get_interfaceospf_match_line(interface.interface.name, pattern)
     refute_nil(line,
                'Error: default passive interface set failed')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_create_valid_multiple
@@ -413,17 +362,12 @@ class TestInterfaceOspf < CiscoTestCase
     # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
-    interface1 = create_interfaceospf(ospf, ifname, area)
+    create_interfaceospf(ospf, ifname, area)
     pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
     line = get_interfaceospf_match_line(ifname, pattern)
     refute_nil(line,
                "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                'is not configured')
-    interfaceospf_interface_destroy(interface)
-    interfaceospf_interface_destroy(interface1)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
-    interface_ethernet_default(interfaces_id[2])
   end
 
   def test_interfaceospf_create_multiple_delete_one
@@ -452,11 +396,6 @@ class TestInterfaceOspf < CiscoTestCase
     refute_nil(line,
                "Error: 'ip router ospf #{ospf.name} default area' " \
                'not configured')
-
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
-    interface_ethernet_default(interfaces_id[2])
   end
 
   def configure_from_hash(hash)
@@ -556,28 +495,17 @@ class TestInterfaceOspf < CiscoTestCase
         assert_equal(hv[:pass], interface.passive_interface,
                      'Error: passive interface get failed')
       end
-      # cleanup interfaces
-      # node.debug=true
-      interfaceospf_interfaces_destroy(interfaces)
-      # node.debug=true
     end # interfaces hash
     # clean up
-    routerospf_routers_destroy(routers)
 
     # disable feature interface-vlan
     config('no feature interface-vlan')
     # clean up port channel
     ospf_h.each_value do |v|
       v.each_key do |k1|
-        next if (/^port-channel\d/).match(k1.to_s).nil?
-        config("no interface #{k1}")
+        config("no interface #{k1}") if (/^port-channel\d/).match(k1)
       end # v each
     end # ospf_h each
-    node.cache_flush
-
-    interface_ethernet_default(interfaces_id[0])
-    interface_ethernet_default(interfaces_id[1])
-    interface_ethernet_default(interfaces_id[2])
   end
 
   def test_interfaceospf_message_digest
@@ -600,9 +528,6 @@ class TestInterfaceOspf < CiscoTestCase
                'Error: default message digest set failed')
     refute(interface.message_digest,
            'Error: message digest get value mismatch')
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_message_digest_key
@@ -676,10 +601,6 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(keyid, interface.message_digest_key_id)
     assert_equal(algo, interface.message_digest_algorithm_type)
     assert_equal(encr, interface.message_digest_encryption_type)
-
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_message_digest_key_invalid_password
@@ -701,16 +622,11 @@ class TestInterfaceOspf < CiscoTestCase
     assert_raises(CliError) do
       interface.message_digest_key_set(keyid, algo, encr, password)
     end
-
-    interfaceospf_interface_destroy(interface)
-    routerospf_router_destroy(ospf)
-    interface_ethernet_default
   end
 
   def test_interfaceospf_nonexistent
     # If the interface does exist but the OSPF instance does not, this is OK
     config('interface loopback122')
-    node.cache_flush
     interface = InterfaceOspf.new('loopback122', 'nonexistentOspf', '0')
 
     # Note: the area getter will munge the value to dotted decimal.
@@ -721,7 +637,6 @@ class TestInterfaceOspf < CiscoTestCase
 
     # If the interface doesn't exist, InterfaceOspf should raise an error
     config('no interface loopback122')
-    node.cache_flush
     assert_raises(RuntimeError) do
       interface = InterfaceOspf.new('loopback122', 'nonexistentOspf', '0')
     end

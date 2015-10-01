@@ -43,26 +43,32 @@ class TestInterface < CiscoTestCase
   IF_VRF_MAX_LENGTH = 32
 
   def interface_ipv4_config(ifname, address, length,
-                            config=true, secip=false)
-    @device.cmd('configure terminal')
-    @device.cmd("interface #{ifname}")
-    if config == true
-      @device.cmd('no switchport')
-      @device.cmd("ip address #{address}/#{length}") if secip != true
-      @device.cmd("ip address #{address}/#{length} secondary") if secip == true
+                            do_config=true, secip=false)
+    if do_config
+      if !secip
+        config("interface #{ifname}",
+               'no switchport',
+               "ip address #{address}/#{length}")
+      else
+        config("interface #{ifname}",
+               'no switchport',
+               "ip address #{address}/#{length} secondary")
+      end
     else
-      # This will remove both primary and secondary
-      @device.cmd('no ip address')
-      @device.cmd('switchport')
+      config("interface #{ifname}",
+             'no ip address', # This will remove both primary and secondary
+             'switchport')
     end
-    @device.cmd('end')
-    node.cache_flush
   end
 
-  def get_interface_match_line(name, pattern)
+  def assert_interface_match_line(name, pattern, msg=nil)
     s = @device.cmd("show run interface #{name} all | no-more")
-    line = pattern.match(s)
-    line
+    assert_match(pattern, s, msg)
+  end
+
+  def refute_interface_match_line(name, pattern, msg=nil)
+    s = @device.cmd("show run interface #{name} all | no-more")
+    refute_match(pattern, s, msg)
   end
 
   def interface_count
@@ -79,7 +85,6 @@ class TestInterface < CiscoTestCase
 
   def interface_ethernet_default(ethernet_id)
     config("default interface ethernet #{ethernet_id}")
-    node.cache_flush
   end
 
   def validate_interfaces_not_empty
@@ -102,10 +107,6 @@ class TestInterface < CiscoTestCase
     state
   end
 
-  def system_default_switchport_shutdown_set(state)
-    config(*state)
-  end
-
   def validate_interface_shutdown(inttype_h)
     state = system_default_switchport_shutdown
 
@@ -117,7 +118,7 @@ class TestInterface < CiscoTestCase
         # puts "lookup_string: #{lookup_string}"
 
         # Configure the system default shwitchport and shutdown settings
-        system_default_switchport_shutdown_set(config_array)
+        config(*config_array)
 
         interface.shutdown = false
         refute(interface.shutdown,
@@ -142,7 +143,7 @@ class TestInterface < CiscoTestCase
         end
       end
     end
-    system_default_switchport_shutdown_set(state)
+    config(*state)
   end
 
   # set_switchport is handled else where since it changes the
@@ -214,10 +215,9 @@ class TestInterface < CiscoTestCase
       length = v[:address_len].split('/').last.to_i
 
       pattern = %r{^\s+ip address #{address}/#{length}}
-      line = get_interface_match_line(interface.name, pattern)
-
-      refute_nil(line, "Error: ipv4 address #{address}/#{length} " \
-                 "missing in CLI for #{k}")
+      assert_interface_match_line(interface.name, pattern,
+                                  "Error: ipv4 address #{address}/#{length} " \
+                                  "missing in CLI for #{k}")
       assert_equal(address, interface.ipv4_address,
                    "Error: ipv4 address get value mismatch for #{k}")
       assert_equal(length, interface.ipv4_netmask_length,
@@ -236,9 +236,8 @@ class TestInterface < CiscoTestCase
       interface.ipv4_addr_mask_set(interface.default_ipv4_address,
                                    interface.default_ipv4_netmask_length)
       pattern = %r{^\s+ip address #{address}/#{length}}
-      line = get_interface_match_line(interface.name, pattern)
-
-      assert_nil(line, "Error: ipv4 address still present in CLI for #{k}")
+      refute_interface_match_line(interface.name, pattern,
+                                  "ipv4 address still present in CLI for #{k}")
       assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                    "Error: ipv4 address value mismatch after unconfig for #{k}")
       assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
@@ -257,18 +256,21 @@ class TestInterface < CiscoTestCase
 
       # puts "value - #{v[:proxy_arp]}"
       pattern = (/^\s+ip proxy-arp/)
-      line = get_interface_match_line(interface.name, pattern)
-      # puts line
-      assert_equal(!v[:proxy_arp], line.nil?,
-                   'Error: ip proxy-arp enable missing in CLI')
+      if v[:proxy_arp]
+        assert_interface_match_line(interface.name, pattern)
+      else
+        refute_interface_match_line(interface.name, pattern)
+      end
       assert_equal(v[:proxy_arp], interface.ipv4_proxy_arp,
                    "Error: ip proxy-arp get value 'true' mismatch")
 
       # puts "value reverse- #{!v[:proxy_arp]}"
       interface.ipv4_proxy_arp = !v[:proxy_arp]
-      line = get_interface_match_line(interface.name, pattern)
-      assert_equal(v[:proxy_arp], line.nil?,
-                   'Error: ip proxy-arp disable missing in CLI')
+      if v[:proxy_arp]
+        refute_interface_match_line(interface.name, pattern)
+      else
+        assert_interface_match_line(interface.name, pattern)
+      end
       assert_equal(!v[:proxy_arp], interface.ipv4_proxy_arp,
                    "Error: ip proxy-arp get value 'false' mismatch")
 
@@ -279,8 +281,8 @@ class TestInterface < CiscoTestCase
 
       # Get default and set
       interface.ipv4_proxy_arp = interface.default_ipv4_proxy_arp
-      line = get_interface_match_line(interface.name, pattern)
-      assert_nil(line, 'Error: default ip proxy-arp set failed')
+      refute_interface_match_line(interface.name, pattern,
+                                  'Error: default ip proxy-arp set failed')
       assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                    interface.ipv4_proxy_arp,
                    'Error: ip proxy-arp default get value mismatch')
@@ -319,13 +321,13 @@ class TestInterface < CiscoTestCase
         else
           interface.ipv4_redirects = true
           assert(interface.ipv4_redirects, "Couldn't set redirects to true")
-          line = get_interface_match_line(interface.name, pattern)
-          assert_nil(line, "Error: #{k} ipv4_redirects cfg mismatch")
+          refute_interface_match_line(interface.name, pattern,
+                                      "Error: #{k} ipv4_redirects cfg mismatch")
 
           interface.ipv4_redirects = false
           refute(interface.ipv4_redirects, "Couldn't set redirects to false")
-          line = get_interface_match_line(interface.name, pattern)
-          refute_nil(line, "Error: #{k} ipv4_redirects cfg mismatch")
+          assert_interface_match_line(interface.name, pattern,
+                                      "Error: #{k} ipv4_redirects cfg mismatch")
         end
       else
         # Getter should return same value as default if setter isn't supported
@@ -528,7 +530,6 @@ class TestInterface < CiscoTestCase
   #     interface = Interface.new(interfaces[0] )
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled
-  #     @device.cmd("configure terminal")
   #     config("interface #{interfaces[0]}",
   #            'ipv6 address fd56:31f7:e4ad:5585::1/64")
   #     prefixes = interface.prefixes
@@ -562,50 +563,58 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
+    assert_equal(interface.negotiate_auto, default,
+                 "Error: #{inf_name} negotiate auto value " \
+                 'should be same as default')
+
     begin
       config_set = cmd_ref.config_set
     rescue IndexError
       config_set = nil
     end
 
-    if config_set
-      # Skip test if cli not supported on interface
-      @device.cmd("conf t; interface #{interface}")
-      s = @device.cmd('negotiate auto')
-      unless s[/% Invalid command/]
-
-        interface.negotiate_auto = true
-        assert_equal(interface.negotiate_auto, true,
-                     "Error: #{inf_name} negotiate auto value not true")
-
-        pattern = cmd_ref.test_config_get_regex[0]
-        line = get_interface_match_line(interface.name, pattern)
-        # TODO: needs to get the result from cmd_ref.test_config_get_result[0]
-        assert_nil(line, "Error: #{inf_name} no negotiate auto cfg mismatch")
-
-        pattern = cmd_ref.test_config_get_regex[1]
-        line = get_interface_match_line(interface.name, pattern)
-        refute_nil(line, "Error: #{inf_name} negotiate auto cfg mismatch")
-
-        interface.negotiate_auto = false
-        refute(interface.negotiate_auto,
-               "Error: #{inf_name} negotiate auto value not false")
-
-        pattern = cmd_ref.test_config_get_regex[0]
-        line = get_interface_match_line(interface.name, pattern)
-        refute_nil(line, "Error: #{inf_name} no negotiate auto cfg mismatch")
-      end
-    else
-      # check the get
-      assert_equal(interface.negotiate_auto, default,
-                   "Error: #{inf_name} negotiate auto value " \
-                   'should be same as default')
-
+    unless config_set
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
         interface.negotiate_auto = true
       end
+      return
     end
+
+    interface.negotiate_auto = default
+    assert_equal(interface.negotiate_auto, default,
+                 "Error: #{inf_name} negotiate auto value not #{default}")
+
+    pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
+    assert_interface_match_line(interface.name, pattern,
+                                "#{inf_name} no negotiate auto cfg mismatch")
+
+    non_default = !default
+
+    # Some 'supported' platforms let us set the negotiate value to its
+    # default but not actually change it.
+    begin
+      interface.negotiate_auto = non_default
+    rescue RuntimeError
+      assert_equal(interface.negotiate_auto, default,
+                   "Error: #{inf_name} negotiate auto value not #{default}")
+      return
+    end
+    assert_equal(interface.negotiate_auto, non_default,
+                 "Error: #{inf_name} negotiate auto value not #{non_default}")
+
+    pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
+    assert_interface_match_line(interface.name, pattern,
+                                "#{inf_name} negotiate auto cfg mismatch")
+
+    # Clean up after ourselves
+    interface.negotiate_auto = default
+    assert_equal(interface.negotiate_auto, default,
+                 "Error: #{inf_name} negotiate auto value not #{default}")
+
+    pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
+    assert_interface_match_line(interface.name, pattern,
+                                "#{inf_name} no negotiate auto cfg mismatch")
   end
 
   def test_negotiate_auto_portchannel
@@ -650,7 +659,6 @@ class TestInterface < CiscoTestCase
 
     # Cleanup
     interface_ethernet_default(interfaces_id[0])
-    node.cache_flush
   end
 
   def test_negotiate_auto_loopback
@@ -709,8 +717,8 @@ class TestInterface < CiscoTestCase
     # setter, getter
     interface.ipv4_addr_mask_set(address, length)
     pattern = %r{^\s+ip address #{address}/#{length}}
-    line = get_interface_match_line(interface.name, pattern)
-    refute_nil(line, 'Error: ipv4 address missing in CLI')
+    assert_interface_match_line(interface.name, pattern,
+                                'Error: ipv4 address missing in CLI')
     assert_equal(address, interface.ipv4_address,
                  'Error: ipv4 address get value mismatch')
     assert_equal(length, interface.ipv4_netmask_length,
@@ -727,8 +735,8 @@ class TestInterface < CiscoTestCase
     # unconfigure ipaddress
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip address (.*)/)
-    line = get_interface_match_line(interface.name, pattern)
-    assert_nil(line, 'Error: ipv4 address still present in CLI')
+    refute_interface_match_line(interface.name, pattern,
+                                'Error: ipv4 address still present in CLI')
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                  'Error: ipv4 address value mismatch after unconfig')
     assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
@@ -786,15 +794,15 @@ class TestInterface < CiscoTestCase
     # set with value true
     interface.ipv4_proxy_arp = true
     pattern = (/^\s+ip proxy-arp/)
-    line = get_interface_match_line(interface.name, pattern)
-    refute_nil(line, 'Error: ip proxy-arp enable missing in CLI')
+    assert_interface_match_line(interface.name, pattern,
+                                'Error: ip proxy-arp enable missing in CLI')
     assert(interface.ipv4_proxy_arp,
            "Error: ip proxy-arp get value 'true' mismatch")
 
     # set with value false
     interface.ipv4_proxy_arp = false
-    line = get_interface_match_line(interface.name, pattern)
-    assert_nil(line, 'Error: ip proxy-arp disable missing in CLI')
+    refute_interface_match_line(interface.name, pattern,
+                                'Error: ip proxy-arp disable missing in CLI')
     refute(interface.ipv4_proxy_arp,
            "Error: ip proxy-arp get value 'false' mismatch")
 
@@ -805,8 +813,8 @@ class TestInterface < CiscoTestCase
 
     # get default and set
     interface.ipv4_proxy_arp = interface.default_ipv4_proxy_arp
-    line = get_interface_match_line(interface.name, pattern)
-    assert_nil(line, 'Error: default ip proxy-arp set failed')
+    refute_interface_match_line(interface.name, pattern,
+                                'Error: default ip proxy-arp set failed')
     assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
@@ -822,15 +830,15 @@ class TestInterface < CiscoTestCase
     # set with value false
     interface.ipv4_redirects = false
     pattern = (/^\s+no ip redirects/)
-    line = get_interface_match_line(interface.name, pattern)
-    refute_nil(line, 'Error: ip redirects disable missing in CLI')
+    assert_interface_match_line(interface.name, pattern,
+                                'Error: ip redirects disable missing in CLI')
     refute(interface.ipv4_redirects,
            "Error: ip redirects get value 'false' mismatch")
 
     # set with value true
     interface.ipv4_redirects = true
-    line = get_interface_match_line(interface.name, pattern)
-    assert_nil(line, 'Error: ip redirects enable missing in CLI')
+    refute_interface_match_line(interface.name, pattern,
+                                'Error: ip redirects enable missing in CLI')
     assert(interface.ipv4_redirects,
            "Error: ip redirects get value 'true' mismatch")
 
@@ -841,13 +849,37 @@ class TestInterface < CiscoTestCase
 
     # get default and set
     interface.ipv4_redirects = interface.default_ipv4_redirects
-    line = get_interface_match_line(interface.name, pattern)
-    assert_nil(line, 'Error: default ip redirects set failed')
+    refute_interface_match_line(interface.name, pattern,
+                                'Error: default ip redirects set failed')
     assert_equal(DEFAULT_IF_IP_REDIRECTS, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
 
     interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
+  end
+
+  def config_from_hash(inttype_h)
+    inttype_h.each do |k, v|
+      # puts "TEST: pre-config hash key : #{k}"
+      config('feature interface-vlan') if (/^Vlan\d./).match(k.to_s)
+
+      # puts "TEST: pre-config k: v '#{k} : #{v}'"
+      cfg = ["interface #{k}"]
+      if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
+         !(/^port-channel\d/).match(k.to_s).nil?
+        cfg << 'no switchport'
+      end
+      # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
+      cfg << "ip address #{v[:address_len]}" unless v[:address_len].nil?
+      cfg << 'ip proxy-arp' if v[:proxy_arp]
+      cfg << 'ip redirects' if v[:redirects]
+      cfg << "description #{v[:description]}" unless v[:description].nil?
+      config(*cfg)
+
+      # Create an Interface instance and associate it
+      v[:interface] = Interface.new(k, false)
+    end
+    inttype_h
   end
 
   # NOTE - Changes to this method may require new validation methods
@@ -925,39 +957,11 @@ class TestInterface < CiscoTestCase
     # master should revisit this later
 
     # Set system defaults to "factory" values prior to initial test.
-    system_default_switchport_shutdown_set(
+    config(*
       SWITCHPORT_SHUTDOWN_HASH['shutdown_ethernet_noswitchport_shutdown'])
 
     # pre-configure
-    inttype_h.each do |k, v|
-      # puts "TEST: pre-config hash key : #{k}"
-      unless (/^Vlan\d./).match(k.to_s).nil?
-        config('feature interface-vlan')
-        node.cache_flush
-      end
-
-      # puts "TEST: pre-config k: v '#{k} : #{v}'"
-      @device.cmd('configure terminal')
-      @device.cmd("interface #{k}")
-      if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
-         !(/^port-channel\d/).match(k.to_s).nil?
-        @device.cmd('no switchport')
-      end
-      # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
-      @device.cmd("ip address #{v[:address_len]}") unless v[:address_len].nil?
-      @device.cmd('ip proxy-arp') if !v[:proxy_arp].nil? &&
-                                     v[:proxy_arp] == true
-      @device.cmd('ip redirects') if !v[:redirects].nil? &&
-                                     v[:redirects] == true
-      @device.cmd("description #{v[:description]}") unless v[:description].nil?
-      @device.cmd('exit')
-      @device.cmd('end')
-
-      # Create an Interface instance and associate it
-      v[:interface] = Interface.new(k, false)
-    end
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    inttype_h = config_from_hash(inttype_h)
 
     # Validate the collection
     validate_interfaces_not_empty
@@ -971,18 +975,12 @@ class TestInterface < CiscoTestCase
     validate_vrf(inttype_h)
 
     # Cleanup the preload configuration
-    @device.cmd('configure terminal')
+    cfg = []
     inttype_h.each_key do |k|
-      if !(/^Ethernet\d.\d/).match(k.to_s).nil?
-        @device.cmd("default interface #{k}")
-      else
-        @device.cmd("no interface #{k}")
-      end
+      cfg << "#{/^Ethernet/.match(k) ? 'default' : 'no'} interface #{k}"
     end
-    @device.cmd('no feature interface-vlan')
-    @device.cmd('exit')
-    @device.cmd('end')
-    node.cache_flush
+    cfg << 'no feature interface-vlan'
+    config(*cfg)
   end
 
   def test_interface_vrf_default

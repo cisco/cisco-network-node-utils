@@ -28,22 +28,14 @@ class TestRouterOspf < CiscoTestCase
   end
 
   def test_routerospf_collection_empty
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature ospf')
     routers = RouterOspf.routers
     assert_equal(true, routers.empty?,
                  'RouterOspf collection is not empty')
   end
 
   def test_routerospf_collection_not_empty
-    @device.cmd('configure terminal')
-    @device.cmd('feature ospf')
-    @device.cmd('router ospf TestOSPF')
-    @device.cmd('router ospf 100')
-    @device.cmd('end')
-    node.cache_flush
+    config('feature ospf', 'router ospf TestOSPF', 'router ospf 100')
     routers = RouterOspf.routers
     assert_equal(false, routers.empty?,
                  'RouterOspf collection is empty')

@@ -38,10 +38,7 @@ class TestSnmpCommunity < CiscoTestCase
     pattern = /#{cmd_prefix}\s\S+\sgroup\s\S+/
     until (md = pattern.match(s)).nil?
       # puts "md : #{md}"
-      @device.cmd('configure terminal')
-      @device.cmd("no #{md}")
-      @device.cmd('end')
-      node.cache_flush
+      config("no #{md}")
       s = md.post_match
     end
     snmpcommunities = SnmpCommunity.communities
@@ -51,11 +48,8 @@ class TestSnmpCommunity < CiscoTestCase
 
   def test_snmpcommunity_collection_not_empty
     # This test require some snmp community exist in device
-    @device.cmd('configure terminal')
-    @device.cmd('snmp-server community com1 group network-admin')
-    @device.cmd('snmp-server community com2')
-    @device.cmd('end')
-    node.cache_flush
+    config('snmp-server community com1 group network-admin',
+           'snmp-server community com2')
     snmpcommunities = SnmpCommunity.communities
     assert_equal(false, snmpcommunities.empty?,
                  'SnmpCommunity collection is empty')
@@ -64,11 +58,8 @@ class TestSnmpCommunity < CiscoTestCase
 
   def test_snmpcommunity_collection_valid
     # This test require some snmp community exist in device
-    @device.cmd('configure terminal')
-    @device.cmd('snmp-server community com12 group network-operator')
-    @device.cmd('snmp-server community com22 group network-admin')
-    @device.cmd('end')
-    node.cache_flush
+    config('snmp-server community com12 group network-operator',
+           'snmp-server community com22 group network-admin')
     # get collection
     snmpcommunities = SnmpCommunity.communities
     s = @device.cmd('show run snmp all | no-more')

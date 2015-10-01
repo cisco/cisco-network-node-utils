@@ -146,6 +146,7 @@ vrf blue",
   end
 
   def test_node_cli_caching
+    # don't use config() here because we are testing caching and flushing
     @device.cmd('conf t ; ip domain-name minitest ; end')
     dom1 = node.domain_name
     @device.cmd('conf t ; no ip domain-name minitest ; end')
@@ -240,27 +241,15 @@ vrf blue",
         configured_name = nil
       end
     end
-    node.cache_flush
 
-    @device.cmd('configure terminal')
-    @device.cmd('no hostname') if (switchname == false)
-    @device.cmd('no switchname') if (switchname == true)
-    @device.cmd('end')
-    node.cache_flush
+    switchname ? config('no switchname') : config('no hostname')
 
     name = node.host_name
     assert_equal('switch', name)
 
-    @device.cmd('configure terminal')
-    if configured_name
-      @device.cmd("hostname #{configured_name}") if (switchname == false)
-      @device.cmd("switchname #{configured_name}") if (switchname == true)
-    else
-      @device.cmd('no hostname') if (switchname == false)
-      @device.cmd('no switchname') if (switchname == true)
-    end
-    @device.cmd('end')
-    node.cache_flush
+    return unless configured_name
+    config("hostname #{configured_name}") if (switchname == false)
+    config("switchname #{configured_name}") if (switchname == true)
   end
 
   def test_node_get_host_name_when_set
@@ -282,27 +271,18 @@ vrf blue",
         switchname = false
       end
     end
-    node.cache_flush
 
-    @device.cmd('configure terminal')
-    @device.cmd('hostname xyz') if (switchname == false)
-    @device.cmd('switchname xyz') if (switchname == true)
-    @device.cmd('end')
-    node.cache_flush
+    switchname ? config('switchname xyz') : config('hostname xyz')
 
     host_name = node.host_name
     assert_equal('xyz', host_name)
 
-    @device.cmd('configure terminal')
     if configured_name
-      @device.cmd("hostname #{configured_name}") if (switchname == false)
-      @device.cmd("switchname #{configured_name}") if (switchname == true)
+      config("hostname #{configured_name}") if (switchname == false)
+      config("switchname #{configured_name}") if (switchname == true)
     else
-      @device.cmd('no hostname') if (switchname == false)
-      @device.cmd('no switchname') if (switchname == true)
+      switchname ? config('no switchname') : config('no hostname')
     end
-    @device.cmd('end')
-    node.cache_flush
   end
 
   def test_node_get_domain_name_when_not_set
@@ -315,24 +295,17 @@ vrf blue",
     else
       configured_domain_name = nil
     end
-    node.cache_flush
 
-    @device.cmd('configure terminal')
-    @device.cmd("no ip domain-name #{configured_domain_name}")
-    @device.cmd('end')
-    node.cache_flush
+    config("no ip domain-name #{configured_domain_name}")
 
     domain_name = node.domain_name
     assert_equal('', domain_name)
 
-    @device.cmd('configure terminal')
     if configured_domain_name
-      @device.cmd("ip domain-name #{configured_domain_name}")
+      config("ip domain-name #{configured_domain_name}")
     else
-      @device.cmd('no ip domain-name abc.com')
+      config('no ip domain-name abc.com')
     end
-    @device.cmd('end')
-    node.cache_flush
   end
 
   def test_node_get_domain_name_when_set
@@ -344,24 +317,17 @@ vrf blue",
     else
       configured_domain_name = nil
     end
-    node.cache_flush
 
-    @device.cmd('configure terminal')
-    @device.cmd('ip domain-name abc.com')
-    @device.cmd('end')
-    node.cache_flush
+    config('ip domain-name abc.com')
 
     domain_name = node.domain_name
     assert_equal('abc.com', domain_name)
 
-    @device.cmd('configure terminal')
     if configured_domain_name
-      @device.cmd("ip domain-name #{configured_domain_name}")
+      config("ip domain-name #{configured_domain_name}")
     else
-      @device.cmd('no ip domain-name abc.com')
+      config('no ip domain-name abc.com')
     end
-    @device.cmd('end')
-    node.cache_flush
   end
 
   def test_node_get_system_uptime
