@@ -251,14 +251,14 @@ end
 We can now run the new minitest against our NX-OS device using this syntax:
 
 ```bash
-ruby test_tunnel.rb -- <node_ip_address> <user> <passwd>
+ruby test_tunnel.rb -v -- <node_ip_address> <user> <passwd>
 ```
 *Note. The minitest requires that the NX-OS device have 'feature nxapi' and 'feature telnet' enabled. This will typically be enabled by default.*
 
 #### Example: Running tunnel minitest
 
 ```bash
-% ruby  test_tunnel.rb  -- 192.168.0.1 admin admin
+% ruby  test_tunnel.rb  -v -- 192.168.0.1 admin admin
 Run options: -v -- --seed 23392
 
 # Running tests:
