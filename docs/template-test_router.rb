@@ -13,7 +13,7 @@
 # limitations under the License.
 
 require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/router_X__RESOURCE_NAME__X',
+require File.expand_path('../../lib/cisco_node_utils/router___RESOURCE_NAME__',
                          __FILE__)
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
@@ -87,12 +87,12 @@ class TestX__CLASS_NAME__X < CiscoTestCase
     rtr = X__CLASS_NAME__X.new(id)
     val = 5 # This value depends on property bounds
     rtr.X__PROPERTY_INT__X = val
-    assert_equal(rtr.X__PROPERTY_INT__X, val, "X__PROPERTY_INT__X is not #{val}")
+    assert_equal(rtr.X__PROPERTY_INT__X, val, "__PROPERTY_INT__ is not #{val}")
 
     # Get default value from yaml
     val = node.config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X')
     rtr.X__PROPERTY_INT__X = val
-    assert_equal(rtr.X__PROPERTY_INT__X, val, "X__PROPERTY_INT__X is not #{val}")
+    assert_equal(rtr.X__PROPERTY_INT__X, val, "__PROPERTY_INT__ is not #{val}")
   end
 
   def test_router_X__PROPERTY_BOOL__X
