@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+#
+# Enforce rules of good commit message style
+# http://chris.beams.io/posts/git-commit/#seven-rules
+
+message_file = ARGV[0]
+full_message = File.read(message_file)
+message_lines = full_message.split("\n")
+
+$errors = 0 # rubocop:disable Style/GlobalVars
+
+def failure(msg)
+  if STDOUT.tty?
+    puts "\t...[ \033[31mFAIL\033[0m ] #{msg}"
+  else
+    puts msg
+  end
+  $errors += 1 # rubocop:disable Style/GlobalVars
+end
+
+# 1. Separate subject from body with a blank line
+if message_lines.length > 1
+  unless message_lines[1].empty?
+    failure 'Separate subject (first line) from body with a blank line'
+  end
+end
+
+# 2. Limit the subject line to 50 characters
+if message_lines.first.length > 50
+  failure 'First line of commit message should be no more than 50 characters'
+end
+
+# 3. Capitalize the subject line
+unless message_lines.first =~ /^[A-Z]/
+  failure 'Begin commit message subject line with a capital letter'
+end
+
+# 4. Do not end the subject line with a period
+if message_lines.first =~ /[!.,;]\s*$/
+  failure 'Do not end the subject line with punctuation'
+end
+
+# 5. Use the imperative mood in the subject line
+# This is very hard to enforce by automation, so
+# let's just check some likely cases:
+non_imperatives = [/adds$/,
+                   /added$/,
+                   /change[ds]$/,
+                   /fixe[ds]$/,
+                   /merge[ds]$/,
+                   /remove[ds]$/,
+                   /update[ds]$/,
+                  ]
+s = message_lines.first.split(' ').first.downcase
+if non_imperatives.any? { |re| re.match(s) }
+  failure 'Use the imperative mood in the subject line'
+end
+
+# 6. Wrap the body at 72 characters
+if message_lines.any? { |line| line.length > 72 }
+  failure 'Wrap the body at 72 characters'
+end
+
+# 7. Use the body to explain what and why vs. how
+# The user will just need to exercise judgment on this one :)
+
+if $errors > 0 # rubocop:disable Style/GlobalVars
+  puts 'Rejected commit message:'
+  puts '{'
+  puts full_message
+  puts '}'
+end
+
+exit $errors # rubocop:disable Style/GlobalVars

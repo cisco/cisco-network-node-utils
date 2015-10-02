@@ -1,0 +1,29 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+VERSION=$1
+debug "Detected VERSION as '$VERSION'"
+STRIP_VERSION=$(echo "$VERSION" | tr -c -d '0-9.')
+debug "Detected STRIP_VERSION as '$STRIP_VERSION'"
+
+step_name "Adding 'Unreleased' subheader to CHANGELOG.md in development branch."
+
+# Add new 'Unreleased' section header to the CHANGELOG
+sed -i "/^=========$/ a\
+\\\n## [Unreleased]\n
+" $REPO_DIR/CHANGELOG.md
+
+# Bump the minor version number
+BUGFIX_NUM=$(($(echo $STRIP_VERSION | cut -d. -f 3)+1))
+NEW_VERSION="$(echo $STRIP_VERSION | cut -d. -f 1-2).$BUGFIX_NUM-dev"
+
+echo "New development version will be $NEW_VERSION"
+
+set_gem_version "$NEW_VERSION"
+
+step_name "Commit CHANGELOG.md and version.rb to develop branch"
+
+git commit -a -m "Post-release fixup"
+check_rc "Git commit to develop failed?"

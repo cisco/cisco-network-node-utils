@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Based on:
+# http://stackoverflow.com/questions/3462955/putting-git-hooks-into-repository
+# https://github.com/sjungwirth/githooks
+
+# Where hooks are stored in the repo
+SRC_DIR="$(git rev-parse --show-toplevel)/bin/git/hooks"
+
+# Where hooks need to be installed
+HOOK_DIR="$(git rev-parse --show-toplevel)/.git/hooks"
+
+. "$SRC_DIR/hook_lib"
+
+install_hook_wrapper() {
+    local hook=$1
+    # Does the symlink exist?
+    if [ ! -h $HOOK_DIR/$hook ]; then
+        # If a hook already exists and is a file:
+        if [ -f $HOOK_DIR/$hook ]; then
+            step_name "Moving existing '$hook' script to '$hook-local'"
+            mv $HOOK_DIR/$hook $HOOK_DIR/$hook-local
+        fi
+        # create the symlink to our wrapper script
+        step_name "Installing hook wrapper script for '$hook'"
+        ln -s -f ./hooks-wrapper $HOOK_DIR/$hook
+    fi
+}
+
+check_update() {
+    local src=$1
+    local dest=$2
+    if [ ! -e "$dest" ] ; then
+        step_name "Creating new file at '$dest':"
+        git diff --color --no-index /dev/null $src
+        cp $src $dest
+    else
+        diff $src $dest >> /dev/null
+        if [ $? -ne 0 ] ; then
+            step_name "File '$dest' will be updated: "
+            git diff --color --no-index $dest $src
+            cp -f $src $dest
+        fi
+    fi
+}
+
+for item in "$SRC_DIR"/*; do
+    if [ ! -d "$item" ]; then
+        # Not a hook subdirectory, just a library file - update it as needed
+        file="${item##*/}"
+        check_update "$SRC_DIR/$file" "$HOOK_DIR/$file"
+        continue
+    fi
+    # Else it's a hook subdirectory.
+    hook="${item##*/}"
+    # First, make sure we have our hook-wrapper script installed for this hook:
+    install_hook_wrapper "$hook"
+    # Now descend into the subdirectory and update the individual scripts:
+    for file in "$item"/*; do
+        # bin/git/hooks/pre-commit/rubocop --> "pre-commit-rubocop"
+        hook_script="${hook}-${file##*/}"
+        check_update "$file" "$HOOK_DIR/$hook_script"
+    done
+done
+
