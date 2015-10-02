@@ -9,7 +9,9 @@ Changelog
 * Added support for name_server (@jonnytpuppet)
 * Added support for ntp_server (@hunner)
 * Added git hooks to streamline certain processes:
-  * Don't allow push if Rubocop is failing
+  * Validate commit message format for consistency
+  * Don't allow commit of code failing Rubocop lint checks
+  * Don't allow push if Rubocop is failing any check
   * Don't allow push without updating CHANGELOG.md
   * Once git hooks are installed, automatically update them on pull/merge.
   * If using [git-flow]:

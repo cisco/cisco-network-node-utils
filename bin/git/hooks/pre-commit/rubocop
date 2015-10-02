@@ -1,0 +1,12 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+# Run the rubocop lint checks (only).
+# We don't enforce a full rubocop run here because we want to let people
+# commit work-in-progress code to their local branch. We will do a full
+# rubocop run of all checks as part of the pre-push hook
+
+rubocop --lint
+check_rc "Please fix RuboCop lint failures before committing."

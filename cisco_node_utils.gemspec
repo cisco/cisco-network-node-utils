@@ -19,7 +19,8 @@ Currently supports NX-OS nodes.
   spec.homepage      = 'https://github.com/cisco/cisco-network-node-utils'
 
   spec.files         = `git ls-files -z`.split("\x0")
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  # Files in bin/git are not executables as far as the Gem is concerned
+  spec.executables   = []
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
