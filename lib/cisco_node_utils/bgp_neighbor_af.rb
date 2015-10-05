@@ -462,6 +462,53 @@ module Cisco
     end
 
     # -----------------------
+    # <state> route-map <str> in
+    def route_map_in
+      str = config_get('bgp_neighbor_af', 'route_map_in', @get_args)
+      return default_route_map_in if str.nil?
+      str.shift.strip
+    end
+
+    def route_map_in=(str)
+      str.strip! unless str.nil?
+      if str == default_route_map_in
+        state = 'no'
+        # Current route-map name is required for removal
+        str = route_map_in
+        return if str.nil?
+      end
+      set_args_keys(state: state, str: str)
+      config_set('bgp_neighbor_af', 'route_map_in', @set_args)
+    end
+
+    def default_route_map_in
+      config_get_default('bgp_neighbor_af', 'route_map_in')
+    end
+
+    # -----------------------
+    # <state> route-map <str> out
+    def route_map_out
+      str = config_get('bgp_neighbor_af', 'route_map_out', @get_args)
+      return default_route_map_out if str.nil?
+      str.shift.strip
+    end
+
+    def route_map_out=(str)
+      str.strip! unless str.nil?
+      if str == default_route_map_out
+        state = 'no'
+        # Current route-map name is required for removal
+        str = route_map_out
+      end
+      set_args_keys(state: state, str: str)
+      config_set('bgp_neighbor_af', 'route_map_out', @set_args)
+    end
+
+    def default_route_map_out
+      config_get_default('bgp_neighbor_af', 'route_map_out')
+    end
+
+    # -----------------------
     # <state route-reflector-client
     def route_reflector_client
       state = config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
