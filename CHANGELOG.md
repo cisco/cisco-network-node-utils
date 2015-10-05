@@ -13,7 +13,7 @@ Changelog
   * Don't allow commit of code failing Rubocop lint checks
   * Don't allow push if Rubocop is failing any check
   * Don't allow push without updating CHANGELOG.md
-  * Once git hooks are installed, automatically update them on pull/merge.
+  * Once git hooks are installed, automatically update them on pull/merge (if possible).
   * If using [git-flow]:
     * `git flow release start` and `git flow hotfix start` will automatically update `CHANGELOG.md` and `version.rb` for the new release version
     * `git flow release finish` will automatically bump the version number for the develop branch.
