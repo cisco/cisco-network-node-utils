@@ -10,8 +10,8 @@ Changelog
 * Added support for ntp_server (@hunner)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
-  * Don't allow commit of code failing Rubocop lint checks
-  * Don't allow push if Rubocop is failing any check
+  * Don't allow commit of code failing RuboCop `--lint` checks
+  * If RuboCop is failing any check, warn on commit (but don't fail), and fail on push.
   * Don't allow push without updating CHANGELOG.md
   * Once git hooks are installed, automatically update them on pull/merge (if possible).
   * If using [git-flow]:
