@@ -240,7 +240,7 @@ interface:
     '/^negotiate auto$/'
     ]
     config_set: ["interface %s", "%s negotiate auto"]
-    default_value: false
+    default_value: true
     test_config_get_regex: [
     !ruby/regexp '/^\s+no negotiate auto/',
     !ruby/regexp '/^\s+negotiate auto/'

@@ -2,10 +2,10 @@
 
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
-  Max: 84
+  Max: 63
 
 Metrics/ClassLength:
-  Max: 724
+  Max: 725
 
 Metrics/CyclomaticComplexity:
   Max: 17
@@ -16,7 +16,7 @@ Metrics/LineLength:
     - docs/*.rb
 
 Metrics/MethodLength:
-  Max: 113
+  Max: 86
 
 Metrics/ParameterLists:
   Max: 9

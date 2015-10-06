@@ -22,21 +22,12 @@ class TestRouterOspfVrf < CiscoTestCase
     # Disable feature ospf before each test to ensure we
     # are starting with a clean slate for each test.
     super
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature ospf')
   end
 
-  # @option routers [Cisco::RouterOspf] list of objects
-  def ospf_routers_destroy(routers)
-    routers.each_value(&:destroy)
-  end
-
-  # @option vrfs [Cisco::RouterOspfVrf] list of objects
-  # @option routername [String] ospf instance name
-  def ospf_vrfs_destroy(vrfs, routername)
-    vrfs[routername].each_value { |vrf| vrf.destroy if vrf.name != 'default' }
+  def teardown
+    config('no feature ospf')
+    super
   end
 
   def get_routerospfvrf_match_line(router, vrfname)
@@ -139,55 +130,60 @@ class TestRouterOspfVrf < CiscoTestCase
     RouterOspfVrf.new(router, name)
   end
 
+  def config_from_hash(hash)
+    config('feature ospf')
+    cfg = []
+    hash.each do |k, v|
+      # Assuming all values are in hash
+      cfg << "router ospf #{k}"
+      v.each do |k1, v1|
+        cfg << "vrf #{v1[:vrf]}" if (k1 != 'default')
+        cfg << "auto-cost reference-bandwidth #{v1[:cov]}"
+        cfg << "default-metric #{v1[:dm]}"
+        cfg << "router-id #{v1[:id]}"
+        cfg << "timers throttle lsa #{v1[:l1]} #{v1[:l2]} #{v1[:l3]}"
+        cfg << "timers throttle spf #{v1[:s1]} #{v1[:s2]} #{v1[:s3]}"
+      end
+    end
+    config(*cfg)
+  end
+
   def test_routerospfvrf_collection_size
     create_routerospfvrf('green')
     vrfs = RouterOspfVrf.vrfs
-    assert_equal(1, vrfs.size,
-                 'Error: Collection is not one')
+    assert_equal(1, vrfs.size, 'Error: Collection is not one')
     create_routerospfvrf('green', 'NC_State')
     vrfs = RouterOspfVrf.vrfs
-    assert_equal(2, vrfs['green'].size,
-                 'Error: Collection is not two')
+    assert_equal(2, vrfs['green'].size, 'Error: Collection is not two')
     create_routerospfvrf('green', 'Duke')
     create_routerospfvrf('green', 'Carolina')
     vrfs = RouterOspfVrf.vrfs
-    assert_equal(4, vrfs['green'].size,
-                 'Error: Collection is not four')
-    ospf_routers_destroy(RouterOspf.routers)
+    assert_equal(4, vrfs['green'].size, 'Error: Collection is not four')
+    RouterOspf.routers.each_value(&:destroy)
     vrfs = RouterOspfVrf.vrfs
-    assert_equal(0, vrfs.size,
-                 'Error: Collection is not zero')
+    assert_empty(vrfs, 'Error: Collection is not empty')
   end
 
   def test_routerospfvrf_collection_not_empty_valid
     ospf_h = Hash.new { |h, k| h[k] = {} }
     ospf_h['ospfTest'] = {
-      vrf: 'default', cov: 90,
-      cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
-      id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
-      s2: 600, s3: 1100
+      'default' => {
+        vrf: 'default', cov: 90,
+        cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
+        id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
+        s2: 600, s3: 1100
+      },
     }
     ospf_h['bxb300'] = {
-      vrf: 'default', cov: 200,
-      cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 10_000,
-      id: '10.0.0.3', l1: 130, l2: 530, l3: 1030, s1: 300,
-      s2: 600, s3: 1100
+      'default' => {
+        vrf: 'default', cov: 200,
+        cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 10_000,
+        id: '10.0.0.3', l1: 130, l2: 530, l3: 1030, s1: 300,
+        s2: 600, s3: 1100
+      },
     }
     # pre-populate values
-    ospf_h.each do |k, v|
-      # Assuming all values are in hash
-      @device.cmd('configure terminal')
-      @device.cmd('feature ospf')
-      @device.cmd("router ospf #{k}")
-      @device.cmd("vrf #{v[:vrf]}")
-      @device.cmd("auto-cost reference-bandwidth #{v[:cov]}")
-      @device.cmd("default-metric #{v[:dm]}")
-      @device.cmd("router-id #{v[:id]}")
-      @device.cmd("timers throttle lsa #{v[:l1]} #{v[:l2]} #{v[:l3]}")
-      @device.cmd("timers throttle spf #{v[:s1]} #{v[:s2]} #{v[:s3]}")
-      @device.cmd('end')
-      node.cache_flush
-    end
+    config_from_hash(ospf_h)
 
     routers = RouterOspf.routers
     # validate the collection
@@ -196,6 +192,7 @@ class TestRouterOspfVrf < CiscoTestCase
       refute_empty(vrfs, 'Error: Collection is empty')
       hv = ospf_h.fetch(routername.to_s)
       next if hv.nil?
+      hv = hv['default']
       vrfs[routername].each_value do |vrf|
         auto_cost_value = [] << hv[:cov] << hv[:cot]
         assert_equal(hv[:vrf], vrf.name,
@@ -213,9 +210,7 @@ class TestRouterOspfVrf < CiscoTestCase
         assert_equal(spf, vrf.timer_throttle_spf,
                      'Error: Collection, timer throttle spf')
       end
-      ospf_vrfs_destroy(vrfs, routername)
     end
-    ospf_routers_destroy(routers)
   end
 
   def test_routerospfvrf_create_vrf_nil
@@ -681,28 +676,7 @@ class TestRouterOspfVrf < CiscoTestCase
       },
     }
     # rubocop:enable Style/AlignHash
-
-    s = @device.cmd('configure terminal')
-    s = @device.cmd('feature ospf')
-    s = @device.cmd('end')
-    # pre-populate values
-    ospf_h.each do |k, v|
-      # Assuming all values are in hash
-      s = @device.cmd('configure terminal')
-      s = @device.cmd("router ospf #{k}")
-      v.each do |k1, v1|
-        # puts "!!!!!k1: v1 vrf: #{k1} : !!!#{v1[:vrf]}"
-        s = @device.cmd("vrf #{v1[:vrf]}") if (k1 != 'default')
-        s = @device.cmd("auto-cost reference-bandwidth #{v1[:cov]}")
-        s = @device.cmd("default-metric #{v1[:dm]}")
-        s = @device.cmd("router-id #{v1[:id]}")
-        s = @device.cmd("timers throttle lsa #{v1[:l1]} #{v1[:l2]} #{v1[:l3]}")
-        s = @device.cmd("timers throttle spf #{v1[:s1]} #{v1[:s2]} #{v1[:s3]}")
-        s = @device.cmd('exit') if (k1 != 'default')
-      end
-      s = @device.cmd('end')
-    end
-    node.cache_flush
+    config_from_hash(ospf_h)
 
     routers = RouterOspf.routers
     # validate the collection
@@ -732,9 +706,7 @@ class TestRouterOspfVrf < CiscoTestCase
         assert_equal(spf, vrf.timer_throttle_spf,
                      'Error: Collection, timer throttle spf')
       end
-      ospf_vrfs_destroy(vrfs, routername)
     end
-    ospf_routers_destroy(routers)
   end
 
   def test_routerospfvrf_timer_throttle_lsa_start_hold_max

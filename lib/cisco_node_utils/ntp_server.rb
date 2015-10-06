@@ -22,8 +22,6 @@ require File.join(File.dirname(__FILE__), 'interface')
 module Cisco
   # NtpServer - node utility class for NTP Server configuration management
   class NtpServer < NodeUtil
-    attr_reader :name, :prefer
-
     def initialize(ntpserver_id, prefer, instantiate=true)
       @ntpserver_id = ntpserver_id.to_s
       @ntpserver_prefer = prefer

@@ -142,13 +142,12 @@ module CommandReference
 
   # Builds reference hash for the platform specified in the product id.
   class CommandReference
-    attr_reader :debug
-    @debug = false
+    @@debug = false # rubocop:disable Style/ClassVars
 
     def self.debug=(value)
       fail ArgumentError, 'Debug must be boolean' unless value == true ||
                                                          value == false
-      @debug = value
+      @@debug = value # rubocop:disable Style/ClassVars
     end
 
     attr_reader :files, :product_id
@@ -250,7 +249,7 @@ module CommandReference
 
     # Print debug statements
     def debug(text)
-      puts "DEBUG: #{text}" if @debug
+      puts "DEBUG: #{text}" if @@debug
     end
 
     def mapping?(node)

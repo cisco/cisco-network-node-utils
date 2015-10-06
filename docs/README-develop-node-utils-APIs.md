@@ -32,7 +32,9 @@ This development guide uses tools that are packaged as gems that need to be inst
 
 ```bash
 gem install cisco_nxapi
+gem install rake
 gem install rubocop
+gem install simplecov
 gem install minitest --version 4.3.2
 ```
 
@@ -40,7 +42,9 @@ gem install minitest --version 4.3.2
 
 ```bash
 gem install --user-install cisco_nxapi
+gem install --user-install rake
 gem install --user-install rubocop
+gem install --user-install simplecov
 gem install --user-install minitest --version 4.3.2
 ```
 
@@ -173,7 +177,7 @@ end
 
 * A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `tests/`
 
-* Tests may use `@device.cmd("show ...")` to access the CLI directly set up tests and validate expected outcomes. The tests directory contains many examples of how these are used.
+* Tests may use `config(cmd1, cmd2, ...)` and `@device.cmd("show ...")` to access the CLI directly set up tests and validate expected outcomes. The tests directory contains many examples of how these are used.
 
 * Our minitest will be very basic since the API itself is very basic. Use `template-test_feature.rb` to create a minitest for the tunnel resource:
 
@@ -190,8 +194,6 @@ cp  docs/template-test_feature.rb  tests/test_tunnel.rb
 
 /X__CLI_NAME__X/tunnel/
 ```
-
-* Add your new test script to the master list of test cases in `tests/test_all_cisco.rb`: `require File.expand_path('../test_tunnel', __FILE__)`
 
 #### Example: test_tunnel.rb
 
@@ -231,8 +233,7 @@ class TestTunnel < CiscoTestCase
 
   def no_feature
     # setup/teardown helper. Turn the feature off for a clean testbed.
-    @device.cmd('conf t ; no feature tunnel ; end')
-    node.cache_flush
+    config('no feature tunnel')
   end
 
   def test_feature_on_off
@@ -247,12 +248,30 @@ class TestTunnel < CiscoTestCase
 end
 ```
 
+We can now run the new minitest against our NX-OS device using any one of the following syntax:
 
-We can now run the new minitest against our NX-OS device using this syntax:
+1. CLI arguments:
 
-```bash
-ruby test_tunnel.rb -v -- <node_ip_address> <user> <passwd>
-```
+    ```bash
+    ruby test_tunnel.rb -v -- <node_ip_address> <user> <passwd>
+    ```
+
+2. Environment variable:
+
+    ```bash
+    export NODE="<node_ip_address> <user> <passwd>"
+    ruby test_tunnel.rb -v
+    ```
+
+3. Runtime input:
+
+    ```
+    $ ruby test_tunnel.rb -v
+    Enter address or hostname of node under test: <node_ip_address>
+    Enter username for node under test:           <user>
+    Enter password for node under test:           <password>
+    ```
+
 *Note. The minitest requires that the NX-OS device have 'feature nxapi' and 'feature telnet' enabled. This will typically be enabled by default.*
 
 #### Example: Running tunnel minitest
@@ -572,8 +591,6 @@ cp  docs/template-test_router.rb  tests/test_router_eigrp.rb
   * feature disablement when removing last `router eigrp`
   * testing each property state
 
-* Add your new test script to the master list of test cases in `tests/test_all_cisco.rb`: `require File.expand_path('../test_router_eigrp', __FILE__)`
-
 #### Example: test_router_eigrp.rb
 This is the completed `test_router_eigrp` minitest based on `template-test_router.rb`:
 
@@ -611,8 +628,7 @@ class TestRouterEigrp < CiscoTestCase
 
   def no_feature_eigrp
     # Turn the feature off for a clean test.
-    @device.cmd('conf t ; no feature eigrp ; end')
-    node.cache_flush
+    config('no feature eigrp')
   end
 
   # TESTS

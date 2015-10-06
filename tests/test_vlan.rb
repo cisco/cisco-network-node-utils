@@ -21,10 +21,7 @@ include Cisco
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
   def interface_ethernet_default(ethernet_id)
-    @device.cmd('configure terminal')
-    @device.cmd("default interface ethernet #{ethernet_id}")
-    @device.cmd('end')
-    node.cache_flush
+    config("default interface ethernet #{ethernet_id}")
   end
 
   def test_vlan_collection_not_empty
