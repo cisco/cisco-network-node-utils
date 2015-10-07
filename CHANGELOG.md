@@ -8,6 +8,7 @@ Changelog
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
 * Added support for name_server (@jonnytpuppet)
 * Added support for ntp_server (@hunner)
+* Added support for syslog_setting (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks

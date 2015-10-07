@@ -745,6 +745,13 @@ snmp_user:
     config_get_token: ["TABLE_snmp_users", "ROW_snmp_users"]
     config_set: "%s snmp-server user %s %s %s %s %s %s"
 
+syslog_settings:
+  timestamp:
+    config_get: "show running-config all | include '^logging timestamp'"
+    config_get_token: '/^logging timestamp (.*)$/'
+    config_set: '<state> logging timestamp <units>'
+    default_value: 'seconds'
+
 system:
   resources:
     config_get: "show system resources"
