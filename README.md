@@ -37,6 +37,8 @@ nodes. It is designed to work with Puppet and Chef as well as other
 open source management tools. This release supports Cisco NX-OS nodes
 running NX-OS 7.0(3)I2(1) and later.
 
+Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+
 ## <a name="installation">Installation</a>
 
 To install the CiscoNodeUtils, use the following command:
