@@ -64,7 +64,7 @@ class TestSyslogServer < CiscoTestCase
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(Cisco::SyslogServer.syslogservers[id], server)
     assert_includes(Cisco::SyslogServer.syslogservers, id2)
-    assert_equal(Cisco::SyslogServer.syslogservers[id], server2)
+    assert_equal(Cisco::SyslogServer.syslogservers[id2], server2)
 
     server.destroy
     server2.destroy

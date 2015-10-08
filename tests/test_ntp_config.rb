@@ -37,13 +37,13 @@ class TestNtpConfig < CiscoTestCase
     id = 'default'
 
     ntp = Cisco::NtpConfig.new(id)
-    assert_includes(Cisco::NtpConfig.NtpConfigs, id)
-    assert_equal(Cisco::NtpConfig.NtpConfigs[id], ntp)
+    assert_includes(Cisco::NtpConfig.ntpconfigs, id)
+    assert_equal(Cisco::NtpConfig.ntpconfigs[id], ntp)
 
-    ntp.source_interface = ("#{interface[1]}")
-    assert_equal(Cisco::NtpConfig.NtpConfigs[id].source_interface,
-                 "#{interface[1]}")
-    assert_equal(Cisco::NtpConfig.NtpConfigs[id].source_interface,
+    ntp.source_interface = interfaces[1]
+    assert_equal(Cisco::NtpConfig.ntpconfigs[id].source_interface,
+                 interfaces[1].downcase)
+    assert_equal(Cisco::NtpConfig.ntpconfigs[id].source_interface,
                  ntp.source_interface)
   end
 end
