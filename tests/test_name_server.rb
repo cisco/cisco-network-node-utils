@@ -68,7 +68,7 @@ class TestNameServer < CiscoTestCase
     id1 = '7.7.7.7'
     id2 = '2001:4860:4860::7777'
     refute_includes(Cisco::NameServer.nameservers, id1)
-    refute_includes(Cisco::NameServer.nameservers, id1)
+    refute_includes(Cisco::NameServer.nameservers, id2)
 
     ns1 = Cisco::NameServer.new(id1)
     ns2 = Cisco::NameServer.new(id2)
