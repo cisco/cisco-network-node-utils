@@ -36,6 +36,7 @@ Changelog
 
 ### Removed
 
+* Dropped support for Ruby 1.9.3 as it is end-of-life.
 * Removed `test_all_cisco.rb` as `rake test` can auto-discover all tests.
 
 ## [v1.0.1]
