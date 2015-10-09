@@ -14,23 +14,13 @@
 
 require File.join(File.dirname(__FILE__), 'node_util')
 
-# Add some SNMP user related constants to the Cisco namespace
 module Cisco
-  SNMP_USER_NAME_KEY = 'user'
-  SNMP_USER_GROUP_KEY = 'group'
-  SNMP_USER_AUTH_KEY = 'auth'
-  SNMP_USER_PRIV_KEY = 'priv'
-  SNMP_USER_ENGINE_ID = 'engineID'
-  SNMP_USER_ENGINE_ID_PATTERN = /([0-9]{1,3}(:[0-9]{1,3}){4,31})/
-
   # SnmpUser - node utility class for SNMP user configuration management
   class SnmpUser < NodeUtil
-    @users = {}
-
     def initialize(name, groups, authproto, authpass, privproto,
                    privpass, localizedkey, engineid, instantiate=true)
       initialize_validator(name, groups, authproto, authpass, privproto,
-                           privpass, localizedkey, engineid, instantiate)
+                           privpass, engineid, instantiate)
       @name = name
       @engine_id = engineid
 
@@ -61,7 +51,7 @@ module Cisco
     end
 
     def initialize_validator(name, groups, authproto, authpass, privproto,
-                             privpass, _localizedkey, engineid, instantiate)
+                             privpass, engineid, instantiate)
       fail TypeError unless name.is_a?(String) &&
                             groups.is_a?(Array) &&
                             authproto.is_a?(Symbol) &&
@@ -84,35 +74,35 @@ module Cisco
       end
     end
 
+    ENGINE_ID_PATTERN = /([0-9]{1,3}(:[0-9]{1,3}){4,31})/
     def self.users
-      @users = {}
+      users_hash = {}
       # config_get returns hash if 1 user, array if multiple, nil if none
       users = config_get('snmp_user', 'user')
-      unless users.nil?
-        users = [users] if users.is_a?(Hash)
-        users.each do |user|
-          name = user[SNMP_USER_NAME_KEY]
-          engineid = user[SNMP_USER_ENGINE_ID]
-          if engineid.nil?
-            index = name
-          else
-            engineid_str = engineid.match(SNMP_USER_ENGINE_ID_PATTERN)[1]
-            index = name + ' ' + engineid_str
-          end
-          auth = _auth_str_to_sym(user[SNMP_USER_AUTH_KEY])
-          priv = _priv_str_to_sym(user[SNMP_USER_PRIV_KEY])
-
-          groups_arr = []
-          groups = _user_to_groups(user)
-          groups.each { |group| groups_arr << group[SNMP_USER_GROUP_KEY].strip }
-
-          @users[index] = SnmpUser.new(name, groups_arr, auth,
-                                       '', priv, '', false,
-                                       engineid.nil? ? '' : engineid_str,
-                                       false)
+      return users_hash if users.nil?
+      users = [users] if users.is_a?(Hash)
+      users.each do |user|
+        name = user['user']
+        engineid = user['engineID']
+        if engineid.nil?
+          index = name
+        else
+          engineid_str = engineid.match(ENGINE_ID_PATTERN)[1]
+          index = name + ' ' + engineid_str
         end
+        auth = _auth_str_to_sym(user['auth'])
+        priv = _priv_str_to_sym(user['priv'])
+
+        groups_arr = []
+        groups = _user_to_groups(user)
+        groups.each { |group| groups_arr << group['group'].strip }
+
+        users_hash[index] = SnmpUser.new(name, groups_arr, auth,
+                                         '', priv, '', false,
+                                         engineid.nil? ? '' : engineid_str,
+                                         false)
       end
-      @users
+      users_hash
     end
 
     def destroy

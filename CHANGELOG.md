@@ -22,6 +22,7 @@ Changelog
   * Code coverage calculation using [SimpleCov]
   * Full Minitest suite can be run by `rake test`
   * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
+  * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 
 ### Fixed
