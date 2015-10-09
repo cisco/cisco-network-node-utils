@@ -2,46 +2,69 @@
 
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
-  Max: 142
-
-Metrics/BlockNesting:
-  Max: 4
+  Max: 63
 
 Metrics/ClassLength:
-  Max: 745
+  Max: 725
 
 Metrics/CyclomaticComplexity:
-  Max: 26
+  Max: 17
 
+# Template files have long lines before tag replacement
 Metrics/LineLength:
-  Max: 126
+  Exclude:
+    - docs/*.rb
 
 Metrics/MethodLength:
-  Max: 123
+  Max: 86
 
 Metrics/ParameterLists:
   Max: 9
 
 Metrics/PerceivedComplexity:
-  Max: 26
+  Max: 19
 
+#
 # Team preferences different from Rubocop defaults:
+#
+
+# We like table alignment for readability
 Style/AlignHash:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
 
+# Template files have wildcard strings in class names
+Style/ClassAndModuleCamelCase:
+  Exclude:
+    - docs/*.rb
+
+# Permit is_a? and kind_of? interchangeably
 Style/ClassCheck:
   Enabled: false
 
+# Template files have atypical file names on purpose
+Style/FileName:
+  Exclude:
+    - docs/*.rb
+
+# As a team we like 'sprintf' rather than 'format'
 Style/FormatString:
   EnforcedStyle: sprintf
 
+# Mixed keys are ugly. Use one or the other as needed
 Style/HashSyntax:
   EnforcedStyle: ruby19_no_mixed_keys
 
+# Template files have wildcard strings in method names
+Style/MethodName:
+  Exclude:
+    - docs/*.rb
+
+# "def foo(bar=baz)" not "def foo(bar = baz)"
 Style/SpaceAroundEqualsInParameterDefault:
   EnforcedStyle: no_space
 
+# Make it neater to extend multi-line arrays and hashes
 Style/TrailingComma:
   EnforcedStyleForMultiline: comma
 

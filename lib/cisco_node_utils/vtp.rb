@@ -86,7 +86,9 @@ module Cisco
         end
       rescue Cisco::CliError => e
         raise unless e.clierror =~ /password cannot be set for NULL domain/
-        raise 'Setting VTP password requires first setting VTP domain' unless password == default_password
+        unless password == default_password
+          raise 'Setting VTP password requires first setting VTP domain'
+        end
       end
     end
 

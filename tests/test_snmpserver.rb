@@ -49,7 +49,8 @@ class TestSnmpServer < CiscoTestCase
     timeout = line.to_s.split(' ').last.to_i
     assert_equal(timeout, newtimeout)
     # set to default
-    snmpserver.aaa_user_cache_timeout = snmpserver.default_aaa_user_cache_timeout
+    snmpserver.aaa_user_cache_timeout =
+      snmpserver.default_aaa_user_cache_timeout
   end
 
   def test_snmpserver_aaa_user_cache_timeout_set_default_valid

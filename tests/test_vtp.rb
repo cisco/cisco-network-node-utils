@@ -30,8 +30,7 @@ class TestVtp < CiscoTestCase
   def no_feature_vtp
     # VTP will raise an error if the domain is configured twice so we need to
     # turn the feature off for a clean test.
-    @device.cmd('conf t ; no feature vtp ; end')
-    node.cache_flush
+    config('no feature vtp')
   end
 
   def vtp_domain(domain)
@@ -51,8 +50,7 @@ class TestVtp < CiscoTestCase
 
   def test_vtp_enabled_but_no_domain
     vtp = Vtp.new(false)
-    @device.cmd('conf t ; feature vtp ; end')
-    node.cache_flush
+    config('feature vtp')
     assert(Vtp.enabled)
     assert_empty(vtp.domain)
     assert_equal(vtp.default_password, vtp.password)
@@ -92,13 +90,7 @@ class TestVtp < CiscoTestCase
   end
 
   def test_vtp_create_preconfig_no_change
-    @device.cmd('configure terminal')
-    @device.cmd('feature vtp')
-    @device.cmd('vtp domain accounting')
-    @device.cmd('end')
-
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('feature vtp', 'vtp domain accounting')
 
     vtp = vtp_domain('accounting')
     assert_equal('accounting', vtp.domain,
@@ -177,11 +169,7 @@ class TestVtp < CiscoTestCase
   def test_vtp_password_get
     vtp = vtp_domain('accounting')
 
-    @device.cmd('configure terminal')
-    @device.cmd('vtp password cisco123')
-    @device.cmd('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('vtp password cisco123')
     assert_equal('cisco123', vtp.password,
                  'Error: vtp password not correct')
   end
@@ -284,7 +272,9 @@ class TestVtp < CiscoTestCase
   # Decides whether to check for a raised Exception or an equal value.
   def assert_result(expected_result, err_msg, &block)
     if /Error/ =~ expected_result.to_s
-      expected_result = Object.const_get(expected_result) if expected_result.is_a?(String)
+      if expected_result.is_a?(String)
+        expected_result = Object.const_get(expected_result)
+      end
       assert_raises(expected_result, &block)
     else
       value = block.call

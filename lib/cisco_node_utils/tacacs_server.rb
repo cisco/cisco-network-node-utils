@@ -54,7 +54,8 @@ module Cisco
 
     # Set timeout
     def timeout=(timeout)
-      # 'no tacacs timeout' will fail, just set it to the requested timeout value.
+      # 'no tacacs timeout' will fail.
+      # Just set it to the requested timeout value.
       config_set('tacacs_server', 'timeout', '', timeout)
     end
 
@@ -71,7 +72,8 @@ module Cisco
 
     # Set deadtime
     def deadtime=(deadtime)
-      # 'no tacacs deadtime' will fail, just set it to the requested timeout value.
+      # 'no tacacs deadtime' will fail.
+      # Just set it to the requested timeout value.
       config_set('tacacs_server', 'deadtime', '', deadtime)
     end
 

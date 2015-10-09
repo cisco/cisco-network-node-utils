@@ -15,7 +15,8 @@
 require File.expand_path('../basetest', __FILE__)
 
 require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/command_reference', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/command_reference',
+                         __FILE__)
 
 include Cisco
 

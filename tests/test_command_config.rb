@@ -17,7 +17,8 @@
 # limitations under the License.
 
 require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/configparser_lib', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/configparser_lib',
+                         __FILE__)
 require 'timeout'
 require 'yaml'
 
@@ -59,8 +60,8 @@ class TestCommandConfig < CiscoTestCase
     end
     # puts "Existing command block:\n#{existing}"
     assert_equal(existing.empty?, false,
-                 "Error: Expected configuration \n'#{desired_config_str}'\n does not exist.\
-                 \nHash Key: #{current_key}")
+                 "Error: Expected configuration \n'#{desired_config_str}'\n " \
+                 "does not exist.\nHash Key: #{current_key}")
   end
 
   def send_device_config(config_cmd_hash)
@@ -125,7 +126,8 @@ class TestCommandConfig < CiscoTestCase
 
     # Remove 1024 loopback interfaces
     cfg_hash_remove = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
-    cfg_hash_remove ['loopback-int-add']['command'] = "#{build_int_scale_config(false)}"
+    cfg_hash_remove['loopback-int-add']['command'] = \
+      "#{build_int_scale_config(false)}"
     begin
       send_device_config(cfg_hash_remove)
     rescue Timeout::Error
@@ -174,7 +176,10 @@ class TestCommandConfig < CiscoTestCase
      \ninterface loopback13"
     agent_hash = Configuration.new(agent_str)
 
-    min_expected = "interface loopback10\ndescription 10\nno interface loopback12"
+    min_expected = ['interface loopback10',
+                    'description 10',
+                    'no interface loopback12',
+                   ].join("\n")
 
     superset_str = agent_hash.compare_with(runn_hash)
     superset_hash = Configuration.new(superset_str)
@@ -185,6 +190,7 @@ class TestCommandConfig < CiscoTestCase
     min_config_str = Configuration.config_hash_to_str(min_config_hash)
 
     assert_equal(min_config_str.include?(min_expected), true,
-                 "Error:\nExpected:\n#{min_expected}\n\nFound:\n#{min_config_str}")
+                 "Error:\nExpected:\n#{min_expected}\n" \
+                 "\nFound:\n#{min_config_str}")
   end
 end

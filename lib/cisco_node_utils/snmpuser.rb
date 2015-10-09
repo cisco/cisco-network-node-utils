@@ -29,22 +29,8 @@ module Cisco
 
     def initialize(name, groups, authproto, authpass, privproto,
                    privpass, localizedkey, engineid, instantiate=true)
-      fail TypeError unless name.is_a?(String)
-      fail ArgumentError if name.empty?
-      fail TypeError unless groups.is_a?(Array)
-      fail TypeError unless authproto.is_a?(Symbol)
-      fail TypeError unless authpass.is_a?(String)
-      # empty password but protocol provided = bad
-      # non-empty password and no protocol provided = bad
-      fail ArgumentError if authpass.empty? && [:sha, :md5].include?(authproto) && instantiate
-      fail ArgumentError unless authpass.empty? || [:sha, :md5].include?(authproto)
-      fail TypeError unless privproto.is_a?(Symbol)
-      fail TypeError unless privpass.is_a?(String)
-      fail ArgumentError if privpass.empty? && [:des, :aes128].include?(privproto) && instantiate
-      fail ArgumentError unless privpass.empty? || [:des, :aes128].include?(privproto)
-      fail TypeError unless !!localizedkey == localizedkey # rubocop:disable Style/DoubleNegation
-      fail TypeError unless engineid.is_a?(String)
-
+      initialize_validator(name, groups, authproto, authpass, privproto,
+                           privpass, localizedkey, engineid, instantiate)
       @name = name
       @engine_id = engineid
 
@@ -58,7 +44,9 @@ module Cisco
       return unless instantiate
       # Config string syntax:
       # [no] snmp-server user <user> [group] ...
-      #      [auth {md5|sha} <passwd1> [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
+      #      [auth {md5|sha} <passwd1>
+      #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]
+      #      ]
       # Assume if multiple groups, apply all config to each
       groups = [''] if groups.empty?
       groups.each do |group|
@@ -69,6 +57,30 @@ module Cisco
                    privpass.empty? ? '' : "priv #{privprotostr} #{privpass}",
                    localizedkey ? 'localizedkey' : '',
                    engineid.empty? ? '' : "engineID #{engineid}")
+      end
+    end
+
+    def initialize_validator(name, groups, authproto, authpass, privproto,
+                             privpass, _localizedkey, engineid, instantiate)
+      fail TypeError unless name.is_a?(String) &&
+                            groups.is_a?(Array) &&
+                            authproto.is_a?(Symbol) &&
+                            authpass.is_a?(String) &&
+                            privproto.is_a?(Symbol) &&
+                            privpass.is_a?(String) &&
+                            engineid.is_a?(String)
+      fail ArgumentError if name.empty?
+      # empty password but protocol provided = bad
+      # non-empty password and no protocol provided = bad
+      if authpass.empty?
+        fail ArgumentError if [:sha, :md5].include?(authproto) && instantiate
+      else
+        fail ArgumentError unless [:sha, :md5].include?(authproto)
+      end
+      if privpass.empty?
+        fail ArgumentError if [:des, :aes128].include?(privproto) && instantiate
+      else
+        fail ArgumentError unless [:des, :aes128].include?(privproto)
       end
     end
 
@@ -95,7 +107,9 @@ module Cisco
           groups.each { |group| groups_arr << group[SNMP_USER_GROUP_KEY].strip }
 
           @users[index] = SnmpUser.new(name, groups_arr, auth,
-                                       '', priv, '', false, engineid.nil? ? '' : engineid_str, false)
+                                       '', priv, '', false,
+                                       engineid.nil? ? '' : engineid_str,
+                                       false)
         end
       end
       @users

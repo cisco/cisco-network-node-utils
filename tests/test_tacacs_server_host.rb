@@ -13,7 +13,8 @@
 # limitations under the License.
 
 require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/tacacs_server_host', __FILE__)
+require File.expand_path('../../lib/cisco_node_utils/tacacs_server_host',
+                         __FILE__)
 
 include Cisco
 
@@ -103,10 +104,7 @@ class TestTacacsServerHost < CiscoTestCase
   def test_tacacsserverhost_get_name_preconfigured
     host_name = 'testhost'
 
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name}")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name}")
 
     line = get_tacacsserverhost_match_line(host_name)
     hosts = TacacsServerHost.hosts
@@ -125,11 +123,7 @@ class TestTacacsServerHost < CiscoTestCase
     host_name = 'testhost.example.com'
     host_ip = '192.168.1.1'
 
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name}")
-    @device.cmd("tacacs-server host #{host_ip}")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name}", "tacacs-server host #{host_ip}")
 
     line_name = get_tacacsserverhost_match_line(host_name)
     line_ip = get_tacacsserverhost_match_line(host_ip)
@@ -162,10 +156,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     port = 1138
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name} port #{port}")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name} port #{port}")
     assert_equal(port, host.port, 'Error: Tacacs Host port incorrect')
 
     host.destroy
@@ -199,10 +190,7 @@ class TestTacacsServerHost < CiscoTestCase
   def test_tacacsserverhost_get_timeout
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*timeout'")[/^tacacs.*timeout.*$/]
-    if s
-      @device.cmd("conf t ; no #{s} ; end")
-      node.cache_flush
-    end
+    config("no #{s}") if s
 
     host_name = 'testhost'
     host = TacacsServerHost.new(host_name)
@@ -213,10 +201,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     timeout = 30
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name} timeout #{timeout}")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name} timeout #{timeout}")
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
 
     host.destroy
@@ -276,10 +261,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     enctype = TACACS_SERVER_ENC_NONE
     sh_run_enctype = TACACS_SERVER_ENC_CISCO_TYPE_7
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name} key #{enctype} TEST")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name} key #{enctype} TEST")
     assert_equal(sh_run_enctype, host.encryption_type,
                  'Error: Tacacs Host encryption type incorrect')
     host.destroy
@@ -306,10 +288,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     pass = 'TEST'
     sh_run_pass = 'WAWY'
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server host #{host_name} key 0 #{pass}")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server host #{host_name} key 0 #{pass}")
     assert_equal(sh_run_pass, host.encryption_password,
                  'Error: Tacacs Host encryption password incorrect')
     host.destroy
@@ -354,10 +333,7 @@ class TestTacacsServerHost < CiscoTestCase
   def test_tacacsserverhost_unset_key
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*host'")[/^tacacs.*host.*$/]
-    if s
-      @device.cmd("conf t ; no #{s} ; end")
-      node.cache_flush
-    end
+    config("no #{s}") if s
 
     host_name = 'testhost'
     host = TacacsServerHost.new(host_name)
