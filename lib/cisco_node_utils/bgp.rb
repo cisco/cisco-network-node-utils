@@ -160,17 +160,6 @@ module Cisco
 
     # Attributes:
 
-    # WARNING: BGP defect CSCuv52710 impacts these tests in the following manner.
-    #
-    # If an attempt is made to remove certain features when they not configured
-    # using nxapi, a code: 400 clierror is generated.  This causes problems
-    # when puppet attempts to create a new resource and set the parameter to
-    # it's default value.  To work around this we will call the getter method
-    # and only set the value if it's different then the current value.
-    def workaround_CSCuv52710(test_value, current_value) # rubocop:disable Style/MethodName
-      test_value == current_value
-    end
-
     # Bestpath Getters
     def bestpath_always_compare_med
       match = config_get('bgp', 'bestpath_always_compare_med', @get_args)
@@ -204,42 +193,36 @@ module Cisco
 
     # Bestpath Setters
     def bestpath_always_compare_med=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_always_compare_med)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_always_compare_med', @set_args)
       set_args_keys_default
     end
 
     def bestpath_aspath_multipath_relax=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_aspath_multipath_relax)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_aspath_multipath_relax', @set_args)
       set_args_keys_default
     end
 
     def bestpath_compare_routerid=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_compare_routerid)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_compare_routerid', @set_args)
       set_args_keys_default
     end
 
     def bestpath_cost_community_ignore=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_cost_community_ignore)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_cost_community_ignore', @set_args)
       set_args_keys_default
     end
 
     def bestpath_med_confed=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_med_confed)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_med_confed', @set_args)
       set_args_keys_default
     end
 
     def bestpath_med_non_deterministic=(enable)
-      return if workaround_CSCuv52710(enable, bestpath_med_non_deterministic)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_med_non_deterministic', @set_args)
       set_args_keys_default
@@ -283,7 +266,6 @@ module Cisco
       #
       # HACK: specify a dummy id when removing the feature.
       # CSCuu76807
-      return if workaround_CSCuv52710(id, cluster_id)
       dummy_id = 1
       if id == default_cluster_id
         @set_args[:state] = 'no'
@@ -313,7 +295,6 @@ module Cisco
       #
       # HACK: specify a dummy id when removing the feature.
       # CSCuu76807
-      return if workaround_CSCuv52710(id, confederation_id)
       dummy_id = 1
       if id == default_confederation_id
         @set_args[:state] = 'no'
@@ -337,7 +318,6 @@ module Cisco
     end
 
     def confederation_peers_set(peers)
-      return if workaround_CSCuv52710(peers, confederation_peers)
       # The confederation peers command is additive so we first need to
       # remove any existing peers.
       unless confederation_peers.empty?
@@ -369,8 +349,13 @@ module Cisco
     end
 
     def graceful_restart_timers_stalepath_time
-      match = config_get('bgp', 'graceful_restart_timers_stalepath_time', @get_args)
-      match.nil? ? default_graceful_restart_timers_stalepath_time : match.first.to_i
+      match = config_get('bgp', 'graceful_restart_timers_stalepath_time',
+                         @get_args)
+      if match.nil?
+        default_graceful_restart_timers_stalepath_time
+      else
+        match.first.to_i
+      end
     end
 
     def graceful_restart_helper
@@ -380,14 +365,12 @@ module Cisco
 
     # Graceful Restart Setters
     def graceful_restart=(enable)
-      return if workaround_CSCuv52710(enable, graceful_restart)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'graceful_restart', @set_args)
       set_args_keys_default
     end
 
     def graceful_restart_timers_restart=(seconds)
-      return if workaround_CSCuv52710(seconds, graceful_restart_timers_restart)
       if seconds == default_graceful_restart_timers_restart
         @set_args[:state] = 'no'
         @set_args[:seconds] = ''
@@ -400,7 +383,6 @@ module Cisco
     end
 
     def graceful_restart_timers_stalepath_time=(seconds)
-      return if workaround_CSCuv52710(seconds, graceful_restart_timers_stalepath_time)
       if seconds == default_graceful_restart_timers_stalepath_time
         @set_args[:state] = 'no'
         @set_args[:seconds] = ''
@@ -413,7 +395,6 @@ module Cisco
     end
 
     def graceful_restart_helper=(enable)
-      return if workaround_CSCuv52710(enable, graceful_restart_helper)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'graceful_restart_helper', @set_args)
       set_args_keys_default
@@ -443,7 +424,6 @@ module Cisco
     end
 
     def log_neighbor_changes=(enable)
-      return if workaround_CSCuv52710(enable, log_neighbor_changes)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'log_neighbor_changes', @set_args)
       set_args_keys_default
@@ -460,7 +440,6 @@ module Cisco
     end
 
     def neighbor_fib_down_accelerate=(enable)
-      return if workaround_CSCuv52710(enable, neighbor_fib_down_accelerate)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'neighbor_fib_down_accelerate', @set_args)
       set_args_keys_default
@@ -477,7 +456,6 @@ module Cisco
     end
 
     def reconnect_interval=(seconds)
-      return if workaround_CSCuv52710(seconds, reconnect_interval)
       if seconds == default_reconnect_interval
         @set_args[:state] = 'no'
         @set_args[:seconds] = ''
@@ -504,7 +482,6 @@ module Cisco
       # 'no bgp router-id'.  IMO this should be possible because you can only
       # configure a single bgp router-id.  I filed CSCuu76807 to track this
       # issue but it was closed.  Dummy-id specified to work around this.
-      return if workaround_CSCuv52710(id, router_id)
       dummy_id = '1.2.3.4'
       if id == default_router_id
         @set_args[:state] = 'no'
@@ -544,7 +521,6 @@ module Cisco
     end
 
     def suppress_fib_pending=(enable)
-      return if workaround_CSCuv52710(enable, suppress_fib_pending)
       enable == true ? @set_args[:state] = '' : @set_args[:state] = 'no'
       config_set('bgp', 'suppress_fib_pending', @set_args)
       set_args_keys_default
@@ -584,8 +560,6 @@ module Cisco
 
     # BGP Timers Setters
     def timer_bgp_keepalive_hold_set(keepalive, hold)
-      return if workaround_CSCuv52710(keepalive, timer_bgp_keepalive) &&
-                workaround_CSCuv52710(hold, timer_bgp_holdtime)
       if keepalive == default_timer_bgp_keepalive &&
          hold == default_timer_bgp_holdtime
         @set_args[:state] = 'no'
@@ -601,8 +575,6 @@ module Cisco
     end
 
     def timer_bestpath_limit_set(seconds, always=false)
-      return if workaround_CSCuv52710(seconds, timer_bestpath_limit) &&
-                workaround_CSCuv52710(always, timer_bestpath_limit_always)
       if always
         feature = 'timer_bestpath_limit_always'
       else

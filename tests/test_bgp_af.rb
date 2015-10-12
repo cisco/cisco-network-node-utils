@@ -417,6 +417,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## dampening
   ##
+  # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
   def test_dampening
     asn = '101'
 
@@ -606,6 +607,7 @@ class TestRouterBgpAF < CiscoTestCase
 
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
   end
+  # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
 
   ##
   ## network

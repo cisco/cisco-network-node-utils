@@ -170,7 +170,7 @@ module Cisco
 
     def allowas_in_max
       val = allowas_in_get
-      val = default_allowas_in_max if val.nil? || val.zero? # workaround for CSCuv86255
+      val = default_allowas_in_max if val.nil? || val.zero? # CSCuv86255
       val
     end
 

@@ -359,6 +359,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
       max_prefix(af, dbg)
+      max_prefix_defaults(af, dbg)
     end
   end
 
@@ -423,7 +424,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.max_prefix_set(af.default_max_prefix_limit)
     refute(af.max_prefix_limit,
            "Test 7. #{dbg} Failed to remove maximum_prefix")
+  end
 
+  def max_prefix_defaults(af, dbg)
     limit = 94
     threshold = af.default_max_prefix_threshold
     interval = af.default_max_prefix_interval
