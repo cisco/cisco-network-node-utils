@@ -205,64 +205,52 @@ module Cisco
 
     # -----------------------
     # <state> capability additional-paths receive <disable>
-    # Nvgens as True -OR- True with 'disable' keyword
-    def cap_add_paths_receive_get
-      val = config_get('bgp_neighbor_af', 'cap_add_paths_receive', @get_args)
-      return nil if val.nil?
-      (val.shift[/disable/]) ? 'disable' : true
+    #   :enable  = capability additional-paths receive
+    #   :disable = capability additional-paths receive disable
+    #   :inherit = no capability additional-paths receive
+    def additional_paths_receive
+      val = config_get('bgp_neighbor_af', 'additional_paths_receive', @get_args)
+      return default_additional_paths_receive if val.nil?
+      /disable/.match(val.first) ? :disable : :enable
     end
 
-    def cap_add_paths_receive
-      cap_add_paths_receive_get.nil? ? false : true
+    def additional_paths_receive=(val)
+      val = val.to_sym
+      if val == default_additional_paths_receive
+        set_args_keys(state: 'no', disable: '')
+      else
+        set_args_keys(state: '', disable: (val == :enable) ? '' : 'disable')
+      end
+      config_set('bgp_neighbor_af', 'additional_paths_receive', @set_args)
     end
 
-    def cap_add_paths_receive_disable
-      cap_add_paths_receive_get.to_s[/disable/] ? true : false
-    end
-
-    def cap_add_paths_receive_set(state, disable=false)
-      set_args_keys(state:   (state ? '' : 'no'),
-                    disable: (disable ? 'disable' : ''))
-      config_set('bgp_neighbor_af', 'cap_add_paths_receive', @set_args)
-    end
-
-    def default_cap_add_paths_receive
-      config_get_default('bgp_neighbor_af', 'cap_add_paths_receive')
-    end
-
-    def default_cap_add_paths_receive_disable
-      config_get_default('bgp_neighbor_af', 'cap_add_paths_receive_disable')
+    def default_additional_paths_receive
+      config_get_default('bgp_neighbor_af', 'additional_paths_receive').to_sym
     end
 
     # -----------------------
     # <state> capability additional-paths send <disable>
-    # Nvgens as True -OR- True with 'disable' keyword
-    def cap_add_paths_send_get
-      val = config_get('bgp_neighbor_af', 'cap_add_paths_send', @get_args)
-      return nil if val.nil?
-      (val.shift[/disable/]) ? 'disable' : true
+    #   :enable  = capability additional-paths send
+    #   :disable = capability additional-paths send disable
+    #   :inherit = no capability additional-paths send
+    def additional_paths_send
+      val = config_get('bgp_neighbor_af', 'additional_paths_send', @get_args)
+      return default_additional_paths_send if val.nil?
+      /disable/.match(val.first) ? :disable : :enable
     end
 
-    def cap_add_paths_send
-      cap_add_paths_send_get.nil? ? false : true
+    def additional_paths_send=(val)
+      val = val.to_sym
+      if val == default_additional_paths_send
+        set_args_keys(state: 'no', disable: '')
+      else
+        set_args_keys(state: '', disable: (val == :enable) ? '' : 'disable')
+      end
+      config_set('bgp_neighbor_af', 'additional_paths_send', @set_args)
     end
 
-    def cap_add_paths_send_disable
-      cap_add_paths_send_get.to_s[/disable/] ? true : false
-    end
-
-    def cap_add_paths_send_set(state, disable=false)
-      set_args_keys(state:   (state ? '' : 'no'),
-                    disable: (disable ? 'disable' : ''))
-      config_set('bgp_neighbor_af', 'cap_add_paths_send', @set_args)
-    end
-
-    def default_cap_add_paths_send
-      config_get_default('bgp_neighbor_af', 'cap_add_paths_send')
-    end
-
-    def default_cap_add_paths_send_disable
-      config_get_default('bgp_neighbor_af', 'cap_add_paths_send_disable')
+    def default_additional_paths_send
+      config_get_default('bgp_neighbor_af', 'additional_paths_send').to_sym
     end
 
     # -----------------------
@@ -566,33 +554,27 @@ module Cisco
 
     # -----------------------
     # <state> soft-reconfiguration inbound <always>
-    # Nvgens as True with optional 'always' keyword
-    def soft_reconfiguration_in_get
-      val = config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
-      return nil if val.nil?
-      (val.shift[/always/]) ? 'always' : true
-    end
-
+    #   :enable  = soft-reconfiguration inbound
+    #   :always = soft-reconfiguration inbound always
+    #   :inherit = no soft-reconfiguration inbound
     def soft_reconfiguration_in
-      soft_reconfiguration_in_get.nil? ? false : true
+      val = config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
+      return default_soft_reconfiguration_in if val.nil?
+      /always/.match(val.first) ? :always : :enable
     end
 
-    def soft_reconfiguration_in_always
-      soft_reconfiguration_in_get.to_s[/always/] ? true : false
-    end
-
-    def soft_reconfiguration_in_set(state, always=false)
-      set_args_keys(state:  (state ? '' : 'no'),
-                    always: (always ? 'always' : ''))
+    def soft_reconfiguration_in=(val)
+      val = val.to_sym
+      if val == default_soft_reconfiguration_in
+        set_args_keys(state: 'no', always: '')
+      else
+        set_args_keys(state: '', always: (val == :enable) ? '' : 'always')
+      end
       config_set('bgp_neighbor_af', 'soft_reconfiguration_in', @set_args)
     end
 
     def default_soft_reconfiguration_in
-      config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in')
-    end
-
-    def default_soft_reconfiguration_in_always
-      config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in_always')
+      config_get_default('bgp_neighbor_af', 'soft_reconfiguration_in').to_sym
     end
 
     # -----------------------

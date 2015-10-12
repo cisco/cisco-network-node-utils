@@ -216,6 +216,35 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   end
 
   # ---------------------------------
+  # tri-state properties:
+  #   additional_paths_receive
+  #   additional_paths_send
+  #   soft_reconfiguration_in
+  def test_tri_states
+    @@matrix.values.each do |af_args|
+      af, dbg = clean_af(af_args)
+
+      %w(additional_paths_receive additional_paths_send).each do |k|
+        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
+         af.send("default_#{k}")
+        ].each do |val|
+          af.send("#{k}=", val)
+          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
+        end
+      end
+
+      %w(soft_reconfiguration_in).each do |k|
+        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
+         af.send("default_#{k}")
+        ].each do |val|
+          af.send("#{k}=", val)
+          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
+        end
+      end
+    end
+  end
+
+  # ---------------------------------
   def test_advertise_map
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
@@ -282,58 +311,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.allowas_in_set(true, af.default_allowas_in_max)
     assert_equal(af.default_allowas_in_max, af.allowas_in_max,
                  "Test 6. #{dbg} Failed to set True with default Value")
-  end
-
-  # ---------------------------------
-  def test_cap_add_paths
-    @@matrix.values.each do |af_args|
-      af, dbg = clean_af(af_args)
-      cap_add_paths(af, dbg)
-    end
-  end
-
-  def cap_add_paths(af, dbg)
-    %w(cap_add_paths_receive cap_add_paths_send).each do |k|
-      # Test basic true
-      af.send("#{k}_set", true)
-      assert(af.send(k),
-             "Test 1. #{dbg} [#{k}_set] failed to set state to True")
-
-      # Test true with disable, from true
-      af.send("#{k}_set", true, true)
-      assert(af.send("#{k}_disable"),
-             "Test 2. #{dbg} [#{k}_set] Failed to set True with disable")
-
-      # Test false while disabled
-      af.send("#{k}_set", false)
-      refute(af.send(k),
-             "Test 3. #{dbg} [#{k}_set] Failed to set False while disabled")
-
-      # Test true with disable, from false
-      af.send("#{k}_set", true, true)
-      assert(af.send("#{k}_disable"),
-             "Test 4. #{dbg} [#{k}_set] Failed to set True with disable " \
-             'from false')
-
-      # Test default_state
-      def_state = af.send("default_#{k}")
-      af.send("#{k}_set", def_state)
-      assert_equal(def_state, af.send(k),
-                   "Test 5. #{dbg} [#{k}_set] Failed to set state to default")
-
-      # Test true with default disable state
-      def_disable = af.send("default_#{k}_disable")
-      af.send("#{k}_set", true, def_disable)
-      assert_equal(def_disable, af.send("#{k}_disable"),
-                   "Test 6. #{dbg} [#{k}_set] Failed to set True with " \
-                   'default disable')
-
-      # Test false with true disable state
-      af.send("#{k}_set", false, true)
-      refute(af.send("#{k}_disable"),
-             "Test 7. #{dbg} [#{k}_set] Failed to set False with True " \
-             'disable state')
-    end
   end
 
   # ---------------------------------
@@ -566,47 +543,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.send_community = af.default_send_community
     assert_equal(v, af.send_community,
                  "Test 10. #{dbg} Failed to set state to default")
-  end
-
-  # ---------------------------------
-  def test_soft_reconfiguration_in
-    @@matrix.values.each do |af_args|
-      af, dbg = clean_af(af_args)
-      soft_reconfiguration_in(af, dbg)
-    end
-  end
-
-  def soft_reconfiguration_in(af, dbg)
-    # Test basic true
-    af.soft_reconfiguration_in_set(true)
-    assert(af.soft_reconfiguration_in,
-           "Test 1. #{dbg} Failed to set True")
-
-    # Test true with always
-    af.soft_reconfiguration_in_set(true, true)
-    assert(af.soft_reconfiguration_in_always,
-           "Test 2. #{dbg} Failed to set True with Always")
-
-    # Test false with always
-    af.soft_reconfiguration_in_set(false)
-    refute(af.soft_reconfiguration_in,
-           "Test 3. #{dbg} Failed to set False")
-
-    # Test true with always, from false
-    af.soft_reconfiguration_in_set(true, true)
-    assert(af.soft_reconfiguration_in_always,
-           "Test 4. #{dbg} Failed to set True with Always, from false")
-
-    # Test default_state
-    af.soft_reconfiguration_in_set(af.default_soft_reconfiguration_in)
-    refute(af.soft_reconfiguration_in,
-           "Test 5. #{dbg} Failed to set to default")
-
-    # Test true with Always set to default
-    af.soft_reconfiguration_in_set(true,
-                                   af.default_soft_reconfiguration_in_always)
-    refute(af.soft_reconfiguration_in_always,
-           "Test 6. #{dbg} Failed to set True with default Always")
   end
 
   # ---------------------------------
