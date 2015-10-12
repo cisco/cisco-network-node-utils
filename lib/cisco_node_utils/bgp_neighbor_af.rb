@@ -211,8 +211,7 @@ module Cisco
     def additional_paths_receive
       val = config_get('bgp_neighbor_af', 'additional_paths_receive', @get_args)
       return default_additional_paths_receive if val.nil?
-      return :disable if /disable/.match(val.first)
-      :enable
+      /disable/.match(val.first) ? :disable : :enable
     end
 
     def additional_paths_receive=(val)
@@ -237,8 +236,7 @@ module Cisco
     def additional_paths_send
       val = config_get('bgp_neighbor_af', 'additional_paths_send', @get_args)
       return default_additional_paths_send if val.nil?
-      return :disable if /disable/.match(val.first)
-      :enable
+      /disable/.match(val.first) ? :disable : :enable
     end
 
     def additional_paths_send=(val)
@@ -515,8 +513,7 @@ module Cisco
     def soft_reconfiguration_in
       val = config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
       return default_soft_reconfiguration_in if val.nil?
-      return :always if /always/.match(val.first)
-      :enable
+      /always/.match(val.first) ? :always : :enable
     end
 
     def soft_reconfiguration_in=(val)
