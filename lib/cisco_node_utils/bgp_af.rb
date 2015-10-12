@@ -245,10 +245,10 @@ module Cisco
     #
     # Value                     Meaning
     # -----                     -------
-    # nil                        -  Dampening is not configured
-    # '' || []                   -  Dampening is configured with no options
-    # [1,3,4,5,nil]              -  Dampening + decay, reuse, suppress, suppress_max
-    # [nil,nil,nil,'route-map']  -  Dampening + routemap
+    # nil                       Dampening is not configured
+    # '' || []                  Dampening is configured with no options
+    # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
+    # [nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
       data = config_get('bgp_af', 'dampening', @get_args)
 

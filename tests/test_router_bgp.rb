@@ -113,7 +113,8 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_create_valid_asn
-    [1, 4_294_967_295, '55', '1.0', '1.65535', '65535.0', '65535.65535'].each do |test|
+    [1, 4_294_967_295, '55', '1.0', '1.65535',
+     '65535.0', '65535.65535'].each do |test|
       bgp = RouterBgp.new(test)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test)
@@ -124,7 +125,8 @@ class TestRouterBgp < CiscoTestCase
       bgp = RouterBgp.new(test, vrf)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
-      refute_nil(line, "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
+      refute_nil(line,
+                 "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
       bgp.destroy
     end
   end
@@ -186,42 +188,42 @@ class TestRouterBgp < CiscoTestCase
         bgp = RouterBgp.new(asnum, vrf)
       end
       bgp.bestpath_always_compare_med = true
-      assert(bgp.bestpath_always_compare_med,
-             "vrf #{vrf}: bgp bestpath_always_compare_med should be enabled")
+      assert(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
+             'bgp bestpath_always_compare_med should be enabled')
       bgp.bestpath_aspath_multipath_relax = true
-      assert(bgp.bestpath_aspath_multipath_relax,
-             "vrf #{vrf}: bgp bestpath_aspath_multipath_relax should be enabled")
+      assert(bgp.bestpath_aspath_multipath_relax, "vrf #{vrf}: "\
+             'bgp bestpath_aspath_multipath_relax should be enabled')
       bgp.bestpath_compare_routerid = true
-      assert(bgp.bestpath_compare_routerid,
-             "vrf #{vrf}: bgp bestpath_compare_routerid should be enabled")
+      assert(bgp.bestpath_compare_routerid, "vrf #{vrf}: "\
+             'bgp bestpath_compare_routerid should be enabled')
       bgp.bestpath_cost_community_ignore = true
-      assert(bgp.bestpath_cost_community_ignore,
-             "vrf #{vrf}: bgp bestpath_cost_community_ignore should be enabled")
+      assert(bgp.bestpath_cost_community_ignore, "vrf #{vrf}: "\
+             'bgp bestpath_cost_community_ignore should be enabled')
       bgp.bestpath_med_confed = true
-      assert(bgp.bestpath_med_confed,
-             "vrf #{vrf}: bgp bestpath_med_confed should be enabled")
+      assert(bgp.bestpath_med_confed, "vrf #{vrf}: "\
+             'bgp bestpath_med_confed should be enabled')
       bgp.bestpath_med_non_deterministic = true
-      assert(bgp.bestpath_med_non_deterministic,
-             "vrf #{vrf}: bgp bestpath_med_non_deterministic should be enabled")
+      assert(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
+             'bgp bestpath_med_non_deterministic should be enabled')
 
       bgp.bestpath_always_compare_med = false
-      refute(bgp.bestpath_always_compare_med,
-             "vrf #{vrf}: bgp bestpath_always_compare_med should be disabled")
+      refute(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
+             'bgp bestpath_always_compare_med should be disabled')
       bgp.bestpath_aspath_multipath_relax = false
-      refute(bgp.bestpath_aspath_multipath_relax,
-             "vrf #{vrf}: bgp bestpath_aspath_multipath_relax should be disabled")
+      refute(bgp.bestpath_aspath_multipath_relax, "vrf #{vrf}: "\
+             'bgp bestpath_aspath_multipath_relax should be disabled')
       bgp.bestpath_compare_routerid = false
-      refute(bgp.bestpath_compare_routerid,
-             "vrf #{vrf}: bgp bestpath_compare_routerid should be disabled")
+      refute(bgp.bestpath_compare_routerid, "vrf #{vrf}: "\
+             'bgp bestpath_compare_routerid should be disabled')
       bgp.bestpath_cost_community_ignore = false
-      refute(bgp.bestpath_cost_community_ignore,
-             "vrf #{vrf}: bgp bestpath_cost_community_ignore should be disabled")
+      refute(bgp.bestpath_cost_community_ignore, "vrf #{vrf}: "\
+             'bgp bestpath_cost_community_ignore should be disabled')
       bgp.bestpath_med_confed = false
-      refute(bgp.bestpath_med_confed,
-             "vrf #{vrf}: bgp bestpath_med_confed should be disabled")
+      refute(bgp.bestpath_med_confed, "vrf #{vrf}: "\
+             'bgp bestpath_med_confed should be disabled')
       bgp.bestpath_med_non_deterministic = false
-      refute(bgp.bestpath_med_non_deterministic,
-             "vrf #{vrf}: bgp bestpath_med_non_deterministic should be disabled")
+      refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
+             'bgp bestpath_med_non_deterministic should be disabled')
       bgp.destroy
     end
   end
@@ -237,18 +239,18 @@ class TestRouterBgp < CiscoTestCase
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
       end
-      refute(bgp.bestpath_always_compare_med,
-             "vrf #{vrf}: bgp bestpath_always_compare_med should *NOT* be enabled")
-      refute(bgp.bestpath_aspath_multipath_relax,
-             "vrf #{vrf}: bgp bestpath_aspath_multipath_relax should *NOT* be enabled")
-      refute(bgp.bestpath_compare_routerid,
-             "vrf #{vrf}: bgp bestpath_compare_routerid should be *NOT* enabled")
-      refute(bgp.bestpath_cost_community_ignore,
-             "vrf #{vrf}: bgp bestpath_cost_community_ignore should *NOT* be enabled")
-      refute(bgp.bestpath_med_confed,
-             "vrf #{vrf}: bgp bestpath_med_confed should *NOT* be enabled")
-      refute(bgp.bestpath_med_non_deterministic,
-             "vrf #{vrf}: bgp bestpath_med_non_deterministic should *NOT* be enabled")
+      refute(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
+             'bgp bestpath_always_compare_med should *NOT* be enabled')
+      refute(bgp.bestpath_aspath_multipath_relax, "vrf #{vrf}: "\
+             'bgp bestpath_aspath_multipath_relax should *NOT* be enabled')
+      refute(bgp.bestpath_compare_routerid, "vrf #{vrf}: "\
+             'bgp bestpath_compare_routerid should be *NOT* enabled')
+      refute(bgp.bestpath_cost_community_ignore, "vrf #{vrf}: "\
+             'bgp bestpath_cost_community_ignore should *NOT* be enabled')
+      refute(bgp.bestpath_med_confed, "vrf #{vrf}: "\
+             'bgp bestpath_med_confed should *NOT* be enabled')
+      refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
+             'bgp bestpath_med_non_deterministic should *NOT* be enabled')
       bgp.destroy
     end
   end
@@ -257,17 +259,17 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_bestpath_always_compare_med,
-           "default value for 'bestpath_always_compare_med' should be 'false'")
+           'default value for bestpath_always_compare_med should be false')
     refute(bgp.default_bestpath_aspath_multipath_relax,
-           "default value for 'bestpath_aspath_multipath_relax' should be 'false'")
+           'default value for bestpath_aspath_multipath_relax should be false')
     refute(bgp.default_bestpath_compare_routerid,
-           "default value for 'bestpath_compare_routerid' should be 'false'")
+           'default value for bestpath_compare_routerid should be false')
     refute(bgp.default_bestpath_cost_community_ignore,
-           "default value for 'bestpath_cost_community_ignore' should be 'false'")
+           'default value for bestpath_cost_community_ignore should be false')
     refute(bgp.default_bestpath_med_confed,
-           "default value for 'bestpath_med_confed' should be 'false'")
+           'default value for bestpath_med_confed should be false')
     refute(bgp.default_bestpath_med_non_deterministic,
-           "default value for 'bestpath_med_non_deterministic' should be 'false'")
+           'default value for bestpath_med_non_deterministic should be false')
     bgp.destroy
   end
 
@@ -365,7 +367,7 @@ class TestRouterBgp < CiscoTestCase
     assert_equal(300, bgp.default_graceful_restart_timers_stalepath_time,
                  "bgp graceful restart default timer value should be '300'")
     refute(bgp.default_graceful_restart_helper,
-           'bgp graceful restart helper default value should be enabled = false')
+           'graceful restart helper default value should be enabled = false')
   end
 
   def test_routerbgp_set_get_confederation_id
@@ -383,13 +385,13 @@ class TestRouterBgp < CiscoTestCase
       assert_equal('77', bgp.confederation_id,
                    "vrf #{vrf}: bgp confederation_id should be set to '77'")
       bgp.confederation_id = ''
-      assert_empty(bgp.confederation_id,
-                   "vrf #{vrf}: bgp confederation_id should *NOT* be configured")
+      assert_empty(bgp.confederation_id, "vrf #{vrf}: " \
+                   'bgp confederation_id should *NOT* be configured')
       bgp.destroy
     end
   end
 
-  def test_routerbgp_set_get_confed_id_CSCuu76828 # rubocop:disable Style/MethodName
+  def test_routerbgp_set_get_confed_id_uu76828
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.confederation_id = 55.77
@@ -569,7 +571,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
-                 "bgp reconnect_interval should be set to default value of '60'")
+                 "reconnect_interval should be set to default value of '60'")
     bgp.destroy
   end
 
@@ -687,11 +689,11 @@ class TestRouterBgp < CiscoTestCase
         bgp = RouterBgp.new(asnum, vrf)
       end
       bgp.timer_bestpath_limit_set(34)
-      assert_equal(34, bgp.timer_bestpath_limit,
-                   "vrf #{vrf}: bgp timer_bestpath_limit should be set to '34'")
+      assert_equal(34, bgp.timer_bestpath_limit, "vrf #{vrf}: " \
+                   "bgp timer_bestpath_limit should be set to '34'")
       bgp.timer_bestpath_limit_set(300)
-      assert_equal(300, bgp.timer_bestpath_limit,
-                   "vrf #{vrf}: bgp timer_bestpath_limit should be set to '300'")
+      assert_equal(300, bgp.timer_bestpath_limit, "vrf #{vrf}: " \
+                   "bgp timer_bestpath_limit should be set to '300'")
       bgp.destroy
     end
   end
@@ -700,7 +702,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(300, bgp.timer_bestpath_limit,
-                 "bgp timer_bestpath_limit should be set to default value of '300'")
+                 "timer_bestpath_limit should be default value of '300'")
     bgp.destroy
   end
 
@@ -753,22 +755,22 @@ class TestRouterBgp < CiscoTestCase
         bgp = RouterBgp.new(asnum, vrf)
       end
       bgp.timer_bgp_keepalive_hold_set(25, 45)
-      assert_equal(%w(25 45), bgp.timer_bgp_keepalive_hold,
-                   "vrf #{vrf}: bgp timer keepalive and hold values should be '25 and 45'")
+      assert_equal(%w(25 45), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \
+                   "keepalive and hold values should be '25 and 45'")
       bgp.timer_bgp_keepalive_hold_set(60, 180)
-      assert_equal(%w(60 180), bgp.timer_bgp_keepalive_hold,
-                   "vrf #{vrf}: bgp timer keepalive and hold values should be '60 and 180'")
-      assert_equal(60, bgp.timer_bgp_keepalive,
-                   "vrf #{vrf}: bgp timer keepalive value should be '60'")
-      assert_equal(180, bgp.timer_bgp_holdtime,
-                   "vrf #{vrf}: bgp timer keepalive value should be '180'")
+      assert_equal(%w(60 180), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \
+                   "keepalive and hold values should be '60 and 180'")
+      assert_equal(60, bgp.timer_bgp_keepalive, "vrf #{vrf}: " \
+                   "keepalive value should be '60'")
+      assert_equal(180, bgp.timer_bgp_holdtime, "vrf #{vrf}: " \
+                   "keepalive value should be '180'")
       bgp.timer_bgp_keepalive_hold_set(500, 3600)
-      assert_equal(%w(500 3600), bgp.timer_bgp_keepalive_hold,
-                   "vrf #{vrf}: bgp timer keepalive and hold values should be '500 and 3600'")
-      assert_equal(500, bgp.timer_bgp_keepalive,
-                   "vrf #{vrf}: bgp timer keepalive value should be '500'")
-      assert_equal(3600, bgp.timer_bgp_holdtime,
-                   "vrf #{vrf}: bgp timer keepalive value should be '3600'")
+      assert_equal(%w(500 3600), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \
+                   "keepalive and hold values should be '500 and 3600'")
+      assert_equal(500, bgp.timer_bgp_keepalive, "vrf #{vrf}: " \
+                   "keepalive value should be '500'")
+      assert_equal(3600, bgp.timer_bgp_holdtime, "vrf #{vrf}: " \
+                   "keepalive value should be '3600'")
       bgp.destroy
     end
   end
@@ -777,8 +779,8 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(%w(60 180), bgp.default_timer_bgp_keepalive_hold,
-                 'bgp timer_bestpath_timer_keepalive_hold_default values should be' \
-                 "'60' and '180'")
+                 'bgp timer_bestpath_timer_keepalive_hold_default values ' \
+                 "should be '60' and '180'")
     assert_equal(%w(60 180), bgp.timer_bgp_keepalive_hold,
                  'bgp timer_bestpath_timer_keepalive_hold_default should be' \
                  "set to default values of '60' and '180'")
