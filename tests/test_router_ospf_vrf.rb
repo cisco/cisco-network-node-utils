@@ -99,29 +99,6 @@ class TestRouterOspfVrf < CiscoTestCase
     end # s.each
   end
 
-  def example_test_match_line
-    puts "vrf 1: #{get_routerospfvrf_match_line('ospfTest', 'default')}"
-    puts 'next vrf!!!!!!!!!!!!!'
-    puts "vrf 2: #{get_routerospfvrf_match_line('TestOSPF', 'vrftest')}"
-    puts 'next vrf!!!!!!!!!!!!!'
-    puts "vrf 3: #{get_routerospfvrf_match_line('TestOSPF', 'testvrf')}"
-    puts 'next vrf!!!!!!!!!!!!!'
-    puts "vrf 4: #{get_routerospfvrf_match_line('ospfTest', 'testvrf')}"
-  end
-
-  def example_test_match_submode_line
-    pattern = (/\s+timers throttle lsa (.*)/)
-    puts 'vrf submode timer lsa: ' +
-      get_routerospfvrf_match_submode_line('ospfTest', 'default', pattern).to_s
-    puts 'vrf submode timer lsa: ' +
-      get_routerospfvrf_match_submode_line('TestOSPF', 'vrftest1', pattern).to_s
-    puts 'vrf submode timer spf1: ' +
-      get_routerospfvrf_match_submode_line('ospftest', 'vrftest', pattern).to_s
-    pattern = (/\s+router-id (.*)/)
-    puts 'vrf submode: ' +
-      get_routerospfvrf_match_submode_line('ospfTest', 'testvrf', pattern).to_s
-  end
-
   def create_routerospf(ospfname='ospfTest')
     RouterOspf.new(ospfname)
   end
@@ -164,33 +141,37 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_empty(vrfs, 'Error: Collection is not empty')
   end
 
-  def test_routerospfvrf_collection_not_empty_valid
-    ospf_h = Hash.new { |h, k| h[k] = {} }
-    ospf_h['ospfTest'] = {
+  # rubocop:disable Style/AlignHash
+  MULTIPLE_OSPFS = Hash.new { |h, k| h[k] = {} }.merge(
+    'ospfTest' => {
       'default' => {
         vrf: 'default', cov: 90,
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
         id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
       },
-    }
-    ospf_h['bxb300'] = {
+    },
+    'bxb300' => {
       'default' => {
         vrf: 'default', cov: 200,
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 10_000,
         id: '10.0.0.3', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
       },
-    }
+    },
+  )
+  # rubocop:enable Style/AlignHash
+
+  def test_routerospfvrf_collection_not_empty_valid
     # pre-populate values
-    config_from_hash(ospf_h)
+    config_from_hash(MULTIPLE_OSPFS)
 
     routers = RouterOspf.routers
     # validate the collection
     routers.each_key do |routername|
       vrfs = RouterOspfVrf.vrfs
       refute_empty(vrfs, 'Error: Collection is empty')
-      hv = ospf_h.fetch(routername.to_s)
+      hv = MULTIPLE_OSPFS.fetch(routername.to_s)
       next if hv.nil?
       hv = hv['default']
       vrfs[routername].each_value do |vrf|
@@ -649,19 +630,17 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_collection_router_multi_vrfs
-    ospf_h = Hash.new { |h, k| h[k] = {} }
-    ospf_h['ospfTest'] = {
+  # rubocop:disable Style/AlignHash
+  MULTIPLE_OSPFS_MULTIPLE_VRFS = Hash.new { |h, k| h[k] = {} }.merge(
+    'ospfTest' => {
       'default' => {
         vrf: 'default', cov: 90,
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
         id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
       },
-    }
-
-    # rubocop:disable Style/AlignHash
-    ospf_h['bxb300'] = {
+    },
+    'bxb300' => {
       'default' => {
         vrf: 'default', cov: 200,
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 10_000,
@@ -674,19 +653,21 @@ class TestRouterOspfVrf < CiscoTestCase
         id: '10.0.0.4', l1: 230, l2: 730, l3: 2030, s1: 400,
         s2: 700, s3: 2100
       },
-    }
-    # rubocop:enable Style/AlignHash
-    config_from_hash(ospf_h)
+    },
+  )
+  # rubocop:enable Style/AlignHash
 
+  def test_routerospfvrf_collection_router_multi_vrfs
+    config_from_hash(MULTIPLE_OSPFS_MULTIPLE_VRFS)
     routers = RouterOspf.routers
     # validate the collection
     routers.each_key do |routername|
       vrfs = RouterOspfVrf.vrfs
       refute_empty(vrfs, 'Error: Collection is empty')
-      unless ospf_h.key?(routername)
-        puts "%Error: ospf_h does not have hash key #{routername}"
+      unless MULTIPLE_OSPFS_MULTIPLE_VRFS.key?(routername)
+        puts "%Error: hash does not have hash key #{routername}"
       end
-      ospfh = ospf_h.fetch(routername)
+      ospfh = MULTIPLE_OSPFS_MULTIPLE_VRFS.fetch(routername)
       vrfs[routername].each do |name, vrf|
         puts "%Error: hash key #{routername} not found" unless ospfh.key?(name)
         hv = ospfh.fetch(name)

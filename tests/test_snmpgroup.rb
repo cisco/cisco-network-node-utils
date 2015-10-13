@@ -20,8 +20,7 @@ class TestSnmpGroup < CiscoTestCase
   # NXOS snmp groups will not be empty
   def test_snmpgroup_collection_not_empty
     snmpgroups = SnmpGroup.groups
-    assert_equal(false, snmpgroups.empty?,
-                 'SnmpGroup collection is empty')
+    refute_empty(snmpgroups)
   end
 
   def test_snmpgroup_collection_valid

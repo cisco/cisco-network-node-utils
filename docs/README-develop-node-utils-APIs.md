@@ -179,7 +179,9 @@ end
 
 * A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `tests/`
 
-* Tests may use `config(cmd1, cmd2, ...)` and `@device.cmd("show ...")` to access the CLI directly set up tests and validate expected outcomes. The tests directory contains many examples of how these are used.
+* Tests may use `config(cmd1, cmd2, ...)` to access the CLI directly to set up tests.
+
+* Tests may use `@device.cmd("show ...")` or the helper methods `assert_show_match` and `refute_show_match` to validate expected outcomes in the CLI. The tests directory contains many examples of how these are used.
 
 * Our minitest will be very basic since the API itself is very basic. Use `template-test_feature.rb` to create a minitest for the tunnel resource:
 
@@ -638,18 +640,17 @@ class TestRouterEigrp < CiscoTestCase
   def test_router_create_destroy_one
     id = 'blue'
     rtr = RouterEigrp.new(id)
-    s = @device.cmd("show runn | i 'router eigrp #{id}'")
-    assert_match(s, /^router eigrp #{id}$/,
-                 "Error: failed to create router eigrp #{id}")
+    @default_show_command = "show runn | i 'router eigrp #{id}'")
+    assert_show_match(pattern: /^router eigrp #{id}$/,
+                      msg:     "failed to create router eigrp #{id}")
 
     rtr.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id}'")
-    refute_match(s, /^router eigrp #{id}$/,
-                 "Error: failed to destroy router eigrp #{id}")
+    refute_show_match(pattern: /^router eigrp #{id}$/,
+                      msg:     "failed to destroy router eigrp #{id}")
 
-    s = @device.cmd("show runn | i 'feature eigrp'")
-    refute_match(s, /^feature eigrp$/,
-                 "Error: failed to disable feature eigrp")
+    refute_show_match(command: "show runn | i 'feature eigrp'",
+                      pattern: /^feature eigrp$/,
+                      msg:     "failed to disable feature eigrp")
   end
 
   def test_router_create_destroy_multiple
@@ -658,23 +659,23 @@ class TestRouterEigrp < CiscoTestCase
     id2 = 'red'
     rtr2 = RouterEigrp.new(id2)
 
+    @default_show_command = "show runn | i 'router eigrp'"
+
     s = @device.cmd("show runn | i 'router eigrp'")
     assert_match(s, /^router eigrp #{id1}$/)
     assert_match(s, /^router eigrp #{id2}$/)
 
     rtr1.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id1}'")
-    refute_match(s, /^router eigrp #{id1}$/,
-                 "Error: failed to destroy router eigrp #{id1}")
+    refute_show_match(pattern: /^router eigrp #{id1}$/,
+                      msg:     "failed to destroy router eigrp #{id1}")
 
     rtr2.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id2}'")
-    refute_match(s, /^router eigrp #{id2}$/,
-                 "Error: failed to destroy router eigrp #{id2}")
+    refute_show_match(pattern: /^router eigrp #{id2}$/,
+                      msg:     "failed to destroy router eigrp #{id2}")
 
-    s = @device.cmd("show runn | i 'feature eigrp'")
-    refute_match(s, /^feature eigrp$/,
-                 "Error: failed to disable feature eigrp")
+    refute_show_match(command: "show runn | i 'feature eigrp'",
+                      pattern: /^feature eigrp$/,
+                      msg:     "failed to disable feature eigrp")
   end
 
   def test_router_maximum_paths

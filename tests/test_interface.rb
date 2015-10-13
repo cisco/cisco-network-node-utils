@@ -61,14 +61,8 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def assert_interface_match_line(name, pattern, msg=nil)
-    s = @device.cmd("show run interface #{name} all | no-more")
-    assert_match(pattern, s, msg)
-  end
-
-  def refute_interface_match_line(name, pattern, msg=nil)
-    s = @device.cmd("show run interface #{name} all | no-more")
-    refute_match(pattern, s, msg)
+  def show_cmd(name)
+    "show run interface #{name} all | no-more"
   end
 
   def interface_count
@@ -76,10 +70,13 @@ class TestInterface < CiscoTestCase
     # Next line needs to be done because sh run interface all also shows
     # ospf interface related config
     arr = output.split("\n").select { |str| str.start_with?('interface') }
+    refute_empty(arr, "Found no matching lines in:\n#{output}")
+    refute_equal(1, arr.count, "Found only one interface in:\n#{output}")
     arr.count
   end
 
   def create_interface(ifname=interfaces[0])
+    @default_show_command = show_cmd(ifname)
     Interface.new(ifname)
   end
 
@@ -215,9 +212,8 @@ class TestInterface < CiscoTestCase
       length = v[:address_len].split('/').last.to_i
 
       pattern = %r{^\s+ip address #{address}/#{length}}
-      assert_interface_match_line(interface.name, pattern,
-                                  "Error: ipv4 address #{address}/#{length} " \
-                                  "missing in CLI for #{k}")
+      assert_show_match(command: show_cmd(interface.name),
+                        pattern: pattern)
       assert_equal(address, interface.ipv4_address,
                    "Error: ipv4 address get value mismatch for #{k}")
       assert_equal(length, interface.ipv4_netmask_length,
@@ -236,8 +232,9 @@ class TestInterface < CiscoTestCase
       interface.ipv4_addr_mask_set(interface.default_ipv4_address,
                                    interface.default_ipv4_netmask_length)
       pattern = %r{^\s+ip address #{address}/#{length}}
-      refute_interface_match_line(interface.name, pattern,
-                                  "ipv4 address still present in CLI for #{k}")
+      refute_show_match(command: show_cmd(interface.name),
+                        pattern: pattern,
+                        msg:     "ipv4 address still present in CLI for #{k}")
       assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                    "Error: ipv4 address value mismatch after unconfig for #{k}")
       assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
@@ -253,13 +250,14 @@ class TestInterface < CiscoTestCase
       next if (k == 'loopback0')
 
       interface = v[:interface]
+      cmd = show_cmd(interface.name)
 
       # puts "value - #{v[:proxy_arp]}"
       pattern = (/^\s+ip proxy-arp/)
       if v[:proxy_arp]
-        assert_interface_match_line(interface.name, pattern)
+        assert_show_match(command: cmd, pattern: pattern)
       else
-        refute_interface_match_line(interface.name, pattern)
+        refute_show_match(command: cmd, pattern: pattern)
       end
       assert_equal(v[:proxy_arp], interface.ipv4_proxy_arp,
                    "Error: ip proxy-arp get value 'true' mismatch")
@@ -267,9 +265,9 @@ class TestInterface < CiscoTestCase
       # puts "value reverse- #{!v[:proxy_arp]}"
       interface.ipv4_proxy_arp = !v[:proxy_arp]
       if v[:proxy_arp]
-        refute_interface_match_line(interface.name, pattern)
+        refute_show_match(command: cmd, pattern: pattern)
       else
-        assert_interface_match_line(interface.name, pattern)
+        assert_show_match(command: cmd, pattern: pattern)
       end
       assert_equal(!v[:proxy_arp], interface.ipv4_proxy_arp,
                    "Error: ip proxy-arp get value 'false' mismatch")
@@ -281,8 +279,8 @@ class TestInterface < CiscoTestCase
 
       # Get default and set
       interface.ipv4_proxy_arp = interface.default_ipv4_proxy_arp
-      refute_interface_match_line(interface.name, pattern,
-                                  'Error: default ip proxy-arp set failed')
+      refute_show_match(command: cmd, pattern: pattern,
+                          msg: 'Error: default ip proxy-arp set failed')
       assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                    interface.ipv4_proxy_arp,
                    'Error: ip proxy-arp default get value mismatch')
@@ -315,19 +313,17 @@ class TestInterface < CiscoTestCase
 
       if config_set
         pattern = ref.test_config_get_regex[0]
-
+        cmd = show_cmd(interface.name)
         if k.include?('loopback')
           assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
         else
           interface.ipv4_redirects = true
           assert(interface.ipv4_redirects, "Couldn't set redirects to true")
-          refute_interface_match_line(interface.name, pattern,
-                                      "Error: #{k} ipv4_redirects cfg mismatch")
+          refute_show_match(command: cmd, pattern: pattern)
 
           interface.ipv4_redirects = false
           refute(interface.ipv4_redirects, "Couldn't set redirects to false")
-          assert_interface_match_line(interface.name, pattern,
-                                      "Error: #{k} ipv4_redirects cfg mismatch")
+          assert_show_match(command: cmd, pattern: pattern)
         end
       else
         # Getter should return same value as default if setter isn't supported
@@ -586,8 +582,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
-    assert_interface_match_line(interface.name, pattern,
-                                "#{inf_name} no negotiate auto cfg mismatch")
+    assert_show_match(pattern: pattern)
 
     non_default = !default
 
@@ -604,8 +599,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
     pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
-    assert_interface_match_line(interface.name, pattern,
-                                "#{inf_name} negotiate auto cfg mismatch")
+    assert_show_match(pattern: pattern)
 
     # Clean up after ourselves
     interface.negotiate_auto = default
@@ -613,8 +607,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
-    assert_interface_match_line(interface.name, pattern,
-                                "#{inf_name} no negotiate auto cfg mismatch")
+    assert_show_match(pattern: pattern)
   end
 
   def test_negotiate_auto_portchannel
@@ -626,6 +619,7 @@ class TestInterface < CiscoTestCase
     config('interface port-channel 10')
     interface = Interface.new(inf_name)
     default = ref.default_value
+    @default_show_command = show_cmd(inf_name)
 
     # Test with switchport
     negotiate_auto_helper(interface, default, ref)
@@ -649,6 +643,7 @@ class TestInterface < CiscoTestCase
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
     default = ref.default_value
+    @default_show_command = show_cmd(inf_name)
 
     # Test with switchport
     negotiate_auto_helper(interface, default, ref)
@@ -717,8 +712,8 @@ class TestInterface < CiscoTestCase
     # setter, getter
     interface.ipv4_addr_mask_set(address, length)
     pattern = %r{^\s+ip address #{address}/#{length}}
-    assert_interface_match_line(interface.name, pattern,
-                                'Error: ipv4 address missing in CLI')
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ipv4 address missing in CLI')
     assert_equal(address, interface.ipv4_address,
                  'Error: ipv4 address get value mismatch')
     assert_equal(length, interface.ipv4_netmask_length,
@@ -735,8 +730,8 @@ class TestInterface < CiscoTestCase
     # unconfigure ipaddress
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip address (.*)/)
-    refute_interface_match_line(interface.name, pattern,
-                                'Error: ipv4 address still present in CLI')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: ipv4 address still present in CLI')
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                  'Error: ipv4 address value mismatch after unconfig')
     assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
@@ -794,15 +789,15 @@ class TestInterface < CiscoTestCase
     # set with value true
     interface.ipv4_proxy_arp = true
     pattern = (/^\s+ip proxy-arp/)
-    assert_interface_match_line(interface.name, pattern,
-                                'Error: ip proxy-arp enable missing in CLI')
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ip proxy-arp enable missing in CLI')
     assert(interface.ipv4_proxy_arp,
            "Error: ip proxy-arp get value 'true' mismatch")
 
     # set with value false
     interface.ipv4_proxy_arp = false
-    refute_interface_match_line(interface.name, pattern,
-                                'Error: ip proxy-arp disable missing in CLI')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: ip proxy-arp disable missing in CLI')
     refute(interface.ipv4_proxy_arp,
            "Error: ip proxy-arp get value 'false' mismatch")
 
@@ -813,8 +808,8 @@ class TestInterface < CiscoTestCase
 
     # get default and set
     interface.ipv4_proxy_arp = interface.default_ipv4_proxy_arp
-    refute_interface_match_line(interface.name, pattern,
-                                'Error: default ip proxy-arp set failed')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: default ip proxy-arp set failed')
     assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
@@ -830,15 +825,15 @@ class TestInterface < CiscoTestCase
     # set with value false
     interface.ipv4_redirects = false
     pattern = (/^\s+no ip redirects/)
-    assert_interface_match_line(interface.name, pattern,
-                                'Error: ip redirects disable missing in CLI')
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ip redirects disable missing in CLI')
     refute(interface.ipv4_redirects,
            "Error: ip redirects get value 'false' mismatch")
 
     # set with value true
     interface.ipv4_redirects = true
-    refute_interface_match_line(interface.name, pattern,
-                                'Error: ip redirects enable missing in CLI')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: ip redirects enable missing in CLI')
     assert(interface.ipv4_redirects,
            "Error: ip redirects get value 'true' mismatch")
 
@@ -849,8 +844,8 @@ class TestInterface < CiscoTestCase
 
     # get default and set
     interface.ipv4_redirects = interface.default_ipv4_redirects
-    refute_interface_match_line(interface.name, pattern,
-                                'Error: default ip redirects set failed')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: default ip redirects set failed')
     assert_equal(DEFAULT_IF_IP_REDIRECTS, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
 

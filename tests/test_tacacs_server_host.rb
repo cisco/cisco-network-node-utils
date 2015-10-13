@@ -24,11 +24,11 @@ DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD = ''
 
 # TestTacacsServerHost - Minitest for TacacsServerHost node utility
 class TestTacacsServerHost < CiscoTestCase
-  def get_tacacsserverhost_match_line(host_name)
-    s = @device.cmd('show run all | no-more')
-    cmd = 'tacacs-server host'
-    pattern = /#{cmd}\s(#{host_name})(.*)/
-    pattern.match(s)
+  def setup
+    super
+    @host_name = 'testhost'
+    @default_show_command = 'show run all | no-more'
+    @default_output_pattern = /tacacs-server host\s(#{@host_name})(.*)/
   end
 
   def test_tacacsserverhost_collection_empty
@@ -73,48 +73,39 @@ class TestTacacsServerHost < CiscoTestCase
 
   def test_tacacsserverhost_create_valid
     host = TacacsServerHost.new('testhost')
-    line = get_tacacsserverhost_match_line('testhost')
-    refute_nil(line, 'Error: Tacacs Host not created')
+    assert_show_match(msg: 'Error: Tacacs Host not created')
     host.destroy
   end
 
   def test_tacacsserverhost_destroy
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not created')
+    host = TacacsServerHost.new(@host_name)
+    assert_show_match(msg: 'Error: Tacacs Host not created')
     host.destroy
 
-    line = get_tacacsserverhost_match_line(host_name)
-    assert_nil(line, 'Error: Tacacs Host still present')
+    refute_show_match(msg: 'Error: Tacacs Host still present')
   end
 
   def test_tacacsserverhost_get_name
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
-    assert_equal(host_name, line.captures[0],
-                 "Error: #{host_name} name mismatch")
-    assert_equal(host_name, host.name,
-                 "Error: #{host_name} name get value mismatch")
+    host = TacacsServerHost.new(@host_name)
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
+    assert_equal(@host_name, line.captures[0],
+                 "Error: #{@host_name} name mismatch")
+    assert_equal(@host_name, host.name,
+                 "Error: #{@host_name} name get value mismatch")
     host.destroy
   end
 
   def test_tacacsserverhost_get_name_preconfigured
-    host_name = 'testhost'
+    config("tacacs-server host #{@host_name}")
 
-    config("tacacs-server host #{host_name}")
-
-    line = get_tacacsserverhost_match_line(host_name)
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     hosts = TacacsServerHost.hosts()
 
-    refute_nil(line, 'Error: Tacacs Host not found')
-    assert_equal(host_name, line.captures[0],
-                 "Error: #{host_name} name mismatch")
-    refute_nil(hosts[host_name], "Error: #{host_name} not retrieved.")
-    assert_equal(host_name, hosts[host_name].name,
-                 "Error: #{host_name} name get value mismatch")
+    assert_equal(@host_name, line.captures[0],
+                 "Error: #{@host_name} name mismatch")
+    refute_nil(hosts[@host_name], "Error: #{@host_name} not retrieved.")
+    assert_equal(@host_name, hosts[@host_name].name,
+                 "Error: #{@host_name} name get value mismatch")
 
     hosts.each_value(&:destroy)
   end
@@ -125,18 +116,20 @@ class TestTacacsServerHost < CiscoTestCase
 
     config("tacacs-server host #{host_name}", "tacacs-server host #{host_ip}")
 
-    line_name = get_tacacsserverhost_match_line(host_name)
-    line_ip = get_tacacsserverhost_match_line(host_ip)
+    line_name = assert_show_match(
+      pattern: /tacacs-server host\s(testhost\.example\.com)(.*)/,
+      msg:     'Error: Tacacs Host not found')
+    line_ip = assert_show_match(
+      pattern: /tacacs-server host\s(192\.168\.1\.1)(.*)/,
+      msg:     'Error: Tacacs Host not found')
     hosts = TacacsServerHost.hosts
 
-    refute_nil(line_name, 'Error: Tacacs Host not found')
     assert_equal(host_name, line_name.captures[0],
                  "Error: #{host_name} name mismatch")
     refute_nil(hosts[host_name], "Error: #{host_name} not retrieved.")
     assert_equal(host_name, hosts[host_name].name,
                  "Error: #{host_name} name get value mismatch")
 
-    refute_nil(line_ip, 'Error: Tacacs Host not found')
     assert_equal(host_ip, line_ip.captures[0],
                  "Error: #{host_ip} name mismatch")
     refute_nil(hosts[host_ip], "Error: #{host_ip} not retrieved.")
@@ -147,8 +140,7 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_get_port
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     # not previously configured
     port = DEFAULT_TACACS_SERVER_HOST_PORT
@@ -156,7 +148,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     port = 1138
-    config("tacacs-server host #{host_name} port #{port}")
+    config("tacacs-server host #{@host_name} port #{port}")
     assert_equal(port, host.port, 'Error: Tacacs Host port incorrect')
 
     host.destroy
@@ -172,13 +164,11 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_set_port
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     port = 1138
     host.port = port
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     md = /port\s(\d*)/.match(line.captures[1])
     refute_nil(md, 'Error: Tacacs Host port not found')
     assert_equal(port, md.captures[0].to_i, 'Error: Tacacs Host port mismatch')
@@ -192,8 +182,7 @@ class TestTacacsServerHost < CiscoTestCase
     s = @device.cmd("show run | i 'tacacs.*timeout'")[/^tacacs.*timeout.*$/]
     config("no #{s}") if s
 
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     # not previously configured
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
@@ -201,7 +190,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     timeout = 30
-    config("tacacs-server host #{host_name} timeout #{timeout}")
+    config("tacacs-server host #{@host_name} timeout #{timeout}")
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
 
     host.destroy
@@ -217,13 +206,11 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_set_timeout
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     timeout = 30
     host.timeout = timeout
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     md = /timeout\s(\d*)/.match(line.captures[1])
     refute_nil(md, 'Error: Tacacs Host timeout not found')
     assert_equal(timeout, md.captures[0].to_i,
@@ -234,13 +221,11 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_unset_timeout
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
     host.timeout = timeout
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     md = /timeout\s(\d*)/.match(line.captures[1])
     assert_nil(md, 'Error: Tacacs Host timeout found')
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
@@ -249,8 +234,7 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_get_encryption_type
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     # when not configured
     enctype = TACACS_SERVER_ENC_UNKNOWN
@@ -261,7 +245,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     enctype = TACACS_SERVER_ENC_NONE
     sh_run_enctype = TACACS_SERVER_ENC_CISCO_TYPE_7
-    config("tacacs-server host #{host_name} key #{enctype} TEST")
+    config("tacacs-server host #{@host_name} key #{enctype} TEST")
     assert_equal(sh_run_enctype, host.encryption_type,
                  'Error: Tacacs Host encryption type incorrect')
     host.destroy
@@ -277,8 +261,7 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_get_encryption_password
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     # when not configured
     pass = DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD
@@ -288,7 +271,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     pass = 'TEST'
     sh_run_pass = 'WAWY'
-    config("tacacs-server host #{host_name} key 0 #{pass}")
+    config("tacacs-server host #{@host_name} key 0 #{pass}")
     assert_equal(sh_run_pass, host.encryption_password,
                  'Error: Tacacs Host encryption password incorrect')
     host.destroy
@@ -303,8 +286,7 @@ class TestTacacsServerHost < CiscoTestCase
   end
 
   def test_tacacsserverhost_set_key
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     enctype = TACACS_SERVER_ENC_NONE
     sh_run_enctype = TACACS_SERVER_ENC_CISCO_TYPE_7
@@ -312,8 +294,7 @@ class TestTacacsServerHost < CiscoTestCase
     sh_run_pass = 'WAWY'
     host.encryption_key_set(enctype, pass)
 
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     md = /key\s(\d*)\s(\S*)/.match(line.captures[1])
     refute_nil(md, 'Error: Tacacs Host encryption not found')
     assert_equal(sh_run_enctype, md.captures[0].to_i,
@@ -335,8 +316,7 @@ class TestTacacsServerHost < CiscoTestCase
     s = @device.cmd("show run | i 'tacacs.*host'")[/^tacacs.*host.*$/]
     config("no #{s}") if s
 
-    host_name = 'testhost'
-    host = TacacsServerHost.new(host_name)
+    host = TacacsServerHost.new(@host_name)
 
     # First configure key value. Whether that can be passed
     # will be decided by test_tacacsserverhost_set_key
@@ -349,8 +329,7 @@ class TestTacacsServerHost < CiscoTestCase
     pass = DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD
     host.encryption_key_set(enctype, pass)
 
-    line = get_tacacsserverhost_match_line(host_name)
-    refute_nil(line, 'Error: Tacacs Host not found')
+    line = assert_show_match(msg: 'Error: Tacacs Host not found')
     md = /key\s(\d*)\s(\S*)/.match(line.captures[1])
     assert_nil(md, 'Error: Tacacs Host encryption found')
     assert_equal(enctype, host.encryption_type,
