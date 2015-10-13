@@ -170,7 +170,9 @@ module Cisco
 
     def allowas_in_max
       val = allowas_in_get
-      val = default_allowas_in_max if val.nil? || val.zero? # CSCuv86255
+      # val.zero? check below is needed to handle a cli defect wherein the
+      # default max value does not reliably nvgen
+      val = default_allowas_in_max if val.nil? || val.zero?
       val
     end
 
