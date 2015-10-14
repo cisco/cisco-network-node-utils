@@ -105,10 +105,15 @@ dnsclient:
     config_set: '<state> ip name-server <ip>'
     default_value: ''
   domain_name:
-    # NOTE: This does not account for vrf ip domain-name
-    config_get: "show running-config | include 'ip domain-name'"
-    config_get_token: '/^ip domain-name (.*)/'
+    config_get: 'show running-config all'
+    config_get_token: '/^ip domain-name (\S+)$/'
     config_set: '<state> ip domain-name <name>'
+    default_value: ''
+  domain_name_vrf:
+    config_get: 'show running-config all'
+    config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
+    config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+    default_value: ''
 
 fex:
   feature:

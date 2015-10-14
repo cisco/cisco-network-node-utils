@@ -34,20 +34,53 @@ class TestDomainName < CiscoTestCase
 
   def no_domainname_test_xyz
     # Turn the feature off for a clean test.
-    config('no ip domain-name test.xyz')
+    config('no ip domain-name test.abc',
+           'no ip domain-name test.xyz',
+           'no vrf context test')
   end
 
   # TESTS
 
-  def test_domainname_create_destroy
-    name = 'test.xyz'
-    refute_includes(Cisco::DomainName.domainnames, name)
+  def test_domainname_create_replace_destroy
+    name1 = 'test.abc'
+    name2 = 'test.xyz'
+    refute_includes(Cisco::DomainName.domainnames, name1)
+    refute_includes(Cisco::DomainName.domainnames, name2)
 
-    domain = Cisco::DomainName.new(name)
-    assert_includes(Cisco::DomainName.domainnames, name)
-    assert_equal(Cisco::DomainName.domainnames[name], domain)
+    domain = Cisco::DomainName.new(name1)
+    assert_includes(Cisco::DomainName.domainnames, name1)
+    refute_includes(Cisco::DomainName.domainnames, name2)
+    assert_equal(Cisco::DomainName.domainnames[name1], domain)
+
+    domain = Cisco::DomainName.new(name2)
+    refute_includes(Cisco::DomainName.domainnames, name1)
+    assert_includes(Cisco::DomainName.domainnames, name2)
+    assert_equal(Cisco::DomainName.domainnames[name2], domain)
 
     domain.destroy
-    refute_includes(Cisco::DomainName.domainnames, name)
+    refute_includes(Cisco::DomainName.domainnames, name1)
+    refute_includes(Cisco::DomainName.domainnames, name2)
+  end
+
+  def test_domainname_create_replace_destroy_vrf
+    name1 = 'test.abc'
+    name2 = 'test.xyz'
+    vrf = 'test'
+    refute_includes(Cisco::DomainName.domainnames(vrf), name1)
+    refute_includes(Cisco::DomainName.domainnames(vrf), name2)
+
+    domain = Cisco::DomainName.new(name1, vrf)
+    assert_includes(Cisco::DomainName.domainnames(vrf), name1)
+    refute_includes(Cisco::DomainName.domainnames(vrf), name2)
+    assert_equal(Cisco::DomainName.domainnames(vrf)[name1], domain)
+
+    domain = Cisco::DomainName.new(name2, vrf)
+    refute_includes(Cisco::DomainName.domainnames(vrf), name1)
+    assert_includes(Cisco::DomainName.domainnames(vrf), name2)
+    assert_equal(Cisco::DomainName.domainnames(vrf)[name2], domain)
+
+    domain.destroy
+    refute_includes(Cisco::DomainName.domainnames(vrf), name1)
+    refute_includes(Cisco::DomainName.domainnames(vrf), name2)
   end
 end

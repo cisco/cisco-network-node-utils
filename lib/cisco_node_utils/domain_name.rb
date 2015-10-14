@@ -21,34 +21,51 @@ require File.join(File.dirname(__FILE__), 'node_util')
 module Cisco
   # DomainName- node utility class for domain name configuration
   class DomainName < NodeUtil
-    attr_reader :name
+    attr_reader :name, :vrf
 
-    def initialize(name, instantiate=true)
+    def initialize(name, vrf=nil, instantiate=true)
       @name = name
+      @vrf = vrf
       create if instantiate
     end
 
-    def self.domainnames
+    def self.domainnames(vrf=nil)
       hash = {}
-      domains = config_get('dnsclient', 'domain_name')
+      if vrf.nil?
+        domains = config_get('dnsclient', 'domain_name')
+      else
+        domains = config_get('dnsclient', 'domain_name_vrf', vrf: vrf)
+      end
       return hash if domains.nil?
 
       domains.each do |name|
-        hash[name] = DomainName.new(name, false)
+        hash[name] = DomainName.new(name, vrf, false)
       end
       hash
     end
 
     def ==(other)
-      name == other.name
+      (name == other.name) && (vrf == other.vrf)
     end
 
     def create
-      config_set('dnsclient', 'domain_name', state: '', name: @name)
+      if @vrf.nil?
+        config_set('dnsclient', 'domain_name',
+                   state: '', name: @name)
+      else
+        config_set('dnsclient', 'domain_name_vrf',
+                   state: '', name: @name, vrf: @vrf)
+      end
     end
 
     def destroy
-      config_set('dnsclient', 'domain_name', state: 'no', name: @name)
+      if @vrf.nil?
+        config_set('dnsclient', 'domain_name',
+                   state: 'no', name: @name)
+      else
+        config_set('dnsclient', 'domain_name_vrf',
+                   state: 'no', name: @name, vrf: @vrf)
+      end
     end
   end
 end
