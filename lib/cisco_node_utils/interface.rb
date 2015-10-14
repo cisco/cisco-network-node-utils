@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
+require File.join(File.dirname(__FILE__), 'features')
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -24,11 +25,13 @@ module Cisco
     trunk:      'trunk',
     fex_fabric: 'fex-fabric',
     tunnel:     'dot1q-tunnel',
+    fabricpath: 'fabricpath',
   }
 
   # Interface - node utility class for general interface config management
   class Interface < NodeUtil
     attr_reader :name
+    include Features
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -100,6 +103,22 @@ module Cisco
       config_get_default('interface', 'description')
     end
 
+    def enable_pim_sparse_mode
+      state = config_get('interface', 'pim_sparse_mode', @name)
+      state ? true : false
+    end
+
+    def enable_pim_sparse_mode=(state)
+      no_cmd = (state ? '' : 'no')
+      config_set('interface', 'pim_sparse_mode', @name, no_cmd)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_enable_pim_sparse_mode
+      config_get_default('interface', pim_sparse_mode)
+    end
+
     def encapsulation_dot1q
       val = config_get('interface', 'encapsulation_dot1q', @name)
       return default_encapsulation_dot1q if val.nil?
@@ -118,6 +137,23 @@ module Cisco
 
     def default_encapsulation_dot1q
       config_get_default('interface', 'encapsulation_dot1q')
+    end
+
+    def encapsulation_profile_vni
+      val = config_get('interface', 'encapsulation_vni', @name)
+      debug "val from get is #{val}"
+      return '' if val.nil?
+      val.first.strip
+    end
+
+    def encapsulation_profile_vni=(val)
+      if val.nil?
+        config_set('interface', 'encapsulation_vni_del', @name, val)
+      else
+        config_set('interface', 'encapsulation_vni_add', @name, val)
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def fex_feature
@@ -401,7 +437,9 @@ module Cisco
     def switchport_enable_and_mode(mode_set)
       switchport_enable unless switchport
 
-      if (:fex_fabric == mode_set)
+      if (:fabricpath == mode_set)
+        fabricpath_feature_set(:enabled) unless (:enabled == fabricpath_feature)
+      elsif (:fex_fabric == mode_set)
         fex_feature_set(:enabled) unless (:enabled == fex_feature)
       end
       config_set('interface', switchport_mode_lookup_string, @name, '',
