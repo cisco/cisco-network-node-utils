@@ -40,18 +40,17 @@ class TestX__CLASS_NAME__X < CiscoTestCase
   def test_router_create_destroy_one
     id = 'blue'
     rtr = X__CLASS_NAME__X.new(id)
-    s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X #{id}'")
-    assert_match(s, /^router X__RESOURCE_NAME__X #{id}$/,
-                 "Error: failed to create router X__RESOURCE_NAME__X #{id}")
+    @default_show_command = "show runn | i 'router X__RESOURCE_NAME__X #{id}'"
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id}")
 
     rtr.destroy
-    s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X #{id}'")
-    refute_match(s, /^router X__RESOURCE_NAME__X #{id}$/,
-                 "Error: failed to destroy router X__RESOURCE_NAME__X #{id}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id}")
 
-    s = @device.cmd("show runn | i 'feature X__RESOURCE_NAME__X'")
-    refute_match(s, /^feature X__RESOURCE_NAME__X$/,
-                 'Error: failed to disable feature X__RESOURCE_NAME__X')
+    refute_show_match(command: "show runn | i 'feature X__RESOURCE_NAME__X'",
+                      pattern: /^feature X__RESOURCE_NAME__X$/,
+                      msg:     'failed to disable feature X__RESOURCE_NAME__X')
   end
 
   def test_router_create_destroy_multiple
@@ -60,23 +59,23 @@ class TestX__CLASS_NAME__X < CiscoTestCase
     id2 = 'red'
     rtr2 = X__CLASS_NAME__X.new(id2)
 
+    @default_show_command = "show runn | i 'router X__RESOURCE_NAME__X'"
+
     s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X'")
     assert_match(s, /^router X__RESOURCE_NAME__X #{id1}$/)
     assert_match(s, /^router X__RESOURCE_NAME__X #{id2}$/)
 
     rtr1.destroy
-    s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X #{id1}'")
-    refute_match(s, /^router X__RESOURCE_NAME__X #{id1}$/,
-                 "Error: failed to destroy router X__RESOURCE_NAME__X #{id1}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id1}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id1}")
 
     rtr2.destroy
-    s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X #{id2}'")
-    refute_match(s, /^router X__RESOURCE_NAME__X #{id2}$/,
-                 "Error: failed to destroy router X__RESOURCE_NAME__X #{id2}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id2}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id2}")
 
-    s = @device.cmd("show runn | i 'feature X__RESOURCE_NAME__X'")
-    refute_match(s, /^feature X__RESOURCE_NAME__X$/,
-                 'Error: failed to disable feature X__RESOURCE_NAME__X')
+    refute_show_match(command: "show runn | i 'feature X__RESOURCE_NAME__X'",
+                      pattern: /^feature X__RESOURCE_NAME__X$/,
+                      msg:     'failed to disable feature X__RESOURCE_NAME__X')
   end
 
   def test_router_X__PROPERTY_INT__X

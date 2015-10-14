@@ -22,18 +22,15 @@ Changelog
   * Code coverage calculation using [SimpleCov]
   * Full Minitest suite can be run by `rake test`
   * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
+  * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
-* Added Vrf class for managing Cisco VRF configuration
-* Added RouterBgp class for managing Cisco BGP configurations
-* Added RouterBgpAF class for managing Cisco BGP Address Family configurations
-* Added RouterBgpNeighbor class for managing Cisco BGP Neighbor configurations
-* Added RouterBgpNeighborAF class for managing Cisco BGP Neighbor AF configurations
 
 ### Fixed
 
-* Fixed a bug in SnmpUser.auth_password_equal? and SnmpUser.priv_password_equal? that reported incorrectly when the passwords are unset.
+* Fixed several bugs in `SnmpUser.(auth|priv)_password_equal?`
 * Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 * Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
+* Added a cache_flush call in `Platform.chassis` to work around an infrequent issue.
 
 ### Changed
 
@@ -41,6 +38,7 @@ Changelog
 
 ### Removed
 
+* Dropped support for Ruby 1.9.3 as it is end-of-life.
 * Removed `test_all_cisco.rb` as `rake test` can auto-discover all tests.
 
 ## [v1.0.1]

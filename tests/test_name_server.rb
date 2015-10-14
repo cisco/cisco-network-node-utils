@@ -34,14 +34,14 @@ class TestNameServer < CiscoTestCase
 
   def no_nameserver_google
     # Turn the feature off for a clean test.
-    config('no ip name-server 8.8.8.8',
-           'no ip name-server 2001:4860:4860::8888')
+    config('no ip name-server 7.7.7.7',
+           'no ip name-server 2001:4860:4860::7777')
   end
 
   # TESTS
 
   def test_nameserver_create_destroy_single_ipv4
-    id = '8.8.8.8'
+    id = '7.7.7.7'
     refute_includes(Cisco::NameServer.nameservers, id)
 
     ns = Cisco::NameServer.new(id)
@@ -53,7 +53,7 @@ class TestNameServer < CiscoTestCase
   end
 
   def test_nameserver_create_destroy_single_ipv6
-    id = '2001:4860:4860::8888'
+    id = '2001:4860:4860::7777'
     refute_includes(Cisco::NameServer.nameservers, id)
 
     ns = Cisco::NameServer.new(id)
@@ -65,8 +65,8 @@ class TestNameServer < CiscoTestCase
   end
 
   def test_router_create_destroy_multiple
-    id1 = '8.8.8.8'
-    id2 = '2001:4860:4860::8888'
+    id1 = '7.7.7.7'
+    id2 = '2001:4860:4860::7777'
     refute_includes(Cisco::NameServer.nameservers, id1)
     refute_includes(Cisco::NameServer.nameservers, id2)
 
