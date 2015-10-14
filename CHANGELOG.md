@@ -30,6 +30,7 @@ Changelog
 * Fixed several bugs in `SnmpUser.(auth|priv)_password_equal?`
 * Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 * Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
+* Added a cache_flush call in `Platform.chassis` to work around an infrequent issue.
 
 ### Changed
 
