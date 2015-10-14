@@ -35,6 +35,7 @@ Changelog
 ### Changed
 
 * Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
+* Now requires Minitest ~> 5.0 instead of Minitest < 5.0.
 
 ### Removed
 

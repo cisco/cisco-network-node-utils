@@ -160,7 +160,7 @@ vrf blue",
 
     node.cache_flush
     dom3 = node.domain_name
-    assert_not_equal(dom1, dom3)
+    refute_equal(dom1, dom3)
   end
 
   def test_node_get_product_description
