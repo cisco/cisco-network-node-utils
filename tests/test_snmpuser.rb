@@ -57,6 +57,10 @@ class TestSnmpUser < CiscoTestCase
     assert_empty(delta, 'Users not deleted after test!')
   end
 
+  def user_pat(name, group='network-admin')
+    group ? /snmp-server user #{name} #{group}/ : /snmp-server user #{name}/
+  end
+
   ## test cases starts here
 
   def test_snmpuser_collection_not_empty
@@ -138,8 +142,8 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             false,
                             '')
-    assert_match(/snmp-server user #{name} network-admin/,
-                 @device.cmd('show run snmp all | no-more'))
+    assert_show_match(pattern: user_pat(name),
+                      command: 'show run snmp all | no-more')
     snmpuser.destroy
   end
 
@@ -154,7 +158,7 @@ class TestSnmpUser < CiscoTestCase
                             '')
     s = @device.cmd('show run snmp all | no-more')
     groups.each do |group|
-      assert_match(/snmp-server user #{name} #{group}/, s)
+      assert_match(user_pat(name, group), s)
     end
     snmpuser.destroy
   end
@@ -171,8 +175,8 @@ class TestSnmpUser < CiscoTestCase
     # destroy the user
     destroy_user(snmpuser)
     # check user got removed.
-    refute_match(/snmp-server user #{name} #{group}/,
-                 @device.cmd('show run snmp all | no-more'))
+    refute_show_match(command: 'show run snmp all | no-more',
+                      pattern: user_pat(name, group))
     assert_nil(SnmpUser.users[name])
   end
 
@@ -284,9 +288,9 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             false, # clear text
                             '')
-    assert_match(
-      /snmp-server user #{name} network-admin auth md5 \S+ localizedkey/,
-      @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -302,9 +306,9 @@ class TestSnmpUser < CiscoTestCase
                             '')
     assert_equal(snmpuser.name, name)
     assert_empty(snmpuser.engine_id)
-    assert_match(
-      /snmp-server user #{name} network-admin auth md5 #{auth_pw} localizedkey/,
-      @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -318,9 +322,9 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             false, # clear text
                             '')
-    assert_match(
-      /snmp-server user #{name} network-admin auth sha \S+ localizedkey/,
-      @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -337,9 +341,9 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             false, # localized key
                             '')
-    assert_match(
-      /snmp-server user #{name} network-admin auth sha \S+ localizedkey/,
-      @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -353,9 +357,9 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             true, # localized
                             '')
-    assert_match(
-      /snmp-server user #{name} network-admin auth sha #{auth_pw} localizedkey/,
-      @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -370,10 +374,9 @@ class TestSnmpUser < CiscoTestCase
                             :des, priv_pw,
                             false, # clear text
                             '')
-    # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth md5 \S+ priv \S+ localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
-    # rubocop:enable Metrics/LineLength
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 \S+ priv \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -388,9 +391,11 @@ class TestSnmpUser < CiscoTestCase
                             :des, priv_pw,
                             true, # localized
                             '')
-    assert_match("snmp-server user #{name} network-admin auth md5 #{auth_pw} " \
-                 "priv #{priv_pw} localizedkey",
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    # rubocop:disable Metrics/LineLength
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} priv #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
+    # rubocop:enable Metrics/LineLength
     snmpuser.destroy
   end
 
@@ -405,10 +410,9 @@ class TestSnmpUser < CiscoTestCase
                             :aes128, priv_pw,
                             false, # clear text
                             '')
-    # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth md5 \S+ priv aes-128 \S+ localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
-    # rubocop:enable Metrics/LineLength
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 \S+ priv aes-128 \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -424,8 +428,9 @@ class TestSnmpUser < CiscoTestCase
                             true, # localized
                             '')
     # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth md5 #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     # rubocop:enable Metrics/LineLength
     snmpuser.destroy
   end
@@ -441,10 +446,9 @@ class TestSnmpUser < CiscoTestCase
                             :des, priv_pw,
                             false, # clear text
                             '')
-    # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth sha \S+ priv \S+ localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
-    # rubocop:enable Metrics/LineLength
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha \S+ priv \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -460,8 +464,9 @@ class TestSnmpUser < CiscoTestCase
                             true, # localized
                             '')
     # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth sha #{auth_pw} priv #{priv_pw} localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} priv #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     # rubocop:enable Metrics/LineLength
     snmpuser.destroy
   end
@@ -477,10 +482,9 @@ class TestSnmpUser < CiscoTestCase
                             :aes128, priv_pw,
                             false, # clear text
                             '')
-    # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth sha \S+ priv aes-128 \S+ localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
-    # rubocop:enable Metrics/LineLength
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha \S+ priv aes-128 \S+ localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -496,8 +500,9 @@ class TestSnmpUser < CiscoTestCase
                             true, # localized
                             '')
     # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} network-admin auth sha #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     # rubocop:enable Metrics/LineLength
     snmpuser.destroy
   end
@@ -510,8 +515,9 @@ class TestSnmpUser < CiscoTestCase
     snmpuser = SnmpUser.new(name, [''], :md5, auth_pw, :des, priv_pw,
                             false, engine_id)
     # rubocop:disable Metrics/LineLength
-    assert_match(/snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    assert_show_match(
+      pattern: /snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
+      command: "show run snmp all | in #{name} | no-more")
     # rubocop:enable Metrics/LineLength
     user = SnmpUser.users["#{name} #{engine_id}"]
     refute_nil(user)
@@ -521,8 +527,9 @@ class TestSnmpUser < CiscoTestCase
     assert_equal(snmpuser.engine_id, user.engine_id)
     snmpuser.destroy
     # rubocop:disable Metrics/LineLength
-    refute_match(/snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
-                 @device.cmd("show run snmp all | in #{name} | no-more"))
+    refute_show_match(
+      pattern: /snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
+      command: "show run snmp all | in #{name} | no-more")
     # rubocop:enable Metrics/LineLength
     assert_nil(SnmpUser.users["#{name} #{engine_id}"])
   end
