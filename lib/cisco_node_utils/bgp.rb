@@ -337,7 +337,6 @@ module Cisco
     end
 
     def enforce_first_as=(enable)
-      return if workaround_CSCuv52710(enable, enforce_first_as)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'enforce_first_as', @set_args)
       set_args_keys_default

@@ -312,21 +312,33 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_enforce_first_as
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
+    %w(test_default test_vrf).each do |t|
+      if t == 'test_default'
+        asnum = 55
+        vrf = 'default'
+        bgp = RouterBgp.new(asnum)
+      else
+        asnum = 99
+        vrf = 'yamllll'
+        bgp = RouterBgp.new(asnum, vrf)
+      end
+
     bgp.enforce_first_as = true
     assert(bgp.enforce_first_as,
-           'bgp enforce first as should be enabled')
+           'vrf #{vrf}: bgp enforce-first-as should be enabled')
     bgp.enforce_first_as = false
     refute(bgp.enforce_first_as,
-           'bgp enforce first as should be disabled')
+           'vrf #{vrf}: bgp enforce-first-as should be disabled')
+    bgp.destroy
+    end
   end
 
   def test_routerbgp_default_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert(bgp.enforce_first_as,
-           'bgp enforce first as value should be enabled = true')
+           'bgp enforce-first-as value should be enabled = true')
+    bgp.destroy
   end
 
   def test_routerbgp_set_get_graceful_restart
