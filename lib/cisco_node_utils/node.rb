@@ -21,7 +21,7 @@
 require 'singleton'
 
 require 'cisco_nxapi'
-require File.join(File.dirname(__FILE__), 'command_reference')
+require_relative 'command_reference'
 
 # Add node management classes and APIs to the Cisco namespace.
 module Cisco

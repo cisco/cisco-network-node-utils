@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'basetest')
-require File.join(File.dirname(__FILE__), 'platform_info')
-require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
+require_relative 'basetest'
+require_relative 'platform_info'
+require_relative '../lib/cisco_node_utils/node'
 
 include Cisco
 

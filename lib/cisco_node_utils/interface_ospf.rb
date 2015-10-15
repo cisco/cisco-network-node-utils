@@ -15,8 +15,8 @@
 # limitations under the License.
 
 require 'ipaddr'
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'interface')
+require_relative 'node_util'
+require_relative 'interface'
 # Interestingly enough, interface OSPF configuration can exist completely
 # independent of router OSPF configuration... so we don't need RouterOspf here.
 

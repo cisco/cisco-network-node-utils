@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'interface')
+require_relative 'node_util'
+require_relative 'interface'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco

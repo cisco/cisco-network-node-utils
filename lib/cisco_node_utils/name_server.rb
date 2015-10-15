@@ -21,7 +21,7 @@
 # purpose of group; thus this provider utility does not create snmp groups
 # and is limited to reporting group (role) existence only.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # NameServer - node utility class for DNS client name server config management

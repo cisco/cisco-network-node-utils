@@ -141,7 +141,7 @@ This is the completed tunnel API based on `template-feature.rb`:
 
 ```ruby
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # Class name syntax will typically be the resource name in camelCase
@@ -212,8 +212,8 @@ This is the completed `tunnel` minitest based on `template-test_feature.rb`:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/tunnel", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/tunnel'
 
 # TestTunnel - Minitest for Tunnel node utility class
 class TestTunnel < CiscoTestCase
@@ -450,7 +450,7 @@ This is the completed `router_eigrp` API based on `template-router.rb`:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # RouterEigrp - node utility class for EIGRP config management.
@@ -601,8 +601,8 @@ This is the completed `test_router_eigrp` minitest based on `template-test_route
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/router_eigrp", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/router_eigrp'
 
 # TestRouterEigrp - Minitest for RouterEigrp node utility class
 class TestRouterEigrp < CiscoTestCase

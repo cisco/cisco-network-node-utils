@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'tacacs_server')
+require_relative 'node_util'
+require_relative 'tacacs_server'
 
 module Cisco
   # TacacsServerHost - node utility class for TACACS+ server host config

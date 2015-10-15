@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # Class name syntax will typically be the resource name in camelCase

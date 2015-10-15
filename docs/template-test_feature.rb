@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/X__RESOURCE_NAME__X',
-                         __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/X__RESOURCE_NAME__X'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestX__CLASS_NAME__X < CiscoTestCase

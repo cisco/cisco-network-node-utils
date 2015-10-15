@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
+require_relative 'ciscotest'
 
 # TestNodeExt - Minitest for abstracted Node APIs
 class TestNodeExt < CiscoTestCase
