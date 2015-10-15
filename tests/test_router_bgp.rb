@@ -323,13 +323,13 @@ class TestRouterBgp < CiscoTestCase
         bgp = RouterBgp.new(asnum, vrf)
       end
 
-    bgp.enforce_first_as = true
-    assert(bgp.enforce_first_as,
-           'vrf #{vrf}: bgp enforce-first-as should be enabled')
-    bgp.enforce_first_as = false
-    refute(bgp.enforce_first_as,
-           'vrf #{vrf}: bgp enforce-first-as should be disabled')
-    bgp.destroy
+      bgp.enforce_first_as = true
+      assert(bgp.enforce_first_as,
+             "vrf #{vrf}: bgp enforce-first-as should be enabled")
+      bgp.enforce_first_as = false
+      refute(bgp.enforce_first_as,
+             "vrf #{vrf}: bgp enforce-first-as should be disabled")
+      bgp.destroy
     end
   end
 
