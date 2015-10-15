@@ -15,6 +15,7 @@
 require 'cisco_node_utils/cisco_cmn_utils'
 require 'cisco_node_utils/command_reference'
 require 'cisco_node_utils/configparser_lib'
+require 'cisco_node_utils/domain_name'
 require 'cisco_node_utils/interface'
 require 'cisco_node_utils/interface_ospf'
 require 'cisco_node_utils/name_server'
