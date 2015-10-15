@@ -481,7 +481,7 @@ module Cisco
 
     # @return [String] such as "example.com"
     def domain_name
-      result = config_get('domain_name', 'domain_name')
+      result = config_get('dnsclient', 'domain_name')
       if result.nil?
         return ''
       else
