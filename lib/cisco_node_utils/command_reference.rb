@@ -167,6 +167,7 @@ module CommandReference
         @files = []
         # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
         # of objects.
+        # rubocop:disable Metrics/LineLength
         platforms = [
           CommandPlatformFile.new(//,
                                   File.join(File.dirname(__FILE__),
