@@ -330,6 +330,23 @@ module Cisco
       config_get_default('bgp', 'confederation_id')
     end
 
+    # Enforce First As (Getter/Setter/Default)
+    def enforce_first_as
+      match = config_get('bgp', 'enforce_first_as', @get_args)
+      match.nil? ? false : default_enforce_first_as
+    end
+
+    def enforce_first_as=(enable)
+      return if workaround_CSCuv52710(enable, enforce_first_as)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'enforce_first_as', @set_args)
+      set_args_keys_default
+    end
+
+    def default_enforce_first_as
+      config_get_default('bgp', 'enforce_first_as')
+    end
+
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
       match = config_get('bgp', 'confederation_peers', @get_args)
