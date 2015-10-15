@@ -121,12 +121,6 @@ tunnel:
 
 ### <a name="api">Step 2. cisco_node_utils API file: feature tunnel</a>
 
-* Before creating the new API, first add a new entry: `require 'cisco_node_utils/tunnel'`  to the master list of resources in:
-
-```
-lib/cisco_node_utils.rb
-```
-
 * There are template files in /docs that may help when writing new APIs. These templates provide most of the necessary code with just a few customizations required for a new resource. Copy the `template-feature.rb` file to use as the basis for `tunnel.rb`:
 
 ```bash
@@ -417,12 +411,6 @@ eigrp:
 ```
 
 ### <a name="comp_api">Step 2. cisco_node_utils API: router eigrp</a>
-
-* Add a new entry: `require 'cisco_node_utils/router_eigrp'` to the master list in:
-
-```
-lib/cisco_node_utils.rb
-```
 
 * The `template-router.rb` file provides a basic router API that we will use as the basis for `router_eigrp.rb`:
 
