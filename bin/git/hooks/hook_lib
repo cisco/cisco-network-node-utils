@@ -71,7 +71,7 @@ check_rc_optional() {
     [ $RC -eq 0 ] && return $RC
     echo -e "\t...[ ${YELLOW}WARNING${RESET} ] $msg"
     exec < /dev/tty
-    read -p "Continue anyways?" yn
+    read -p "Continue anyway? [y/N] " yn
     exec <&-
     case $yn in
       [Yy]* ) return 0;;
