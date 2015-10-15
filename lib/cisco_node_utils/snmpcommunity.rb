@@ -42,7 +42,6 @@ module Cisco
     def destroy
       # CLI requires specifying a group even for "no" commands
       config_set('snmp_community', 'community', 'no', @name, 'null')
-      @communities.delete(@name) unless @communities.nil?
     end
 
     # name is read only

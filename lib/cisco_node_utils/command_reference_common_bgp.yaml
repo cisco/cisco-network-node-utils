@@ -373,21 +373,15 @@ bgp_neighbor_af:
     config_set_append: '<state> as-override'
     default_value: false
 
-  cap_add_paths_receive:
+  additional_paths_receive:
     config_get_token_append: '/^capability additional-paths receive(?: disable)?/'
     config_set_append: '<state> capability additional-paths receive <disable>'
-    default_value: false
+    default_value: 'inherit'
 
-  cap_add_paths_receive_disable:
-    default_value: false
-
-  cap_add_paths_send:
+  additional_paths_send:
     config_get_token_append: '/^capability additional-paths send(?: disable)?/'
     config_set_append: '<state> capability additional-paths send <disable>'
-    default_value: false
-
-  cap_add_paths_send_disable:
-    default_value: false
+    default_value: 'inherit'
 
   default_originate:
     config_get_token_append: '/^default-originate(?: route-map .*)?/'
@@ -461,10 +455,7 @@ bgp_neighbor_af:
   soft_reconfiguration_in:
     config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
     config_set_append: '<state> soft-reconfiguration inbound <always>'
-    default_value: false
-
-  soft_reconfiguration_in_always:
-    default_value: false
+    default_value: 'inherit'
 
   soo:
     config_get_token_append: '/^soo (.*)$/'

@@ -93,6 +93,7 @@ module Cisco
     #       'vid'   => 'V02',
     #       'sn'    => 'SAL1812NTBP' }
     def self.chassis
+      node.cache_flush # TODO: investigate why this is needed
       chas = config_get('inventory', 'chassis')
       return nil if chas.nil?
       {
@@ -143,8 +144,8 @@ module Cisco
 
     # Returns hash of hashes with inner keys "state", "application", ...
     # Ex: { 'chef' => {
-    #        'package_info' => { 'name'     => 'n3k_chanm_chef.ova',
-    #                            'path'     => 'bootflash:/n3k_chanm_chef.ova' },
+    #        'package_info' => { 'name'     => 'n3k_chef.ova',
+    #                            'path'     => 'bootflash:/n3k_chef.ova' },
     #        'application'  => { 'name'     => 'ChefAgent',
     #                            'version'  => '0.1',
     #                            'descr'    => 'Cisco Chef Agent' },

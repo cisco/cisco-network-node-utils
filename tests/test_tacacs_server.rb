@@ -17,37 +17,32 @@ require File.expand_path('../../lib/cisco_node_utils/tacacs_server', __FILE__)
 
 # TestTacacsServer - Minitest for TacacsServer node utility
 class TestTacacsServer < CiscoTestCase
-  def tacacsserver_feature
-    s = @device.cmd('show run all | no-more')
-    cmd = 'feature tacacs+'
-    /#{cmd}/.match(s)
+  def assert_tacacsserver_feature
+    assert_show_match(command: 'show run all | no-more',
+                      pattern: /feature tacacs\+/)
   end
 
-  # Helper routine to get the tacacs config. Ideally we should be able
-  # to use 'sh run tacacs all' but that does not work for 'directed-request'
-  # why 'sh run aaa all' is used.
-  def get_tacacsserver_match_line(name)
-    s = @device.cmd('show run tacacs all | no-more ; show run aaa all | no-more')
-    cmd = 'tacacs-server'
-    pattern = (/#{cmd} #{name}/)
-    pattern.match(s)
+  def refute_tacacsserver_feature
+    refute_show_match(command: 'show run all | no-more',
+                      pattern: /feature tacacs\+/)
   end
 
-  def get_match_line(name)
-    s = @device.cmd('show run all | no-more')
-    /#{name}/.match(s)
+  def setup
+    super
+    # Most commands appear under 'show run tacacs all' but the
+    # 'directed-request' command is under 'show run aaa all'
+    @default_show_command = 'show run tacacs all | no-more ; ' \
+                            'show run aaa all | no-more'
   end
 
   def test_tacacsserver_create_valid
     tacacs = TacacsServer.new
-    line = tacacsserver_feature
-    refute_nil(line, 'Error: Tacacs feature not set')
+    assert_tacacsserver_feature
     tacacs.destroy
   end
 
   def test_tacacsserver_get_encryption_type
-    @device.cmd('conf t ; no feature tacacs+ ; feature tacacs+ ; end')
-    node.cache_flush
+    config('no feature tacacs+', 'feature tacacs+')
     encryption_type = TACACS_SERVER_ENC_UNKNOWN
     # Get encryption password when not configured
     tacacs = TacacsServer.new
@@ -61,11 +56,7 @@ class TestTacacsServer < CiscoTestCase
     # This one is needed since the 'sh run' will always display the type
     # differently than the used encryption config type.
     sh_run_encryption_type = TACACS_SERVER_ENC_CISCO_TYPE_7
-    @device.cmd('configure terminal')
-    @device.cmd('feature tacacs+')
-    @device.cmd("tacacs-server key #{encryption_type} TEST")
-    @device.cmd('end')
-    node.cache_flush
+    config('feature tacacs+', "tacacs-server key #{encryption_type} TEST")
 
     tacacs = TacacsServer.new
     assert_equal(sh_run_encryption_type,
@@ -73,10 +64,7 @@ class TestTacacsServer < CiscoTestCase
                  'Error: Tacacs Server, encryption type incorrect')
 
     encryption_type = TACACS_SERVER_ENC_CISCO_TYPE_7
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server key #{encryption_type} TEST")
-    @device.cmd('end')
-    node.cache_flush
+    config("tacacs-server key #{encryption_type} TEST")
 
     assert_equal(sh_run_encryption_type,
                  tacacs.encryption_type,
@@ -93,10 +81,10 @@ class TestTacacsServer < CiscoTestCase
 
   def test_tacacsserver_get_encryption_password
     # Get encryption password when not configured
-    @device.cmd('conf t ; no feature tacacs+ ; end')
-    node.cache_flush
+    config('no feature tacacs+')
     tacacs = TacacsServer.new
-    assert_equal(node.config_get_default('tacacs_server', 'encryption_password'),
+    assert_equal(node.config_get_default('tacacs_server',
+                                         'encryption_password'),
                  tacacs.encryption_password,
                  'Error: Tacacs Server, encryption password incorrect')
     tacacs.destroy
@@ -106,12 +94,7 @@ class TestTacacsServer < CiscoTestCase
     encryption_type = TACACS_SERVER_ENC_NONE
     # This one is needed since the 'sh run' will always display the password
     # differently than the used encryption config type.
-    @device.cmd('configure terminal')
-    @device.cmd('feature tacacs+')
-    @device.cmd("tacacs-server key #{encryption_type} TEST")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('feature tacacs+', "tacacs-server key #{encryption_type} TEST")
     tacacs = TacacsServer.new
     assert_equal(sh_run_encryption_password,
                  tacacs.encryption_password,
@@ -120,7 +103,8 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_default_encryption_password
-    assert_equal(node.config_get_default('tacacs_server', 'encryption_password'),
+    assert_equal(node.config_get_default('tacacs_server',
+                                         'encryption_password'),
                  TacacsServer.default_encryption_password,
                  'Error: Tacacs Server, default encryption password incorrect')
   end
@@ -135,8 +119,9 @@ class TestTacacsServer < CiscoTestCase
     tacacs = TacacsServer.new
     tacacs.encryption_key_set(enc_type, password)
     # Get the password from the running config since its encoded
-    line = get_tacacsserver_match_line("key\s#{sh_run_encryption_type}\s\".*\"")
-    refute_nil(line, 'Error: Tacacs Server, key not configured')
+    line = assert_show_match(
+      pattern: /tacacs-server key\s#{sh_run_encryption_type}\s".*"/,
+      msg:     'Error: Tacacs Server, key not configured')
     # Extract encrypted password, and git rid of the "" around the pasword
     md = line.to_s
     encrypted_password = md.to_s.split(' ').last.tr('\"', '')
@@ -151,8 +136,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_key_unconfigure
-    @device.cmd('conf t ; no feature tacacs+ ; end')
-    node.cache_flush
+    config('no feature tacacs+')
     enc_type = TACACS_SERVER_ENC_NONE
     # This one is needed since the 'sh run' will always display the type
     # differently than the used encryption config type.
@@ -161,14 +145,16 @@ class TestTacacsServer < CiscoTestCase
 
     tacacs = TacacsServer.new
     tacacs.encryption_key_set(enc_type, password)
-    line = get_tacacsserver_match_line("key\s#{sh_run_encryption_type}\s\".*\"")
-    refute_nil(line, 'Error: Tacacs Server, key not configured')
+    assert_show_match(
+      pattern: /tacacs-server key\s#{sh_run_encryption_type}\s".*"/,
+      msg:     'Error: Tacacs Server, key not configured')
 
     enc_type = TACACS_SERVER_ENC_UNKNOWN
     password = ''
     tacacs.encryption_key_set(enc_type, password)
-    line = get_tacacsserver_match_line("key\s#{sh_run_encryption_type}\s\".*\"")
-    assert_nil(line, 'Error: Tacacs Server, key configured')
+    refute_show_match(
+      pattern: /tacacs-server key\s#{sh_run_encryption_type}\s".*"/,
+      msg:     'Error: Tacacs Server, key configured')
     tacacs.destroy
   end
 
@@ -179,11 +165,7 @@ class TestTacacsServer < CiscoTestCase
                  'Error: Tacacs Server, timeout not default')
 
     timeout = 35
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server timeout #{timeout}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config("tacacs-server timeout #{timeout}")
     assert_equal(timeout, tacacs.timeout,
                  'Error: Tacacs Server, timeout not configured')
     tacacs.destroy
@@ -200,12 +182,12 @@ class TestTacacsServer < CiscoTestCase
 
     tacacs = TacacsServer.new
     tacacs.timeout = timeout
-    line = get_tacacsserver_match_line("timeout\s.*")
+    line = assert_show_match(pattern: /tacacs-server timeout\s.*/,
+                             msg:     'Error: timeout not configured')
     # Extract timeout
     md = /tacacs-server\stimeout\s\d*/.match(line.to_s)
     sh_run_timeout = md.to_s.split(' ').last.to_i
     # Need a better way to extract the timeout
-    refute_nil(line, 'Error: Tacacs Server, timeout not configured')
     assert_equal(sh_run_timeout, tacacs.timeout,
                  'Error: Tacacs Server, timeout value incorrect')
 
@@ -224,11 +206,7 @@ class TestTacacsServer < CiscoTestCase
                  'Error: Tacacs Server, deadtime not default')
 
     deadtime = 850
-    @device.cmd('configure terminal')
-    @device.cmd("tacacs-server deadtime #{deadtime}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config("tacacs-server deadtime #{deadtime}")
     assert_equal(deadtime, tacacs.deadtime,
                  'Error: Tacacs Server, deadtime not configured')
     tacacs.destroy
@@ -245,11 +223,11 @@ class TestTacacsServer < CiscoTestCase
 
     tacacs = TacacsServer.new
     tacacs.deadtime = deadtime
-    line = get_tacacsserver_match_line("deadtime\s.*")
+    line = assert_show_match(pattern: /tacacs-server deadtime\s.*/,
+                             msg:     'Error: deadtime not configured')
     # Extract deadtime
     md = /tacacs-server\sdeadtime\s\d*/.match(line.to_s)
     sh_run_deadtime = md.to_s.split(' ').last.to_i
-    refute_nil(line, 'Error: Tacacs Server, deadtime not configured')
     assert_equal(sh_run_deadtime, tacacs.deadtime,
                  'Error: Tacacs Server, deadtime incorrect')
     # Invalid case
@@ -261,15 +239,12 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_directed_request
-    @device.cmd('conf t ; feature tacacs ; tacacs-server directed-request ; end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('feature tacacs', 'tacacs-server directed-request')
     tacacs = TacacsServer.new
     assert(tacacs.directed_request?,
            'Error: Tacacs Server, directed-request not set')
 
-    @device.cmd('conf t ; no tacacs-server directed-request ; end')
-    node.cache_flush
+    config('no tacacs-server directed-request')
     refute(tacacs.directed_request?,
            'Error: Tacacs Server, directed-request set')
     tacacs.destroy
@@ -282,28 +257,26 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_set_directed_request
-    @device.cmd('conf t ; feature tacacs ; tacacs-server directed-request ; end')
+    config('feature tacacs', 'tacacs-server directed-request')
     state = true
     tacacs = TacacsServer.new
     tacacs.directed_request = state
-    line = get_tacacsserver_match_line('directed-request')
-    refute_nil(line, 'Error: Tacacs Server, directed-request not configured')
+    assert_show_match(pattern: /tacacs-server directed-request/,
+                      msg:     'directed-request not configured')
     assert(tacacs.directed_request?,
            'Error: Tacacs Server, directed-request not set')
 
     # Turn it off
-    @device.cmd('conf t ; no tacacs-server directed-request ; end')
-    node.cache_flush
+    config('no tacacs-server directed-request')
     refute(tacacs.directed_request?,
            'Error: Tacacs Server, directed-request set')
 
     # Turn it back on then go to default
-    @device.cmd('conf t ; no tacacs-server directed-request ; end')
+    config('no tacacs-server directed-request')
     state = node.config_get_default('tacacs_server', 'directed_request')
     tacacs.directed_request = state
-    line = get_match_line('no tacacs-server directed-request')
-    refute_nil(line,
-               'Error: Tacacs Server, default directed-request not configured')
+    line = assert_show_match(pattern: /no tacacs-server directed-request/,
+                             msg:     'default directed-request not configed')
 
     # Extract the state of directed-request
     sh_run_directed_request = line.to_s.split(' ').first
@@ -322,20 +295,14 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_source_interface
-    @device.cmd('configure terminal')
-    @device.cmd('no ip tacacs source-interface')
-    @device.cmd('end')
+    config('no ip tacacs source-interface')
     tacacs = TacacsServer.new
     intf = node.config_get_default('tacacs_server', 'source_interface')
     assert_equal(intf, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface set')
 
     intf = 'Ethernet1/1'
-    @device.cmd('configure terminal')
-    @device.cmd("ip tacacs source-interface #{intf}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config("ip tacacs source-interface #{intf}")
     assert_equal(intf, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface not correct')
     tacacs.destroy
@@ -348,8 +315,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_set_source_interface
-    @device.cmd('conf t ; feature tacacs+ ; no ip tacacs source-int ; end')
-    node.cache_flush
+    config('feature tacacs+', 'no ip tacacs source-int')
     intf = node.config_get_default('tacacs_server', 'source_interface')
     tacacs = TacacsServer.new
     assert_equal(intf, tacacs.source_interface,
@@ -357,18 +323,18 @@ class TestTacacsServer < CiscoTestCase
 
     intf = 'Ethernet1/1'
     tacacs.source_interface = intf
-    line = get_match_line("ip tacacs source-interface #{intf}")
+    line = assert_show_match(pattern: /ip tacacs source-interface #{intf}/,
+                             msg:     'source-interface not configured')
     # Extract source-interface
     sh_run_source_interface = line.to_s.split(' ').last
-    refute_nil(line, 'Error: Tacacs Server, source-interface not configured')
     assert_equal(sh_run_source_interface, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface not correct')
 
     # Now bring it back to default
     intf = node.config_get_default('tacacs_server', 'source_interface')
     tacacs.source_interface = intf
-    line = get_match_line('no ip tacacs source-interface')
-    refute_nil(line, 'Error: Tacacs Server, source-interface not default')
+    assert_show_match(pattern: /no ip tacacs source-interface/,
+                      msg:     'source-interface not default')
 
     # Invalid case
     state = true
@@ -380,10 +346,8 @@ class TestTacacsServer < CiscoTestCase
 
   def test_tacacsserver_destroy
     tacacs = TacacsServer.new
-    line = tacacsserver_feature
-    refute_nil(line, 'Error: Tacacs feature not set')
+    assert_tacacsserver_feature
     tacacs.destroy
-    line = tacacsserver_feature
-    assert_nil(line, 'Error: Tacacs feature still present')
+    refute_tacacsserver_feature
   end
 end

@@ -14,37 +14,13 @@
 
 require File.join(File.dirname(__FILE__), 'node_util')
 
-# Add some SNMP user related constants to the Cisco namespace
 module Cisco
-  SNMP_USER_NAME_KEY = 'user'
-  SNMP_USER_GROUP_KEY = 'group'
-  SNMP_USER_AUTH_KEY = 'auth'
-  SNMP_USER_PRIV_KEY = 'priv'
-  SNMP_USER_ENGINE_ID = 'engineID'
-  SNMP_USER_ENGINE_ID_PATTERN = /([0-9]{1,3}(:[0-9]{1,3}){4,31})/
-
   # SnmpUser - node utility class for SNMP user configuration management
   class SnmpUser < NodeUtil
-    @users = {}
-
     def initialize(name, groups, authproto, authpass, privproto,
                    privpass, localizedkey, engineid, instantiate=true)
-      fail TypeError unless name.is_a?(String)
-      fail ArgumentError if name.empty?
-      fail TypeError unless groups.is_a?(Array)
-      fail TypeError unless authproto.is_a?(Symbol)
-      fail TypeError unless authpass.is_a?(String)
-      # empty password but protocol provided = bad
-      # non-empty password and no protocol provided = bad
-      fail ArgumentError if authpass.empty? && [:sha, :md5].include?(authproto) && instantiate
-      fail ArgumentError unless authpass.empty? || [:sha, :md5].include?(authproto)
-      fail TypeError unless privproto.is_a?(Symbol)
-      fail TypeError unless privpass.is_a?(String)
-      fail ArgumentError if privpass.empty? && [:des, :aes128].include?(privproto) && instantiate
-      fail ArgumentError unless privpass.empty? || [:des, :aes128].include?(privproto)
-      fail TypeError unless !!localizedkey == localizedkey # rubocop:disable Style/DoubleNegation
-      fail TypeError unless engineid.is_a?(String)
-
+      initialize_validator(name, groups, authproto, authpass, privproto,
+                           privpass, engineid, instantiate)
       @name = name
       @engine_id = engineid
 
@@ -58,7 +34,9 @@ module Cisco
       return unless instantiate
       # Config string syntax:
       # [no] snmp-server user <user> [group] ...
-      #      [auth {md5|sha} <passwd1> [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
+      #      [auth {md5|sha} <passwd1>
+      #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]
+      #      ]
       # Assume if multiple groups, apply all config to each
       groups = [''] if groups.empty?
       groups.each do |group|
@@ -72,33 +50,59 @@ module Cisco
       end
     end
 
+    def initialize_validator(name, groups, authproto, authpass, privproto,
+                             privpass, engineid, instantiate)
+      fail TypeError unless name.is_a?(String) &&
+                            groups.is_a?(Array) &&
+                            authproto.is_a?(Symbol) &&
+                            authpass.is_a?(String) &&
+                            privproto.is_a?(Symbol) &&
+                            privpass.is_a?(String) &&
+                            engineid.is_a?(String)
+      fail ArgumentError if name.empty?
+      # empty password but protocol provided = bad
+      # non-empty password and no protocol provided = bad
+      if authpass.empty?
+        fail ArgumentError if [:sha, :md5].include?(authproto) && instantiate
+      else
+        fail ArgumentError unless [:sha, :md5].include?(authproto)
+      end
+      if privpass.empty?
+        fail ArgumentError if [:des, :aes128].include?(privproto) && instantiate
+      else
+        fail ArgumentError unless [:des, :aes128].include?(privproto)
+      end
+    end
+
+    ENGINE_ID_PATTERN = /([0-9]{1,3}(:[0-9]{1,3}){4,31})/
     def self.users
-      @users = {}
+      users_hash = {}
       # config_get returns hash if 1 user, array if multiple, nil if none
       users = config_get('snmp_user', 'user')
-      unless users.nil?
-        users = [users] if users.is_a?(Hash)
-        users.each do |user|
-          name = user[SNMP_USER_NAME_KEY]
-          engineid = user[SNMP_USER_ENGINE_ID]
-          if engineid.nil?
-            index = name
-          else
-            engineid_str = engineid.match(SNMP_USER_ENGINE_ID_PATTERN)[1]
-            index = name + ' ' + engineid_str
-          end
-          auth = _auth_str_to_sym(user[SNMP_USER_AUTH_KEY])
-          priv = _priv_str_to_sym(user[SNMP_USER_PRIV_KEY])
-
-          groups_arr = []
-          groups = _user_to_groups(user)
-          groups.each { |group| groups_arr << group[SNMP_USER_GROUP_KEY].strip }
-
-          @users[index] = SnmpUser.new(name, groups_arr, auth,
-                                       '', priv, '', false, engineid.nil? ? '' : engineid_str, false)
+      return users_hash if users.nil?
+      users = [users] if users.is_a?(Hash)
+      users.each do |user|
+        name = user['user']
+        engineid = user['engineID']
+        if engineid.nil?
+          index = name
+        else
+          engineid_str = engineid.match(ENGINE_ID_PATTERN)[1]
+          index = name + ' ' + engineid_str
         end
+        auth = _auth_str_to_sym(user['auth'])
+        priv = _priv_str_to_sym(user['priv'])
+
+        groups_arr = []
+        groups = _user_to_groups(user)
+        groups.each { |group| groups_arr << group['group'].strip }
+
+        users_hash[index] = SnmpUser.new(name, groups_arr, auth,
+                                         '', priv, '', false,
+                                         engineid.nil? ? '' : engineid_str,
+                                         false)
       end
-      @users
+      users_hash
     end
 
     def destroy
@@ -198,82 +202,97 @@ module Cisco
       config_get_default('snmp_user', 'engine_id')
     end
 
-    # passwords are hashed and so cannot be retrieved directly, but can be
-    # checked for equality. this is done by creating a fake user with the
+    # Passwords are hashed and so cannot be retrieved directly, but can be
+    # checked for equality. This is done by creating a fake user with the
     # password and then comparing the hashes
-    def auth_password_equal?(passwd, is_localized=false)
-      passwd = passwd.to_s unless passwd.is_a?(String)
-      return true if passwd.empty? && _auth_sym_to_str(auth_protocol).empty?
-      return false if passwd.empty? || _auth_sym_to_str(auth_protocol).empty?
-      dummypw = passwd
-      pw = nil
+    def auth_password_equal?(input_pw, is_localized=false)
+      input_pw = input_pw.to_s unless input_pw.is_a?(String)
+      # If we provide no password, and no password present, it's a match!
+      return true if input_pw.empty? && auth_protocol == :none
+      # If we provide no password, but a password is present, or vice versa...
+      return false if input_pw.empty? || auth_protocol == :none
+      # OK, we have an input password, and a password is configured
+      current_pw = auth_password
+      if current_pw.nil?
+        fail "SNMP user #{@name} #{@engine_id} has auth #{auth_protocol} " \
+             "but no password?\n" + @@node.show('show run snmp all')
+      end
 
       if is_localized
-        # In this case, the password is hashed. We only need to get current
-        # running config to compare
-        pw = auth_password
+        # In this case, the password is already hashed.
+        hashed_pw = input_pw
       else
         # In this case passed in password is clear text while the running
-        # config is hashed value. We need to hash the
-        # passed in clear text to hash
+        # config is hashed value. We need to hash the passed in clear text.
 
-        # create dummy user
+        # Create dummy user
         config_set('snmp_user', 'user', '', 'dummy_user', '',
-                   "auth #{_auth_sym_to_str(auth_protocol)} #{dummypw}",
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}",
                    '', '',
                    @engine_id.empty? ? '' : "engineID #{@engine_id}")
 
-        # retrieve password hashes
-        dummypw = SnmpUser.auth_password('dummy_user', @engine_id)
-        pw = auth_password
+        # Retrieve password hashes
+        hashed_pw = SnmpUser.auth_password('dummy_user', @engine_id)
+        if hashed_pw.nil?
+          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
+               "but password is missing?\n" + @@node.show('show run snmp all')
+        end
 
-        # delete dummy user
+        # Delete dummy user
         config_set('snmp_user', 'user', 'no', 'dummy_user', '',
-                   "auth #{_auth_sym_to_str(auth_protocol)} #{dummypw}",
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{hashed_pw}",
                    '', 'localizedkey',
                    @engine_id.empty? ? '' : "engineID #{@engine_id}")
       end
-      return false if pw.nil? || dummypw.nil?
-      pw == dummypw
+      hashed_pw == current_pw
     end
 
-    def priv_password_equal?(passwd, is_localized=false)
-      passwd = passwd.to_s unless passwd.is_a?(String)
-      return true if passwd.empty? && _auth_sym_to_str(auth_protocol).empty?
-      return false if passwd.empty? || _auth_sym_to_str(auth_protocol).empty?
-      dummypw = passwd
-      pw = nil
+    # Passwords are hashed and so cannot be retrieved directly, but can be
+    # checked for equality. This is done by creating a fake user with the
+    # password and then comparing the hashes
+    def priv_password_equal?(input_pw, is_localized=false)
+      input_pw = input_pw.to_s unless input_pw.is_a?(String)
+      # If no input password, and no password present, true!
+      return true if input_pw.empty? && priv_protocol == :none
+      # Otherwise, if either one is missing, false!
+      return false if input_pw.empty? || priv_protocol == :none
+      # Otherwise, we have both input and configured passwords to compare
+      current_pw = priv_password
+      if current_pw.nil?
+        fail "SNMP user #{@name} #{@engine_id} has priv #{priv_protocol} " \
+             "but no password?\n" + @@node.show('show run snmp all')
+      end
 
       if is_localized
-        # In this case, the password is hashed. We only need to get current
-        # and compare directly
-        pw = priv_password
+        # In this case, the password is already hashed.
+        hashed_pw = input_pw
       else
         # In this case passed in password is clear text while the running
-        # config is hashed value. We need to hash the
-        # passed in clear text to hash
+        # config is hashed value. We need to hash the passed in clear text.
 
-        # create dummy user
+        # Create dummy user
         config_set('snmp_user', 'user', '', 'dummy_user', '',
-                   "auth #{_auth_sym_to_str(auth_protocol)} #{dummypw}",
-                   "priv #{_priv_sym_to_str(priv_protocol)} #{dummypw}",
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}",
+                   "priv #{_priv_sym_to_str(priv_protocol)} #{input_pw}",
                    '',
                    @engine_id.empty? ? '' : "engineID #{@engine_id}")
 
-        # retrieve password hashes
+        # Retrieve password hashes
         dummyau = SnmpUser.auth_password('dummy_user', @engine_id)
-        dummypw = SnmpUser.priv_password('dummy_user', @engine_id)
-        pw = priv_password
+        hashed_pw = SnmpUser.priv_password('dummy_user', @engine_id)
+        if hashed_pw.nil?
+          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
+               "but password is missing?\n" + @@node.show('show run snmp all')
+        end
 
-        # delete dummy user
+        # Delete dummy user
         config_set('snmp_user', 'user', 'no', 'dummy_user', '',
                    "auth #{_auth_sym_to_str(auth_protocol)} #{dummyau}",
-                   "priv #{_priv_sym_to_str(priv_protocol)} #{dummypw}",
+                   "priv #{_priv_sym_to_str(priv_protocol)} #{hashed_pw}",
                    'localizedkey',
                    @engine_id.empty? ? '' : "engineID #{@engine_id}")
       end
-      return false if pw.nil? || dummypw.nil?
-      pw == dummypw
+      hashed_pw == current_pw
     end
 
     private

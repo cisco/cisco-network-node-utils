@@ -17,40 +17,30 @@ require File.expand_path('../../lib/cisco_node_utils/router_ospf', __FILE__)
 
 # TestRouterOspf - Minitest for the RouterOspf node utility class.
 class TestRouterOspf < CiscoTestCase
+  def setup
+    super
+    @default_show_command = "show run | include '^router ospf .*'"
+  end
+
   def routerospf_routers_destroy(routers)
     routers.each_value(&:destroy)
   end
 
-  def get_routerospf_match_line(name)
-    s = @device.cmd("show run | include '^router ospf .*'")
-    cmd = 'router ospf'
-    /#{cmd}\s#{name}/.match(s)
-  end
-
   def test_routerospf_collection_empty
-    @device.cmd('configure terminal')
-    @device.cmd('no feature ospf')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature ospf')
     routers = RouterOspf.routers
     assert_equal(true, routers.empty?,
                  'RouterOspf collection is not empty')
   end
 
   def test_routerospf_collection_not_empty
-    @device.cmd('configure terminal')
-    @device.cmd('feature ospf')
-    @device.cmd('router ospf TestOSPF')
-    @device.cmd('router ospf 100')
-    @device.cmd('end')
-    node.cache_flush
+    config('feature ospf', 'router ospf TestOSPF', 'router ospf 100')
     routers = RouterOspf.routers
     assert_equal(false, routers.empty?,
                  'RouterOspf collection is empty')
     # validate the collection
     routers.each_key do |name|
-      line = get_routerospf_match_line(name)
-      assert_equal(false, line.nil?)
+      assert_show_match(pattern: /router ospf #{name}/)
     end
     routerospf_routers_destroy(routers)
   end
@@ -64,43 +54,31 @@ class TestRouterOspf < CiscoTestCase
   def test_routerospf_create_valid
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: 'router ospf ospfTest' not configured")
+    assert_show_match(pattern: /router ospf #{name}/,
+                      msg:     "'router ospf ospfTest' not configured")
     ospf.destroy
   end
 
   def test_routerospf_create_valid_no_feature
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: 'router ospf ospfTest' not configured")
+    assert_show_match(pattern: /router ospf #{name}/,
+                      msg:     "'router ospf ospfTest' not configured")
     ospf.destroy
 
-    s = @device.cmd('show run all | no-more')
-    cmd = 'feature ospf'
-    line = /#{cmd}/.match(s)
-    assert_equal(true, line.nil?,
-                 "Error: 'feature ospf' still configured")
+    refute_show_match(command: 'show run all | no-more',
+                      pattern: /feature ospf/,
+                      msg:     "Error: 'feature ospf' still configured")
   end
 
   def test_routerospf_create_valid_multiple
     name = 'ospfTest_1'
     ospf_1 = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: 'router ospf ospfTest_1' not configured")
+    assert_show_match(pattern: /router ospf #{name}/)
 
     name = 'ospfTest_2'
     ospf_2 = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: 'router ospf ospfTest_1' not configured")
+    assert_show_match(pattern: /router ospf #{name}/)
 
     ospf_1.destroy
     ospf_2.destroy
@@ -109,8 +87,7 @@ class TestRouterOspf < CiscoTestCase
   def test_routerospf_get_name
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
+    line = assert_show_match(pattern: /router ospf #{name}/)
     name = line.to_s.split(' ').last
     # puts "name from cli: #{name}"
     # puts "name from get: #{routerospf.name}"
@@ -123,26 +100,20 @@ class TestRouterOspf < CiscoTestCase
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
     ospf.destroy
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(true, line.nil?,
-                 "Error: 'router ospf ospfTest' not destroyed")
+    refute_show_match(pattern: /router ospf #{name}/,
+                      msg:     "'router ospf ospfTest' not destroyed")
   end
 
   def test_routerospf_create_valid_multiple_delete_one
     name = 'ospfTest_1'
     ospf_1 = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: #{name}, not configured")
+    assert_show_match(pattern: /router ospf #{name}/,
+                      msg:     "Error: #{name}, not configured")
 
     name = 'ospfTest_2'
     ospf_2 = RouterOspf.new(name)
-    line = get_routerospf_match_line(name)
-    # puts "cfg line: #{line}"
-    assert_equal(false, line.nil?,
-                 "Error: #{name}, not configured")
+    assert_show_match(pattern: /router ospf #{name}/,
+                      msg:     "Error: #{name}, not configured")
 
     ospf_1.destroy
 
@@ -155,9 +126,8 @@ class TestRouterOspf < CiscoTestCase
     assert_equal(true, routers.key?(name),
                  "Error: #{name}, not found in the collection")
     # validate the collection
-    line = get_routerospf_match_line(name)
-    assert_equal(false, line.nil?,
-                 "Error: #{name}, instance not found")
+    assert_show_match(pattern: /router ospf #{name}/,
+                      msg:     "Error: #{name}, instance not found")
     ospf_2.destroy
   end
 end

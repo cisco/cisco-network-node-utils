@@ -13,7 +13,7 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'basetest')
-require File.expand_path('../../lib/cisco_node_utils/platform_info', __FILE__)
+require File.join(File.dirname(__FILE__), 'platform_info')
 require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
 
 include Cisco
@@ -31,26 +31,34 @@ class CiscoTestCase < TestCase
   def node
     unless @@node
       @@node = Node.instance # rubocop:disable Style/ClassVars
-      @@node.connect(@@address, @@username, @@password)
+      @@node.connect(address, username, password)
       @@node.cache_enable = true
       @@node.cache_auto = true
-      puts "Node in CiscoTestCase Class: #{@@node}"
+      # Record the platform we're running on
+      puts "\nNode under test:"
+      puts "  - name  - #{@@node.host_name}"
+      puts "  - type  - #{@@node.product_id}"
+      puts "  - image - #{@@node.system}\n\n"
     end
     @@node
+  rescue CiscoNxapi::HTTPUnauthorized
+    puts "Unauthorized to connect as #{username}:#{password}@#{address}"
+    exit
   end
 
-  def process_arguments
+  def setup
     super
-    node # Connect to device
-    # Record the platform we're running on
-    puts 'Platform:'
-    puts "  - name  - #{@@node.host_name}"
-    puts "  - type  - #{@@node.product_id}"
-    puts "  - image - #{@@node.system}\n\n"
+    node
   end
 
   def cmd_ref
     node.cmd_ref
+  end
+
+  def config(*args)
+    result = super
+    node.cache_flush
+    result
   end
 
   def interfaces
@@ -61,9 +69,11 @@ class CiscoTestCase < TestCase
         platform_info = PlatformInfo.new(node.host_name)
         @@interfaces = platform_info.get_value_from_key('interfaces')
       rescue RuntimeError => e
-        # If there is a problem reading platform_info.yaml, assign default values
+        # If there is a problem reading platform_info.yaml,
+        # assign default values
         default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
-        puts "Caught exception: #{e}, assigning interfaces to default - #{default_interfaces}"
+        puts "Caught exception: #{e}, assigning interfaces to default " \
+             "- #{default_interfaces}"
         @@interfaces = default_interfaces
       end
       # rubocop:enable Style/ClassVars

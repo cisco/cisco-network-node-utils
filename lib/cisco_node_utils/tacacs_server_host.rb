@@ -50,7 +50,6 @@ module Cisco
 
     def destroy
       config_set('tacacs_server_host', 'host', 'no', @name)
-      @hosts.delete(@name) unless @hosts.nil?
     end
 
     def port
@@ -102,7 +101,8 @@ module Cisco
                      encryption_password)
         end
       else
-        config_set('tacacs_server_host', 'encryption', '', @name, enctype, password)
+        config_set('tacacs_server_host', 'encryption',
+                   '', @name, enctype, password)
       end
     end
 

@@ -42,12 +42,14 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_cpu
-    s = @device.cmd('sh ver | no-m').scan(/Hardware\n\s+.*\n\s+(.*) with/).flatten.first
+    s = @device.cmd('sh ver | no-m').scan(
+      /Hardware\n\s+.*\n\s+(.*) with/).flatten.first
     assert_equal(s, Platform.cpu)
   end
 
   def test_memory
-    arr = @device.cmd('sh sys reso').scan(/(\S+) total.* (\S+) used.* (\S+) free/).flatten
+    arr = @device.cmd('sh sys reso').scan(
+      /(\S+) total.* (\S+) used.* (\S+) free/).flatten
     mem_hsh = { 'total' => arr[0],
                 'used'  => arr[1],
                 'free'  => arr[2] }
@@ -55,8 +57,10 @@ class TestPlatform < CiscoTestCase
     assert_equal(mem_hsh['total'], Platform.memory['total'])
     assert_equal(mem_hsh['used'].to_i + mem_hsh['free'].to_i,
                  Platform.memory['used'].to_i + Platform.memory['free'].to_i)
-    # assert(Platform.memory.has_key?('used'), "Platform memory has no key 'used'")
-    # assert(Platform.memory.has_key?('free'), "Platform memory has no key 'free'")
+    # assert(Platform.memory.has_key?('used'),
+    #        "Platform memory has no key 'used'")
+    # assert(Platform.memory.has_key?('free'),
+    #        "Platform memory has no key 'free'")
   end
 
   def test_board
@@ -133,7 +137,8 @@ class TestPlatform < CiscoTestCase
   def test_power_supplies
     pwr_arr_arr = @device.cmd('sh inv | no-m')
                   .scan(/NAME:\s+"(Power Supply \d+)"#{inv_cmn_re}/)
-    refute_empty(pwr_arr_arr, 'Regex scan failed to match show inventory output')
+    refute_empty(pwr_arr_arr,
+                 'Regex scan failed to match show inventory output')
 
     # convert to array of power supply hashes
     pwr_hsh_hsh = {}
@@ -150,7 +155,8 @@ class TestPlatform < CiscoTestCase
   def test_fans
     fan_arr_arr = @device.cmd('sh inv | no-m')
                   .scan(/NAME:\s+"(Fan \d+)"#{inv_cmn_re}/)
-    refute_empty(fan_arr_arr, 'Regex scan failed to match show inventory output')
+    refute_empty(fan_arr_arr,
+                 'Regex scan failed to match show inventory output')
 
     # convert to array of fan hashes
     fan_hsh_hsh = {}

@@ -15,7 +15,7 @@
 require File.join(File.dirname(__FILE__), 'node_util')
 
 module Cisco
-  # X__CLASS_NAME__X - node utility class for X__CLASS_NAME__X config management.
+  # X__CLASS_NAME__X - node utility class for X__CLASS_NAME__X config mgmt.
   class X__CLASS_NAME__X < NodeUtil
     attr_reader :name
 
@@ -94,13 +94,15 @@ module Cisco
     end
 
     def X__PROPERTY_BOOL__X
-      state = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', name: @name)
+      state = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X',
+                         name: @name)
       state ? true : false
     end
 
     def X__PROPERTY_BOOL__X=(state)
       state = (state ? '' : 'no')
-      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', name: @name, state: state)
+      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X',
+                 name: @name, state: state)
     end
 
     # Property methods for integer property
@@ -114,7 +116,8 @@ module Cisco
     end
 
     def X__PROPERTY_INT__X=(val)
-      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', name: @name, val: val)
+      config_set('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X',
+                 name: @name, val: val)
     end
   end
 end

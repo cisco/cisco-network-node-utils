@@ -71,7 +71,8 @@ module Cisco
     # Create one router ospf vrf instance
     def create
       @parent = RouterOspf.new(@router)
-      config_set('ospf', 'vrf', name: @router, state: '', vrf: @name) if @name != 'default'
+      config_set('ospf', 'vrf',
+                 name: @router, state: '', vrf: @name) if @name != 'default'
     end
 
     # Destroy one router ospf vrf instance

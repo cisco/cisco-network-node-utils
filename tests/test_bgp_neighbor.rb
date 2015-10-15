@@ -267,9 +267,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_bgpneighbor_set_get_password
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
+      # rubocop:disable Style/HashSyntax
       passwords = { :cleartext    => 'test',
                     :"3des"       => '386c0565965f89de',
                     :cisco_type_7 => '046E1803362E595C260E0B240619050A2D' }
+      # rubocop:enable Style/HashSyntax
       passwords.each do |type, password|
         neighbor.password_set(password, type)
         if type == :cleartext
