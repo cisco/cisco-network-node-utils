@@ -392,13 +392,9 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_interfaceospf_collection_multiple_interface
-    s = config('int port-channel 42', 'descr foo')
-    known_failure = s[/ERROR:.*port channel not present/]
-    refute(known_failure, 'ERROR: port channel not present')
-
+  def multiple_interface_config_hash
     # rubocop:disable Style/AlignHash
-    ospf_h = {
+    hash = {
       'ospfTest' => {
         interfaces[0].downcase => {
           area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
@@ -417,6 +413,27 @@ class TestInterfaceOspf < CiscoTestCase
       },
     }
     # rubocop:enable Style/AlignHash
+    # Set defaults
+    hash.each_key do |name|
+      hash[name].each_value do |hv|
+        hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
+        hv[:hello] ||= node.config_get_default('interface_ospf',
+                                               'hello_interval')
+        hv[:dead] ||= node.config_get_default('interface_ospf',
+                                              'dead_interval')
+        hv[:pass] ||= node.config_get_default('interface_ospf',
+                                              'passive_interface')
+      end
+    end
+  end
+
+  def test_interfaceospf_collection_multiple_interface
+    s = config('int port-channel 42', 'descr foo')
+    known_failure = s[/ERROR:.*port channel not present/]
+    refute(known_failure, 'ERROR: port channel not present')
+
+    ospf_h = multiple_interface_config_hash
+
     # enable feature ospf
     config('no feature ospf',
            'feature ospf',
@@ -447,22 +464,11 @@ class TestInterfaceOspf < CiscoTestCase
           msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
-        # check the cost (or default if not set)
-        hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
         assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
-        # check the hello or default
-        hv[:hello] ||= node.config_get_default('interface_ospf',
-                                               'hello_interval')
         assert_equal(hv[:hello], interface.hello_interval,
                      'Error: get hello interval failed')
-        # check the dead or default
-        hv[:dead] ||= node.config_get_default('interface_ospf',
-                                              'dead_interval')
         assert_equal(hv[:dead], interface.dead_interval,
                      'Error: get dead interval failed')
-        # check passive interface
-        hv[:pass] ||= node.config_get_default('interface_ospf',
-                                              'passive_interface')
         assert_equal(hv[:pass], interface.passive_interface,
                      'Error: passive interface get failed')
       end

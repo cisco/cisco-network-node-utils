@@ -77,8 +77,8 @@ class TestYum < CiscoTestCase
     end
     Yum.remove(@@pkg)
     sleep 20
-    s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-    assert_nil(s)
+    refute_show_match(command: "show install package | include #{@@pkg}",
+                      pattern: /@patching/)
   end
 
   def test_ambiguous_package_error

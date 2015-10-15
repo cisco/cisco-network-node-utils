@@ -226,8 +226,7 @@ class TestTacacsServerHost < CiscoTestCase
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
     host.timeout = timeout
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
-    md = /timeout\s(\d*)/.match(line.captures[1])
-    assert_nil(md, 'Error: Tacacs Host timeout found')
+    refute_match(/timeout\s(\d*)/, line.captures[1])
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
 
     host.destroy
@@ -330,8 +329,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.encryption_key_set(enctype, pass)
 
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
-    md = /key\s(\d*)\s(\S*)/.match(line.captures[1])
-    assert_nil(md, 'Error: Tacacs Host encryption found')
+    refute_match(/key\s(\d*)\s(\S*)/, line.captures[1])
     assert_equal(enctype, host.encryption_type,
                  'Error: Tacacs Host encryption type incorrect')
     assert_equal(pass, host.encryption_password,
