@@ -18,14 +18,11 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'features')
 
 module Cisco
   # node_utils class for vxlan_vtep
-  class Vxlan_vtep < NodeUtil ############# *MUSTFIX* CLASS NAME (camelcase)
+  class VxlanVtep < NodeUtil
     attr_reader :name
-
-    include Features
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -37,16 +34,38 @@ module Cisco
 
     def self.vteps
       hash = {}
-      vxlan_feature = config_get('vxlan', 'feature')
-      return hash if (:enabled != vxlan_feature.first.to_sym)
+      is_vxlan_feature = config_get('vxlan', 'feature')
+      return hash if (:enabled != is_vxlan_feature.first.to_sym)
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
       vtep_list.each do |id|
         id = id.downcase
-        hash[id] = Vxlan_vtep.new(id, false)
+        hash[id] = VxlanVtep.new(id, false)
       end
       hash
+    end
+
+    def vxlan_feature
+      vxlan = config_get('vxlan', 'feature')
+      fail 'vxlan/nv_overlay feature not found' if vxlan.nil?
+      return :disabled if vxlan.nil?
+      vxlan.first.to_sym
+    end
+
+    def vxlan_feature_set(vxlan_set)
+      curr = vxlan_feature
+      return if curr == vxlan_set
+
+      case vxlan_set
+      when :enabled
+        config_set('vxlan', 'feature', '')
+      when :disabled
+        config_set('vxlan', 'feature', 'no') if curr == :enabled
+        return
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def create

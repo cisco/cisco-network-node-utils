@@ -17,14 +17,11 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'features')
 
 module Cisco
   # node_utils class for Vni
   class Vni < NodeUtil
     attr_reader :name, :vni_id
-
-    include Features
 
     def initialize(vni_id, instantiate=true)
       @vni_id = vni_id.to_s
@@ -45,6 +42,28 @@ module Cisco
         hash[id] = Vni.new(id, false)
       end
       hash
+    end
+
+    def vni_feature
+      vni = config_get('vni', 'feature')
+      fail 'vni feature not found' if vni.nil?
+      return :disabled if vni.nil?
+      vni.first.to_sym
+    end
+
+    def vni_feature_set(vni_set)
+      curr = vni_feature
+      return if curr == vni_set
+
+      case vni_set
+      when :enabled
+        config_set('vni', 'feature', '')
+      when :disabled
+        config_set('vni', 'feature', 'no') if curr == :enabled
+        return
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def create

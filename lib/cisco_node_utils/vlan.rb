@@ -24,7 +24,6 @@ module Cisco
   # Vlan - node utility class for VLAN configuration management
   class Vlan < NodeUtil
     attr_reader :name, :vlan_id
-    include Features
 
     def initialize(vlan_id, instantiate=true)
       @vlan_id = vlan_id.to_s
@@ -59,6 +58,34 @@ module Cisco
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       fail result[2]['body'] unless result[2]['body'].empty?
+    end
+
+    def fabricpath_feature
+      fabricpath = config_get('fabricpath', 'feature')
+      fail 'fabricpath_feature not found' if fabricpath.nil?
+      return :disabled if fabricpath.nil?
+      fabricpath.shift.to_sym
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      curr = fabricpath_feature
+      return if curr == fabricpath_set
+
+      case fabricpath_set
+      when :enabled
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+        config_set('fabricpath', 'feature', '')
+      when :disabled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        return
+      when :installed
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+      when :uninstalled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        config_set('fabricpath', 'feature_install', 'no')
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def mode

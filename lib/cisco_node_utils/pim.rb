@@ -18,14 +18,11 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'features')
 
 module Cisco
   # node_utils class for Pim
   class Pim < NodeUtil
     attr_reader :name
-
-    include Features
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -62,6 +59,28 @@ module Cisco
         hash[id] = Pim.new(id, false)
       end
       hash
+    end
+
+    def pim_feature
+      pim = config_get('pim', 'feature')
+      fail 'pim feature not found' if pim.nil?
+      return :disabled if pim.nil?
+      pim.first.to_sym
+    end
+
+    def pim_feature_set(pim_set)
+      curr = pim_feature
+      return if curr == pim_set
+
+      case pim_set
+      when :enabled
+        config_set('pim', 'feature', '')
+      when :disabled
+        config_set('pim', 'feature', 'no') if curr == :enabled
+        return
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def create

@@ -15,7 +15,6 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'features')
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -31,7 +30,6 @@ module Cisco
   # Interface - node utility class for general interface config management
   class Interface < NodeUtil
     attr_reader :name
-    include Features
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -151,6 +149,34 @@ module Cisco
         config_set('interface', 'encapsulation_vni_del', @name, val)
       else
         config_set('interface', 'encapsulation_vni_add', @name, val)
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def fabricpath_feature
+      fabricpath = config_get('fabricpath', 'feature')
+      fail 'fabricpath_feature not found' if fabricpath.nil?
+      return :disabled if fabricpath.nil?
+      fabricpath.shift.to_sym
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      curr = fabricpath_feature
+      return if curr == fabricpath_set
+
+      case fabricpath_set
+      when :enabled
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+        config_set('fabricpath', 'feature', '')
+      when :disabled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        return
+      when :installed
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+      when :uninstalled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        config_set('fabricpath', 'feature_install', 'no')
       end
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"

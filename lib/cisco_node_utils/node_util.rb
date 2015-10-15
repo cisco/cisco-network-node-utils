@@ -57,5 +57,10 @@ module Cisco
     def config_set(*args)
       node.config_set(*args)
     end
+
+    def show(*args)
+      node.show(*args)
+    end
+
   end
 end
