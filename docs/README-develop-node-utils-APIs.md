@@ -737,10 +737,16 @@ Inspecting 2 file
 
 The final step is to build and install the gem that contains the new APIs.
 
+Please note: `gem build` will only include files that are part of the repository. This means that new files such as `tunnel.rb` and `router_eigrp.rb` will be ignored by the build until they are added to the repo with `git add`:
+
+```bash
+git add lib/cisco_node_utils/tunnel.rb lib/cisco_node_utils/router_eigrp.rb
+```
+
 From the root of the cisco-network-node-utils repository issue the following command.
 
 ```bash
-gem build cisco_node_utils.gemspec
+% gem build cisco_node_utils.gemspec
   Successfully built RubyGem
   Name: cisco_node_utils
   Version: 1.0.1
