@@ -30,6 +30,11 @@ class TestSnmpCommunity < CiscoTestCase
   DEFAULT_SNMP_COMMUNITY_GROUP = 'network-operator'
   DEFAULT_SNMP_COMMUNITY_ACL = ''
 
+  def setup
+    super
+    @default_show_command = 'show run snmp all | no-more'
+  end
+
   def test_snmpcommunity_collection_empty
     # This test requires all the snmp communities removed from device
     s = @device.cmd('show run snmp all | no-more')
@@ -122,11 +127,8 @@ class TestSnmpCommunity < CiscoTestCase
     name = 'cisco'
     group = 'network-operator'
     snmpcommunity = SnmpCommunity.new(name, group)
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 
@@ -134,11 +136,8 @@ class TestSnmpCommunity < CiscoTestCase
     name = 'cisco128lab'
     group = 'network-operator'
     snmpcommunity = SnmpCommunity.new(name, group)
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 
@@ -187,10 +186,8 @@ class TestSnmpCommunity < CiscoTestCase
     # new group
     group = 'network-admin'
     snmpcommunity.group = group
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 
@@ -201,20 +198,14 @@ class TestSnmpCommunity < CiscoTestCase
     # new group identity
     group = 'vdc-admin'
     snmpcommunity.group = group
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    # puts line
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
 
     # Restore group default
     group = SnmpCommunity.default_group
     snmpcommunity.group = group
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    # puts line
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
 
     cleanup_snmpcommunity(snmpcommunity)
   end
@@ -224,10 +215,8 @@ class TestSnmpCommunity < CiscoTestCase
     group = 'network-operator'
     snmpcommunity = SnmpCommunity.new(name, group)
     snmpcommunity.destroy
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\sgroup\s#{group}/.match(s)
-    assert_equal(true, line.nil?)
+    refute_show_match(
+      pattern: /snmp-server community\s#{name}\sgroup\s#{group}/)
   end
 
   def test_snmpcommunity_acl_get_no_acl
@@ -243,10 +232,9 @@ class TestSnmpCommunity < CiscoTestCase
     group = 'network-operator'
     snmpcommunity = SnmpCommunity.new(name, group)
     snmpcommunity.acl = 'ciscoacl'
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\suse-acl\s\S+/.match(s)
-    acl = line.to_s.gsub(/#{cmd}\s#{name}\suse-acl\s/, '').strip
+    line = assert_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s\S+/)
+    acl = line.to_s.gsub(/snmp-server community\s#{name}\suse-acl\s/, '').strip
     assert_equal(snmpcommunity.acl, acl)
     cleanup_snmpcommunity(snmpcommunity)
   end
@@ -267,11 +255,8 @@ class TestSnmpCommunity < CiscoTestCase
     acl = 'ciscoadminacl'
     snmpcommunity = SnmpCommunity.new(name, group)
     snmpcommunity.acl = acl
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\suse-acl\s#{acl}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s#{acl}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 
@@ -282,17 +267,12 @@ class TestSnmpCommunity < CiscoTestCase
     snmpcommunity = SnmpCommunity.new(name, group)
     # puts "set acl #{acl}"
     snmpcommunity.acl = acl
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\suse-acl\s#{acl}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s#{acl}/)
     # remove acl
     snmpcommunity.acl = ''
-    s = @device.cmd('show run snmp all | no-more')
-    line = /#{cmd}\s#{name}\suse-acl\s#{acl}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(true, line.nil?)
+    refute_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s#{acl}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 
@@ -302,11 +282,8 @@ class TestSnmpCommunity < CiscoTestCase
     acl = 'cisco_test_acl'
     snmpcommunity = SnmpCommunity.new(name, group)
     snmpcommunity.acl = acl
-    s = @device.cmd('show run snmp all | no-more')
-    cmd = 'snmp-server community'
-    line = /#{cmd}\s#{name}\suse-acl\s#{acl}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(false, line.nil?)
+    assert_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s#{acl}/)
 
     # Check default_acl
     assert_equal(DEFAULT_SNMP_COMMUNITY_ACL,
@@ -316,10 +293,8 @@ class TestSnmpCommunity < CiscoTestCase
     # Set acl to default
     acl = SnmpCommunity.default_acl
     snmpcommunity.acl = acl
-    s = @device.cmd('show run snmp all | no-more')
-    line = /#{cmd}\s#{name}\suse-acl\s#{acl}/.match(s)
-    # puts "line: #{line}"
-    assert_equal(true, line.nil?)
+    refute_show_match(
+      pattern: /snmp-server community\s#{name}\suse-acl\s#{acl}/)
     cleanup_snmpcommunity(snmpcommunity)
   end
 end

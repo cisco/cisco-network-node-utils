@@ -100,11 +100,40 @@ class TestCase < Test::Unit::TestCase
   end
 
   def config(*args)
-    @device.cmd("configure terminal\n" + args.join("\n") + "\nend")
+    # Send the entire config as one string but be sure not to return until
+    # we are safely back out of config mode, i.e. prompt is
+    # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
+    @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
+                'Match'  => /^[^()]+[$%#>] \z/n)
   end
 
-  def self.test_order
-    :random
+  def assert_show_match(pattern: nil, command: nil, msg: nil)
+    pattern ||= @default_output_pattern
+    refute_nil(pattern)
+    command ||= @default_show_command
+    refute_nil(command)
+
+    output = @device.cmd(command)
+    msg = message(msg) do
+      "Expected #{mu_pp pattern} to match " \
+      "output of '#{mu_pp command}':\n#{output}"
+    end
+    assert pattern =~ output, msg
+    pattern.match(output)
+  end
+
+  def refute_show_match(pattern: nil, command: nil, msg: nil)
+    pattern ||= @default_output_pattern
+    refute_nil(pattern)
+    command ||= @default_show_command
+    refute_nil(command)
+
+    output = @device.cmd(command)
+    msg = message(msg) do
+      "Expected #{mu_pp pattern} to NOT match " \
+      "output of '#{mu_pp command}':\n#{output}"
+    end
+    refute pattern =~ output, msg
   end
 end
 # rubocop:enable Style/ClassVars

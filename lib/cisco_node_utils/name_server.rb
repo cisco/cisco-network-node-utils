@@ -37,13 +37,13 @@ module Cisco
     end
 
     def self.nameservers
-      # Join and split because config_get returns array of strings separated by
-      # spaces (regexes are a subset of PDA)
-      hosts = config_get('dnsclient', 'name_server').join(' ').split(' ')
+      hosts = config_get('dnsclient', 'name_server')
       return {} if hosts.nil?
 
       hash = {}
-      hosts.each do |name|
+      # Join and split because config_get returns array of strings separated by
+      # spaces (regexes are a subset of PDA)
+      hosts.join(' ').split(' ').each do |name|
         hash[name] = NameServer.new(name, false)
       end
       hash

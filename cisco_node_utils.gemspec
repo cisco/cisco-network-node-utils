@@ -24,7 +24,7 @@ Currently supports NX-OS nodes.
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version     = '>= 1.9.3'
+  spec.required_ruby_version     = '>= 2.0.0'
   spec.required_rubygems_version = '>= 2.1.0'
 
   spec.add_development_dependency 'minitest', '>= 2.5.1', '< 5.0.0'

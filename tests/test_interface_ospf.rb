@@ -39,10 +39,8 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def get_interfaceospf_match_line(name, pattern)
-    s = @device.cmd('show run interface all | ' \
-                    "sec \"interface .#{name[1..-1]}$\" | no-more")
-    pattern.match(s)
+  def show_cmd(name)
+    "show run interface #{name} all | no-more"
   end
 
   def create_routerospf(ospfname='ospfTest')
@@ -51,6 +49,7 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def create_interfaceospf(routerospf, ifname=interfaces[0], area='0.0.0.0')
+    @default_show_command = show_cmd(ifname)
     interface_switchport_enable(ifname, false)
     InterfaceOspf.new(ifname, routerospf.name, area)
   end
@@ -118,9 +117,8 @@ class TestInterfaceOspf < CiscoTestCase
                    "InterfaceOspf collection (#{interfaces}) size is not 1")
       interfaces.each do |ifname, interface|
         pattern = (/\s+ip router ospf #{router.name} area #{interface.area}/)
-        line = get_interfaceospf_match_line(ifname, pattern)
-        refute_nil(line, "Error: ip router ospf #{router.name} " \
-                   "area #{interface.area} not found under #{ifname}")
+        assert_show_match(command: show_cmd(ifname),
+                          pattern: pattern)
         # using default check, since not configured anything
         assert_equal(node.config_get_default('interface_ospf', 'cost'),
                      interface.cost,
@@ -178,9 +176,8 @@ class TestInterfaceOspf < CiscoTestCase
     interface_switchport_enable(ifname, false)
     interface = InterfaceOspf.new(ifname, ospf.name, area)
     pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    refute_nil(line, "Error: 'ip router ospf #{ospf.name} area #{area}' " \
-               'not configured')
+    assert_show_match(command: show_cmd(ifname),
+                      pattern: pattern)
     assert_equal(ifname.downcase, interface.interface.name,
                  'Error: interface name get value mismatch ')
     assert_equal(area, interface.area,
@@ -193,31 +190,22 @@ class TestInterfaceOspf < CiscoTestCase
     ospf = create_routerospf
     interface = create_interfaceospf(ospf, ifname, area)
     interface.destroy
-    pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line, "Error: 'ip router ospf #{ospf.name} area #{area}' " \
-               'not destroyed')
+    refute_show_match(pattern: /\s+ip router ospf #{ospf.name} area #{area}/,
+                      msg:     "'ip router ospf #{ospf.name} area #{area}' " \
+                                 'not destroyed')
     # check all the attributes are set to default.
-    pattern = (/^\s+ip ospf cost \S+/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line,
-               "Error: 'ip ospf #{ospf.name} cost' not removed")
+    refute_show_match(pattern: /^\s+ip ospf cost \S+/,
+                      msg:     "'cost' not removed")
 
-    pattern = (/^\s+ip ospf hello-interval \S+/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line,
-               "Error: 'ip ospf #{ospf.name} hello-interval' not removed")
+    refute_show_match(pattern: /^\s+ip ospf hello-interval \S+/,
+                      msg:     "'hello-interval' not removed")
 
     # with default CLI still shows the value
-    pattern = (/^\s+ip ospf dead-interval \S+/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line,
-               "Error: 'ip ospf #{ospf.name} dead-interval' not removed")
+    refute_show_match(pattern: /^\s+ip ospf dead-interval \S+/,
+                      msg:     "'dead-interval' not removed")
 
-    pattern = (/^\s+ip ospf passive-interface/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line,
-               "Error: 'ip ospf #{ospf.name} passive interface' not removed")
+    refute_show_match(pattern: /^\s+ip ospf passive-interface/,
+                      msg:     "'passive interface' not removed")
   end
 
   def test_routerospf_get_parent
@@ -245,18 +233,14 @@ class TestInterfaceOspf < CiscoTestCase
     cost = 1000
     # set with value
     interface.cost = cost
-    pattern = (/\s+ip ospf cost #{cost}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: cost missing in CLI')
+    assert_show_match(pattern: /\s+ip ospf cost #{cost}/,
+                      msg:     'Error: cost missing in CLI')
     assert_equal(cost, interface.cost,
                  'Error: cost get value mismatch')
     # set default
     interface.cost = interface.default_cost
-    pattern = (/\s+ip ospf cost(.*)/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    assert_nil(line,
-               'Error: default cost set failed')
+    refute_show_match(pattern: /\s+ip ospf cost(.*)/,
+                      msg:     'Error: default cost set failed')
   end
 
   def test_interfaceospf_hello_interval_invalid_range
@@ -278,19 +262,15 @@ class TestInterfaceOspf < CiscoTestCase
     interval = 90
     # set with value
     interface.hello_interval = interval
-    pattern = (/\s+ip ospf hello-interval #{interval}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: hello-interval missing in CLI')
+    assert_show_match(pattern: /\s+ip ospf hello-interval #{interval}/,
+                      msg:     'Error: hello-interval missing in CLI')
     assert_equal(interval, interface.hello_interval,
                  'Error: hello-interval get value mismatch')
 
     # set default, when we set default CLI does not show it
     interface.hello_interval = interface.default_hello_interval
-    pattern = (/\s+ip ospf hello-interval(.*)/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    assert_nil(line,
-               'Error: default hello-interval set failed')
+    refute_show_match(pattern: /\s+ip ospf hello-interval(.*)/,
+                      msg:     'Error: default hello-interval set failed')
   end
 
   def test_interfaceospf_dead_interval_invalid_range
@@ -316,18 +296,15 @@ class TestInterfaceOspf < CiscoTestCase
     interval = 150
     # set with value
     interface.dead_interval = interval
-    pattern = (/\s+ip ospf dead-interval #{interval}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: dead-interval missing in CLI')
+    assert_show_match(pattern: /\s+ip ospf dead-interval #{interval}/,
+                      msg:     'Error: dead-interval missing in CLI')
     assert_equal(interval, interface.dead_interval,
                  'Error: dead-interval get value mismatch')
     # set default, the CLI shows with default value
     interface.dead_interval = interface.default_dead_interval
-    pattern = (/^\s+ip ospf dead-interval #{interface.default_dead_interval}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: default dead-interval set failed')
+    assert_show_match(
+      pattern: /^\s+ip ospf dead-interval #{interface.default_dead_interval}/,
+      msg:     'Error: default dead-interval set failed')
   end
 
   def test_interfaceospf_passive_interface
@@ -336,38 +313,32 @@ class TestInterfaceOspf < CiscoTestCase
 
     # set with value
     interface.passive_interface = true
-    pattern = (/\s+ip ospf passive-interface/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line, 'Error: passive interface enable missing in CLI')
+    assert_show_match(pattern: /\s+ip ospf passive-interface/,
+                      msg:     'passive interface enable missing in CLI')
     assert(interface.passive_interface,
            'Error: passive interface get value mismatch')
 
     # get default and set
     interface.passive_interface = interface.default_passive_interface
-    pattern = (/\s+no ip ospf passive-interface/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: default passive interface set failed')
+    assert_show_match(pattern: /\s+no ip ospf passive-interface/,
+                      msg:     'default passive interface set failed')
   end
 
   def test_interfaceospf_create_valid_multiple
     # ospf and interfaces[0]
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
-    pattern = (/\s+ip router ospf #{ospf.name} area #{interface.area}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line, "Error: 'ip router ospf #{ospf.name} default area' " \
-               'not configured')
+    assert_show_match(
+      pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
+      msg:     "'ip router ospf #{ospf.name} default area' not configured")
 
     # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     create_interfaceospf(ospf, ifname, area)
-    pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    refute_nil(line,
-               "Error: 'ip router ospf #{ospf.name} area #{area}' " \
-               'is not configured')
+    assert_show_match(
+      pattern: /\s+ip router ospf #{ospf.name} area #{area}/,
+      msg:     "'ip router ospf #{ospf.name} area #{area}' is not configured")
   end
 
   def test_interfaceospf_create_multiple_delete_one
@@ -385,17 +356,16 @@ class TestInterfaceOspf < CiscoTestCase
 
     # delete ospf instance from interfaces_id[2]
     interface1.destroy
-    pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
-    line = get_interfaceospf_match_line(ifname, pattern)
-    assert_nil(line,
-               "Error: 'ip router ospf #{ospf.name} area #{area}' not deleted")
+    refute_show_match(
+      command: show_cmd(ifname),
+      pattern: /\s+ip router ospf #{ospf.name} area #{area}/,
+      msg:     "'ip router ospf #{ospf.name} area #{area}' not deleted")
 
     # check other interface association still exist.
-    pattern = (/\s+ip router ospf #{ospf.name} area #{interface.area}/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               "Error: 'ip router ospf #{ospf.name} default area' " \
-               'not configured')
+    assert_show_match(
+      command: show_cmd(interface.interface.name),
+      pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
+      msg:     "'ip router ospf #{ospf.name} default area' not configured")
   end
 
   def configure_from_hash(hash)
@@ -471,9 +441,10 @@ class TestInterfaceOspf < CiscoTestCase
       interfaces.each do |ifname, interface|
         assert_includes(ospfh, ifname)
         hv = ospfh.fetch(ifname)
-        pattern = (/\s+ip router ospf #{name} area #{hv[:area]}/)
-        refute_nil(get_interfaceospf_match_line(ifname, pattern),
-                   "Error: ip router ospf #{name} area #{hv[:area]} "\
+        assert_show_match(
+          command: show_cmd(ifname),
+          pattern: /\s+ip router ospf #{name} area #{hv[:area]}/,
+          msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
         # check the cost (or default if not set)
@@ -515,17 +486,15 @@ class TestInterfaceOspf < CiscoTestCase
     # set with value
     interface.message_digest = true
     pattern = (/^\s+ip ospf authentication message-digest$/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: message digest enable missing in CLI')
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: message digest enable missing in CLI')
     assert(interface.message_digest,
            'Error: message digest get value mismatch')
 
     # get default and set
     interface.message_digest = interface.default_message_digest
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    assert_nil(line,
-               'Error: default message digest set failed')
+    refute_show_match(pattern: pattern,
+                      msg:     'Error: default message digest set failed')
     refute(interface.message_digest,
            'Error: message digest get value mismatch')
   end
@@ -541,11 +510,9 @@ class TestInterfaceOspf < CiscoTestCase
     # set with value
     interface.message_digest_key_set(keyid, algo, encr, 'test123')
     # need to revist TODO
-    pattern = (/^\s+ip ospf message-digest-key #{keyid} md5 \S \S+$/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: message digest authentication with cleartext ' \
-               'missing in CLI')
+    line = assert_show_match(
+      pattern: /^\s+ip ospf message-digest-key #{keyid} md5 \S \S+$/,
+      msg:     'message digest authentication with cleartext missing in CLI')
     # TODO: assert(interface.message_digest,
     #             "Error: message digest get value mismatch")
     # check key id exist
@@ -564,10 +531,8 @@ class TestInterfaceOspf < CiscoTestCase
     keyid = interface.default_message_digest_key_id
     encr = :cleartext
     interface.message_digest_key_set(keyid, algo, encr, 'test123')
-    pattern = (/^\s+ip ospf message-digest-key #{keyid} .+/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    assert_nil(line,
-               'Error: message digest authentication still present in CLI')
+    refute_show_match(pattern: /^\s+ip ospf message-digest-key #{keyid} .+/,
+                      msg:     'message digest auth still present in CLI')
     assert_equal(interface.message_digest_key_id,
                  interface.default_message_digest_key_id)
     assert_equal(interface.message_digest_algorithm_type,
@@ -579,11 +544,9 @@ class TestInterfaceOspf < CiscoTestCase
     keyid = 1
     encr = :"3des"
     interface.message_digest_key_set(keyid, algo, encr, encrypted_password)
-    pattern = (/^\s+ip ospf message-digest-key #{keyid} md5 3 \S+$/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: message digest authentication with 3DES missing ' \
-               'in CLI')
+    assert_show_match(
+      pattern: /^\s+ip ospf message-digest-key #{keyid} md5 3 \S+$/,
+      msg:     'message digest authentication with 3DES missing in CLI')
     assert_equal(keyid, interface.message_digest_key_id)
     assert_equal(algo, interface.message_digest_algorithm_type)
     assert_equal(encr, interface.message_digest_encryption_type)
@@ -593,11 +556,9 @@ class TestInterfaceOspf < CiscoTestCase
     keyid = 1
     encr = :cisco_type_7
     interface.message_digest_key_set(keyid, algo, encr, encrypted_password)
-    pattern = (/^\s+ip ospf message-digest-key #{keyid} md5 7 \S+$/)
-    line = get_interfaceospf_match_line(interface.interface.name, pattern)
-    refute_nil(line,
-               'Error: message digest authentication with cisco type 7 ' \
-               'missing in CLI')
+    assert_show_match(
+      pattern: /^\s+ip ospf message-digest-key #{keyid} md5 7 \S+$/,
+      msg:     'message digest authentication with cisco type 7 missing in CLI')
     assert_equal(keyid, interface.message_digest_key_id)
     assert_equal(algo, interface.message_digest_algorithm_type)
     assert_equal(encr, interface.message_digest_encryption_type)

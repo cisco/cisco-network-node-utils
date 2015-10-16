@@ -21,11 +21,13 @@ module Cisco
   class NodeUtil
     # rubocop:disable Style/ClassVars
     # We want this to be inherited to all child classes, it's a singleton.
-    @@node = Cisco::Node.instance
+    @@node = nil
     # rubocop:enable Style/ClassVars
 
     def self.node
-      @@node
+      # rubocop:disable Style/ClassVars
+      @@node ||= Cisco::Node.instance
+      # rubocop:enable Style/ClassVars
     end
 
     def node
@@ -33,7 +35,7 @@ module Cisco
     end
 
     def self.config_get(*args)
-      @@node.config_get(*args)
+      node.config_get(*args)
     end
 
     def config_get(*args)
@@ -41,7 +43,7 @@ module Cisco
     end
 
     def self.config_get_default(*args)
-      @@node.config_get_default(*args)
+      node.config_get_default(*args)
     end
 
     def config_get_default(*args)
@@ -49,7 +51,7 @@ module Cisco
     end
 
     def self.config_set(*args)
-      @@node.config_set(*args)
+      node.config_set(*args)
     end
 
     def config_set(*args)
