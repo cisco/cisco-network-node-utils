@@ -191,6 +191,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     props = {
       filter_list_in:  'filt-in-name',
       filter_list_out: 'filt-out-name',
+      prefix_list_in:  'pref-in-name',
+      prefix_list_out: 'pref-out-name',
       route_map_in:    'route-map-in-name',
       route_map_out:   'route-map-out-name',
       unsuppress_map:  'unsupp-map-name',

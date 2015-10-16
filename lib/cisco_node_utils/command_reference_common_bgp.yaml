@@ -427,6 +427,16 @@ bgp_neighbor_af:
     config_set_append: '<state> next-hop-third-party'
     default_value: true
 
+  prefix_list_in:
+    config_get_token_append: '/^prefix-list (\S+) in$/'
+    config_set_append: '<state> prefix-list <str> in'
+    default_value: ''
+
+  prefix_list_out:
+    config_get_token_append: '/^prefix-list (\S+) out$/'
+    config_set_append: '<state> prefix-list <str> out'
+    default_value: ''
+
   route_map_in:
     config_get_token_append: '/^route-map (\S+) in$/'
     config_set_append: '<state> route-map <str> in'
