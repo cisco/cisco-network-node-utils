@@ -65,6 +65,11 @@ bgp:
   create_destroy_neighbor:
     config_set_append: '<state> neighbor <nbr>'
 
+  enforce_first_as:
+    config_get_token_append: '/^enforce-first-as$/'
+    config_set_append: '<state> enforce-first-as'
+    default_value: true
+
   feature:
     config_get: "show running bgp"
     config_get_token: '/^feature bgp$/'
