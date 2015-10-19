@@ -13,27 +13,27 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 ## <a name="ydbp">YAML Development Best Practices</a>
 
 * [Y1](#yaml1): All yaml feature entries should be kept in alphabetical order.
-* [Y2](#yaml2): Use anchors where needed for `config_get` and `config_get_token` entries.
+* [Y2](#yaml2): Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
 * Y3: Avoid nested optional matches.
-* [Y4](#yaml4): Use the `_template` feature when getting/setting the same value at multiple levels.
-* [Y5](#yaml5): When possible include a `default_value` that represents the system default value and document properties that don't have a system default. **Use strings rather then symbols when applicable**.
+* [Y4](#yaml4): Use the `_template` feature when getting/setting the same property value at multiple levels.
+* [Y5](#yaml5): When possible include a `default_value` that represents the system default value.
 * [Y6](#yaml6): When possible, use the same `config_get` show command for all properties and document any anomalies.
 * [Y7](#yaml7): Use Key-value wildcards instead of Printf-style wildcards.
-* Y8: Use of the `show running all` command is encouraged over `show <feature>` commands since not all `show <feature>` commands behave in the same manner across different cisco platforms.
+* [Y8](#yaml8): Selection of `show` commands for `config_get`.
 
 
 
 ## <a name="odbp">Common Object Development Best Practices</a>
 
-* [CO1](#co1): If your feature can be configured under the `global` and `non-global vrfs` make sure to account for this in your object design.
+* [CO1](#co1): Features that can be configured under the global and non-global vrfs need to account for this in the object design.
 * [CO2](#co2): Make use of the equality operator allowing proper `instance1 == instance2` checks in the minitests.
-* [CO3](#co3): Let `''` represent 'not configured at all' rather then `nil` unless the property has a default value.
+* [CO3](#co3): Use `''` rather than `nil` to represent "property is absent entirely"
 * [CO4](#co4): Make sure all new properites have a `getter`, `setter` and `default_getter` method.
-* [CO5](#co5): Use singleton-like design for resources that cannot have mulitple instances.
+* [CO5](#co5): Use singleton-like design for resources that cannot have multiple instances.
 
 ## <a name="mdbp">MiniTest Development Best Practices</a>
 
-* MT1: Ensure that **all new API's** have minitest coverage.
+* [MT1](#mt1): Ensure that **all new API's** have minitest coverage.
 * [MT2](#mt2): Use appropriate `assert_foo` and `refute_foo` statements rather than `assert_equal`.
 * [MT3](#mt3): Do not hardcode interface names.
 * [MT4](#mt4): Make use of the `config` helper method for device configuration instead of `@device.cmd`.
@@ -41,19 +41,39 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 
 
 
-## YAML Examples:
+## YAML Best Practices:
 
-### <a name="yaml1">Example - Y1 Alpha Order:
+### <a name="yaml1">Y1: All yaml feature entries should be kept in alphabetical order.
+
+Please keep all feature names in alphabetical order, and all options under a feature in alphabetical order as well. As YAML permits duplicate entries (in which case the last entry overrides any earlier entries), keeping a consistent order helps to prevent accidentally introducing such duplication.
+
+Top level features in alpabetical order:
 
 ```
-aaa_authentication_login:  <------ Feature Name
-  ascii_authentication:    
+aaa_authentication_login:
 ...
-dnsclient:  <------ Feature Name
-  domain:  
+dnsclient:
+...
+interface:
 ```
 
-### <a name="yaml2">Example - Y2 Anchor Use:
+Options under a feature:
+
+```
+interface:
+  access_vlan:
+    ...
+  all_interfaces:
+    ...
+  create:
+    ...
+  description:
+    ...  
+```
+
+### <a name="yaml2">Y2: Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
+
+Please use *regexp* anchors `^$` to ensure you match the correct feature information in the `show` output.
 
 ```
 syslog_settings:
@@ -64,9 +84,9 @@ syslog_settings:
     default_value: 'seconds'
 ```
 
-### <a name="yaml3">Example - Y3
+### <a name="yaml3">Y3: Avoid nested optional matches.
 
-### <a name="yaml4">Example - Y4 Template Feature:
+### <a name="yaml4">Y4: Use the `_template` feature when getting/setting the same property value at multiple levels.
 
 Using the template below, `auto_cost` and `default_metric` can be set under `router ospf foo` and `router ospf foo; vrf blue`.
 
@@ -92,7 +112,10 @@ ospf:
     default_value: 0
 ```
 
-### <a name="yaml5">Example - Y5 Default Values:
+### <a name="yaml5">Y5: When possible include a `default_value` that represents the system default value.
+
+Please make sure to specify a `default_value` and document properties that don't have a system default.  System defaults may differ between cisco platforms making it important to define for lookup in the cisco_node_utils common object methods.
+
 
 Default value for `message_digest_alg_type` is `md5`
 
@@ -103,7 +126,13 @@ message_digest_alg_type:
     default_value: 'md5'
 ```
 
-### <a name="yaml6">Example - Y6 Common Show Command:
+**NOTE1: Use strings rather then symbols when applicable**.
+
+If the `default_value` differs between cisco platforms, the more specific `command_reference_[platform].yaml` file should be used.
+
+For example, if the default value on all platforms except the n9k is `md5` then set the entry in `command_reference_common.yaml` to `md5` and set the entry in `command_reference_n9k.yaml` to it's default `sha2`.
+
+### <a name="yaml6">Y6: When possible, use the same `config_get` show command for all properties and document any anomalies.
 
 All properties below use the `show run tacacs all` command except `directed_request` which is documented.
 
@@ -133,7 +162,9 @@ tacacs_server:
     default_value: ""
 ```
 
-### <a name="yaml7">Example - Y7 Wildcard Use:
+### <a name="yaml7">Y7: Use Key-value wildcards instead of Printf-style wildcards.
+
+The following approach is moderately more complex to implement but is more readable in the ruby code and is flexible enough to handle significant platform differences in CLI. It is therefore the recommended approach for new development.
 
 **Key-value wildcards**
 
@@ -141,15 +172,27 @@ tacacs_server:
 config_set_append: "<state> log-adjacency-changes <type>"
 ```
 
+This following approach is quick to implement and concise, but less flexible - in particular it cannot handle a case where different platforms take parameters in a different order - and less readable in the ruby code.
+
 **Printf-style wildcards**
 
 ```
 config_set_append: "%s log-adjacency-changes %s"
 ```
 
-## Common Object Examples:
+### <a name="yaml8">Y8: Selection of `show` commands for `config_get`.
 
-### <a name="co1">Example - CO1 VRF Handling:
+The following commands should be preferred over `show [feature]` commands since not all `show [feature]` commands behave in the same manner across cisco platforms.
+
+* `show running [feature] all` if available.
+* `show running all` if `show running [feature] all` is *not* available.
+
+
+## Common Object Best Practices:
+
+### <a name="co1">CO1: Features that can be configured under the global and non-global vrfs need to account for this in the object design.
+
+Many cisco features can be configured under the default or global vrf and also under *n* number of non-default vrfs.
 
 The following `initialize` and `self.vrfs` methods account for configuration under `default` and `non-default vrfs`.
 
@@ -190,7 +233,7 @@ The following `initialize` and `self.vrfs` methods account for configuration und
     end
 ```
 
-### <a name="co2">Example - CO2 Equality Operator:
+### <a name="co2">CO2: Make use of the equality operator allowing proper `instance1 == instance2` checks in the minitests.
 
 Having this logic defined in the common object lets the minitest easily check the specific instances.
 
@@ -225,7 +268,7 @@ Example Usage:
     refute_includes(Cisco::DnsDomain.dnsdomains, id2)
   end
 ```
-### <a name="co3">Example - CO3 Default Handling:
+### <a name="co3">CO3: Use `''` rather than `nil` to represent "property is absent entirely"
 
 Our convention is to let `''` represent 'not configured at all' rather than `nil`. For example, `interface.rb`:
 
@@ -258,10 +301,11 @@ def access_vlan=(vlan)
   config_set('interface', 'access_vlan', @name, vlan)
 ```
 
-### <a name="co4">Example - CO4 Property Methods:
+### <a name="co4">CO4: Make sure all new properites have a `getter`, `setter` and `default_getter` method.
 
-In the following example, the `router_id` property has a `getter`, `setter` and `default_getter` method.
+In order to have a complete set of api's for each property it is important that all properties have a `getter`, `setter` and `default_getter` method.
 
+This can be seen in the following `router_id` property.
 
 ```
 # Getter Method
@@ -290,13 +334,16 @@ def default_router_id
 end
 ```
 
-### <a name="co5">Example - CO4 Singleton Resources:
+### <a name="co5">CO5: Use singleton-like design for resources that cannot have multiple instances.
 
 See [TacacsServer](../lib/cisco_node_utils/tacacs_server.rb) and [SnmpServer](../lib/cisco_node_utils/snmpserver.rb) for examples.
 
-## MiniTest Examples:
+## MiniTest Best Practices:
 
-### <a name="mt2">Example - MT2 Use Proper Asserts:
+### <a name="mt1">MT1: Ensure that *all new API's* have minitest coverage.
+
+### <a name="mt2">MT2: Use appropriate `assert_foo` and `refute_foo` statements rather than `assert_equal`.
+
 
 Minitest has a bunch of different test methods that are more specific than assert_equal. See [test methods](http://docs.ruby-lang.org/en/2.1.0/MiniTest/Assertions.html) for a complete list, but here are some general guidelines:
 
@@ -310,9 +357,10 @@ Minitest has a bunch of different test methods that are more specific than asser
 
 The more specific assertions also produce more helpful failure messages if something is wrong.
 
-### <a name="mt3">Example - MT3 Don't Hardcode Interface:
+### <a name="mt3">MT3: Do not hardcode interface names.
 
-Use the `interfaces[]` array instead.
+Rather then hardcode an interface name that may or may not exist, instead use 
+the `interfaces[]` array.
 
 ```
 def create_interface(ifname=interfaces[0])
@@ -321,7 +369,11 @@ def create_interface(ifname=interfaces[0])
 end
 ```
 
-### <a name="mt4">Example - MT4 `config` Helper Method:
+If additional interfaces are needed array index `1` and `2` may be used.
+
+### <a name="mt4">MT4: Make use of the `config` helper method for device configuration instead of `@device.cmd`.
+
+For conveninence the `config` helper method has been provided so that 
 
 ```
 config('no feature ospf')
@@ -331,55 +383,22 @@ config('no feature ospf')
 config('feature ospf'; 'router ospf green')
 ```
 
-### <a name="mt5">Example - MT5 `assert_show_match` and `refute_show_match` Helper Methods:
+### <a name="mt5">MT5: Make use of the `assert_show_match` and `refute_show_match` helper methods to validate expected outcomes in the CLI instead of `@device.cmd("show...")`.
 
-#### `assert_show_match`
-
-```
-  def test_routerospf_create_valid_multiple_delete_one
-    name = 'ospfTest_1'
-    ospf_1 = RouterOspf.new(name)
-    assert_show_match(pattern: /router ospf #{name}/,
-                      msg:     "Error: #{name}, not configured")
-
-    name = 'ospfTest_2'
-    ospf_2 = RouterOspf.new(name)
-    assert_show_match(pattern: /router ospf #{name}/,
-                      msg:     "Error: #{name}, not configured")
-
-    ospf_1.destroy
-
-    # Remove one router then check that we only have one router left
-    routers = RouterOspf.routers
-    assert_equal(false, routers.empty?,
-                 'Error: RouterOspf collection is empty')
-    assert_equal(1, routers.size,
-                 'Error: RouterOspf collection is not one')
-    assert_equal(true, routers.key?(name),
-                 "Error: #{name}, not found in the collection")
-    # validate the collection
-    assert_show_match(pattern: /router ospf #{name}/,
-                      msg:     "Error: #{name}, instance not found")
-    ospf_2.destroy
-  end
-```
-
-#### `refute_show_match`
+We have a very common pattern in minitest where we execute some show command over the telnet connection, match it against some regexp pattern, and succeed or fail based on the result. Helper methods `assert_show_match` and `refute_show_match` support this pattern.
 
 ```
-  def test_interfaceospf_cost
-    ospf = create_routerospf
-    interface = create_interfaceospf(ospf)
-    cost = 1000
-    # set with value
-    interface.cost = cost
-    assert_show_match(pattern: /\s+ip ospf cost #{cost}/,
-                      msg:     'Error: cost missing in CLI')
-    assert_equal(cost, interface.cost,
-                 'Error: cost get value mismatch')
-    # set default
-    interface.cost = interface.default_cost
-    refute_show_match(pattern: /\s+ip ospf cost(.*)/,
-                      msg:     'Error: default cost set failed')
-  end
+assert_show_match(command: 'show run all | no-more',
+                  pattern: /interface port-channel 1/,
+                  msg:     'port-channel is not present but it should be')
+```
+
+If your `command` and/or `pattern` are the same throughout a test case or throughout a test suite, you can set the test case instance variables `@default_show_command` and/or `@default_output_pattern` which serve as defaults for these parameters:
+
+```
+@default_show_command = 'show run interface all | include "interface" | no-more'
+assert_output_match(pattern: /interface port-channel 10/)
+refute_output_match(pattern: /interface port-channel 11/)
+refute_output_match(pattern: /interface port-channel 12/)
+assert_output_match(pattern: /interface port-channel 13/)
 ```
