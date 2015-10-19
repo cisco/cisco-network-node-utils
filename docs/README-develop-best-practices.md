@@ -373,7 +373,7 @@ If additional interfaces are needed array index `1` and `2` may be used.
 
 ### <a name="mt4">MT4: Make use of the `config` helper method for device configuration instead of `@device.cmd`.
 
-For conveninence the `config` helper method has been provided so that 
+For conveninence the `config` helper method has been provided for device configuration within the minitests.
 
 ```
 config('no feature ospf')
