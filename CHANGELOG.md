@@ -34,6 +34,7 @@ Changelog
 
 ### Changed
 
+* Doc change: Add git config comments
 * Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
 
 ### Removed
