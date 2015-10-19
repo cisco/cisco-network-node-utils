@@ -61,7 +61,14 @@ git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
 ```
 
-As a best practice go ahead and create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+Please note that any code commits must be associated with your github account and email address. If you intend to commit code to this repository then use the following commands to update your workspace with your credentials:
+
+```bash
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
+
+As a best practice create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
 
 ```bash
 git branch feature/tunnel
@@ -773,4 +780,3 @@ Done installing documentation for cisco_node_utils after 2 seconds
 ## Conclusion
 
 This was hopefully a good introduction to writing a Cisco node_utils API. At this point you could continue adding properties or try your hand at writing Puppet or Chef provider code to utilize your new API.
-
