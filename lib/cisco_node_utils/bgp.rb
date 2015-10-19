@@ -314,7 +314,7 @@ module Cisco
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
       match = config_get('bgp', 'enforce_first_as', @get_args)
-      match.nil? ? false : default_enforce_first_as
+      match.nil? ? false : true
     end
 
     def enforce_first_as=(enable)
@@ -356,7 +356,7 @@ module Cisco
     # Graceful Restart Getters
     def graceful_restart
       match = config_get('bgp', 'graceful_restart', @get_args)
-      match.nil? ? false : default_graceful_restart
+      match.nil? ? false : true
     end
 
     def graceful_restart_timers_restart

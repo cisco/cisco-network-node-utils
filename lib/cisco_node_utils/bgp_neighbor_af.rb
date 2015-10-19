@@ -317,7 +317,7 @@ module Cisco
       str.strip! unless str.nil?
       if str == default_filter_list_in
         state = 'no'
-        # Current filter list name is required for removal
+        # Current filter-list name is required for removal
         str = filter_list_in
         return if str.nil?
       end
@@ -341,7 +341,7 @@ module Cisco
       str.strip! unless str.nil?
       if str == default_filter_list_out
         state = 'no'
-        # Current filter list name is required for removal
+        # Current filter-list name is required for removal
         str = filter_list_out
       end
       set_args_keys(state: state, str: str)
@@ -449,6 +449,53 @@ module Cisco
 
     def default_next_hop_third_party
       config_get_default('bgp_neighbor_af', 'next_hop_third_party')
+    end
+
+    # -----------------------
+    # <state> prefix-list <str> in
+    def prefix_list_in
+      str = config_get('bgp_neighbor_af', 'prefix_list_in', @get_args)
+      return default_prefix_list_in if str.nil?
+      str.shift.strip
+    end
+
+    def prefix_list_in=(str)
+      str.strip! unless str.nil?
+      if str == default_prefix_list_in
+        state = 'no'
+        # Current prefix-list name is required for removal
+        str = prefix_list_in
+        return if str.nil?
+      end
+      set_args_keys(state: state, str: str)
+      config_set('bgp_neighbor_af', 'prefix_list_in', @set_args)
+    end
+
+    def default_prefix_list_in
+      config_get_default('bgp_neighbor_af', 'prefix_list_in')
+    end
+
+    # -----------------------
+    # <state> prefix-list <str> out
+    def prefix_list_out
+      str = config_get('bgp_neighbor_af', 'prefix_list_out', @get_args)
+      return default_prefix_list_out if str.nil?
+      str.shift.strip
+    end
+
+    def prefix_list_out=(str)
+      str.strip! unless str.nil?
+      if str == default_prefix_list_out
+        state = 'no'
+        # Current prefix-list name is required for removal
+        str = prefix_list_out
+      end
+      set_args_keys(state: state, str: str)
+      config_set('bgp_neighbor_af', 'prefix_list_out', @set_args)
+    end
+
+    def default_prefix_list_out
+      config_get_default('bgp_neighbor_af', 'prefix_list_out')
     end
 
     # -----------------------
