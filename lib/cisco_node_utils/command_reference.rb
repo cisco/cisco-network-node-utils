@@ -30,7 +30,7 @@ module CommandReference
       if expression.is_a? Regexp
         @regex = expression
       else
-        raise ArgumentError
+        fail ArgumentError
       end
     end
 
@@ -38,7 +38,7 @@ module CommandReference
       if file.is_a? String
         @file = file
       else
-        raise ArgumentError
+        fail ArgumentError
       end
     end
 
@@ -54,13 +54,15 @@ module CommandReference
     attr_reader :sources
     attr_reader :hash
 
-    @@KEYS = %w(default_value
+    # rubocop:disable Style/ClassVars
+    @@keys = %w(default_value
                 config_set config_set_append
                 config_get config_get_token config_get_token_append
                 test_config_get test_config_get_regex test_config_result)
+    # rubocop:enable Style/ClassVars
 
     def initialize(feature, name, ref, source)
-      raise ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
+      fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
 
       @feature = feature
       @name = name
@@ -72,14 +74,14 @@ module CommandReference
 
     # Overwrite values from more specific references.
     def merge(values, file)
-      values.each { |key, value|
-        unless @@KEYS.include?(key)
-          raise "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
+      values.each do |key, value|
+        unless @@keys.include?(key)
+          fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         if value.nil?
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
-          if key == "default_value"
+          if key == 'default_value'
             @hash[key] = value
           else
             @hash.delete(key)
@@ -87,7 +89,7 @@ module CommandReference
         else
           @hash[key] = value
         end
-      }
+      end
       @sources << file
     end
 
@@ -98,29 +100,26 @@ module CommandReference
       # If value is a string and it is empty OR the first letter is lower case
       # then leave value untouched.
       # If value is a string and the first letter is uppercase this indicates
-      # that it could be a constant in Ruby so attempt to convert it to a Constant.
-      if value.is_a?(String) and not value.empty?
+      # that it could be a constant in Ruby, so attempt to convert it
+      # to a Constant.
+      if value.is_a?(String) && !value.empty?
         if value[0].chr == value[0].chr.upcase
-          begin
-            value = Object.const_get(value) if Object.const_defined?(value)
-          rescue NameError
-            # debug("#{value} looks like a constant but is not")
-          end
+          value = Object.const_get(value) if Object.const_defined?(value)
         end
       end
       value
     end
 
     def test_config_result(value)
-      result = @hash["test_config_result"][value]
+      result = @hash['test_config_result'][value]
       convert_to_constant(result)
     end
 
     def method_missing(method_name, *args, &block)
-      super(method_name, *args, &block) unless @@KEYS.include?(method_name.to_s)
+      super(method_name, *args, &block) unless @@keys.include?(method_name.to_s)
       method_name = method_name.to_s
       unless @hash.include?(method_name)
-        raise IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+        fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
       end
       # puts("get #{method_name}: '#{@hash[method_name]}'")
       @hash[method_name]
@@ -128,32 +127,27 @@ module CommandReference
 
     # Print useful debugging information about the object.
     def to_s
-      str = ""
+      str = ''
       str << "Command: #{@feature} #{@name}\n"
-      @hash.each { |key, value|
-        str << "  #{key}: #{value}\n"
-      }
+      @hash.each { |key, value| str << "  #{key}: #{value}\n" }
       str
     end
 
     # Check that all necessary values have been populated.
     def valid?
-      return false unless @feature and @name
+      return false unless @feature && @name
       true
     end
   end
 
   # Builds reference hash for the platform specified in the product id.
   class CommandReference
-    @@debug = false
-
-    def self.debug
-      @@debug
-    end
+    @@debug = false # rubocop:disable Style/ClassVars
 
     def self.debug=(value)
-      raise ArgumentError, "Debug must be boolean" unless value == true or value == false
-      @@debug = value
+      fail ArgumentError, 'Debug must be boolean' unless value == true ||
+                                                         value == false
+      @@debug = value # rubocop:disable Style/ClassVars
     end
 
     attr_reader :files, :product_id
@@ -171,25 +165,26 @@ module CommandReference
         @files = files
       else
         @files = []
-        # Hashes are unordered in Ruby 1.8.7. Instead, we use an array of objects.
+        # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
+        # of objects.
         platforms = [
           CommandPlatformFile.new(//,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_common.yaml")),
+                                            'command_reference_common.yaml')),
           CommandPlatformFile.new(/N9K/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n9k.yaml")),
+                                            'command_reference_n9k.yaml')),
           CommandPlatformFile.new(/N7K/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n7k.yaml")),
+                                            'command_reference_n7k.yaml')),
           CommandPlatformFile.new(/C3064/,
                                   File.join(File.dirname(__FILE__),
-                                            "command_reference_n3064.yaml")),
+                                            'command_reference_n3064.yaml')),
         ]
         # Build array
-        platforms.each { |reference|
+        platforms.each do |reference|
           @files << reference.file if reference.match(@product_id)
-        }
+        end
       end
 
       build_cmd_ref
@@ -204,19 +199,19 @@ module CommandReference
 
       reference_yaml = {}
 
-      @files.each { |file|
+      @files.each do |file|
         debug "Processing file '#{file}'"
         reference_yaml = load_yaml(file)
 
-        reference_yaml.each { |feature, names|
-          if names.nil? or names.empty?
-            raise "No names under feature #{feature}: #{names}"
+        reference_yaml.each do |feature, names|
+          if names.nil? || names.empty?
+            fail "No names under feature #{feature}: #{names}"
           elsif @hash[feature].nil?
             @hash[feature] = {}
           else
             debug "  Merging feature '#{feature}' retrieved from '#{file}'."
           end
-          names.each { |name, values|
+          names.each do |name, values|
             debug "  Processing feature '#{feature}' name '#{name}'"
             if @hash[feature][name].nil?
               begin
@@ -225,14 +220,15 @@ module CommandReference
                 raise "Invalid data for '#{feature}', '#{name}': #{e}"
               end
             else
-              debug "  Merging feature '#{feature}' name '#{name}' from '#{file}'."
+              debug "  Merging feature '#{feature}' name '#{name}' " \
+                    "from '#{file}'."
               @hash[feature][name].merge(values, file)
             end
-          }
-        }
-      }
+          end
+        end
+      end
 
-      raise "Missing values in CommandReference." unless valid?
+      fail 'Missing values in CommandReference.' unless valid?
     end
 
     # Get the command reference
@@ -243,9 +239,7 @@ module CommandReference
         # happens if @hash[feature] doesn't exist
         value = nil
       end
-      if value.nil?
-        raise IndexError, "No CmdRef defined for #{feature}, #{name}"
-      end
+      fail IndexError, "No CmdRef defined for #{feature}, #{name}" if value.nil?
       value
     end
 
@@ -258,18 +252,18 @@ module CommandReference
       puts "DEBUG: #{text}" if @@debug
     end
 
-    def is_mapping?(node)
+    def mapping?(node)
       # Need to handle both Syck::Map and Psych::Nodes::Mapping
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }
     end
-    private :is_mapping?
+    private :mapping?
 
     def get_keys_values_from_map(node)
       if node.class.ancestors.any? { |name| /Psych/ =~ name.to_s }
         # A Psych::Node::Mapping instance has an Array of children in
         # the format [key1, val1, key2, val2]
-        key_children = node.children.select.each_with_index { |n, i| i.even? }
-        val_children = node.children.select.each_with_index { |n, i| i.odd? }
+        key_children = node.children.select.each_with_index { |_, i| i.even? }
+        val_children = node.children.select.each_with_index { |_, i| i.odd? }
       else
         # Syck::Map nodes have a .children method but it doesn't work :-(
         # Instead we access the node.value which is a hash.
@@ -291,18 +285,20 @@ module CommandReference
     # @param depth Depth into the node tree
     # @param parents String describing parents of this node, for messages
     def validate_yaml(node, filename, depth=0, parents=nil)
-      return unless node and (is_mapping?(node) or node.children)
+      return unless node && (mapping?(node) || node.children)
       # Psych wraps everything in a Document instance, while
       # Syck does not. To keep the "depth" counting consistent,
       # we need to ignore Documents.
-      depth += 1 unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
+      unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
+        depth += 1
+      end
       debug "Validating #{node.class} at depth #{depth}"
 
       # No special validation for non-mapping nodes - just recurse
-      unless is_mapping?(node)
-        node.children.each { |child|
+      unless mapping?(node)
+        node.children.each do |child|
           validate_yaml(child, filename, depth, parents)
-        }
+        end
         return
       end
 
@@ -325,7 +321,7 @@ module CommandReference
       dup = key_arr.detect { |e| key_arr.index(e) != key_arr.rindex(e) }
       if dup
         msg = "Duplicate #{label} '#{dup}'#{parents} in #{filename}!"
-        raise msg
+        fail msg
       end
 
 =begin
@@ -338,7 +334,7 @@ module CommandReference
       if depth == 1
         last_key = nil
         key_arr.each do |key|
-          if last_key and key < last_key
+          if last_key && key < last_key
             raise RuntimeError, "features out of order (#{last_key} > #{key})"
           end
           last_key = key
@@ -363,7 +359,7 @@ module CommandReference
 
     # Read in yaml file.
     def load_yaml(yaml_file)
-      raise "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
+      fail "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
       # Parse YAML file into a tree of nodes
       # Psych::SyntaxError doesn't inherit from StandardError in some versions,
       # so we want to explicitly catch it if using Psych.
@@ -394,22 +390,19 @@ module CommandReference
     # Check that all resources were pulled in correctly.
     def valid?
       complete_status = true
-      @hash.each { |feature, names|
-        names.each { |name, ref|
+      @hash.each_value do |names|
+        names.each_value do |ref|
           status = ref.valid?
-          debug "Reference does not contain all supported values:\n#{ref}" unless status
-          complete_status = (status and complete_status)
-        }
-      }
+          debug('Reference does not contain all supported values:' \
+                "\n#{ref}") unless status
+          complete_status = (status && complete_status)
+        end
+      end
       complete_status
     end
 
     def to_s
-      @hash.each { |feature, names|
-        names.each { |name, ref|
-          ref.to_s
-        }
-      }
+      @hash.each_value { |names| names.each_value(&:to_s) }
     end
   end
 end

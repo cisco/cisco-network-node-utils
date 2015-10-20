@@ -1,0 +1,19 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+VERSION=$1
+debug "Detected VERSION as '$VERSION'"
+STRIP_VERSION=$(echo "$VERSION" | tr -c -d '0-9.')
+debug "Detected STRIP_VERSION as '$STRIP_VERSION'"
+
+LAST_VERSION=get_last_version
+
+step_name "Change 'Unreleased' subhead to '$VERSION' in CHANGELOG.md"
+
+sed -i -e "s/^## \[Unreleased\]$/## [$VERSION] - $(date +%Y-%m-%d)/" "$REPO_DIR"/CHANGELOG.md
+
+add_changelog_diff_link "$LAST_VERSION" "$STRIP_VERSION"
+
+set_gem_version "$STRIP_VERSION"

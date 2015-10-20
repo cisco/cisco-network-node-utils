@@ -17,67 +17,78 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'simplecov'
+SimpleCov.start do
+  # Don't calculate coverage of our test code itself!
+  add_filter '/tests/'
+end
+
 require 'rubygems'
-gem 'minitest', '>= 2.5.1', '< 5.0.0'
+gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-require 'test/unit'
 begin
   require 'cisco_nxapi'
 rescue LoadError
-  require File.expand_path("../../../cisco_nxapi/lib/cisco_nxapi")
+  require File.expand_path('../../../cisco-nxapi/lib/cisco_nxapi')
 end
 
-class TestCase < Test::Unit::TestCase
+# rubocop:disable Style/ClassVars
+# We *want* the address/username/password class variables to be shared
+# with all child classes, so that we only need to initialize them once.
+
+# TestCase - common base class for all minitest cases in this module.
+#   Most node utility tests should inherit from CiscoTestCase instead.
+class TestCase < Minitest::Test
+  # These variables can be set in one of three ways:
+  # 1) ARGV:
+  #   $ ruby basetest.rb -- address username password
+  # 2) NODE environment variable
+  #   $ export NODE="address username password"
+  #   $ rake test
+  # 3) At run time:
+  #   $ rake test
+  #   Enter address or hostname of node under test:
   @@address = nil
   @@username = nil
   @@password = nil
 
-  def process_arguments
-    if ARGV.length != 3 and ARGV.length != 4
-      puts "Usage:"
-      puts "  ruby test_nxapi.rb [options] -- <address> <username> <password> [debug]"
-      exit
-    end
-
-    # Record the version of Ruby we got invoked with.
-    puts "\nRuby Version - #{RUBY_VERSION}"
-
-    @@address = ARGV[0]
-    @@username = ARGV[1]
-    @@password = ARGV[2]
-
-    if ARGV.length == 4
-        if ARGV[3] == "debug"
-            CiscoLogger.debug_enable
-        else
-            puts "Only 'debug' is allowed"
-            exit
-        end
-    end
-  end
-
-  # setup-once params
   def address
-    process_arguments unless @@address
+    @@address ||= ARGV[0]
+    @@address ||= ENV['NODE'].split(' ')[0] if ENV['NODE']
+    unless @@address
+      print 'Enter address or hostname of node under test: '
+      @@address = gets.chomp
+    end
     @@address
   end
 
   def username
-    process_arguments unless @@username
+    @@username ||= ARGV[1]
+    @@username ||= ENV['NODE'].split(' ')[1] if ENV['NODE']
+    unless @@username
+      print 'Enter username for node under test:           '
+      @@username = gets.chomp
+    end
     @@username
   end
 
   def password
-    process_arguments unless @@password
+    @@password ||= ARGV[2]
+    @@password ||= ENV['NODE'].split(' ')[2] if ENV['NODE']
+    unless @@password
+      print 'Enter password for node under test:           '
+      @@password = gets.chomp
+    end
     @@password
   end
 
   def setup
-    @device = Net::Telnet.new("Host" => address, "Timeout" => 240)
+    @device = Net::Telnet.new('Host' => address, 'Timeout' => 240)
     @device.login(username, password)
+    CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
-    puts "Connection refused - please check that the IP address is correct"
+    puts 'Connection refused - please check that the IP address is correct'
     puts "  and that you have enabled 'feature telnet' on the UUT"
     exit
   end
@@ -87,7 +98,41 @@ class TestCase < Test::Unit::TestCase
     GC.start
   end
 
-  def test_placeholder
-    # needed so that we don't get a "no tests were specified" error
+  def config(*args)
+    # Send the entire config as one string but be sure not to return until
+    # we are safely back out of config mode, i.e. prompt is
+    # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
+    @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
+                'Match'  => /^[^()]+[$%#>] \z/n)
+  end
+
+  def assert_show_match(pattern: nil, command: nil, msg: nil)
+    pattern ||= @default_output_pattern
+    refute_nil(pattern)
+    command ||= @default_show_command
+    refute_nil(command)
+
+    output = @device.cmd(command)
+    msg = message(msg) do
+      "Expected #{mu_pp pattern} to match " \
+      "output of '#{mu_pp command}':\n#{output}"
+    end
+    assert pattern =~ output, msg
+    pattern.match(output)
+  end
+
+  def refute_show_match(pattern: nil, command: nil, msg: nil)
+    pattern ||= @default_output_pattern
+    refute_nil(pattern)
+    command ||= @default_show_command
+    refute_nil(command)
+
+    output = @device.cmd(command)
+    msg = message(msg) do
+      "Expected #{mu_pp pattern} to NOT match " \
+      "output of '#{mu_pp command}':\n#{output}"
+    end
+    refute pattern =~ output, msg
   end
 end
+# rubocop:enable Style/ClassVars

@@ -98,11 +98,34 @@ aaa_server_group:
   vrf:
     default_value: "default"
 
-domain_name:
+dnsclient:
+  domain:
+    config_get: "show running-config all"
+    config_get_token: '/^ip domain-list (\S+)$/'
+    config_set: '<state> ip domain-list <name>'
+    default_value: ''
+
+  domain_vrf:
+    config_get: "show running-config all"
+    config_get_token: ['/vrf context <vrf>/', '/ip domain-list (\S+)/']
+    config_set: ['vrf context <vrf>', '<state> ip domain-list <name>']
+    default_value: ''
+
+  name_server:
+    config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+    config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
+    config_set: '<state> ip name-server <ip>'
+    default_value: ''
   domain_name:
-    # NOTE: This does not account for vrf ip domain-name
-    config_get: "show running-config"
-    config_get_token: '/^ip domain-name (.*)/'
+    config_get: 'show running-config all'
+    config_get_token: '/^ip domain-name (\S+)$/'
+    config_set: '<state> ip domain-name <name>'
+    default_value: ''
+  domain_name_vrf:
+    config_get: 'show running-config all'
+    config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
+    config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+    default_value: ''
 
 fex:
   feature:
@@ -141,6 +164,17 @@ interface:
 
   destroy:
     config_set: "no interface %s"
+
+  encapsulation_dot1q:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^encapsulation dot1q (.*)/']
+    config_set: ["interface %s", "%s encapsulation dot1q %s"]
+    default_value: ""
+
+  feature_lacp:
+    config_get: "show running | i ^feature"
+    config_get_token: '/^feature lacp$/'
+    config_set: "%s feature lacp"
 
   feature_vlan:
     config_get: "show running | i ^feature"
@@ -196,6 +230,12 @@ interface:
       false: false
       true: true
 
+  mtu:
+    config_get: "show running interface all"
+    config_get_token: ['/^interface %s$/i', '/^mtu (.*)$/']
+    config_set: ["interface %s", "%s mtu %s"]
+    default_value: 1500
+
   negotiate_auto_ethernet:
     config_get: "show running interface all"
     config_get_token: [
@@ -216,7 +256,7 @@ interface:
     '/^negotiate auto$/'
     ]
     config_set: ["interface %s", "%s negotiate auto"]
-    default_value: false
+    default_value: true
     test_config_get_regex: [
     !ruby/regexp '/^\s+no negotiate auto/',
     !ruby/regexp '/^\s+negotiate auto/'
@@ -302,6 +342,24 @@ interface:
   switchport_mode_dot1q_tunnel:
     test_config_result:
       false: RuntimeError
+
+  switchport_trunk_allowed_vlan:
+    config_get: "show running interface all"
+    config_get_token: [
+      '/^interface %s$/i',
+      '/^switchport trunk allowed vlan (.*)$/'
+    ]
+    config_set: ["interface %s", "%s switchport trunk allowed vlan %s"]
+    default_value: "all"
+
+  switchport_trunk_native_vlan:
+    config_get: "show running interface all"
+    config_get_token: [
+      '/^interface %s$/i',
+      '/^switchport trunk native vlan (.*)$/'
+    ]
+    config_set: ["interface %s", "%s switchport trunk native vlan %s"]
+    default_value: 1
 
   svi_autostate:
     config_get: "show running interface all"
@@ -416,6 +474,25 @@ inventory:
   versionid:
     config_get: "show inventory"
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
+
+ntp_config:
+  source_interface:
+    config_get: "show running-config ntp"
+    config_get_token: '/^ntp source-interface\s+(.*)$/'
+    config_set: '<state> ntp source-interface <source_interface>'
+    default_value: ''
+
+ntp_server:
+  server:
+    config_get: "show running-config all | include 'ntp server'"
+    config_get_token: '/ntp server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/'
+    config_set: '<state> ntp server <ip> <prefer>'
+    default_value: ''
+
+  prefer:
+    config_get: "show running-config all | include 'ntp server(.*)(prefer)'"
+    config_get_token: '/ntp server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/'
+    default_value: ''
 
 memory:
   total:
@@ -690,6 +767,30 @@ snmp_user:
     config_get: "show snmp user"
     config_get_token: ["TABLE_snmp_users", "ROW_snmp_users"]
     config_set: "%s snmp-server user %s %s %s %s %s %s"
+
+syslog_settings:
+  timestamp:
+    config_get: "show running-config all | include '^logging timestamp'"
+    config_get_token: '/^logging timestamp (.*)$/'
+    config_set: '<state> logging timestamp <units>'
+    default_value: 'seconds'
+
+syslog_server:
+  server:
+    config_get: "show running-config all | include '^logging server'"
+    config_get_token: '/^logging server ((?:[0-9]{1,3}\.){3}[0-9]{1,3}).*/'
+    config_set: '<state> logging server <ip> <level> <vrf>'
+    default_value: ''
+
+  level:
+    config_get: "show running-config all | include '^logging server'"
+    config_get_token: '/^logging server %s (\d).*/'
+    default_value: ''
+
+  vrf:
+    config_get: "show running-config all | include '^logging server(.*)(use-vrf)'"
+    config_get_token: '/^logging server %s.* use-vrf (.*)$/'
+    default_value: ''
 
 system:
   resources:
