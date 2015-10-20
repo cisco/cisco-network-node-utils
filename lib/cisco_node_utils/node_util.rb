@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require_relative 'node'
 
 module Cisco
   # NodeUtil - generic functionality for node utility subclasses to use

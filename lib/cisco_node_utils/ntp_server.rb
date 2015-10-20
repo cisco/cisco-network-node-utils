@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
-require File.join(File.dirname(__FILE__), 'interface')
+require_relative 'node'
+require_relative 'interface'
 
 module Cisco
   # NtpServer - node utility class for NTP Server configuration management

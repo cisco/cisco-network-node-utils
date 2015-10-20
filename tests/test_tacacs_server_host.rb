@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/tacacs_server_host',
-                         __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/tacacs_server_host'
 
 include Cisco
 
@@ -27,7 +26,7 @@ class TestTacacsServerHost < CiscoTestCase
   def setup
     super
     @host_name = 'testhost'
-    @default_show_command = 'show run all | no-more'
+    @default_show_command = 'show run all | inc "tacacs-server" | no-more'
     @default_output_pattern = /tacacs-server host\s(#{@host_name})(.*)/
   end
 
@@ -169,8 +168,8 @@ class TestTacacsServerHost < CiscoTestCase
     port = 1138
     host.port = port
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
+    assert_match(/port\s(\d*)/, line.captures[1])
     md = /port\s(\d*)/.match(line.captures[1])
-    refute_nil(md, 'Error: Tacacs Host port not found')
     assert_equal(port, md.captures[0].to_i, 'Error: Tacacs Host port mismatch')
     assert_equal(port, host.port, 'Error: Tacacs Host port incorrect')
 
@@ -211,8 +210,8 @@ class TestTacacsServerHost < CiscoTestCase
     timeout = 30
     host.timeout = timeout
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
+    assert_match(/timeout\s(\d*)/, line.captures[1])
     md = /timeout\s(\d*)/.match(line.captures[1])
-    refute_nil(md, 'Error: Tacacs Host timeout not found')
     assert_equal(timeout, md.captures[0].to_i,
                  'Error: Tacacs Host timeout mismatch')
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
@@ -226,8 +225,7 @@ class TestTacacsServerHost < CiscoTestCase
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
     host.timeout = timeout
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
-    md = /timeout\s(\d*)/.match(line.captures[1])
-    assert_nil(md, 'Error: Tacacs Host timeout found')
+    refute_match(/timeout\s(\d*)/, line.captures[1])
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
 
     host.destroy
@@ -295,8 +293,8 @@ class TestTacacsServerHost < CiscoTestCase
     host.encryption_key_set(enctype, pass)
 
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
+    assert_match(/key\s(\d*)\s(\S*)/, line.captures[1])
     md = /key\s(\d*)\s(\S*)/.match(line.captures[1])
-    refute_nil(md, 'Error: Tacacs Host encryption not found')
     assert_equal(sh_run_enctype, md.captures[0].to_i,
                  'Error: Tacacs Host encryption type mismatch')
     assert_equal(sh_run_enctype, host.encryption_type,
@@ -330,8 +328,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.encryption_key_set(enctype, pass)
 
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
-    md = /key\s(\d*)\s(\S*)/.match(line.captures[1])
-    assert_nil(md, 'Error: Tacacs Host encryption found')
+    refute_match(/key\s(\d*)\s(\S*)/, line.captures[1])
     assert_equal(enctype, host.encryption_type,
                  'Error: Tacacs Host encryption type incorrect')
     assert_equal(pass, host.encryption_password,

@@ -16,9 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/configparser_lib',
-                         __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/configparser_lib'
 require 'timeout'
 require 'yaml'
 

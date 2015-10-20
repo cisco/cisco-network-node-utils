@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'router_ospf')
+require_relative 'node_util'
+require_relative 'router_ospf'
 
 module Cisco
   # RouterOspfVrf - node utility class for per-VRF OSPF config management

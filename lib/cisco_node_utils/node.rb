@@ -21,7 +21,7 @@
 require 'singleton'
 
 require 'cisco_nxapi'
-require File.join(File.dirname(__FILE__), 'command_reference')
+require_relative 'command_reference'
 
 # Add node management classes and APIs to the Cisco namespace.
 module Cisco
@@ -482,7 +482,7 @@ module Cisco
 
     # @return [String] such as "example.com"
     def domain_name
-      result = config_get('domain_name', 'domain_name')
+      result = config_get('dnsclient', 'domain_name')
       if result.nil?
         return ''
       else

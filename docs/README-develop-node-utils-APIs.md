@@ -5,13 +5,7 @@
 * [Overview](#overview)
 * [Before You Begin](#prerequisites)
 * [Start here: Fork and Clone the Repo](#clone)
-* [Basic Example: feature tunnel](#simple)
- * [Step 1. YAML Definitions: feature tunnel](#yaml)
- * [Step 2. Create the node_utils API: feature tunnel](#api)
- * [Step 3. Create the Minitest: feature tunnel](#minitest)
- * [Step 4. rubocop / lint: feature tunnel](#lint)
- * [Step 5. Build and Install the gem](#gem)
-* [Advanced Example: router eigrp](#complex)
+* [Example: router eigrp](#complex)
  * [Step 1. YAML Definitions: router eigrp](#comp_yaml)
  * [Step 2. Create the node_utils API: router eigrp](#comp_api)
  * [Step 3. Create the Minitest: router eigrp](#comp_minitest)
@@ -61,289 +55,24 @@ git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
 ```
 
-As a best practice go ahead and create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+Please note that any code commits must be associated with your github account and email address. If you intend to commit code to this repository then use the following commands to update your workspace with your credentials:
 
 ```bash
-git branch feature/tunnel
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
+
+As a best practice create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+
+```bash
 git branch feature/eigrp
 git branch
 * develop
-  feature/tunnel
   feature/eigrp
 ```
 
-## <a name="simple">Basic Example: feature tunnel</a>
 
-Before you start working on the tunnel feature, checkout the feature branch you created earlier.
-
-```bash
-git checkout feature/tunnel
-git branch
-  develop
-* feature/tunnel
-  feature/eigrp
-```
-
-Writing a new node_utils API is often easier to understand through example code. The NX-OS CLI for `feature tunnel` is a simple on / off style configuration and therefore a good candidate for a simple API:
-
-`[no] feature tunnel`
-
-### <a name="yaml">Step 1. YAML Definitions: feature tunnel</a>
-
-The new API will need some basic YAML definitions. These are used with the `CommandReference` module as a way to abstract away platform CLI differences.
-
-`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `feature tunnel` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
-
-`lib/cisco_node_utils/command_reference_common.yaml`
-
-Four basic command_reference parameters will be defined for each resource property:
-
- 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
- 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
- 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
- 4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
-
-There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
-
-#### Example: YAML Property Definitions for feature tunnel
-
-The `feature tunnel` configuration is displayed with the `show running-config` command. Anchor the config_get_token regexp pattern carefully as it may match on unwanted configurations.
-
-*Note: YAML syntax has strict indentation rules. Do not use TABs.*
-
-```
-tunnel:
-  feature:
-    config_get: 'show running'               # get current tunnel config state
-    config_get_token: '/^feature tunnel$/'   # Match only 'feature tunnel'
-    config_set: '<state> feature tunnel'     # Config needed to enable/disable
-```
-
-### <a name="api">Step 2. cisco_node_utils API file: feature tunnel</a>
-
-* Before creating the new API, first add a new entry: `require 'cisco_node_utils/tunnel'`  to the master list of resources in:
-
-```
-lib/cisco_node_utils.rb
-```
-
-* There are template files in /docs that may help when writing new APIs. These templates provide most of the necessary code with just a few customizations required for a new resource. Copy the `template-feature.rb` file to use as the basis for `tunnel.rb`:
-
-```bash
-cp  docs/template-feature.rb  lib/cisco_node_utils/tunnel.rb
-```
-
-* Edit `tunnel.rb` and substitute the placeholder text as shown here:
-
-```bash
-/X__CLASS_NAME__X/Tunnel/
-
-/X__RESOURCE_NAME__X/tunnel/
-```
-
-#### Example: tunnel.rb API
-
-This is the completed tunnel API based on `template-feature.rb`:
-
-```ruby
-
-require File.join(File.dirname(__FILE__), 'node_util')
-
-module Cisco
-  # Class name syntax will typically be the resource name in camelCase
-  # format; for example: 'tacacs server host' becomes TacacsServerHost.
-  class Tunnel
-    def feature_enable
-      config_set('tunnel', 'feature', state: '')
-    end
-
-    def feature_disable
-      config_set('tunnel', 'feature', state: 'no' )
-    end
-
-    # Check current state of the configuration
-    def self.feature_enabled
-      feat = config_get('tunnel', 'feature')
-      return !(feat.nil? || feat.empty?)
-    rescue Cisco::CliError => e
-      # This cmd will syntax reject if feature is not
-      # enabled. Just catch the reject and return false.
-      return false if e.clierror =~ /Syntax error/
-      raise
-    end
-  end
-end
-```
-
-### <a name="minitest">Step 3. Minitest: feature tunnel</a>
-
-* A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `tests/`
-
-* Tests may use `config(cmd1, cmd2, ...)` to access the CLI directly to set up tests.
-
-* Tests may use `@device.cmd("show ...")` or the helper methods `assert_show_match` and `refute_show_match` to validate expected outcomes in the CLI. The tests directory contains many examples of how these are used.
-
-* Our minitest will be very basic since the API itself is very basic. Use `template-test_feature.rb` to create a minitest for the tunnel resource:
-
-```bash
-cp  docs/template-test_feature.rb  tests/test_tunnel.rb
-```
-
-* As with the API code, edit `test_tunnel.rb` and change the placeholder names as shown:
-
-```bash
-/X__CLASS_NAME__X/Tunnel/
-
-/X__RESOURCE_NAME__X/tunnel/
-
-/X__CLI_NAME__X/tunnel/
-```
-
-#### Example: test_tunnel.rb
-
-This is the completed `tunnel` minitest based on `template-test_feature.rb`:
-
-```ruby
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/tunnel", __FILE__)
-
-# TestTunnel - Minitest for Tunnel node utility class
-class TestTunnel < CiscoTestCase
-  def setup
-    # setup automatically runs at the beginning of each test
-    super
-    no_feature
-  end
-
-  def teardown
-    # teardown automatically runs at the end of each test
-    no_feature
-    super
-  end
-
-  def no_feature
-    # setup/teardown helper. Turn the feature off for a clean testbed.
-    config('no feature tunnel')
-  end
-
-  def test_feature_on_off
-    feat = Tunnel.new
-    feat.feature_enable
-    assert(Tunnel.feature_enabled)
-
-    feat.feature_disable
-    refute(Tunnel.feature_enabled)
-  end
-
-end
-```
-
-We can now run the new minitest against our NX-OS device using any one of the following syntax:
-
-1. CLI arguments:
-
-    ```bash
-    ruby test_tunnel.rb -v -- <node_ip_address> <user> <passwd>
-    ```
-
-2. Environment variable:
-
-    ```bash
-    export NODE="<node_ip_address> <user> <passwd>"
-    ruby test_tunnel.rb -v
-    ```
-
-3. Runtime input:
-
-    ```
-    $ ruby test_tunnel.rb -v
-    Enter address or hostname of node under test: <node_ip_address>
-    Enter username for node under test:           <user>
-    Enter password for node under test:           <password>
-    ```
-
-*Note. The minitest requires that the NX-OS device have 'feature nxapi' and 'feature telnet' enabled. This will typically be enabled by default.*
-
-#### Example: Running tunnel minitest
-
-```bash
-% ruby  test_tunnel.rb  -v -- 192.168.0.1 admin admin
-Run options: -v -- --seed 23392
-
-# Running tests:
-
-CiscoTestCase#test_placeholder =
-Ruby Version - 1.9.3
-Node in CiscoTestCase Class: 192.168.0.1
-Platform:
-  - name  - my_n9k
-  - type  - N9K-C9504
-  - image - bootflash:///n9000-dk9.7.0.3.I2.0.509.bin
-
-1.79 s = .
-TestTunnel#test_feature_on_off = 1.42 s = .
-TestTunnel#test_placeholder = 0.95 s = .
-TestCase#test_placeholder = 0.81 s = .
-
-Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
-
-4 tests, 2 assertions, 0 failures, 0 errors, 0 skips
-```
-
-*Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
-
-### <a name="lint">Step 4. rubocop: feature tunnel</a>
-
-rubocop is a Ruby static analysis tool. Run rubocop to validate the new code:
-
-```bash
-% rubocop lib/cisco_node_utils/tunnel.rb tests/test_tunnel.rb
-Inspecting 2 files
-..
-
-2 files inspected, no offenses detected
-```
-
-### <a name="gem">Step 5. Build and Install the gem</a>
-
-The final step is to build and install the gem that contains the new APIs.
-
-From the root of the cisco-network-node-utils repository issue the following command.
-
-```bash
-gem build cisco_node_utils.gemspec
-  Successfully built RubyGem
-  Name: cisco_node_utils
-  Version: 1.0.1
-  File: cisco_node_utils-1.0.1.gem
-```
-
-Copy the new gem to your NX-OS device and then install it.
-
-```bash
-n9k#gem install --local /bootflash/cisco_node_utils-1.0.1.gem
-Successfully installed cisco_node_utils-1.0.1
-Parsing documentation for cisco_node_utils-1.0.1
-Installing ri documentation for cisco_node_utils-1.0.1
-Done installing documentation for cisco_node_utils after 2 seconds
-1 gem installed
-```
-
-## <a name="complex">Advanced Example: router eigrp</a>
+## <a name="complex">Example: router eigrp</a>
 
 Before you start working on the eigrp feature, checkout the feature branch you created earlier.
 
@@ -351,11 +80,9 @@ Before you start working on the eigrp feature, checkout the feature branch you c
 git checkout feature/eigrp
 git branch
   develop
-  feature/tunnel
 * feature/eigrp
 ```
 
-Now that we have a basic example working we can move on to a slightly more complex cli.
 `router eigrp` requires feature enablement and supports multiple eigrp instances. It also has multiple configuration levels for vrf and address-family.
 
 For the purposes of this example we will only implement the following properties:
@@ -375,10 +102,20 @@ Example:
 
 ### <a name="comp_yaml">Step 1. YAML Definitions: router eigrp</a>
 
-As with the earlier example, `router eigrp` will need YAML definitions in the common file:
+The new API for `router eigrp` will need some basic YAML definitions. 
+
+`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `router eigrp` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
 
 `lib/cisco_node_utils/command_reference_common.yaml`
 
+Four basic command_reference parameters will be defined for each resource property:
+
+ 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
+ 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
+ 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
+ 4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
+
+There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
 The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
@@ -418,12 +155,6 @@ eigrp:
 
 ### <a name="comp_api">Step 2. cisco_node_utils API: router eigrp</a>
 
-* Add a new entry: `require 'cisco_node_utils/router_eigrp'` to the master list in:
-
-```
-lib/cisco_node_utils.rb
-```
-
 * The `template-router.rb` file provides a basic router API that we will use as the basis for `router_eigrp.rb`:
 
 ```bash
@@ -462,7 +193,7 @@ This is the completed `router_eigrp` API based on `template-router.rb`:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # RouterEigrp - node utility class for EIGRP config management.
@@ -613,8 +344,8 @@ This is the completed `test_router_eigrp` minitest based on `template-test_route
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/router_eigrp", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/router_eigrp'
 
 # TestRouterEigrp - Minitest for RouterEigrp node utility class
 class TestRouterEigrp < CiscoTestCase
@@ -749,10 +480,16 @@ Inspecting 2 file
 
 The final step is to build and install the gem that contains the new APIs.
 
+Please note: `gem build` will only include files that are part of the repository. This means that new file `router_eigrp.rb` will be ignored by the build until it is added to the repo with `git add`:
+
+```bash
+git add lib/cisco_node_utils/router_eigrp.rb
+```
+
 From the root of the cisco-network-node-utils repository issue the following command.
 
 ```bash
-gem build cisco_node_utils.gemspec
+% gem build cisco_node_utils.gemspec
   Successfully built RubyGem
   Name: cisco_node_utils
   Version: 1.0.1
@@ -773,4 +510,3 @@ Done installing documentation for cisco_node_utils after 2 seconds
 ## Conclusion
 
 This was hopefully a good introduction to writing a Cisco node_utils API. At this point you could continue adding properties or try your hand at writing Puppet or Chef provider code to utilize your new API.
-

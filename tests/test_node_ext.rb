@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
+require_relative 'ciscotest'
 
 # TestNodeExt - Minitest for abstracted Node APIs
 class TestNodeExt < CiscoTestCase
@@ -160,7 +160,7 @@ vrf blue",
 
     node.cache_flush
     dom3 = node.domain_name
-    assert_not_equal(dom1, dom3)
+    refute_equal(dom1, dom3)
   end
 
   def test_node_get_product_description

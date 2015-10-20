@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/router_ospf', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/router_ospf_vrf', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/router_ospf'
+require_relative '../lib/cisco_node_utils/router_ospf_vrf'
 
 # TestRouterOspfVrf - Minitest for RouterOspfVrf node utility class
 class TestRouterOspfVrf < CiscoTestCase
@@ -30,73 +30,55 @@ class TestRouterOspfVrf < CiscoTestCase
     super
   end
 
-  def get_routerospfvrf_match_line(router, vrfname)
-    s = @device.cmd('show run all | no-more')
-    cmd = 'router ospf'
-    pattern = /#{cmd}\s#{router}/
-    # no match found, return nil
-    return nil if (md = pattern.match(s)).nil?
-
-    # match found but default vrf
-    return 'default' if (vrfname == 'default')
-
-    # assign post match
-    s = md.post_match
-    # non default case, check vf exist
-    s.each_line do |line|
-      next unless (/^\s+$/).match(line).nil?
-
-      # check whether we in 2 space
-      ml = (/^\s+(.*)/).match(line)
-      return nil if ml.nil?
-
-      # check wether we found vrf
-      ml = (/vrf\s#{vrfname}/).match(line)
-      return ml unless ml.nil?
-    end # s.each
+  def assert_match_vrf_line(routername, vrfname, cmd=nil)
+    match_vrf_line(routername, vrfname, cmd, true)
   end
 
-  def get_routerospfvrf_match_submode_line(router, vrfname, mtline)
-    s = @device.cmd('show run all | no-more')
-    cmd = 'router ospf'
-    pattern = /#{cmd}\s#{router}/
+  def refute_match_vrf_line(routername, vrfname, cmd=nil)
+    match_vrf_line(routername, vrfname, cmd, false)
+  end
+
+  def match_vrf_line(routername, vrfname, cmd=nil, match_cmd=true)
+    s = @device.cmd('show run ospf all | sec "router ospf" | no-more')
+    pattern = /router ospf #{routername}/
+    assert_match(pattern, s)
     vrf_found = false
+    # If no vrf or cmd, just finding the router is enough
+    return true if vrfname == 'default' && cmd.nil?
 
-    # no match found, return nil
-    return nil if (md = pattern.match(s)).nil?
-    s = md.post_match
-    # match found, so loop through the config and
-    # find appropriate default or exact vrf
-    s.each_line do |line|
-      # if line is empty then move on to next line
-      next unless (/^\s+$/).match(line).nil?
-
-      # check whether we in 2 space
-      ml = (/^\s+(.*)/).match(line)
-      return nil if ml.nil?
-
-      # for default vrf we do not expect any vrfname present
-      # on the device, hence return nil.
-      if (vrfname == 'default')
-        ml = (/vrf\s(.*)$/).match(line)
-        return nil unless ml.nil?
-      else
-        # for non-default vrf, find the match if not find one
-        if vrf_found == false
-          ml = (/vrf\s#{vrfname}/).match(line)
-          next if ml.nil?
-          vrf_found = true
-        else
-          # This is new vrf, hence return nil
-          ml = (/vrf\s(.*)$/).match(line)
-          return nil unless ml.nil?
-        end
+    # Else, look for the vrf and/or cmd
+    pattern.match(s).post_match.each_line do |line|
+      # Skip blank lines
+      next if /^\s*$/.match(line)
+      if !vrf_found && vrfname != 'default'
+        # Have to find the VRF before checking for cmd
+        assert_match(/^\s+(.*)/, line,
+                     "Exited 'router ospf #{routername}' submode "\
+                     "before finding 'vrf #{vrfname}'. Output:\n#{s}")
+        vrf_found = true if /vrf\s#{vrfname}/ =~ line
+        return true if cmd.nil?
+        next
       end
 
-      # if match found then return line
-      ml = mtline.match(line)
-      return ml unless ml.nil?
-    end # s.each
+      # If we get here, either we found the VRF we want or we want no VRF
+      if !match_cmd
+        # If we find a new VRF, we're done
+        return true if /vrf\s.*/ =~ line
+        # Fail if we find the unwanted command
+        refute_match(cmd, line)
+      else
+        # Fail if we hit a VRF before finding our cmd
+        refute_match(/vrf\s.*/, line,
+                     "Found vrf line before finding #{cmd} under vrf default")
+        # We're done if we found the command
+        return true if cmd =~ line
+      end
+    end
+    if !vrf_found && vrfname != 'default'
+      flunk("Ran out of output before finding 'vrf #{vrfname}':\n#{s}")
+    elsif cmd && match_cmd
+      flunk("Ran out of output before finding #{cmd}:\n#{s}")
+    end
   end
 
   def create_routerospf(ospfname='ospfTest')
@@ -211,8 +193,7 @@ class TestRouterOspfVrf < CiscoTestCase
     # routerospf = RouterOspf.new(ospfname)
     vrfname = 'default'
     vrf = RouterOspfVrf.new(ospfname, vrfname)
-    line = get_routerospfvrf_match_line(ospfname, vrfname)
-    refute_nil(line, "Error: #{vrfname} vrf, does not exist in CLI")
+    assert_match_vrf_line(ospfname, vrfname)
     assert_equal(vrfname, vrf.name,
                  "Error: #{vrfname} vrf, create failed")
     vrf.parent.destroy
@@ -229,9 +210,7 @@ class TestRouterOspfVrf < CiscoTestCase
   def test_routerospfvrf_get_name
     vrfname = 'default'
     vrf = create_routerospfvrf('green')
-    line = get_routerospfvrf_match_line('green', vrfname)
-    assert_equal(vrfname, line,
-                 "Error: #{vrfname} vrf,name mismatch")
+    assert_match_vrf_line('green', vrfname)
     assert_equal(vrfname, vrf.name,
                  "Error: #{vrfname} vrf, name get value mismatch")
     vrf.parent.destroy
@@ -243,9 +222,7 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_raises(RuntimeError) do
       vrf.destroy
     end
-    line = get_routerospfvrf_match_line(vrf.parent.name, vrfname)
-    assert_equal(vrfname, line,
-                 "Error: #{vrfname} vrf, destroy failed")
+    assert_match_vrf_line(vrf.parent.name, vrfname)
     vrf.parent.destroy
   end
 
@@ -254,10 +231,8 @@ class TestRouterOspfVrf < CiscoTestCase
     auto_cost_value = [400_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
     # set auto-cost
     vrf.auto_cost_set(auto_cost_value[0], :mbps)
-    pattern = (/\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line, 'Error: auto-cost, missing in CLI')
+    pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(auto_cost_value, vrf.auto_cost,
                  'Error: auto-cost, get value mismatch')
     vrf.parent.destroy
@@ -270,21 +245,17 @@ class TestRouterOspfVrf < CiscoTestCase
     auto_cost_value = [600_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
     # set auto-cost
     vrf.auto_cost_set(auto_cost_value[0], :mbps)
-    pattern = (/\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-    refute_nil(line, "Error: #{vrf.name} vrf, auto-cost missing in CLI")
+    pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(auto_cost_value, vrf.auto_cost,
                  "Error: #{vrf.name} vrf, auto-cost get value mismatch")
 
     # vrf 1
     auto_cost_value = [500_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
-    pattern = (/\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/)
     # set cost
     vrf1.auto_cost_set(auto_cost_value[0], :mbps)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-    refute_nil(line, "Error: #{vrf1.name} vrf, auto-cost missing in CLI")
+    pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(auto_cost_value, vrf1.auto_cost,
                  "Error: #{vrf1.name} vrf, auto-cost get value mismatch")
     routerospf.destroy
@@ -305,18 +276,13 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf = create_routerospfvrf
     metric = 30_000
     vrf.default_metric = metric
-    pattern = (/\s+default-metric #{metric}/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line, "Error: #{vrf.name} vrf, default-metric missing in CLI")
+    pattern = /\s+default-metric #{metric}/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(metric, vrf.default_metric,
                  "Error: #{vrf.name} vrf, default-metric get value mismatch")
     # set default metric
     vrf.default_metric = vrf.default_default_metric
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    assert_nil(line,
-               "Error: #{vrf.name}] vrf, default default-metric set failed")
+    refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
@@ -327,20 +293,16 @@ class TestRouterOspfVrf < CiscoTestCase
     metric = 35_000
     # set metric
     vrf.default_metric = metric
-    pattern = (/\s+default-metric #{metric}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-    refute_nil(line, "Error: #{vrf.name} vrf, default-metric missing in CLI")
+    pattern = /\s+default-metric #{metric}/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(metric, vrf.default_metric,
                  "Error: #{vrf.name} vrf, default-metric get value mismatch")
 
     # vrf 1
     metric = 25_000
     vrf1.default_metric = metric
-    pattern = (/\s+default-metric #{metric}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-    refute_nil(line, "Error: #{vrf1.name} vrf, default-metric missing in CLI")
+    pattern = /\s+default-metric #{metric}/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(metric, vrf1.default_metric,
                  "Error: #{vrf1.name} vrf, default-metric get value mismatch")
 
@@ -354,29 +316,22 @@ class TestRouterOspfVrf < CiscoTestCase
                  'Error: log-adjacency get value mismatch')
 
     vrf.log_adjacency = :log
-    pattern = (/\s+log-adjacency-changes/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line, 'Error: log-adjacency missing in CLI')
+    pattern = /\s+log-adjacency-changes/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(:log, vrf.log_adjacency,
                  'Error: log-adjacency get value mismatch')
 
     vrf.log_adjacency = :detail
-    pattern = (/\s+log-adjacency-changes detail/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf.name} vrf, log-adjacency detail missing in CLI")
+    pattern = /\s+log-adjacency-changes detail/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(:detail, vrf.log_adjacency,
                  "Error: #{vrf.name} vrf, " \
                  'log-adjacency detail get value mismatch')
 
     # set default log adjacency
     vrf.log_adjacency = vrf.default_log_adjacency
-    pattern = (/\s+log-adjacency-changes(.*)/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    assert_nil(line, "Error: #{vrf.name} vrf, default log-adjacency set failed")
+    pattern = /\s+log-adjacency-changes(.*)/
+    refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
@@ -386,22 +341,16 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     # set log_adjacency
     vrf.log_adjacency = :log
-    pattern = (/\s+log-adjacency-changes/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-
-    refute_nil(line, "Error: #{vrf.name} vrf, log-adjacency missing in CLI")
+    pattern = /\s+log-adjacency-changes/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(:log, vrf.log_adjacency,
                  "Error: #{vrf.name} vrf, log-adjacency get value mismatch")
 
     # vrf 1
     # set log_adjacency
     vrf1.log_adjacency = :detail
-    pattern = (/\s+log-adjacency-changes/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-
-    refute_nil(line, "Error: #{vrf1.name} vrf, log-adjacency missing in CLI")
+    pattern = /\s+log-adjacency-changes/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(:detail, vrf1.log_adjacency,
                  "Error: #{vrf1.name} vrf, log-adjacency get value mismatch")
 
@@ -416,11 +365,8 @@ class TestRouterOspfVrf < CiscoTestCase
     # DO set log_adjacency for non-default vrf
     # set log_adjacency
     vrf1.log_adjacency = :detail
-    pattern = (/\s+log-adjacency-changes/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-
-    refute_nil(line, "Error: #{vrf1.name} vrf, log-adjacency missing in CLI")
+    pattern = /\s+log-adjacency-changes/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(:detail, vrf1.log_adjacency,
                  "Error: #{vrf1.name} vrf, log-adjacency get value mismatch")
 
@@ -436,17 +382,13 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf = create_routerospfvrf
     id = '8.1.1.3'
     vrf.router_id = id
-    pattern = (/\s+router-id #{id}/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line, "Error: #{vrf.name} vrf, router-id missing in CLI")
+    pattern = /\s+router-id #{id}/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(id, vrf.router_id,
                  "Error: #{vrf.name} vrf, router-id get value mismatch")
     # set default router id
     vrf.router_id = vrf.default_router_id
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    assert_nil(line, "Error: #{vrf.name} vrf, set default router-id failed")
+    refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
@@ -457,10 +399,8 @@ class TestRouterOspfVrf < CiscoTestCase
     id = '8.1.1.3'
     # set id
     vrf.router_id = id
-    pattern = (/\s+router-id #{id}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-    refute_nil(line, "Error: #{vrf.name} vrf, router-id missing in CLI")
+    pattern = /\s+router-id #{id}/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(id, vrf.router_id,
                  "Error: #{vrf.name} vrf, router-id get value mismatch")
 
@@ -468,10 +408,8 @@ class TestRouterOspfVrf < CiscoTestCase
     id = '10.1.1.3'
     # set id
     vrf1.router_id = id
-    pattern = (/\s+router-id #{id}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-    refute_nil(line, "Error: #{vrf1.name} vrf, router-id missing in CLI")
+    pattern = /\s+router-id #{id}/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(id, vrf1.router_id,
                  "Error: #{vrf1.name} vrf, router-id get value mismatch")
 
@@ -483,11 +421,8 @@ class TestRouterOspfVrf < CiscoTestCase
     lsa = [] << 100 << 500 << 1000
     vrf.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
     # vrf.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
-    pattern = (/\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf.name} vrf, timer throttle lsa missing in CLI")
+    pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(lsa, vrf.timer_throttle_lsa,
                  "Error: #{vrf.name} vrf, timer throttle lsa " \
                  'get values mismatch')
@@ -502,11 +437,8 @@ class TestRouterOspfVrf < CiscoTestCase
     # set lsa
     vrf.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
     # vrf.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
-    pattern = (/\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf.name} vrf, timer throttle lsa missing in CLI")
+    pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(lsa, vrf.timer_throttle_lsa,
                  "Error: #{vrf.name} vrf, timer throttle lsa " \
                  'get values mismatch')
@@ -515,11 +447,8 @@ class TestRouterOspfVrf < CiscoTestCase
     # set lsa
     vrf1.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
     # vrf1.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
-    pattern = (/\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf1.name} vrf, timer throttle lsa missing in CLI")
+    pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(lsa, vrf1.timer_throttle_lsa,
                  "Error: #{vrf1.name} vrf, timer throttle lsa " \
                  'get values mismatch')
@@ -550,11 +479,8 @@ class TestRouterOspfVrf < CiscoTestCase
     spf = [250, 500, 1000]
     # vrf.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
     vrf.timer_throttle_spf_set(spf[0], spf[1], spf[2])
-    pattern = (/\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/)
-    line = get_routerospfvrf_match_submode_line(vrf.parent.name,
-                                                vrf.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf.name} vrf, timer throttle spf missing in CLI")
+    pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
+    assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(spf, vrf.timer_throttle_spf,
                  "Error: #{vrf.name} vrf, timer throttle spf " \
                  'get values mismatch')
@@ -569,11 +495,8 @@ class TestRouterOspfVrf < CiscoTestCase
     # set spf
     vrf.timer_throttle_spf_set(spf[0], spf[1], spf[2])
     # vrf.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
-    pattern = (/\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf.name} vrf, timer throttle spf missing in CLI")
+    pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
+    assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(spf, vrf.timer_throttle_spf,
                  "Error: #{vrf.name} vrf, timer throttle spf " \
                  'get values mismatch')
@@ -582,11 +505,8 @@ class TestRouterOspfVrf < CiscoTestCase
     # set spf
     vrf1.timer_throttle_spf_set(spf[0], spf[1], spf[2])
     # vrf1.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
-    pattern = (/\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/)
-    line = get_routerospfvrf_match_submode_line(routerospf.name,
-                                                vrf1.name, pattern)
-    refute_nil(line,
-               "Error: #{vrf1.name} vrf, timer throttle spf missing in CLI")
+    pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
+    assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(spf, vrf1.timer_throttle_spf,
                  "Error: #{vrf1.name} vrf, timer throttle spf " \
                  'get values mismatch')
@@ -620,8 +540,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf = RouterOspf.new(ospfname)
     vrfname = 'default'
     vrf = RouterOspfVrf.new(routerospf.name, vrfname)
-    line = get_routerospfvrf_match_line(ospfname, vrfname)
-    refute_nil(line, "Error: #{vrfname} vrf, does not exist in CLI")
+    assert_match_vrf_line(ospfname, vrfname)
     assert_equal(vrfname, vrf.name,
                  "Error: #{vrfname} vrf, create failed")
     assert_raises(RuntimeError) do

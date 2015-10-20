@@ -19,6 +19,6 @@ do
         step_name "Checking CHANGELOG.md..."
         git diff --name-only --diff-filter=ACM $remote_sha $local_sha |
             grep 'CHANGELOG.md' >> /dev/null
-        check_rc "Please update CHANGELOG.md before pushing code upstream"
+        check_rc_optional "Please update CHANGELOG.md before pushing code upstream"
     fi
 done

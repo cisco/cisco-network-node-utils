@@ -612,6 +612,10 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## network
   ##
+  def network_set_and_verify_helper(listname, bgp_af, action)
+    listname.each { |network, rtmap| bgp_af.send(action, network, rtmap) }
+  end
+
   def networks_delta_same(asn, vrf, af, il1, sl1, il2, sl2)
     /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
@@ -620,7 +624,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' and 'should' network list contain
     # items and are identical
     #
-    il1.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
+    network_set_and_verify_helper(il1, bgp_af, 'network_set')
 
     config_list = bgp_af.networks_delta(sl1)
     assert_empty(config_list[:add],
@@ -638,7 +642,7 @@ class TestRouterBgpAF < CiscoTestCase
     end
 
     # Cleanup for next test section
-    sl1.each { |network, rtmap| bgp_af.network_remove(network, rtmap) }
+    network_set_and_verify_helper(sl1, bgp_af, 'network_remove')
     assert_empty(bgp_af.networks,
                  'Error: all networks should have been removed')
 
@@ -646,7 +650,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' and 'should' network list contain
     # the same number of items but they differ.
     #
-    il2.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
+    network_set_and_verify_helper(il2, bgp_af, 'network_set')
 
     config_list = bgp_af.networks_delta(sl2)
     assert_equal(3, config_list[:add].size,

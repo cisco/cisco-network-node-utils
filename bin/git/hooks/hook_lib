@@ -65,6 +65,20 @@ check_rc() {
 }
 export -f check_rc
 
+check_rc_optional() {
+    local RC=$?
+    local msg=$1
+    [ $RC -eq 0 ] && return $RC
+    echo -e "\t...[ ${YELLOW}WARNING${RESET} ] $msg"
+    read -p "Continue anyway? [y/N] " yn < /dev/tty
+    case $yn in
+      [Yy]* ) return 0;;
+      [Nn]* ) exit $RC;;
+      * ) exit $RC;;
+    esac
+}
+export -f check_rc_optional
+
 get_last_version() {
     # Get the first subheading in the CHANGELOG, not counting 'Unreleased'
     VER=$(grep -v "Unreleased" $REPO_DIR/CHANGELOG.md | egrep -m 1 '## \[.*]' | cut -d ' ' -f 2 | tr -d '[]')

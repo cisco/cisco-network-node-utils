@@ -19,11 +19,10 @@
 
 require 'minitest/autorun'
 require 'tempfile'
-require File.expand_path('../../lib/cisco_node_utils/command_reference',
-                         __FILE__)
+require_relative '../lib/cisco_node_utils/command_reference'
 
 # TestCmdRef - Minitest for CommandReference and CmdRef classes.
-class TestCmdRef < MiniTest::Unit::TestCase
+class TestCmdRef < MiniTest::Test
   include CommandReference
 
   def setup
