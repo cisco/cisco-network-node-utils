@@ -45,7 +45,7 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Include output of all added or modified minitest scripts.
 * A core team consisting of Cisco and Cisco-Partner employees will review the Pull Request and provide feedback.
 * After feedback has been given we expect responses within two weeks. After two weeks we may close the pull request if it isn't showing any activity.
-* All code Commits must be associated with your github account and email address. Before committing any code use the following commands to update your workspace with your credentials:
+* All code commits must be associated with your github account and email address. Before committing any code use the following commands to update your workspace with your credentials:
 
 ```bash
 git config --global user.name "John Doe"
