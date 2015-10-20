@@ -40,11 +40,17 @@ Cisco Network Elements support a rich set of features to make networks robust, e
 
 ## Submitting Changes
 
-* All contributions you submit to this project are voluntary and subject to the terms of the Apache 2.0 license
+ All contributions submitted to this project are voluntary and subject to the terms of the Apache 2.0 license
 * Submit a pull request to the repository
   * Include output of all added or modified minitest scripts.
-* A core team consisting of Cisco and Cisco-Partner employees will looks at Pull Request and provide feedback.
+* A core team consisting of Cisco and Cisco-Partner employees will review the Pull Request and provide feedback.
 * After feedback has been given we expect responses within two weeks. After two weeks we may close the pull request if it isn't showing any activity.
+* All code commits must be associated with your github account and email address. Before committing any code use the following commands to update your workspace with your credentials:
+
+```bash
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
 
 # Additional Resources
 
