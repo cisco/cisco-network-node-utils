@@ -73,7 +73,6 @@ Before you start working on the eigrp feature, checkout the feature branch you c
 git checkout feature/eigrp
 git branch
   develop
-  feature/tunnel
 * feature/eigrp
 ```
 
@@ -96,10 +95,20 @@ Example:
 
 ### <a name="comp_yaml">Step 1. YAML Definitions: router eigrp</a>
 
-As with the earlier example, `router eigrp` will need YAML definitions in the common file:
+The new API for `router eigrp` will need some basic YAML definitions. 
+
+`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `router eigrp` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
 
 `lib/cisco_node_utils/command_reference_common.yaml`
 
+Four basic command_reference parameters will be defined for each resource property:
+
+ 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
+ 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
+ 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
+ 4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
+
+There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
 The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
@@ -464,10 +473,10 @@ Inspecting 2 file
 
 The final step is to build and install the gem that contains the new APIs.
 
-Please note: `gem build` will only include files that are part of the repository. This means that new files such as `tunnel.rb` and `router_eigrp.rb` will be ignored by the build until they are added to the repo with `git add`:
+Please note: `gem build` will only include files that are part of the repository. This means that new file `router_eigrp.rb` will be ignored by the build until it is added to the repo with `git add`:
 
 ```bash
-git add lib/cisco_node_utils/tunnel.rb lib/cisco_node_utils/router_eigrp.rb
+git add lib/cisco_node_utils/router_eigrp.rb
 ```
 
 From the root of the cisco-network-node-utils repository issue the following command.
