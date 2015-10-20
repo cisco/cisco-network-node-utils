@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/yum', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/yum'
 
 # TestYum - Minitest for Yum node utility class
 class TestYum < CiscoTestCase
@@ -77,8 +77,8 @@ class TestYum < CiscoTestCase
     end
     Yum.remove(@@pkg)
     sleep 20
-    s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-    assert_nil(s)
+    refute_show_match(command: "show install package | include #{@@pkg}",
+                      pattern: /@patching/)
   end
 
   def test_ambiguous_package_error

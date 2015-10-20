@@ -24,10 +24,9 @@ SimpleCov.start do
 end
 
 require 'rubygems'
-gem 'minitest', '>= 2.5.1', '< 5.0.0'
+gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-require 'test/unit'
 begin
   require 'cisco_nxapi'
 rescue LoadError
@@ -40,7 +39,7 @@ end
 
 # TestCase - common base class for all minitest cases in this module.
 #   Most node utility tests should inherit from CiscoTestCase instead.
-class TestCase < Test::Unit::TestCase
+class TestCase < Minitest::Test
   # These variables can be set in one of three ways:
   # 1) ARGV:
   #   $ ruby basetest.rb -- address username password

@@ -12,26 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_node_utils/cisco_cmn_utils'
-require 'cisco_node_utils/command_reference'
-require 'cisco_node_utils/configparser_lib'
-require 'cisco_node_utils/interface'
-require 'cisco_node_utils/interface_ospf'
-require 'cisco_node_utils/node'
-require 'cisco_node_utils/node_util'
-require 'cisco_node_utils/pim'
-require 'cisco_node_utils/platform'
-require 'cisco_node_utils/router_ospf'
-require 'cisco_node_utils/router_ospf_vrf'
-require 'cisco_node_utils/snmpcommunity'
-require 'cisco_node_utils/snmpgroup'
-require 'cisco_node_utils/snmpserver'
-require 'cisco_node_utils/snmpuser'
-require 'cisco_node_utils/tacacs_server'
-require 'cisco_node_utils/tacacs_server_host'
-require 'cisco_node_utils/version'
-require 'cisco_node_utils/vlan'
-require 'cisco_node_utils/vni'
-require 'cisco_node_utils/vtp'
-require 'cisco_node_utils/vxlan_vtep'
-require 'cisco_node_utils/yum'
+# Automatically load all Ruby files in the cisco_node_utils subdirectory
+Dir.glob(__dir__ + '/cisco_node_utils/*.rb') { |file| require file }

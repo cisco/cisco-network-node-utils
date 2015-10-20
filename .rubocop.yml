@@ -2,7 +2,7 @@
 
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
-  Max: 62
+  Max: 50
 
 Metrics/ClassLength:
   Max: 722

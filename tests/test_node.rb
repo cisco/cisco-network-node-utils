@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../basetest', __FILE__)
+require_relative 'basetest'
 
-require File.expand_path('../../lib/cisco_node_utils/node', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/command_reference',
-                         __FILE__)
+require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/command_reference'
 
 include Cisco
 

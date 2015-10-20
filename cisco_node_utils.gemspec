@@ -27,7 +27,7 @@ Currently supports NX-OS nodes.
   spec.required_ruby_version     = '>= 2.0.0'
   spec.required_rubygems_version = '>= 2.1.0'
 
-  spec.add_development_dependency 'minitest', '>= 2.5.1', '< 5.0.0'
+  spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rubocop', '~> 0.34'
