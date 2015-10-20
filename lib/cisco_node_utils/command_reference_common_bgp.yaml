@@ -100,6 +100,11 @@ bgp:
     config_set_append: '<state> log-neighbor-changes'
     default_value: false
 
+  maxas_limit:
+    config_get_token_append: '/^maxas-limit (\d+)$/'
+    config_set_append: '<state> maxas-limit <limit>'
+    default_value: 50
+
   neighbor_fib_down_accelerate:
     config_get_token_append: '/^neighbor-down fib-accelerate$/'
     config_set_append: '<state> neighbor-down fib-accelerate'

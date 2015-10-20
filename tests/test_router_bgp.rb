@@ -566,6 +566,36 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_routerbgp_set_get_maxas_limit
+    %w(test_default test_vrf).each do |t|
+      if t == 'test_default'
+        asnum = 55
+        vrf = 'default'
+        bgp = RouterBgp.new(asnum)
+      else
+        asnum = 99
+        vrf = 'yamllll'
+        bgp = RouterBgp.new(asnum, vrf)
+      end
+      bgp.maxas_limit = 55
+      assert_equal(55, bgp.maxas_limit,
+                   "vrf #{vrf}: bgp maxas-limit should be set to '55'")
+      bgp.maxas_limit = 50
+      assert_equal(50, bgp.maxas_limit,
+                   "vrf #{vrf}: bgp maxas_limit" \
+                   "should be set to default value of '50'")
+      bgp.destroy
+    end
+  end
+
+  def test_routerbgp_default_maxas_limit
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_equal(50, bgp.maxas_limit,
+                 "bgp maxas-limit default value should be '50'")
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_reconnect_interval
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'

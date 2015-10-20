@@ -449,6 +449,28 @@ module Cisco
       config_get_default('bgp', 'log_neighbor_changes')
     end
 
+    # MaxAs Limit (Getter/Setter/Default)
+    def maxas_limit
+      match = config_get('bgp', 'maxas_limit', @get_args)
+      match.nil? ? default_maxas_limit : match.first.to_i
+    end
+
+    def maxas_limit=(limit)
+      if limit == default_maxas_limit
+        @set_args[:state] = 'no'
+        @set_args[:limit] = ''
+      else
+        @set_args[:state] = ''
+        @set_args[:limit] = limit
+      end
+      config_set('bgp', 'maxas_limit', @set_args)
+      set_args_keys_default
+    end
+
+    def default_maxas_limit
+      config_get_default('bgp', 'maxas_limit')
+    end
+
     # Neighbor fib down accelerate (Getter/Setter/Default)
     def neighbor_fib_down_accelerate
       match = config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
