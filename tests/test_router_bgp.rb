@@ -202,6 +202,9 @@ class TestRouterBgp < CiscoTestCase
       bgp.bestpath_med_confed = true
       assert(bgp.bestpath_med_confed, "vrf #{vrf}: "\
              'bgp bestpath_med_confed should be enabled')
+      bgp.bestpath_med_missing_as_worst = true
+      assert(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
+             'bgp bestpath_med_missing_as_worst should be enabled')
       bgp.bestpath_med_non_deterministic = true
       assert(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
              'bgp bestpath_med_non_deterministic should be enabled')
@@ -221,6 +224,9 @@ class TestRouterBgp < CiscoTestCase
       bgp.bestpath_med_confed = false
       refute(bgp.bestpath_med_confed, "vrf #{vrf}: "\
              'bgp bestpath_med_confed should be disabled')
+      bgp.bestpath_med_missing_as_worst = false
+      refute(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
+             'bgp bestpath_med_missing_as_worst should be disabled')
       bgp.bestpath_med_non_deterministic = false
       refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
              'bgp bestpath_med_non_deterministic should be disabled')
@@ -249,6 +255,8 @@ class TestRouterBgp < CiscoTestCase
              'bgp bestpath_cost_community_ignore should *NOT* be enabled')
       refute(bgp.bestpath_med_confed, "vrf #{vrf}: "\
              'bgp bestpath_med_confed should *NOT* be enabled')
+      refute(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
+             'bgp bestpath_med_missing_as_worst should *NOT* be enabled')
       refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
              'bgp bestpath_med_non_deterministic should *NOT* be enabled')
       bgp.destroy
@@ -268,6 +276,8 @@ class TestRouterBgp < CiscoTestCase
            'default value for bestpath_cost_community_ignore should be false')
     refute(bgp.default_bestpath_med_confed,
            'default value for bestpath_med_confed should be false')
+    refute(bgp.default_bestpath_med_missing_as_worst,
+           'default value for bestpath_med_missing_as_worst should be false')
     refute(bgp.default_bestpath_med_non_deterministic,
            'default value for bestpath_med_non_deterministic should be false')
     bgp.destroy

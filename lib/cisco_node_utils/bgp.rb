@@ -186,6 +186,11 @@ module Cisco
       match.nil? ? default_bestpath_med_confed : true
     end
 
+    def bestpath_med_missing_as_worst
+      match = config_get('bgp', 'bestpath_med_missing_as_worst', @get_args)
+      match.nil? ? default_bestpath_med_missing_as_worst : true
+    end
+
     def bestpath_med_non_deterministic
       match = config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
       match.nil? ? default_bestpath_med_non_deterministic : true
@@ -222,6 +227,12 @@ module Cisco
       set_args_keys_default
     end
 
+    def bestpath_med_missing_as_worst=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'bestpath_med_missing_as_worst', @set_args)
+      set_args_keys_default
+    end
+
     def bestpath_med_non_deterministic=(enable)
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_med_non_deterministic', @set_args)
@@ -247,6 +258,10 @@ module Cisco
 
     def default_bestpath_med_confed
       config_get_default('bgp', 'bestpath_med_confed')
+    end
+
+    def default_bestpath_med_missing_as_worst
+      config_get_default('bgp', 'bestpath_med_missing_as_worst')
     end
 
     def default_bestpath_med_non_deterministic

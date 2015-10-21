@@ -42,6 +42,11 @@ bgp:
     config_set_append: '<state> bestpath med confed'
     default_value: false
 
+  bestpath_med_missing_as_worst:
+    config_get_token_append: '/^bestpath med missing-as-worst$/'
+    config_set_append: '<state> bestpath med missing-as-worst'
+    default_value: false
+
   bestpath_med_non_deterministic:
     config_get_token_append: '/^bestpath med non-deterministic$/'
     config_set_append: '<state> bestpath med non-deterministic'

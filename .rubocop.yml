@@ -4,9 +4,6 @@
 Metrics/AbcSize:
   Max: 50
 
-Metrics/ClassLength:
-  Max: 722
-
 Metrics/CyclomaticComplexity:
   Max: 17
 
@@ -27,6 +24,10 @@ Metrics/PerceivedComplexity:
 #
 # Team preferences different from Rubocop defaults:
 #
+
+# Test files and large providers can get very large
+Metrics/ClassLength:
+  Enabled: false
 
 # We like table alignment for readability
 Style/AlignHash:
