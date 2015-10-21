@@ -260,7 +260,7 @@ module Cisco
       config_get_default('bgp', 'bestpath_med_confed')
     end
 
-    def default_bestpath_missing_as_worst
+    def default_bestpath_med_missing_as_worst
       config_get_default('bgp', 'bestpath_med_missing_as_worst')
     end
 

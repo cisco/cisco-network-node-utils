@@ -276,6 +276,8 @@ class TestRouterBgp < CiscoTestCase
            'default value for bestpath_cost_community_ignore should be false')
     refute(bgp.default_bestpath_med_confed,
            'default value for bestpath_med_confed should be false')
+    refute(bgp.default_bestpath_med_missing_as_worst,
+           'default value for bestpath_med_missing_as_worst should be false')
     refute(bgp.default_bestpath_med_non_deterministic,
            'default value for bestpath_med_non_deterministic should be false')
     bgp.destroy
