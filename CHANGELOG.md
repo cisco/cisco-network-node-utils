@@ -29,6 +29,7 @@ Changelog
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 * Added best practices development guide.
+* Added support for radius_global (@jonnytpuppet)
 
 ### Fixed
 
