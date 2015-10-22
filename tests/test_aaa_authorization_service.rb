@@ -16,58 +16,56 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
 # TestAaaAuthorizationService - Minitest for AaaAuthorizationService util
-# rubocop:disable ClassLength
 class TestAaaAuthorizationService < CiscoTestCase
+  def setup
+    super
+    feature_tacacs
+  end
+
+  def teardown
+    feature_tacacs(false)
+    super
+  end
+
   # Method to pre-configure a valid tacacs server and aaa group.  This
   # group can be included in the testing such access to the device
   # never is compromised.
   def preconfig_tacacs_server_access(group_name, keep=true)
-    @device.cmd('configure terminal')
     if keep
-      @device.cmd('tacacs-server key testing123')
-      @device.cmd('tacacs-server host 10.122.197.197 key testing123')
-      @device.cmd("aaa group server tacacs+ #{group_name}")
-      @device.cmd('server 10.122.197.197')
-      @device.cmd('use-vrf management')
-      @device.cmd('source-interface mgmt0')
-      @device.cmd('aaa authentication login ascii-authentication')
+      config('tacacs-server key testing123',
+             'tacacs-server host 10.122.197.197 key testing123',
+             "aaa group server tacacs+ #{group_name}",
+             'server 10.122.197.197',
+             'use-vrf management',
+             'source-interface mgmt0',
+             'aaa authentication login ascii-authentication')
     else
-      @device.cmd("no aaa group server tacacs+ #{group_name}")
+      config("no aaa group server tacacs+ #{group_name}")
     end
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
   end
 
   def feature_tacacs(feature=true)
-    @device.cmd('configure terminal')
     if feature
-      @device.cmd('feature tacacs')
+      config('feature tacacs')
     else
-      @device.cmd('no feature tacacs')
-      @device.cmd('no aaa authentication login ascii-authentication')
+      config('no feature tacacs',
+             'no aaa authentication login ascii-authentication')
     end
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
   end
 
   def config_tacacs_servers(servers)
-    @device.cmd('configure terminal')
-    @device.cmd('feature tacacs+')
+    config('feature tacacs+')
     servers.each do |server|
-      @device.cmd("aaa group server tacacs+ #{server}")
+      config("aaa group server tacacs+ #{server}")
     end
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
   end
 
-  def get_match_line(name)
-    s = @device.cmd('show run aaa all | no-more')
-    prefix = 'aaa authorization'
-    line = /#{prefix} #{name}/.match(s)
-    line
+  def show_cmd
+    'show run aaa all | no-more'
+  end
+
+  def prefix
+    'aaa authorization'
   end
 
   def test_aaaauthorizationservice_create_unsupported_type
@@ -107,62 +105,46 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def test_aaaauthorizationservice_create_commands_default
-    feature_tacacs
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
-
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_create_commands_console
-    feature_tacacs
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
-
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_create_config_commands_default
-    feature_tacacs
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
-
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating ' \
                'config-commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_create_config_commands_console
-    feature_tacacs
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
-
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_get_type
-    feature_tacacs
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
     assert_equal(type, aaa_a_service.type, 'Error : Invalid type')
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_get_name
-    feature_tacacs
     service = 'default'
     aaa_a_service = AaaAuthorizationService.new(:config_commands, service)
     assert_equal(service, aaa_a_service.name, 'Error : Invalid service name')
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_invalid
@@ -170,8 +152,6 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def test_aaaauthorizationservice_collection_services_type_commands
-    # Need feature tacacs for this test
-    feature_tacacs
     type = :commands
     collection = AaaAuthorizationService.services[type]
 
@@ -201,11 +181,9 @@ class TestAaaAuthorizationService < CiscoTestCase
                    "#{service} in collection")
       aaa_a_service.destroy
     end
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_services_type_config_commands
-    feature_tacacs
     type = :config_commands
     collection = AaaAuthorizationService.services[type]
 
@@ -234,22 +212,15 @@ class TestAaaAuthorizationService < CiscoTestCase
                    "#{service} in collection")
       aaa_a_service.destroy
     end
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_type_commands_default_console_group
-    feature_tacacs
-
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization commands default group group2 group1 local'
     cmd2 = 'aaa authorization commands console group group1 local'
-    @device.cmd('configure terminal')
-    @device.cmd('aaa group server tacacs+ group1')
-    @device.cmd('aaa group server tacacs+ group2')
-    @device.cmd(cmd1)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa group server tacacs+ group1',
+           'aaa group server tacacs+ group2',
+           cmd1)
 
     type = :commands
     collection = AaaAuthorizationService.services[type]
@@ -280,11 +251,7 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # only one of default or console can be configured at a time without
     # locking the CLI
-    @device.cmd('configure terminal')
-    @device.cmd("no #{cmd1}")
-    @device.cmd(cmd2)
-    @device.cmd('end')
-    node.cache_flush
+    config("no #{cmd1}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -297,26 +264,16 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups for ' \
                  'console in collection')
 
-    @device.cmd('configure terminal')
-    @device.cmd("no #{cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
-    feature_tacacs(false)
+    config("no #{cmd2}")
   end
 
   def test_aaaauthorizationservice_type_config_commands_default_console_group
-    feature_tacacs
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization config-commands default group group2 group1 local'
     cmd2 = 'aaa authorization config-commands console group group1 local'
-    @device.cmd('configure terminal')
-    @device.cmd('aaa group server tacacs+ group1')
-    @device.cmd('aaa group server tacacs+ group2')
-    @device.cmd(cmd1)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa group server tacacs+ group1',
+           'aaa group server tacacs+ group2',
+           cmd1)
 
     type = :config_commands
     collection = AaaAuthorizationService.services[type]
@@ -345,12 +302,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for default in collection')
 
-    @device.cmd('configure terminal')
-    @device.cmd("no #{cmd1}")
-    @device.cmd(cmd2)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config("no #{cmd1}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -363,16 +315,10 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for console in collection')
 
-    @device.cmd('configure terminal')
-    @device.cmd("no #{cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
-    feature_tacacs(false)
+    config("no #{cmd2}")
   end
 
   def test_aaaauthorizationservice_get_default_method
-    feature_tacacs
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
     assert_equal(:local, aaa_a_service.default_method,
@@ -398,12 +344,9 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService config-command ' \
                  'console, default method')
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_groups_commands_default
-    feature_tacacs
-
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -423,12 +366,8 @@ class TestAaaAuthorizationService < CiscoTestCase
     servers = [group1, group2, group3]
     config_tacacs_servers(servers)
 
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization commands default group ' \
-                "#{group0} #{group1} #{group2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization commands default group ' \
+           "#{group0} #{group1} #{group2}")
 
     groups = [group0, group1, group2]
     assert_equal(groups, aaa_a_service.groups,
@@ -437,15 +376,10 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService default get method, 0/1/2')
 
     # Change the config to have different groups and method
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization commands default group ' \
-                "#{group0} #{group3} #{group1} local")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization commands default group ' \
+           "#{group0} #{group3} #{group1} local")
 
     groups = [group0, group3, group1]
-    # puts aaa_a_service.groups
     assert_equal(groups, aaa_a_service.groups,
                  'Error: AaaAuthorizationService default get groups, 0/3/1')
     assert_equal(:local, aaa_a_service.method,
@@ -458,12 +392,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                "#{group0} #{group2} #{group1} #{group3} local"
     aaa_cmd2 = 'aaa authorization commands console group ' \
                "#{group0} #{group2} #{group3} local"
-    @device.cmd('configure terminal')
-    @device.cmd(aaa_cmd1)
-    @device.cmd(aaa_cmd2)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config(aaa_cmd1, aaa_cmd2)
 
     groups = [group0, group2, group1, group3]
     assert_equal(groups, aaa_a_service.groups,
@@ -473,21 +402,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Cleanup
     aaa_a_service.destroy
-    @device.cmd('configure terminal')
-    @device.cmd("no #{aaa_cmd1}")
-    @device.cmd("no #{aaa_cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_groups_commands_console
-    feature_tacacs
-
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -507,12 +428,8 @@ class TestAaaAuthorizationService < CiscoTestCase
     servers = [group1, group2, group3]
     config_tacacs_servers(servers)
 
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization commands console group ' \
-                "#{group0} #{group1} #{group2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization commands console group ' \
+           "#{group0} #{group1} #{group2}")
 
     groups = [group0, group1, group2]
     # puts aaa_a_service.groups
@@ -522,12 +439,8 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService default get method, 0/1/2')
 
     # Change the config to have different groups and method
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization commands console group ' \
-                "#{group0} #{group3} #{group1} local")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization commands console group ' \
+           "#{group0} #{group3} #{group1} local")
 
     groups = [group0, group3, group1]
     assert_equal(groups, aaa_a_service.groups,
@@ -542,12 +455,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                "#{group0} #{group2} #{group1} #{group3} local"
     aaa_cmd2 = 'aaa authorization commands default group ' \
                "#{group0} #{group2} #{group3} local"
-    @device.cmd('configure terminal')
-    @device.cmd(aaa_cmd1)
-    @device.cmd(aaa_cmd2)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config(aaa_cmd1, aaa_cmd2)
 
     groups = [group0, group2, group1, group3]
     assert_equal(groups, aaa_a_service.groups,
@@ -557,21 +465,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Cleanup
     aaa_a_service.destroy
-    @device.cmd('configure terminal')
-    @device.cmd("no #{aaa_cmd1}")
-    @device.cmd("no #{aaa_cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_groups_config_commands_default
-    feature_tacacs
-
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -591,12 +491,8 @@ class TestAaaAuthorizationService < CiscoTestCase
     servers = [group1, group2, group3]
     config_tacacs_servers(servers)
 
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization config-commands default group ' \
-                "#{group0} #{group1} #{group2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization config-commands default group ' \
+           "#{group0} #{group1} #{group2}")
 
     groups = [group0, group1, group2]
     assert_equal(groups, aaa_a_service.groups,
@@ -605,12 +501,8 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService default get method, 0/1/2')
 
     # Change the config to have different groups and method
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization config-commands default group ' \
-                "#{group0} #{group3} #{group1} local")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization config-commands default group ' \
+           "#{group0} #{group3} #{group1} local")
 
     groups = [group0, group3, group1]
     # puts aaa_a_service.groups
@@ -626,12 +518,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                "#{group0} #{group2} #{group1} #{group3} local"
     aaa_cmd2 = 'aaa authorization config-commands console group ' \
                "#{group0} #{group2} #{group3} local"
-    @device.cmd('configure terminal')
-    @device.cmd(aaa_cmd1)
-    @device.cmd(aaa_cmd2)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config(aaa_cmd1, aaa_cmd2)
 
     groups = [group0, group2, group1, group3]
     assert_equal(groups, aaa_a_service.groups,
@@ -641,21 +528,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Cleanup
     aaa_a_service.destroy
-    @device.cmd('configure terminal')
-    @device.cmd("no #{aaa_cmd1}")
-    @device.cmd("no #{aaa_cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_collection_groups_config_commands_console
-    feature_tacacs
-
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -675,12 +554,8 @@ class TestAaaAuthorizationService < CiscoTestCase
     servers = [group1, group2, group3]
     config_tacacs_servers(servers)
 
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization config-commands console group ' \
-                "#{group0} #{group1} #{group2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization config-commands console group ' \
+           "#{group0} #{group1} #{group2}")
 
     groups = [group0, group1, group2]
     assert_equal(groups, aaa_a_service.groups,
@@ -689,12 +564,8 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService default get method, 0/1/2')
 
     # Change the config to have different groups and method
-    @device.cmd('configure terminal')
-    @device.cmd('aaa authorization config-commands console group ' \
-                "#{group0} #{group3} #{group1} local")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config('aaa authorization config-commands console group ' \
+           "#{group0} #{group3} #{group1} local")
 
     groups = [group0, group3, group1]
     # puts aaa_a_service.groups
@@ -710,12 +581,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                "#{group0} #{group2} #{group1} #{group3} local"
     aaa_cmd2 = 'aaa authorization config-commands default group ' \
                "#{group0} #{group2} #{group3} local"
-    @device.cmd('configure terminal')
-    @device.cmd(aaa_cmd1)
-    @device.cmd(aaa_cmd2)
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config(aaa_cmd1, aaa_cmd2)
 
     groups = [group0, group2, group1, group3]
     assert_equal(groups, aaa_a_service.groups,
@@ -725,21 +591,14 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Cleanup
     aaa_a_service.destroy
-    @device.cmd('configure terminal')
-    @device.cmd("no #{aaa_cmd1}")
-    @device.cmd("no #{aaa_cmd2}")
-    @device.cmd('end')
-    # Flush the cache since we've modified the device outside of RLB
-    node.cache_flush
+    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
+
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_get_default_groups
-    feature_tacacs
     groups = []
-
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -769,13 +628,9 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService config-commands ' \
                  'console, default groups')
     aaa_a_service.destroy
-
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_commands_default_set_groups
-    feature_tacacs
-
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -797,53 +652,43 @@ class TestAaaAuthorizationService < CiscoTestCase
     method = :unselected
     groups = [group0]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'unselected'
     method = :unselected
     groups = [group0, group1, group2]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group2}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group2} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'local'
     method = :local
     groups = [group0, group1, group3]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group3} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group3} #{method}")
+
+    group_str = "group #{group0} #{group1} #{group3}"
+    p = /#{prefix} #{type_str} #{service} #{group_str} local/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Default group and method
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               'set default groups and method')
+
+    p = /#{prefix} #{type_str} #{service} local/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Cleanup
     aaa_a_service.destroy
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_commands_console_set_groups
-    feature_tacacs
-
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -865,53 +710,42 @@ class TestAaaAuthorizationService < CiscoTestCase
     method = :unselected
     groups = [group0]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'unselected'
     method = :unselected
     groups = [group0, group1, group2]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group2}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group2} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'local'
     method = :local
     groups = [group0, group1, group3]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group3} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group3} #{method}")
+
+    group_str = "group #{group0} #{group1} #{group3}"
+    p = /#{prefix} #{type_str} #{service} #{group_str} local/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Default group and method
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationservice #{type_str} #{service}, " \
-               'set default groups and method')
 
-    # Cleanup
+    p = /#{prefix} #{type_str} #{service} local/
+    assert_show_match(command: show_cmd, pattern: p)
+
     aaa_a_service.destroy
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_config_commands_default_set_groups
-    feature_tacacs
-
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -933,53 +767,42 @@ class TestAaaAuthorizationService < CiscoTestCase
     method = :unselected
     groups = [group0]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'unselected'
     method = :unselected
     groups = [group0, group1, group2]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group2}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group2} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'local'
     method = :local
     groups = [group0, group1, group3]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group3} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group3} #{method}")
+
+    group_str = "group #{group0} #{group1} #{group3}"
+    p = /#{prefix} #{type_str} #{service} #{group_str} local/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Default group and method
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               'set default groups and method')
 
-    # Cleanup
+    p = /#{prefix} #{type_str} #{service} local/
+    assert_show_match(command: show_cmd, pattern: p)
+
     aaa_a_service.destroy
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_config_commands_console_set_groups
-    feature_tacacs
-
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -1001,47 +824,39 @@ class TestAaaAuthorizationService < CiscoTestCase
     method = :unselected
     groups = [group0]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0}"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'unselected'
     method = :unselected
     groups = [group0, group1, group2]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group2}"
-    line = get_match_line(match)
-    refute_nil(line, "Error: AaaAuthorizationService #{type_str} #{service}, " \
-      "set groups #{group0}/#{group1}/#{group2} #{method}")
+
+    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Multi group, with method 'local'
     method = :local
     groups = [group0, group1, group3]
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} group #{group0} #{group1} #{group3} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationService #{type_str} #{service}, " \
-               "set groups #{group0}/#{group1}/#{group3} #{method}")
+
+    group_str = "group #{group0} #{group1} #{group3}"
+    p = /#{prefix} #{type_str} #{service} #{group_str} local/
+    assert_show_match(command: show_cmd, pattern: p)
 
     # Default group and method
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
     aaa_a_service.groups_method_set(groups, method)
-    match = "#{type_str} #{service} local"
-    line = get_match_line(match)
-    refute_nil(line,
-               "Error: AaaAuthorizationservice #{type_str}  #{service}, " \
-               'set default groups and method')
 
-    # Cleanup
+    p = /#{prefix} #{type_str} #{service} local/
+    assert_show_match(command: show_cmd, pattern: p)
+
     aaa_a_service.destroy
 
     # Unconfigure tacacs, tacacs server and AAA valid group
     preconfig_tacacs_server_access(group0, false)
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_commands_invalid_groups_method_set_groups
@@ -1090,7 +905,6 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
 
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_config_commands_invalid_set_groups
@@ -1139,7 +953,6 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
 
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_commands_invalid_method
@@ -1182,7 +995,6 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
 
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 
   def test_aaaauthorizationservice_config_commands_invalid_method
@@ -1225,6 +1037,5 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
 
     aaa_a_service.destroy
-    feature_tacacs(false)
   end
 end
