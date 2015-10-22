@@ -564,7 +564,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
-                 'bgp maxas-limit should be set to default value')
+                 'bgp maxas-limit should be default value')
     bgp.destroy
   end
 
