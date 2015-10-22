@@ -103,7 +103,8 @@ class TestCase < Minitest::Test
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
     @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
-                'Match'  => /^[^()]+[$%#>] \z/n)
+                # NX-OS has a space after '#', IOS XR does not
+                'Match'  => /^[^()]+[$%#>] *\z/n)
   end
 
   def assert_show_match(pattern: nil, command: nil, msg: nil)
