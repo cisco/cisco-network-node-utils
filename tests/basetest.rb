@@ -84,11 +84,35 @@ class TestCase < Minitest::Test
   end
 
   def setup
-    @device = Net::Telnet.new('Host' => address, 'Timeout' => 240)
-    @device.login(username, password)
+    @device = Net::Telnet.new('Host'    => address.split(':')[0],
+                              'Timeout' => 240,
+                              # NX-OS has a space after '#', IOS XR does not
+                              'Prompt'  => /[$%#>] *\z/n,
+                             )
+    begin
+      @device.login('Name'        => username,
+                    'Password'    => password,
+                    # NX-OS uses 'login:' while IOS XR uses 'Username:'
+                    'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
+                   )
+    rescue Errno::ECONNRESET
+      # TODO
+      puts 'Connection reset by peer? Try again'
+      sleep 1
+      @device = Net::Telnet.new('Host'    => address.split(':')[0],
+                                'Timeout' => 240,
+                                # NX-OS has a space after '#', IOS XR does not
+                                'Prompt'  => /[$%#>] *\z/n,
+                               )
+      @device.login('Name'        => username,
+                    'Password'    => password,
+                    # NX-OS uses 'login:' while IOS XR uses 'Username:'
+                    'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
+                   )
+    end
     CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
-    puts 'Connection refused - please check that the IP address is correct'
+    puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have enabled 'feature telnet' on the UUT"
     exit
   end

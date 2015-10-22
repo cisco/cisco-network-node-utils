@@ -67,7 +67,7 @@ class TestCommandConfig < CiscoTestCase
     config_cmd_hash.each do |k, v|
       v.each_value do |v1|
         # Send commands
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
@@ -86,10 +86,10 @@ class TestCommandConfig < CiscoTestCase
   def build_int_scale_config(add=true)
     add ? s = '' : s = 'no '
     current_interface = 0
-    num_interfaces = 1024
+    num_interfaces = 10
     command_list = ''
     while current_interface < num_interfaces
-      command_list += "#{s}interface loopback#{current_interface}\n"
+      command_list += "#{s}interface Loopback#{current_interface}\n"
       current_interface += 1
     end
     command_list
@@ -142,9 +142,9 @@ class TestCommandConfig < CiscoTestCase
     cfg_hash = load_yaml(:negative)
     cfg_hash.each_value do |v|
       v.each_value do |v1|
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
-        assert_raises(CliError) { node.config(cfg_string) }
+        assert_raises(Cisco::RPC::GRPC::CliError) { node.config(cfg_string) }
       end
     end
   end

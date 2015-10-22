@@ -21,6 +21,7 @@
 require 'singleton'
 
 require 'cisco_nxapi'
+require 'cisco_rpc'
 require_relative 'command_reference'
 
 # Add node management classes and APIs to the Cisco namespace.
@@ -208,8 +209,8 @@ module Cisco
 
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
-      @client = CiscoNxapi::NxapiClient.new(*args)
-      @cmd_ref = CommandReference::CommandReference.new(product_id)
+      @client = Cisco::RPC::GRPC::Client.new(*args)
+      @cmd_ref = CommandReference::CommandReference.new('XR9K')
       cache_flush
     end
 
