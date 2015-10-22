@@ -539,6 +539,35 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_routerbgp_set_get_maxas_limit
+    %w(test_default test_vrf).each do |t|
+      if t == 'test_default'
+        asnum = 55
+        vrf = 'default'
+        bgp = RouterBgp.new(asnum)
+      else
+        asnum = 99
+        vrf = 'yamllll'
+        bgp = RouterBgp.new(asnum, vrf)
+      end
+      bgp.maxas_limit = 50
+      assert_equal(50, bgp.maxas_limit,
+                   "vrf #{vrf}: bgp maxas-limit should be set to '50'")
+      bgp.maxas_limit = bgp.default_maxas_limit
+      assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
+                   "vrf #{vrf}: bgp maxas-limit should be set to default value")
+      bgp.destroy
+    end
+  end
+
+  def test_routerbgp_default_maxas_limit
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
+                 'bgp maxas-limit should be set to default value')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_neighbor_fib_down_accelerate
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
