@@ -9,6 +9,10 @@ Changelog
 * Added support for name_server (@hunner)
 * Added support for ntp_server (@jonnytpuppet)
 * Added support for ntp_config (@jonnytpuppet)
+* Added support for syslog_server (@jonnytpuppet)
+* Added support for syslog_setting (@jonnytpuppet)
+* Added support for network_snmp (@jonnytpuppet)
+* Added support for radius_server (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks
