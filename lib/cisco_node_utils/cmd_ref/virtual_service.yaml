@@ -1,0 +1,5 @@
+# virtual_service
+---
+services:
+  config_get: 'show virtual-service detail'
+  config_get_token: ["TABLE_detail", "ROW_detail"]

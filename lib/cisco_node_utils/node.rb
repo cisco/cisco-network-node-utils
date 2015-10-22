@@ -50,10 +50,6 @@ module Cisco
   class Node
     include Singleton
 
-    # BEGIN NODE API
-    # This is most of what a client/provider should need to code against.
-    # Actual implementations of these methods are later in this file.
-
     # Convenience wrapper for show(command, :structured).
     # Uses CommandReference to look up the given show command and key
     # of interest, executes that command, and returns the value corresponding
@@ -75,40 +71,20 @@ module Cisco
       ref = @cmd_ref.lookup(feature, name)
 
       begin
-        token = build_config_get_token(feature, ref, args)
-      rescue IndexError, TypeError
-        # IndexError if value is not set, TypeError if set to nil explicitly
+        token = ref.config_get_token(*args)
+      rescue IndexError
+        # IndexError: no entry for config_get_token
         token = nil
       end
-      if token.kind_of?(String)
-        if token[0] == '/' && token[-1] == '/'
-          fail RuntimeError unless args.length == token.scan(/%/).length
-          # convert string to regexp and replace %s with args
-          token = Regexp.new(sprintf(token, *args)[1..-2])
-          text = build_config_get(feature, ref, :ascii)
-          return Cisco.find_ascii(text, token)
-        else
-          hash = build_config_get(feature, ref, :structured)
-          return hash[token]
-        end
-      elsif token.kind_of?(Array)
-        # Array of /regexps/ -> ascii, array of strings/ints -> structured
-        if token[0].kind_of?(String) &&
-           token[0][0] == '/' &&
-           (token[0][-1] == '/' || token[0][-2..-1] == '/i')
-
-          token = token_str_to_regexp(token, args)
-          text = build_config_get(feature, ref, :ascii)
-          return Cisco.find_ascii(text, token[-1], *token[0..-2])
-
-        else
-          result = build_config_get(feature, ref, :structured)
-          return config_get_handle_structured(token, result)
-        end
-      elsif token.nil?
+      if token.nil?
         return show(ref.config_get, :structured)
+      elsif token[0].kind_of?(Regexp)
+        return find_ascii(show(ref.config_get, :ascii),
+                          token[-1], *token[0..-2])
+      else
+        return config_get_handle_structured(token,
+                                            show(ref.config_get, :structured))
       end
-      fail TypeError("Unclear to handle config_get_token #{token}")
     end
 
     # Uses CommandReference to lookup the default value for a given
@@ -144,31 +120,7 @@ module Cisco
     def config_set(feature, name, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
-      config_set = build_config_set(feature, ref, args)
-      if config_set.is_a?(String)
-        param_count = config_set.scan(/%/).length
-      elsif config_set.is_a?(Array)
-        param_count = config_set.join(' ').scan(/%/).length
-      else
-        fail TypeError, '%{config_set.class} not supported for config_set'
-      end
-      unless args[0].is_a? Hash
-        if param_count != args.length
-          fail ArgumentError, 'Wrong number of params - expected: ' \
-          "#{param_count} actual: #{args.length}"
-        end
-      end
-      if config_set.is_a?(String)
-        config(sprintf(config_set, *args))
-      elsif config_set.is_a?(Array)
-        new_config_set = []
-        config_set.each do |line|
-          param_count = line.scan(/%/).length
-          new_config_set << sprintf(line, *args.first(param_count))
-          args = args[param_count..-1]
-        end
-        config(new_config_set)
-      end
+      config(ref.config_set(*args))
     end
 
     # Clear the cache of CLI output results.
@@ -209,7 +161,10 @@ module Cisco
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
       @client = CiscoNxapi::NxapiClient.new(*args)
-      @cmd_ref = CommandReference::CommandReference.new(product_id)
+      # Hard-code platform and cli for now
+      @cmd_ref = CommandReference.new(product:  product_id,
+                                      platform: :nexus,
+                                      cli:      true)
       cache_flush
     end
 
@@ -232,159 +187,6 @@ module Cisco
 
     def cache_auto=(enable)
       @client.cache_auto = enable
-    end
-
-    # Helper method for converting token strings to regexps. This helper
-    # facilitates non-standard regexp options like ignore-case.
-    # Example inputs:
-    #  token = ["/%s/i", "/%s foo %s/", "/zzz/i"]
-    #  args = ["LoopBack2", "no", "bar"]
-    # Expected outputs:
-    #         [/LoopBack2/i, /no foo bar/, /zzz/i]
-    #
-    def token_str_to_regexp(token, args)
-      unless args[0].is_a? Hash
-        expected_args = token.join.scan(/%/).length
-        fail "Given #{args.length} args, but token #{token} requires " \
-          "#{expected_args}" unless args.length == expected_args
-      end
-      # replace all %s with *args
-      token.map! { |str| sprintf(str, *args.shift(str.scan(/%/).length)) }
-      # convert all to Regexp objects
-      token.map! do |str|
-        if str[-2..-1] == '/i'
-          Regexp.new(str[1..-3], Regexp::IGNORECASE)
-        else
-          Regexp.new(str[1..-2])
-        end
-      end
-      token
-    end
-
-    # Helper method to replace <> place holders in the config_get_token
-    # and config_get_token_append yaml entries.
-    #
-    # @param regexp [String][Array] regexp entry with <> placeholders
-    # @param values [Hash] Hash of named values to replace each <>
-    # @return [String]
-    def replace_token_ids(regexp, values)
-      final = replace_token_ids_string(regexp, values) if regexp.is_a?(String)
-      final = replace_token_ids_array(regexp, values) if regexp.is_a?(Array)
-      final
-    end
-
-    # @param regexp [String] regexp entry with <> placeholders
-    # @param values [Hash] Hash of named values to replace each <>
-    # @return [String]
-    def replace_token_ids_string(regexp, values)
-      replace = regexp.scan(/<(\S+)>/).flatten.map(&:to_sym)
-      replace.each do |item|
-        regexp = regexp.sub "<#{item}>",
-                            values[item].to_s if values.key?(item)
-      end
-      # Only return lines that actually replaced ids or did not have any
-      # ids to replace. Implicit nil returned if not.
-      return regexp if /<\S+>/.match(regexp).nil?
-    end
-
-    # @param regexp [Array] regexp entry with <> placeholders
-    # @param values [Hash] Hash of named values to replace each <>
-    # @return [String]
-    def replace_token_ids_array(regexp, values)
-      final_regexp = []
-      regexp.each do |line|
-        final_regexp.push(replace_token_ids_string(line, values))
-      end
-      final_regexp
-    end
-
-    # Helper method to build a multi-line config_get_token if
-    # the feature, name contains a config_get_token_append entry.
-    #
-    # @param feature [String]
-    # @param ref [CommandReference::CmdRef]
-    # @return [String, Array]
-    def build_config_get_token(feature, ref, args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      # Why clone token? A bug in some ruby versions caused token to convert
-      # to type Regexp unexpectedly. The clone hard copy resolved it.
-
-      # If the options are presented as type Hash process as
-      # key-value replacement pairs
-      return ref.config_get_token.clone unless args[0].is_a?(Hash)
-      options = args[0]
-      token = []
-      # Use _template yaml entry if config_get_token_append
-      if ref.to_s[/config_get_token_append/]
-        # Get yaml feature template:
-        template = @cmd_ref.lookup(feature, '_template')
-        # Process config_get_token: from template:
-        token.push(replace_token_ids(template.config_get_token, options))
-        # Process config_get_token_append sequence: from template:
-        template.config_get_token_append.each do |line|
-          token.push(replace_token_ids(line, options))
-        end
-        # Add feature->property config_get_token append line
-        token.push(ref.config_get_token_append)
-      else
-        token.push(replace_token_ids(ref.config_get_token, options))
-      end
-      token.flatten!
-      token.compact!
-      token
-    end
-
-    # Helper method to use the feature, name config_get
-    # if present else use feature, "template" config_get
-    #
-    # @param feature [String]
-    # @param ref [CommandReference::CmdRef]
-    # @param type [Symbol]
-    # @return [String, Array]
-    def build_config_get(feature, ref, type)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      # Use feature name config_get string if present
-      # else use feature template: config_get
-      if ref.hash.key?('config_get')
-        return show(ref.config_get, type)
-      else
-        template = @cmd_ref.lookup(feature, '_template')
-        return show(template.config_get, type)
-      end
-    end
-
-    # Helper method to build a multi-line config_set if
-    # the feature, name contains a config_get_set_append
-    # yaml entry.
-    #
-    # @param feature [String]
-    # @param ref [CommandReference::CmdRef]
-    # @return [String, Array]
-    def build_config_set(feature, ref, args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      # If the options are presented as type Hash process as
-      # key-value replacement pairs
-      return ref.config_set unless args[0].is_a?(Hash)
-      options = args[0]
-      config_set = []
-      # Use _template yaml entry if config_set_append
-      if ref.to_s[/config_set_append/]
-        # Get yaml feature template:
-        template = @cmd_ref.lookup(feature, '_template')
-        # Process config_set: from template:
-        config_set.push(replace_token_ids(template.config_set, options))
-        # Process config_set_append sequence: from template:
-        template.config_set_append.each do |line|
-          config_set.push(replace_token_ids(line, options))
-        end
-        # Add feature->property config_set append line
-        config_set.push(replace_token_ids(ref.config_set_append, options))
-      else
-        config_set.push(replace_token_ids(ref.config_set, options))
-      end
-      config_set.flatten!
-      config_set.compact!
-      config_set
     end
 
     # Helper method for config_get().

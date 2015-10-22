@@ -305,13 +305,7 @@ class TestInterface < CiscoTestCase
       assert_equal(ref.default_value, interface.default_ipv4_redirects,
                    "ipv4 redirects default incorrect for interface #{k}")
 
-      begin
-        config_set = ref.config_set
-      rescue IndexError
-        config_set = nil
-      end
-
-      if config_set
+      if ref.config_set?
         pattern = ref.test_config_get_regex[0]
         cmd = show_cmd(interface.name)
         if k.include?('loopback')
@@ -605,17 +599,11 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
 
-    begin
-      config_set = cmd_ref.config_set
-    rescue IndexError
-      config_set = nil
-    end
-
-    unless config_set
+    unless cmd_ref.config_set?
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
         interface.negotiate_auto = true
@@ -624,7 +612,7 @@ class TestInterface < CiscoTestCase
     end
 
     interface.negotiate_auto = default
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
@@ -637,11 +625,11 @@ class TestInterface < CiscoTestCase
     begin
       interface.negotiate_auto = non_default
     rescue RuntimeError
-      assert_equal(interface.negotiate_auto, default,
+      assert_equal(default, interface.negotiate_auto,
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
-    assert_equal(interface.negotiate_auto, non_default,
+    assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
     pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
@@ -649,7 +637,7 @@ class TestInterface < CiscoTestCase
 
     # Clean up after ourselves
     interface.negotiate_auto = default
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
@@ -735,7 +723,6 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('', 14)
     end
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -745,7 +732,6 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -784,7 +770,6 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_netmask_length,
                  'Error: ipv4 netmask length default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -860,7 +845,6 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -895,7 +879,6 @@ class TestInterface < CiscoTestCase
     assert_equal(DEFAULT_IF_IP_REDIRECTS, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 

@@ -1,0 +1,34 @@
+# vlan
+---
+all_vlans:
+  config_get: "show vlan brief"
+  config_get_token: '/^(\d+)\s/'
+
+create:
+  config_set: ["vlan %s" , "end"]
+
+destroy:
+  config_set: "no vlan %s"
+
+name:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d+\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s name %s", "end"]
+  /N9K/:
+    test_config_result:
+      32: "Long VLAN name knob is not enabled"
+  else:
+    test_config_result:
+      32: "String exceeded max length of (32)"
+
+shutdown:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s shutdown", "end"]
+  default_value: false
+
+state:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s state %s", "end"]
+  default_value: "active"
