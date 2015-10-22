@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby-2.1.1
+#!/usr/bin/env ruby
 #
 # October 2015, Glenn F. Matthews
 #
@@ -26,80 +26,84 @@ require 'yaml'
 
 base = Pathname.new(File.expand_path('../..', __FILE__))
 
-# Read in the base config file:
-base_config = {}
-File.open(base + '.rubocop.yml', 'r') do |f|
-  base_config = YAML.parse(f).transform
-end
-
-# Create a fake config file that's identical to baseline except for the
-# metric Max limits:
-
-new_config = {}
-base_config.each do |cop, options|
-  new_config[cop] = {}
-  options.each do |option, value|
-    new_config[cop][option] = value unless option == 'Max'
+['lib/', 'tests/'].each do |subdir|
+  # Read in the base config file:
+  base_config = {}
+  File.open(base + subdir + '.rubocop.yml', 'r') do |f|
+    base_config = YAML.parse(f).transform
   end
-end
 
-tempfile = base + '.rubocop_temp.yml'
+  # Create a fake config file that's identical to baseline except for the
+  # metric Max limits:
 
-File.open(tempfile, 'w') do |f|
-  f.write new_config.to_yaml
-end
-
-output = `rubocop -c #{tempfile} --only Metrics -f emacs -D 2>/dev/null`
-`rm -f #{tempfile}`
-
-results = {}
-output.split("\n").each do |line|
-  # emacs output format:
-  # foo/bar.rb:92:81: C: Metrics/LineLength: Line is too long. [81/80]
-  file, row, col, _err, cop, msg = line.split(':')
-  file = Pathname.new(file).relative_path_from(base).to_s
-  cop.strip!
-  value = msg[/\[([0-9.]+)/, 1].to_f.ceil
-  results[cop] ||= {}
-  results[cop][value] ||= []
-  results[cop][value] << {
-    file: file,
-    row:  row.to_i,
-    col:  col.to_i,
-  }
-end
-
-# Print each failing cop in alphabetical order...
-results.keys.sort.each do |cop|
-  puts "\n#{cop}"
-  offenses = results[cop]
-  # List the two highest failing values...
-  offenses.keys.sort.reverse[0..1].each do |value|
-    puts "  #{value}:"
-    offenses[value].each do |offender|
-      # and list the file and line where each failure was seen
-      puts "    #{offender[:file]}:#{offender[:row]}"
+  new_config = {}
+  base_config.each do |cop, options|
+    next unless options.is_a?(Hash)
+    new_config[cop] = {}
+    options.each do |option, value|
+      new_config[cop][option] = value unless option == 'Max'
     end
   end
-end
 
-puts "\n"
+  tempfile = base + '.rubocop_temp.yml'
 
-base_config.keys.sort.each do |cop|
-  next unless cop =~ /Metrics/
-  base_val = base_config[cop]['Max']
-  base_val ||= 0
-  actual_val = results[cop].keys.sort.last if results[cop]
-  actual_val ||= 0
-  if base_val == actual_val
-    if base_val == 0
-      puts "#{cop}: still passing in full"
+  File.open(tempfile, 'w') do |f|
+    f.write new_config.to_yaml
+  end
+
+  output = `rubocop -c #{tempfile} --only Metrics -f emacs \
+-D #{subdir} 2>/dev/null`
+  `rm -f #{tempfile}`
+
+  results = {}
+  output.split("\n").each do |line|
+    # emacs output format:
+    # foo/bar.rb:92:81: C: Metrics/LineLength: Line is too long. [81/80]
+    file, row, col, _err, cop, msg = line.split(':')
+    file = Pathname.new(file).relative_path_from(base).to_s
+    cop.strip!
+    value = msg[/\[([0-9.]+)/, 1].to_f.ceil
+    results[cop] ||= {}
+    results[cop][value] ||= []
+    results[cop][value] << {
+      file: file,
+      row:  row.to_i,
+      col:  col.to_i,
+    }
+  end
+
+  # Print each failing cop in alphabetical order...
+  results.keys.sort.each do |cop|
+    puts "\n#{cop}"
+    offenses = results[cop]
+    # List the two highest failing values...
+    offenses.keys.sort.reverse[0..1].each do |value|
+      puts "  #{value}:"
+      offenses[value].each do |offender|
+        # and list the file and line where each failure was seen
+        puts "    #{offender[:file]}:#{offender[:row]}"
+      end
+    end
+  end
+
+  puts "\n"
+
+  base_config.keys.sort.each do |cop|
+    next unless cop =~ /Metrics/
+    base_val = base_config[cop]['Max']
+    base_val ||= 0
+    actual_val = results[cop].keys.sort.last if results[cop]
+    actual_val ||= 0
+    if base_val == actual_val
+      if base_val == 0
+        puts "#{cop}: still passing in full"
+      else
+        puts "#{cop}: value unchanged (#{base_val})"
+      end
+    elsif base_val > actual_val
+      puts "#{cop}: value improved! (#{base_val} -> #{actual_val})"
     else
-      puts "#{cop}: value unchanged (#{base_val})"
+      puts "#{cop}: value WORSENED (#{base_val} -> #{actual_val})"
     end
-  elsif base_val > actual_val
-    puts "#{cop}: value improved! (#{base_val} -> #{actual_val})"
-  else
-    puts "#{cop}: value WORSENED (#{base_val} -> #{actual_val})"
   end
 end
