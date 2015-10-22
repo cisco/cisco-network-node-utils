@@ -180,7 +180,7 @@ module CommandReference
           CommandPlatformFile.new(/C3064/,
                                   File.join(File.dirname(__FILE__),
                                             'command_reference_n3064.yaml')),
-          CommandPlatformFile.new(/XR.*9k/,
+          CommandPlatformFile.new(/XR9k/,
                                   File.join(File.dirname(__FILE__),
                                             'command_reference_XR9k.yaml')),
         ]

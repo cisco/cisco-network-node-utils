@@ -86,6 +86,7 @@ class TestCommandConfig < CiscoTestCase
   def build_int_scale_config(add=true)
     add ? s = '' : s = 'no '
     current_interface = 0
+    # num_interfaces = 1024
     num_interfaces = 10
     command_list = ''
     while current_interface < num_interfaces
