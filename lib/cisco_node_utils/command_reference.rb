@@ -54,12 +54,10 @@ module CommandReference
     attr_reader :sources
     attr_reader :hash
 
-    # rubocop:disable Style/ClassVars
-    @@keys = %w(default_value
-                config_set config_set_append
-                config_get config_get_token config_get_token_append
-                test_config_get test_config_get_regex test_config_result)
-    # rubocop:enable Style/ClassVars
+    KEYS = %w(default_value
+              config_set config_set_append
+              config_get config_get_token config_get_token_append
+              test_config_get test_config_get_regex test_config_result)
 
     def initialize(feature, name, ref, source)
       fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
@@ -75,7 +73,7 @@ module CommandReference
     # Overwrite values from more specific references.
     def merge(values, file)
       values.each do |key, value|
-        unless @@keys.include?(key)
+        unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         if value.nil?
@@ -116,7 +114,7 @@ module CommandReference
     end
 
     def method_missing(method_name, *args, &block)
-      super(method_name, *args, &block) unless @@keys.include?(method_name.to_s)
+      super(method_name, *args, &block) unless KEYS.include?(method_name.to_s)
       method_name = method_name.to_s
       unless @hash.include?(method_name)
         fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
