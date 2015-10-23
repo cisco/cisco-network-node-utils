@@ -145,7 +145,7 @@ class TestCommandConfig < CiscoTestCase
       v.each_value do |v1|
         cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
-        assert_raises(Cisco::RPC::GRPC::CliError) { node.config(cfg_string) }
+        assert_raises(Cisco::CliError) { node.config(cfg_string) }
       end
     end
   end

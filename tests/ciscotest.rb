@@ -41,7 +41,7 @@ class CiscoTestCase < TestCase
       # puts "  - image - #{@@node.system}\n\n"
     end
     @@node
-  rescue CiscoNxapi::HTTPUnauthorized
+  rescue Cisco::Shim::AuthenticationFailed
     puts "Unauthorized to connect as #{username}:#{password}@#{address}"
     exit
   end

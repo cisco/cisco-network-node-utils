@@ -27,11 +27,7 @@ require 'rubygems'
 gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-begin
-  require 'cisco_nxapi'
-rescue LoadError
-  require File.expand_path('../../../cisco-nxapi/lib/cisco_nxapi')
-end
+require 'cisco_os_shim'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared

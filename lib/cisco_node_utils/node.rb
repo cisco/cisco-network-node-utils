@@ -20,8 +20,7 @@
 
 require 'singleton'
 
-require 'cisco_nxapi'
-require 'cisco_rpc'
+require 'cisco_os_shim'
 require_relative 'command_reference'
 
 # Add node management classes and APIs to the Cisco namespace.
@@ -209,7 +208,9 @@ module Cisco
 
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
-      @client = Cisco::RPC::GRPC::Client.new(*args)
+      @client = Cisco::Shim::Client.create(*args)
+      # TODO: restore this
+      # @cmd_ref = CommandReference::CommandReference.new(product_id)
       @cmd_ref = CommandReference::CommandReference.new('XR9K')
       cache_flush
     end
@@ -422,8 +423,11 @@ module Cisco
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def config(commands)
       @client.config(commands)
-    rescue CiscoNxapi::CliError => e
-      raise Cisco::CliError.new(e.input, e.clierror, e.previous)
+    rescue Cisco::Shim::RequestFailed => e
+      raise Cisco::CliError.new(
+        e.rejected_input,
+        e.respond_to?(:clierror) ? e.clierror : e.message,
+        e.successful_input)
     end
 
     # Send a show command to the device.
@@ -433,8 +437,11 @@ module Cisco
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def show(command, type=:ascii)
       @client.show(command, type)
-    rescue CiscoNxapi::CliError => e
-      raise Cisco::CliError.new(e.input, e.clierror, e.previous)
+    rescue Cisco::Shim::RequestFailed => e
+      raise Cisco::CliError.new(
+        e.rejected_input,
+        e.respond_to?(:clierror) ? e.clierror : e.message,
+        e.successful_input)
     end
 
     # @return [String] such as "Cisco Nexus Operating System (NX-OS) Software"
