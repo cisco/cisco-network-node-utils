@@ -633,6 +633,28 @@ radius_server:
     config_set: '<state> radius-server host <ip> key <key>'
     default_value: null
 
+radius_global:
+  timeout:
+    config_get: "show running-config radius all"
+    config_get_token: '/^radius-server timeout (\d+).*/'
+    config_set: '<state> radius-server timeout <timeout>'
+    default: '5'
+
+  retransmit:
+    config_get: "show running-config radius all"
+    config_get_token: '/^radius-server retransmit (\d+).*/'
+    config_set: '<state> radius-server retransmit <count>'
+    default: '1'
+
+  key_format:
+    config_get: "show running-config radius all"
+    config_get_token: '/^radius-server key (\d).*/'
+
+  key:
+    config_get: "show running-config radius all"
+    config_get_token: '/^radius-server key \d+\s+(\S+)/'
+    config_set: '<state> radius-server key <key>'
+
 show_system:
   uptime:
     config_get: 'show system uptime'
