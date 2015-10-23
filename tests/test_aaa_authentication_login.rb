@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/aaa_authentication_login", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/aaa_authentication_login'
 
+# Test class for AAA Authentication Login
 class TestAaaAuthenticationLogin < CiscoTestCase
   DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE= false
+  DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE = false
   DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE= false
+  DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE = false
   DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE = false
 
   def aaaauthenticationlogin_detach(authlogin)
@@ -27,315 +28,199 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     # when disabling an authentication method while a different type is present.
     s = @device.cmd("show run | i 'aaa authentication login'")
     if s[/aaa authentication login (\S+) enable/]
-      @device.cmd("conf t ; no aaa authentication login #{Regexp.last_match(1)} enable ; end")
-      node.cache_flush
+      config("no aaa authentication login #{Regexp.last_match(1)} enable")
     end
     authlogin.ascii_authentication = DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH
     authlogin.error_display = DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE
   end
 
-  def get_match_line(name)
-    s = @device.cmd("show run aaa all | no-more")
-    prefix = "aaa authentication login"
-    line = /#{prefix} #{name}/.match(s)
-    line
-  end
-
-  def test_aaaauthenticationlogin_get_ascii_authentication
+  def test_get_ascii_authentication
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login ascii-authentication")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login ascii-authentication')
     refute(aaaauthlogin.ascii_authentication,
-                 "Error: AAA authentication login ascii get\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login ascii get\n" \
+           'See CSCuu12667 (4/29/15)')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("aaa authentication login ascii-authentication")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login ascii-authentication')
     assert(aaaauthlogin.ascii_authentication,
-                 "Error: AAA authentication login ascii get with preconfig")
+           'Error: AAA authentication login ascii get with preconfig')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_default_ascii_authentication
+  def test_get_default_ascii_authentication
     aaaauthlogin = AaaAuthenticationLogin
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login ascii-authentication")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login ascii-authentication')
     assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH,
                  aaaauthlogin.default_ascii_authentication,
-                 "Error: AAA authentication login, default ascii incorrect")
+                 'Error: AAA authentication login, default ascii incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_set_ascii_authentication
-    state = true
-
+  def test_set_ascii_authentication
     aaaauthlogin = AaaAuthenticationLogin
 
-    aaaauthlogin.ascii_authentication = state
-    line = get_match_line("ascii-authentication")
-    refute_nil(line, "Error: AAA authentication login ascii not configured #{state}")
-    assert(aaaauthlogin.ascii_authentication,
-                 "Error: AAA authentication login asci not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.ascii_authentication = true
+    assert_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login ascii-authentication/)
 
-    # Now bring it back to default
-    state = DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH
-    aaaauthlogin.ascii_authentication = state
-    line = get_match_line("ascii-authentication")
-    refute_nil(line, "Error:  AAA authentication login, default ascii not configured")
-    refute(aaaauthlogin.ascii_authentication,
-                 "Error: AAA authentication login asci not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.ascii_authentication =
+      DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH
+    refute_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login ascii-authentication/)
 
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_chap
+  def test_get_chap
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login chap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login chap enable')
     refute(aaaauthlogin.chap,
-                 "Error: AAA authentication login chap get\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login chap get\n" \
+           'See CSCuu12667 (4/29/15)')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("aaa authentication login chap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login chap enable')
     assert(aaaauthlogin.chap,
-                 "Error: AAA authentication login chap get with preconfig\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login chap get with preconfig\n" \
+           'See CSCuu12667 (4/29/15)')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_default_chap
+  def test_get_default_chap
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login chap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login chap enable')
     assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE,
                  aaaauthlogin.default_chap,
-                 "Error: AAA authentication login, default chap incorrect")
+                 'Error: AAA authentication login, default chap incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_set_chap
-    state = true
-
+  def test_set_chap
     aaaauthlogin = AaaAuthenticationLogin
 
-    aaaauthlogin.chap = state
-    line = get_match_line("chap enable")
-    refute_nil(line, "Error: AAA authentication login chap not configured #{state}")
-    assert(aaaauthlogin.chap,
-                 "Error: AAA authentication login chap not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
-
-    # Now bring it back to default
-    state = DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE
-    aaaauthlogin.chap = state
-    line = get_match_line("chap enable")
-    refute_nil(line, "Error:  AAA authentication login, default chap not configured")
-    refute(aaaauthlogin.chap,
-                 "Error: AAA authentication login chap not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.chap = true
+    assert_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login chap enable/)
+    aaaauthlogin.chap = DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE
+    refute_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login chap enable/)
 
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_error_display
+  def test_get_error_display
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login error-enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login error-enable')
     refute(aaaauthlogin.error_display,
-                 "Error: AAA authentication login error display get")
+           'Error: AAA authentication login error display get')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("aaa authentication login error-enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login error-enable')
     assert(aaaauthlogin.error_display,
-                 "Error: AAA authentication login error display get with preconfig")
+           'Error: AAA authentication login error display get with preconfig')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_default_error_display
+  def test_get_default_error_display
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login error-enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login error-enable')
     assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE,
                  aaaauthlogin.default_error_display,
-                 "Error: AAA authentication login, default error display incorrect")
+                 'Error: default error display incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_set_error_display
-    state = true
-
+  def test_set_error_display
     aaaauthlogin = AaaAuthenticationLogin
 
-    aaaauthlogin.error_display = state
-    line = get_match_line("error-enable")
-    refute_nil(line, "Error: AAA authentication login error display not configured #{state}")
-    assert(aaaauthlogin.error_display,
-                 "Error: AAA authentication login error display not set #{state}")
+    aaaauthlogin.error_display = true
+    assert_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login error-enable/)
 
-    # Now bring it back to default
-    state = DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE
-    aaaauthlogin.error_display = state
-    line = get_match_line("error-enable")
-    refute_nil(line, "Error:  AAA authentication login, default error display not configured")
-    refute(aaaauthlogin.error_display,
-                 "Error: AAA authentication login error display not set #{state}")
+    aaaauthlogin.error_display = DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE
+    refute_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login error-enable/)
 
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_mschap
+  def test_get_mschap
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login mschap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login mschap enable')
     refute(aaaauthlogin.mschap,
-                 "Error: AAA authentication login mschap get\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login mschap get\n" \
+           'See CSCuu12667 (4/29/15)')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("aaa authentication login mschap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login mschap enable')
     assert(aaaauthlogin.mschap,
-                 "Error: AAA authentication login mschap get with preconfig\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login mschap get with preconfig\n" \
+           'See CSCuu12667 (4/29/15)')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_default_mschap
+  def test_get_default_mschap
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login mschap enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login mschap enable')
     assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE,
                  aaaauthlogin.default_mschap,
-                 "Error: AAA authentication login, default mschap incorrect")
+                 'Error: AAA authentication login, default mschap incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_set_mschap
-    state = true
-
+  def test_set_mschap
     aaaauthlogin = AaaAuthenticationLogin
 
-    aaaauthlogin.mschap = state
-    line = get_match_line("mschap enable")
-    refute_nil(line, "Error: AAA authentication login mschap not configured #{state}")
-    assert(aaaauthlogin.mschap,
-                 "Error: AAA authentication login mschap not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.mschap = true
+    assert_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login mschap enable/)
 
-    # Now bring it back to default
-    state = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE
-    aaaauthlogin.mschap = state
-    line = get_match_line("mschap enable")
-    refute_nil(line, "Error:  AAA authentication login, default mschap not configured")
-    refute(aaaauthlogin.mschap,
-                 "Error: AAA authentication login mschap not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.mschap = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE
+    refute_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login mschap enable/)
 
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_mschapv2
+  def test_get_mschapv2
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login mschapv2 enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login mschapv2 enable')
     refute(aaaauthlogin.mschapv2,
-                 "Error: AAA authentication login mschapv2 get\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login mschapv2 get\n" \
+           'See CSCuu12667 (4/29/15)')
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("aaa authentication login mschapv2 enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login mschapv2 enable')
     assert(aaaauthlogin.mschapv2,
-                 "Error: AAA authentication login mschapv2 get with preconfig\n" +
-                 "See CSCuu12667 (4/29/15)")
+           "Error: AAA authentication login mschapv2 get with preconfig\n" \
+           'See CSCuu12667 (4/29/15)')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_get_default_mschapv2
+  def test_get_default_mschapv2
     aaaauthlogin = AaaAuthenticationLogin
 
-    s = @device.cmd("configure terminal")
-    s = @device.cmd("no aaa authentication login mschapv2 enable")
-    s = @device.cmd("end")
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('no aaa authentication login mschapv2 enable')
     assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE,
                  aaaauthlogin.default_mschapv2,
-                 "Error: AAA authentication login, default mschapv2 incorrect")
+                 'Error: AAA authentication login, default mschapv2 incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
-  def test_aaaauthenticationlogin_set_mschapv2
-    state = true
-
+  def test_set_mschapv2
     aaaauthlogin = AaaAuthenticationLogin
 
-    aaaauthlogin.mschapv2 = state
-    line = get_match_line("mschapv2 enable")
-    refute_nil(line, "Error: AAA authentication login mschapv2 not configured #{state}")
-    assert(aaaauthlogin.mschapv2,
-                 "Error: AAA authentication login mschapv2 not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.mschapv2 = true
+    assert_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login mschapv2 enable/)
 
-    # Now bring it back to default
-    state = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE
-    aaaauthlogin.mschapv2 = state
-    line = get_match_line("mschapv2 enable")
-    refute_nil(line, "Error:  AAA authentication login, default mschapv2 not configured")
-    refute(aaaauthlogin.mschapv2,
-                 "Error: AAA authentication login mschapv2 not set #{state}\n" +
-                 "See CSCuu12667 (4/29/15)")
+    aaaauthlogin.mschapv2 = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE
+    refute_show_match(command: 'show run aaa all | no-more',
+                      pattern: /^aaa authentication login mschapv2 enable/)
 
     aaaauthenticationlogin_detach(aaaauthlogin)
   end

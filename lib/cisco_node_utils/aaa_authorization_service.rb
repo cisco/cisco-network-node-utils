@@ -36,12 +36,12 @@ module Cisco
 
       return unless create
 
-      config_set('aaa_authorization_service', 'method', '', type_str, name)
+      node.config_set('aaa_authorization_service', 'method', '', type_str, name)
     end
 
     def self.services
       servs = {}
-      servs_arr = config_get('aaa_authorization_service', 'services')
+      servs_arr = node.config_get('aaa_authorization_service', 'services')
       unless servs_arr.nil?
         servs_arr.each do |type, name|
           type = auth_type_str_to_sym(type)
@@ -62,12 +62,12 @@ module Cisco
       if g_str.empty?
         # cannot remove no groups + local, so do nothing in this case
         unless m == :local
-          config_set('aaa_authorization_service', 'method',
-                     'no', t_str, @name)
+          node.config_set('aaa_authorization_service', 'method',
+                          'no', t_str, @name)
         end
       else
-        config_set('aaa_authorization_service', 'groups',
-                   'no', t_str, @name, g_str, m_str)
+        node.config_set('aaa_authorization_service', 'groups',
+                        'no', t_str, @name, g_str, m_str)
       end
     end
 
@@ -76,11 +76,11 @@ module Cisco
     # memory regex only captures the last match
     # ex: aaa authorization console group group1 group2 group3 local
     def groups
-      # config_get returns the following format:
+      # node.config_get returns the following format:
       # [{"appl_subtype": "console",
       #   "cmd_type": "config-commands",
       #   "methods": "group foo bar local "}], ...
-      hsh_arr = config_get('aaa_authorization_service', 'groups')
+      hsh_arr = node.config_get('aaa_authorization_service', 'groups')
       fail 'unable to retrieve aaa groups information' if hsh_arr.nil?
       type_s = AaaAuthorizationService.auth_type_sym_to_str(@type)
       hsh = hsh_arr.find do |x|
@@ -99,18 +99,18 @@ module Cisco
 
     # default is []
     def default_groups
-      config_get_default('aaa_authorization_service', 'groups')
+      node.config_get_default('aaa_authorization_service', 'groups')
     end
 
     def method
       t_str = AaaAuthorizationService.auth_type_sym_to_str(@type)
-      m = config_get('aaa_authorization_service', 'method', @name, t_str)
+      m = node.config_get('aaa_authorization_service', 'method', @name, t_str)
       m.nil? ? :unselected : m.first.to_sym
     end
 
     # default is :local
     def default_method
-      config_get_default('aaa_authorization_service', 'method')
+      node.config_get_default('aaa_authorization_service', 'method')
     end
 
     # groups and method must be set in the same CLI string
@@ -129,13 +129,13 @@ module Cisco
       g_str = grps.join(' ')
       t_str = AaaAuthorizationService.auth_type_sym_to_str(@type)
 
-      # different config_set depending on whether we're setting groups or not
+      # config_set depends on whether we're setting groups or not
       if g_str.empty?
-        config_set('aaa_authorization_service', 'method',
-                   '', t_str, @name)
+        node.config_set('aaa_authorization_service', 'method',
+                        '', t_str, @name)
       else
-        config_set('aaa_authorization_service', 'groups',
-                   '', t_str, @name, g_str, m_str)
+        node.config_set('aaa_authorization_service', 'groups',
+                        '', t_str, @name, g_str, m_str)
       end
     end
 
