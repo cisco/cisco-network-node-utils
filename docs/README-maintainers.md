@@ -34,10 +34,14 @@ Most of these are default for git-flow except for the `versiontag` setting.
 
 When we are considering publishing a new release, all of the following steps must be carried out (using the latest code base in `develop`):
 
-1. Run full minitest suite against all supported platforms:
-  1. N30xx with latest NX-OS software release or release candidate
-  2. N31xx with latest NX-OS software release or release candidate
-  3. N9xxx with latest NX-OS software release or release candidate
+1. Run full minitest suite with various Ruby versions and hardware platforms:
+  * Ruby versions:
+    - REQUIRED: the Ruby version(s) bundled with Chef and Puppet (currently 2.1.6)
+    - OPTIONAL: any/all other Ruby major versions currently supported by this gem (2.0, 2.2.2)
+  * Platforms (all with latest released software or release candidate)
+    - N30xx
+    - N31xx
+    - N9xxx
 
 2. Triage any minitest failures.
 
@@ -46,14 +50,17 @@ When we are considering publishing a new release, all of the following steps mus
 4. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
 
 5. Make sure CHANGELOG.md accurately reflects all changes since the last release.
-  1. Add any significant changes that weren't documented in the changelog
-  2. Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
+  * Add any significant changes that weren't documented in the changelog
+  * Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
 
 ## Release Process
 
 When the release checklist above has been fully completed, the process for publishing a new release is as follows:
 
-1. Create a release branch. Follow [semantic versioning](http://semver.org) - a bugfix release is a 0.0.x version bump, a new feature is a 0.x.0 bump, and a backward-incompatible change (if unavoidable!) is a new x.0.0 version.
+1. Create a release branch. Follow [semantic versioning](http://semver.org):
+    * 0.0.x - a bugfix release
+    * 0.x.0 - new feature(s)
+    * x.0.0 - backward-incompatible change (if unvoidable!)
 
     ```
     git flow release start 1.0.1
