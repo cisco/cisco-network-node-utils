@@ -363,22 +363,14 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     #
-    # Default is 600
+    # Verify default value
     #
-    pattern = /^ *dampen-igp-metric 600$/
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-
-    assert_match(pattern, af_string,
-                 "Error: 'dampen-igp-metric 600' is not configured " \
-                   'and should be')
+    assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
+                 "Error: Default 'dampen-igp-metric' value should be " \
+                   "#{bgp_af.default_dampen_igp_metric}")
 
     #
-    # Test getter
-    #
-    assert_equal(bgp_af.dampen_igp_metric, 600,
-                 'Error: dampen_igp_metric should be 600')
-    #
-    # Set and verify
+    # Set and verify 'dampen-igp-metric <value>'
     #
 
     # Do a 'dampen-igp-metric 555'
@@ -395,23 +387,33 @@ class TestRouterBgpAF < CiscoTestCase
     #
     assert_equal(bgp_af.dampen_igp_metric, 555,
                  'Error: dampen_igp_metric should be 555')
+
     #
-    # Unset and verify
+    # Set and verify 'no dampen-igp-metric'
     #
 
-    # Set to default, 'no dampen... should be configured
-    bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
+    # Do a 'no dampen-igp-metric'
+    pattern = /no dampen-igp-metric$/
+    bgp_af.dampen_igp_metric = nil
 
     af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    pattern = /^ *no dampen-igp-metric$/
     assert_match(pattern, af_string,
-                 "Error: 'dampen-igp-metric' is still configured")
+                 "Error: 'no dampen-igp-metric' is not configured " \
+                   'and should be')
+    #
+    # Test getter
+    #
+    assert_equal(bgp_af.dampen_igp_metric, nil,
+                 'Error: dampen_igp_metric should be nil')
 
     #
-    # Test default
+    # Set default value explicitly
     #
-    refute(bgp_af.default_dampen_igp_metric, 'Error: default should not be set')
+    bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
+    assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
+                 "Error: Default 'dampen-igp-metric' value should be " \
+                   "#{bgp_af.default_dampen_igp_metric}")
   end
 
   ##
@@ -473,9 +475,14 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
 
     #
-    # Test Getter
+    # Test Getters
     #
     assert_nil(bgp_af.dampening)
+    assert_nil(bgp_af.dampening_half_time)
+    assert_nil(bgp_af.dampening_reuse_time)
+    assert_nil(bgp_af.dampening_suppress_time)
+    assert_nil(bgp_af.dampening_max_suppress_time)
+    assert_nil(bgp_af.dampening_routemap)
 
     bgp_af.destroy
 
@@ -512,9 +519,19 @@ class TestRouterBgpAF < CiscoTestCase
     assert_match(pattern_params4, af_string, error)
     assert_match(pattern_params5, af_string, error)
 
-    # Check getter
+    # Check getters
     assert_equal(bgp_af.dampening, %w(1 2 3 4),
                  'Error: dampening getter did not match')
+    assert_equal(1, bgp_af.dampening_half_time,
+                 'The wrong dampening half_time value is configured')
+    assert_equal(2, bgp_af.dampening_reuse_time,
+                 'The wrong dampening reuse_time value is configured')
+    assert_equal(3, bgp_af.dampening_suppress_time,
+                 'The wrong dampening suppress_time value is configured')
+    assert_equal(4, bgp_af.dampening_max_suppress_time,
+                 'The wrong dampening max_suppress_time value is configured')
+    assert_empty(bgp_af.dampening_routemap,
+                 'A routemap should not be configured')
 
     #
     # Unset and verify
@@ -534,6 +551,7 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     bgp_af.dampening = 'DropAllTraffic'
+
     pattern = /^ *dampening route-map DropAllTraffic$/
 
     # Check property got set
@@ -550,8 +568,10 @@ class TestRouterBgpAF < CiscoTestCase
                  'Error: dampening properties DropAllTraffic is not ' \
                    'configured and should be')
 
-    # Check getter
+    # Check getters
     assert_equal(bgp_af.dampening, 'DropAllTraffic',
+                 'Error: dampening getter did not match')
+    assert_equal(bgp_af.dampening_routemap, 'DropAllTraffic',
                  'Error: dampening getter did not match')
 
     #
@@ -595,9 +615,23 @@ class TestRouterBgpAF < CiscoTestCase
     assert_match(pattern_params4, af_string, error)
     assert_match(pattern_params5, af_string, error)
 
-    # Check getter
+    # Check getters
     assert_empty(bgp_af.dampening, 'Error: dampening not configured ' \
                  'and should be')
+    assert_equal(bgp_af.default_dampening_half_time, bgp_af.dampening_half_time,
+                 'Wrong default dampening half_time value configured')
+    assert_equal(bgp_af.default_dampening_reuse_time,
+                 bgp_af.dampening_reuse_time,
+                 'Wrong default dampening reuse_time value configured')
+    assert_equal(bgp_af.default_dampening_suppress_time,
+                 bgp_af.dampening_suppress_time,
+                 'Wrong default dampening suppress_time value configured')
+    assert_equal(bgp_af.default_dampening_max_suppress_time,
+                 bgp_af.dampening_max_suppress_time,
+                 'Wrong default dampening suppress_max_time value configured')
+    assert_equal(bgp_af.default_dampening_routemap,
+                 bgp_af.dampening_routemap,
+                 'The default dampening routemap should configured')
 
     #
     # Unset and verify
@@ -846,6 +880,8 @@ class TestRouterBgpAF < CiscoTestCase
     assert_empty(bgp_af.networks,
                  'Error: all networks should have been removed')
 
+    # Some tests don't need to verify il2 and il2
+    return if sl2 == 'n'
     #
     # Set and verify 'is' network list contains less items then
     # the 'should' network list and some of the items are
@@ -937,6 +973,30 @@ class TestRouterBgpAF < CiscoTestCase
     vrf = 'default'
     af = 'ipv6 unicast'
     networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
+  end
+
+  def test_networks_is_list_empty
+    bgp_af = RouterBgpAF.new('55', 'default', %w(ipv6 unicast))
+
+    sl = [
+      ['2000:123:38::/64', 'rtmap1'],
+      ['2000:123:39::/64', 'rtmap2'],
+    ]
+
+    config_list = bgp_af.networks_delta(sl)
+    assert_equal(2, config_list[:add].size,
+                 'Error: config_list[:add] should contain 2 items')
+    assert_empty(config_list[:remove],
+                 'Error: config_list[:remove] should be empty')
+
+    # Apply config_list
+    bgp_af.networks = config_list
+
+    # Verify is_list on device
+    sl.each do |network|
+      assert_includes(bgp_af.networks, network,
+                      "Error: device should contain network #{network}")
+    end
   end
 
   def test_networks_scale

@@ -223,12 +223,12 @@ module Cisco
     # dampen_igp_metric
     def dampen_igp_metric
       result = config_get('bgp_af', 'dampen_igp_metric', @get_args)
-      result.nil? ? default_dampen_igp_metric : result.first.to_i
+      result ? result.first.to_i : nil
     end
 
     def dampen_igp_metric=(val)
-      set_args_keys(state: (val == default_dampen_igp_metric) ? 'no' : '',
-                    num:   (val == default_dampen_igp_metric) ? '' : val)
+      set_args_keys(state: (val.nil?) ? 'no' : '',
+                    num:   (val.nil?) ? '' : val)
       config_set('bgp_af', 'dampen_igp_metric', @set_args)
     end
 
@@ -271,6 +271,66 @@ module Cisco
       end
 
       val
+    end
+
+    # Return true if dampening is enabled, else false.
+    def dampening_state
+      !dampening.nil?
+    end
+
+    # For all of the following dampening getters, haf_time, reuse_time,
+    # suppress_time, and max_suppress_time, return nil if dampening
+    # is not configured, but also return nil if a dampening routemap
+    # is configured because they are mutually exclusive.
+    def dampening_half_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[0].to_i
+      else
+        default_dampening_half_time
+      end
+    end
+
+    def dampening_reuse_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[1].to_i
+      else
+        default_dampening_reuse_time
+      end
+    end
+
+    def dampening_suppress_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[2].to_i
+      else
+        default_dampening_suppress_time
+      end
+    end
+
+    def dampening_max_suppress_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[3].to_i
+      else
+        default_dampening_max_suppress_time
+      end
+    end
+
+    def dampening_routemap
+      if dampening.nil? || (dampening.is_a?(String) && dampening.size > 0)
+        return dampening
+      end
+      default_dampening_routemap
+    end
+
+    def dampening_routemap_configured?
+      if dampening_routemap.is_a?(String) && dampening_routemap.size > 0
+        true
+      else
+        false
+      end
     end
 
     def dampening=(damp_array)
@@ -326,6 +386,30 @@ module Cisco
 
     def default_dampening
       config_get_default('bgp_af', 'dampening')
+    end
+
+    def default_dampening_state
+      config_get_default('bgp_af', 'dampening_state')
+    end
+
+    def default_dampening_max_suppress_time
+      config_get_default('bgp_af', 'dampening_max_suppress_time')
+    end
+
+    def default_dampening_half_time
+      config_get_default('bgp_af', 'dampening_half_time')
+    end
+
+    def default_dampening_reuse_time
+      config_get_default('bgp_af', 'dampening_reuse_time')
+    end
+
+    def default_dampening_routemap
+      config_get_default('bgp_af', 'dampening_routemap')
+    end
+
+    def default_dampening_suppress_time
+      config_get_default('bgp_af', 'dampening_suppress_time')
     end
 
     #
