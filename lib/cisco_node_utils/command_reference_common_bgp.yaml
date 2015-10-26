@@ -206,11 +206,6 @@ bgp_af:
     config_set_append: '<state> client-to-client reflection'
     default_value: false
 
-  default_information:
-    config_get_token_append: '/^default-information originate$/'
-    config_set_append: '<state> default-information originate'
-    default_value: false
-
   dampen_igp_metric:
     config_get_token_append: '/^dampen-igp-metric (\d+)$/'
     config_set_append: '<state> dampen-igp-metric <num>'
@@ -238,6 +233,11 @@ bgp_af:
 
   dampening_suppress_time:
     default_value: 2000
+
+  default_information:
+    config_get_token_append: '/^default-information originate$/'
+    config_set_append: '<state> default-information originate'
+    default_value: false
 
   next_hop_route_map:
     config_get_token_append: '/^nexthop route-map (.*)$/'

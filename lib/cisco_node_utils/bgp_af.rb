@@ -133,7 +133,12 @@ module Cisco
       route_map.strip!
       if route_map.empty?
         state = 'no'
-        route_map = next_hop_route_map
+        # Dummy routemap required if not configured.
+        if next_hop_route_map.empty?
+          route_map = 'dummy_routemap'
+        else
+          route_map = next_hop_route_map
+        end
       end
       set_args_keys(state: state, route_map: route_map)
       config_set('bgp_af', 'next_hop_route_map', @set_args)
@@ -206,7 +211,12 @@ module Cisco
       route_map.strip!
       if route_map.empty?
         state = 'no'
-        route_map = additional_paths_selection
+        # Dummy routemap required if not configured.
+        if additional_paths_selection.empty?
+          route_map = 'dummy_routemap'
+        else
+          route_map = additional_paths_selection
+        end
       end
       set_args_keys(state: state, route_map: route_map)
       config_set('bgp_af', 'additional_paths_selection', @set_args)
