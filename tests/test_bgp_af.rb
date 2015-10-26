@@ -610,6 +610,89 @@ class TestRouterBgpAF < CiscoTestCase
   # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
 
   ##
+  ## maximum_paths
+  ##
+  def maximum_paths(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = 7
+    bgp_af.maximum_paths = val
+    assert_equal(bgp_af.maximum_paths, val,
+                 'Error: maximum paths value not match to set value')
+
+    val = 9
+    bgp_af.maximum_paths = val
+    assert_equal(bgp_af.maximum_paths, val,
+                 'Error: maximum paths value not match to set value')
+
+    val = bgp_af.default_maximum_paths
+    bgp_af.maximum_paths = val
+    assert_equal(bgp_af.maximum_paths, val,
+                 'Error: maximum paths value not match to default value')
+  end
+
+  def test_maximum_paths
+    vrfs = %w(default red)
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    vrfs.each do |vrf|
+      afs.each do |af|
+        maximum_paths(55, vrf, af)
+      end
+    end
+  end
+
+  ##
+  ## maximum_paths_ibgp
+  ##
+  def maximum_paths_ibgp(asn, vrf, af)
+    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = 7
+    bgp_af.maximum_paths_ibgp = val
+    assert_equal(bgp_af.maximum_paths_ibgp, val,
+                 'Error: maximum paths ibgp value not match to set value')
+
+    val = 9
+    bgp_af.maximum_paths_ibgp = val
+    assert_equal(bgp_af.maximum_paths_ibgp, val,
+                 'Error: maximum paths ibgp value not match to set value')
+
+    val = bgp_af.default_maximum_paths_ibgp
+    bgp_af.maximum_paths = val
+    assert_equal(bgp_af.default_maximum_paths_ibgp, val,
+                 'Error: maximum paths ibgp value not match to default value')
+  end
+
+  def test_maximum_paths_ibgp
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv4 unicast'
+    maximum_paths_ibgp(asn, vrf, af)
+
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv4 unicast'
+    maximum_paths_ibgp(asn, vrf, af)
+
+    asn = '55'
+    vrf = 'default'
+    af = 'ipv6 unicast'
+    maximum_paths_ibgp(asn, vrf, af)
+
+    asn = '55'
+    vrf = 'red'
+    af = 'ipv6 unicast'
+    maximum_paths_ibgp(asn, vrf, af)
+  end
+
+  ##
   ## network
   ##
   def network_set_and_verify_helper(listname, bgp_af, action)
