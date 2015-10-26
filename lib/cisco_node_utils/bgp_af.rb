@@ -278,7 +278,7 @@ module Cisco
       !dampening.nil?
     end
 
-    # For all of the following dampening getters, haf_time, reuse_time,
+    # For all of the following dampening getters, half_time, reuse_time,
     # suppress_time, and max_suppress_time, return nil if dampening
     # is not configured, but also return nil if a dampening routemap
     # is configured because they are mutually exclusive.
