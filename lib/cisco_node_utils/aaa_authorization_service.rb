@@ -129,7 +129,7 @@ module Cisco
       g_str = grps.join(' ')
       t_str = AaaAuthorizationService.auth_type_sym_to_str(@type)
 
-      # different config_set depending on whether we're setting groups or not
+      # config_set depends on whether we're setting groups or not
       if g_str.empty?
         config_set('aaa_authorization_service', 'method',
                    '', t_str, @name)

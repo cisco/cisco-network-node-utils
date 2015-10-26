@@ -68,57 +68,57 @@ class TestAaaAuthorizationService < CiscoTestCase
     'aaa authorization'
   end
 
-  def test_aaaauthorizationservice_create_unsupported_type
+  def test_create_unsupported_type
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:none, 'default')
     end
   end
 
-  def test_aaaauthorizationservice_create_nil_type
+  def test_create_nil_type
     assert_raises(TypeError) do
       AaaAuthorizationService.new(nil, 'default')
     end
   end
 
-  def test_aaaauthorizationservice_create_invalid_type
+  def test_create_invalid_type
     assert_raises(TypeError) do
       AaaAuthorizationService.new('test', 'default')
     end
   end
 
-  def test_aaaauthorizationservice_create_invalid_range_type
+  def test_create_invalid_range_type
     assert_raises(TypeError) do
       AaaAuthorizationService.new(34, 'default')
     end
   end
 
-  def test_aaaauthorizationservice_create_invalid_service
+  def test_create_invalid_service
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:commands, 'test')
     end
   end
 
-  def test_aaaauthorizationservice_create_empty_service
+  def test_create_empty_service
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:commands, '')
     end
   end
 
-  def test_aaaauthorizationservice_create_commands_default
+  def test_create_commands_default
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_aaaauthorizationservice_create_commands_console
+  def test_create_commands_console
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_aaaauthorizationservice_create_config_commands_default
+  def test_create_config_commands_default
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating ' \
@@ -126,32 +126,32 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_aaaauthorizationservice_create_config_commands_console
+  def test_create_config_commands_console
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_aaaauthorizationservice_get_type
+  def test_get_type
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
     assert_equal(type, aaa_a_service.type, 'Error : Invalid type')
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_get_name
+  def test_get_name
     service = 'default'
     aaa_a_service = AaaAuthorizationService.new(:config_commands, service)
     assert_equal(service, aaa_a_service.name, 'Error : Invalid service name')
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_collection_invalid
+  def test_collection_invalid
     assert_nil(AaaAuthorizationService.services['TEST'])
   end
 
-  def test_aaaauthorizationservice_collection_services_type_commands
+  def test_collection_services_type_commands
     type = :commands
     collection = AaaAuthorizationService.services[type]
 
@@ -183,7 +183,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
   end
 
-  def test_aaaauthorizationservice_collection_services_type_config_commands
+  def test_collection_services_type_config_commands
     type = :config_commands
     collection = AaaAuthorizationService.services[type]
 
@@ -214,7 +214,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
   end
 
-  def test_aaaauthorizationservice_type_commands_default_console_group
+  def test_type_commands_default_console_group
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization commands default group group2 group1 local'
     cmd2 = 'aaa authorization commands console group group1 local'
@@ -267,7 +267,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     config("no #{cmd2}")
   end
 
-  def test_aaaauthorizationservice_type_config_commands_default_console_group
+  def test_type_config_commands_default_console_group
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization config-commands default group group2 group1 local'
     cmd2 = 'aaa authorization config-commands console group group1 local'
@@ -318,7 +318,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     config("no #{cmd2}")
   end
 
-  def test_aaaauthorizationservice_get_default_method
+  def test_get_default_method
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
     assert_equal(:local, aaa_a_service.default_method,
@@ -346,7 +346,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_collection_groups_commands_default
+  def test_collection_groups_commands_default
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -408,7 +408,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_collection_groups_commands_console
+  def test_collection_groups_commands_console
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -471,7 +471,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_collection_groups_config_commands_default
+  def test_collection_groups_config_commands_default
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -534,7 +534,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_collection_groups_config_commands_console
+  def test_collection_groups_config_commands_console
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -597,7 +597,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_get_default_groups
+  def test_get_default_groups
     groups = []
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
@@ -630,7 +630,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_commands_default_set_groups
+  def test_commands_default_set_groups
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -688,7 +688,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_commands_console_set_groups
+  def test_commands_console_set_groups
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -745,7 +745,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_config_commands_default_set_groups
+  def test_config_commands_default_set_groups
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -802,7 +802,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_config_commands_console_set_groups
+  def test_config_commands_console_set_groups
     # Preconfigure tacacs, tacacs server and AAA valid group
     group0 = 'tac_group'
     preconfig_tacacs_server_access(group0)
@@ -859,7 +859,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_aaaauthorizationservice_commands_invalid_groups_method_set_groups
+  def test_commands_invalid_groups_method_set_groups
     # preconfig servers
     servers = %w(bxb100 sjc200 rtp10)
     config_tacacs_servers(servers)
@@ -871,13 +871,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Single invalid group
     groups = ['test1']
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :unselected)
     end
 
     # Multi groups with invalid group
     groups = %w(rtp10 test2 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :local)
     end
     aaa_a_service.destroy
@@ -888,13 +888,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Single invalid group
     groups = ['test1']
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :unselected)
     end
 
     # Multi group with invalid group
     groups = %w(rtp10 test1 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :local)
     end
 
@@ -907,7 +907,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_config_commands_invalid_set_groups
+  def test_config_commands_invalid_set_groups
     # preconfig servers
     servers = %w(bxb100 sjc200 rtp10)
     config_tacacs_servers(servers)
@@ -919,13 +919,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # Single invalid group
     groups = ['test1']
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :unselected)
     end
 
     # Multi groups with invalid group
     groups = %w(rtp10 test2 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :local)
     end
     aaa_a_service.destroy
@@ -936,13 +936,13 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # one invalid group
     groups = ['test1']
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :unselected)
     end
 
     # multiple group with invalid group
     groups = %w(rtp10 test1 bxb100)
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       aaa_a_service.groups_method_set(groups, :local)
     end
 
@@ -955,7 +955,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_commands_invalid_method
+  def test_commands_invalid_method
     # preconfig servers
     servers = %w(bxb100 sjc200 rtp10)
     config_tacacs_servers(servers)
@@ -997,7 +997,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_aaaauthorizationservice_config_commands_invalid_method
+  def test_config_commands_invalid_method
     # preconfig servers
     servers = %w(bxb100 sjc200 rtp10)
     config_tacacs_servers(servers)
