@@ -423,6 +423,46 @@ module Cisco
     end
 
     #
+    # maximum_paths (Getter/Setter/Default)
+    #
+
+    # maximum_paths
+    def maximum_paths
+      result = config_get('bgp_af', 'maximum_paths', @get_args)
+      result.nil? ? default_maximum_paths : result.first.to_i
+    end
+
+    def maximum_paths=(val)
+      set_args_keys(state: (val == default_maximum_paths) ? 'no' : '',
+                    num:   (val == default_maximum_paths) ? '' : val)
+      config_set('bgp_af', 'maximum_paths', @set_args)
+    end
+
+    def default_maximum_paths
+      config_get_default('bgp_af', 'maximum_paths')
+    end
+
+    #
+    # maximum_paths_ibgp (Getter/Setter/Default)
+    #
+
+    # maximum_paths_ibgp
+    def maximum_paths_ibgp
+      result = config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
+      result.nil? ? default_maximum_paths_ibgp : result.first.to_i
+    end
+
+    def maximum_paths_ibgp=(val)
+      set_args_keys(state: (val == default_maximum_paths_ibgp) ? 'no' : '',
+                    num:   (val == default_maximum_paths_ibgp) ? '' : val)
+      config_set('bgp_af', 'maximum_paths_ibgp', @set_args)
+    end
+
+    def default_maximum_paths_ibgp
+      config_get_default('bgp_af', 'maximum_paths_ibgp')
+    end
+
+    #
     # Network (Getter/Setter/Default)
     #
     # Get list of all networks configured on the device indexed
