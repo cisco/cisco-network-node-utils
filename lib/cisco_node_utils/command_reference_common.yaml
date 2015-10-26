@@ -638,13 +638,13 @@ radius_global:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server timeout (\d+).*/'
     config_set: '<state> radius-server timeout <timeout>'
-    default: '5'
+    default_value: '5'
 
   retransmit:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server retransmit (\d+).*/'
     config_set: '<state> radius-server retransmit <count>'
-    default: '1'
+    default_value: '1'
 
   key_format:
     config_get: "show running-config radius all"
