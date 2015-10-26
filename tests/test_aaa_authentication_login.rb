@@ -38,9 +38,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login ascii-authentication')
-    refute(aaaauthlogin.ascii_authentication,
-           "Error: AAA authentication login ascii get\n" \
-           'See CSCuu12667 (4/29/15)')
+    refute(aaaauthlogin.ascii_authentication)
 
     config('aaa authentication login ascii-authentication')
     assert(aaaauthlogin.ascii_authentication,
@@ -76,14 +74,11 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login chap enable')
-    refute(aaaauthlogin.chap,
-           "Error: AAA authentication login chap get\n" \
-           'See CSCuu12667 (4/29/15)')
+    refute(aaaauthlogin.chap)
 
     config('aaa authentication login chap enable')
     assert(aaaauthlogin.chap,
-           "Error: AAA authentication login chap get with preconfig\n" \
-           'See CSCuu12667 (4/29/15)')
+           "Error: AAA authentication login chap get with preconfig\n")
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
@@ -152,13 +147,11 @@ class TestAaaAuthenticationLogin < CiscoTestCase
 
     config('no aaa authentication login mschap enable')
     refute(aaaauthlogin.mschap,
-           "Error: AAA authentication login mschap get\n" \
-           'See CSCuu12667 (4/29/15)')
+           "Error: AAA authentication login mschap get\n")
 
     config('aaa authentication login mschap enable')
     assert(aaaauthlogin.mschap,
-           "Error: AAA authentication login mschap get with preconfig\n" \
-           'See CSCuu12667 (4/29/15)')
+           "Error: AAA authentication login mschap get with preconfig\n")
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 
@@ -191,13 +184,11 @@ class TestAaaAuthenticationLogin < CiscoTestCase
 
     config('no aaa authentication login mschapv2 enable')
     refute(aaaauthlogin.mschapv2,
-           "Error: AAA authentication login mschapv2 get\n" \
-           'See CSCuu12667 (4/29/15)')
+           "Error: AAA authentication login mschapv2 get\n")
 
     config('aaa authentication login mschapv2 enable')
     assert(aaaauthlogin.mschapv2,
-           "Error: AAA authentication login mschapv2 get with preconfig\n" \
-           'See CSCuu12667 (4/29/15)')
+           "Error: AAA authentication login mschapv2 get with preconfig\n")
     aaaauthenticationlogin_detach(aaaauthlogin)
   end
 

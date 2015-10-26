@@ -30,71 +30,71 @@ module Cisco
     # console fallback.
 
     def self.ascii_authentication
-      !node.config_get('aaa_authentication_login',
-                       'ascii_authentication').nil?
+      !config_get('aaa_authentication_login',
+                  'ascii_authentication').nil?
     end
 
     def self.ascii_authentication=(val)
       no_cmd = val ? '' : 'no'
-      node.config_set('aaa_authentication_login',
-                      'ascii_authentication', no_cmd)
+      config_set('aaa_authentication_login',
+                 'ascii_authentication', no_cmd)
     end
 
     def self.default_ascii_authentication
-      node.config_get_default('aaa_authentication_login',
-                              'ascii_authentication')
+      config_get_default('aaa_authentication_login',
+                         'ascii_authentication')
     end
 
     def self.chap
-      !node.config_get('aaa_authentication_login', 'chap').nil?
+      !config_get('aaa_authentication_login', 'chap').nil?
     end
 
     def self.chap=(val)
       no_cmd = val ? '' : 'no'
-      node.config_set('aaa_authentication_login', 'chap', no_cmd)
+      config_set('aaa_authentication_login', 'chap', no_cmd)
     end
 
     def self.default_chap
-      node.config_get_default('aaa_authentication_login', 'chap')
+      config_get_default('aaa_authentication_login', 'chap')
     end
 
     def self.error_display
-      !node.config_get('aaa_authentication_login', 'error_display').nil?
+      !config_get('aaa_authentication_login', 'error_display').nil?
     end
 
     def self.error_display=(val)
       no_cmd = val ? '' : 'no'
-      node.config_set('aaa_authentication_login', 'error_display', no_cmd)
+      config_set('aaa_authentication_login', 'error_display', no_cmd)
     end
 
     def self.default_error_display
-      node.config_get_default('aaa_authentication_login', 'error_display')
+      config_get_default('aaa_authentication_login', 'error_display')
     end
 
     def self.mschap
-      !node.config_get('aaa_authentication_login', 'mschap').nil?
+      !config_get('aaa_authentication_login', 'mschap').nil?
     end
 
     def self.mschap=(val)
       no_cmd = val ? '' : 'no'
-      node.config_set('aaa_authentication_login', 'mschap', no_cmd)
+      config_set('aaa_authentication_login', 'mschap', no_cmd)
     end
 
     def self.default_mschap
-      node.config_get_default('aaa_authentication_login', 'mschap')
+      config_get_default('aaa_authentication_login', 'mschap')
     end
 
     def self.mschapv2
-      !node.config_get('aaa_authentication_login', 'mschapv2').nil?
+      !config_get('aaa_authentication_login', 'mschapv2').nil?
     end
 
     def self.mschapv2=(val)
       no_cmd = val ? '' : 'no'
-      node.config_set('aaa_authentication_login', 'mschapv2', no_cmd)
+      config_set('aaa_authentication_login', 'mschapv2', no_cmd)
     end
 
     def self.default_mschapv2
-      node.config_get_default('aaa_authentication_login', 'mschapv2')
+      config_get_default('aaa_authentication_login', 'mschapv2')
     end
   end
 end

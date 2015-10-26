@@ -35,12 +35,12 @@ module Cisco
       # "show aaa authentication"
       return unless create
       m = default_method.to_s
-      node.config_set('aaa_auth_login_service', 'method', '', name, m)
+      config_set('aaa_auth_login_service', 'method', '', name, m)
     end
 
     def self.services
       servs = {}
-      servs_arr = node.config_get('aaa_auth_login_service', 'services')
+      servs_arr = config_get('aaa_auth_login_service', 'services')
       unless servs_arr.nil?
         servs_arr.each do |s|
           servs[s] = AaaAuthenticationLoginService.new(s, false)
@@ -58,12 +58,12 @@ module Cisco
       if g_str.empty?
         # cannot remove default local, so do nothing in this case
         unless m == :local && @name == 'default'
-          node.config_set('aaa_auth_login_service', 'method',
-                          'no', @name, m_str)
+          config_set('aaa_auth_login_service', 'method',
+                     'no', @name, m_str)
         end
       else
-        node.config_set('aaa_auth_login_service', 'groups',
-                        'no', @name, g_str, m_str)
+        config_set('aaa_auth_login_service', 'groups',
+                   'no', @name, g_str, m_str)
       end
     end
 
@@ -72,10 +72,10 @@ module Cisco
     # memory regex only captures the last match
     # ex: aaa authentication login default group group1 group2 group3 none
     def groups
-      # node.config_get returns the following format:
+      # config_get returns the following format:
       # [{service:"default",method:"group group1 none "},
       #  {service:"console",method:"local "}]
-      hsh_arr = node.config_get('aaa_auth_login_service', 'groups', @name)
+      hsh_arr = config_get('aaa_auth_login_service', 'groups', @name)
       fail 'unable to retrieve aaa groups information' if hsh_arr.nil?
       hsh = hsh_arr.find { |x| x['service'] == @name }
       # this should never happen unless @name is invalid
@@ -92,17 +92,17 @@ module Cisco
 
     # default is []
     def default_groups
-      node.config_get_default('aaa_auth_login_service', 'groups')
+      config_get_default('aaa_auth_login_service', 'groups')
     end
 
     def method
-      m = node.config_get('aaa_auth_login_service', 'method', @name)
+      m = config_get('aaa_auth_login_service', 'method', @name)
       m.nil? ? :unselected : m.first.to_sym
     end
 
     # default is :local
     def default_method
-      node.config_get_default('aaa_auth_login_service', 'method')
+      config_get_default('aaa_auth_login_service', 'method')
     end
 
     # groups and method must be set in the same CLI string
@@ -122,11 +122,11 @@ module Cisco
 
       # config_set depends on whether we're setting groups or not
       if g_str.empty?
-        node.config_set('aaa_auth_login_service', 'method',
-                        '', @name, m_str)
+        config_set('aaa_auth_login_service', 'method',
+                   '', @name, m_str)
       else
-        node.config_set('aaa_auth_login_service', 'groups',
-                        '', @name, g_str, m_str)
+        config_set('aaa_auth_login_service', 'groups',
+                   '', @name, g_str, m_str)
       end
     end
   end

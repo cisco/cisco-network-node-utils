@@ -82,8 +82,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     refute_empty(aaaauthloginservice_list,
                  'Error: service collection is not filled')
     assert_equal(1, aaaauthloginservice_list.size,
-                 'Error:  collection not reporting correct ' \
-                 ' size (see CSCuu29429)')
+                 'Error:  collection not reporting correct ')
     assert(aaaauthloginservice_list.key?('default'),
            'Error:  collection does contain default')
     aaaauthloginservice_list.each do |name, aaaauthloginservice|
@@ -102,11 +101,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
   def test_collection_with_service_default_and_console
     unconfig_aaa
     # preconfig console
-    config('configure terminal')
     config('aaa authentication login console none')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
 
     aaaauthloginservice_list = AaaAuthenticationLoginService.services
     refute_empty(aaaauthloginservice_list,
@@ -123,8 +118,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
       if name == 'default'
         assert_equal(AAA_AUTH_LOGIN_SERVICE_METHOD_LOCAL,
                      aaaauthloginservice.method,
-                     'Error: Invalid method for default in ' \
-                     'collection (see CSCuu29429)')
+                     'Error: Invalid method for default in collection')
       end
 
       if name == 'console'
@@ -146,13 +140,9 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     config_tacacs_servers(servers)
 
     # preconfig console
-    config('configure terminal')
     # we need in some specific order
-    config('aaa authentication login default group group2 group1 none')
-    config('aaa authentication login console group group1')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
+    config('aaa authentication login default group group2 group1 none',
+           'aaa authentication login console group group1')
 
     aaaauthloginservice_list = AaaAuthenticationLoginService.services
     refute_empty(aaaauthloginservice_list,
@@ -292,21 +282,13 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     config_tacacs_servers(servers)
 
     # preconfig default
-    config('configure terminal')
     config('aaa authentication login default group bxb100 sjc200')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
     groups = %w(bxb100 sjc200)
     assert_equal(groups, aaaauthloginservice.groups,
                  'Error: login service default get groups')
 
     # preconfig default
-    config('configure terminal')
     config('aaa authentication login default group sjc200 bxb100 rtp10 none')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
     groups = %w(sjc200 bxb100 rtp10)
     assert_equal(groups, aaaauthloginservice.groups,
                  'Error: login service default get groups')
@@ -329,22 +311,13 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     config_tacacs_servers(servers)
 
     # preconfig console
-    config('configure terminal')
     config('aaa authentication login console group bxb100 sjc200')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
     groups = %w(bxb100 sjc200)
     assert_equal(groups, aaaauthloginservice.groups,
-                 "Error: login service console get groups #{groups}" \
-                 ' (see CSCuu29429)')
+                 "Error: login service console get groups #{groups}")
 
     # preconfig console
-    config('configure terminal')
     config('aaa authentication login console group rtp10 bxb100 none')
-    config('end')
-    # Flush the cache since we've modified the device
-    node.cache_flush
     groups = %w(rtp10 bxb100)
     assert_equal(groups, aaaauthloginservice.groups,
                  "Error: login service console get groups #{groups}")
