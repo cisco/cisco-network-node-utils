@@ -89,6 +89,7 @@ module Cisco
           return Cisco.find_ascii(text, token)
         else
           hash = build_config_get(feature, ref, :structured)
+          fail "Output is not a Hash:\n#{hash}" unless hash.is_a?(Hash)
           return hash[token]
         end
       elsif token.kind_of?(Array)
@@ -209,9 +210,7 @@ module Cisco
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
       @client = Cisco::Shim::Client.create(*args)
-      # TODO: restore this
-      # @cmd_ref = CommandReference::CommandReference.new(product_id)
-      @cmd_ref = CommandReference::CommandReference.new('XR9K')
+      @cmd_ref = CommandReference.new(@client.api, product_id)
       cache_flush
     end
 
@@ -453,38 +452,56 @@ module Cisco
 
     # @return [String] such as "6.0(2)U5(1) [build 6.0(2)U5(0.941)]"
     def os_version
-      config_get('show_version', 'version')
+      val = config_get('show_version', 'version')
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     # @return [String] such as "Nexus 3048 Chassis"
     def product_description
-      config_get('show_version', 'description')
+      val = config_get('show_version', 'description')
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     # @return [String] such as "N3K-C3048TP-1GE"
     def product_id
       if @cmd_ref
-        return config_get('inventory', 'productid')
+        val = config_get('inventory', 'productid')
+        val = val[0] if val.is_a?(Array)
+        val
       else
         # We use this function to *find* the appropriate CommandReference
-        entries = show('show inventory', :structured)
-        return entries['TABLE_inv']['ROW_inv'][0]['productid']
+        if @client.api == 'NXAPI'
+          entries = show('show inventory', :structured)
+          return entries['TABLE_inv']['ROW_inv'][0]['productid']
+        elsif @client.api == 'gRPC'
+          # No support for structured output for this command yet
+          output = show('show inventory', :ascii)
+          return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[0]
+        end
       end
     end
 
     # @return [String] such as "V01"
     def product_version_id
-      config_get('inventory', 'versionid')
+      val = config_get('inventory', 'versionid')
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     # @return [String] such as "FOC1722R0ET"
     def product_serial_number
-      config_get('inventory', 'serialnum')
+      val = config_get('inventory', 'serialnum')
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     # @return [String] such as "bxb-oa-n3k-7"
     def host_name
-      config_get('show_version', 'host_name')
+      val = config_get('show_version', 'host_name')
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     # @return [String] such as "example.com"

@@ -36,8 +36,8 @@ class CiscoTestCase < TestCase
       @@node.cache_auto = true
       # Record the platform we're running on
       puts "\nNode under test:"
-      # puts "  - name  - #{@@node.host_name}"
-      # puts "  - type  - #{@@node.product_id}"
+      puts "  - name  - #{@@node.host_name}"
+      puts "  - type  - #{@@node.product_id}"
       # puts "  - image - #{@@node.system}\n\n"
     end
     @@node
@@ -56,7 +56,11 @@ class CiscoTestCase < TestCase
   end
 
   def config(*args)
-    result = super
+    if node.client.api == 'gRPC'
+      result = super(*args, 'commit')
+    else
+      result = super
+    end
     node.cache_flush
     result
   end

@@ -1,0 +1,59 @@
+# interface_ospf
+---
+area:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip router ospf (\S+) area (\S+)/']
+  config_set: ["interface %s", "%s ip router ospf %s area %s"]
+
+cost:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf cost (\d+)/']
+  config_set: ["interface %s", "%s ip ospf cost %s"]
+  default_value: 0
+
+dead_interval:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf dead-interval (\d+)/']
+  config_set: ["interface %s", "%s ip ospf dead-interval %s"]
+  default_value: 40
+  test_config_result: [262141]
+
+hello_interval:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf hello-interval (\d+)/']
+  config_set: ["interface %s", "%s ip ospf hello-interval %s"]
+  default_value: 10
+
+message_digest:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf authentication message-digest/']
+  config_set: ["interface %s", "%s ip ospf authentication message-digest"]
+  default_value: false
+
+message_digest_alg_type:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  default_value: 'md5'
+
+message_digest_enc_type:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ \S+ (\d+)/']
+  default_value: '0'
+
+message_digest_key_id:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key (\d+)/']
+  default_value: 0
+
+message_digest_key_set:
+  config_set: ["interface %s", "%s ip ospf message-digest-key %s %s %s %s"]
+
+message_digest_password:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/']
+
+passive_interface:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf passive-interface/']
+  config_set: ["interface %s", "%s ip ospf passive-interface"]
+  default_value: false

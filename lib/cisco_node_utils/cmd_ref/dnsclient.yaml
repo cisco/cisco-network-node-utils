@@ -1,0 +1,35 @@
+# dnsclient
+---
+domain_list:
+  config_get: "show running-config all"
+  config_get_token: '/^ip domain-list (\S+)$/'
+  config_set: '<state> ip domain-list <name>'
+  default_value: ''
+
+domain_list_vrf:
+  config_get: "show running-config all"
+  config_get_token: ['/vrf context <vrf>/', '/ip domain-list (\S+)/']
+  config_set: ['vrf context <vrf>', '<state> ip domain-list <name>']
+  default_value: ''
+
+domain_name:
+  config_get: 'show running-config all'
+  default_value: ''
+  nxapi:
+    config_set: '<state> ip domain-name <name>'
+    config_get_token: '/^ip domain-name (\S+)$/'
+  grpc:
+    config_set: '<state> domain name <name>'
+    config_get_token: '/^domain name (\S+)$/'
+
+domain_name_vrf:
+  config_get: 'show running-config all'
+  config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
+  config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+  default_value: ''
+
+name_server:
+  config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+  config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
+  config_set: '<state> ip name-server <ip>'
+  default_value: ''

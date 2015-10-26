@@ -16,37 +16,7 @@
 
 require 'yaml'
 
-module CommandReference
-  # Helper class to match product id with reference files.
-  class CommandPlatformFile
-    attr_reader :regex, :file
-
-    def initialize(match_expression, reference_file)
-      self.regex = match_expression
-      self.file = reference_file
-    end
-
-    def regex=(expression)
-      if expression.is_a? Regexp
-        @regex = expression
-      else
-        fail ArgumentError
-      end
-    end
-
-    def file=(file)
-      if file.is_a? String
-        @file = file
-      else
-        fail ArgumentError
-      end
-    end
-
-    def match(product)
-      @regex.match(product)
-    end
-  end
-
+module Cisco
   # Control a reference for an attribute.
   class CmdRef
     attr_reader :feature
@@ -58,6 +28,10 @@ module CommandReference
               config_set config_set_append
               config_get config_get_token config_get_token_append
               test_config_get test_config_get_regex test_config_result)
+
+    def self.keys
+      KEYS
+    end
 
     def initialize(feature, name, ref, source)
       fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
@@ -148,7 +122,33 @@ module CommandReference
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
-    attr_reader :files, :product_id
+    def self.hash_merge(input_hash, api, product_id, base_hash=nil)
+      result = base_hash
+      result ||= {}
+      # First pass - set the baseline values
+      to_inspect = []
+      regexp_match = false
+      input_hash.each do |key, value|
+        if CmdRef.keys.include?(key)
+          result[key] = value
+        elsif key[0] == '/'
+          next unless Regexp.new(key[1..-2]) =~ product_id
+          regexp_match = true
+          to_inspect << value
+        elsif key == api
+          to_inspect << value
+        end
+      end
+      if input_hash.key?('else') && !regexp_match
+        to_inspect << input_hash['else']
+      end
+      to_inspect.each do |hash|
+        result = hash_merge(hash, api, product_id, result)
+      end
+      result
+    end
+
+    attr_reader :api, :files, :product_id
 
     # Constructor.
     # Normal usage is to pass product_id only, in which case all usual YAML
@@ -156,36 +156,14 @@ module CommandReference
     # matching the given product_id.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
-    def initialize(product_id, files=nil)
+    def initialize(api, product_id, files=nil)
+      @api = api.downcase
       @product_id = product_id
       @hash = {}
       if files
         @files = files
       else
-        @files = []
-        # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
-        # of objects.
-        platforms = [
-          CommandPlatformFile.new(//,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_common.yaml')),
-          CommandPlatformFile.new(/N9K/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n9k.yaml')),
-          CommandPlatformFile.new(/N7K/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n7k.yaml')),
-          CommandPlatformFile.new(/C3064/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n3064.yaml')),
-          CommandPlatformFile.new(/XR9k/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_XR9k.yaml')),
-        ]
-        # Build array
-        platforms.each do |reference|
-          @files << reference.file if reference.match(@product_id)
-        end
+        @files = Dir.glob(__dir__ + '/cmd_ref/*.yaml')
       end
 
       build_cmd_ref
@@ -198,34 +176,22 @@ module CommandReference
       debug "Product: #{@product_id}"
       debug "Files being used: #{@files.join(', ')}"
 
-      reference_yaml = {}
-
       @files.each do |file|
-        debug "Processing file '#{file}'"
-        reference_yaml = load_yaml(file)
+        feature = File.basename(file).split('.')[0]
+        debug "Processing file '#{file}' as feature '#{feature}'"
+        @hash[feature] = {}
+        feature_hash = load_yaml(file)
 
-        reference_yaml.each do |feature, names|
-          if names.nil? || names.empty?
-            fail "No names under feature #{feature}: #{names}"
-          elsif @hash[feature].nil?
-            @hash[feature] = {}
-          else
-            debug "  Merging feature '#{feature}' retrieved from '#{file}'."
-          end
-          names.each do |name, values|
-            debug "  Processing feature '#{feature}' name '#{name}'"
-            if @hash[feature][name].nil?
-              begin
-                @hash[feature][name] = CmdRef.new(feature, name, values, file)
-              rescue ArgumentError => e
-                raise "Invalid data for '#{feature}', '#{name}': #{e}"
-              end
-            else
-              debug "  Merging feature '#{feature}' name '#{name}' " \
-                    "from '#{file}'."
-              @hash[feature][name].merge(values, file)
-            end
-          end
+        base_hash = {}
+        if feature_hash.key?('_template')
+          base_hash = CommandReference.hash_merge(feature_hash['_template'],
+                                                  @api, @product_id)
+        end
+
+        feature_hash.each do |name, value|
+          values = CommandReference.hash_merge(value, @api, @product_id,
+                                               base_hash.clone)
+          @hash[feature][name] = CmdRef.new(feature, name, values, file)
         end
       end
 
@@ -304,7 +270,7 @@ module CommandReference
       end
 
       # For Mappings, we validate more extensively:
-      # 1. no duplicate keys are allowed (Syck/Psych don't catch this)
+      # 1. no duplicate keys are allowed (Psych doesn't catch this)
       # 2. Features must be listed in alphabetical order for maintainability
 
       # Take advantage of our known YAML structure to assign labels by depth
@@ -325,10 +291,6 @@ module CommandReference
         fail msg
       end
 
-=begin
-# Syck does not necessarily preserve ordering of keys in a mapping even during
-# the initial parsing stage. To avoid spurious failures, this is disabled
-# for now. Fixing this may require restructuring our YAML...
       # Enforce alphabetical ordering of features (only).
       # We can extend this later to enforce ordering of names if desired
       # by checking at depth 2 as well.
@@ -336,12 +298,11 @@ module CommandReference
         last_key = nil
         key_arr.each do |key|
           if last_key && key < last_key
-            raise RuntimeError, "features out of order (#{last_key} > #{key})"
+            fail "features out of order in #{filename}: (#{last_key} > #{key})"
           end
           last_key = key
         end
       end
-=end
 
       # Recurse to the children. We get a little fancy here so as to be able
       # to provide more meaningful debug/error messages, such as:
@@ -359,16 +320,13 @@ module CommandReference
     private :validate_yaml
 
     # Read in yaml file.
+    # The expectation is that a file corresponds to a feature
     def load_yaml(yaml_file)
       fail "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
       # Parse YAML file into a tree of nodes
       # Psych::SyntaxError doesn't inherit from StandardError in some versions,
       # so we want to explicitly catch it if using Psych.
-      if defined?(::Psych::SyntaxError)
-        rescue_errors = [::StandardError, ::Psych::SyntaxError]
-      else
-        rescue_errors = [::StandardError]
-      end
+      rescue_errors = [::StandardError, ::Psych::SyntaxError]
       yaml_parsed = File.open(yaml_file, 'r') do |f|
         begin
           YAML.parse(f)
@@ -376,16 +334,11 @@ module CommandReference
           raise "unable to parse #{yaml_file}: #{e}"
         end
       end
-      if yaml_parsed
-        # Validate the node tree
-        validate_yaml(yaml_parsed, yaml_file)
-        # If validation passed, convert the node tree to a Ruby Hash.
-        return yaml_parsed.transform
-      else
-        # if yaml_file is empty, YAML.parse() returns false.
-        # Change this to an empty hash.
-        return {}
-      end
+      return {} unless yaml_parsed
+      # Validate the node tree
+      validate_yaml(yaml_parsed, yaml_file)
+      # If validation passed, convert the node tree to a Ruby Hash.
+      yaml_parsed.transform
     end
 
     # Check that all resources were pulled in correctly.
