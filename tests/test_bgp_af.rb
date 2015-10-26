@@ -613,7 +613,6 @@ class TestRouterBgpAF < CiscoTestCase
   ## maximum_paths
   ##
   def maximum_paths(asn, vrf, af)
-    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     #
@@ -636,25 +635,13 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   def test_maximum_paths
-    asn = '55'
-    vrf = 'default'
-    af = 'ipv4 unicast'
-    maximum_paths(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'red'
-    af = 'ipv4 unicast'
-    maximum_paths(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'default'
-    af = 'ipv6 unicast'
-    maximum_paths(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'red'
-    af = 'ipv6 unicast'
-    maximum_paths(asn, vrf, af)
+    vrfs = %w(default red)
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    vrfs.each do |vrf|
+      afs.each do |af|
+        maximum_paths(55, vrf, af)
+      end
+    end
   end
 
   ##
