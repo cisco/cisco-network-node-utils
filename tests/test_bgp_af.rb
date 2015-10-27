@@ -1134,7 +1134,7 @@ class TestRouterBgpAF < CiscoTestCase
               ['rip 4',   'rm_rip']]
     # rubocop:enable Style/WordArray
 
-    # Test: all protocols w/route-maps are set when current is empty.
+    # Test: Add all protocols w/route-maps when no cmds are present
     should = master.clone
     af.redistribute = should
     result = af.redistribute
@@ -1160,7 +1160,7 @@ class TestRouterBgpAF < CiscoTestCase
     af.redistribute = should
     result = af.redistribute
     assert_equal(should.sort, result.sort,
-                 "#{dbg} Test 4. Restore the removed protocols")
+                 "#{dbg} Test 4. Change route-maps on existing commands")
 
     # Test: 'default'
     should = af.default_redistribute
