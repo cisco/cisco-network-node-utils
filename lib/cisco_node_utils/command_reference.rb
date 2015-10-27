@@ -137,13 +137,22 @@ module Cisco
     end
 
     def method_missing(method_name, *args, &block)
-      super(method_name, *args, &block) unless KEYS.include?(method_name.to_s)
-      method_name = method_name.to_s
-      unless @hash.include?(method_name)
-        fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+      if KEYS.include?(method_name.to_s)
+        # ref.foo -> return @hash[foo] or fail IndexError
+        method_name = method_name.to_s
+        unless @hash.include?(method_name)
+          fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+        end
+        # puts("get #{method_name}: '#{@hash[method_name]}'")
+        @hash[method_name]
+      elsif method_name.to_s[-1] == '?' && \
+            KEYS.include?(method_name.to_s[0..-2])
+        # ref.foo? -> return true if @hash[foo], else false
+        method_name = method_name.to_s[0..-2]
+        @hash[method_name].nil? ? false : true
+      else
+        super(method_name, *args, &block)
       end
-      # puts("get #{method_name}: '#{@hash[method_name]}'")
-      @hash[method_name]
     end
 
     # Print useful debugging information about the object.

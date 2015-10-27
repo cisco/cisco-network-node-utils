@@ -122,6 +122,7 @@ negotiate_auto_ethernet:
   ]
 
 negotiate_auto_other_interfaces:
+  config_get: ~
   default_value: false
   test_config_result:
     false: RuntimeError
@@ -206,6 +207,7 @@ switchport_mode_ethernet:
   default_value: "access"
 
 switchport_mode_other_interfaces:
+  config_get: ~
   default_value: ""
 
 switchport_mode_port_channel:

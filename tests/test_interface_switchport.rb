@@ -304,7 +304,7 @@ class TestInterfaceSwitchport < CiscoTestCase
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set
+    if cmd_ref.config_set?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
@@ -333,7 +333,7 @@ class TestInterfaceSwitchport < CiscoTestCase
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set
+    if cmd_ref.config_set?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
