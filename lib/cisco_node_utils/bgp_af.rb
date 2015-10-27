@@ -463,102 +463,46 @@ module Cisco
     end
 
     #
-    # Network (Getter/Setter/Default)
+    # Networks (Getter/Setter/Default)
     #
-    # Get list of all networks configured on the device indexed
-    # under the asn/vrf/af specified in @get_args
+
+    # Build an array of all network commands currently on the device
     def networks
-      nets = config_get('bgp_af', 'network', @get_args)
-      if nets.nil?
-        default_networks
-      else
-        # Removes nested nil Array elements.
-        nets.map { |e| e.is_a?(Array) ? e.compact : e }.compact
-      end
+      cmds = config_get('bgp_af', 'network', @get_args)
+      cmds.nil? ? default_networks : (cmds.each &:compact!)
     end
 
-    # Add or remove a single network on the device under
-    # the asn/vrf/af specified in @get_args
-    def network_set(network, route_map=nil, remove=false)
-      # Process ip/prefix format
-      network = Utils.process_network_mask(network)
-      state = remove ? 'no' : ''
-      route_map = "route-map #{route_map}" unless route_map.nil?
-      set_args_keys(state: state, network: network, route_map: route_map)
-      config_set('bgp_af', 'network', @set_args)
-    end
-
-    # Wrapper for removing networks
-    def network_remove(network, route_map=nil)
-      network_set(network, route_map, true)
-    end
-
-    # Create list of networks to add and/or remove from the
-    # device under asn/vrf/af
-    def networks_delta(should_list)
-      # TODO: Make sure to validate array of arrays containing
-      # [network, routemap] tuples in puppet/chef
-      # Munge:
-      # should_list[0].class should be an array
-      # should_list[1].class should be a string
-
-      # Compact should_list that contains nested arrays elements
-      # to remove any nil items first.
-      # Rebuild should_list without any nil items and process
-      # network mask.
-      should_list_new = []
-      should_list.each do |network, routemap|
-        network = Utils.process_network_mask(network)
-        if routemap.nil?
-          should_list_new << [network]
-        else
-          should_list_new << [network, routemap]
+    # networks setter.
+    # Processes a hash of network commands from delta_add_remove().
+    def networks=(should_list)
+      delta_hash = delta_add_remove(should_list, networks)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |network, route_map|
+          state = (action == :add) ? '' : 'no'
+          network = Utils.process_network_mask(network)
+          route_map = "route-map #{route_map}" unless route_map.nil?
+          set_args_keys(state: state, network: network, route_map: route_map)
+          config_set('bgp_af', 'network', @set_args)
         end
       end
-      delta = { add:    should_list_new - networks,
-                remove: networks - should_list_new }
-      # If we are updating routemaps for networks that
-      # already exist delete these from the :remove list
-      #
-      # TODO: Investigate better ways to do this given it's
-      # O(N*M) - O(<size of add_list> * <size of remove_list>)
-      delta[:add].each do |net, _|
-        delta[:remove].delete(scrub_remove_list(net, delta[:remove]))
+    end
+
+    # Helper to build a hash of add/remove commands.
+    #   should: an array of expected cmds (manifest/recipe)
+    #  current: an array of existing cmds on the device
+    def delta_add_remove(should, current=[])
+      # Remove nil entries from array
+      should.each &:compact! unless should.empty?
+      delta = { add: should - current, remove: current - should }
+
+      # Delete entries from :remove if f1 is an update to an existing command
+      delta[:add].each do |id, _|
+        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
       end
       delta
-    end
-
-    def scrub_remove_list(network, remove_list)
-      remove_item = []
-      remove_list.each do |net, rtmap|
-        remove_item = [net, rtmap] if net.to_s == network.to_s
-        return remove_item if remove_item.size > 0
-      end
-      remove_item
-    end
-
-    def networks=(delta_hash)
-      # Nothing to do if both add and remove lists are empty
-      return if delta_hash[:add].size == 0 &&
-                delta_hash[:remove].size == 0
-      # Process add list
-      if delta_hash[:add].size > 0
-        CiscoLogger.debug('Adding the following networks to ' \
-          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" \
-          "#{delta_hash[:add]}")
-        delta_hash[:add].each do |network, rtmap|
-          network_set(network, rtmap)
-        end
-      end
-      # Process remove list
-      if delta_hash[:remove].size > 0 # rubocop:disable Style/GuardClause
-        CiscoLogger.debug('Removing the following networks from ' \
-          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" \
-          "#{delta_hash[:remove]}")
-        delta_hash[:remove].each do |network, rtmap|
-          network_remove(network, rtmap)
-        end
-      end
     end
 
     def default_networks
