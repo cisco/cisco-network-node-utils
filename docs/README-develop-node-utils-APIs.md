@@ -31,7 +31,7 @@ gem install cisco_nxapi
 gem install rake
 gem install rubocop
 gem install simplecov
-gem install minitest --version 4.3.2
+gem install minitest
 ```
 
 **NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
@@ -41,7 +41,7 @@ gem install --user-install cisco_nxapi
 gem install --user-install rake
 gem install --user-install rubocop
 gem install --user-install simplecov
-gem install --user-install minitest --version 4.3.2
+gem install --user-install minitest
 ```
 
 ## <a name="clone">Start here: Fork and Clone the Repo</a>
