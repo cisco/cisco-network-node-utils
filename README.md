@@ -105,7 +105,7 @@ connected, the platform identification of the Node is used to construct a
 `CmdRef` object that corresponds to this platform. The `Node` APIs
 `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
-See also [README_YAML](lib/cisco_node_utils/README_YAML.md).
+See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 
 ### Feature Providers
 
