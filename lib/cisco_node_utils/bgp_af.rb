@@ -469,7 +469,7 @@ module Cisco
     # Build an array of all network commands currently on the device
     def networks
       cmds = config_get('bgp_af', 'network', @get_args)
-      cmds.nil? ? default_networks : (cmds.each &:compact!)
+      cmds.nil? ? default_networks : cmds.each(&:compact!)
     end
 
     # networks setter.
@@ -495,7 +495,7 @@ module Cisco
     #  current: an array of existing cmds on the device
     def delta_add_remove(should, current=[])
       # Remove nil entries from array
-      should.each &:compact! unless should.empty?
+      should.each(&:compact!) unless should.empty?
       delta = { add: should - current, remove: current - should }
 
       # Delete entries from :remove if f1 is an update to an existing command

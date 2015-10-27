@@ -867,7 +867,7 @@ class TestRouterBgpAF < CiscoTestCase
     # Set and verify 'is' network list contains more items then
     # the 'should' network list.
     #
-    #il.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
+    # il.each { |network, rtmap| bgp_af.network_set(network, rtmap) }
 
     config_list = bgp_af.delta_add_remove(sl, il)
     assert_empty(config_list[:add],
@@ -925,7 +925,7 @@ class TestRouterBgpAF < CiscoTestCase
     networks_delta_is_greaterthan_should(asn, vrf, af, il, sl)
   end
 
-  def networks_delta_is_lessthan_should(asn, vrf, af, il1, sl1, il2, sl2)
+  def networks_delta_is_lessthan_should(asn, vrf, af, _il1, sl1, il2, sl2)
     /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
