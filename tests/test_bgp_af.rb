@@ -172,6 +172,9 @@ class TestRouterBgpAF < CiscoTestCase
     assert_match(pattern, af_string,
                  "Error: 'client-to-client reflection' is not configured " \
                    'and should be')
+
+    assert(bgp_af.client_to_client,
+           "Error: 'client-to-client is not configured but should be")
     #
     # Unset and verify
     #
