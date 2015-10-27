@@ -740,14 +740,14 @@ class TestRouterBgpAF < CiscoTestCase
       afs.each do |af|
         dbg = sprintf('[VRF %s AF %s]', vrf, af.join('/'))
         af_obj = RouterBgpAF.new(1, vrf, af)
-        network_cmd(af_obj, dbg, af[0])
+        network_cmd(af_obj, dbg)
       end
     end
   end
 
-  def network_cmd(af, dbg, afi)
+  def network_cmd(af, dbg)
     # Initial 'should' state
-    if /ipv6/.match(afi)
+    if /ipv6/.match(dbg)
       master = [
         ['2000:123:38::/64', 'rtmap1'],
         ['2000:123:39::/64', 'rtmap2'],
@@ -797,7 +797,7 @@ class TestRouterBgpAF < CiscoTestCase
     af.networks = should
     result = af.networks
     assert_equal(should.sort, result.sort,
-                 "#{dbg} Test 4. Chane route-map on existing networks")
+                 "#{dbg} Test 4. Change route-map on existing networks")
 
     # Test: 'default'
     should = af.default_networks
@@ -862,7 +862,7 @@ class TestRouterBgpAF < CiscoTestCase
     af.redistribute = should
     result = af.redistribute
     assert_equal(should.sort, result.sort,
-                 "#{dbg} Test 4. Restore the removed protocols")
+                 "#{dbg} Test 4. Change route-maps on existing commands")
 
     # Test: 'default'
     should = af.default_redistribute
