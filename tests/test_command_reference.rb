@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 
-require 'minitest/autorun'
+require_relative 'basetest'
+
 require 'tempfile'
 require_relative '../lib/cisco_node_utils/command_reference'
 
@@ -40,6 +41,17 @@ class TestCmdRef < MiniTest::Test
   def write(string)
     @input_file.write(string + "\n")
     @input_file.flush
+  end
+
+  def test_data_sanity
+    # Make sure the actual YAML in our library loads for various platforms
+    CommandReference.new('', '')
+    CommandReference.new('NXAPI', '')
+    CommandReference.new('NXAPI', 'N9K-C9396PX')
+    CommandReference.new('NXAPI', 'N7K-C7010')
+    CommandReference.new('NXAPI', 'N3K-C3064PQ-10GE')
+    CommandReference.new('gRPC', '')
+    CommandReference.new('gRPC', 'R-IOSXRV9000-CH')
   end
 
   def test_load_empty_file
@@ -105,31 +117,31 @@ name:
     assert_raises(RuntimeError) { load_file }
   end
 
-  #   # Alphabetization of features is not enforced at this time.
-  #   def test_load_features_unalphabetized
-  #     write("
-  # zzz:
-  #   name:
-  #     default_value: true
-  # zzy:
-  #   name:
-  #     default_value: false")
-  #     self.assert_raises(RuntimeError) { load_file }
-  #   end
+  def test_load_unalphabetized
+    write("
+name_b:
+  default_value: true
+name_a:
+  default_value: false")
+    assert_raises(RuntimeError) { load_file }
+  end
 
   def type_check(obj, cls)
     assert(obj.is_a?(cls), "#{obj} should be #{cls} but is #{obj.class}")
   end
 
   def test_load_types
-    write("
+    write(%q(
 name:
   default_value: true
   config_get: show hello
   config_get_token: !ruby/regexp '/hello world/'
   config_set: [ \"hello\", \"world\" ]
   test_config_get_regex: !ruby/regexp '/hello world/'
-")
+  test_config_result:
+    false: RuntimeError
+    32: "Long VLAN name knob is not enabled"
+))
     reference = load_file
     ref = reference.lookup('test', 'name')
     type_check(ref.default_value, TrueClass)
@@ -138,6 +150,9 @@ name:
     type_check(ref.config_get_token[0], Regexp)
     type_check(ref.config_set, Array)
     type_check(ref.test_config_get_regex, Regexp)
+    assert_raises(IndexError) { ref.test_config_get }
+    type_check(ref.test_config_result(false), RuntimeError.class)
+    type_check(ref.test_config_result(32), String)
   end
 
   def write_variants
@@ -151,8 +166,8 @@ name:
     /N9K/:
       default_value: 'NXAPI N9K'
   grpc:
-    /XRv9k/:
-      default_value: 'gRPC XRv9k'
+    /XRV9000/:
+      default_value: ~
     else:
       default_value: 'gRPC base'
 ")
@@ -185,13 +200,47 @@ name:
 
   def test_load_grpc_xrv9k
     write_variants
-    reference = load_file('gRPC', 'XRv9k')
-    assert_equal('gRPC XRv9k', reference.lookup('test', 'name').default_value)
+    reference = load_file('gRPC', 'R-IOSXRV9000-CH')
+    assert_nil(reference.lookup('test', 'name').default_value)
   end
 
   def test_load_grpc_generic
     write_variants
     reference = load_file('gRPC', '')
     assert_equal('gRPC base', reference.lookup('test', 'name').default_value)
+  end
+
+  def test_config_get_token_hash_substitution
+    write(%q(
+name:
+  config_get_token:
+    ['/^router ospf <name>$/',
+     '/^vrf <vrf>$/',
+     '/^router-id (\S+)$/']
+))
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    token = ref.config_get_token(name: 'red')
+    assert_equal([/^router ospf red$/, /^router-id (\S+)$/],
+                 token)
+    token = ref.config_get_token(name: 'blue', vrf: 'green')
+    assert_equal([/^router ospf blue$/, /^vrf green$/, /^router-id (\S+)$/],
+                 token)
+    # TODO: add negative tests?
+  end
+
+  def test_config_get_token_printf_substitution
+    write("
+name:
+  config_get_token: ['/^interface %s$/i', '/^description (.*)/']
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    token = ref.config_get_token('Ethernet1/1')
+    assert_equal([%r{^interface Ethernet1/1$}i, /^description (.*)/],
+                 token)
+    # Negative tests - wrong # of args
+    assert_raises(ArgumentError) { ref.config_get_token }
+    assert_raises(ArgumentError) { ref.config_get_token('eth1/1', 'foo') }
   end
 end

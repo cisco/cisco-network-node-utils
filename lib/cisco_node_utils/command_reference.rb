@@ -46,11 +46,7 @@ module Cisco
         if value.nil?
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
-          if key == 'default_value'
-            @hash[key] = value
-          else
-            @hash.delete(key)
-          end
+          @hash[key] = value if key == 'default_value'
         else
           if !value.is_a?(Array) && (key == 'config_get_token' ||
                                      key == 'config_set')
@@ -125,7 +121,11 @@ module Cisco
       # to a Constant.
       if value.is_a?(String) && !value.empty?
         if value[0].chr == value[0].chr.upcase
-          value = Object.const_get(value) if Object.const_defined?(value)
+          begin
+            value = Object.const_get(value) if Object.const_defined?(value)
+          rescue NameError
+            debug("'#{value}' is not a constant")
+          end
         end
       end
       value
@@ -290,23 +290,15 @@ module Cisco
     end
 
     def mapping?(node)
-      # Need to handle both Syck::Map and Psych::Nodes::Mapping
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }
     end
     private :mapping?
 
     def get_keys_values_from_map(node)
-      if node.class.ancestors.any? { |name| /Psych/ =~ name.to_s }
-        # A Psych::Node::Mapping instance has an Array of children in
-        # the format [key1, val1, key2, val2]
-        key_children = node.children.select.each_with_index { |_, i| i.even? }
-        val_children = node.children.select.each_with_index { |_, i| i.odd? }
-      else
-        # Syck::Map nodes have a .children method but it doesn't work :-(
-        # Instead we access the node.value which is a hash.
-        key_children = node.value.keys
-        val_children = node.value.values
-      end
+      # A Psych::Node::Mapping instance has an Array of children in
+      # the format [key1, val1, key2, val2]
+      key_children = node.children.select.each_with_index { |_, i| i.even? }
+      val_children = node.children.select.each_with_index { |_, i| i.odd? }
       debug "children of #{node} mapping: #{key_children}, #{val_children}"
       [key_children, val_children]
     end
@@ -323,9 +315,7 @@ module Cisco
     # @param parents String describing parents of this node, for messages
     def validate_yaml(node, filename, depth=0, parents=nil)
       return unless node && (mapping?(node) || node.children)
-      # Psych wraps everything in a Document instance, while
-      # Syck does not. To keep the "depth" counting consistent,
-      # we need to ignore Documents.
+      # Psych wraps everything in a Document instance, which we ignore.
       unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
         depth += 1
       end
