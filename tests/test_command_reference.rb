@@ -23,7 +23,7 @@ require_relative '../lib/cisco_node_utils/command_reference'
 
 # TestCmdRef - Minitest for CommandReference and CmdRef classes.
 class TestCmdRef < MiniTest::Test
-  include CommandReference
+  include Cisco
 
   def setup
     @input_file = Tempfile.new('test.yaml')
@@ -33,8 +33,8 @@ class TestCmdRef < MiniTest::Test
     @input_file.close!
   end
 
-  def load_file
-    CommandReference.new('', [@input_file.path])
+  def load_file(api='', product_id='')
+    CommandReference.new(api, product_id, [@input_file.path])
   end
 
   def write(string)
@@ -45,41 +45,26 @@ class TestCmdRef < MiniTest::Test
   def test_load_empty_file
     # should load successfully but yield an empty hash
     reference = load_file
-    assert(reference.empty?)
+    assert_empty(reference)
   end
 
   def test_load_whitespace_only
     write('   ')
     reference = load_file
-    assert(reference.empty?)
+    assert_empty(reference)
   end
 
   def test_load_not_valid_yaml
     # The control characters embedded below are not permitted in YAML.
-    # Syck (in older Ruby versions) will incorrectly accept these
-    # while parsing the file, but our CmdRef constructor will eventually
-    # reject the data.
-    # Psych (in newer Ruby versions) will correctly reject
-    # this data at parse time.
     write("
-feature\a\e:
-  name\b\f:
-    default_value:\vtrue")
+name\a\e\b\f:
+  default_value:\vtrue")
     assert_raises(RuntimeError) { load_file }
-  end
-
-  def test_load_feature_no_name
-    # should error out
-    write('feature:')
-    assert_raises(RuntimeError) do
-      load_file
-    end
   end
 
   def test_load_feature_name_no_data
     write("
-feature:
-  name:")
+name:")
     assert_raises(RuntimeError) do
       load_file
     end
@@ -87,52 +72,36 @@ feature:
 
   def test_load_feature_name_default
     write("
-feature:
-  name:
-    default_value: true")
+name:
+  default_value: true")
     reference = load_file
     assert(!reference.empty?)
-    ref = reference.lookup('feature', 'name')
+    ref = reference.lookup('test', 'name')
     assert_equal(true, ref.default_value)
-  end
-
-  def test_load_duplicate_feature
-    write("
-feature:
-  name:
-    default_value: false
-feature:
-  name:
-    config_get: 'show feature'
-")
-    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_name
     write("
-feature:
-  name:
-    default_value: false
-  name:
-    config_get: 'show feature'")
+name:
+  default_value: false
+name:
+  config_get: 'show feature'")
     assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_param
     write("
-feature:
-  name:
-    default_value: false
-    default_value: true")
+name:
+  default_value: false
+  default_value: true")
     assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_unsupported_key
     write("
-feature:
-  name:
-    config_get: 'show feature'
-    what_is_this: \"I don't even\"")
+name:
+  config_get: 'show feature'
+  what_is_this: \"I don't even\"")
     assert_raises(RuntimeError) { load_file }
   end
 
@@ -154,55 +123,75 @@ feature:
 
   def test_load_types
     write("
-feature:
-  name:
-    default_value: true
-    config_get: show hello
-    config_get_token: !ruby/regexp '/hello world/'
-    config_set: [ \"hello\", \"world\" ]
-    test_config_get_regex: !ruby/regexp '/hello world/'
+name:
+  default_value: true
+  config_get: show hello
+  config_get_token: !ruby/regexp '/hello world/'
+  config_set: [ \"hello\", \"world\" ]
+  test_config_get_regex: !ruby/regexp '/hello world/'
 ")
     reference = load_file
-    ref = reference.lookup('feature', 'name')
+    ref = reference.lookup('test', 'name')
     type_check(ref.default_value, TrueClass)
     type_check(ref.config_get, String)
-    type_check(ref.config_get_token, Regexp)
+    type_check(ref.config_get_token, Array)
+    type_check(ref.config_get_token[0], Regexp)
     type_check(ref.config_set, Array)
     type_check(ref.test_config_get_regex, Regexp)
   end
 
-  def test_load_common
-    reference = CommandReference.new('')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
-    # Some spot checks
-    type_check(reference.lookup('vtp', 'feature').config_get_token, String)
-    type_check(reference.lookup('vtp', 'version').default_value, Integer)
+  def write_variants
+    write("
+name:
+  default_value: 'generic'
+  nxapi:
+    default_value: 'NXAPI base'
+    /N7K/:
+      default_value: 'NXAPI N7K'
+    /N9K/:
+      default_value: 'NXAPI N9K'
+  grpc:
+    /XRv9k/:
+      default_value: 'gRPC XRv9k'
+    else:
+      default_value: 'gRPC base'
+")
+  end
+
+  def test_load_generic
+    write_variants
+    # Neither NXAPI nor gRPC
+    reference = load_file('', '')
+    assert_equal('generic', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n9k
-    reference = CommandReference.new('N9K-C9396PX')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file('NXAPI', 'N9K-C9396PX')
+    assert_equal('NXAPI N9K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n7k
-    reference = CommandReference.new('N7K-C7010')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file('NXAPI', 'N7K-C7010')
+    assert_equal('NXAPI N7K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n3k_3064
-    reference = CommandReference.new('N3K-C3064PQ-10GE')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file('NXAPI', 'N3K-C3064PQ-10GE')
+    assert_equal('NXAPI base', reference.lookup('test', 'name').default_value)
+  end
+
+  def test_load_grpc_xrv9k
+    write_variants
+    reference = load_file('gRPC', 'XRv9k')
+    assert_equal('gRPC XRv9k', reference.lookup('test', 'name').default_value)
+  end
+
+  def test_load_grpc_generic
+    write_variants
+    reference = load_file('gRPC', '')
+    assert_equal('gRPC base', reference.lookup('test', 'name').default_value)
   end
 end

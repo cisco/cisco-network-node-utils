@@ -104,7 +104,7 @@ module Cisco
     end
 
     def maybe_regexp(str)
-      if str[0] == '/'
+      if str.is_a?(String) && str[0] == '/'
         if str[-1] == '/'
           return Regexp.new(str[1..-2])
         elsif str[-2..-1] == '/i'
@@ -171,6 +171,8 @@ module Cisco
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
+    KNOWN_APIS = %w(nxapi grpc)
+
     def self.hash_merge(input_hash, api, product_id, base_hash=nil)
       result = base_hash
       result ||= {}
@@ -191,8 +193,13 @@ module Cisco
           next unless Regexp.new(key[1..-2]) =~ product_id
           regexp_match = true
           to_inspect << value
-        elsif key == api
+        elsif KNOWN_APIS.include?(key)
+          next unless key == api
           to_inspect << value
+        elsif key == 'else'
+          next
+        else
+          fail "Unrecognized key '#{key}'"
         end
       end
       if input_hash.key?('else') && !regexp_match
@@ -241,7 +248,6 @@ module Cisco
       @files.each do |file|
         feature = File.basename(file).split('.')[0]
         debug "Processing file '#{file}' as feature '#{feature}'"
-        @hash[feature] = {}
         feature_hash = load_yaml(file)
 
         base_hash = {}
@@ -251,6 +257,8 @@ module Cisco
         end
 
         feature_hash.each do |name, value|
+          fail "No entries under '#{name}' in '#{file}'" if value.nil?
+          @hash[feature] ||= {}
           values = CommandReference.hash_merge(value, @api, @product_id,
                                                base_hash.clone)
           @hash[feature][name] = CmdRef.new(feature, name, values, file)
