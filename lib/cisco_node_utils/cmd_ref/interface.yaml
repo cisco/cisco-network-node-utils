@@ -1,14 +1,16 @@
 # interface
 ---
 _template:
+  config_set: ["interface %s"]
+  config_get_token: '/^interface %s$/i'
   grpc:
     config_get: "show running interface"
   nxapi:
     config_get: "show running interface all"
 
 access_vlan:
-  config_get_token: ['/^interface %s$/i', '/^switchport access vlan (.*)$/']
-  config_set: ["interface %s", "switchport access vlan %s"]
+  config_get_token_append: '/^switchport access vlan (.*)$/'
+  config_set_append: "switchport access vlan %s"
   default_value: 1
 
 admin_state_ethernet_noswitchport_shutdown:
@@ -24,16 +26,16 @@ create:
   config_set: "interface %s"
 
 description:
-  config_get_token: ['/^interface %s$/i', '/^description (.*)/']
-  config_set: ["interface %s", "%s description %s"]
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: "%s description %s"
   default_value: ""
 
 destroy:
   config_set: "no interface %s"
 
 encapsulation_dot1q:
-  config_get_token: ['/^interface %s$/i', '/^encapsulation dot1q (.*)/']
-  config_set: ["interface %s", "%s encapsulation dot1q %s"]
+  config_get_token_append: '/^encapsulation dot1q (.*)/'
+  config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 
 feature_lacp:
@@ -47,11 +49,8 @@ feature_vlan:
   config_set: "%s feature interface-vlan"
 
 ipv4_addr_mask:
-  config_get_token: [
-  '/^interface %s$/i',
-  '/^ip address ([0-9\.]+)[\s\/](.*)/'
-  ]
-  config_set: ["interface %s", "%s ip address %s"]
+  config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
+  config_set_append: "%s ip address %s"
 
 ipv4_address:
   default_value: ~
@@ -60,11 +59,8 @@ ipv4_netmask_length:
   default_value: ~
 
 ipv4_proxy_arp:
-  config_get_token: [
-  '/^interface %s$/i',
-  '/^ip proxy-arp$/'
-  ]
-  config_set: ["interface %s", "%s ip proxy-arp"]
+  config_get_token_append: '/^ip proxy-arp$/'
+  config_set_append: "%s ip proxy-arp"
   default_value: false
 
 ipv4_redirects_loopback:
@@ -75,11 +71,8 @@ ipv4_redirects_loopback:
       config_get: ~
       config_get_token: ~
     else:
-      config_get_token: [
-      '/^interface %s$/i',
-      '/^((?:no )?ip redirects)$/'
-      ]
-      config_set: ["interface %s", "%s ip redirects"]
+      config_get_token_append: '/^((?:no )?ip redirects)$/'
+      config_set_append: "%s ip redirects"
       default_value: true
   test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
   test_config_result:
@@ -87,11 +80,8 @@ ipv4_redirects_loopback:
     true: RuntimeError
 
 ipv4_redirects_other_interfaces:
-  config_get_token: [
-  '/^interface %s$/i',
-  '/^((?:no )?ip redirects)$/'
-  ]
-  config_set: ["interface %s", "%s ip redirects"]
+  config_get_token_append: '/^((?:no )?ip redirects)$/'
+  config_set_append: "%s ip redirects"
   default_value: true
   test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
   test_config_result:
@@ -99,8 +89,8 @@ ipv4_redirects_other_interfaces:
     true: true
 
 mtu:
-  config_get_token: ['/^interface %s$/i', '/^mtu (.*)$/']
-  config_set: ["interface %s", "%s mtu %s"]
+  config_get_token_append: '/^mtu (.*)$/'
+  config_set_append: "%s mtu %s"
   default_value: 1500
 
 negotiate_auto_ethernet:
@@ -110,11 +100,8 @@ negotiate_auto_ethernet:
     config_get_token: ~
     default_value: false
   else:
-    config_get_token: [
-    '/^interface %s$/i',
-    '/^negotiate auto$/'
-    ]
-    config_set: ["interface %s", "%s negotiate auto"]
+    config_get_token_append: '/^negotiate auto$/'
+    config_set_append: "%s negotiate auto"
     default_value: true
   test_config_get_regex: [
   !ruby/regexp '/^\s+no negotiate auto/',
@@ -123,6 +110,7 @@ negotiate_auto_ethernet:
 
 negotiate_auto_other_interfaces:
   config_get: ~
+  config_set: ~
   default_value: false
   test_config_result:
     false: RuntimeError
@@ -135,11 +123,8 @@ negotiate_auto_portchannel:
     config_set: ~
     default_value: false
   else:
-    config_get_token: [
-    '/^interface %s$/i',
-    '/^negotiate auto$/'
-    ]
-    config_set: ["interface %s", "%s negotiate auto"]
+    config_get_token_append: '/^negotiate auto$/'
+    config_set_append: "%s negotiate auto"
     default_value: true
   test_config_get_regex: [
   !ruby/regexp '/^\s+no negotiate auto/',
@@ -147,8 +132,8 @@ negotiate_auto_portchannel:
   ]
 
 shutdown:
-  config_get_token: ['/^interface %s$/i', '/^shutdown$/']
-  config_set: ["interface %s", "%s shutdown"]
+  config_get_token_append: '/^shutdown$/'
+  config_set_append: "%s shutdown"
 
 shutdown_ether_channel:
   default_value: false
@@ -175,26 +160,26 @@ shutdown_vlan:
   default_value: true
 
 svi_autostate:
-  config_get_token: ['/^interface %s$/i', '/^autostate$/']
-  config_set: ["interface %s", "%s autostate"]
+  config_get_token_append: '/^autostate$/'
+  config_set_append: "%s autostate"
   default_value: true
   test_config_result:
     false: false
     true: true
 
 svi_management:
-  config_get_token: ['/^interface %s$/i', '/^management$/']
-  config_set: ["interface %s", "%s management"]
+  config_get_token_append: '/^management$/'
+  config_set_append: "%s management"
   default_value: false
 
 switchport:
-  config_get_token: ['/^interface %s$/i', '/^switchport$/']
-  config_set: ["interface %s", "%s switchport"]
+  config_get_token_append: '/^switchport$/'
+  config_set_append: "%s switchport"
   # default_value: n/a. This is derived from system_default_switchport
 
 switchport_autostate_exclude:
-  config_get_token: ['/^interface %s$/i', '/(^switchport autostate exclude)/']
-  config_set: ["interface %s", "%s switchport autostate exclude"]
+  config_get_token_append: '/(^switchport autostate exclude)/'
+  config_set_append: "%s switchport autostate exclude"
   default_value: false
 
 switchport_mode_dot1q_tunnel:
@@ -202,8 +187,8 @@ switchport_mode_dot1q_tunnel:
     false: RuntimeError
 
 switchport_mode_ethernet:
-  config_get_token: ['/^interface %s$/i', '/^switchport mode (.*)$/']
-  config_set: ["interface %s", "%s switchport mode %s"]
+  config_get_token_append: '/^switchport mode (.*)$/'
+  config_set_append: "%s switchport mode %s"
   default_value: "access"
 
 switchport_mode_other_interfaces:
@@ -211,24 +196,18 @@ switchport_mode_other_interfaces:
   default_value: ""
 
 switchport_mode_port_channel:
-  config_get_token: ['/^interface %s$/i', '/^switchport mode (.*)$/']
-  config_set: ["interface %s", "%s switchport mode %s"]
+  config_get_token_append: '/^switchport mode (.*)$/'
+  config_set_append: "%s switchport mode %s"
   default_value: ""
 
 switchport_trunk_allowed_vlan:
-  config_get_token: [
-    '/^interface %s$/i',
-    '/^switchport trunk allowed vlan (.*)$/'
-  ]
-  config_set: ["interface %s", "%s switchport trunk allowed vlan %s"]
+  config_get_token_append: '/^switchport trunk allowed vlan (.*)$/'
+  config_set_append: "%s switchport trunk allowed vlan %s"
   default_value: "all"
 
 switchport_trunk_native_vlan:
-  config_get_token: [
-    '/^interface %s$/i',
-    '/^switchport trunk native vlan (.*)$/'
-  ]
-  config_set: ["interface %s", "%s switchport trunk native vlan %s"]
+  config_get_token_append: '/^switchport trunk native vlan (.*)$/'
+  config_set_append: "%s switchport trunk native vlan %s"
   default_value: 1
 
 system_default_svi_autostate:
@@ -247,11 +226,11 @@ system_default_switchport_shutdown:
   # default_value: n/a. This is a user-configurable system default.
 
 vrf:
-  config_get_token: ['/^interface %s$/i', '/^vrf member (.*)/']
-  config_set: ["interface %s", "%s vrf member %s"]
+  config_get_token_append: '/^vrf member (.*)/'
+  config_set_append: "%s vrf member %s"
   default_value: ""
 
 vtp:
-  config_get_token: ['/^interface %s$/i', '/^vtp *$/']
-  config_set: ["interface %s", "%s vtp"]
+  config_get_token_append: '/^vtp *$/'
+  config_set_append: "%s vtp"
   default_value: false
