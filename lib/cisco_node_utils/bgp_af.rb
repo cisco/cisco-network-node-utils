@@ -475,7 +475,7 @@ module Cisco
     # networks setter.
     # Processes a hash of network commands from delta_add_remove().
     def networks=(should_list)
-      delta_hash = delta_add_remove(should_list, networks)
+      delta_hash = Utils.delta_add_remove(should_list, networks)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
@@ -488,21 +488,6 @@ module Cisco
           config_set('bgp_af', 'network', @set_args)
         end
       end
-    end
-
-    # Helper to build a hash of add/remove commands.
-    #   should: an array of expected cmds (manifest/recipe)
-    #  current: an array of existing cmds on the device
-    def delta_add_remove(should, current=[])
-      # Remove nil entries from array
-      should.each(&:compact!) unless should.empty?
-      delta = { add: should - current, remove: current - should }
-
-      # Delete entries from :remove if f1 is an update to an existing command
-      delta[:add].each do |id, _|
-        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
-      end
-      delta
     end
 
     def default_networks
