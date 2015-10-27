@@ -27,7 +27,7 @@ class PlatformInfo
   # @param[in] device_name      hostname of device on which
   #                             UTs are to be run
   #
-  def initialize(device_name)
+  def initialize(device_name, api_name)
     if device_name.nil? || device_name.empty?
       fail 'device name must be specified in PlatformInfo constructor.'
     end
@@ -41,6 +41,7 @@ class PlatformInfo
     end
 
     @platform_info_hash = project_info_hash[device_name]
+    @platform_info_hash ||= project_info_hash['default'][api_name.downcase]
     fail "Error - could not find #{device_name} device specific information " \
          'in platform_info.yaml' if @platform_info_hash.nil?
   end

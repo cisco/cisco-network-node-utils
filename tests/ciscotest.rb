@@ -69,17 +69,8 @@ class CiscoTestCase < TestCase
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
-      begin
-        platform_info = PlatformInfo.new(node.host_name)
-        @@interfaces = platform_info.get_value_from_key('interfaces')
-      rescue RuntimeError => e
-        # If there is a problem reading platform_info.yaml,
-        # assign default values
-        default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
-        puts "Caught exception: #{e}, assigning interfaces to default " \
-             "- #{default_interfaces}"
-        @@interfaces = default_interfaces
-      end
+      platform_info = PlatformInfo.new(node.host_name, node.client.api)
+      @@interfaces = platform_info.get_value_from_key('interfaces')
       # rubocop:enable Style/ClassVars
     end
     @@interfaces
