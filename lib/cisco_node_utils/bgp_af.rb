@@ -508,5 +508,38 @@ module Cisco
     def default_networks
       config_get_default('bgp_af', 'network')
     end
+
+    #
+    # Redistribute (Getter/Setter/Default)
+    #
+
+    # Build an array of all redistribute commands currently on the device
+    def redistribute
+      cmds = config_get('bgp_af', 'redistribute', @get_args)
+      cmds.nil? ? default_redistribute : cmds.each(&:compact!)
+    end
+
+    # redistribute setter.
+    # Process a hash of redistribute commands from delta_add_remove().
+    def redistribute=(should)
+      delta_hash = Utils.delta_add_remove(should, redistribute)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("redistribute delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |protocol, policy|
+          state = (action == :add) ? '' : 'no'
+          set_args_keys(state: state, protocol: protocol, policy: policy)
+
+          # route-map/policy may be optional on some platforms
+          cmd = policy.nil? ? 'redistribute' : 'redistribute_policy'
+          config_set('bgp_af', cmd, @set_args)
+        end
+      end
+    end
+
+    def default_redistribute
+      config_get_default('bgp_af', 'redistribute')
+    end
   end
 end

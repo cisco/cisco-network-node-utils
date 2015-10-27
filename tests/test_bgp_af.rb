@@ -1146,4 +1146,122 @@ class TestRouterBgpAF < CiscoTestCase
                       "Error: device should contain network #{network}")
     end
   end
+
+  ##
+  ## redistribute
+  ##
+
+  def test_redistribute
+    vrfs = %w(default red)
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    vrfs.each do |vrf|
+      afs.each do |af|
+        dbg = sprintf('[VRF %s AF %s]', vrf, af.join('/'))
+        af = RouterBgpAF.new(1, vrf, af)
+        redistribute_cmd(af, dbg)
+      end
+    end
+  end
+
+  def redistribute_cmd(af, dbg)
+    # rubocop:disable Style/WordArray
+    # Initial 'should' state
+    ospf = (dbg.include? 'ipv6') ? 'ospfv3 3' : 'ospf 3'
+    master = [['direct',  'rm_direct'],
+              ['lisp',    'rm_lisp'],
+              ['static',  'rm_static'],
+              ['eigrp 1', 'rm_eigrp'],
+              ['isis 2',  'rm_isis'],
+              [ospf,      'rm_ospf'],
+              ['rip 4',   'rm_rip']]
+    # rubocop:enable Style/WordArray
+
+    # Test: all protocols w/route-maps are set when current is empty.
+    should = master.clone
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 1. From empty, to all protocols")
+
+    # Test: remove half of the protocols
+    should.shift(4)
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 2. Remove half of the protocols")
+
+    # Test: restore the removed protocols
+    should = master.clone
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 3. Restore the removed protocols")
+
+    # Test: Change route-maps on existing commands
+    should = master.map { |prot_only, rm| [prot_only, "#{rm}_2"] }
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 4. Restore the removed protocols")
+
+    # Test: 'default'
+    should = af.default_redistribute
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 5. 'Default'")
+  end
+
+  ##
+  ## common utilities
+  ##
+
+  def test_utils_delta_add_remove
+    # Note: AF context is not needed. This test is only validating the
+    # delta_add_remove class method and does not test directly on the device.
+
+    # rubocop:disable Style/WordArray
+    # Initial 'should' state
+    should = [['direct',  'rm_direct'],
+              ['lisp',    'rm_lisp'],
+              ['static',  'rm_static'],
+              ['eigrp 1', 'rm_eigrp'],
+              ['isis 2',  'rm_isis'],
+              ['ospf 3',  'rm_ospf'],
+              ['rip 4',   'rm_rip']]
+    # rubocop:enable Style/WordArray
+
+    # Test: Check delta when every protocol is specified and has a route-map.
+    current = []
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 1. delta mismatch')
+
+    # Test: Check delta when should is the same as current.
+    current = should.clone
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 2. delta mismatch')
+
+    # Test: Move half the 'current' entries to 'should'. Check delta.
+    should = current.shift(4)
+    expected = { add: should, remove: current }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 3. delta mismatch')
+
+    # Test: Remove the route-maps from the current list. Check delta.
+    #       Note: The :remove list should be empty since this is just
+    #       an update of the route-map.
+    should = current.map { |prot_only, _route_map| [prot_only] }
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 4. delta mismatch')
+
+    # Test: Check empty inputs
+    should = []
+    current = []
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
 end
