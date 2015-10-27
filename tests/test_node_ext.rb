@@ -93,16 +93,6 @@ vrf blue",
     assert_nil(result)
   end
 
-  def test_node_token_str_to_regexp
-    token = ['/%s/i', '/%s foo %s/', '/zzz/i']
-    args = %w(LoopBack2 no bar)
-    expected = [/LoopBack2/i, /no foo bar/, /zzz/i]
-
-    result = node.token_str_to_regexp(token, args)
-    # puts "intersection: #{result & expected}, diff: #{result - expected}"
-    assert_equal(expected, result)
-  end
-
   def test_node_config_get_invalid
     assert_raises IndexError do # no entry
       node.config_get('feature', 'name')

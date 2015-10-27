@@ -21,7 +21,6 @@ module Cisco
   class CmdRef
     attr_reader :feature
     attr_reader :name
-    attr_reader :sources
     attr_reader :hash
 
     KEYS = %w(default_value
@@ -33,19 +32,13 @@ module Cisco
       KEYS
     end
 
-    def initialize(feature, name, ref, source)
-      fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
+    def initialize(feature, name, values, file)
+      fail ArgumentError, "'#{values}' is not a hash." unless values.is_a? Hash
 
       @feature = feature
       @name = name
       @hash = {}
 
-      @sources = []
-      merge(ref, source)
-    end
-
-    # Overwrite values from more specific references.
-    def merge(values, file)
       values.each do |key, value|
         unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
@@ -59,10 +52,66 @@ module Cisco
             @hash.delete(key)
           end
         else
-          @hash[key] = value
+          if !value.is_a?(Array) && (key == 'config_get_token' ||
+                                     key == 'config_set')
+            # For simplicity, these are ALWAYS arrays
+            @hash[key] = [value]
+          else
+            @hash[key] = value
+          end
         end
       end
-      @sources << file
+      define_getter('config_get_token')
+      define_getter('config_set')
+    end
+
+    def define_getter(key)
+      return unless @hash[key].is_a?(Array)
+      if @hash[key].any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
+        # Key-value substitution
+        define_singleton_method key.to_sym do |**args|
+          result = []
+          @hash[key].each do |line|
+            replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
+            replace.each do |item|
+              line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
+            end
+            result.push(maybe_regexp(line)) unless /<\S+>/.match(line)
+          end
+          result
+        end
+      elsif @hash[key].any? { |item| item.is_a?(String) && /%/ =~ item }
+        # printf-style substitution
+        arg_count = @hash[key].join.scan(/%/).length
+        define_singleton_method key.to_sym do |*args|
+          unless args.length == arg_count
+            fail ArgumentError, "Given #{args.length} args, but " \
+              "#{key} requires #{arg_count}"
+          end
+          # Fill in the parameters
+          val = @hash[key].map do |line|
+            sprintf(line, *args.shift(line.scan(/%/).length))
+          end
+          # Convert regexp-like strings to regexps
+          val.map! { |line| maybe_regexp(line) }
+          val
+        end
+      else
+        # simple static token(s)
+        @hash[key].map! { |line| maybe_regexp(line) }
+        define_singleton_method key.to_sym, -> { @hash[key] }
+      end
+    end
+
+    def maybe_regexp(str)
+      if str[0] == '/'
+        if str[-1] == '/'
+          return Regexp.new(str[1..-2])
+        elsif str[-2..-1] == '/i'
+          return Regexp.new(str[1..-3], Regexp::IGNORECASE)
+        end
+      end
+      str
     end
 
     def convert_to_constant(value)
@@ -130,7 +179,14 @@ module Cisco
       regexp_match = false
       input_hash.each do |key, value|
         if CmdRef.keys.include?(key)
-          result[key] = value
+          if key == 'config_set_append'
+            result['config_set'] = value_append(result['config_set'], value)
+          elsif key == 'config_get_token_append'
+            result['config_get_token'] = value_append(
+              result['config_get_token'], value)
+          else
+            result[key] = value
+          end
         elsif key[0] == '/'
           next unless Regexp.new(key[1..-2]) =~ product_id
           regexp_match = true
@@ -146,6 +202,12 @@ module Cisco
         result = hash_merge(hash, api, product_id, result)
       end
       result
+    end
+
+    def self.value_append(base_value, new_value)
+      base_value = [base_value] unless base_value.is_a?(Array)
+      new_value = [new_value] unless new_value.is_a?(Array)
+      base_value + new_value
     end
 
     attr_reader :api, :files, :product_id
