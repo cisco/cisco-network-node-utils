@@ -102,11 +102,12 @@ Example:
 
 ### <a name="comp_yaml">Step 1. YAML Definitions: router eigrp</a>
 
-The new API for `router eigrp` will need some basic YAML definitions. 
+The new API for `router eigrp` will need some basic YAML definitions. By convention we create a new YAML file to handle a new feature set, so we will create
+the following file:
 
-`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `router eigrp` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
+`lib/cisco_node_utils/cmd_ref/eigrp.yaml`
 
-`lib/cisco_node_utils/command_reference_common.yaml`
+YAML files in the `/cmd_ref/` subdirectory are automatically discovered at runtime, so we don't need to do anything special once we have created this file
 
 Four basic command_reference parameters will be defined for each resource property:
 
@@ -125,32 +126,32 @@ The properties in this example require additional context for their config_get_t
 *Note: The basic token definitions for multi-level commands can become long and complicated. A better solution for these commands is to use a command_reference _template: definition to simplify the configuration. The example below will use the basic syntax; see the ospf definitions in the YAML file for an example of _template: usage.*
 
 ```yaml
-eigrp:
-  feature:
-    # feature eigrp must be enabled before configuring router eigrp
-    config_get: 'show running eigrp all'
-    config_get_token: '/^feature eigrp$/'
-    config_set: '<state> feature eigrp'
+# eigrp.yaml
+feature:
+  # feature eigrp must be enabled before configuring router eigrp
+  config_get: 'show running eigrp all'
+  config_get_token: '/^feature eigrp$/'
+  config_set: '<state> feature eigrp'
 
-  router:
-    # There can be multiple eigrp instances
-    config_get: 'show running eigrp all'         # all eigrp-related configs
-    config_get_token: '/^router eigrp (\S+)$/'   # Match instance name
-    config_set: '<state> router eigrp <name>'    # config to add or remove
+router:
+  # There can be multiple eigrp instances
+  config_get: 'show running eigrp all'         # all eigrp-related configs
+  config_get_token: '/^router eigrp (\S+)$/'   # Match instance name
+  config_set: '<state> router eigrp <name>'    # config to add or remove
 
-  maximum_paths:
-    # This is an integer property
-    config_get: 'show running eigrp all'
-    config_get_token: ['/^router eigrp <name>$/', '/^maximum-paths (\d+)/']
-    config_set: ['router eigrp <name>', 'maximum-paths <val>']
-    default_value: 8
+maximum_paths:
+  # This is an integer property
+  config_get: 'show running eigrp all'
+  config_get_token: ['/^router eigrp <name>$/', '/^maximum-paths (\d+)/']
+  config_set: ['router eigrp <name>', 'maximum-paths <val>']
+  default_value: 8
 
-  shutdown:
-    # This is a boolean property
-    config_get: 'show running eigrp all'
-    config_get_token: ['/^router eigrp <name>$/', '/^shutdown$/']
-    config_set: ['router eigrp <name>', '<state> shutdown']
-    default_value: false
+shutdown:
+  # This is a boolean property
+  config_get: 'show running eigrp all'
+  config_get_token: ['/^router eigrp <name>$/', '/^shutdown$/']
+  config_set: ['router eigrp <name>', '<state> shutdown']
+  default_value: false
 ```
 
 ### <a name="comp_api">Step 2. cisco_node_utils API: router eigrp</a>
@@ -480,10 +481,11 @@ Inspecting 2 file
 
 The final step is to build and install the gem that contains the new APIs.
 
-Please note: `gem build` will only include files that are part of the repository. This means that new file `router_eigrp.rb` will be ignored by the build until it is added to the repo with `git add`:
+Please note: `gem build` will only include files that are part of the repository. This means that new files `router_eigrp.rb` and `eigrp.yaml` will be ignored by the build until they are added to the repo with `git add`:
 
 ```bash
-git add lib/cisco_node_utils/router_eigrp.rb
+git add lib/cisco_node_utils/router_eigrp.rb \
+        lib/cisco_node_utils/cmd_ref/eigrp.yaml
 ```
 
 From the root of the cisco-network-node-utils repository issue the following command.
