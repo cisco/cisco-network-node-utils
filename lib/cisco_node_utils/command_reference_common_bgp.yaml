@@ -241,6 +241,15 @@ bgp_af:
     config_set_append: '<state> network <network> <route_map>'
     default_value: ""
 
+  redistribute:
+    config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
+    config_set_append: '<state> redistribute <protocol>'
+    default_value: []
+
+  redistribute_policy:
+    # route-map/policy is optional on some platforms, required on others
+    config_set_append: '<state> redistribute <protocol> route-map <policy>'
+
 bgp_neighbor:
   _template:
     config_get: "show running bgp all"
