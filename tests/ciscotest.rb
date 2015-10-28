@@ -36,8 +36,8 @@ class CiscoTestCase < TestCase
       @@node.cache_auto = true
       # Record the platform we're running on
       puts "\nNode under test:"
-      # puts "  - name  - #{@@node.host_name}"
-      # puts "  - type  - #{@@node.product_id}"
+      puts "  - name  - #{@@node.host_name}"
+      puts "  - type  - #{@@node.product_id}"
       # puts "  - image - #{@@node.system}\n\n"
     end
     @@node
@@ -56,7 +56,11 @@ class CiscoTestCase < TestCase
   end
 
   def config(*args)
-    result = super
+    if node.client.api == 'gRPC'
+      result = super(*args, 'commit')
+    else
+      result = super
+    end
     node.cache_flush
     result
   end
@@ -65,17 +69,8 @@ class CiscoTestCase < TestCase
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
-      begin
-        platform_info = PlatformInfo.new(node.host_name)
-        @@interfaces = platform_info.get_value_from_key('interfaces')
-      rescue RuntimeError => e
-        # If there is a problem reading platform_info.yaml,
-        # assign default values
-        default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
-        puts "Caught exception: #{e}, assigning interfaces to default " \
-             "- #{default_interfaces}"
-        @@interfaces = default_interfaces
-      end
+      platform_info = PlatformInfo.new(node.host_name, node.client.api)
+      @@interfaces = platform_info.get_value_from_key('interfaces')
       # rubocop:enable Style/ClassVars
     end
     @@interfaces

@@ -305,13 +305,7 @@ class TestInterface < CiscoTestCase
       assert_equal(ref.default_value, interface.default_ipv4_redirects,
                    "ipv4 redirects default incorrect for interface #{k}")
 
-      begin
-        config_set = ref.config_set
-      rescue IndexError
-        config_set = nil
-      end
-
-      if config_set
+      if ref.config_set?
         pattern = ref.test_config_get_regex[0]
         cmd = show_cmd(interface.name)
         if k.include?('loopback')
@@ -563,13 +557,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
 
-    begin
-      config_set = cmd_ref.config_set
-    rescue IndexError
-      config_set = nil
-    end
-
-    unless config_set
+    unless cmd_ref.config_set?
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
         interface.negotiate_auto = true
@@ -665,7 +653,7 @@ class TestInterface < CiscoTestCase
     config('interface loopback 2')
     interface = Interface.new(inf_name)
 
-    assert_equal(interface.negotiate_auto, ref.default_value,
+    assert_equal(ref.default_value, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value mismatch")
 
     assert_raises(ref.test_config_result(true)) do

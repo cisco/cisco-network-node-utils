@@ -106,6 +106,7 @@ class TestCase < Minitest::Test
                     'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
                    )
     end
+    @device.cmd('term len 0')
     CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'

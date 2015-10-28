@@ -16,6 +16,12 @@ require_relative 'ciscotest'
 
 # TestNodeExt - Minitest for abstracted Node APIs
 class TestNodeExt < CiscoTestCase
+  def setup
+    super
+    @chassis = (node.client.api == 'NXAPI') ? 'Chassis' : 'Rack 0'
+    @domain = (node.client.api == 'NXAPI') ? 'ip domain-name' : 'domain name'
+  end
+
   def assert_output_check(command: nil, pattern: nil, msg: nil, check: nil)
     md = assert_show_match(command: command, pattern: pattern, msg: msg)
     assert_equal(md[1], check, msg)
@@ -87,16 +93,6 @@ vrf blue",
     assert_nil(result)
   end
 
-  def test_node_token_str_to_regexp
-    token = ['/%s/i', '/%s foo %s/', '/zzz/i']
-    args = %w(LoopBack2 no bar)
-    expected = [/LoopBack2/i, /no foo bar/, /zzz/i]
-
-    result = node.token_str_to_regexp(token, args)
-    # puts "intersection: #{result & expected}, diff: #{result - expected}"
-    assert_equal(expected, result)
-  end
-
   def test_node_config_get_invalid
     assert_raises IndexError do # no entry
       node.config_get('feature', 'name')
@@ -107,6 +103,7 @@ vrf blue",
   end
 
   def test_node_config_get_default
+    skip 'TODO: needs rework' if node.client.api == 'gRPC'
     result = node.config_get_default('snmp_server', 'aaa_user_cache_timeout')
     assert_equal(result, 3600)
   end
@@ -124,6 +121,7 @@ vrf blue",
   end
 
   def test_node_config_set
+    skip 'TODO: needs rework' if node.client.api == 'gRPC'
     node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
     run = node.client.show('show run all | inc snmp')
     val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
@@ -152,9 +150,15 @@ vrf blue",
 
   def test_node_cli_caching
     # don't use config() here because we are testing caching and flushing
-    @device.cmd('conf t ; ip domain-name minitest ; end')
+    @device.cmd('conf t')
+    @device.cmd("#{@domain} minitest")
+    @device.cmd('commit') if node.client.api == 'gRPC'
+    @device.cmd('end')
     dom1 = node.domain_name
-    @device.cmd('conf t ; no ip domain-name minitest ; end')
+    @device.cmd('conf t')
+    @device.cmd("no #{@domain} minitest")
+    @device.cmd('commit') if node.client.api == 'gRPC'
+    @device.cmd('end')
     dom2 = node.domain_name
     assert_equal(dom1, dom2) # cached output was used for dom2
 
@@ -175,28 +179,32 @@ vrf blue",
   end
 
   def test_node_get_product_id
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\nPID: (\S+)/,
+    ref = cmd_ref.lookup('inventory', 'productid')
+    assert_output_check(command: ref.test_config_get,
+                        pattern: /NAME: \"#{@chassis}\".*\nPID: (\S+)/,
                         check:   node.product_id,
                         msg:     'Error, Product id does not match')
   end
 
   def test_node_get_product_version_id
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\n.*VID: (\w+)/,
+    ref = cmd_ref.lookup('inventory', 'versionid')
+    assert_output_check(command: ref.test_config_get,
+                        pattern: /NAME: \"#{@chassis}\".*\n.*VID: (\w+)/,
                         check:   node.product_version_id,
                         msg:     'Error, Version id does not match')
   end
 
   def test_node_get_product_serial_number
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\n.*SN: (\w+)/,
+    ref = cmd_ref.lookup('inventory', 'serialnum')
+    assert_output_check(command: ref.test_config_get,
+                        pattern: /NAME: \"#{@chassis}\".*\n.*SN: (\w+)/,
                         check:   node.product_serial_number,
                         msg:     'Error, Serial number does not match')
   end
 
   def test_node_get_os
-    assert_output_check(command: 'show version | no-more',
+    ref = cmd_ref.lookup('show_version', 'version')
+    assert_output_check(command: ref.test_config_get,
                         pattern: /\n(Cisco.*)\n/,
                         check:   node.os,
                         msg:     'Error, OS version does not match')
@@ -212,7 +220,11 @@ vrf blue",
   end
 
   def test_node_get_host_name_when_not_set
-    s = @device.cmd('show running-config all | no-more')
+    if node.client.api == 'NXAPI'
+      s = @device.cmd('show running-config all | no-more')
+    else
+      s = @device.cmd('show running-config all')
+    end
     pattern = /.*\nhostname (\S+)/
     md = pattern.match(s)
     if md
@@ -233,7 +245,11 @@ vrf blue",
     switchname ? config('no switchname') : config('no hostname')
 
     name = node.host_name
-    assert_equal('switch', name)
+    if node.client.api == 'NXAPI'
+      assert_equal('switch', name)
+    else
+      assert_equal('ios', name)
+    end
 
     return unless configured_name
     config("hostname #{configured_name}") if (switchname == false)
@@ -241,7 +257,11 @@ vrf blue",
   end
 
   def test_node_get_host_name_when_set
-    s = @device.cmd('show running-config all | no-more')
+    if node.client.api == 'NXAPI'
+      s = @device.cmd('show running-config all | no-more')
+    else
+      s = @device.cmd('show running-config all')
+    end
     pattern = /.*\nhostname (\S+)/
     md = pattern.match(s)
     if md
@@ -275,8 +295,8 @@ vrf blue",
 
   def test_node_get_domain_name_when_not_set
     # Test with default vrf only
-    s = @device.cmd("show running-config | incl '^ip domain-name'")
-    pattern = /^ip domain-name (\S+)/
+    s = @device.cmd("show running-config | incl '^#{@domain}'")
+    pattern = /^#{@domain} (\S+)/
     md = pattern.match(s)
     if md
       configured_domain_name = md[1]
@@ -284,21 +304,21 @@ vrf blue",
       configured_domain_name = nil
     end
 
-    config("no ip domain-name #{configured_domain_name}")
+    config("no #{@domain} #{configured_domain_name}")
 
     domain_name = node.domain_name
     assert_equal('', domain_name)
 
     if configured_domain_name
-      config("ip domain-name #{configured_domain_name}")
+      config("#{@domain} #{configured_domain_name}")
     else
-      config('no ip domain-name abc.com')
+      config("no #{@domain} abc.com")
     end
   end
 
   def test_node_get_domain_name_when_set
     s = @device.cmd('show running-config | no-more')
-    pattern = /.*\nip domain-name (\S+)/
+    pattern = /.*\n#{@domain} (\S+)/
     md = pattern.match(s)
     if md
       configured_domain_name = md[1]
@@ -306,19 +326,20 @@ vrf blue",
       configured_domain_name = nil
     end
 
-    config('ip domain-name abc.com')
+    config("#{@domain} abc.com")
 
     domain_name = node.domain_name
     assert_equal('abc.com', domain_name)
 
     if configured_domain_name
-      config("ip domain-name #{configured_domain_name}")
+      config("#{@domain} #{configured_domain_name}")
     else
-      config('no ip domain-name abc.com')
+      config("no #{@domain} abc.com")
     end
   end
 
   def test_node_get_system_uptime
+    skip 'not yet supported' if node.client.api == 'gRPC'
     node.cache_flush
     # rubocop:disable Metrics/LineLength
     pattern = /.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/
@@ -340,6 +361,7 @@ vrf blue",
   end
 
   def test_node_get_last_reset_time
+    skip 'not yet supported' if node.client.api == 'gRPC'
     last_reset_time = node.last_reset_time
     ref = cmd_ref.lookup('show_version', 'last_reset_time')
     assert(ref, 'Error, reference not found')
@@ -357,6 +379,7 @@ vrf blue",
   end
 
   def test_node_get_last_reset_reason
+    skip 'not yet supported' if node.client.api == 'gRPC'
     ref = cmd_ref.lookup('show_version', 'last_reset_reason')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -366,6 +389,7 @@ vrf blue",
   end
 
   def test_node_get_system_cpu_utilization
+    skip 'not yet supported' if node.client.api == 'gRPC'
     cpu_utilization = node.system_cpu_utilization
     ref = cmd_ref.lookup('system', 'resources')
     assert(ref, 'Error, reference not found')
@@ -378,6 +402,7 @@ vrf blue",
   end
 
   def test_node_get_boot
+    skip 'not yet supported' if node.client.api == 'gRPC'
     ref = cmd_ref.lookup('show_version', 'boot_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -387,6 +412,7 @@ vrf blue",
   end
 
   def test_node_get_system
+    skip 'not yet supported' if node.client.api == 'gRPC'
     ref = cmd_ref.lookup('show_version', 'system_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,

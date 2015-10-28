@@ -1,0 +1,17 @@
+# syslog_server
+---
+level:
+  config_get: "show running-config all | include '^logging server'"
+  config_get_token: '/^logging server %s (\d).*/'
+  default_value: ''
+
+server:
+  config_get: "show running-config all | include '^logging server'"
+  config_get_token: '/^logging server ((?:[0-9]{1,3}\.){3}[0-9]{1,3}).*/'
+  config_set: '<state> logging server <ip> <level> <vrf>'
+  default_value: ''
+
+vrf:
+  config_get: "show running-config all | include '^logging server(.*)(use-vrf)'"
+  config_get_token: '/^logging server %s.* use-vrf (.*)$/'
+  default_value: ''

@@ -1,0 +1,55 @@
+# inventory
+---
+_template:
+  grpc:
+    # TODO: this doesn't work quite right,
+    # as it seems that 'head' ignores 'begin'... :-(
+    config_get: 'show inventory | begin "Rack 0" | utility head count 2'
+    test_config_get: 'show inventory'
+  nxapi:
+    config_get: 'show inventory'
+    test_config_get: 'show inventory | no-more'
+
+all:
+  nxapi:
+    config_get_token: ["TABLE_inv", "ROW_inv"]
+
+chassis:
+  nxapi:
+    config_get_token: ["TABLE_inv", "ROW_inv", {'name': '"Chassis"'}]
+
+inventory:
+  # TODO: clean this up
+  /N7K/:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
+    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
+    ]
+  /N9K/:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
+    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
+    ]
+  else:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/',
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/'
+    ]
+
+productid:
+  grpc:
+    config_get_token: '/PID: ([^ ,]+)/'
+  nxapi:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
+
+serialnum:
+  grpc:
+    config_get_token: '/SN: ([^ ,]+)/'
+  nxapi:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
+
+versionid:
+  grpc:
+    config_get_token: '/VID: ([^ ,]+)/'
+  nxapi:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]

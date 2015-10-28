@@ -1,0 +1,236 @@
+# interface
+---
+_template:
+  config_set: ["interface %s"]
+  config_get_token: '/^interface %s$/i'
+  grpc:
+    config_get: "show running interface"
+  nxapi:
+    config_get: "show running interface all"
+
+access_vlan:
+  config_get_token_append: '/^switchport access vlan (.*)$/'
+  config_set_append: "switchport access vlan %s"
+  default_value: 1
+
+admin_state_ethernet_noswitchport_shutdown:
+  # TODO: is this actually used?
+  nxapi:
+    /N7K/:
+      default_value: "shutdown"
+
+all_interfaces:
+  config_get_token: '/^interface (.*)/'
+
+create:
+  config_set: "interface %s"
+
+description:
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: "%s description %s"
+  default_value: ""
+
+destroy:
+  config_set: "no interface %s"
+
+encapsulation_dot1q:
+  config_get_token_append: '/^encapsulation dot1q (.*)/'
+  config_set_append: "%s encapsulation dot1q %s"
+  default_value: ""
+
+feature_lacp:
+  config_get: "show running | i ^feature"
+  config_get_token: '/^feature lacp$/'
+  config_set: "%s feature lacp"
+
+feature_vlan:
+  config_get: "show running | i ^feature"
+  config_get_token: '/^feature interface-vlan$/'
+  config_set: "%s feature interface-vlan"
+
+ipv4_addr_mask:
+  config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
+  config_set_append: "%s ip address %s"
+
+ipv4_address:
+  default_value: ~
+
+ipv4_netmask_length:
+  default_value: ~
+
+ipv4_proxy_arp:
+  config_get_token_append: '/^ip proxy-arp$/'
+  config_set_append: "%s ip proxy-arp"
+  default_value: false
+
+ipv4_redirects_loopback:
+  nxapi:
+    /N7K/:
+      default_value: false
+      config_set: ~
+      config_get: ~
+      config_get_token: ~
+    else:
+      config_get_token_append: '/^((?:no )?ip redirects)$/'
+      config_set_append: "%s ip redirects"
+      default_value: true
+  test_config_get_regex: ['/^\s+no ip redirects/']
+  test_config_result:
+    false: RuntimeError
+    true: RuntimeError
+
+ipv4_redirects_other_interfaces:
+  config_get_token_append: '/^((?:no )?ip redirects)$/'
+  config_set_append: "%s ip redirects"
+  default_value: true
+  test_config_get_regex: ['/^\s+no ip redirects/']
+  test_config_result:
+    false: false
+    true: true
+
+mtu:
+  config_get_token_append: '/^mtu (.*)$/'
+  config_set_append: "%s mtu %s"
+  default_value: 1500
+
+negotiate_auto_ethernet:
+  /(N7K|C3064)/:
+    config_get: ~
+    config_set: ~
+    config_get_token: ~
+    default_value: false
+  else:
+    config_get_token_append: '/^negotiate auto$/'
+    config_set_append: "%s negotiate auto"
+    default_value: true
+  test_config_get_regex: [
+  '/^\s+no negotiate auto/',
+  '/^\s+negotiate auto/'
+  ]
+
+negotiate_auto_other_interfaces:
+  config_get: ~
+  config_set: ~
+  default_value: false
+  test_config_result:
+    false: RuntimeError
+    true: RuntimeError
+
+negotiate_auto_portchannel:
+  /N7K/:
+    config_get: ~
+    config_get_token: ~
+    config_set: ~
+    default_value: false
+  else:
+    config_get_token_append: '/^negotiate auto$/'
+    config_set_append: "%s negotiate auto"
+    default_value: true
+  test_config_get_regex: [
+  '/^\s+no negotiate auto/',
+  '/^\s+negotiate auto/'
+  ]
+
+shutdown:
+  config_get_token_append: '/^shutdown$/'
+  config_set_append: "%s shutdown"
+
+shutdown_ether_channel:
+  default_value: false
+
+shutdown_ethernet_noswitchport_noshutdown:
+  default_value: false
+
+shutdown_ethernet_noswitchport_shutdown:
+  default_value: false
+
+shutdown_ethernet_switchport_noshutdown:
+  default_value: false
+
+shutdown_ethernet_switchport_shutdown:
+  default_value: true
+
+shutdown_loopback:
+  default_value: false
+
+shutdown_unknown:
+  default_value: true
+
+shutdown_vlan:
+  default_value: true
+
+svi_autostate:
+  config_get_token_append: '/^autostate$/'
+  config_set_append: "%s autostate"
+  default_value: true
+  test_config_result:
+    false: false
+    true: true
+
+svi_management:
+  config_get_token_append: '/^management$/'
+  config_set_append: "%s management"
+  default_value: false
+
+switchport:
+  config_get_token_append: '/^switchport$/'
+  config_set_append: "%s switchport"
+  # default_value: n/a. This is derived from system_default_switchport
+
+switchport_autostate_exclude:
+  config_get_token_append: '/(^switchport autostate exclude)/'
+  config_set_append: "%s switchport autostate exclude"
+  default_value: false
+
+switchport_mode_dot1q_tunnel:
+  test_config_result:
+    false: RuntimeError
+
+switchport_mode_ethernet:
+  config_get_token_append: '/^switchport mode (.*)$/'
+  config_set_append: "%s switchport mode %s"
+  default_value: "access"
+
+switchport_mode_other_interfaces:
+  config_get: ~
+  default_value: ""
+
+switchport_mode_port_channel:
+  config_get_token_append: '/^switchport mode (.*)$/'
+  config_set_append: "%s switchport mode %s"
+  default_value: ""
+
+switchport_trunk_allowed_vlan:
+  config_get_token_append: '/^switchport trunk allowed vlan (.*)$/'
+  config_set_append: "%s switchport trunk allowed vlan %s"
+  default_value: "all"
+
+switchport_trunk_native_vlan:
+  config_get_token_append: '/^switchport trunk native vlan (.*)$/'
+  config_set_append: "%s switchport trunk native vlan %s"
+  default_value: 1
+
+system_default_svi_autostate:
+  config_get: "show running all | include 'system default'"
+  config_get_token: ['/^system default interface-vlan autostate$/']
+  # default_value: n/a. This is a user-configurable system default.
+
+system_default_switchport:
+  config_get: "show running all | include 'system default'"
+  config_get_token: ['/^system default switchport$/']
+  # default_value: n/a. This is a user-configurable system default.
+
+system_default_switchport_shutdown:
+  config_get: "show running all | include 'system default'"
+  config_get_token: ['/^system default switchport shutdown$/']
+  # default_value: n/a. This is a user-configurable system default.
+
+vrf:
+  config_get_token_append: '/^vrf member (.*)/'
+  config_set_append: "%s vrf member %s"
+  default_value: ""
+
+vtp:
+  config_get_token_append: '/^vtp *$/'
+  config_set_append: "%s vtp"
+  default_value: false
