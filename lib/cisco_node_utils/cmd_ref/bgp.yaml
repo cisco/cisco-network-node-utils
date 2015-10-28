@@ -1,109 +1,197 @@
 # bgp.yaml
 ---
 _template:
-  config_get: "show running bgp all"
-  config_get_token: '/^router bgp <asnum>$/'
-  config_get_token_append:
-    - '/^vrf <vrf>$/'
-  config_set: "router bgp <asnum>"
-  config_set_append:
-    - "vrf <vrf>"
+  grpc:
+    config_get: "show running-config router bgp"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+    config_set: "router bgp <asnum>"
+    # Note the space before 'vrf' - seems like grpc
+    # is currently indentation sensitive.
+    config_set_append:
+      - " vrf <vrf>"
+  nxapi:
+    config_get: "show running bgp all"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - "vrf <vrf>"
 
 address_family:
   config_set_append: '<state> address-family <afi> <safi>'
 
 bestpath_always_compare_med:
-  config_get_token_append: '/^bestpath always-compare-med$/'
-  config_set_append: '<state> bestpath always-compare-med'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath med always$/'
+    config_set_append: ' <state> bgp bestpath med always'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath always-compare-med$/'
+    config_set_append: '<state> bestpath always-compare-med'
+    default_value: false
 
 bestpath_aspath_multipath_relax:
-  config_get_token_append: '/^bestpath as-path multipath-relax$/'
-  config_set_append: '<state> bestpath as-path multipath-relax'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath as-path multipath-relax$/'
+    config_set_append: ' <state> bgp bestpath as-path multipath-relax'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath as-path multipath-relax$/'
+    config_set_append: '<state> bestpath as-path multipath-relax'
+    default_value: false
 
 bestpath_compare_routerid:
-  config_get_token_append: '/^bestpath compare-routerid$/'
-  config_set_append: '<state> bestpath compare-routerid'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath compare-routerid$/'
+    config_set_append: ' <state> bgp bestpath compare-routerid'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath compare-routerid$/'
+    config_set_append: '<state> bestpath compare-routerid'
+    default_value: false
 
 bestpath_cost_community_ignore:
-  config_get_token_append: '/^bestpath cost-community ignore$/'
-  config_set_append: '<state> bestpath cost-community ignore'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath cost-community ignore$/'
+    config_set_append: ' <state> bgp bestpath cost-community ignore'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath cost-community ignore$/'
+    config_set_append: '<state> bestpath cost-community ignore'
+    default_value: false
 
 bestpath_med_confed:
-  config_get_token_append: '/^bestpath med confed$/'
-  config_set_append: '<state> bestpath med confed'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath med confed$/'
+    config_set_append: ' <state> bgp bestpath med confed'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath med confed$/'
+    config_set_append: '<state> bestpath med confed'
+    default_value: false
 
 bestpath_med_missing_as_worst:
-  config_get_token_append: '/^bestpath med missing-as-worst$/'
-  config_set_append: '<state> bestpath med missing-as-worst'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp bestpath med missing-as-worst$/'
+    config_set_append: ' <state> bgp bestpath med missing-as-worst'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath med missing-as-worst$/'
+    config_set_append: '<state> bestpath med missing-as-worst'
+    default_value: false
 
 bestpath_med_non_deterministic:
-  config_get_token_append: '/^bestpath med non-deterministic$/'
-  config_set_append: '<state> bestpath med non-deterministic'
-  default_value: false
+  nxapi:
+    config_get_token_append: '/^bestpath med non-deterministic$/'
+    config_set_append: '<state> bestpath med non-deterministic'
+    default_value: false
 
 cluster_id:
-  config_get_token_append: '/^cluster-id (\S+)$/'
-  config_set_append: '<state> cluster-id <id>'
-  default_value: ""
+  grpc:
+    config_get_token_append: '/^bgp cluster-id (\S+)$/'
+    config_set_append: ' <state> bgp cluster-id <id>'
+    default_value: ""
+  nxapi:
+    config_get_token_append: '/^cluster-id (\S+)$/'
+    config_set_append: '<state> cluster-id <id>'
+    default_value: ""
 
 confederation_id:
-  config_get_token_append: '/^confederation identifier (\d+.?\d+?)$/'
-  config_set_append: '<state> confederation identifier <id>'
-  default_value: ""
+  grpc:
+    config_get_token_append: '/^bgp confederation identifier (\d+.?\d+?)$/'
+    config_set_append: ' <state> bgp confederation identifier <id>'
+    default_value: ""
+  nxapi:
+    config_get_token_append: '/^confederation identifier (\d+.?\d+?)$/'
+    config_set_append: '<state> confederation identifier <id>'
+    default_value: ""
 
+#TODO regexp is broken
 confederation_peers:
-  config_get_token_append: '/^confederation peers (.*)$/'
-  config_set_append: '<state> confederation peers <peer_list>'
-  default_value: ""
+  grpc:
+    config_get_token_append: '/^bgp confederation peers (.*)$/'
+    config_set_append: ' <state> bgp confederation peers <peer_list>'
+    default_value: ""
+  nxapi:
+    config_get_token_append: '/^confederation peers (.*)$/'
+    config_set_append: '<state> confederation peers <peer_list>'
+    default_value: ""
 
 create_destroy_neighbor:
   config_set_append: '<state> neighbor <nbr>'
 
 enforce_first_as:
-  config_get_token_append: '/^enforce-first-as$/'
-  config_set_append: '<state> enforce-first-as'
-  default_value: true
+  grpc:
+    config_get_token_append: '/^bgp enforce-first-as disable$/'
+    config_set_append: ' <state> bgp enforce-first-as disable'
+    default_value: true
+  nxapi:
+    config_get_token_append: '/^enforce-first-as$/'
+    config_set_append: '<state> enforce-first-as'
+    default_value: true
 
 feature:
-  config_get: "show running bgp"
-  config_get_token: '/^feature bgp$/'
-  config_set: "<state> feature bgp"
+  grpc:
+    config_get: "show running-config router bgp"
+    config_get_token: '/^router bgp$/'
+    config_set: "<state> router bgp"
+  nxapi:
+    config_get: "show running bgp all"
+    config_get_token: '/^feature bgp$/'
+    config_set: "<state> feature bgp"
 
 graceful_restart:
-  config_get_token_append: '/^graceful-restart$/'
-  config_set_append: '<state> graceful-restart'
-  default_value: true
+  grpc:
+    config_get_token_append: '/^bgp graceful-restart$/'
+    config_set_append: ' <state> bgp graceful-restart'
+    default_value: true
+  nxapi:
+    config_get_token_append: '/^graceful-restart$/'
+    config_set_append: '<state> graceful-restart'
+    default_value: true
 
+#Does not exist in IOS XR
 graceful_restart_helper:
-  config_get_token_append: '/^graceful-restart-helper$/'
-  config_set_append: '<state> graceful-restart-helper'
-  default_value: false
+  nxapi:
+    config_get_token_append: '/^graceful-restart-helper$/'
+    config_set_append: '<state> graceful-restart-helper'
+    default_value: false
 
 graceful_restart_timers_restart:
-  config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
-  config_set_append: '<state> graceful-restart restart-time <seconds>'
-  default_value: 120
+  grpc:
+    config_get_token_append: '/^bgp graceful-restart restart-time (\d+)$/'
+    config_set_append: ' <state> bgp graceful-restart restart-time <seconds>'
+    default_value: 120
+  nxapi:
+    config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
+    config_set_append: '<state> graceful-restart restart-time <seconds>'
+    default_value: 120
 
 graceful_restart_timers_stalepath_time:
-  config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
-  config_set_append: '<state> graceful-restart stalepath-time <seconds>'
-  default_value: 300
+  grpc:
+    config_get_token_append: '/^bgp graceful-restart stalepath-time (\d+)$/'
+    config_set_append: ' <state> bgp graceful-restart stalepath-time <seconds>'
+    default_value: 300
+  nxapi:
+    config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
+    config_set_append: '<state> graceful-restart stalepath-time <seconds>'
+    default_value: 300
 
 log_neighbor_changes:
-  config_get_token_append: '/^log-neighbor-changes$/'
-  config_set_append: '<state> log-neighbor-changes'
-  default_value: false
+  #Equivalent for bgp is 'bgp log'
+  nxapi:
+    config_get_token_append: '/^log-neighbor-changes$/'
+    config_set_append: '<state> log-neighbor-changes'
+    default_value: false
 
 maxas_limit:
-  config_get_token_append: '/^maxas-limit (\d+)$/'
-  config_set_append: '<state> maxas-limit <limit>'
-  default_value: false
+  nxapi:
+    config_get_token_append: '/^maxas-limit (\d+)$/'
+    config_set_append: '<state> maxas-limit <limit>'
+    default_value: false
 
 neighbor_fib_down_accelerate:
   config_get_token_append: '/^neighbor-down fib-accelerate$/'
@@ -111,30 +199,57 @@ neighbor_fib_down_accelerate:
   default_value: false
 
 reconnect_interval:
-  config_get_token_append: '/^reconnect-interval (\d+)$/'
-  config_set_append: '<state> reconnect-interval <seconds>'
-  default_value: 60
+  grpc:
+    config_get_token_append: '/^bgp reconnect-interval (\d+)$/'
+    config_set_append: ' <state> bgp reconnect-interval <seconds>'
+    default_value: 60
+  nxapi:
+    config_get_token_append: '/^reconnect-interval (\d+)$/'
+    config_set_append: '<state> reconnect-interval <seconds>'
+    default_value: 60
 
 router:
-  config_get: "show running bgp"
-  config_get_token: '/^router bgp (\d+)$/'
-  config_set: "<state> router bgp <asnum>"
+  grpc:
+    config_get: "show running router bgp"
+    config_get_token: '/^router bgp (\d+)$/'
+    config_set: "<state> router bgp <asnum>"
+  nxapi:
+    config_get: "show running bgp"
+    config_get_token: '/^router bgp (\d+)$/'
+    config_set: "<state> router bgp <asnum>"
 
 router_id:
-  config_get_token_append: '/^router-id (\S+)$/'
-  config_set_append: '<state> router-id <id>'
-  default_value: ""
+  grpc:
+    config_get_token_append: '/^bgp router-id (\S+)$/'
+    config_set_append: ' <state> bgp router-id <id>'
+    default_value: ""
+  nxapi:
+    config_get_token_append: '/^router-id (\S+)$/'
+    config_set_append: '<state> router-id <id>'
+    default_value: ""
 
 shutdown:
   # Shutdown only applies to global bgp
-  config_get: "show running bgp"
-  config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
-  config_set: ["router bgp <asnum>", "<state> shutdown"]
-  default_value: false
+  grpc:
+    config_get: "show running router bgp"
+    config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
+    config_set: ["router bgp <asnum>", "<state> shutdown"]
+    default_value: false
+  nxapi:
+    config_get: "show running bgp"
+    config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
+    config_set: ["router bgp <asnum>", "<state> shutdown"]
+    default_value: false
+
 suppress_fib_pending:
-  config_get_token_append: '/^suppress-fib-pending$/'
-  config_set_append: '<state> suppress-fib-pending'
-  default_value: false
+  grpc:
+    config_get_token_append: '/^bgp suppress-fib-pending$/'
+    config_set_append: ' <state> bgp suppress-fib-pending'
+    default_value: false
+  nxapi:
+    config_get_token_append: '/^suppress-fib-pending$/'
+    config_set_append: '<state> suppress-fib-pending'
+    default_value: false
 
 timer_bestpath_limit:
   config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
@@ -153,9 +268,14 @@ timer_bgp_keepalive:
   default_value: 60
 
 timer_bgp_keepalive_hold:
-  config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
-  config_set_append: '<state> timers bgp <keepalive> <hold>'
+  #Looks the same
+  grpc:
+    config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
+    config_set_append: ' <state> timers bgp <keepalive> <hold>'
+  nxapi:
+    config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
+    config_set_append: '<state> timers bgp <keepalive> <hold>'
 
 vrf:
   config_get_token_append: '/^vrf\s+(\S+)$/'
-  config_set: ["router bgp <asnum>", "<state> vrf <vrf>", "end"]
+  config_set: ["router bgp <asnum>", "<state> vrf <vrf>"]

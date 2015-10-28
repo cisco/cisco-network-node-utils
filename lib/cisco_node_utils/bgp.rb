@@ -84,7 +84,9 @@ module Cisco
     end
 
     def self.enable(state='')
-      config_set('bgp', 'feature', state: state)
+      # IOS XR has no '[no] feature xyz'.
+      config_set('bgp', 'feature', state: state) if
+        node.client.api == 'NXAPI' || state == 'no'
     end
 
     # Convert BGP ASN ASDOT+ to ASPLAIN
@@ -139,6 +141,7 @@ module Cisco
     def destroy
       vrf_ids = config_get('bgp', 'vrf', asnum: @asnum)
       vrf_ids = ['default'] if vrf_ids.nil?
+      router_bgp(asnum, @vrf, 'no')
       if vrf_ids.size == 1 || @vrf == 'default'
         RouterBgp.enable('no')
       else
