@@ -40,7 +40,7 @@ class TestRadiusServer < CiscoTestCase
 
   # TESTS
 
-  def test_radiusserver_create_destroy_single # rubocop:disable Metrics/AbcSize
+  def test_radiusserver_create_destroy_single
     id = '8.8.8.8'
     refute_includes(Cisco::RadiusServer.radiusservers, id)
 
@@ -90,7 +90,6 @@ class TestRadiusServer < CiscoTestCase
     refute_includes(Cisco::RadiusServer.radiusservers, id)
   end
 
-  # rubocop:disable Metrics/AbcSize
   def test_radiusserver_create_destroy_multiple
     id = '8.8.8.8'
     id2 = '9.9.9.9'
