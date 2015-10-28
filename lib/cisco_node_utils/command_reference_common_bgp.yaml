@@ -108,7 +108,7 @@ bgp:
   maxas_limit:
     config_get_token_append: '/^maxas-limit (\d+)$/'
     config_set_append: '<state> maxas-limit <limit>'
-    default_value: 0
+    default_value: false
 
   neighbor_fib_down_accelerate:
     config_get_token_append: '/^neighbor-down fib-accelerate$/'
