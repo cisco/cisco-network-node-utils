@@ -216,7 +216,7 @@ bgp_af:
     config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
     default_value: ""
   
-    dampening_state:
+  dampening_state:
     default_value: true
 
   dampening_max_suppress_time:
