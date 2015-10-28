@@ -56,12 +56,12 @@ An example:
 domain:
   config_get: "show vtp status"
   config_get_token: "domain_name"
-  config_set: "vtp domain %s"
+  config_set: "vtp domain <domain>"
 
 filename:
   config_get: "show running vtp"
   config_get_token: '/vtp file (\S+)/'
-  config_set: "%s vtp password %s"
+  config_set: "<state> vtp file <filename>"
   default_value: ""
 ```
 
@@ -94,8 +94,7 @@ irb(main):010:0> ref.config_set('no', 'myhost', 'md5', 'mypassword')
 => ["no tacacs-server host myhost key md5 mypassword"]
 ```
 
-This approach is quick to implement and concise, but less flexible - in
-particular it cannot handle a case where different platforms (or different
+Printf-style wildcards are quick to implement and concise, but less flexible - in particular they cannot handle a case where different platforms (or different
 client APIs!) take parameters in a different order - and less readable in
 the Ruby code.
 
@@ -115,10 +114,7 @@ irb(main):016:0> ref.config_set(name: 'red', cost: '40', type: 'Gbps')
 => ["router ospf red", "auto-cost reference-bandwidth 40 Gbps"]
 ```
 
-This approach is moderately more complex to implement but is more readable in
-the ruby code and is flexible enough to handle significant platform
-differences in CLI. It is therefore the recommended approach for new
-development.
+Key-value wildcards are moderately more complex to implement than Printf-style wildcards but they are more readable in the Ruby code and are flexible enough to handle significant platform differences in CLI. Key-value wildcards are therefore the recommended approach for new development.
 
 ## Advanced attribute definition
 
@@ -154,8 +150,8 @@ instead of the more repetitive (but equally valid):
 # interface.yaml
 access_vlan:
   config_get: 'show running interface all'
-  config_get_token: ['/^interface %s$/i', '/^switchport access vlan (.*)$/']
-  config_set: ['interface %s', 'switchport access vlan %s']
+  config_get_token: ['/^interface <name>$/i', '/^switchport access vlan (.*)$/']
+  config_set: ['interface <name>', 'switchport access vlan <number>']
 
 description:
   config_get: 'show running-config interface all'
@@ -167,18 +163,21 @@ description:
 
 ### API variants
 
+Clients for different Cisco platforms may use different APIs. Currently these include NXAPI (used for Cisco Nexus platforms) and gRPC (used for Cisco platforms running IOS XR). Often the CLI or other input/output formats needed will vary between APIs, so the YAML must be able to accomodate this.
+
 Any of the attribute properties can be subdivided by client API using the
-API name (in lower case) as a key:
+API name (in lower case) as a key. For example, interface VRF membership defaults to "" (no VRF) in both NXAPI and gRPC clients, but the CLI is 'vrf member <vrf>' for NXAPI and 'vrf <vrf>' for gRPC. Thus, the YAML could be written as:
 
 ```yaml
-# show_version.yaml
-host_name:
+# interface.yaml
+vrf:
+  default_value: ""
   nxapi:
-    config_get: 'show version'
-    config_get_token: "host_name"
+    config_get_token_append: '/^vrf member (.*)/'
+    config_set_append: "<state> vrf member <vrf>"
   grpc:
-    config_get: 'show running | i hostname'
-    config_get_token: '/^hostname (.*)$/'
+    config_get_token_append: '/^vrf (.*)/'
+    config_set_append: "<state> vrf <vrf>"
 ```
 
 ### Platform variants
@@ -303,10 +302,10 @@ through the hierarchy.
 # interface.yaml
 description:
   config_get: 'show running interface all'
-  config_get_token: ['/^interface %s$/i', '/^description (.*)/']
-  # config_get('interface', 'description', 'Ethernet1/1') gets the plaintext
-  # output, finds the subsection under /^interface Ethernet1/1$/i, then finds
-  # the line matching /^description (.*)$/ in that subsection
+  config_get_token: ['/^interface <name>$/i', '/^description (.*)/']
+  # config_get('interface', 'description', name: 'Ethernet1/1') gets the
+  # plaintext output, finds the subsection under /^interface Ethernet1/1$/i,
+  # then finds the line matching /^description (.*)$/ in that subsection
 ```
 
 ### `config_get_token_append`
@@ -319,12 +318,12 @@ the template instead of replacing it:
 # interface.yaml
 _template:
   config_get: 'show running-config interface all'
-  config_get_token: '/^interface <name>$/'
+  config_get_token: '/^interface <name>$/i'
 
 description:
   config_get_token_append: '/^description (.*)$/'
   # config_get_token value for 'description' is now:
-  # ['/^interface %s$/i', '/^description (.*)$/']
+  # ['/^interface <name>$/i', '/^description (.*)$/']
 ```
 
 This can also be used to specify conditional tokens which may or may not be

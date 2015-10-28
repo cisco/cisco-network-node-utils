@@ -76,7 +76,7 @@ One case where this may crop up is in trying to match both affirmative and
 negative variants of a config command:
 
 ```yaml
-config_get_token: ['/^interface %s$/i', '/^((no )?switchport)$/']
+config_get_token: ['/^interface <name>$/i', '/^((no )?switchport)$/']
 
 config_get_token: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
 ```
@@ -85,7 +85,7 @@ Instead, match the affirmative form of a command and treat its absence as
 confirmation of the negative form:
 
 ```yaml
-config_get_token: ['/^interface %s$/i', '/^switchport$/']
+config_get_token: ['/^interface <name>$/i', '/^switchport$/']
 
 config_get_token: '/^tacacs-server source-interface (\S+)$/'
 ```
@@ -126,7 +126,7 @@ Default value for `message_digest_alg_type` is `md5`
 ```yaml
 message_digest_alg_type:
   config_get: 'show running interface all'
-  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
   default_value: 'md5'
 ```
 
@@ -137,7 +137,7 @@ If the `default_value` differs between cisco platforms, use per-API or per-platf
 ```yaml
 message_digest_alg_type:
   config_get: 'show running interface all'
-  config_get_token: ['/^interface %s$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
   /N9K/:
     default_value: 'sha2'
   else:
@@ -155,14 +155,14 @@ All properties below use the `show run tacacs all` command except `directed_requ
 deadtime:
   config_get: "show run tacacs all"
   config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
-  config_set: "%s tacacs-server deadtime %d"
+  config_set: "<state> tacacs-server deadtime <time>"
   default_value: 0
 
 directed_request:
   # oddly, directed request must be retrieved from aaa output
   config_get: "show running aaa all"
   config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
-  config_set: "%s tacacs-server directed-request"
+  config_set: "<state> tacacs-server directed-request"
   default_value: false
 
 encryption_type:
@@ -178,7 +178,7 @@ encryption_password:
 
 ### <a name="yaml8">Y8: Use Key-value wildcards instead of Printf-style wildcards.
 
-The following approach is moderately more complex to implement but is more readable in the ruby code and is flexible enough to handle significant platform differences in CLI. It is therefore the recommended approach for new development.
+Key-value wildcards are moderately more complex to implement than Printf-style wildcards but they are more readable in the Ruby code and are flexible enough to handle significant platform differences in CLI. Key-value wildcards are therefore the recommended approach for new development.
 
 **Key-value wildcards**
 
@@ -251,7 +251,7 @@ The following `initialize` and `self.vrfs` methods account for configuration und
 
 Having this logic defined in the common object lets the minitest easily check the specific instances.
 
-Without this equality operator `==` only passes if they are the same instance object.  With this equality operator `==` passes if they are different objects referring to the same configuration on the node.
+The built-in equality operator `==` returns true only if they are the same instance object. The `==` method below is used to override the built-in equality operator and return true even if they are different objects referring to the same configuration on the node.
 
 ```ruby
   def ==(other)
