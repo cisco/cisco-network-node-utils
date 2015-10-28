@@ -69,6 +69,27 @@ timestamp:
 
 ### <a name="yaml4">Y4: Avoid nested optional matches.
 
+Regexps containing optional match strings inside other match strings become
+complex to work with and difficult to maintain.
+
+One case where this may crop up is in trying to match both affirmative and
+negative variants of a config command:
+
+```yaml
+config_get_token: ['/^interface %s$/i', '/^((no )?switchport)$/']
+
+config_get_token: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
+```
+
+Instead, match the affirmative form of a command and treat its absence as
+confirmation of the negative form:
+
+```yaml
+config_get_token: ['/^interface %s$/i', '/^switchport$/']
+
+config_get_token: '/^tacacs-server source-interface (\S+)$/'
+```
+
 ### <a name="yaml5">Y5: Use the `_template` feature when getting/setting the same property value at multiple levels.
 
 Using the template below, `auto_cost` and `default_metric` can be set under `router ospf foo` and `router ospf foo; vrf blue`.
