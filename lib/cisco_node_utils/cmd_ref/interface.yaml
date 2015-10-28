@@ -74,7 +74,7 @@ ipv4_redirects_loopback:
       config_get_token_append: '/^((?:no )?ip redirects)$/'
       config_set_append: "%s ip redirects"
       default_value: true
-  test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
+  test_config_get_regex: ['/^\s+no ip redirects/']
   test_config_result:
     false: RuntimeError
     true: RuntimeError
@@ -83,7 +83,7 @@ ipv4_redirects_other_interfaces:
   config_get_token_append: '/^((?:no )?ip redirects)$/'
   config_set_append: "%s ip redirects"
   default_value: true
-  test_config_get_regex: [!ruby/regexp '/^\s+no ip redirects/']
+  test_config_get_regex: ['/^\s+no ip redirects/']
   test_config_result:
     false: false
     true: true
@@ -104,8 +104,8 @@ negotiate_auto_ethernet:
     config_set_append: "%s negotiate auto"
     default_value: true
   test_config_get_regex: [
-  !ruby/regexp '/^\s+no negotiate auto/',
-  !ruby/regexp '/^\s+negotiate auto/'
+  '/^\s+no negotiate auto/',
+  '/^\s+negotiate auto/'
   ]
 
 negotiate_auto_other_interfaces:
@@ -127,8 +127,8 @@ negotiate_auto_portchannel:
     config_set_append: "%s negotiate auto"
     default_value: true
   test_config_get_regex: [
-  !ruby/regexp '/^\s+no negotiate auto/',
-  !ruby/regexp '/^\s+negotiate auto/'
+  '/^\s+no negotiate auto/',
+  '/^\s+negotiate auto/'
   ]
 
 shutdown:

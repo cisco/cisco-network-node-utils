@@ -135,9 +135,9 @@ name_a:
 name:
   default_value: true
   config_get: show hello
-  config_get_token: !ruby/regexp '/hello world/'
+  config_get_token: '/hello world/'
   config_set: [ \"hello\", \"world\" ]
-  test_config_get_regex: !ruby/regexp '/hello world/'
+  test_config_get_regex: '/hello world/'
   test_config_result:
     false: RuntimeError
     32: "Long VLAN name knob is not enabled"

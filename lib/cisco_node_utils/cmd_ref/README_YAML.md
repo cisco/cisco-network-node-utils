@@ -192,10 +192,10 @@ for all products that do not match any of the given regexps:
 system_image:
   /N9K/:
     config_get_token: "kick_file_name"
-    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
+    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
   else:
     config_get_token: "isan_file_name"
-    test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
+    test_config_get_regex: '/.*system image file is:    (.*)$.*/'
 ```
 
 ### Combinations of these
@@ -230,14 +230,14 @@ description:
   config_get_token: "chassis_id"
   nxapi:
     /N7K/:
-      test_config_get_regex: !ruby/regexp '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+      test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
-      test_config_get_regex: !ruby/regexp '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+      test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
   grpc:
     config_get: 'show inventory | inc "Rack 0"'
     config_get_token: '/DESCR: "(.*)"/'
     test_config_get: 'show inventory | inc "Rack 0"'
-    test_config_get_regex: !ruby/regexp '/DESCR: "(.*)"/'
+    test_config_get_regex: '/DESCR: "(.*)"/'
 ```
 
 ## Attribute properties
@@ -262,6 +262,8 @@ or an array of regexs.
 If this value is a string or array of strings, then the `config_get` command
 will be executed to produce _structured_ output and the string(s) will be
 used as lookup keys.
+
+**WARNING: structured output, although elegant, may not be supported for all commands or all platforms. Use with caution.**
 
 ```yaml
 # show_version.yaml
@@ -407,9 +409,7 @@ irb(main):019:0> ref.config_set(name: 'red', vrf: 'blue',
 
 ### `default_value`
 
-If there is a default value for this attribute when not otherwise specified by
-the user, the `default_value` parameter describes it. This can be a string,
-boolean, integer, or array.
+If there is a default value for this attribute when not otherwise specified by the user, the `default_value` parameter describes it. This can be a string, boolean, integer, array, or nil.
 
 ```yaml
 description:
@@ -420,7 +420,13 @@ hello_interval:
 
 auto_cost:
   default_value: [40, 'Gbps']
+
+ipv4_address:
+  # YAML represents nil as ~
+  default_value: ~
 ```
+
+By convention, a `default_value` of `''` (empty string) represents a configurable property that defaults to absent, while a default of `nil` (Ruby) or `~` (YAML) represents a property that has no meaningful default at all.
 
 ### `test_config_get` and `test_config_get_regex`
 

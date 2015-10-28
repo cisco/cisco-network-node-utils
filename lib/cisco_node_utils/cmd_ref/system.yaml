@@ -3,4 +3,4 @@
 resources:
   config_get: "show system resources"
   test_config_get: "show system resources | no-more"
-  test_config_get_regex: !ruby/regexp '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'
+  test_config_get_regex: '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'

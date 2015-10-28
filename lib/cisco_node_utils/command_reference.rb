@@ -32,6 +32,9 @@ module Cisco
       KEYS
     end
 
+    # Construct a CmdRef describing the given (feature, name) pair.
+    # Param "values" is a hash with keys as described in KEYS.
+    # Param "file" is for debugging purposes only.
     def initialize(feature, name, values, file)
       fail ArgumentError, "'#{values}' is not a hash." unless values.is_a? Hash
 
@@ -47,67 +50,73 @@ module Cisco
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
           @hash[key] = value if key == 'default_value'
-        else
-          if !value.is_a?(Array) && (key == 'config_get_token' ||
-                                     key == 'config_set')
-            # For simplicity, these are ALWAYS arrays
-            @hash[key] = [value]
-          else
-            @hash[key] = value
-          end
+          next
+        elsif key == 'config_get_token' || key == 'config_set'
+          # For simplicity, these are ALWAYS arrays
+          value = [value] unless value.is_a?(Array)
+          define_getter(key, value)
         end
+        # We intentionally do this *after* the define_getter() call above.
+        @hash[key] = preprocess_value(value)
       end
-      define_getter('config_get_token')
-      define_getter('config_set')
     end
 
-    def define_getter(key)
-      return unless @hash[key].is_a?(Array)
-      if @hash[key].any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
+    # Create a getter method for the given key.
+    # This getter method will automatically handle wildcard arguments.
+    def define_getter(key, value)
+      return unless value.is_a?(Array)
+      if value.any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
         # Key-value substitution
         define_singleton_method key.to_sym do |**args|
           result = []
-          @hash[key].each do |line|
+          value.each do |line|
             replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
             replace.each do |item|
               line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
             end
-            result.push(maybe_regexp(line)) unless /<\S+>/.match(line)
+            result.push(line) unless /<\S+>/.match(line)
           end
-          result
+          preprocess_value(result)
         end
-      elsif @hash[key].any? { |item| item.is_a?(String) && /%/ =~ item }
+      elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
         # printf-style substitution
-        arg_count = @hash[key].join.scan(/%/).length
+        arg_count = value.join.scan(/%/).length
         define_singleton_method key.to_sym do |*args|
           unless args.length == arg_count
             fail ArgumentError, "Given #{args.length} args, but " \
               "#{key} requires #{arg_count}"
           end
           # Fill in the parameters
-          val = @hash[key].map do |line|
+          result = value.map do |line|
             sprintf(line, *args.shift(line.scan(/%/).length))
           end
-          # Convert regexp-like strings to regexps
-          val.map! { |line| maybe_regexp(line) }
-          val
+          preprocess_value(result)
         end
       else
         # simple static token(s)
-        @hash[key].map! { |line| maybe_regexp(line) }
-        define_singleton_method key.to_sym, -> { @hash[key] }
+        value = preprocess_value(value)
+        define_singleton_method key.to_sym, -> { value }
       end
     end
 
-    def maybe_regexp(str)
-      if str.is_a?(String) && str[0] == '/'
-        if str[-1] == '/'
-          return Regexp.new(str[1..-2])
-        elsif str[-2..-1] == '/i'
-          return Regexp.new(str[1..-3], Regexp::IGNORECASE)
+    # Helper method.
+    # Converts a regexp-like string (or array thereof) into a proper
+    # Regexp object (or array thereof)
+    def preprocess_value(value)
+      if value.is_a?(Array)
+        # Recurse!
+        return value.map { |item| preprocess_value(item) }
+      elsif value.is_a?(String)
+        # Some 'Strings' in YAML are actually intended to be regexps
+        if value[0] == '/' && value[-1] == '/'
+          # '/foo/' => %r{foo}
+          return Regexp.new(value[1..-2])
+        elsif value[0] == '/' && value[-2..-1] == '/i'
+          # '/foo/i' => %r{foo}i
+          return Regexp.new(value[1..-3], Regexp::IGNORECASE)
         end
       end
-      str
+      value
     end
 
     def convert_to_constant(value)
@@ -178,52 +187,6 @@ module Cisco
       fail ArgumentError, 'Debug must be boolean' unless value == true ||
                                                          value == false
       @@debug = value # rubocop:disable Style/ClassVars
-    end
-
-    KNOWN_APIS = %w(nxapi grpc)
-
-    def self.hash_merge(input_hash, api, product_id, base_hash=nil)
-      result = base_hash
-      result ||= {}
-      # First pass - set the baseline values
-      to_inspect = []
-      regexp_match = false
-      input_hash.each do |key, value|
-        if CmdRef.keys.include?(key)
-          if key == 'config_set_append'
-            result['config_set'] = value_append(result['config_set'], value)
-          elsif key == 'config_get_token_append'
-            result['config_get_token'] = value_append(
-              result['config_get_token'], value)
-          else
-            result[key] = value
-          end
-        elsif key[0] == '/'
-          next unless Regexp.new(key[1..-2]) =~ product_id
-          regexp_match = true
-          to_inspect << value
-        elsif KNOWN_APIS.include?(key)
-          next unless key == api
-          to_inspect << value
-        elsif key == 'else'
-          next
-        else
-          fail "Unrecognized key '#{key}'"
-        end
-      end
-      if input_hash.key?('else') && !regexp_match
-        to_inspect << input_hash['else']
-      end
-      to_inspect.each do |hash|
-        result = hash_merge(hash, api, product_id, result)
-      end
-      result
-    end
-
-    def self.value_append(base_value, new_value)
-      base_value = [base_value] unless base_value.is_a?(Array)
-      new_value = [new_value] unless new_value.is_a?(Array)
-      base_value + new_value
     end
 
     attr_reader :api, :files, :product_id
@@ -297,6 +260,75 @@ module Cisco
     def debug(text)
       puts "DEBUG: #{text}" if @@debug
     end
+
+    KNOWN_APIS = %w(nxapi grpc)
+
+    # Helper method
+    # Given a Hash of command reference data (as read from YAML), does:
+    # - Filter any API-specific data according to the given api string
+    # - Filter any platform-specific data according to the given product_id
+    # - Inherit data from the given base_hash (if any) and extend/override it
+    #   with the given input data.
+    # - Append 'config_set_append' data to any existing 'config_set' data
+    # - Append 'config_get_token_append' data to 'config_get_token', ditto
+    def self.hash_merge(input_hash, api, product_id, base_hash=nil)
+      result = base_hash
+      result ||= {}
+      # to_inspect: sub-hashes we want to recurse into
+      to_inspect = []
+      # regexp_match: did we find a product_id regexp that matches?
+      regexp_match = false
+
+      input_hash.each do |key, value|
+        if CmdRef.keys.include?(key)
+          if key == 'config_set_append'
+            result['config_set'] = value_append(result['config_set'], value)
+          elsif key == 'config_get_token_append'
+            result['config_get_token'] = value_append(
+              result['config_get_token'], value)
+          else
+            result[key] = value
+          end
+        elsif key[0] == '/'
+          # it's a product-id regexp. Does it match our given product_id?
+          next unless Regexp.new(key[1..-2]) =~ product_id
+          regexp_match = true
+          # Platform match - we want to descend into this sub-hash
+          to_inspect << value
+        elsif KNOWN_APIS.include?(key)
+          next unless key == api
+          # API match - we want to descend into this sub-hash
+          to_inspect << value
+        elsif key == 'else'
+          # Skip for now, we revisit it below
+          next
+        else
+          fail "Unrecognized key '#{key}'"
+        end
+      end
+      # If we didn't find any platform regexp match,
+      # and an 'else' sub-hash is provided, descend into 'else'
+      if input_hash.key?('else') && !regexp_match
+        to_inspect << input_hash['else']
+      end
+      # Recurse! Sub-hashes can override the base hash
+      to_inspect.each do |hash|
+        result = hash_merge(hash, api, product_id, result)
+      end
+      result
+    end
+
+    # Helper method.
+    # Combines the two given values (either or both of which may be arrays)
+    # into a single combined array
+    # value_append('foo', 'bar') ==> ['foo', 'bar']
+    # value_append('foo', ['bar', 'baz']) ==> ['foo', 'bar', 'baz']
+    def self.value_append(base_value, new_value)
+      base_value = [base_value] unless base_value.is_a?(Array)
+      new_value = [new_value] unless new_value.is_a?(Array)
+      base_value + new_value
+    end
+    private_class_method :value_append
 
     def mapping?(node)
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }

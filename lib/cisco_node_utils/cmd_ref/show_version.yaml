@@ -14,9 +14,9 @@ boot_image:
   config_get_token: "kick_file_name"
   # TODO: fix me?
   /N9K/:
-    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
+    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
   else:
-    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
+    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
 
 cpu:
   config_get_token: 'cpu_name'
@@ -25,7 +25,7 @@ description:
   config_get_token: "chassis_id"
   nxapi:
     /N7K/:
-      test_config_get_regex: !ruby/regexp '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+      test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       # Hardware
       #   cisco Nexus9000 C9396PX Chassis
@@ -35,12 +35,12 @@ description:
       #                                          ^-module_id-ignore!-^
       #   cisco Nexus3000 C3132Q Chassis
       #   cisco N3K-C3048TP-1GE
-      test_config_get_regex: !ruby/regexp '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+      test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
   grpc:
     config_get: 'show inventory | inc "Rack 0"'
     config_get_token: '/DESCR: "(.*)"/'
     test_config_get: 'show inventory | inc "Rack 0"'
-    test_config_get_regex: !ruby/regexp '/DESCR: "(.*)"/'
+    test_config_get_regex: '/DESCR: "(.*)"/'
 
 full:
   config_get: "sh version"
@@ -58,20 +58,20 @@ host_name:
 
 last_reset_reason:
   config_get_token: "rr_reason"
-  test_config_get_regex: !ruby/regexp '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
+  test_config_get_regex: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
 
 last_reset_time:
   config_get_token: "rr_ctime"
-  test_config_get_regex: !ruby/regexp '/.*\nLast reset at \d+ usecs after  (.*)\n/'
+  test_config_get_regex: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
 
 system_image:
   nxapi:
     /N9K/:
       config_get_token: "kick_file_name"
-      test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
+      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
     else:
       config_get_token: "isan_file_name"
-      test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
+      test_config_get_regex: '/.*system image file is:    (.*)$.*/'
 
 uptime:
   config_get_token: '/uptime is (.*)/'
@@ -80,12 +80,12 @@ version:
   nxapi:
     config_get_token: "kickstart_ver_str"
     test_config_get_regex: [
-    !ruby/regexp /\nkickstart_ver_str\s+(.+)\n/,
-    !ruby/regexp '/.*NXOS:\s+version (.*)\n/'
+    /\nkickstart_ver_str\s+(.+)\n/,
+    '/.*NXOS:\s+version (.*)\n/'
     ]
   grpc:
     config_get_token: '/IOS XR.*Version (.*)$/'
     test_config_get_regex: [
     ~,
-    !ruby/regexp '/IOS XR.*Version (.*)$/'
+    '/IOS XR.*Version (.*)$/'
     ]
