@@ -61,6 +61,5 @@ module Cisco
     def show(*args)
       node.show(*args)
     end
-
   end
 end

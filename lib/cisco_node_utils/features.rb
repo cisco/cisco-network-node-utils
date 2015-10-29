@@ -29,6 +29,5 @@ module Features
   module ClassMethods
     # @@node = Cisco::Node.instance
     # debug "@@@@@ Loaded Features node is #{@@node}"
-
   end # end of module ClassMethods
 end # end of module Features
