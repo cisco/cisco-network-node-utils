@@ -714,9 +714,9 @@ show_version:
 
   system_image:
     config_get: "sh version"
-    config_get_token: "isan_file_name"
+    config_get_token: "kick_file_name"
     test_config_get: "sh version | no-more"
-    test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
+    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
 
   uptime:
     config_get: 'show version'
