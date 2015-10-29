@@ -34,8 +34,8 @@ class TestRadiusServer < CiscoTestCase
 
   def no_radiusserver
     # Turn the feature off for a clean test.
-    config('no logging server 8.8.8.8',
-           'no logging server 9.9.9.9')
+    config('no radius-server host 8.8.8.8',
+           'no radius-server host 9.9.9.9')
   end
 
   # TESTS
@@ -51,14 +51,14 @@ class TestRadiusServer < CiscoTestCase
     # Default checking
     assert_equal(server.acct_port, server.default_acct_port)
     assert_equal(server.auth_port, server.default_auth_port)
-    assert_equal(server.accounting_only, server.default_accounting_only)
-    assert_equal(server.authentication_only, server.default_authentication_only)
+    assert_equal(server.accounting, server.default_accounting)
+    assert_equal(server.authentication, server.default_authentication)
 
-    server.accounting_only = true
-    assert(Cisco::RadiusServer.radiusservers[id].accounting_only)
+    server.accounting = true
+    assert(Cisco::RadiusServer.radiusservers[id].accounting)
 
-    server.authentication_only = true
-    assert(Cisco::RadiusServer.radiusservers[id].authentication_only)
+    server.authentication = true
+    assert(Cisco::RadiusServer.radiusservers[id].authentication)
 
     server.acct_port = 44
     assert_equal(Cisco::RadiusServer.radiusservers[id].acct_port,
@@ -79,12 +79,12 @@ class TestRadiusServer < CiscoTestCase
     # Setting back to default and re-checking
     server.acct_port = server.default_acct_port
     server.auth_port = server.default_auth_port
-    server.accounting_only = server.default_accounting_only
-    server.authentication_only = server.default_authentication_only
+    server.accounting = server.default_accounting
+    server.authentication = server.default_authentication
     assert_equal(server.acct_port, server.default_acct_port)
     assert_equal(server.auth_port, server.default_auth_port)
-    assert_equal(server.accounting_only, server.default_accounting_only)
-    assert_equal(server.authentication_only, server.default_authentication_only)
+    assert_equal(server.accounting, server.default_accounting)
+    assert_equal(server.authentication, server.default_authentication)
 
     server.destroy
     refute_includes(Cisco::RadiusServer.radiusservers, id)
@@ -106,19 +106,18 @@ class TestRadiusServer < CiscoTestCase
     # Default checking
     assert_equal(server.acct_port, server.default_acct_port)
     assert_equal(server.auth_port, server.default_auth_port)
-    assert_equal(server.accounting_only, server.default_accounting_only)
-    assert_equal(server.authentication_only, server.default_authentication_only)
+    assert_equal(server.accounting, server.default_accounting)
+    assert_equal(server.authentication, server.default_authentication)
     assert_equal(server2.acct_port, server2.default_acct_port)
     assert_equal(server2.auth_port, server2.default_auth_port)
-    assert_equal(server2.accounting_only, server2.default_accounting_only)
-    assert_equal(server2.authentication_only,
-                 server2.default_authentication_only)
+    assert_equal(server2.accounting, server2.default_accounting)
+    assert_equal(server2.authentication, server2.default_authentication)
 
-    server.accounting_only = true
-    assert(Cisco::RadiusServer.radiusservers[id].accounting_only)
+    server.accounting = true
+    assert(Cisco::RadiusServer.radiusservers[id].accounting)
 
-    server.authentication_only = true
-    assert(Cisco::RadiusServer.radiusservers[id].authentication_only)
+    server.authentication = true
+    assert(Cisco::RadiusServer.radiusservers[id].authentication)
 
     server.acct_port = 44
     assert_equal(Cisco::RadiusServer.radiusservers[id].acct_port,
@@ -132,17 +131,17 @@ class TestRadiusServer < CiscoTestCase
     assert_equal(Cisco::RadiusServer.radiusservers[id].retransmit_count,
                  3)
 
-    server.key_set = '44444444', nil
+    server.key_set('44444444', nil)
     assert_equal(Cisco::RadiusServer.radiusservers[id].key,
                  '44444444')
     assert_equal(server.key,
                  '44444444')
 
-    server2.accounting_only = true
-    assert(Cisco::RadiusServer.radiusservers[id2].accounting_only)
+    server2.accounting = true
+    assert(Cisco::RadiusServer.radiusservers[id2].accounting)
 
-    server2.authentication_only = true
-    assert(Cisco::RadiusServer.radiusservers[id2].authentication_only)
+    server2.authentication = true
+    assert(Cisco::RadiusServer.radiusservers[id2].authentication)
 
     server2.acct_port = 44
     assert_equal(Cisco::RadiusServer.radiusservers[id2].acct_port,
@@ -163,21 +162,20 @@ class TestRadiusServer < CiscoTestCase
     # Setting back to default and re-checking
     server.acct_port = server.default_acct_port
     server.auth_port = server.default_auth_port
-    server.accounting_only = server.default_accounting_only
-    server.authentication_only = server.default_authentication_only
+    server.accounting = server.default_accounting
+    server.authentication = server.default_authentication
     server2.acct_port = server2.default_acct_port
     server2.auth_port = server2.default_auth_port
-    server2.accounting_only = server2.default_accounting_only
-    server2.authentication_only = server2.default_authentication_only
+    server2.accounting = server2.default_accounting
+    server2.authentication = server2.default_authentication
     assert_equal(server.acct_port, server.default_acct_port)
     assert_equal(server.auth_port, server.default_auth_port)
-    assert_equal(server.accounting_only, server.default_accounting_only)
-    assert_equal(server.authentication_only, server.default_authentication_only)
+    assert_equal(server.accounting, server.default_accounting)
+    assert_equal(server.authentication, server.default_authentication)
     assert_equal(server2.acct_port, server2.default_acct_port)
     assert_equal(server2.auth_port, server2.default_auth_port)
-    assert_equal(server2.accounting_only, server2.default_accounting_only)
-    assert_equal(server2.authentication_only,
-                 server2.default_authentication_only)
+    assert_equal(server2.accounting, server2.default_accounting)
+    assert_equal(server2.authentication, server2.default_authentication)
 
     server.destroy
     server2.destroy
