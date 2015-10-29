@@ -5,6 +5,7 @@ Changelog
 
 ### Added
 
+* Added support for bgp, bgp_af, bgp_neighbor, bgp_neighbor_af
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
 * Added support for name_server (@hunner)
 * Added support for ntp_server (@jonnytpuppet)
