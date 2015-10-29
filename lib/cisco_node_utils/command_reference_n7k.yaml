@@ -40,6 +40,10 @@ show_version:
   description:
     test_config_get_regex: !ruby/regexp '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
 
+  system_image:
+    # TODO: not sure if this is needed
+    config_get_token: "isan_file_name"
+    test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
 
 vtp:
   version:
