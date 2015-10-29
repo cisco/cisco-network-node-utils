@@ -17,11 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/cisco_cmn_utils', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor_af', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
+require_relative '../lib/cisco_node_utils/bgp'
+require_relative '../lib/cisco_node_utils/bgp_neighbor'
+require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
 
 # TestRouterBgpNeighborAF - Minitest for RouterBgpNeighborAF class
 class TestRouterBgpNeighborAF < CiscoTestCase
@@ -30,11 +30,11 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def setup
     super
     if @@reset_feat
-      @device.cmd('conf t ; no feature bgp ; feature bgp ; end')
+      config('no feature bgp', 'feature bgp')
       @@reset_feat = false # rubocop:disable Style/ClassVars
     else
       # Just ensure that feature is enabled
-      @device.cmd('conf t ; feature bgp ; end')
+      config('feature bgp')
     end
   end
 
@@ -61,27 +61,27 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
   # AF test matrix
   @@matrix = { # rubocop:disable Style/ClassVars
-    # 1 => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
-    2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
-    3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
-    4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
-    5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
-    7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
-    9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
-    10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
-    11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
-    12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
+    # 1  => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
+    # 2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
+    # 3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
+    # 4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
+    # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
+    6 => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
+    8 => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
+    # 9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
+    # 10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
+    # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
+    # 12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
     # 13 => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
-    14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
-    15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
-    16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
+    # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
+    # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
+    # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
   }
 
   # ---------------------------------
   def test_nbr_af_create_destroy
-    @device.cmd('conf t ; no feature bgp ; feature bgp')
+    config('no feature bgp', 'feature bgp')
 
     # Creates
     obj = {}
@@ -107,7 +107,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbrs_with_masks
-    @device.cmd('conf t ; no feature bgp ; feature bgp')
+    config('no feature bgp', 'feature bgp')
 
     # Creates
     obj = {}
@@ -484,7 +484,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   # ---------------------------------
   def test_send_community
     # iBGP only, do extra cleanup
-    @device.cmd('conf t ; no feature bgp ; feature bgp')
+    config('no feature bgp', 'feature bgp')
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
       send_community(af, dbg)

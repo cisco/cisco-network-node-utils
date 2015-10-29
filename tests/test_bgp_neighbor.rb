@@ -17,9 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp_neighbor', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/bgp'
+require_relative '../lib/cisco_node_utils/bgp_neighbor'
 
 # TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
 class TestRouterBgpNeighbor < CiscoTestCase
@@ -32,19 +32,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
     # Disable feature bgp before each test to ensure we
     # are starting with a clean slate for each test.
     super
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('feature bgp')
-    @device.cmd('router bgp 55')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature bgp', 'feature bgp', 'router bgp 55')
   end
 
   def teardown
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature bgp')
   end
 
   def get_bgpneighbor_match_line(addr, vrf='default')
@@ -61,24 +53,18 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   def test_bgpneighbor_collection_empty
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature bgp')
     neighbors = RouterBgpNeighbor.neighbors
     assert_empty(neighbors, 'BGP neighbor collection is not empty')
   end
 
   def test_bgpneighbor_collection_not_empty
-    @device.cmd('configure terminal')
-    @device.cmd('router bgp 55')
-    @device.cmd('neighbor 1.1.1.1')
-    @device.cmd('vrf red')
-    @device.cmd('neighbor 2.2.2.0/24')
-    @device.cmd('neighbor 2000::2')
-    @device.cmd('neighbor 2000:123:38::/64')
-    @device.cmd('end')
-    node.cache_flush
+    config('router bgp 55',
+           'neighbor 1.1.1.1',
+           'vrf red',
+           'neighbor 2.2.2.0/24',
+           'neighbor 2000::2',
+           'neighbor 2000:123:38::/64')
     bgp_neighbors = RouterBgpNeighbor.neighbors
     refute_empty(bgp_neighbors, 'BGP neighbor collection is empty')
     # validate the collection

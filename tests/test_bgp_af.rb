@@ -18,9 +18,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp_af', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/bgp'
+require_relative '../lib/cisco_node_utils/bgp_af'
 
 # TestRouterBgpAF - Minitest for RouterBgpAF class
 class TestRouterBgpAF < CiscoTestCase
@@ -28,11 +28,7 @@ class TestRouterBgpAF < CiscoTestCase
     super
     # Disable and enable feature bgp before each test to ensure we
     # are starting with a clean slate for each test.
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('feature bgp')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature bgp', 'feature bgp')
   end
 
   def get_bgp_af_cfg(asn, vrf, af)
@@ -73,20 +69,17 @@ class TestRouterBgpAF < CiscoTestCase
   ## - verify that the final instance objects are correctly populated
   ##
   def test_collection_not_empty
-    @device.cmd('configure terminal')
-    @device.cmd('feature bgp')
-    @device.cmd('router bgp 55')
-    @device.cmd('address-family ipv4 unicast')
-    @device.cmd('vrf red')
-    @device.cmd('address-family ipv4 unicast')
-    @device.cmd('vrf blue')
-    @device.cmd('address-family ipv6 multicast')
-    @device.cmd('vrf orange')
-    @device.cmd('address-family ipv4 multicast')
-    @device.cmd('vrf black')
-    @device.cmd('address-family ipv6 unicast')
-    @device.cmd('end')
-    node.cache_flush
+    config('feature bgp',
+           'router bgp 55',
+           'address-family ipv4 unicast',
+           'vrf red',
+           'address-family ipv4 unicast',
+           'vrf blue',
+           'address-family ipv6 multicast',
+           'vrf orange',
+           'address-family ipv4 multicast',
+           'vrf black',
+           'address-family ipv6 unicast')
 
     # Construct a hash of routers, vrfs, afs
     routers = RouterBgpAF.afs
@@ -422,7 +415,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## dampening
   ##
-  # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength
   def test_dampening
     asn = '101'
 

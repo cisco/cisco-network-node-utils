@@ -34,13 +34,13 @@ Changelog
 ### Fixed
 
 * Fixed several bugs in `SnmpUser.(auth|priv)_password_equal?`
-* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 * Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
 * Added a cache_flush call in `Platform.chassis` to work around an infrequent issue.
 
 ### Changed
 
-* Doc change: Add git config comments
+* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
+* Added git config comments
 * Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
 * Now requires Minitest ~> 5.0 instead of Minitest < 5.0.
 
