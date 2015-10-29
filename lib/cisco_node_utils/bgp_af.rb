@@ -216,6 +216,22 @@ module Cisco
       config_get_default('bgp_af', 'additional_paths_selection')
     end
 
+    # advertise_l2vpn_evpn
+    def advertise_l2vpn_evpn
+      state = config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
+      state ? true : false
+    end
+
+    def advertise_l2vpn_evpn=(state)
+      state = (state ? '' : 'no')
+      set_args_keys(state: state)
+      config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
+    end
+
+    def default_advertise_l2vpn_evpn
+      config_get_default('bgp_af', 'advertise_l2vpn_evpn')
+    end
+
     #
     # dampen_igp_metric (Getter/Setter/Default)
     #
