@@ -5,9 +5,57 @@
 #   - command_reference_common.yaml
 #
 ---
+fabricpath:
+  feature:
+    config_get: "show feature-set"
+    config_get_token: '/^fabricpath[\s]+[\d]+[\s]+(\S+)/'
+    config_set: "%s feature-set fabricpath"
+
+  feature_install:
+    config_set: "%s install feature-set fabricpath"
+
+fp_topology:
+  all_topos:
+    config_get: "show fabricpath topology"
+    config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
+
+  create:
+    config_set: ["fabricpath topology %s" , "end"]
+
+  description:
+    config_get: "show fabricpath topology"
+    config_get_token: '/^(\S+)[\s]+%d+[\s]+\S+/'
+    config_set: ["fabricpath topology %d" , "%s description %s", "end"]
+    default_value: ""
+
+  destroy:
+    config_set: "no fabricpath topology %s"
+
+  member_vlans:
+    config_get: "show fabricpath topology vlan"
+    config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
+    config_set: ["fabricpath topology %d" , "%s member vlan %s", "end"]
+    default_value: "--"
+
+  state:
+    config_get: "show fabricpath topology"
+    config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
+    default_value: "up"
+
 interface:
   admin_state_ethernet_noswitchport_shutdown:
     default_value: "shutdown"
+
+  encapsulation_vni: 
+    config_get: "show running interface all"
+    config_get_token: ['/^interface\s+%s$/i', '/^service.*$/i', '/^encapsulation\s+profile\s+(\S+).*$/i']
+
+  encapsulation_vni_add:
+    config_set: ['interface %s', 'service instance 1 vni', 'no shutdown', 'encapsulation profile %s default', 'end']
+
+  encapsulation_vni_del:
+    config_set: ['interface %s', 'no service instance 1 vni', 'end']
+
 
   ipv4_redirects_loopback:
     default_value: false
@@ -30,16 +78,63 @@ interface:
     config_get_token:
     default_value: false
 
-
 inventory:
   inventory:
     test_config_get_regex: [!ruby/regexp '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/', !ruby/regexp '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/']
 
+limit_resource:
+  vdc:
+    config_get: "show vdc current-vdc"
+    config_get_token: '/^Current vdc is.*\-\s+(\S+)/'
+
+  vxlan:
+    config_set: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3", "end"]
 
 show_version:
   description:
     test_config_get_regex: !ruby/regexp '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
 
+vlan:
+  mode:
+    config_get: "show vlan"
+    config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
+    config_set: ["vlan %d" , "%s mode %s", "end"]
+    default_value: "ce"
+
+vni:
+  all_vnis:
+    config_get: "show vni"
+    config_get_token: '/^(\d+)\s/'
+
+  bridge_domain_activate:
+    config_set: ["%s system bridge-domain add %d", "end"]
+
+  bridge_domain:
+    config_get: "show vni"
+    config_get_token: [ '/^%d\s+\S+\s+(\d+)/' ]
+    config_set: ["bridge-domain %d", "%s member vni %d", "end"]
+    default_value: ~
+
+  create:
+    config_set: ["vni %s" , "end"]
+
+  destroy:
+    config_set: "no vni %s"
+
+  encap_dot1q:
+    config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
+    default_value: ~
+
+  feature:
+    config_get: "show feature"
+    config_get_token: '/^vni\s+\d+\s+(\S+)/'
+    config_set: "%s feature vni"
+
+  shutdown:
+    config_get: "show vni"
+    config_get_token: '/^%d\s+(\S+)/'
+    config_set: ["vni %d", "%s shutdown", "end"]
+    default_value: false
 
 vtp:
   version:
