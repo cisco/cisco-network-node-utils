@@ -43,7 +43,7 @@ class TestRadiusGlobal < CiscoTestCase
   def test_radius_global
     id = 'default'
 
-    global = Cisco::RadiusGlobal.new(id, true)
+    global = Cisco::RadiusGlobal.new(id)
     assert_includes(Cisco::RadiusGlobal.radius_global, id)
     assert_equal(Cisco::RadiusGlobal.radius_global[id], global)
 
@@ -63,7 +63,7 @@ class TestRadiusGlobal < CiscoTestCase
     assert_equal(global.timeout,
                  2)
 
-    global.key_set = '44444444', nil
+    global.key_set('44444444', nil)
     assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
                  '44444444')
     assert_equal(global.key,

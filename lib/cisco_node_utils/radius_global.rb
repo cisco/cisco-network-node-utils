@@ -49,7 +49,7 @@ module Cisco
     end
 
     def default_timeout
-      val = config_get_default('radius_server', 'timeout').to_i
+      val = config_get_default('radius_global', 'timeout').to_i
       val
     end
 
@@ -79,7 +79,7 @@ module Cisco
     end
 
     def default_retransmit_count
-      val = config_get_default('radius_server', 'retransmit').to_i
+      val = config_get_default('radius_global', 'retransmit').to_i
       val
     end
 
