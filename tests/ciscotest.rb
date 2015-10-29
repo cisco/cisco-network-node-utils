@@ -57,7 +57,7 @@ class CiscoTestCase < TestCase
 
   def config(*args)
     if node.client.api == 'gRPC'
-      result = super(*args, 'commit')
+      result = super(*args, 'commit best-effort')
     else
       result = super
     end
