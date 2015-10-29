@@ -24,6 +24,7 @@ module Cisco
     trunk:      'trunk',
     fex_fabric: 'fex-fabric',
     tunnel:     'dot1q-tunnel',
+    fabricpath: 'fabricpath',
   }
 
   # Interface - node utility class for general interface config management
@@ -100,6 +101,22 @@ module Cisco
       config_get_default('interface', 'description')
     end
 
+    def enable_pim_sparse_mode
+      state = config_get('interface', 'pim_sparse_mode', @name)
+      state ? true : false
+    end
+
+    def enable_pim_sparse_mode=(state)
+      no_cmd = (state ? '' : 'no')
+      config_set('interface', 'pim_sparse_mode', @name, no_cmd)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_enable_pim_sparse_mode
+      config_get_default('interface', pim_sparse_mode)
+    end
+
     def encapsulation_dot1q
       val = config_get('interface', 'encapsulation_dot1q', @name)
       return default_encapsulation_dot1q if val.nil?
@@ -118,6 +135,51 @@ module Cisco
 
     def default_encapsulation_dot1q
       config_get_default('interface', 'encapsulation_dot1q')
+    end
+
+    def encapsulation_profile_vni
+      val = config_get('interface', 'encapsulation_vni', @name)
+      debug "val from get is #{val}"
+      return '' if val.nil?
+      val.first.strip
+    end
+
+    def encapsulation_profile_vni=(val)
+      if val.nil?
+        config_set('interface', 'encapsulation_vni_del', @name, val)
+      else
+        config_set('interface', 'encapsulation_vni_add', @name, val)
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def fabricpath_feature
+      fabricpath = config_get('fabricpath', 'feature')
+      fail 'fabricpath_feature not found' if fabricpath.nil?
+      return :disabled if fabricpath.nil?
+      fabricpath.shift.to_sym
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      curr = fabricpath_feature
+      return if curr == fabricpath_set
+
+      case fabricpath_set
+      when :enabled
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+        config_set('fabricpath', 'feature', '')
+      when :disabled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        return
+      when :installed
+        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
+      when :uninstalled
+        config_set('fabricpath', 'feature', 'no') if curr == :enabled
+        config_set('fabricpath', 'feature_install', 'no')
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def fex_feature
@@ -401,7 +463,9 @@ module Cisco
     def switchport_enable_and_mode(mode_set)
       switchport_enable unless switchport
 
-      if (:fex_fabric == mode_set)
+      if (:fabricpath == mode_set)
+        fabricpath_feature_set(:enabled) unless (:enabled == fabricpath_feature)
+      elsif (:fex_fabric == mode_set)
         fex_feature_set(:enabled) unless (:enabled == fex_feature)
       end
       config_set('interface', switchport_mode_lookup_string, @name, '',

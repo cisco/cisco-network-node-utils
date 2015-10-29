@@ -7,10 +7,10 @@
 ---
 fabricpath:
   aggregate_multicast_routes:
-    config_get: "show run fabricpath"
-    config_get_token: '/^fabricpath multicast (aggregate\-routes)/'
-    config_set: "%s fabricpath multicast aggregate-routes"
-    default_value: false
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported'
+    default_value: 'unsupported'
 
   allocate_delay:
     config_get: "show fabricpath timers"
@@ -43,59 +43,56 @@ fabricpath:
     default_value: 10
 
   linkup_delay_always:
-    config_get: "show fabricpath timers"
-    config_get_token: '/^Link\-up Delay Timer\s+:\s+\d+\s+\((always)\)$/'
-    config_set: "%s fabricpath timers linkup-delay always"
-    default_value: false
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported'
+    default_value: 'unsupported'
 
   linkup_delay_enable:
-    config_get: "show fabricpath timers"
-    config_get_token: '/^Link\-up Delay\s+:\s+(\S+)/'
-    config_set: "%s fabricpath linkup-delay"
-    default_value: true
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported'
+    default_value: 'unsupported'
 
   loadbalance_algorithm:
     config_get: "show fabricpath load-balance"
     config_get_token: '/^Hash Control: (\S+)/'
     config_set: "%s fabricpath load-balance %s"
-    default_value: "symmetric"
+    default_value: "source-destination"
 
   loadbalance_multicast_rotate:
-    config_get: "show fabricpath load-balance | begin Ftag"
-    config_get_token: '/^Rotate amount: (\d+)/'
-    default_value: 5
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    default_value: 'unsupported'
 
   loadbalance_multicast_has_vlan:
-    config_get: "show fabricpath load-balance | begin Ftag"
-    config_get_token: '/^Use VLAN: (\S+)/'
-    default_value: false
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    default_value: 'unsupported'
 
   loadbalance_multicast_reset:
-    config_set: "no fabricpath load-balance multicast"
+    config_set: 'unsupported'
 
   loadbalance_multicast_set:
-    config_set: 'fabricpath load-balance multicast <rotate_amt> <inc_vlan>'
+    config_set: 'unsupported <rotate_amt> <inc_vlan>'
 
   loadbalance_unicast_layer:
     config_get: "show fabricpath load-balance"
     config_get_token: '/^L3\/L4 Preference: (\S+)/'
+    config_set: "%s fabricpath load-balance unicast %s"
     default_value: "mixed"
 
   loadbalance_unicast_rotate:
-    config_get: "show fabricpath load-balance"
-    config_get_token: '/^Rotate amount: (\d+)/'
-    default_value: 5
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported %s'
+    default_value: 'unsupported'
 
   loadbalance_unicast_has_vlan:
     config_get: "show fabricpath load-balance"
     config_get_token: '/^Use VLAN: (\S+)/'
-    default_value: false
-
-  loadbalance_unicast_reset:
-    config_set: "no fabricpath load-balance unicast"
-
-  loadbalance_unicast_set:
-    config_set: 'fabricpath load-balance unicast <pref> <rotate_amt> <inc_vlan>'
+    config_set: "%s fabricpath load-balance unicast include-vlan"
+    default_value: true
 
   mode:
     config_get: "show run fabricpath"
@@ -177,28 +174,28 @@ show_version:
 
 supported:
   aggregate_multicast_routes:
-    default_value: true
+    default_value: false
   
   linkup_delay_always:
-    default_value: true
+    default_value: false
   
   linkup_delay_enable:
-    default_value: true
+    default_value: false
     
   loadbalance_algorithm:
-    default_value: 'symmetric'
+    default_value: 'source-destination'
 
   loadbalance_multicast:
     default_value: 'combined'
     
   loadbalance_multicast_rotate:
-    default_value: true
+    default_value: false
    
   loadbalance_unicast:
-    default_value: 'combined'
+    default_value: 'split'
     
   loadbalance_unicast_rotate:
-    default_value: true
+    default_value: false
 
 vlan:
   mode:
