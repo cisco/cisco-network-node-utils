@@ -590,13 +590,13 @@ radius_server:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server host %s.* auth-port (\d+).*$/'
     config_set: '<state> radius-server host <ip> auth-port <port>'
-    default_value: '1812'
+    default_value: 1812
 
   acct-port:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server host %s.* acct-port (\d+).*$/'
     config_set: '<state> radius-server host <ip> acct-port <port>'
-    default_value: '1813'
+    default_value: 1813
 
   timeout:
     config_get: "show running-config radius all"
