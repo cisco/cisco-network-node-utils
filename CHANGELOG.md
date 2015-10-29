@@ -9,6 +9,10 @@ Changelog
 * Added support for name_server (@hunner)
 * Added support for ntp_server (@jonnytpuppet)
 * Added support for ntp_config (@jonnytpuppet)
+* Added support for syslog_server (@jonnytpuppet)
+* Added support for syslog_setting (@jonnytpuppet)
+* Added support for network_snmp (@jonnytpuppet)
+* Added support for radius_server (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks
@@ -24,6 +28,8 @@ Changelog
   * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
+* Added best practices development guide.
+* Added support for radius_global (@jonnytpuppet)
 
 ### Fixed
 
