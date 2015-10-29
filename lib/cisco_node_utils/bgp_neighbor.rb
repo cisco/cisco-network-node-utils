@@ -17,9 +17,9 @@
 # limitations under the License.
 
 require 'ipaddr'
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'bgp')
-require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
+require_relative 'cisco_cmn_utils'
+require_relative 'node_util'
+require_relative 'bgp'
 
 module Cisco
   # RouterBgpNeighbor - node utility class for BGP neighbor configs

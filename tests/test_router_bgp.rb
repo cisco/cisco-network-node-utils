@@ -427,8 +427,6 @@ class TestRouterBgp < CiscoTestCase
     bgp.confederation_id = 55.77
     assert_equal('55.77', bgp.confederation_id,
                  "bgp confederation_id should be set to '55.77'")
-  rescue Cisco::CliError => e
-    raise "See CSCuu76828 (6/9/15) - #{e}"
   end
 
   def test_routerbgp_get_confederation_id_not_configured

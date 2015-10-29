@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'bgp')
+require_relative 'cisco_cmn_utils'
+require_relative 'node_util'
+require_relative 'bgp'
 
 module Cisco
   # RouterBgpAF - node utility class for BGP address-family config management

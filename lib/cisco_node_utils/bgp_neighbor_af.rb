@@ -17,9 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'bgp')
+require_relative 'cisco_cmn_utils'
+require_relative 'node_util'
+require_relative 'bgp'
 
 module Cisco
   # RouterBgpNeighborAF - node utility class for BGP per-neighbor, per-AF config
@@ -563,13 +563,13 @@ module Cisco
 
     # -----------------------
     # <state> send-community [ both | extended | standard ]
-    # NOTE: 'standard' is default and does not nvgen -CSCuv86246
+    # NOTE: 'standard' is default but does not nvgen on some platforms
     # Returns: none, both, extended, or standard
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
       val = val.shift.split.last
-      return 'standard' if val[/send-community/] # Workaround for CSCuv86246
+      return 'standard' if val[/send-community/] # Workaround
       val
     end
 

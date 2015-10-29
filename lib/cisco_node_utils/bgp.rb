@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -280,7 +280,6 @@ module Cisco
       # can only configure a single bgp cluster-id.
       #
       # HACK: specify a dummy id when removing the feature.
-      # CSCuu76807
       dummy_id = 1
       if id == default_cluster_id
         @set_args[:state] = 'no'
@@ -309,7 +308,6 @@ module Cisco
       # because you can only configure a single bgp confed id.
       #
       # HACK: specify a dummy id when removing the feature.
-      # CSCuu76807
       dummy_id = 1
       if id == default_confederation_id
         @set_args[:state] = 'no'
@@ -532,9 +530,7 @@ module Cisco
 
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
-      # 'no bgp router-id'.  IMO this should be possible because you can only
-      # configure a single bgp router-id.  I filed CSCuu76807 to track this
-      # issue but it was closed.  Dummy-id specified to work around this.
+      # 'no bgp router-id'. Dummy-id specified to work around this.
       dummy_id = '1.2.3.4'
       if id == default_router_id
         @set_args[:state] = 'no'

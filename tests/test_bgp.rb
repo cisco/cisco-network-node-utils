@@ -18,7 +18,6 @@
 # limitations under the License.
 
 require 'rubygems'
-gem 'minitest', '>= 2.5.1', '< 5.0.0'
 require 'minitest/autorun'
 
 # BGP Feature tests - we keep the tests in logical order
