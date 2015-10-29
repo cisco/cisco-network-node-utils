@@ -26,7 +26,7 @@ module Cisco
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
-      fail ArgumentError unless name == "default"
+      fail ArgumentError unless name == 'default'
       @name = name.downcase
 
       create if instantiate
@@ -81,7 +81,8 @@ module Cisco
       val = config_get_default('supported', property)
       case property
       when /loadbalance_algorithm/
-        if (val == 'source-destination') && (set_val == 'symmetric' || set_val == 'xor')
+        if (val == 'source-destination') &&
+           (set_val == 'symmetric' || set_val == 'xor')
           val
         else
           set_val
@@ -266,12 +267,12 @@ module Cisco
         config_set('fabricpath', 'loadbalance_multicast_reset')
       else
         rotate = my_munge('loadbalance_multicast_rotate', rotate)
-        has_vlan = (has_vlan == true) ? "include-vlan" : ''
-        config_set('fabricpath', 'loadbalance_multicast_set', 
+        has_vlan = (has_vlan == true) ? 'include-vlan' : ''
+        config_set('fabricpath', 'loadbalance_multicast_set',
                    rotate_amt: rotate, inc_vlan: has_vlan)
       end
     rescue Cisco::CliError => e
-      raise "[Setting loadbalance #{rotate} #{has_vlan}] '#{e.command}' 
+      raise "[Setting loadbalance #{rotate} #{has_vlan}] '#{e.command}'
              : #{e.clierror}"
     end
 
@@ -288,11 +289,11 @@ module Cisco
       return default_loadbalance_unicast_layer if unicast.nil?
       case unicast.first.strip
       when /L4/
-        "layer4"
+        'layer4'
       when /L3/
-        "layer3"
+        'layer3'
       when /Mixed/
-        "mixed"
+        'mixed'
       end
     end
 
@@ -314,9 +315,9 @@ module Cisco
       else
         config_set('fabricpath', 'loadbalance_unicast_layer', '', val)
       end
-      rescue Cisco::CliError => e
-        raise "[Setting loadbalance layer #{val} ] '#{e.command}'
-              : #{e.clierror}"
+    rescue Cisco::CliError => e
+      raise "[Setting loadbalance layer #{val} ] '#{e.command}'
+            : #{e.clierror}"
     end
 
     def split_loadbalance_unicast_rotate=(val)
@@ -325,9 +326,9 @@ module Cisco
       else
         config_set('fabricpath', 'loadbalance_unicast_rotate', '', val)
       end
-      rescue Cisco::CliError => e
-        raise "[Setting loadbalance rotate #{val} ] '#{e.command}'
-              : #{e.clierror}"
+    rescue Cisco::CliError => e
+      raise "[Setting loadbalance rotate #{val} ] '#{e.command}'
+            : #{e.clierror}"
     end
 
     def split_loadbalance_unicast_has_vlan=(val)
@@ -336,9 +337,9 @@ module Cisco
       else
         config_set('fabricpath', 'loadbalance_unicast_has_vlan', '')
       end
-      rescue Cisco::CliError => e
-        raise "[Setting loadbalance has_vlan #{val} ] '#{e.command}'
-              : #{e.clierror}"
+    rescue Cisco::CliError => e
+      raise "[Setting loadbalance has_vlan #{val} ] '#{e.command}'
+            : #{e.clierror}"
     end
 
     def loadbalance_unicast=(layer, rotate, has_vlan)
@@ -348,15 +349,15 @@ module Cisco
           config_set('fabricpath', 'loadbalance_unicast_reset')
         else
           rotate = my_munge('loadbalance_unicast_rotate', rotate)
-          has_vlan = (has_vlan == true) ? "include-vlan" : ''
-          config_set('fabricpath', 'loadbalance_unicast_set', 
+          has_vlan = (has_vlan == true) ? 'include-vlan' : ''
+          config_set('fabricpath', 'loadbalance_unicast_set',
                      pref: layer, rotate_amt: rotate, inc_vlan: has_vlan)
         end
-     else
-       split_loadbalance_unicast_layer = layer
-       split_loadbalance_unicast_rotate = rotate
-       split_loadbalance_unicast_has_vlan = has_vlan
-     end
+      else
+        self.split_loadbalance_unicast_layer = layer
+        self.split_loadbalance_unicast_rotate = rotate
+        self.split_loadbalance_unicast_has_vlan = has_vlan
+      end
     rescue Cisco::CliError => e
       raise "[Setting loadbalance #{layer} #{rotate} #{has_vlan}] '#{e.command}'
             : #{e.clierror}"
@@ -426,6 +427,5 @@ module Cisco
     def default_transition_delay
       config_get_default('fabricpath', 'transition_delay')
     end
-
   end # class
 end # module
