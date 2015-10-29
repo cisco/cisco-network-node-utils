@@ -48,28 +48,28 @@ class TestNode < TestCase
 
   def test_node_connect_one_argument
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(address)
     end
   end
 
   def test_node_connect_two_arguments
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(username, password)
     end
   end
 
   def test_node_connect_nil_username
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(address, nil, password)
     end
   end
 
   def test_node_connect_invalid_username
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(address, node, password)
     end
   end
@@ -83,14 +83,14 @@ class TestNode < TestCase
 
   def test_node_connect_nil_password
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(address, username, nil)
     end
   end
 
   def test_node_connect_invalid_password
     node = Node.instance
-    assert_raises(TypeError) do
+    assert_raises(TypeError, ArgumentError) do
       node.connect(address, username, node)
     end
   end
