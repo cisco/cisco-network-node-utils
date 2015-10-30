@@ -39,9 +39,9 @@ module Cisco
 
     def self.dnsdomains(vrf=nil)
       if vrf.nil?
-        domains = config_get('dnsclient', 'domain')
+        domains = config_get('dnsclient', 'domain_list')
       else
-        domains = config_get('dnsclient', 'domain_vrf', vrf: vrf)
+        domains = config_get('dnsclient', 'domain_list_vrf', vrf: vrf)
       end
       return {} if domains.nil?
 
@@ -58,20 +58,20 @@ module Cisco
 
     def create
       if @vrf.nil?
-        config_set('dnsclient', 'domain',
+        config_set('dnsclient', 'domain_list',
                    state: '', name: @name)
       else
-        config_set('dnsclient', 'domain_vrf',
+        config_set('dnsclient', 'domain_list_vrf',
                    state: '', name: @name, vrf: @vrf)
       end
     end
 
     def destroy
       if @vrf.nil?
-        config_set('dnsclient', 'domain',
+        config_set('dnsclient', 'domain_list',
                    state: 'no', name: @name)
       else
-        config_set('dnsclient', 'domain_vrf',
+        config_set('dnsclient', 'domain_list_vrf',
                    state: 'no', name: @name, vrf: @vrf)
       end
     end

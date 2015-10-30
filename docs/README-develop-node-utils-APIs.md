@@ -14,7 +14,7 @@
 
 ## <a name="overview">Overview</a>
 
-This document is a HowTo guide for writing new cisco_node_utils APIs. The APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).
+This document is a HowTo guide for writing new cisco_node_utils APIs. The APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).  In addition to this guide, please reference the [cisco_node_utils development 'best practices' guide.](./README-develop-best-practices.md)
 
 There are multiple components involved when creating new resources. This document focuses on the cisco_node_utils API, command reference YAML files, and minitests.
 
@@ -31,7 +31,7 @@ gem install cisco_nxapi
 gem install rake
 gem install rubocop
 gem install simplecov
-gem install minitest --version 4.3.2
+gem install minitest
 ```
 
 **NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
@@ -41,7 +41,7 @@ gem install --user-install cisco_nxapi
 gem install --user-install rake
 gem install --user-install rubocop
 gem install --user-install simplecov
-gem install --user-install minitest --version 4.3.2
+gem install --user-install minitest
 ```
 
 ## <a name="clone">Start here: Fork and Clone the Repo</a>
@@ -437,22 +437,17 @@ end
 Now run the test:
 
 ```bash
-% ruby-1.9.3-p0 test_router_eigrp.rb -v -- 192.168.0.1 admin admin
+% ruby test_router_eigrp.rb -v -- 192.168.0.1 admin admin
 Run options: -v -- --seed 56593
 
-# Running tests:
+# Running:
 
-CiscoTestCase#test_placeholder =
-Ruby Version - 1.9.3
-Node in CiscoTestCase Class: 192.168.0.1
-Platform:
+Node under test:
   - name  - my_n3k
   - type  - N3K-C3132Q-40GX
   - image -
 
 2.90 s = .
-TestCase#test_placeholder = 0.92 s = .
-TestRouterEigrp#test_placeholder = 0.97 s = .
 TestRouterEigrp#test_router_create_destroy_multiple = 10.77 s = .
 TestRouterEigrp#test_router_create_destroy_one = 6.14 s = .
 TestRouterEigrp#test_router_maximum_paths = 9.41 s = .
@@ -461,7 +456,7 @@ TestRouterEigrp#test_router_shutdown = 6.40 s = .
 
 Finished tests in 37.512356s, 0.1866 tests/s, 0.3199 assertions/s.
 
-7 tests, 12 assertions, 0 failures, 0 errors, 0 skips
+5 tests, 12 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 ### <a name="comp_lint">Step 4. rubocop: router eigrp</a>

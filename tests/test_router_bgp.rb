@@ -17,8 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/bgp', __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/bgp'
 
 # TestRouterBgp - Minitest for RouterBgp class
 class TestRouterBgp < CiscoTestCase
@@ -26,10 +26,7 @@ class TestRouterBgp < CiscoTestCase
     # Disable feature bgp before each test to ensure we
     # are starting with a clean slate for each test.
     super
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('end')
-    node.cache_flush
+    config('no feature bgp')
   end
 
   def get_routerbgp_match_line(as_number, vrf='default')
@@ -43,23 +40,18 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_collection_empty
-    @device.cmd('configure terminal')
-    @device.cmd('no feature bgp')
-    @device.cmd('end')
+    config('no feature bgp')
     node.cache_flush
     routers = RouterBgp.routers
     assert_empty(routers, 'RouterBgp collection is not empty')
   end
 
   def test_routerbgp_collection_not_empty
-    @device.cmd('configure terminal')
-    @device.cmd('feature bgp')
-    @device.cmd('router bgp 55')
-    @device.cmd('vrf blue')
-    @device.cmd('vrf red')
-    @device.cmd('vrf white')
-    @device.cmd('end')
-    node.cache_flush
+    config('feature bgp',
+           'router bgp 55',
+           'vrf blue',
+           'vrf red',
+           'vrf white')
     routers = RouterBgp.routers
     refute_empty(routers, 'RouterBgp collection is empty')
     # validate the collection
@@ -427,8 +419,6 @@ class TestRouterBgp < CiscoTestCase
     bgp.confederation_id = 55.77
     assert_equal('55.77', bgp.confederation_id,
                  "bgp confederation_id should be set to '55.77'")
-  rescue Cisco::CliError => e
-    raise "See CSCuu76828 (6/9/15) - #{e}"
   end
 
   def test_routerbgp_get_confederation_id_not_configured

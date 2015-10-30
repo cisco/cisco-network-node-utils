@@ -9,6 +9,10 @@ Changelog
 * Added support for name_server (@hunner)
 * Added support for ntp_server (@jonnytpuppet)
 * Added support for ntp_config (@jonnytpuppet)
+* Added support for syslog_server (@jonnytpuppet)
+* Added support for syslog_setting (@jonnytpuppet)
+* Added support for network_snmp (@jonnytpuppet)
+* Added support for radius_server (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks
@@ -24,17 +28,19 @@ Changelog
   * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
+* Added best practices development guide.
+* Added support for radius_global (@jonnytpuppet)
 
 ### Fixed
 
 * Fixed several bugs in `SnmpUser.(auth|priv)_password_equal?`
-* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 * Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
 * Added a cache_flush call in `Platform.chassis` to work around an infrequent issue.
 
 ### Changed
 
-* Doc change: Add git config comments
+* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
+* Added git config comments
 * Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
 * Now requires Minitest ~> 5.0 instead of Minitest < 5.0.
 

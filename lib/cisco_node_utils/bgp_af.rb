@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'cisco_cmn_utils')
-require File.join(File.dirname(__FILE__), 'node_util')
-require File.join(File.dirname(__FILE__), 'bgp')
+require_relative 'cisco_cmn_utils'
+require_relative 'node_util'
+require_relative 'bgp'
 
 module Cisco
   # RouterBgpAF - node utility class for BGP address-family config management
@@ -133,7 +133,12 @@ module Cisco
       route_map.strip!
       if route_map.empty?
         state = 'no'
-        route_map = next_hop_route_map
+        # Dummy routemap required if not configured.
+        if next_hop_route_map.empty?
+          route_map = 'dummy_routemap'
+        else
+          route_map = next_hop_route_map
+        end
       end
       set_args_keys(state: state, route_map: route_map)
       config_set('bgp_af', 'next_hop_route_map', @set_args)
@@ -206,7 +211,12 @@ module Cisco
       route_map.strip!
       if route_map.empty?
         state = 'no'
-        route_map = additional_paths_selection
+        # Dummy routemap required if not configured.
+        if additional_paths_selection.empty?
+          route_map = 'dummy_routemap'
+        else
+          route_map = additional_paths_selection
+        end
       end
       set_args_keys(state: state, route_map: route_map)
       config_set('bgp_af', 'additional_paths_selection', @set_args)
@@ -239,12 +249,12 @@ module Cisco
     # dampen_igp_metric
     def dampen_igp_metric
       result = config_get('bgp_af', 'dampen_igp_metric', @get_args)
-      result.nil? ? default_dampen_igp_metric : result.first.to_i
+      result ? result.first.to_i : nil
     end
 
     def dampen_igp_metric=(val)
-      set_args_keys(state: (val == default_dampen_igp_metric) ? 'no' : '',
-                    num:   (val == default_dampen_igp_metric) ? '' : val)
+      set_args_keys(state: (val.nil?) ? 'no' : '',
+                    num:   (val.nil?) ? '' : val)
       config_set('bgp_af', 'dampen_igp_metric', @set_args)
     end
 
@@ -287,6 +297,66 @@ module Cisco
       end
 
       val
+    end
+
+    # Return true if dampening is enabled, else false.
+    def dampening_state
+      !dampening.nil?
+    end
+
+    # For all of the following dampening getters, half_time, reuse_time,
+    # suppress_time, and max_suppress_time, return nil if dampening
+    # is not configured, but also return nil if a dampening routemap
+    # is configured because they are mutually exclusive.
+    def dampening_half_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[0].to_i
+      else
+        default_dampening_half_time
+      end
+    end
+
+    def dampening_reuse_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[1].to_i
+      else
+        default_dampening_reuse_time
+      end
+    end
+
+    def dampening_suppress_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[2].to_i
+      else
+        default_dampening_suppress_time
+      end
+    end
+
+    def dampening_max_suppress_time
+      return nil if dampening.nil? || dampening_routemap_configured?
+      if dampening.is_a?(Array)
+        dampening[3].to_i
+      else
+        default_dampening_max_suppress_time
+      end
+    end
+
+    def dampening_routemap
+      if dampening.nil? || (dampening.is_a?(String) && dampening.size > 0)
+        return dampening
+      end
+      default_dampening_routemap
+    end
+
+    def dampening_routemap_configured?
+      if dampening_routemap.is_a?(String) && dampening_routemap.size > 0
+        true
+      else
+        false
+      end
     end
 
     def dampening=(damp_array)
@@ -344,6 +414,30 @@ module Cisco
       config_get_default('bgp_af', 'dampening')
     end
 
+    def default_dampening_state
+      config_get_default('bgp_af', 'dampening_state')
+    end
+
+    def default_dampening_max_suppress_time
+      config_get_default('bgp_af', 'dampening_max_suppress_time')
+    end
+
+    def default_dampening_half_time
+      config_get_default('bgp_af', 'dampening_half_time')
+    end
+
+    def default_dampening_reuse_time
+      config_get_default('bgp_af', 'dampening_reuse_time')
+    end
+
+    def default_dampening_routemap
+      config_get_default('bgp_af', 'dampening_routemap')
+    end
+
+    def default_dampening_suppress_time
+      config_get_default('bgp_af', 'dampening_suppress_time')
+    end
+
     #
     # maximum_paths (Getter/Setter/Default)
     #
@@ -385,106 +479,68 @@ module Cisco
     end
 
     #
-    # Network (Getter/Setter/Default)
+    # Networks (Getter/Setter/Default)
     #
-    # Get list of all networks configured on the device indexed
-    # under the asn/vrf/af specified in @get_args
+
+    # Build an array of all network commands currently on the device
     def networks
-      nets = config_get('bgp_af', 'network', @get_args)
-      if nets.nil?
-        default_networks
-      else
-        # Removes nested nil Array elements.
-        nets.map { |e| e.is_a?(Array) ? e.compact : e }.compact
-      end
+      cmds = config_get('bgp_af', 'network', @get_args)
+      cmds.nil? ? default_networks : cmds.each(&:compact!)
     end
 
-    # Add or remove a single network on the device under
-    # the asn/vrf/af specified in @get_args
-    def network_set(network, route_map=nil, remove=false)
-      # Process ip/prefix format
-      network = Utils.process_network_mask(network)
-      state = remove ? 'no' : ''
-      route_map = "route-map #{route_map}" unless route_map.nil?
-      set_args_keys(state: state, network: network, route_map: route_map)
-      config_set('bgp_af', 'network', @set_args)
-    end
-
-    # Wrapper for removing networks
-    def network_remove(network, route_map=nil)
-      network_set(network, route_map, true)
-    end
-
-    # Create list of networks to add and/or remove from the
-    # device under asn/vrf/af
-    def networks_delta(should_list)
-      # TODO: Make sure to validate array of arrays containing
-      # [network, routemap] tuples in puppet/chef
-      # Munge:
-      # should_list[0].class should be an array
-      # should_list[1].class should be a string
-
-      # Compact should_list that contains nested arrays elements
-      # to remove any nil items first.
-      # Rebuild should_list without any nil items and process
-      # network mask.
-      should_list_new = []
-      should_list.each do |network, routemap|
-        network = Utils.process_network_mask(network)
-        if routemap.nil?
-          should_list_new << [network]
-        else
-          should_list_new << [network, routemap]
-        end
-      end
-      delta = { add:    should_list_new - networks,
-                remove: networks - should_list_new }
-      # If we are updating routemaps for networks that
-      # already exist delete these from the :remove list
-      #
-      # TODO: Investigate better ways to do this given it's
-      # O(N*M) - O(<size of add_list> * <size of remove_list>)
-      delta[:add].each do |net, _|
-        delta[:remove].delete(scrub_remove_list(net, delta[:remove]))
-      end
-      delta
-    end
-
-    def scrub_remove_list(network, remove_list)
-      remove_item = []
-      remove_list.each do |net, rtmap|
-        remove_item = [net, rtmap] if net.to_s == network.to_s
-        return remove_item if remove_item.size > 0
-      end
-      remove_item
-    end
-
-    def networks=(delta_hash)
-      # Nothing to do if both add and remove lists are empty
-      return if delta_hash[:add].size == 0 &&
-                delta_hash[:remove].size == 0
-      # Process add list
-      if delta_hash[:add].size > 0
-        CiscoLogger.debug('Adding the following networks to ' \
-          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" \
-          "#{delta_hash[:add]}")
-        delta_hash[:add].each do |network, rtmap|
-          network_set(network, rtmap)
-        end
-      end
-      # Process remove list
-      if delta_hash[:remove].size > 0 # rubocop:disable Style/GuardClause
-        CiscoLogger.debug('Removing the following networks from ' \
-          "asn: #{@asn} vrf: #{@vrf} af: #{@afi} #{@safi}:\n" \
-          "#{delta_hash[:remove]}")
-        delta_hash[:remove].each do |network, rtmap|
-          network_remove(network, rtmap)
+    # networks setter.
+    # Processes a hash of network commands from delta_add_remove().
+    def networks=(should_list)
+      delta_hash = Utils.delta_add_remove(should_list, networks)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |network, route_map|
+          state = (action == :add) ? '' : 'no'
+          network = Utils.process_network_mask(network)
+          route_map = "route-map #{route_map}" unless route_map.nil?
+          set_args_keys(state: state, network: network, route_map: route_map)
+          config_set('bgp_af', 'network', @set_args)
         end
       end
     end
 
     def default_networks
       config_get_default('bgp_af', 'network')
+    end
+
+    #
+    # Redistribute (Getter/Setter/Default)
+    #
+
+    # Build an array of all redistribute commands currently on the device
+    def redistribute
+      cmds = config_get('bgp_af', 'redistribute', @get_args)
+      cmds.nil? ? default_redistribute : cmds.each(&:compact!)
+    end
+
+    # redistribute setter.
+    # Process a hash of redistribute commands from delta_add_remove().
+    def redistribute=(should)
+      delta_hash = Utils.delta_add_remove(should, redistribute)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("redistribute delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |protocol, policy|
+          state = (action == :add) ? '' : 'no'
+          set_args_keys(state: state, protocol: protocol, policy: policy)
+
+          # route-map/policy may be optional on some platforms
+          cmd = policy.nil? ? 'redistribute' : 'redistribute_policy'
+          config_set('bgp_af', cmd, @set_args)
+        end
+      end
+    end
+
+    def default_redistribute
+      config_get_default('bgp_af', 'redistribute')
     end
   end
 end

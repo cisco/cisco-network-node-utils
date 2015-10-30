@@ -1,32 +1,38 @@
 # Rubocop configuration
 
-# Baseline code complexity metrics - we should try and reduce these over time
+# Code complexity metrics are tracked separately for lib/ vs. tests/
+# See lib/.rubocop.yml and tests/.rubocop.yml
 Metrics/AbcSize:
-  Max: 50
+  Enabled: true
 
 Metrics/CyclomaticComplexity:
-  Max: 17
+  Enabled: true
+
+Metrics/MethodLength:
+  Enabled: true
+  Exclude:
+    - docs/*.rb
+
+Metrics/ParameterLists:
+  Enabled: true
+
+Metrics/PerceivedComplexity:
+  Enabled: true
 
 # Template files have long lines before tag replacement
 Metrics/LineLength:
   Exclude:
     - docs/*.rb
 
-Metrics/MethodLength:
-  Max: 86
-
-Metrics/ParameterLists:
-  Max: 9
-
-Metrics/PerceivedComplexity:
-  Max: 19
-
 #
 # Team preferences different from Rubocop defaults:
 #
 
-# Test files and large providers can get very large
+# We don't find either of these to be useful:
 Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
   Enabled: false
 
 # We like table alignment for readability
