@@ -5,24 +5,24 @@ Changelog
 
 ### New feature support
 * BGP (bgp, bgp_af, bgp_neighbor, bgp_neighbor_af)
-** Added support for bgp (@mikewiebe)
-** Added support for bgp_af (@richwellum)
-** Added support for bgp_neighbor (@jyang09)
-** Added support for bgp_neighbor_af (@chrisvanheuveln)
+  * Added support for bgp (@mikewiebe)
+  * Added support for bgp_af (@richwellum)
+  * Added support for bgp_neighbor (@jyang09)
+  * Added support for bgp_neighbor_af (@chrisvanheuveln)
 * NTP (ntp_config, ntp_server)
-** Added support for ntp_config (@jonnytpuppet)
-** Added support for ntp_server (@jonnytpuppet)
+  * Added support for ntp_config (@jonnytpuppet)
+  * Added support for ntp_server (@jonnytpuppet)
 * SYSLOG (syslog_server, syslog_setting)
-** Added support for syslog_server (@jonnytpuppet)
-** Added support for syslog_setting (@jonnytpuppet)
+  * Added support for syslog_server (@jonnytpuppet)
+  * Added support for syslog_setting (@jonnytpuppet)
 * RADIUS (radius_global, radius_server)
-** Added support for radius_global (@jonnytpuppet)
-** Added support for radius_server (@jonnytpuppet)
+  * Added support for radius_global (@jonnytpuppet)
+  * Added support for radius_server (@jonnytpuppet)
 * UNCATEGORIZED 
-** Added support for dns_domain (@hunner)
-** Added support for domain_name (@bmgen)
-** Added support for name_server (@hunner)
-** Added support for network_snmp (@jonnytpuppet)
+  * Added support for dns_domain (@hunner)
+  * Added support for domain_name (@bmgen)
+  * Added support for name_server (@hunner)
+  * Added support for network_snmp (@jonnytpuppet)
 
 ### Added
 
