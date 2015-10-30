@@ -70,7 +70,6 @@ module Cisco
     # @example config_get("show_version", "system_image")
     # @example config_get("ospf", "router_id",
     #                      {:name => "green", :vrf => "one"})
-    # rubocop:disable Metrics/AbcSize
     def config_get(feature, name, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
