@@ -3,13 +3,13 @@ inherit_from: ../.rubocop.yml
 # Code complexity metrics for the tests/ subdirectory
 
 Metrics/AbcSize:
-  Enabled: false
+  Max: 149 # ouch!
 
 Metrics/CyclomaticComplexity:
   Max: 15
 
 Metrics/MethodLength:
-  Max: 86
+  Max: 88
 
 Metrics/PerceivedComplexity:
   Max: 17

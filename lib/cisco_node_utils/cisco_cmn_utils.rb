@@ -58,6 +58,21 @@ module Cisco
     end
   end
 
+  # General utility class
+  class Utils
+    require 'ipaddr'
+
+    def self.length_to_bitmask(length)
+      IPAddr.new('255.255.255.255').mask(length).to_s
+    end
+
+    def self.bitmask_to_length(bitmask)
+      # Convert bitmask to a 32-bit integer,
+      # convert that to binary, and count the 1s
+      IPAddr.new(bitmask).to_i.to_s(2).count('1')
+    end
+  end
+
   # ChefUtils - helper class for Chef code generation
   class ChefUtils
     def self.generic_prop_set(klass, rlbname, props)

@@ -44,13 +44,21 @@ feature_lacp:
   config_set: "%s feature lacp"
 
 feature_vlan:
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature interface-vlan$/'
-  config_set: "%s feature interface-vlan"
+  grpc:
+    config_get: ~
+    config_set: ~
+  nxapi:
+    config_get: "show running | i ^feature"
+    config_get_token: '/^feature interface-vlan$/'
+    config_set: "%s feature interface-vlan"
 
 ipv4_addr_mask:
-  config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
-  config_set_append: "%s ip address %s"
+  nxapi:
+    config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
+    config_set_append: "%s ip address %s"
+  grpc:
+    config_get_token_append: '/^ipv4 address ([0-9\.]+) (.*)/'
+    config_set_append: '%s ipv4 address %s'
 
 ipv4_address:
   default_value: ~
@@ -59,11 +67,18 @@ ipv4_netmask_length:
   default_value: ~
 
 ipv4_proxy_arp:
-  config_get_token_append: '/^ip proxy-arp$/'
-  config_set_append: "%s ip proxy-arp"
   default_value: false
+  nxapi:
+    config_get_token_append: '/^ip proxy-arp$/'
+    config_set_append: "%s ip proxy-arp"
+  grpc:
+    config_get_token_append: '/^proxy-arp$/'
+    config_set_append: "%s proxy-arp"
 
 ipv4_redirects_loopback:
+  test_config_result:
+    false: RuntimeError
+    true: RuntimeError
   nxapi:
     /N7K/:
       default_value: false
@@ -74,19 +89,39 @@ ipv4_redirects_loopback:
       config_get_token_append: '/^((?:no )?ip redirects)$/'
       config_set_append: "%s ip redirects"
       default_value: true
-  test_config_get_regex: ['/^\s+no ip redirects/']
-  test_config_result:
-    false: RuntimeError
-    true: RuntimeError
+      test_config_get_regex: [
+      '/^\s+ip redirects/',
+      '/^\s+no ip redirects/'
+      ]
+  grpc:
+    config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
+    config_set_append: "%s ipv4 redirects"
+    default_value: false
+    test_config_get_regex: [
+    '/^\s+ipv4 redirects/',
+    '/^\s+no ipv4 redirects/'
+    ]
 
 ipv4_redirects_other_interfaces:
-  config_get_token_append: '/^((?:no )?ip redirects)$/'
-  config_set_append: "%s ip redirects"
-  default_value: true
-  test_config_get_regex: ['/^\s+no ip redirects/']
   test_config_result:
     false: false
     true: true
+  nxapi:
+    config_get_token_append: '/^((?:no )?ip redirects)$/'
+    config_set_append: "%s ip redirects"
+    default_value: true
+    test_config_get_regex: [
+    '/^\s+ip redirects/',
+    '/^\s+no ip redirects/'
+    ]
+  grpc:
+    config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
+    config_set_append: "%s ipv4 redirects"
+    default_value: false
+    test_config_get_regex: [
+    '/^\s+ipv4 redirects/',
+    '/^\s+no ipv4 redirects/'
+    ]
 
 mtu:
   config_get_token_append: '/^mtu (.*)$/'
@@ -94,19 +129,31 @@ mtu:
   default_value: 1500
 
 negotiate_auto_ethernet:
-  /(N7K|C3064)/:
-    config_get: ~
-    config_set: ~
-    config_get_token: ~
-    default_value: false
-  else:
-    config_get_token_append: '/^negotiate auto$/'
-    config_set_append: "%s negotiate auto"
-    default_value: true
-  test_config_get_regex: [
-  '/^\s+no negotiate auto/',
-  '/^\s+negotiate auto/'
-  ]
+  nxapi:
+    test_config_get_regex: [
+    '/^\s+no negotiate auto/',
+    '/^\s+negotiate auto/'
+    ]
+    /(N7K|C3064)/:
+      config_get: ~
+      config_set: ~
+      config_get_token: ~
+      default_value: false
+    else:
+      config_get_token_append: '/^negotiate auto$/'
+      config_set_append: "%s negotiate auto"
+      default_value: true
+  grpc:
+    # TODO: which XR platforms *do* support this?
+    /XRV/:
+      config_get: ~
+      config_set: ~
+      config_get_token: ~
+      default_value: false
+    else:
+      config_get_token_append: '^/negotiation auto$/'
+      config_set_append: "%s negotiation auto"
+      default_value: true
 
 negotiate_auto_other_interfaces:
   config_get: ~
@@ -117,19 +164,24 @@ negotiate_auto_other_interfaces:
     true: RuntimeError
 
 negotiate_auto_portchannel:
-  /N7K/:
-    config_get: ~
-    config_get_token: ~
-    config_set: ~
-    default_value: false
-  else:
-    config_get_token_append: '/^negotiate auto$/'
-    config_set_append: "%s negotiate auto"
+  nxapi:
+    test_config_get_regex: [
+    '/^\s+no negotiate auto/',
+    '/^\s+negotiate auto/'
+    ]
+    /N7K/:
+      config_get: ~
+      config_get_token: ~
+      config_set: ~
+      default_value: false
+    else:
+      config_get_token_append: '/^negotiate auto$/'
+      config_set_append: "%s negotiate auto"
+      default_value: true
+  grpc:
+    config_get_token_append: '^/negotiation auto$/'
+    config_set_append: "%s negotiation auto"
     default_value: true
-  test_config_get_regex: [
-  '/^\s+no negotiate auto/',
-  '/^\s+negotiate auto/'
-  ]
 
 shutdown:
   config_get_token_append: '/^shutdown$/'
@@ -157,7 +209,8 @@ shutdown_unknown:
   default_value: true
 
 shutdown_vlan:
-  default_value: true
+  nxapi:
+    default_value: true
 
 svi_autostate:
   config_get_token_append: '/^autostate$/'
@@ -226,9 +279,13 @@ system_default_switchport_shutdown:
   # default_value: n/a. This is a user-configurable system default.
 
 vrf:
-  config_get_token_append: '/^vrf member (.*)/'
-  config_set_append: "%s vrf member %s"
   default_value: ""
+  nxapi:
+    config_get_token_append: '/^vrf member (.*)/'
+    config_set_append: "%s vrf member %s"
+  grpc:
+    config_get_token_append: '/^vrf (.*)/'
+    config_set_append: "%s vrf %s"
 
 vtp:
   config_get_token_append: '/^vtp *$/'

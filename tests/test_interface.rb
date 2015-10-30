@@ -14,24 +14,12 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 
 include Cisco
 
 # TestInterface - Minitest for general functionality of the Interface class.
 class TestInterface < CiscoTestCase
-  # rubocop:disable Style/AlignHash
-  SWITCHPORT_SHUTDOWN_HASH = {
-    'shutdown_ethernet_switchport_shutdown'     =>
-      ['system default switchport', 'system default switchport shutdown'],
-    'shutdown_ethernet_switchport_noshutdown'   =>
-      ['system default switchport', 'no system default switchport shutdown'],
-    'shutdown_ethernet_noswitchport_shutdown'   =>
-      ['no system default switchport', 'system default switchport shutdown'],
-    'shutdown_ethernet_noswitchport_noshutdown' =>
-      ['no system default switchport', 'no system default switchport shutdown'],
-  }
-  # rubocop:enable Style/AlignHash
-
   DEFAULT_IF_ACCESS_VLAN = 1
   DEFAULT_IF_DESCRIPTION = ''
   DEFAULT_IF_IP_ADDRESS = nil
@@ -42,31 +30,86 @@ class TestInterface < CiscoTestCase
   IF_DESCRIPTION_SIZE = 243 # SIZE = VSH Max 255 - "description " keyword
   IF_VRF_MAX_LENGTH = 32
 
+  def setup
+    super
+    if node.client.api == 'NXAPI'
+      @port_channel = 'port-channel'
+      # rubocop:disable Style/AlignHash
+      @switchport_shutdown_hash = {
+        'shutdown_ethernet_switchport_shutdown'     =>
+          ['system default switchport',
+           'system default switchport shutdown'],
+        'shutdown_ethernet_switchport_noshutdown'   =>
+          ['system default switchport',
+           'no system default switchport shutdown'],
+        'shutdown_ethernet_noswitchport_shutdown'   =>
+          ['no system default switchport',
+           'system default switchport shutdown'],
+        'shutdown_ethernet_noswitchport_noshutdown' =>
+          ['no system default switchport',
+           'no system default switchport shutdown'],
+      }
+      # rubocop:enable Style/AlignHash
+    elsif node.client.api == 'gRPC'
+      @port_channel = 'Bundle-Ether'
+      @switchport_shutdown_hash = {
+        # Not really applicable to XR
+        'shutdown_ethernet_noswitchport_shutdown' => [],
+      }
+    end
+  end
+
+  def ipv4
+    if node.client.api == 'NXAPI'
+      'ip'
+    elsif node.client.api == 'gRPC'
+      'ipv4'
+    end
+  end
+
+  def ipv4_address_pattern(address, length)
+    if node.client.api == 'NXAPI'
+      %r{^\s+ip address #{address}/#{length}}
+    elsif node.client.api == 'gRPC'
+      mask = Utils.length_to_bitmask(length)
+      /^\s+ipv4 address #{address} #{mask}/
+    end
+  end
+
   def interface_ipv4_config(ifname, address, length,
                             do_config=true, secip=false)
     if do_config
       if !secip
         config("interface #{ifname}",
                'no switchport',
-               "ip address #{address}/#{length}")
+               "#{ipv4} address #{address}/#{length}")
       else
         config("interface #{ifname}",
                'no switchport',
-               "ip address #{address}/#{length} secondary")
+               "#{ipv4} address #{address}/#{length} secondary")
       end
     else
       config("interface #{ifname}",
-             'no ip address', # This will remove both primary and secondary
+             "no #{ipv4} address", # This will remove both primary and secondary
              'switchport')
     end
   end
 
   def show_cmd(name)
-    "show run interface #{name} all | no-more"
+    if node.client.api == 'NXAPI'
+      "show run interface #{name} all | no-more"
+    else
+      "show run interface #{name}"
+    end
   end
 
   def interface_count
-    output = @device.cmd('show run interface all | inc interface | no-more')
+    if node.client.api == 'NXAPI'
+      cmd = 'show run interface all | inc interface | no-more'
+    elsif node.client.api == 'gRPC'
+      cmd = 'show run interface | inc interface'
+    end
+    output = @device.cmd(cmd)
     # Next line needs to be done because sh run interface all also shows
     # ospf interface related config
     arr = output.split("\n").select { |str| str.start_with?('interface') }
@@ -111,7 +154,7 @@ class TestInterface < CiscoTestCase
     inttype_h.each do |k, v|
       interface = v[:interface]
 
-      SWITCHPORT_SHUTDOWN_HASH.each do |lookup_string, config_array|
+      @switchport_shutdown_hash.each do |lookup_string, config_array|
         # puts "lookup_string: #{lookup_string}"
 
         # Configure the system default shwitchport and shutdown settings
@@ -211,7 +254,7 @@ class TestInterface < CiscoTestCase
       address = v[:address_len].split('/').first
       length = v[:address_len].split('/').last.to_i
 
-      pattern = %r{^\s+ip address #{address}/#{length}}
+      pattern = ipv4_address_pattern(address, length)
       assert_show_match(command: show_cmd(interface.name),
                         pattern: pattern)
       assert_equal(address, interface.ipv4_address,
@@ -231,7 +274,6 @@ class TestInterface < CiscoTestCase
       # Unconfigure ipaddress
       interface.ipv4_addr_mask_set(interface.default_ipv4_address,
                                    interface.default_ipv4_netmask_length)
-      pattern = %r{^\s+ip address #{address}/#{length}}
       refute_show_match(command: show_cmd(interface.name),
                         pattern: pattern,
                         msg:     "ipv4 address still present in CLI for #{k}")
@@ -253,7 +295,11 @@ class TestInterface < CiscoTestCase
       cmd = show_cmd(interface.name)
 
       # puts "value - #{v[:proxy_arp]}"
-      pattern = (/^\s+ip proxy-arp/)
+      if node.client.api == 'NXAPI'
+        pattern = /^\s+ip proxy-arp/
+      elsif node.client.api == 'gRPC'
+        pattern = /^\s+proxy-arp/
+      end
       if v[:proxy_arp]
         assert_show_match(command: cmd, pattern: pattern)
       else
@@ -306,18 +352,30 @@ class TestInterface < CiscoTestCase
                    "ipv4 redirects default incorrect for interface #{k}")
 
       if ref.config_set?
-        pattern = ref.test_config_get_regex[0]
         cmd = show_cmd(interface.name)
-        if k.include?('loopback')
+        if k.include?('loopback') && node.client.api == 'NXAPI'
+          # Loopbacks don't support redirects on NX-OS but do on XR
           assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
         else
           interface.ipv4_redirects = true
-          assert(interface.ipv4_redirects, "Couldn't set redirects to true")
-          refute_show_match(command: cmd, pattern: pattern)
+          assert(interface.ipv4_redirects,
+                 "Couldn't set redirects to true for #{interface}")
+          unless interface.default_ipv4_redirects == true
+            assert_show_match(command: cmd,
+                              pattern: ref.test_config_get_regex[0])
+          end
+          refute_show_match(command: cmd,
+                            pattern: ref.test_config_get_regex[1])
 
           interface.ipv4_redirects = false
-          refute(interface.ipv4_redirects, "Couldn't set redirects to false")
-          assert_show_match(command: cmd, pattern: pattern)
+          refute(interface.ipv4_redirects,
+                 "Couldn't set redirects to false for #{interface}")
+          unless interface.default_ipv4_redirects == false
+            assert_show_match(command: cmd,
+                              pattern: ref.test_config_get_regex[1])
+          end
+          refute_show_match(command: cmd,
+                            pattern: ref.test_config_get_regex[0])
         end
       else
         # Getter should return same value as default if setter isn't supported
@@ -389,6 +447,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_description_too_long
+    skip('No description length limit on XR') if node.client.api == 'gRPC'
     interface = Interface.new(interfaces[0])
     description = 'a' * (IF_DESCRIPTION_SIZE + 1)
     assert_raises(RuntimeError) { interface.description = description }
@@ -471,29 +530,6 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_interface_get_access_vlan
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
-    interface.switchport_mode = :access
-    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_get_access_vlan_switchport_disabled
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
-    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_get_access_vlan_switchport_trunk
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
-    interface.switchport_mode = :trunk
-    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
   #   def test_interface_get_prefix_list_when_switchport
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
@@ -553,7 +589,7 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
 
@@ -566,7 +602,7 @@ class TestInterface < CiscoTestCase
     end
 
     interface.negotiate_auto = default
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
@@ -583,7 +619,7 @@ class TestInterface < CiscoTestCase
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
-    assert_equal(interface.negotiate_auto, non_default,
+    assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
     pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
@@ -591,7 +627,7 @@ class TestInterface < CiscoTestCase
 
     # Clean up after ourselves
     interface.negotiate_auto = default
-    assert_equal(interface.negotiate_auto, default,
+    assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
     pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
@@ -599,12 +635,16 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_portchannel
+    # TODO: get Bundle-Ether working for XR/gRPC
+    if node.client.api == 'gRPC'
+      skip 'No support yet for configuration of Bundle-Ether interfaces'
+    end
     ref = cmd_ref.lookup('interface',
                          'negotiate_auto_portchannel')
     assert(ref, 'Error, reference not found')
 
-    inf_name = 'port-channel10'
-    config('interface port-channel 10')
+    inf_name = "#{@port_channel}10"
+    config("interface #{@port_channel} 10")
     interface = Interface.new(inf_name)
     default = ref.default_value
     @default_show_command = show_cmd(inf_name)
@@ -613,11 +653,11 @@ class TestInterface < CiscoTestCase
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    config('interface port-channel 10', 'no switchport')
+    config("interface #{@port_channel} 10", 'no switchport')
     negotiate_auto_helper(interface, default, ref)
 
     # Cleanup
-    config('no interface port-channel 10')
+    config("no interface #{@port_channel} 10")
   end
 
   def test_negotiate_auto_ethernet
@@ -677,7 +717,6 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('', 14)
     end
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -687,7 +726,6 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -699,7 +737,7 @@ class TestInterface < CiscoTestCase
 
     # setter, getter
     interface.ipv4_addr_mask_set(address, length)
-    pattern = %r{^\s+ip address #{address}/#{length}}
+    pattern = ipv4_address_pattern(address, length)
     assert_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address missing in CLI')
     assert_equal(address, interface.ipv4_address,
@@ -717,7 +755,7 @@ class TestInterface < CiscoTestCase
 
     # unconfigure ipaddress
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
-    pattern = (/^\s+ip address (.*)/)
+    pattern = (/^\s+ip(v4)? address (.*)/)
     refute_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address still present in CLI')
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
@@ -726,7 +764,6 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_netmask_length,
                  'Error: ipv4 netmask length default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -776,7 +813,11 @@ class TestInterface < CiscoTestCase
 
     # set with value true
     interface.ipv4_proxy_arp = true
-    pattern = (/^\s+ip proxy-arp/)
+    if node.client.api == 'NXAPI'
+      pattern = /^\s+ip proxy-arp/
+    elsif node.client.api == 'gRPC'
+      pattern = /^\s+proxy-arp/
+    end
     assert_show_match(pattern: pattern,
                       msg:     'Error: ip proxy-arp enable missing in CLI')
     assert(interface.ipv4_proxy_arp,
@@ -802,7 +843,6 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -810,34 +850,41 @@ class TestInterface < CiscoTestCase
     interface = create_interface
     interface.switchport_mode = :disabled
 
+    ref = cmd_ref.lookup('interface', 'ipv4_redirects_other_interfaces')
+    assert(ref, 'Error, reference not found')
+
+    # check default value
+    assert_equal(interface.default_ipv4_redirects, interface.ipv4_redirects,
+                 'Error: ip redirects default get value mismatch')
+
     # set with value false
     interface.ipv4_redirects = false
-    pattern = (/^\s+no ip redirects/)
-    assert_show_match(pattern: pattern,
-                      msg:     'Error: ip redirects disable missing in CLI')
+    if interface.default_ipv4_redirects == true
+      assert_show_match(pattern: ref.test_config_get_regex[1],
+                        msg:     'Error: ip redirects disable missing in CLI')
+    end
+    refute_show_match(pattern: ref.test_config_get_regex[0])
     refute(interface.ipv4_redirects,
            "Error: ip redirects get value 'false' mismatch")
 
     # set with value true
     interface.ipv4_redirects = true
-    refute_show_match(pattern: pattern,
+    if interface.default_ipv4_redirects == false
+      assert_show_match(pattern: ref.test_config_get_regex[0])
+    end
+    refute_show_match(pattern: ref.test_config_get_regex[1],
                       msg:     'Error: ip redirects enable missing in CLI')
     assert(interface.ipv4_redirects,
            "Error: ip redirects get value 'true' mismatch")
 
-    # get default
-    assert_equal(DEFAULT_IF_IP_REDIRECTS,
-                 interface.default_ipv4_redirects,
-                 'Error: ip redirects get default value mismatch')
-
     # get default and set
     interface.ipv4_redirects = interface.default_ipv4_redirects
-    refute_show_match(pattern: pattern,
+    pat = ref.test_config_get_regex[interface.default_ipv4_redirects ? 1 : 0]
+    refute_show_match(pattern: pat,
                       msg:     'Error: default ip redirects set failed')
-    assert_equal(DEFAULT_IF_IP_REDIRECTS, interface.ipv4_redirects,
+    assert_equal(interface.default_ipv4_redirects, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
 
-    interface.switchport_mode = :access
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -849,13 +896,17 @@ class TestInterface < CiscoTestCase
       # puts "TEST: pre-config k: v '#{k} : #{v}'"
       cfg = ["interface #{k}"]
       if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
-         !(/^port-channel\d/).match(k.to_s).nil?
+         !(/^#{@port_channel}\d/).match(k.to_s).nil?
         cfg << 'no switchport'
       end
       # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
-      cfg << "ip address #{v[:address_len]}" unless v[:address_len].nil?
-      cfg << 'ip proxy-arp' if v[:proxy_arp]
-      cfg << 'ip redirects' if v[:redirects]
+      cfg << "#{ipv4} address #{v[:address_len]}" unless v[:address_len].nil?
+      if node.client.api == 'NXAPI'
+        cfg << 'ip proxy-arp' if v[:proxy_arp]
+      elsif node.client.api == 'gRPC'
+        cfg << 'proxy-arp' if v[:proxy_arp]
+      end
+      cfg << '#{ipv4} redirects' if v[:redirects]
       cfg << "description #{v[:description]}" unless v[:description].nil?
       config(*cfg)
 
@@ -886,40 +937,44 @@ class TestInterface < CiscoTestCase
       vrf_new:             'test2',
       default_vrf:         DEFAULT_IF_VRF,
     }
-    inttype_h['Vlan45'] = {
-      address_len:         '9.7.1.1/15',
-      proxy_arp:           true,
-      redirects:           false,
-      description:         'Company A',
-      description_new:     'Mini Me',
-      default_description: DEFAULT_IF_DESCRIPTION,
-      shutdown:            true,
-      change_shutdown:     false,
-      default_shutdown:    true,
-      switchport:          :disabled,
-      default_switchport:  :disabled,
-      access_vlan:         DEFAULT_IF_ACCESS_VLAN,
-      default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
-      vrf_new:             'test2',
-      default_vrf:         DEFAULT_IF_VRF,
-    }
-    inttype_h['port-channel48'] = {
-      address_len:         '10.7.1.1/15',
-      proxy_arp:           false,
-      redirects:           false,
-      description:         'Company B',
-      description_new:     'Dr. Bond',
-      default_description: DEFAULT_IF_DESCRIPTION,
-      shutdown:            false,
-      change_shutdown:     true,
-      default_shutdown:    false,
-      switchport:          :disabled,
-      default_switchport:  :disabled,
-      access_vlan:         DEFAULT_IF_ACCESS_VLAN,
-      default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
-      vrf_new:             'test2',
-      default_vrf:         DEFAULT_IF_VRF,
-    }
+    unless node.client.api == 'gRPC'
+      inttype_h['Vlan45'] = {
+        address_len:         '9.7.1.1/15',
+        proxy_arp:           true,
+        redirects:           false,
+        description:         'Company A',
+        description_new:     'Mini Me',
+        default_description: DEFAULT_IF_DESCRIPTION,
+        shutdown:            true,
+        change_shutdown:     false,
+        default_shutdown:    true,
+        switchport:          :disabled,
+        default_switchport:  :disabled,
+        access_vlan:         DEFAULT_IF_ACCESS_VLAN,
+        default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
+        vrf_new:             'test2',
+        default_vrf:         DEFAULT_IF_VRF,
+      }
+      # TODO: Bundle-Ether should be supported on XR,
+      # but we're not there yet with it.
+      inttype_h["#{@port_channel}48"] = {
+        address_len:         '10.7.1.1/15',
+        proxy_arp:           false,
+        redirects:           false,
+        description:         'Company B',
+        description_new:     'Dr. Bond',
+        default_description: DEFAULT_IF_DESCRIPTION,
+        shutdown:            false,
+        change_shutdown:     true,
+        default_shutdown:    false,
+        switchport:          :disabled,
+        default_switchport:  :disabled,
+        access_vlan:         DEFAULT_IF_ACCESS_VLAN,
+        default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
+        vrf_new:             'test2',
+        default_vrf:         DEFAULT_IF_VRF,
+      }
+    end
     inttype_h['loopback0'] = {
       address_len:         '11.7.1.1/15',
       redirects:           false, # (not supported on loopback)
@@ -941,7 +996,7 @@ class TestInterface < CiscoTestCase
 
     # Set system defaults to "factory" values prior to initial test.
     config(*
-      SWITCHPORT_SHUTDOWN_HASH['shutdown_ethernet_noswitchport_shutdown'])
+      @switchport_shutdown_hash['shutdown_ethernet_noswitchport_shutdown'])
 
     # pre-configure
     inttype_h = config_from_hash(inttype_h)

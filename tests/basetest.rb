@@ -126,6 +126,8 @@ class TestCase < Minitest::Test
     @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
                 # NX-OS has a space after '#', IOS XR does not
                 'Match'  => /^[^()]+[$%#>] *\z/n)
+  rescue Net::ReadTimeout => e
+    raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end
 
   def assert_show_match(pattern: nil, command: nil, msg: nil)
