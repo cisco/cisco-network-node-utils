@@ -9,16 +9,16 @@ Changelog
   * bgp_af (@richwellum)
   * bgp_neighbor (@jyang09)
   * bgp_neighbor_af (@chrisvanheuveln)
-* NTP (netdev_stdlib)
+* NTP
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
-* SYSLOG (netdev_stdlib)
-  * syslog_server (@jonnytpuppet)
-  * syslog_setting (@jonnytpuppet)
-* RADIUS (netdev_stdlib)
+* RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
-* Miscelaneous (netdev_stdlib) 
+* SYSLOG
+  * syslog_server (@jonnytpuppet)
+  * syslog_setting (@jonnytpuppet)
+* Miscellaneous 
   * dns_domain (@hunner)
   * domain_name (@bmgen)
   * name_server (@hunner)
