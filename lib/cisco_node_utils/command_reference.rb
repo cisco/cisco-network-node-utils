@@ -167,10 +167,14 @@ module CommandReference
         @files = []
         # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
         # of objects.
+        # rubocop:disable Metrics/LineLength
         platforms = [
           CommandPlatformFile.new(//,
                                   File.join(File.dirname(__FILE__),
                                             'command_reference_common.yaml')),
+          CommandPlatformFile.new(//,
+                                  File.join(File.dirname(__FILE__),
+                                            'command_reference_common_bgp.yaml')),
           CommandPlatformFile.new(/N9K/,
                                   File.join(File.dirname(__FILE__),
                                             'command_reference_n9k.yaml')),
@@ -181,6 +185,7 @@ module CommandReference
                                   File.join(File.dirname(__FILE__),
                                             'command_reference_n3064.yaml')),
         ]
+        # rubocop:enable Metrics/LineLength
         # Build array
         platforms.each do |reference|
           @files << reference.file if reference.match(@product_id)
