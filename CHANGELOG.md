@@ -1,19 +1,32 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.1.0]
+
+### New feature support
+* BGP (bgp, bgp_af, bgp_neighbor, bgp_neighbor_af)
+** Added support for bgp (@mikewiebe)
+** Added support for bgp_af (@richwellum)
+** Added support for bgp_neighbor (@jyang09)
+** Added support for bgp_neighbor_af (@chrisvanheuveln)
+* NTP (ntp_config, ntp_server)
+** Added support for ntp_config (@jonnytpuppet)
+** Added support for ntp_server (@jonnytpuppet)
+* SYSLOG (syslog_server, syslog_setting)
+** Added support for syslog_server (@jonnytpuppet)
+** Added support for syslog_setting (@jonnytpuppet)
+* RADIUS (radius_global, radius_server)
+** Added support for radius_global (@jonnytpuppet)
+** Added support for radius_server (@jonnytpuppet)
+* UNCATEGORIZED 
+** Added support for dns_domain (@hunner)
+** Added support for domain_name (@bmgen)
+** Added support for name_server (@hunner)
+** Added support for network_snmp (@jonnytpuppet)
 
 ### Added
 
-* Added support for bgp, bgp_af, bgp_neighbor, bgp_neighbor_af
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
-* Added support for name_server (@hunner)
-* Added support for ntp_server (@jonnytpuppet)
-* Added support for ntp_config (@jonnytpuppet)
-* Added support for syslog_server (@jonnytpuppet)
-* Added support for syslog_setting (@jonnytpuppet)
-* Added support for network_snmp (@jonnytpuppet)
-* Added support for radius_server (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks
@@ -30,7 +43,6 @@ Changelog
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 * Added best practices development guide.
-* Added support for radius_global (@jonnytpuppet)
 
 ### Fixed
 
@@ -80,7 +92,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
 
