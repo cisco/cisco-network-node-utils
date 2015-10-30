@@ -31,6 +31,7 @@ Changelog
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 * Added best practices development guide.
 * Added support for radius_global (@jonnytpuppet)
+* Added support for radius_server_group (@jonnytpuppet)
 
 ### Fixed
 
