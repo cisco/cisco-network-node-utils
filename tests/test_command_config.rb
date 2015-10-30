@@ -83,14 +83,18 @@ class TestCommandConfig < CiscoTestCase
     end
   end
 
+  def loopback
+    (node.client.api == 'gRPC') ? 'Loopback' : 'loopback'
+  end
+
   def build_int_scale_config(add=true)
     add ? s = '' : s = 'no '
     current_interface = 0
     # num_interfaces = 1024
-    num_interfaces = 10
+    num_interfaces = 1024
     command_list = ''
     while current_interface < num_interfaces
-      command_list += "#{s}interface Loopback#{current_interface}\n"
+      command_list += "#{s}interface #{loopback}#{current_interface}\n"
       current_interface += 1
     end
     command_list
@@ -101,7 +105,7 @@ class TestCommandConfig < CiscoTestCase
   # ---------------------------------------------------------------------------
 
   def test_valid_config
-    cfg_hash = load_yaml
+    cfg_hash = load_yaml[node.client.api.downcase]
     begin
       send_device_config(cfg_hash)
     end
