@@ -12,11 +12,7 @@ board:
 
 boot_image:
   config_get_token: "kick_file_name"
-  # TODO: fix me?
-  /N9K/:
-    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
-  else:
-    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+  test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
 
 cpu:
   config_get_token: 'cpu_name'
@@ -66,12 +62,12 @@ last_reset_time:
 
 system_image:
   nxapi:
-    /N9K/:
-      config_get_token: "kick_file_name"
-      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
-    else:
+    /N7K/:
       config_get_token: "isan_file_name"
       test_config_get_regex: '/.*system image file is:    (.*)$.*/'
+    else:
+      config_get_token: "kick_file_name"
+      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
 
 uptime:
   config_get_token: '/uptime is (.*)/'

@@ -442,10 +442,10 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_change
     interface = Interface.new(interfaces[0])
-    interface.mtu = 1490
-    assert_equal(1490, interface.mtu)
-    interface.mtu = 580
-    assert_equal(580, interface.mtu)
+    interface.mtu = 1520
+    assert_equal(1520, interface.mtu)
+    interface.mtu = 1580
+    assert_equal(1580, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -456,8 +456,8 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_valid
     interface = Interface.new(interfaces[0])
-    interface.mtu = 1490
-    assert_equal(1490, interface.mtu)
+    interface.mtu = 1550
+    assert_equal(1550, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
