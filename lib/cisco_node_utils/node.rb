@@ -88,9 +88,7 @@ module Cisco
           text = build_config_get(feature, ref, :ascii)
           return Cisco.find_ascii(text, token)
         else
-          if token == 'unsupported'
-            return nil
-          end
+          return nil if token == 'unsupported'
           hash = build_config_get(feature, ref, :structured)
           return hash[token]
         end
@@ -162,16 +160,12 @@ module Cisco
         end
       end
       if config_set.is_a?(String)
-        if config_set =~ /[a-z0-9]*\s*unsupported[a-z0-9 ]*/
-          return
-        end
+        return if config_set =~ /[a-z0-9]*\s*unsupported[a-z0-9 ]*/
         config(sprintf(config_set, *args))
       elsif config_set.is_a?(Array)
         new_config_set = []
+        return if config_set[0] =~ /[a-z0-9]*\s*unsupported[a-z0-9 ]*/
         config_set.each do |line|
-          if line =~ /[a-z0-9]*\s*unsupported[a-z0-9 ]*/
-            return
-          end
           param_count = line.scan(/%/).length
           new_config_set << sprintf(line, *args.first(param_count))
           args = args[param_count..-1]
