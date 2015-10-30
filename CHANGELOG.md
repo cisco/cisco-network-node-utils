@@ -3,7 +3,6 @@ Changelog
 
 ## [Unreleased]
 
-
 ### Added
 
 * Added support for bgp, bgp_af, bgp_neighbor, bgp_neighbor_af
