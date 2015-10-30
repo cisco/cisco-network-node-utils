@@ -84,7 +84,7 @@ class TestCommandConfig < CiscoTestCase
   end
 
   def loopback
-    (node.client.api == "gRPC") ? 'Loopback' : 'loopback'
+    (node.client.api == 'gRPC') ? 'Loopback' : 'loopback'
   end
 
   def build_int_scale_config(add=true)
