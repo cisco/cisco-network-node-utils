@@ -20,6 +20,7 @@ include Cisco
 
 # TestInterfaceSwitchport - Minitest for switchport config by Interface class.
 class TestInterfaceSwitchport < CiscoTestCase
+  DEFAULT_IF_ACCESS_VLAN = 1
   DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = '1-4094'
   DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
 
