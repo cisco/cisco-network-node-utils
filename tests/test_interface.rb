@@ -467,6 +467,52 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_interface_speed_change
+    interface = Interface.new(interfaces[0])
+    interface.speed = 100
+    assert_equal('100', interface.speed)
+    interface.speed = 1000
+    assert_equal('1000', interface.speed)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_speed_invalid
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) { interface.speed = 'hello' }
+  end
+
+  def test_interface_speed_valid
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    assert_equal('1000', interface.speed)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_change
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    interface.duplex = 'full'
+    assert_equal('full', interface.duplex)
+    interface.duplex = 'auto'
+    assert_equal('auto', interface.duplex)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_invalid
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    assert_raises(RuntimeError) { interface.duplex = 'hello' }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_valid
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    interface.duplex = 'full'
+    assert_equal('full', interface.duplex)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
   def test_interface_shutdown_valid
     interface = Interface.new(interfaces[0])
     interface.shutdown = true

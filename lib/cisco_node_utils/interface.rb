@@ -260,6 +260,44 @@ module Cisco
       config_get_default('interface', 'mtu')
     end
 
+    def speed
+      speed = config_get('interface', 'speed', @name)
+      return default_speed if speed.nil?
+      speed.shift.strip
+    end
+
+    def speed=(val)
+      if node.product_id =~ /C31\d\d/
+        fail 'Changing interface speed is not permitted on this platform'
+      end
+      config_set('interface', 'speed', @name, val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_speed
+      config_get_default('interface', 'speed')
+    end
+
+    def duplex
+      duplex = config_get('interface', 'duplex', @name)
+      return default_duplex if duplex.nil?
+      duplex.shift.strip
+    end
+
+    def duplex=(val)
+      if node.product_id =~ /C31\d\d/
+        fail 'Changing interface duplex is not permitted on this platform'
+      end
+      config_set('interface', 'duplex', @name, val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_duplex
+      config_get_default('interface', 'duplex')
+    end
+
     def negotiate_auto_lookup_string
       case @name
       when /Ethernet/i
