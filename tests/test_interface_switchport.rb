@@ -57,6 +57,29 @@ class TestInterfaceSwitchport < CiscoTestCase
     config("#{state} system default switchport shutdown")
   end
 
+  def test_interface_get_access_vlan
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    interface.switchport_mode = :access
+    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_get_access_vlan_switchport_disabled
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_get_access_vlan_switchport_trunk
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    interface.switchport_mode = :trunk
+    assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
   def test_switchport_vtp_disabled_feature_enabled
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])

@@ -34,6 +34,14 @@ module Cisco
       self.class.node
     end
 
+    def self.client
+      node.client
+    end
+
+    def client
+      node.client
+    end
+
     def self.config_get(*args)
       node.config_get(*args)
     end

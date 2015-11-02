@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'cisco_cmn_utils'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -148,7 +149,13 @@ module Cisco
     end
 
     def ipv4_addr_mask
-      config_get('interface', 'ipv4_addr_mask', @name)
+      val = config_get('interface', 'ipv4_addr_mask', @name)
+      if val && client.api == 'gRPC'
+        # gRPC reports address as <address> <bitmask> but we
+        # want <address>/<length>
+        val[0][1] = Utils.bitmask_to_length(val[0][1])
+      end
+      val
     end
 
     def ipv4_addr_mask_set(addr, mask)
@@ -219,7 +226,7 @@ module Cisco
       # We return default state for the platform if the platform doesn't support
       # the command
       return default_ipv4_redirects if state.nil? || state.empty?
-      state.shift[/^ip redirects$/] ? true : false
+      state.shift[/^ip(v4)? redirects$/] ? true : false
     end
 
     def ipv4_redirects=(redirects)
@@ -264,7 +271,7 @@ module Cisco
       case @name
       when /Ethernet/i
         return 'negotiate_auto_ethernet'
-      when /port-channel/i # Ether-channel
+      when /port-channel/i, /bundle-Ether/i # Ether-channel
         return 'negotiate_auto_portchannel'
       else
         return 'negotiate_auto_other_interfaces'
@@ -334,7 +341,7 @@ module Cisco
       when /loopback/i
         lookup = 'shutdown_loopback'
 
-      when /port-channel/i # EtherChannel
+      when /port-channel/i, /bundle-Ether/i # EtherChannel
         lookup = 'shutdown_ether_channel'
 
       when /Vlan/i
@@ -379,7 +386,7 @@ module Cisco
       case @name
       when /Ethernet/i
         return 'switchport_mode_ethernet'
-      when /port-channel/i
+      when /port-channel/i, /bundle-Ether/i
         return 'switchport_mode_port_channel'
       else
         return 'switchport_mode_other_interfaces'
