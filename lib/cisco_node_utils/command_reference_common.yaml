@@ -1086,5 +1086,6 @@ vxlan_global:
 
   dup_host_mac_detection_host_moves:
     default_value: 5
+
   dup_host_mac_detection_timeout:
     default_value: 180
