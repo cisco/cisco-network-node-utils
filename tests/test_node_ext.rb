@@ -18,8 +18,8 @@ require_relative 'ciscotest'
 class TestNodeExt < CiscoTestCase
   def setup
     super
-    @chassis = (node.client.api == 'NXAPI') ? 'Chassis' : 'Rack 0'
-    @domain = (node.client.api == 'NXAPI') ? 'ip domain-name' : 'domain name'
+    @chassis = (platform == :nexus) ? 'Chassis' : 'Rack 0'
+    @domain = (platform == :nexus) ? 'ip domain-name' : 'domain name'
   end
 
   def assert_output_check(command: nil, pattern: nil, msg: nil, check: nil)
@@ -103,7 +103,7 @@ vrf blue",
   end
 
   def test_node_config_get_default
-    skip 'TODO: needs rework' if node.client.api == 'gRPC'
+    skip 'TODO: needs rework' if platform == :ios_xr
     result = node.config_get_default('snmp_server', 'aaa_user_cache_timeout')
     assert_equal(result, 3600)
   end
@@ -121,7 +121,7 @@ vrf blue",
   end
 
   def test_node_config_set
-    skip 'TODO: needs rework' if node.client.api == 'gRPC'
+    skip 'TODO: needs rework' if platform == :ios_xr
     node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
     run = node.client.show('show run all | inc snmp')
     val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
@@ -152,12 +152,12 @@ vrf blue",
     # don't use config() here because we are testing caching and flushing
     @device.cmd('conf t')
     @device.cmd("#{@domain} minitest")
-    @device.cmd('commit') if node.client.api == 'gRPC'
+    @device.cmd('commit') if platform == :ios_xr
     @device.cmd('end')
     dom1 = node.domain_name
     @device.cmd('conf t')
     @device.cmd("no #{@domain} minitest")
-    @device.cmd('commit') if node.client.api == 'gRPC'
+    @device.cmd('commit') if platform == :ios_xr
     @device.cmd('end')
     dom2 = node.domain_name
     assert_equal(dom1, dom2) # cached output was used for dom2
@@ -220,7 +220,7 @@ vrf blue",
   end
 
   def test_node_get_host_name_when_not_set
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       s = @device.cmd('show running-config all | no-more')
     else
       s = @device.cmd('show running-config all')
@@ -245,7 +245,7 @@ vrf blue",
     switchname ? config('no switchname') : config('no hostname')
 
     name = node.host_name
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       assert_equal('switch', name)
     else
       assert_equal('ios', name)
@@ -257,7 +257,7 @@ vrf blue",
   end
 
   def test_node_get_host_name_when_set
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       s = @device.cmd('show running-config all | no-more')
     else
       s = @device.cmd('show running-config all')
@@ -339,7 +339,7 @@ vrf blue",
   end
 
   def test_node_get_system_uptime
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     node.cache_flush
     # rubocop:disable Metrics/LineLength
     pattern = /.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/
@@ -361,7 +361,7 @@ vrf blue",
   end
 
   def test_node_get_last_reset_time
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     last_reset_time = node.last_reset_time
     ref = cmd_ref.lookup('show_version', 'last_reset_time')
     assert(ref, 'Error, reference not found')
@@ -379,7 +379,7 @@ vrf blue",
   end
 
   def test_node_get_last_reset_reason
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     ref = cmd_ref.lookup('show_version', 'last_reset_reason')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -389,7 +389,7 @@ vrf blue",
   end
 
   def test_node_get_system_cpu_utilization
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     cpu_utilization = node.system_cpu_utilization
     ref = cmd_ref.lookup('system', 'resources')
     assert(ref, 'Error, reference not found')
@@ -402,7 +402,7 @@ vrf blue",
   end
 
   def test_node_get_boot
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     ref = cmd_ref.lookup('show_version', 'boot_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -412,7 +412,7 @@ vrf blue",
   end
 
   def test_node_get_system
-    skip 'not yet supported' if node.client.api == 'gRPC'
+    skip 'not yet supported' if platform == :ios_xr
     ref = cmd_ref.lookup('show_version', 'system_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,

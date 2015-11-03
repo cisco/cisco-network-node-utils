@@ -161,7 +161,9 @@ module Cisco
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
       @client = Cisco::Shim::Client.create(*args)
-      @cmd_ref = CommandReference.new(@client.api, product_id)
+      @cmd_ref = CommandReference.new(product:  product_id,
+                                      platform: @client.platform,
+                                      cli:      @client.supports?(:cli))
       cache_flush
     end
 
@@ -271,10 +273,10 @@ module Cisco
         val
       else
         # We use this function to *find* the appropriate CommandReference
-        if @client.api == 'NXAPI'
+        if @client.platform == :nexus
           entries = show('show inventory', :structured)
           return entries['TABLE_inv']['ROW_inv'][0]['productid']
-        elsif @client.api == 'gRPC'
+        elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = show('show inventory', :ascii)
           return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[0]

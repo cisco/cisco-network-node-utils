@@ -1,6 +1,6 @@
 # test command config yaml file
 ---
-nxapi:
+nexus:
   feature-enable:
     command: |
             feature tacacs+
@@ -51,7 +51,7 @@ nxapi:
             interface port-channel100
               description test-portchannel
 
-grpc:
+ios_xr:
   name-server:
     command: |
             domain name-server 10.10.10.10

@@ -1,21 +1,21 @@
 # inventory
 ---
 _template:
-  grpc:
+  cli_ios_xr:
     # TODO: this doesn't work quite right,
     # as it seems that 'head' ignores 'begin'... :-(
     config_get: 'show inventory | begin "Rack 0" | utility head count 2'
     test_config_get: 'show inventory'
-  nxapi:
+  cli_nexus:
     config_get: 'show inventory'
     test_config_get: 'show inventory | no-more'
 
 all:
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv"]
 
 chassis:
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", {'name': '"Chassis"'}]
 
 inventory:
@@ -37,19 +37,19 @@ inventory:
     ]
 
 productid:
-  grpc:
+  cli_ios_xr:
     config_get_token: '/PID: ([^ ,]+)/'
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
 
 serialnum:
-  grpc:
+  cli_ios_xr:
     config_get_token: '/SN: ([^ ,]+)/'
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
 
 versionid:
-  grpc:
+  cli_ios_xr:
     config_get_token: '/VID: ([^ ,]+)/'
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]

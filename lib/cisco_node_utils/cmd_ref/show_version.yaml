@@ -2,9 +2,9 @@
 ---
 _template:
   config_get: 'sh version'
-  nxapi:
+  cli_nexus:
     test_config_get: "sh version | no-more"
-  grpc:
+  cli_ios_xr:
     test_config_get: "sh version"
 
 board:
@@ -19,7 +19,7 @@ cpu:
 
 description:
   config_get_token: "chassis_id"
-  nxapi:
+  cli_nexus:
     /N7K/:
       test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
@@ -32,7 +32,7 @@ description:
       #   cisco Nexus3000 C3132Q Chassis
       #   cisco N3K-C3048TP-1GE
       test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
-  grpc:
+  cli_ios_xr:
     config_get: 'show inventory | inc "Rack 0"'
     config_get_token: '/DESCR: "(.*)"/'
     test_config_get: 'show inventory | inc "Rack 0"'
@@ -45,9 +45,9 @@ header:
   config_get_token: "header_str"
 
 host_name:
-  nxapi:
+  cli_nexus:
     config_get_token: "host_name"
-  grpc:
+  cli_ios_xr:
     # not displayed in 'show version' on IOS XR
     config_get: "show running | i hostname"
     config_get_token: '/^hostname (.*)$/'
@@ -61,7 +61,7 @@ last_reset_time:
   test_config_get_regex: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
 
 system_image:
-  nxapi:
+  cli_nexus:
     /N7K/:
       config_get_token: "isan_file_name"
       test_config_get_regex: '/.*system image file is:    (.*)$.*/'
@@ -73,13 +73,13 @@ uptime:
   config_get_token: '/uptime is (.*)/'
 
 version:
-  nxapi:
+  cli_nexus:
     config_get_token: "kickstart_ver_str"
     test_config_get_regex: [
     /\nkickstart_ver_str\s+(.+)\n/,
     '/.*NXOS:\s+version (.*)\n/'
     ]
-  grpc:
+  cli_ios_xr:
     config_get_token: '/IOS XR.*Version (.*)$/'
     test_config_get_regex: [
     ~,

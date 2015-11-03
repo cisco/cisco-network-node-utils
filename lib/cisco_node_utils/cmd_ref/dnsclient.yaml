@@ -15,10 +15,10 @@ domain_list_vrf:
 domain_name:
   config_get: 'show running-config all'
   default_value: ''
-  nxapi:
+  cli_nexus:
     config_set: '<state> ip domain-name <name>'
     config_get_token: '/^ip domain-name (\S+)$/'
-  grpc:
+  cli_ios_xr:
     config_set: '<state> domain name <name>'
     config_get_token: '/^domain name (\S+)$/'
 

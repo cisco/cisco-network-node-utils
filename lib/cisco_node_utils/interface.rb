@@ -150,8 +150,8 @@ module Cisco
 
     def ipv4_addr_mask
       val = config_get('interface', 'ipv4_addr_mask', @name)
-      if val && client.api == 'gRPC'
-        # gRPC reports address as <address> <bitmask> but we
+      if val && platform == :ios_xr
+        # IOS XR reports address as <address> <bitmask> but we
         # want <address>/<length>
         val[0][1] = Utils.bitmask_to_length(val[0][1])
       end
