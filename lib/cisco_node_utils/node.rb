@@ -79,8 +79,8 @@ module Cisco
       if token.nil?
         return show(ref.config_get, :structured)
       elsif token[0].kind_of?(Regexp)
-        return find_ascii(show(ref.config_get, :ascii),
-                          token[-1], *token[0..-2])
+        return Cisco.find_ascii(show(ref.config_get, :ascii),
+                                token[-1], *token[0..-2])
       else
         return config_get_handle_structured(token,
                                             show(ref.config_get, :structured))
