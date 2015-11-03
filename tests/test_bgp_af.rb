@@ -364,17 +364,17 @@ class TestRouterBgpAF < CiscoTestCase
     val = false
     bgp_af.advertise_l2vpn_evpn = val
     assert_equal(bgp_af.advertise_l2vpn_evpn, val,
-                 'Error: maximum paths value not match to set value')
+                 'Error: advertise l2vpn evpn value not match to set value')
 
     val = true
     bgp_af.advertise_l2vpn_evpn = val
     assert_equal(bgp_af.advertise_l2vpn_evpn, val,
-                 'Error: maximum paths value not match to set value')
+                 'Error: advertise l2vpn evpn value not match to set value')
 
     val = bgp_af.default_advertise_l2vpn_evpn
     bgp_af.advertise_l2vpn_evpn = val
     assert_equal(bgp_af.advertise_l2vpn_evpn, val,
-                 'Error: maximum paths value not match to default value')
+                 'Error: advertise l2vpn evpn value not match to default value')
   end
 
   def test_advertise_l2vpn_evpn
