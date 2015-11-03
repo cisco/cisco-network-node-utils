@@ -18,21 +18,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # node_utils class for vxlan_global
   class VxlanGlobal < NodeUtil
-    def feature_enable
+    def enable
       config_set('vxlan_global', 'feature', state: '')
     end
 
-    def feature_disable
+    def disable
       config_set('vxlan_global', 'feature', state: 'no')
     end
 
     # Check current state of the configuration
-    def self.feature_enabled
+    def self.enabled
       feat = config_get('vxlan_global', 'feature')
       return !(feat.nil? || feat.empty?)
     rescue Cisco::CliError => e
@@ -57,24 +57,13 @@ module Cisco
       end
     end
 
-    def dup_host_ip_addr_detection_host_moves
-      host_moves, _timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_host_moves if host_moves.nil?
-      host_moves
-    end
-
-    def dup_host_ip_addr_detection_timeout
-      _host_moves, timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_timeout if timeout.nil?
-      timeout
-    end
-
-    def dup_host_ip_addr_detection_set(state, host_moves, timeout)
-      set_args = {}
-      set_args[:state] = state
-      set_args[:host_moves] = host_moves
-      set_args[:timeout] = timeout
-
+    def dup_host_ip_addr_detection_set(configure, host_moves, timeout)
+      if configure == 'True'
+        state = ''
+      else
+        state = 'no'
+      end
+      set_args = {state: state, host_moves: host_moves, timeout: timeout}
       config_set('vxlan_global', 'dup_host_ip_addr_detection', set_args)
     end
 
@@ -103,23 +92,8 @@ module Cisco
       end
     end
 
-    def dup_host_mac_detection_host_moves
-      host_moves, _timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_host_moves if host_moves.nil?
-      host_moves
-    end
-
-    def dup_host_mac_detection_timeout
-      _host_moves, timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_timeout if timeout.nil?
-      timeout
-    end
-
     def dup_host_mac_detection_set(host_moves, timeout)
-      set_args = {}
-      set_args[:host_moves] = host_moves
-      set_args[:timeout] = timeout
-
+      set_args = {host_moves: host_moves, timeout: timeout}
       config_set('vxlan_global', 'dup_host_mac_detection', set_args)
     end
 
@@ -143,15 +117,15 @@ module Cisco
     # anycast-gateway-mac
     def anycast_gateway_mac
       mac_addr = config_get('vxlan_global', 'anycast_gateway_mac')
-      mac_addr.nil? ? ' ' : mac_addr.first
+      mac_addr.nil? ? '' : mac_addr.first
     end
 
-    def anycast_gateway_mac_set(state, mac_addr)
+    def anycast_gateway_mac_set(configure, mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
-      if state == 'no'
-        config_set('vxlan_global', 'anycast_gateway_mac', 'no', ' ')
+      if configure == 'True'
+        config_set('vxlan_global', 'anycast_gateway_mac', state: '', mac_addr: mac_addr)
       else
-        config_set('vxlan_global', 'anycast_gateway_mac', ' ', mac_addr)
+        config_set('vxlan_global', 'anycast_gateway_mac', state: 'no', mac_addr: '')
       end
     end
   end # class

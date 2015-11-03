@@ -1074,7 +1074,7 @@ vxlan_global:
   anycast_gateway_mac:
    config_get: 'show running fabric forwarding all'
    config_get_token: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
-   config_set: "%s fabric forwarding anycast-gateway-mac %s"
+   config_set: "<state> fabric forwarding anycast-gateway-mac <mac_addr>"
 
   dup_host_mac_detection:
     config_get: 'show running | i l2rib'
@@ -1086,26 +1086,5 @@ vxlan_global:
 
   dup_host_mac_detection_host_moves:
     default_value: 5
-
   dup_host_mac_detection_timeout:
     default_value: 180
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
