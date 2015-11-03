@@ -16,6 +16,7 @@ This document describes the structure and semantics of these files.
   * [`_template`](#_template)
   * [Platform and API variants](#platform-and-api-variants)
   * [Product variants](#product-variants)
+  * [`_exclude`](#_exclude)
   * [Combinations of these](#combinations-of-these)
 * [Attribute properties](#attribute-properties)
   * [`config_get`](#config_get)
@@ -207,6 +208,30 @@ system_image:
   else:
     config_get_token: "isan_file_name"
     test_config_get_regex: '/.*system image file is:    (.*)$.*/'
+```
+
+### `_exclude`
+
+Related to product variants, an `_exclude` entry can be used to mark an entire feature or a given feature attribute as not applicable to a particular set of products. For example, if feature 'fabricpath' doesn't apply to the N3K or N9K platforms, it can be excluded altogether from those platforms by a single `_exclude` entry at the top of the file:
+
+```yaml
+# fabricpath.yaml
+---
+_exclude: [/N3K/, /N9K/]
+
+_template:
+...
+```
+
+Individual feature attributes can also be excluded in this way:
+
+```yaml
+attribute:
+  _exclude:
+    - /N7K/
+  default_value: true
+  config_get: 'show attribute'
+  config_set: 'attribute'
 ```
 
 ### Combinations of these
