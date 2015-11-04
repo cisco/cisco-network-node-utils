@@ -288,18 +288,19 @@ module Cisco
     # - Filter out any API-specific data not applicable to this API
     # - Filter any platform-specific data not applicable to this product_id
     # Returns the filtered hash (possibly empty)
-    def self.filter_hash(hash:, platform:, product_id:, cli:,
+    def self.filter_hash(hash,
+                         platform:           nil,
+                         product_id:         nil,
+                         cli:                false,
                          allow_unknown_keys: true)
       result = {}
 
-      if hash.key?('_exclude')
-        hash['_exclude'].each do |value|
-          if key_match(value, platform, product_id, cli) == true
-            debug 'Exclude this product (#{product_id}, #{value})'
-            return result
-          end
+      exclude = hash.delete('_exclude') || []
+      exclude.each do |value|
+        if key_match(value, platform, product_id, cli) == true
+          debug 'Exclude this product (#{product_id}, #{value})'
+          return result
         end
-        hash.delete('_exclude')
       end
 
       # to_inspect: sub-keys we want to recurse into
@@ -310,10 +311,7 @@ module Cisco
       hash.each do |key, value|
         if CmdRef.keys.include?(key)
           result[key] = value
-        elsif key == 'else'
-          # Skip for now, we revisit it below
-          next
-        else
+        elsif key != 'else'
           match = key_match(key, platform, product_id, cli)
           next if match == false
           if match == :unknown
@@ -333,7 +331,7 @@ module Cisco
           next
         end
         begin
-          result[key] = filter_hash(hash:               hash[key],
+          result[key] = filter_hash(hash[key],
                                     platform:           platform,
                                     product_id:         product_id,
                                     cli:                cli,
@@ -346,7 +344,7 @@ module Cisco
     end
 
     def filter_hash(input_hash)
-      CommandReference.filter_hash(hash:       input_hash,
+      CommandReference.filter_hash(input_hash,
                                    platform:   platform,
                                    product_id: product_id,
                                    cli:        cli)
