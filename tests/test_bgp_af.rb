@@ -71,9 +71,6 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   def test_collection_not_empty
     config('feature bgp',
-           'feature vn-segment-vlan-based',
-           'feature nv overlay',
-           'nv overlay evpn',
            'router bgp 55',
            'address-family ipv4 unicast',
            'vrf red',
@@ -363,17 +360,17 @@ class TestRouterBgpAF < CiscoTestCase
     #
     val = false
     bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(bgp_af.advertise_l2vpn_evpn, val,
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
                  'Error: advertise l2vpn evpn value not match to set value')
 
     val = true
     bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(bgp_af.advertise_l2vpn_evpn, val,
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
                  'Error: advertise l2vpn evpn value not match to set value')
 
     val = bgp_af.default_advertise_l2vpn_evpn
     bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(bgp_af.advertise_l2vpn_evpn, val,
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
                  'Error: advertise l2vpn evpn value not match to default value')
   end
 
@@ -674,6 +671,14 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
   end
   # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
+
+  ## feature nv overlay evpn
+  def test_feature_nv_overlay_evpn
+    config('no nv overlay evpn')
+    RouterBgpAF.feature_nv_overlay_evpn_enable
+    assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
+           'Error:nv overlay evpn fail to be enabled')
+  end
 
   ##
   ## maximum_paths

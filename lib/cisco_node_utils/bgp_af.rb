@@ -66,6 +66,20 @@ module Cisco
       config_set('bgp', 'address_family', @set_args)
     end
 
+    # This is an enable-only method for enabling the 'nv overlay evpn' feature
+    def self.feature_nv_overlay_evpn_enable
+      config_set('bgp_af', 'feature_nv_overlay_evpn')
+    end
+
+    def self.feature_nv_overlay_evpn_enabled
+      feat = config_get('bgp_af', 'feature_nv_overlay_evpn')
+      return !(feat.nil? || feat.empty?)
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
     #
     # Helper methods to delete @set_args hash keys
     #
@@ -228,13 +242,15 @@ module Cisco
 
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
+      return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       state = config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
       state ? true : false
     end
 
     def advertise_l2vpn_evpn=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
+      RouterBgpAF.feature_nv_overlay_evpn_enable if
+        state && !RouterBgpAF.feature_nv_overlay_evpn_enabled
+      set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
     end
 
