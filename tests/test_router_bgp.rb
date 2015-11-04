@@ -24,7 +24,7 @@ XR_NOT_SUPPORTED     = 'Not supported in IOS XR'
 XR_NO_VRF_SUPPORT    = 'Feature not supported in a vrf in IOS XR'
 XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
 
-def test_add_routerid_rdauto(asnum, vrf)
+def iosxr_add_routerid_rdauto(asnum, vrf)
   return if node.client.api != 'gRPC'
   # If IOS XR - vrf requires a router id and a rd
   # bgp.routerid = '1.1.1.1'
@@ -155,7 +155,6 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
 
     if node.client.api == 'gRPC'
-      config('term len 0')
       s = config('show run router bgp')
       line = /"router bgp"/.match(s)
       assert_nil(line, "Error: 'router bgp' still configured")
@@ -209,7 +208,7 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.bestpath_always_compare_med = true
       assert(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
@@ -226,6 +225,7 @@ class TestRouterBgp < CiscoTestCase
       bgp.bestpath_med_confed = true
       if node.client.api == 'NXAPI' ||
          (node.client.api == 'gRPC' && vrf == 'default')
+        # TODO: This property only works on IOS XR at the global level.
         assert(bgp.bestpath_med_confed, "vrf #{vrf}: "\
                'bgp bestpath_med_confed should be enabled')
       end
@@ -233,6 +233,7 @@ class TestRouterBgp < CiscoTestCase
       assert(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
              'bgp bestpath_med_missing_as_worst should be enabled')
       if node.client.api == 'NXAPI'
+        # TODO: only applies to NXAPI
         bgp.bestpath_med_non_deterministic = true
         assert(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
                'bgp bestpath_med_non_deterministic should be enabled')
@@ -256,6 +257,7 @@ class TestRouterBgp < CiscoTestCase
       refute(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
              'bgp bestpath_med_missing_as_worst should be disabled')
       if node.client.api == 'NXAPI'
+        # TODO: Only applies to NXAPI
         bgp.bestpath_med_non_deterministic = false
         refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
              'bgp bestpath_med_non_deterministic should be disabled')
@@ -274,7 +276,7 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       refute(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
              'bgp bestpath_always_compare_med should *NOT* be enabled')
@@ -289,6 +291,7 @@ class TestRouterBgp < CiscoTestCase
       refute(bgp.bestpath_med_missing_as_worst, "vrf #{vrf}: "\
              'bgp bestpath_med_missing_as_worst should *NOT* be enabled')
       if node.client.api == 'NXAPI'
+        # TODO: Only applies to NXAPI
         refute(bgp.bestpath_med_non_deterministic, "vrf #{vrf}: "\
              'bgp bestpath_med_non_deterministic should *NOT* be enabled')
       end
@@ -312,6 +315,7 @@ class TestRouterBgp < CiscoTestCase
     refute(bgp.default_bestpath_med_missing_as_worst,
            'default value for bestpath_med_missing_as_worst should be false')
     if node.client.api == 'NXAPI'
+      # TODO: Only applies to NXAPI
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
     end
@@ -325,11 +329,11 @@ class TestRouterBgp < CiscoTestCase
         vrf = 'default'
         bgp = RouterBgp.new(asnum)
       else
-        skip(XR_NO_VRF_SUPPORT) if node.client.api == 'gRPC'
+        next if node.client.api == 'gRPC'
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.cluster_id = 34
       assert_equal('34', bgp.cluster_id,
@@ -388,11 +392,12 @@ class TestRouterBgp < CiscoTestCase
         vrf = 'default'
         bgp = RouterBgp.new(asnum)
       else
-        skip(XR_NO_VRF_SUPPORT) if node.client.api == 'gRPC'
+        # Non-default VRF does not apply to IOS XR
+        next if node.client.api == 'gRPC'
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.graceful_restart = true
       assert(bgp.graceful_restart,
@@ -406,6 +411,7 @@ class TestRouterBgp < CiscoTestCase
                    "vrf #{vrf}: bgp graceful restart timers stalepath time" \
                    "should be set to '77'")
       if node.client.api == 'NXAPI'
+        # TODO: Only applies to NXAPI
         bgp.graceful_restart_helper = true
         assert(bgp.graceful_restart_helper,
                "vrf #{vrf}: bgp graceful restart helper should be enabled")
@@ -422,6 +428,7 @@ class TestRouterBgp < CiscoTestCase
                    "vrf #{vrf}: bgp graceful restart timers stalepath time" \
                    "should be set to default value of '300'")
       if node.client.api == 'NXAPI'
+        # TODO: Only applies to NXAPI
         bgp.graceful_restart_helper = false
         refute(bgp.graceful_restart_helper,
                "vrf #{vrf}: bgp graceful restart helper should be disabled")
@@ -439,10 +446,11 @@ class TestRouterBgp < CiscoTestCase
                  "bgp graceful restart default timer value should be '120'")
     assert_equal(300, bgp.default_graceful_restart_timers_stalepath_time,
                  "bgp graceful restart default timer value should be '300'")
-    refute(bgp.default_graceful_restart_helper,
-           'graceful restart helper default value ' \
-           'should be enabled = false') if
-      node.client.api == 'NXAPI'
+    if node.client.api == 'NXAPI'
+      refute(bgp.default_graceful_restart_helper,
+             'graceful restart helper default value ' \
+             'should be enabled = false')
+    end
   end
 
   def test_routerbgp_set_get_confederation_id
@@ -452,11 +460,12 @@ class TestRouterBgp < CiscoTestCase
         vrf = 'default'
         bgp = RouterBgp.new(asnum)
       else
-        skip(XR_NO_VRF_SUPPORT) if node.client.api == 'gRPC'
+        # Non-default VRF does not apply to IOS XR
+        next if node.client.api == 'gRPC'
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.confederation_id = 77
       assert_equal('77', bgp.confederation_id,
@@ -504,7 +513,7 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       # Confederation peer configuration requires that a
       # confederation id be configured first so the expectation
@@ -551,7 +560,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_log_neighbor_changes
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_SUPPORTED_BROKEN) if node.client.api == 'gRPC'
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -561,7 +570,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.log_neighbor_changes = true
       assert(bgp.log_neighbor_changes,
@@ -574,7 +582,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_log_neighbor_changes_not_configured
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_SUPPORTED_BROKEN) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.log_neighbor_changes,
@@ -602,7 +610,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.maxas_limit = 50
       assert_equal(50, bgp.maxas_limit,
@@ -634,7 +641,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.neighbor_fib_down_accelerate = true
       assert(bgp.neighbor_fib_down_accelerate,
@@ -673,7 +679,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.reconnect_interval = 34
       assert_equal(34, bgp.reconnect_interval,
@@ -703,7 +708,7 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.router_id = '1.2.3.4'
       assert_equal('1.2.3.4', bgp.router_id,
@@ -733,8 +738,6 @@ class TestRouterBgp < CiscoTestCase
 
   def test_routerbgp_set_get_shutdown
     skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
-    # NOTE: Shutdown command only applies under
-    # default vrf
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.shutdown = true
@@ -771,7 +774,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.suppress_fib_pending = true
       assert(bgp.suppress_fib_pending,
@@ -810,7 +812,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.timer_bestpath_limit_set(34)
       assert_equal(34, bgp.timer_bestpath_limit, "vrf #{vrf}: " \
@@ -842,7 +843,6 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
       end
       bgp.timer_bestpath_limit_set(34, true)
       assert(bgp.timer_bestpath_limit_always,
@@ -880,7 +880,7 @@ class TestRouterBgp < CiscoTestCase
         asnum = 99
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
-        test_add_routerid_rdauto(asnum, vrf)
+        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.timer_bgp_keepalive_hold_set(25, 45)
       assert_equal(%w(25 45), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \
