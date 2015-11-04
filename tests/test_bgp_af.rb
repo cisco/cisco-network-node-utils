@@ -371,7 +371,8 @@ class TestRouterBgpAF < CiscoTestCase
     val = bgp_af.default_advertise_l2vpn_evpn
     bgp_af.advertise_l2vpn_evpn = val
     assert_equal(val, bgp_af.advertise_l2vpn_evpn,
-                 'Error: advertise l2vpn evpn value does not match default value')
+                 'Error: advertise l2vpn evpn value does not match default' \
+                 'value')
   end
 
   def test_advertise_l2vpn_evpn
