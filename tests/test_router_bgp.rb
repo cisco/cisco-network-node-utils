@@ -446,11 +446,13 @@ class TestRouterBgp < CiscoTestCase
                  "bgp graceful restart default timer value should be '120'")
     assert_equal(300, bgp.default_graceful_restart_timers_stalepath_time,
                  "bgp graceful restart default timer value should be '300'")
+    # rubocop:disable Style/GuardClause
     if node.client.api == 'NXAPI'
       refute(bgp.default_graceful_restart_helper,
              'graceful restart helper default value ' \
              'should be enabled = false')
     end
+    # rubocop:enable Style/GuardClause
   end
 
   def test_routerbgp_set_get_confederation_id
