@@ -213,7 +213,6 @@ module Cisco
     # Build complete reference hash.
     def build_cmd_ref
       # Example id's: N3K-C3048TP-1GE, N3K-C3064PQ-10GE, N7K-C7009, N7K-C7009
-
       debug "Product: #{@product_id}"
       debug "Files being used: #{@files.join(', ')}"
 
@@ -272,6 +271,8 @@ module Cisco
     # - Append 'config_set_append' data to any existing 'config_set' data
     # - Append 'config_get_token_append' data to 'config_get_token', ditto
     def self.hash_merge(input_hash, api, product_id, base_hash=nil)
+      return base_hash if input_hash.nil?
+
       result = base_hash
       result ||= {}
       # to_inspect: sub-hashes we want to recurse into
