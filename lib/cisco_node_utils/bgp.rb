@@ -84,7 +84,9 @@ module Cisco
     end
 
     def self.enable(state='')
-      # IOS XR has no '[no] feature xyz'.
+      # IOS XR has no '[no] feature bgp' command so:
+      #  enable == false: do 'no router bgp' instead
+      #  enable == true:  no-op
       config_set('bgp', 'feature', state: state) if
         node.client.api == 'NXAPI' || state == 'no'
     end
