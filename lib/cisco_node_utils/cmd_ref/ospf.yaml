@@ -30,6 +30,7 @@ log_adjacency:
   default_value: :none
 
 router:
+  multiple: true
   config_get: "show running ospf"
   config_get_token: '/^router ospf (\S+)$/'
   config_set: "%s router ospf %s"

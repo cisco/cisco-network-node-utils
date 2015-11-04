@@ -19,18 +19,19 @@ require 'yaml'
 module Cisco
   # Control a reference for an attribute.
   class CmdRef
-    attr_reader :feature
-    attr_reader :name
-    attr_reader :hash
+    attr_reader :feature, :name, :hash, :auto_default, :multiple, :kind
 
     KEYS = %w(default_value
               config_set config_set_append
               config_get config_get_token config_get_token_append
+              auto_default multiple kind
               test_config_get test_config_get_regex test_config_result)
 
     def self.keys
       KEYS
     end
+
+    KINDS = %w(boolean int string)
 
     # Construct a CmdRef describing the given (feature, name) pair.
     # Param "values" is a hash with keys as described in KEYS.
@@ -41,6 +42,9 @@ module Cisco
       @feature = feature
       @name = name
       @hash = {}
+      @auto_default = true
+      @multiple = false
+      @kind = nil
 
       values.each do |key, value|
         unless KEYS.include?(key)
@@ -50,14 +54,22 @@ module Cisco
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
           @hash[key] = value if key == 'default_value'
-          next
         elsif key == 'config_get_token' || key == 'config_set'
           # For simplicity, these are ALWAYS arrays
           value = [value] unless value.is_a?(Array)
           define_getter(key, value)
+          # We intentionally do this *after* the define_getter() call
+          @hash[key] = preprocess_value(value)
+        elsif key == 'auto_default'
+          @auto_default = value ? true : false
+        elsif key == 'multiple'
+          @multiple = value ? true : false
+        elsif key == 'kind'
+          fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
+          @kind = value.to_sym
+        else
+          @hash[key] = preprocess_value(value)
         end
-        # We intentionally do this *after* the define_getter() call above.
-        @hash[key] = preprocess_value(value)
       end
     end
 
@@ -192,9 +204,9 @@ module Cisco
     attr_reader :cli, :files, :platform, :product_id
 
     # Constructor.
-    # Normal usage is to pass product_id only, in which case all usual YAML
+    # Normal usage is to pass product, platform, cli, in which case usual YAML
     # files will be located then the list will be filtered down to only those
-    # matching the given product_id.
+    # matching the given settings.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
     def initialize(product:  nil,

@@ -306,19 +306,14 @@ class TestInterface < CiscoTestCase
                    "ipv4 redirects default incorrect for interface #{k}")
 
       if ref.config_set?
-        pattern = ref.test_config_get_regex[0]
         cmd = show_cmd(interface.name)
-        if k.include?('loopback')
-          assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
-        else
-          interface.ipv4_redirects = true
-          assert(interface.ipv4_redirects, "Couldn't set redirects to true")
-          refute_show_match(command: cmd, pattern: pattern)
+        interface.ipv4_redirects = true
+        assert(interface.ipv4_redirects, "Couldn't set redirects to true")
+        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[1])
 
-          interface.ipv4_redirects = false
-          refute(interface.ipv4_redirects, "Couldn't set redirects to false")
-          assert_show_match(command: cmd, pattern: pattern)
-        end
+        interface.ipv4_redirects = false
+        refute(interface.ipv4_redirects, "Couldn't set redirects to false")
+        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[0])
       else
         # Getter should return same value as default if setter isn't supported
         assert_equal(interface.ipv4_redirects, interface.default_ipv4_redirects,
@@ -987,24 +982,30 @@ class TestInterface < CiscoTestCase
     # pre-configure
     inttype_h = config_from_hash(inttype_h)
 
-    # Validate the collection
-    validate_interfaces_not_empty
-    validate_get_switchport(inttype_h)
-    validate_description(inttype_h)
-    validate_get_access_vlan(inttype_h)
-    validate_ipv4_address(inttype_h)
-    validate_ipv4_proxy_arp(inttype_h)
-    validate_ipv4_redirects(inttype_h)
-    validate_interface_shutdown(inttype_h)
-    validate_vrf(inttype_h)
-
-    # Cleanup the preload configuration
+    # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
       cfg << "#{/^Ethernet/.match(k) ? 'default' : 'no'} interface #{k}"
     end
     cfg << 'no feature interface-vlan'
-    config(*cfg)
+
+    begin
+      # Validate the collection
+      validate_interfaces_not_empty
+      validate_get_switchport(inttype_h)
+      validate_description(inttype_h)
+      validate_get_access_vlan(inttype_h)
+      validate_ipv4_address(inttype_h)
+      validate_ipv4_proxy_arp(inttype_h)
+      validate_ipv4_redirects(inttype_h)
+      validate_interface_shutdown(inttype_h)
+      validate_vrf(inttype_h)
+      config(*cfg)
+    rescue Minitest::Assertion
+      # clean up before failing
+      config(*cfg)
+      raise
+    end
   end
 
   def test_interface_vrf_default

@@ -65,7 +65,7 @@ module Cisco
     # @return [String, Hash, Array]
     # @example config_get("show_version", "system_image")
     # @example config_get("ospf", "router_id",
-    #                      {:name => "green", :vrf => "one"})
+    #                     {name: "green", vrf: "one"})
     def config_get(feature, name, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
@@ -77,14 +77,49 @@ module Cisco
         token = nil
       end
       if token.nil?
-        return show(ref.config_get, :structured)
+        # Just get the whole output
+        return massage(show(ref.config_get, :structured), ref)
       elsif token[0].kind_of?(Regexp)
-        return find_ascii(show(ref.config_get, :ascii),
-                          token[-1], *token[0..-2])
+        return massage(find_ascii(show(ref.config_get, :ascii),
+                                  token[-1], *token[0..-2]), ref)
       else
-        return config_get_handle_structured(token,
-                                            show(ref.config_get, :structured))
+        return massage(
+          config_get_handle_structured(token,
+                                       show(ref.config_get, :structured)),
+          ref)
       end
+    end
+
+    # Attempt to massage the given value into the format specified by the
+    # given CmdRef object.
+    def massage(value, ref)
+      CiscoLogger.debug "Massaging '#{value}' (#{value.inspect})"
+      if value.is_a?(Array) && !ref.multiple
+        fail "Expected zero/one value but got '#{value}'" if value.length > 1
+        value = value[0]
+      end
+      if (value.nil? || value.empty?) && ref.default_value? && ref.auto_default
+        CiscoLogger.debug "Default: #{ref.default_value}"
+        return ref.default_value
+      end
+      return value unless ref.kind
+      case ref.kind
+      when :boolean
+        if value.nil? || value.empty?
+          value = false
+        elsif /^no / =~ value
+          value = false
+        else
+          value = true
+        end
+      when :int
+        value = value.to_i unless value.nil?
+      when :string
+        value = '' if value.nil?
+        value = value.to_s.strip
+      end
+      CiscoLogger.debug "Massaged to '#{value}'"
+      value
     end
 
     # Uses CommandReference to lookup the default value for a given
@@ -284,12 +319,7 @@ module Cisco
 
     # @return [String] such as "example.com"
     def domain_name
-      result = config_get('dnsclient', 'domain_name')
-      if result.nil?
-        return ''
-      else
-        return result[0]
-      end
+      config_get('dnsclient', 'domain_name')
     end
 
     # @return [Integer] System uptime, in seconds
@@ -297,7 +327,6 @@ module Cisco
       cache_flush
       t = config_get('show_system', 'uptime')
       fail 'failed to retrieve system uptime' if t.nil?
-      t = t.shift
       # time units: t = ["0", "23", "15", "49"]
       t.map!(&:to_i)
       d, h, m, s = t
@@ -306,12 +335,7 @@ module Cisco
 
     # @return [String] timestamp of last reset time
     def last_reset_time
-      output = config_get('show_version', 'last_reset_time')
-      return '' if output.nil?
-      # NX-OS may provide leading/trailing whitespace:
-      # " Sat Oct 25 00:39:25 2014\n"
-      # so be sure to strip() it down to the actual string.
-      output.strip
+      config_get('show_version', 'last_reset_time')
     end
 
     # @return [String] such as "Reset Requested by CLI command reload"
@@ -338,29 +362,6 @@ module Cisco
       config_get('show_version', 'system_image')
     end
   end
-
-  # Convenience wrapper for find_ascii. Operates under the assumption
-  # that there will be zero or one matches for the given query
-  # and returns the match string (or "") rather than an array.
-  #
-  # @raise [RuntimeError] if more than one match is found.
-  #
-  # @param body [String] The body of text to search
-  # @param regex_query [Regex] The regular expression to match
-  # @param parents [*Regex] zero or more regular expressions defining
-  #                the parent configs to filter by.
-  # @return [String] the matching (sub)string or "" if no match.
-  #
-  # @example Get the domain name if any
-  #   domain_name = find_one_ascii(running_cfg, "ip domain-name (.*)")
-  #   => 'example.com'
-  def find_one_ascii(body, regex_query, *parent_cfg)
-    matches = find_ascii(body, regex_query, *parent_cfg)
-    return '' if matches.nil?
-    fail RuntimeError if matches.length > 1
-    matches[0]
-  end
-  module_function :find_one_ascii
 
   # Method for working with hierarchical show command output such as
   # "show running-config". Searches the given multi-line string

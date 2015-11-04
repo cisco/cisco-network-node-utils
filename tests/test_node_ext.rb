@@ -84,7 +84,7 @@ vrf blue",
     node.client.config(['interface loopback1', 'no shutdown'])
 
     result = node.config_get('interface', 'shutdown', 'loopback1')
-    assert_nil(result)
+    refute(result)
   end
 
   def test_node_config_get_invalid
@@ -116,13 +116,13 @@ vrf blue",
   def test_node_config_set
     node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
     run = node.client.show('show run all | inc snmp')
-    val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal('100', val)
+    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
+    assert_equal(['100'], val)
 
     node.config_set('snmp_server', 'aaa_user_cache_timeout', 'no', 100)
     run = node.client.show('show run all | inc snmp')
-    val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal('3600', val)
+    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
+    assert_equal(['3600'], val)
   end
 
   def test_node_config_set_invalid
