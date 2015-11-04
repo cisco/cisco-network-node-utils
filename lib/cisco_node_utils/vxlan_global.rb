@@ -63,7 +63,7 @@ module Cisco
       else
         state = 'no'
       end
-      set_args = {state: state, host_moves: host_moves, timeout: timeout}
+      set_args = { state: state, host_moves: host_moves, timeout: timeout }
       config_set('vxlan_global', 'dup_host_ip_addr_detection', set_args)
     end
 
@@ -93,7 +93,7 @@ module Cisco
     end
 
     def dup_host_mac_detection_set(host_moves, timeout)
-      set_args = {host_moves: host_moves, timeout: timeout}
+      set_args = { host_moves: host_moves, timeout: timeout }
       config_set('vxlan_global', 'dup_host_mac_detection', set_args)
     end
 
@@ -123,9 +123,11 @@ module Cisco
     def anycast_gateway_mac_set(configure, mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
       if configure == 'True'
-        config_set('vxlan_global', 'anycast_gateway_mac', state: '', mac_addr: mac_addr)
+        config_set('vxlan_global', 'anycast_gateway_mac',
+                   state: '', mac_addr: mac_addr)
       else
-        config_set('vxlan_global', 'anycast_gateway_mac', state: 'no', mac_addr: '')
+        config_set('vxlan_global', 'anycast_gateway_mac',
+                   state: 'no', mac_addr: '')
       end
     end
   end # class
