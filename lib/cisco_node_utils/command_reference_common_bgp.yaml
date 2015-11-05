@@ -201,6 +201,11 @@ bgp_af:
     config_set_append: '<state> additional-paths selection route-map <route_map>'
     default_value: ""
 
+  advertise_l2vpn_evpn:
+    config_get_token_append: '/^advertise l2vpn evpn$/'
+    config_set_append: '<state> advertise l2vpn evpn'
+    default_value: false
+
   client_to_client:
     config_get_token_append: '/^client-to-client reflection$/'
     config_set_append: '<state> client-to-client reflection'
@@ -238,6 +243,12 @@ bgp_af:
     config_get_token_append: '/^default-information originate$/'
     config_set_append: '<state> default-information originate'
     default_value: false
+
+  # This is a multi-provider, enable-only feature. Do not disable from provider.
+  feature_nv_overlay_evpn:
+    config_get: "show running section nv"
+    config_get_token: '/^nv overlay evpn$/'
+    config_set: "nv overlay evpn"
 
   maximum_paths:
     config_get_token_append: '/^maximum-paths (\d+)$/'

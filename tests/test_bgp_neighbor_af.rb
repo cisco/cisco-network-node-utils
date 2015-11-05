@@ -31,10 +31,12 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     super
     if @@reset_feat
       config('no feature bgp', 'feature bgp')
+      config('no nv overlay evpn', 'nv overlay evpn')
       @@reset_feat = false # rubocop:disable Style/ClassVars
     else
       # Just ensure that feature is enabled
       config('feature bgp')
+      config('nv overlay evpn')
     end
   end
 
@@ -66,9 +68,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # 3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
     # 4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
     # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6 => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
     # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8 => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
+    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
     # 9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
     # 10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
     # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
@@ -77,6 +79,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
     # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
     # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
+    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
   }
 
   # ---------------------------------
@@ -155,6 +158,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       :suppress_inactive,
     ]
 
+    props = [:disable_peer_as_check] if dbg.include?('l2vpn/evpn')
+
     # Call setter to false, then validate with getter
     props.each { |k| af.send("#{k}=", false) }
     props.each do |k|
@@ -198,6 +203,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       unsuppress_map:  'unsupp-map-name',
     }
 
+    props.delete(:unsuppress_map) if dbg.include?('l2vpn/evpn')
+
     props.each do |k, v|
       # Call setter.
       af.send("#{k}=", v)
@@ -226,12 +233,14 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
 
-      %w(additional_paths_receive additional_paths_send).each do |k|
-        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
-          af.send("#{k}=", val)
-          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
+      unless dbg.include?('l2vpn/evpn')
+        %w(additional_paths_receive additional_paths_send).each do |k|
+          [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
+           af.send("default_#{k}")
+          ].each do |val|
+            af.send("#{k}=", val)
+            assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
+          end
         end
       end
 
@@ -250,6 +259,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_advertise_map
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       advertise_map(af, dbg)
     end
   end
@@ -319,6 +329,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_default_originate
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       default_originate(af, dbg)
     end
   end
