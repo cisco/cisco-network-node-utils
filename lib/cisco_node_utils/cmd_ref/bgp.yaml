@@ -13,36 +13,43 @@ address_family:
   config_set_append: '<state> address-family <afi> <safi>'
 
 bestpath_always_compare_med:
+  kind: boolean
   config_get_token_append: '/^bestpath always-compare-med$/'
   config_set_append: '<state> bestpath always-compare-med'
   default_value: false
 
 bestpath_aspath_multipath_relax:
+  kind: boolean
   config_get_token_append: '/^bestpath as-path multipath-relax$/'
   config_set_append: '<state> bestpath as-path multipath-relax'
   default_value: false
 
 bestpath_compare_routerid:
+  kind: boolean
   config_get_token_append: '/^bestpath compare-routerid$/'
   config_set_append: '<state> bestpath compare-routerid'
   default_value: false
 
 bestpath_cost_community_ignore:
+  kind: boolean
   config_get_token_append: '/^bestpath cost-community ignore$/'
   config_set_append: '<state> bestpath cost-community ignore'
   default_value: false
 
 bestpath_med_confed:
+  kind: boolean
   config_get_token_append: '/^bestpath med confed$/'
   config_set_append: '<state> bestpath med confed'
   default_value: false
 
 bestpath_med_missing_as_worst:
+  kind: boolean
   config_get_token_append: '/^bestpath med missing-as-worst$/'
   config_set_append: '<state> bestpath med missing-as-worst'
   default_value: false
 
 bestpath_med_non_deterministic:
+  kind: boolean
   config_get_token_append: '/^bestpath med non-deterministic$/'
   config_set_append: '<state> bestpath med non-deterministic'
   default_value: false
@@ -66,51 +73,61 @@ create_destroy_neighbor:
   config_set_append: '<state> neighbor <nbr>'
 
 enforce_first_as:
-  config_get_token_append: '/^enforce-first-as$/'
+  kind: boolean
+  config_get_token_append: '/^(no )?enforce-first-as$/'
   config_set_append: '<state> enforce-first-as'
   default_value: true
 
 feature:
+  kind: boolean
   config_get: "show running bgp"
   config_get_token: '/^feature bgp$/'
   config_set: "<state> feature bgp"
 
 graceful_restart:
-  config_get_token_append: '/^graceful-restart$/'
+  kind: boolean
+  config_get_token_append: '/^(no )?graceful-restart$/'
   config_set_append: '<state> graceful-restart'
   default_value: true
 
 graceful_restart_helper:
+  kind: boolean
   config_get_token_append: '/^graceful-restart-helper$/'
   config_set_append: '<state> graceful-restart-helper'
   default_value: false
 
 graceful_restart_timers_restart:
+  kind: int
   config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
   config_set_append: '<state> graceful-restart restart-time <seconds>'
   default_value: 120
 
 graceful_restart_timers_stalepath_time:
+  kind: int
   config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
   config_set_append: '<state> graceful-restart stalepath-time <seconds>'
   default_value: 300
 
 log_neighbor_changes:
+  kind: boolean
   config_get_token_append: '/^log-neighbor-changes$/'
   config_set_append: '<state> log-neighbor-changes'
   default_value: false
 
 maxas_limit:
+  kind: int
   config_get_token_append: '/^maxas-limit (\d+)$/'
   config_set_append: '<state> maxas-limit <limit>'
   default_value: false
 
 neighbor_fib_down_accelerate:
+  kind: boolean
   config_get_token_append: '/^neighbor-down fib-accelerate$/'
   config_set_append: '<state> neighbor-down fib-accelerate'
   default_value: false
 
 reconnect_interval:
+  kind: int
   config_get_token_append: '/^reconnect-interval (\d+)$/'
   config_set_append: '<state> reconnect-interval <seconds>'
   default_value: 60
@@ -127,21 +144,26 @@ router_id:
 
 shutdown:
   # Shutdown only applies to global bgp
+  kind: boolean
   config_get: "show running bgp"
   config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
   config_set: ["router bgp <asnum>", "<state> shutdown"]
   default_value: false
+
 suppress_fib_pending:
+  kind: boolean
   config_get_token_append: '/^suppress-fib-pending$/'
   config_set_append: '<state> suppress-fib-pending'
   default_value: false
 
 timer_bestpath_limit:
+  kind: int
   config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
   config_set_append: '<state> timers bestpath-limit <seconds>'
   default_value: 300
 
 timer_bestpath_limit_always:
+  kind: boolean
   config_get_token_append: '/^timers bestpath-limit \d+ always$/'
   config_set_append: '<state> timers bestpath-limit <seconds> always'
   default_value: false
@@ -157,5 +179,6 @@ timer_bgp_keepalive_hold:
   config_set_append: '<state> timers bgp <keepalive> <hold>'
 
 vrf:
+  multiple: true
   config_get_token_append: '/^vrf\s+(\S+)$/'
   config_set: ["router bgp <asnum>", "<state> vrf <vrf>", "end"]

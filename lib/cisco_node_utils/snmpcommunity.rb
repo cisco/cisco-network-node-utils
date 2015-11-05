@@ -50,8 +50,7 @@ module Cisco
     #  end
 
     def group
-      result = config_get('snmp_community', 'group', @name)
-      result.nil? ? SnmpCommunity.default_group : result.first
+      config_get('snmp_community', 'group', @name)
     end
 
     def group=(group)
@@ -64,8 +63,7 @@ module Cisco
     end
 
     def acl
-      result = config_get('snmp_community', 'acl', @name)
-      result.nil? ? SnmpCommunity.default_acl : result.first
+      config_get('snmp_community', 'acl', @name)
     end
 
     def acl=(acl)

@@ -6,9 +6,11 @@ domain:
   config_set: "vtp domain %s"
 
 feature:
+  kind: boolean
   config_get: "show running vtp"
   config_get_token: '/^feature vtp$/'
   config_set: "%s feature vtp"
+  default_value: false
 
 filename:
   config_get: "show running vtp"
@@ -23,6 +25,7 @@ password:
   default_value: ""
 
 version:
+  kind: int
   config_get: "show vtp status"
   config_get_token: '/VTP\s+version\s+running\s+:\s+(\d+)/'
   config_set: "vtp version %s"

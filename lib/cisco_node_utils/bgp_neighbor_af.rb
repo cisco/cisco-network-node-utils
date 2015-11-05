@@ -110,9 +110,7 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_exist
-      arr = config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
-      return default_advertise_map_exist if arr.nil?
-      arr.shift
+      config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
     end
 
     def advertise_map_exist=(arr)
@@ -135,9 +133,7 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_non_exist
-      arr = config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
-      return default_advertise_map_non_exist if arr.nil?
-      arr.shift
+      config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
     end
 
     def advertise_map_non_exist=(arr)
@@ -161,7 +157,7 @@ module Cisco
     def allowas_in_get
       val = config_get('bgp_neighbor_af', 'allowas_in', @get_args)
       return nil if val.nil?
-      val.shift.split.last.to_i
+      val.split.last.to_i
     end
 
     def allowas_in
@@ -213,7 +209,7 @@ module Cisco
     def additional_paths_receive
       val = config_get('bgp_neighbor_af', 'additional_paths_receive', @get_args)
       return default_additional_paths_receive if val.nil?
-      /disable/.match(val.first) ? :disable : :enable
+      /disable/.match(val) ? :disable : :enable
     end
 
     def additional_paths_receive=(val)
@@ -238,7 +234,7 @@ module Cisco
     def additional_paths_send
       val = config_get('bgp_neighbor_af', 'additional_paths_send', @get_args)
       return default_additional_paths_send if val.nil?
-      /disable/.match(val.first) ? :disable : :enable
+      /disable/.match(val) ? :disable : :enable
     end
 
     def additional_paths_send=(val)
@@ -260,8 +256,7 @@ module Cisco
     # Nvgens as True with optional 'route-map <map>'
     def default_originate_get
       val = config_get('bgp_neighbor_af', 'default_originate', @get_args)
-      return nil if val.nil?
-      val = val.shift
+      return nil unless val
       (val[/route-map/]) ? val.split.last : true
     end
 
@@ -308,9 +303,7 @@ module Cisco
     # -----------------------
     # <state> filter-list <str> in
     def filter_list_in
-      str = config_get('bgp_neighbor_af', 'filter_list_in', @get_args)
-      return default_filter_list_in if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'filter_list_in', @get_args)
     end
 
     def filter_list_in=(str)
@@ -332,9 +325,7 @@ module Cisco
     # -----------------------
     # <state> filter-list <str> out
     def filter_list_out
-      str = config_get('bgp_neighbor_af', 'filter_list_out', @get_args)
-      return default_filter_list_out if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'filter_list_out', @get_args)
     end
 
     def filter_list_out=(str)
@@ -366,7 +357,7 @@ module Cisco
                           ' *(?<threshold>\d+)?' \
                           ' *(?<opt>restart|warning-only)?' \
                           ' *(?<interval>\d+)?')
-      regexp.match(str.shift)
+      regexp.match(str)
     end
 
     def max_prefix_set(limit, threshold=nil, opt=nil)
@@ -454,9 +445,7 @@ module Cisco
     # -----------------------
     # <state> prefix-list <str> in
     def prefix_list_in
-      str = config_get('bgp_neighbor_af', 'prefix_list_in', @get_args)
-      return default_prefix_list_in if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'prefix_list_in', @get_args)
     end
 
     def prefix_list_in=(str)
@@ -478,9 +467,7 @@ module Cisco
     # -----------------------
     # <state> prefix-list <str> out
     def prefix_list_out
-      str = config_get('bgp_neighbor_af', 'prefix_list_out', @get_args)
-      return default_prefix_list_out if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'prefix_list_out', @get_args)
     end
 
     def prefix_list_out=(str)
@@ -501,9 +488,7 @@ module Cisco
     # -----------------------
     # <state> route-map <str> in
     def route_map_in
-      str = config_get('bgp_neighbor_af', 'route_map_in', @get_args)
-      return default_route_map_in if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'route_map_in', @get_args)
     end
 
     def route_map_in=(str)
@@ -525,9 +510,7 @@ module Cisco
     # -----------------------
     # <state> route-map <str> out
     def route_map_out
-      str = config_get('bgp_neighbor_af', 'route_map_out', @get_args)
-      return default_route_map_out if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'route_map_out', @get_args)
     end
 
     def route_map_out=(str)
@@ -548,8 +531,7 @@ module Cisco
     # -----------------------
     # <state route-reflector-client
     def route_reflector_client
-      state = config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
-      state ? true : false
+      config_get('bgp_neighbor_af', 'route_reflector_client', @get_args)
     end
 
     def route_reflector_client=(state)
@@ -568,7 +550,7 @@ module Cisco
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
-      val = val.shift.split.last
+      val = val.split.last
       return 'standard' if val[/send-community/] # Workaround
       val
     end
@@ -609,7 +591,7 @@ module Cisco
     def soft_reconfiguration_in
       val = config_get('bgp_neighbor_af', 'soft_reconfiguration_in', @get_args)
       return default_soft_reconfiguration_in if val.nil?
-      /always/.match(val.first) ? :always : :enable
+      /always/.match(val) ? :always : :enable
     end
 
     def soft_reconfiguration_in=(val)
@@ -629,9 +611,7 @@ module Cisco
     # -----------------------
     # <state> soo <str>
     def soo
-      str = config_get('bgp_neighbor_af', 'soo', @get_args)
-      return default_soo if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'soo', @get_args)
     end
 
     def soo=(str)
@@ -651,8 +631,7 @@ module Cisco
     # -----------------------
     # <state> suppress-inactive
     def suppress_inactive
-      state = config_get('bgp_neighbor_af', 'suppress_inactive', @get_args)
-      state ? true : false
+      config_get('bgp_neighbor_af', 'suppress_inactive', @get_args)
     end
 
     def suppress_inactive=(state)
@@ -667,9 +646,7 @@ module Cisco
     # -----------------------
     # <state> unsuppress-map <str>
     def unsuppress_map
-      str = config_get('bgp_neighbor_af', 'unsuppress_map', @get_args)
-      return default_unsuppress_map if str.nil?
-      str.shift.strip
+      config_get('bgp_neighbor_af', 'unsuppress_map', @get_args)
     end
 
     def unsuppress_map=(str)
@@ -689,8 +666,7 @@ module Cisco
     # -----------------------
     # <state> weight <int>
     def weight
-      int = config_get('bgp_neighbor_af', 'weight', @get_args)
-      int.nil? ? default_weight : int.shift
+      config_get('bgp_neighbor_af', 'weight', @get_args)
     end
 
     def weight=(int)

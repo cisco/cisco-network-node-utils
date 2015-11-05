@@ -1,6 +1,7 @@
 # vrf.yaml
 ---
 all_vrfs:
+  multiple: true
   config_get: "show running | section 'vrf context'"
   config_get_token: '/^vrf context (.*)/'
 
@@ -8,14 +9,18 @@ create:
   config_set:  "vrf context <vrf>"
 
 description:
+  kind: string
   config_get: "show running | section 'vrf context'"
   config_get_token: ['/^vrf context <vrf>$/i', '/^description (.*)/']
   config_set: ["vrf context <vrf>", "<state> description <desc>"]
+  default_value: ""
 
 destroy:
   config_set: "no vrf context <vrf>"
 
 shutdown:
+  kind: boolean
   config_get: "show running | section 'vrf context'"
   config_get_token: ['/^vrf context <vrf>$/i', '/^shutdown$/']
   config_set: ["vrf context <vrf>", "<state> shutdown"]
+  default_value: false
