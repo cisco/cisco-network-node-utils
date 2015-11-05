@@ -222,7 +222,11 @@ module Cisco
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def config(commands)
       CiscoLogger.debug('CLI sent to device:')
-      commands.each { |cli| CiscoLogger.debug("#{cli}") }
+      if commands.is_a?(Array)
+        commands.each { |cli| CiscoLogger.debug("#{cli}") }
+      else
+        CiscoLogger.debug("#{commands}")
+      end
       @client.config(commands)
     rescue Cisco::Shim::RequestFailed => e
       raise Cisco::CliError.new(
