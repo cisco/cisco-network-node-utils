@@ -79,8 +79,8 @@ module Cisco
       if token.nil?
         return show(ref.config_get, :structured)
       elsif token[0].kind_of?(Regexp)
-        return find_ascii(show(ref.config_get, :ascii),
-                          token[-1], *token[0..-2])
+        return Cisco.find_ascii(show(ref.config_get, :ascii),
+                                token[-1], *token[0..-2])
       else
         return config_get_handle_structured(token,
                                             show(ref.config_get, :structured))
@@ -221,7 +221,8 @@ module Cisco
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def config(commands)
-      CiscoLogger.debug("CLI Sent to device: #{commands}")
+      CiscoLogger.debug('CLI sent to device:')
+      commands.each { |cli| CiscoLogger.debug("#{cli}") }
       @client.config(commands)
     rescue Cisco::Shim::RequestFailed => e
       raise Cisco::CliError.new(
@@ -236,6 +237,7 @@ module Cisco
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def show(command, type=:ascii)
+      CiscoLogger.debug("Show command sent to device: '#{command}'")
       @client.show(command, type)
     rescue Cisco::Shim::RequestFailed => e
       raise Cisco::CliError.new(
