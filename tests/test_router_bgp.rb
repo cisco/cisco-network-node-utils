@@ -24,13 +24,16 @@ XR_NOT_SUPPORTED     = 'Not supported in IOS XR'
 XR_NO_VRF_SUPPORT    = 'Feature not supported in a vrf in IOS XR'
 XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
 
-def iosxr_add_routerid_rdauto(asnum, vrf)
+def iosxr_add_routerid(asnum)
   return if platform != :ios_xr
-  # If IOS XR - vrf requires a router id and a rd
-  # bgp.routerid = '1.1.1.1'
-  # Yes the indents appear to be needed
-  config("router bgp #{asnum}", 'bgp router-id 1.2.3.4',
-         " vrf #{vrf}", ' rd auto')
+  # IOS XR adds required 'rd auto' for any created VRF.
+  # But 'rd auto' requires a router id. From a puppet p.o.v
+  # this is fine; the user is required to add a router-id to
+  # their manifest. For the minitest fudge this by calling
+  # RouterBgp.new twice. Once to create the BGP process,
+  # add a router-id, then call it again to create the VRF.
+  bgp = RouterBgp.new(asnum)
+  bgp.router_id = '1.2.3.4'
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
@@ -122,6 +125,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
 
     vrf = 'wolfpack'
+    iosxr_add_routerid(asnum)
     bgp = RouterBgp.new(asnum, vrf)
     line = get_routerbgp_match_line(asnum, vrf)
     refute_nil(line, "Error: 'router bgp #{asnum}' vrf '#{vrf}' not configured")
@@ -138,6 +142,7 @@ class TestRouterBgp < CiscoTestCase
       bgp.destroy
 
       vrf = 'Duke'
+      iosxr_add_routerid(test)
       bgp = RouterBgp.new(test, vrf)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
@@ -207,8 +212,8 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.bestpath_always_compare_med = true
       assert(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
@@ -275,8 +280,8 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       refute(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
              'bgp bestpath_always_compare_med should *NOT* be enabled')
@@ -332,8 +337,8 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.cluster_id = 34
       assert_equal('34', bgp.cluster_id,
@@ -365,6 +370,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_enforce_first_as
+    skip(XR_SUPPORTED_BROKEN) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.enforce_first_as = true
@@ -396,8 +402,8 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.graceful_restart = true
       assert(bgp.graceful_restart,
@@ -466,8 +472,8 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.confederation_id = 77
       assert_equal('77', bgp.confederation_id,
@@ -504,8 +510,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_confederation_peers
-    skip(XR_SUPPORTED_BROKEN) if
-      platform == :ios_xr
+    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -514,8 +519,8 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       # Confederation peer configuration requires that a
       # confederation id be configured first so the expectation
@@ -655,6 +660,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_neighbor_fib_down_accelerate_not_configured
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.neighbor_fib_down_accelerate,
@@ -663,6 +669,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_neighbor_fib_down_accelerate
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_neighbor_fib_down_accelerate,
@@ -693,6 +700,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_reconnect_interval_default
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -709,8 +717,8 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.router_id = '1.2.3.4'
       assert_equal('1.2.3.4', bgp.router_id,
@@ -750,6 +758,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_shutdown_not_configured
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.shutdown,
@@ -758,6 +767,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_shutdown
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_shutdown,
@@ -788,6 +798,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_suppress_fib_pending_not_configured
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.suppress_fib_pending,
@@ -796,6 +807,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_suppress_fib_pending
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_suppress_fib_pending,
@@ -857,6 +869,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_timer_bestpath_limit_always_not_configured
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.timer_bestpath_limit_always,
@@ -865,6 +878,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_timer_bestpath_limit_always
+    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_timer_bestpath_limit_always,
@@ -881,8 +895,8 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
+        iosxr_add_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
-        iosxr_add_routerid_rdauto(asnum, vrf)
       end
       bgp.timer_bgp_keepalive_hold_set(25, 45)
       assert_equal(%w(25 45), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \

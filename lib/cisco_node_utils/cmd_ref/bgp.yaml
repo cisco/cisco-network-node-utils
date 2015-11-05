@@ -112,9 +112,11 @@ create_destroy_neighbor:
   config_set_append: '<state> neighbor <nbr>'
 
 enforce_first_as:
+  # TODO: Different format for IOS XR
+  # Enabled by default, disabled by command
+  # 'bgp enforce-first-as disable'
   config_get_token_append: '/^enforce-first-as$/'
   config_set_append: '<state> enforce-first-as'
-  # TODO: Fix default minitest for IOS XR
   default_value: true
 
 feature:
@@ -252,3 +254,5 @@ timer_bgp_keepalive_hold:
 vrf:
   config_get_token_append: '/^vrf\s+(\S+)$/'
   config_set: ["router bgp <asnum>", "<state> vrf <vrf>"]
+  config_set_append:
+    - "  rd <rd>"

@@ -26,10 +26,15 @@ module Cisco
       fail ArgumentError unless vrf.length > 0
       @asnum = RouterBgp.process_asnum(asnum)
       @vrf = vrf
+      @rd = 'auto'
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
       else
-        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
+        if node.client.api == 'gRPC'
+          @get_args = @set_args = { asnum: @asnum, vrf: @vrf, rd: @rd}
+        else
+          @get_args = @set_args = { asnum: @asnum, vrf: @vrf}
+        end
       end
       create if instantiate
     end
@@ -554,6 +559,8 @@ module Cisco
 
     # Shutdown (Getter/Setter/Default)
     def shutdown
+      # TODO: remove this hack when exclude is available
+      return
       match = config_get('bgp', 'shutdown', @asnum)
       match.nil? ? default_shutdown : true
     end
