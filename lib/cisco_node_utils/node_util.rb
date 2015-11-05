@@ -65,5 +65,21 @@ module Cisco
     def config_set(*args)
       node.config_set(*args)
     end
+
+    def self.supports?(api)
+      client.supports?(api)
+    end
+
+    def supports?(api)
+      client.supports?(api)
+    end
+
+    def self.platform
+      client.platform
+    end
+
+    def platform
+      client.platform
+    end
   end
 end

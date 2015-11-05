@@ -55,8 +55,12 @@ class CiscoTestCase < TestCase
     node.cmd_ref
   end
 
+  def platform
+    node.client.platform
+  end
+
   def config(*args)
-    if node.client.api == 'gRPC'
+    if node.client.platform == :ios_xr
       result = super(*args, 'commit best-effort')
     else
       result = super
@@ -69,7 +73,7 @@ class CiscoTestCase < TestCase
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
-      platform_info = PlatformInfo.new(node.host_name, node.client.api)
+      platform_info = PlatformInfo.new(node.host_name, platform)
       @@interfaces = platform_info.get_value_from_key('interfaces')
       # rubocop:enable Style/ClassVars
     end

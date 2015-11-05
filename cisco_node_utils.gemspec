@@ -32,5 +32,6 @@ Currently supports NX-OS nodes.
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rubocop', '~> 0.34'
   spec.add_development_dependency 'simplecov', '~> 0.9'
-  spec.add_runtime_dependency 'cisco_os_shim', '~> 1.0'
+  spec.add_runtime_dependency 'cisco_os_shim', '~> 1.0.pre.dev'
+  # spec.add_runtime_dependency 'cisco_os_shim', '~> 1.0'
 end

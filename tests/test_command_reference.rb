@@ -34,8 +34,8 @@ class TestCmdRef < MiniTest::Test
     @input_file.close!
   end
 
-  def load_file(api='', product_id='')
-    CommandReference.new(api, product_id, [@input_file.path])
+  def load_file(**args)
+    CommandReference.new(**args, :files => [@input_file.path])
   end
 
   def write(string)
@@ -45,13 +45,15 @@ class TestCmdRef < MiniTest::Test
 
   def test_data_sanity
     # Make sure the actual YAML in our library loads for various platforms
-    CommandReference.new('', '')
-    CommandReference.new('NXAPI', '')
-    CommandReference.new('NXAPI', 'N9K-C9396PX')
-    CommandReference.new('NXAPI', 'N7K-C7010')
-    CommandReference.new('NXAPI', 'N3K-C3064PQ-10GE')
-    CommandReference.new('gRPC', '')
-    CommandReference.new('gRPC', 'R-IOSXRV9000-CH')
+    CommandReference.new
+    CommandReference.new(platform: :nexus, cli: true)
+    CommandReference.new(platform: :nexus, product: 'N9K-C9396PX', cli: true)
+    CommandReference.new(platform: :nexus, product: 'N7K-C7010', cli: true)
+    CommandReference.new(platform: :nexus, product: 'N3K-C3064PQ-10GE',
+                         cli: true)
+    CommandReference.new(platform: :ios_xr, cli: true)
+    CommandReference.new(platform: :ios_xr, product: 'R-IOSXRV9000-CH',
+                         cli: true)
   end
 
   def test_load_empty_file
@@ -159,13 +161,13 @@ name:
     write("
 name:
   default_value: 'generic'
-  nxapi:
+  cli_nexus:
     default_value: 'NXAPI base'
     /N7K/:
       default_value: 'NXAPI N7K'
     /N9K/:
       default_value: 'NXAPI N9K'
-  grpc:
+  cli_ios_xr:
     /XRV9000/:
       default_value: ~
     else:
@@ -176,37 +178,39 @@ name:
   def test_load_generic
     write_variants
     # Neither NXAPI nor gRPC
-    reference = load_file('', '')
+    reference = load_file
     assert_equal('generic', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n9k
     write_variants
-    reference = load_file('NXAPI', 'N9K-C9396PX')
+    reference = load_file(platform: :nexus, product: 'N9K-C9396PX', cli: true)
     assert_equal('NXAPI N9K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n7k
     write_variants
-    reference = load_file('NXAPI', 'N7K-C7010')
+    reference = load_file(platform: :nexus, product: 'N7K-C7010', cli: true)
     assert_equal('NXAPI N7K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n3k_3064
     write_variants
-    reference = load_file('NXAPI', 'N3K-C3064PQ-10GE')
+    reference = load_file(platform: :nexus, product: 'N3K-C3064PQ-10GE',
+                          cli: true)
     assert_equal('NXAPI base', reference.lookup('test', 'name').default_value)
   end
 
-  def test_load_grpc_xrv9k
+  def test_load_ios_xr_xrv9k
     write_variants
-    reference = load_file('gRPC', 'R-IOSXRV9000-CH')
+    reference = load_file(platform: :ios_xr, product: 'R-IOSXRV9000-CH',
+                          cli: true)
     assert_nil(reference.lookup('test', 'name').default_value)
   end
 
-  def test_load_grpc_generic
+  def test_load_ios_xr_generic
     write_variants
-    reference = load_file('gRPC', '')
+    reference = load_file(platform: :ios_xr, cli: true)
     assert_equal('gRPC base', reference.lookup('test', 'name').default_value)
   end
 

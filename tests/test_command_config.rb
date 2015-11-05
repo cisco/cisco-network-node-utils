@@ -84,7 +84,7 @@ class TestCommandConfig < CiscoTestCase
   end
 
   def loopback
-    (node.client.api == 'gRPC') ? 'Loopback' : 'loopback'
+    (platform == :ios_xr) ? 'Loopback' : 'loopback'
   end
 
   def build_int_scale_config(add=true)
@@ -105,7 +105,7 @@ class TestCommandConfig < CiscoTestCase
   # ---------------------------------------------------------------------------
 
   def test_valid_config
-    cfg_hash = load_yaml[node.client.api.downcase]
+    cfg_hash = load_yaml[platform.to_s]
     begin
       send_device_config(cfg_hash)
     end

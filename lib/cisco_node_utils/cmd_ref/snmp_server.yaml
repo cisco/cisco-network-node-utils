@@ -1,7 +1,7 @@
 # snmp_server
 ---
 aaa_user_cache_timeout:
-  nxapi:
+  cli_nexus:
     config_get: "show snmp internal globals"
     config_get_token: '/AAA Cache Timeout :(\d+)/'
     config_set: "%s snmp-server aaa-user cache-timeout %d"

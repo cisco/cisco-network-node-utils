@@ -32,7 +32,7 @@ class TestInterface < CiscoTestCase
 
   def setup
     super
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       @port_channel = 'port-channel'
       # rubocop:disable Style/AlignHash
       @switchport_shutdown_hash = {
@@ -50,7 +50,7 @@ class TestInterface < CiscoTestCase
            'no system default switchport shutdown'],
       }
       # rubocop:enable Style/AlignHash
-    elsif node.client.api == 'gRPC'
+    elsif platform == :ios_xr
       @port_channel = 'Bundle-Ether'
       @switchport_shutdown_hash = {
         # Not really applicable to XR
@@ -60,17 +60,17 @@ class TestInterface < CiscoTestCase
   end
 
   def ipv4
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       'ip'
-    elsif node.client.api == 'gRPC'
+    elsif platform == :ios_xr
       'ipv4'
     end
   end
 
   def ipv4_address_pattern(address, length)
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       %r{^\s+ip address #{address}/#{length}}
-    elsif node.client.api == 'gRPC'
+    elsif platform == :ios_xr
       mask = Utils.length_to_bitmask(length)
       /^\s+ipv4 address #{address} #{mask}/
     end
@@ -96,7 +96,7 @@ class TestInterface < CiscoTestCase
   end
 
   def show_cmd(name)
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       "show run interface #{name} all | no-more"
     else
       "show run interface #{name}"
@@ -104,9 +104,9 @@ class TestInterface < CiscoTestCase
   end
 
   def interface_count
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       cmd = 'show run interface all | inc interface | no-more'
-    elsif node.client.api == 'gRPC'
+    elsif platform == :ios_xr
       cmd = 'show run interface | inc interface'
     end
     output = @device.cmd(cmd)
@@ -295,9 +295,9 @@ class TestInterface < CiscoTestCase
       cmd = show_cmd(interface.name)
 
       # puts "value - #{v[:proxy_arp]}"
-      if node.client.api == 'NXAPI'
+      if platform == :nexus
         pattern = /^\s+ip proxy-arp/
-      elsif node.client.api == 'gRPC'
+      elsif platform == :ios_xr
         pattern = /^\s+proxy-arp/
       end
       if v[:proxy_arp]
@@ -353,7 +353,7 @@ class TestInterface < CiscoTestCase
 
       if ref.config_set?
         cmd = show_cmd(interface.name)
-        if k.include?('loopback') && node.client.api == 'NXAPI'
+        if k.include?('loopback') && platform == :nexus
           # Loopbacks don't support redirects on NX-OS but do on XR
           assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
         else
@@ -447,7 +447,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_description_too_long
-    skip('No description length limit on XR') if node.client.api == 'gRPC'
+    skip('No description length limit on XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     description = 'a' * (IF_DESCRIPTION_SIZE + 1)
     assert_raises(RuntimeError) { interface.description = description }
@@ -636,7 +636,7 @@ class TestInterface < CiscoTestCase
 
   def test_negotiate_auto_portchannel
     # TODO: get Bundle-Ether working for XR/gRPC
-    if node.client.api == 'gRPC'
+    if platform == :ios_xr
       skip 'No support yet for configuration of Bundle-Ether interfaces'
     end
     ref = cmd_ref.lookup('interface',
@@ -813,9 +813,9 @@ class TestInterface < CiscoTestCase
 
     # set with value true
     interface.ipv4_proxy_arp = true
-    if node.client.api == 'NXAPI'
+    if platform == :nexus
       pattern = /^\s+ip proxy-arp/
-    elsif node.client.api == 'gRPC'
+    elsif platform == :ios_xr
       pattern = /^\s+proxy-arp/
     end
     assert_show_match(pattern: pattern,
@@ -901,9 +901,9 @@ class TestInterface < CiscoTestCase
       end
       # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
       cfg << "#{ipv4} address #{v[:address_len]}" unless v[:address_len].nil?
-      if node.client.api == 'NXAPI'
+      if platform == :nexus
         cfg << 'ip proxy-arp' if v[:proxy_arp]
-      elsif node.client.api == 'gRPC'
+      elsif platform == :ios_xr
         cfg << 'proxy-arp' if v[:proxy_arp]
       end
       cfg << '#{ipv4} redirects' if v[:redirects]
@@ -937,7 +937,7 @@ class TestInterface < CiscoTestCase
       vrf_new:             'test2',
       default_vrf:         DEFAULT_IF_VRF,
     }
-    unless node.client.api == 'gRPC'
+    unless platform == :ios_xr
       inttype_h['Vlan45'] = {
         address_len:         '9.7.1.1/15',
         proxy_arp:           true,

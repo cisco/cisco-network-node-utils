@@ -3,9 +3,9 @@
 _template:
   config_set: ["interface %s"]
   config_get_token: '/^interface %s$/i'
-  grpc:
+  cli_ios_xr:
     config_get: "show running interface"
-  nxapi:
+  cli_nexus:
     config_get: "show running interface all"
 
 access_vlan:
@@ -15,7 +15,7 @@ access_vlan:
 
 admin_state_ethernet_noswitchport_shutdown:
   # TODO: is this actually used?
-  nxapi:
+  cli_nexus:
     /N7K/:
       default_value: "shutdown"
 
@@ -44,19 +44,19 @@ feature_lacp:
   config_set: "%s feature lacp"
 
 feature_vlan:
-  grpc:
+  cli_ios_xr:
     config_get: ~
     config_set: ~
-  nxapi:
+  cli_nexus:
     config_get: "show running | i ^feature"
     config_get_token: '/^feature interface-vlan$/'
     config_set: "%s feature interface-vlan"
 
 ipv4_addr_mask:
-  nxapi:
+  cli_nexus:
     config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
     config_set_append: "%s ip address %s"
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^ipv4 address ([0-9\.]+) (.*)/'
     config_set_append: '%s ipv4 address %s'
 
@@ -68,10 +68,10 @@ ipv4_netmask_length:
 
 ipv4_proxy_arp:
   default_value: false
-  nxapi:
+  cli_nexus:
     config_get_token_append: '/^ip proxy-arp$/'
     config_set_append: "%s ip proxy-arp"
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^proxy-arp$/'
     config_set_append: "%s proxy-arp"
 
@@ -79,7 +79,7 @@ ipv4_redirects_loopback:
   test_config_result:
     false: RuntimeError
     true: RuntimeError
-  nxapi:
+  cli_nexus:
     /N7K/:
       default_value: false
       config_set: ~
@@ -93,7 +93,7 @@ ipv4_redirects_loopback:
       '/^\s+ip redirects/',
       '/^\s+no ip redirects/'
       ]
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
     config_set_append: "%s ipv4 redirects"
     default_value: false
@@ -106,7 +106,7 @@ ipv4_redirects_other_interfaces:
   test_config_result:
     false: false
     true: true
-  nxapi:
+  cli_nexus:
     config_get_token_append: '/^((?:no )?ip redirects)$/'
     config_set_append: "%s ip redirects"
     default_value: true
@@ -114,7 +114,7 @@ ipv4_redirects_other_interfaces:
     '/^\s+ip redirects/',
     '/^\s+no ip redirects/'
     ]
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
     config_set_append: "%s ipv4 redirects"
     default_value: false
@@ -129,7 +129,7 @@ mtu:
   default_value: 1500
 
 negotiate_auto_ethernet:
-  nxapi:
+  cli_nexus:
     test_config_get_regex: [
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
@@ -143,7 +143,7 @@ negotiate_auto_ethernet:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
-  grpc:
+  cli_ios_xr:
     # TODO: which XR platforms *do* support this?
     /XRV/:
       config_get: ~
@@ -164,7 +164,7 @@ negotiate_auto_other_interfaces:
     true: RuntimeError
 
 negotiate_auto_portchannel:
-  nxapi:
+  cli_nexus:
     test_config_get_regex: [
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
@@ -178,7 +178,7 @@ negotiate_auto_portchannel:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '^/negotiation auto$/'
     config_set_append: "%s negotiation auto"
     default_value: true
@@ -209,7 +209,7 @@ shutdown_unknown:
   default_value: true
 
 shutdown_vlan:
-  nxapi:
+  cli_nexus:
     default_value: true
 
 svi_autostate:
@@ -280,10 +280,10 @@ system_default_switchport_shutdown:
 
 vrf:
   default_value: ""
-  nxapi:
+  cli_nexus:
     config_get_token_append: '/^vrf member (.*)/'
     config_set_append: "%s vrf member %s"
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^vrf (.*)/'
     config_set_append: "%s vrf %s"
 

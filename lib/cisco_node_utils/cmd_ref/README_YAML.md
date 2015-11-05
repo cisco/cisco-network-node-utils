@@ -14,8 +14,8 @@ This document describes the structure and semantics of these files.
     * [Key-value wildcards](#key-value-wildcards)
 * [Advanced attribute definition](#advanced-attribute-definition)
   * [`_template`](#_template)
-  * [API variants](#api-variants)
-  * [Platform variants](#platform-variants)
+  * [Platform and API variants](#platform-and-api-variants)
+  * [Product variants](#product-variants)
   * [Combinations of these](#combinations-of-these)
 * [Attribute properties](#attribute-properties)
   * [`config_get`](#config_get)
@@ -161,26 +161,26 @@ description:
 ...
 ```
 
-### API variants
+### Platform and API variants
 
-Clients for different Cisco platforms may use different APIs. Currently these include NXAPI (used for Cisco Nexus platforms) and gRPC (used for Cisco platforms running IOS XR). Often the CLI or other input/output formats needed will vary between APIs, so the YAML must be able to accomodate this.
+Clients for different Cisco platforms may use different APIs. Currently these include NXAPI (CLI-based API used for Cisco Nexus platforms) and gRPC (CLI-based API used for Cisco platforms running IOS XR). Often the CLI or other input/output formats needed will vary between APIs, so the YAML must be able to accomodate this.
 
-Any of the attribute properties can be subdivided by client API using the
-API name (in lower case) as a key. For example, interface VRF membership defaults to "" (no VRF) in both NXAPI and gRPC clients, but the CLI is 'vrf member <vrf>' for NXAPI and 'vrf <vrf>' for gRPC. Thus, the YAML could be written as:
+Any of the attribute properties can be subdivided by platform and API type by using the
+combination of API type and platform type as a key. For example, interface VRF membership defaults to "" (no VRF) on both Nexus and IOS XR platforms, but the CLI is 'vrf member <vrf>' for Nexus and 'vrf <vrf>' for IOS XR. Thus, the YAML could be written as:
 
 ```yaml
 # interface.yaml
 vrf:
   default_value: ""
-  nxapi:
+  cli_nexus:
     config_get_token_append: '/^vrf member (.*)/'
     config_set_append: "<state> vrf member <vrf>"
-  grpc:
+  cli_ios_xr:
     config_get_token_append: '/^vrf (.*)/'
     config_set_append: "<state> vrf <vrf>"
 ```
 
-### Platform variants
+### Product variants
 
 Any of the attribute properties can be subdivided by platform product ID string
 using a regexp against the product ID as a key. When one or more regexp keys
@@ -200,7 +200,7 @@ system_image:
 
 ### Combinations of these
 
-In many cases, supporting multiple APIs and multiple platforms will require
+In many cases, supporting multiple platforms and multiple products will require
 using several or all of the above options.
 
 Using `_template` in combination with API variants:
@@ -208,32 +208,32 @@ Using `_template` in combination with API variants:
 ```yaml
 # inventory.yaml
 _template:
-  grpc:
+  cli_ios_xr:
     config_get: 'show inventory | begin "Rack 0"'
     test_config_get: 'show inventory'
-  nxapi:
+  cli_nexus:
     config_get: 'show inventory'
     test_config_get: 'show inventory | no-more'
 
 productid:
-  grpc:
+  cli_ios_xr:
     config_get_token: '/PID: ([^ ,]+)/'
-  nxapi:
+  cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
 ```
 
-Using API variants and platform variants together:
+Using platform variants and product variants together:
 
 ```yaml
 # inventory.yaml
 description:
   config_get_token: "chassis_id"
-  nxapi:
+  cli_nexus:
     /N7K/:
       test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
-  grpc:
+  cli_ios_xr:
     config_get: 'show inventory | inc "Rack 0"'
     config_get_token: '/DESCR: "(.*)"/'
     test_config_get: 'show inventory | inc "Rack 0"'

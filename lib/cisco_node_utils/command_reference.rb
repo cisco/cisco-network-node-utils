@@ -189,7 +189,7 @@ module Cisco
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
-    attr_reader :api, :files, :product_id
+    attr_reader :cli, :files, :platform, :product_id
 
     # Constructor.
     # Normal usage is to pass product_id only, in which case all usual YAML
@@ -197,9 +197,13 @@ module Cisco
     # matching the given product_id.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
-    def initialize(api, product_id, files=nil)
-      @api = api.downcase
-      @product_id = product_id
+    def initialize(product:  nil,
+                   platform: nil,
+                   cli:      false,
+                   files:    nil)
+      @product_id = product
+      @platform = platform
+      @cli = cli
       @hash = {}
       if files
         @files = files
@@ -223,15 +227,13 @@ module Cisco
 
         base_hash = {}
         if feature_hash.key?('_template')
-          base_hash = CommandReference.hash_merge(feature_hash['_template'],
-                                                  @api, @product_id)
+          base_hash = hash_merge(feature_hash['_template'])
         end
 
         feature_hash.each do |name, value|
           fail "No entries under '#{name}' in '#{file}'" if value.nil?
           @hash[feature] ||= {}
-          values = CommandReference.hash_merge(value, @api, @product_id,
-                                               base_hash.clone)
+          values = hash_merge(value, base_hash.clone)
           @hash[feature][name] = CmdRef.new(feature, name, values, file)
         end
       end
@@ -260,17 +262,17 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_APIS = %w(nxapi grpc)
+    KNOWN_FILTERS = %w(cli_nexus cli_ios_xr)
 
     # Helper method
     # Given a Hash of command reference data (as read from YAML), does:
-    # - Filter any API-specific data according to the given api string
-    # - Filter any platform-specific data according to the given product_id
+    # - Filter any API-specific data
+    # - Filter any platform-specific data
     # - Inherit data from the given base_hash (if any) and extend/override it
     #   with the given input data.
     # - Append 'config_set_append' data to any existing 'config_set' data
     # - Append 'config_get_token_append' data to 'config_get_token', ditto
-    def self.hash_merge(input_hash, api, product_id, base_hash=nil)
+    def hash_merge(input_hash, base_hash=nil)
       return base_hash if input_hash.nil?
 
       result = base_hash
@@ -296,8 +298,9 @@ module Cisco
           regexp_match = true
           # Platform match - we want to descend into this sub-hash
           to_inspect << value
-        elsif KNOWN_APIS.include?(key)
-          next unless key == api
+        elsif KNOWN_FILTERS.include?(key)
+          next if key.match(/cli/) && !cli
+          next unless key.match(platform.to_s)
           # API match - we want to descend into this sub-hash
           to_inspect << value
         elsif key == 'else'
@@ -314,7 +317,7 @@ module Cisco
       end
       # Recurse! Sub-hashes can override the base hash
       to_inspect.each do |hash|
-        result = hash_merge(hash, api, product_id, result)
+        result = hash_merge(hash, result)
       end
       result
     end
@@ -324,12 +327,12 @@ module Cisco
     # into a single combined array
     # value_append('foo', 'bar') ==> ['foo', 'bar']
     # value_append('foo', ['bar', 'baz']) ==> ['foo', 'bar', 'baz']
-    def self.value_append(base_value, new_value)
+    def value_append(base_value, new_value)
       base_value = [base_value] unless base_value.is_a?(Array)
       new_value = [new_value] unless new_value.is_a?(Array)
       base_value + new_value
     end
-    private_class_method :value_append
+    private :value_append
 
     def mapping?(node)
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }
