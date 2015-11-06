@@ -29,7 +29,12 @@ module Cisco
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
       else
-        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
+        if platform == :ios_xr
+          @rd = 'auto'
+          @get_args = @set_args = { asnum: @asnum, vrf: @vrf, rd: @rd }
+        else
+          @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
+        end
       end
       create if instantiate
     end
