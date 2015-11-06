@@ -559,8 +559,6 @@ module Cisco
 
     # Shutdown (Getter/Setter/Default)
     def shutdown
-      # TODO: remove this hack when exclude is available
-      return
       match = config_get('bgp', 'shutdown', @asnum)
       match.nil? ? default_shutdown : true
     end
