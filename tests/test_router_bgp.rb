@@ -370,7 +370,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_enforce_first_as
-    skip(XR_SUPPORTED_BROKEN) if node.client.api == 'gRPC'
+    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.enforce_first_as = true
@@ -660,7 +660,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_neighbor_fib_down_accelerate_not_configured
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.neighbor_fib_down_accelerate,
@@ -669,7 +669,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_neighbor_fib_down_accelerate
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_neighbor_fib_down_accelerate,
@@ -700,7 +700,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_reconnect_interval_default
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -758,7 +758,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_shutdown_not_configured
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.shutdown,
@@ -767,7 +767,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_shutdown
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_shutdown,
@@ -798,7 +798,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_suppress_fib_pending_not_configured
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.suppress_fib_pending,
@@ -807,7 +807,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_suppress_fib_pending
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_suppress_fib_pending,
@@ -869,7 +869,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_timer_bestpath_limit_always_not_configured
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.timer_bestpath_limit_always,
@@ -878,7 +878,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_timer_bestpath_limit_always
-    skip(XR_NOT_SUPPORTED) if node.client.api == 'gRPC'
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_timer_bestpath_limit_always,
