@@ -26,11 +26,11 @@ module Cisco
       fail ArgumentError unless vrf.length > 0
       @asnum = RouterBgp.process_asnum(asnum)
       @vrf = vrf
-      @rd = 'auto'
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
       else
         if platform == :ios_xr
+          @rd = 'auto'
           @get_args = @set_args = { asnum: @asnum, vrf: @vrf, rd: @rd }
         else
           @get_args = @set_args = { asnum: @asnum, vrf: @vrf }

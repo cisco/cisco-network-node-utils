@@ -83,8 +83,8 @@ class TestRouterBgp < CiscoTestCase
 
   def test_routerbgp_collection_not_empty
     if platform == :nexus
-      config('feature bgp')
-      config('router bgp 55',
+      config('feature bgp',
+             'router bgp 55',
              'vrf blue',
              'vrf red',
              'vrf white')
