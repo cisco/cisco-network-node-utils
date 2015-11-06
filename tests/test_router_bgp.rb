@@ -74,11 +74,22 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_collection_not_empty
-    config('feature bgp') if platform == :nexus
-    config('router bgp 55',
+    if platform == :nexus
+      config('feature bgp')
+      config('router bgp 55',
            'vrf blue',
            'vrf red',
            'vrf white')
+    else
+      config('router bgp 55',
+             'bgp router-id 1.2.3.4',
+             'vrf blue',
+             'rd auto',
+             'vrf red',
+             'rd auto',
+             'vrf white',
+             'rd auto')
+    end
     routers = RouterBgp.routers
     refute_empty(routers, 'RouterBgp collection is empty')
     # validate the collection
