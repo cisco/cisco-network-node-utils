@@ -24,16 +24,23 @@ XR_NOT_SUPPORTED     = 'Not supported in IOS XR'
 XR_NO_VRF_SUPPORT    = 'Feature not supported in a vrf in IOS XR'
 XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
 
-def iosxr_add_routerid(asnum)
+def iosxr_add_global_routerid(asnum)
   return if platform != :ios_xr
   # IOS XR adds required 'rd auto' for any created VRF.
-  # But 'rd auto' requires a router id. From a puppet p.o.v
+  # But 'rd auto' requires a global router id. From a puppet p.o.v
   # this is fine; the user is required to add a router-id to
   # their manifest. For the minitest fudge this by calling
   # RouterBgp.new twice. Once to create the BGP process,
   # add a router-id, then call it again to create the VRF.
   bgp = RouterBgp.new(asnum)
   bgp.router_id = '1.2.3.4'
+end
+
+def iosxr_add_vrf_routerid(bgp)
+  return if platform != :ios_xr
+  # Add a router-id to the vrf
+  # The global one doesn't satisfy sysdb
+  bgp.router_id = '4.5.6.7'
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
@@ -84,10 +91,13 @@ class TestRouterBgp < CiscoTestCase
       config('router bgp 55',
              'bgp router-id 1.2.3.4',
              'vrf blue',
+             'bgp router-id 4.5.6.7',
              'rd auto',
              'vrf red',
+             'bgp router-id 4.5.6.7',
              'rd auto',
              'vrf white',
+             'bgp router-id 4.5.6.7',
              'rd auto')
     end
     routers = RouterBgp.routers
@@ -136,8 +146,9 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
 
     vrf = 'wolfpack'
-    iosxr_add_routerid(asnum)
+    iosxr_add_global_routerid(asnum)
     bgp = RouterBgp.new(asnum, vrf)
+    iosxr_add_vrf_routerid(bgp)
     line = get_routerbgp_match_line(asnum, vrf)
     refute_nil(line, "Error: 'router bgp #{asnum}' vrf '#{vrf}' not configured")
     bgp.destroy
@@ -153,8 +164,9 @@ class TestRouterBgp < CiscoTestCase
       bgp.destroy
 
       vrf = 'Duke'
-      iosxr_add_routerid(test)
+      iosxr_add_global_routerid(test)
       bgp = RouterBgp.new(test, vrf)
+      iosxr_add_vrf_routerid(bgp)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
       refute_nil(line,
@@ -223,8 +235,9 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.bestpath_always_compare_med = true
       assert(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
@@ -291,8 +304,9 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       refute(bgp.bestpath_always_compare_med, "vrf #{vrf}: "\
              'bgp bestpath_always_compare_med should *NOT* be enabled')
@@ -348,8 +362,9 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.cluster_id = 34
       assert_equal('34', bgp.cluster_id,
@@ -413,8 +428,9 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.graceful_restart = true
       assert(bgp.graceful_restart,
@@ -483,8 +499,9 @@ class TestRouterBgp < CiscoTestCase
         next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.confederation_id = 77
       assert_equal('77', bgp.confederation_id,
@@ -530,8 +547,9 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       # Confederation peer configuration requires that a
       # confederation id be configured first so the expectation
@@ -728,8 +746,9 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.router_id = '1.2.3.4'
       assert_equal('1.2.3.4', bgp.router_id,
@@ -906,8 +925,9 @@ class TestRouterBgp < CiscoTestCase
       else
         asnum = 99
         vrf = 'yamllll'
-        iosxr_add_routerid(asnum)
+        iosxr_add_global_routerid(asnum)
         bgp = RouterBgp.new(asnum, vrf)
+        iosxr_add_vrf_routerid(bgp)
       end
       bgp.timer_bgp_keepalive_hold_set(25, 45)
       assert_equal(%w(25 45), bgp.timer_bgp_keepalive_hold, "vrf #{vrf}: " \
