@@ -163,7 +163,7 @@ class TestRouterBgp < CiscoTestCase
       bgp.destroy
 
       vrf = 'Duke'
-      bgp = create_bgp_vrf(asnum, vrf)
+      bgp = create_bgp_vrf(test, vrf)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
       refute_nil(line,
