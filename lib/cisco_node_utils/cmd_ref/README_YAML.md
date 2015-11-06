@@ -25,6 +25,9 @@ This document describes the structure and semantics of these files.
   * [`config_set`](#config_set)
   * [`config_set_append`](#config_set_append)
   * [`default_value`](#default_value)
+  * [`kind`](#kind)
+  * [`multiple`](#multiple)
+  * [`auto_default`](#auto_default)
   * [`test_config_get` and `test_config_get_regex`](#test_config_get-and-test_config_get_regex)
   * [`test_config_result`](#test_config_result)
 * [Style Guide](#style-guide)
@@ -463,6 +466,68 @@ ipv4_address:
 ```
 
 By convention, a `default_value` of `''` (empty string) represents a configurable property that defaults to absent, while a default of `nil` (Ruby) or `~` (YAML) represents a property that has no meaningful default at all.
+
+`config_get()` will return the defined `default_value` if the defined `config_get_token` does not match anything on the node. Normally this is desirable behavior, but you can use [`auto_default`](#auto_default) to change this behavior if needed.
+
+### `kind`
+
+The `kind` attribute is used to specify the type of value that is returned by `config_get()`. If unspecified, no attempt will be made to guess the return type and it will typically be one of string, array, or `nil`. If `kind` is specified, type conversion will automatically be performed as follows:
+
+* `kind: boolean` - value will be coerced to `true`/`false`, and if no `default_value` is set, a `nil` result will be returned as `false`.
+* `kind: int` - value will be coerced to an integer, and if no `default_value` is set, a `nil` result will be returned as `0`.
+* `kind: string` - value will be coerced to a string, leading/trailing whitespace will be stripped, and if no `default_value` is set, a `nil` result will be returned as `''`.
+
+```yaml
+# interface.yaml
+---
+access_vlan:
+  config_get_token_append: '/^switchport access vlan (.*)$/'
+  config_set_append: "switchport access vlan %s"
+  kind: int
+  default_value: 1
+
+description:
+  kind: string
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: "%s description %s"
+  default_value: ""
+
+feature_lacp:
+  kind: boolean
+  config_get: "show running | i ^feature"
+  config_get_token: '/^feature lacp$/'
+  config_set: "%s feature lacp"
+```
+
+### `multiple`
+
+By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specifyg `multiple: true`. When this value is `true`, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
+
+```yaml
+# interface.yaml
+---
+all_interfaces:
+  multiple: true
+  config_get_token: '/^interface (.*)/'
+```
+
+### `auto_default`
+
+Normally, if `config_get_token` produces no match, `config_get()` will return the defined `default_value` for this attribute. For some attributes, this may not be desirable. Setting `auto_default: false` will force `config_get()` to return `nil` in the non-matching case instead.
+
+```yaml
+# bgp_af.yaml
+---
+dampen_igp_metric:
+  # dampen_igp_metric defaults to nil (disabled),
+  # but its default numeric value when enabled is 600.
+  # If disabled, we want config_get() to return nil, not 600.
+  default_value: 600
+  auto_default: false
+  kind: int
+  config_get_token_append: '/^dampen-igp-metric (\d+)$/'
+  config_set_append: '<state> dampen-igp-metric <num>'
+```
 
 ### `test_config_get` and `test_config_get_regex`
 

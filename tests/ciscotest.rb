@@ -42,8 +42,9 @@ class CiscoTestCase < TestCase
     end
     @@node
   rescue CiscoNxapi::HTTPUnauthorized
-    puts "Unauthorized to connect as #{username}:#{password}@#{address}"
-    exit
+    abort "Unauthorized to connect as #{username}:#{password}@#{address}"
+  rescue StandardError => e
+    abort "Error in establishing connection: #{e}"
   end
 
   def setup
