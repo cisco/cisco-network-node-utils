@@ -35,13 +35,13 @@ def create_bgp_vrf(asnum, vrf)
     # RouterBgp.new twice. Once to create the BGP process,
     # add a router-id, then call it again to create the VRF,
     # and add a VRF level router-id (which is needed to make SYSDB
-    #behave).
+    # behave).
     bgp = RouterBgp.new(asnum)
     bgp.router_id = '1.2.3.4'
     bgp = RouterBgp.new(asnum, vrf)
     bgp.router_id = '4.5.6.7'
   end
-  return bgp
+  bgp
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
