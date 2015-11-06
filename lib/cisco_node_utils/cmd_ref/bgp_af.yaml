@@ -35,6 +35,12 @@ additional_paths_send:
   config_set_append: '<state> additional-paths send'
   default_value: false
 
+advertise_l2vpn_evpn:
+  kind: boolean
+  config_get_token_append: '/^advertise l2vpn evpn$/'
+  config_set_append: '<state> advertise l2vpn evpn'
+  default_value: false
+
 all_afs:
   multiple: true
   config_get_token_append: '/^address-family (\S+) (\S+)$/'
@@ -80,6 +86,13 @@ default_information:
   config_get_token_append: '/^default-information originate$/'
   config_set_append: '<state> default-information originate'
   default_value: false
+
+# This is a multi-provider, enable-only feature. Do not disable from provider.
+feature_nv_overlay_evpn:
+  kind: boolean
+  config_get: "show running section nv"
+  config_get_token: '/^nv overlay evpn$/'
+  config_set: "nv overlay evpn"
 
 maximum_paths:
   kind: int
