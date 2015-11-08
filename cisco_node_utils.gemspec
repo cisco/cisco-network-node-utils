@@ -3,9 +3,15 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'cisco_node_utils/version'
 
+def valid_rubygems_version
+  gem_version = Gem::VERSION
+  return true if (gem_version.to_f >= 2.1)
+  fail 'Required rubygems version >= 2.1.0'
+end
+
 Gem::Specification.new do |spec|
   spec.name          = 'cisco_node_utils'
-  spec.version       = CiscoNodeUtils::VERSION
+  spec.version       = CiscoNodeUtils::VERSION if valid_rubygems_version
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
                         'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'
