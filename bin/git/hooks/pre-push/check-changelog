@@ -1,0 +1,24 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+z40=0000000000000000000000000000000000000000
+
+IFS=' '
+
+# Information about the commits which are being pushed is supplied as lines to
+# the standard input in the form:
+#
+#   <local ref> <local sha1> <remote ref> <remote sha1>
+while read local_ref local_sha remote_ref remote_sha
+do
+    # do nothing if we're creating or deleting a new branch.
+    if [ "$local_sha" != $z40 ] && [ "$remote_sha" != $z40 ] ; then
+        # Make sure CHANGELOG.md is updated
+        step_name "Checking CHANGELOG.md..."
+        git diff --name-only --diff-filter=ACM $remote_sha $local_sha |
+            grep 'CHANGELOG.md' >> /dev/null
+        check_rc_optional "Please update CHANGELOG.md before pushing code upstream"
+    fi
+done

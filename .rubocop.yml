@@ -1,3 +1,83 @@
 # Rubocop configuration
 
-inherit_from: .rubocop_todo.yml
+# Code complexity metrics are tracked separately for lib/ vs. tests/
+# See lib/.rubocop.yml and tests/.rubocop.yml
+Metrics/AbcSize:
+  Enabled: true
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+
+Metrics/MethodLength:
+  Enabled: true
+  Exclude:
+    - docs/*.rb
+
+Metrics/ParameterLists:
+  Enabled: true
+
+Metrics/PerceivedComplexity:
+  Enabled: true
+
+# Template files have long lines before tag replacement
+Metrics/LineLength:
+  Exclude:
+    - docs/*.rb
+
+#
+# Team preferences different from Rubocop defaults:
+#
+
+# We don't find either of these to be useful:
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+# We like table alignment for readability
+Style/AlignHash:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
+
+# Template files have wildcard strings in class names
+Style/ClassAndModuleCamelCase:
+  Exclude:
+    - docs/*.rb
+
+# Permit is_a? and kind_of? interchangeably
+Style/ClassCheck:
+  Enabled: false
+
+# Template files have atypical file names on purpose
+Style/FileName:
+  Exclude:
+    - docs/*.rb
+
+# As a team we like 'sprintf' rather than 'format'
+Style/FormatString:
+  EnforcedStyle: sprintf
+
+# Mixed keys are ugly. Use one or the other as needed
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+
+# Template files have wildcard strings in method names
+Style/MethodName:
+  Exclude:
+    - docs/*.rb
+
+# "def foo(bar=baz)" not "def foo(bar = baz)"
+Style/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: no_space
+
+# Make it neater to extend multi-line arrays and hashes
+Style/TrailingComma:
+  EnforcedStyleForMultiline: comma
+
+# Because an SnmpServer cannot be destroyed, we end most of the SnmpServer
+# test cases by explicitly returning the configuration to default.
+# Rubocop thinks this is a no-op but it isn't.
+Lint/UselessSetterCall:
+  Exclude:
+    - 'tests/test_snmpserver.rb'

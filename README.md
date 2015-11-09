@@ -1,11 +1,46 @@
 # CiscoNodeUtils - Cisco Node Utilities
 
+[![Gem Version](https://badge.fury.io/rb/cisco_node_utils.svg)](http://badge.fury.io/rb/cisco_node_utils)
+[![Build Status](https://travis-ci.org/cisco/cisco-network-node-utils.svg?branch=develop)](https://travis-ci.org/cisco/cisco-network-node-utils)
+
+--
+##### Documentation Workflow Map
+
+This workflow map aids *users*, *developers* and *maintainers* of the CiscoNodeUtils project in selecting the appropriate document(s) for their task.
+
+* User Guides - the remainder of this document is aimed at end users
+* Developer Guides
+  * [CONTRIBUTING.md](CONTRIBUTING.md) : Contribution guidelines
+  * [README-develop-node-utils-APIs.md](docs/README-develop-node-utils-APIs.md) : Developing new CiscoNodeUtils APIs
+  * [README-develop-best-practices.md](docs/README-develop-best-practices.md) : Development best practices
+* Maintainers Guides
+  * [README-maintainers.md](docs/README-maintainers.md) : Guidelines for core maintainers of the CiscoNodeUtils project
+  * All developer guides apply to maintainers as well
+
+Please see [Learning Resources](#resources) for additional references.
+
+--
+#### Table of Contents
+
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Examples](#examples)
+4. [Documentation](#documentation)
+5. [Changelog](#changelog)
+6. [Learning Resources](#resources)
+7. [License Information](#license_info)
+
+
+## <a name="overview">Overview</a>
+
 The CiscoNodeUtils gem provides utilities for management of Cisco network
 nodes. It is designed to work with Puppet and Chef as well as other
 open source management tools. This release supports Cisco NX-OS nodes
 running NX-OS 7.0(3)I2(1) and later.
 
-## Installation
+Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+
+## <a name="installation">Installation</a>
 
 To install the CiscoNodeUtils, use the following command:
 
@@ -16,7 +51,8 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## Examples
+## <a name="examples">Examples</a>
+
 
 These utilities can be used directly on a Cisco device (as used by Puppet
 and Chef) or can run on a workstation and point to a Cisco device (as used
@@ -50,7 +86,8 @@ version = node.config_get("show_version", "system_image")
 node.config_set("vtp", "domain", "mycompany.com")
 ```
 
-## Documentation
+## <a name="documentation">Documentation</a>
+
 
 ### Node
 
@@ -88,15 +125,41 @@ code duplication between the Cisco Puppet modules and the Cisco Chef cookbooks.
 Generally speaking, Puppet and Chef should only interact with the feature
 provider classes, and not directly call into `CommandReference` or `Node`.
 
-## Changelog
+## <a name="changelog">Changelog</a>
+
 
 See [CHANGELOG](CHANGELOG.md) for a list of changes.
 
-## Contributing
 
-See [CONTRIBUTING](CONTRIBUTING.md) for developer and contributor guidelines.
+## <a name="resources">Learning Resources</a>
 
-## License
+
+* Chef
+  * [https://learn.chef.io/](https://learn.chef.io/)
+  * [https://en.wikipedia.org/wiki/Chef_(software)](https://en.wikipedia.org/wiki/Chef_(software))
+* Puppet
+  * [https://learn.puppetlabs.com/](https://learn.puppetlabs.com/)
+  * [https://en.wikipedia.org/wiki/Puppet_(software)](https://en.wikipedia.org/wiki/Puppet_(software))
+* Markdown (for editing documentation)
+  * [https://help.github.com/articles/markdown-basics/](https://help.github.com/articles/markdown-basics/)
+* Ruby
+  * [https://en.wikipedia.org/wiki/Ruby_(programming_language)](https://en.wikipedia.org/wiki/Ruby_(programming_language))
+  * [https://www.codecademy.com/tracks/ruby](https://www.codecademy.com/tracks/ruby)
+  * [https://rubymonk.com/](https://rubymonk.com/)
+  * [https://www.codeschool.com/paths/ruby](https://www.codeschool.com/paths/ruby)
+* Ruby Gems
+  * [http://guides.rubygems.org/](http://guides.rubygems.org/)
+  * [https://en.wikipedia.org/wiki/RubyGems](https://en.wikipedia.org/wiki/RubyGems)
+* YAML
+  * [https://en.wikipedia.org/wiki/YAML](https://en.wikipedia.org/wiki/YAML)
+  * [http://www.yaml.org/start.html](http://www.yaml.org/start.html)
+* Yum
+  * [https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified](https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified)
+  * [https://www.centos.org/docs/5/html/yum/](https://www.centos.org/docs/5/html/yum/)
+  * [http://www.linuxcommand.org/man_pages](http://www.linuxcommand.org/man_pages/yum8.html)
+
+## <a name="license_info">License Information</a>
+
 
 Copyright (c) 2013-2015 Cisco and/or its affiliates.
 

@@ -322,12 +322,4 @@ vtp:
 
 ## Style Guide
 
-Please keep all feature names in alphabetical order, and all options under a
-feature in alphabetical order as well. As YAML permits duplicate entries
-(in which case the last entry overrides any earlier entries), keeping a
-consistent order helps to prevent accidentally introducing such duplication.
-
-Note that `~` is the YAML syntax that corresponds to Ruby's `nil`.
-
-Use the key-value wildcarding style wherever possible, as it's more flexible
-than the printf-style wildcarding.
+Please see [YAML Best Practices](../../docs/README-develop-best-practices.md#ydbp).

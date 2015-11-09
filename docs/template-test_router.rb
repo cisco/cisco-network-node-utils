@@ -1,6 +1,3 @@
-#
-# Minitest for __CLASS_NAME__ class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,93 +12,93 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/router___RESOURCE_NAME__", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/router_X__RESOURCE_NAME__X'
 
-class Test__CLASS_NAME__ < CiscoTestCase
+# TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
+class TestX__CLASS_NAME__X < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    no_feature___RESOURCE_NAME__
+    no_feature_X__RESOURCE_NAME__X
   end
 
   def teardown
     # teardown runs at the end of each test
-    no_feature___RESOURCE_NAME__
+    no_feature_X__RESOURCE_NAME__X
     super
   end
 
-  def no_feature___RESOURCE_NAME__
+  def no_feature_X__RESOURCE_NAME__X
     # Turn the feature off for a clean test.
-    @device.cmd("conf t ; no feature __RESOURCE_NAME__ ; end")
-    # Flush the cache since we've modified the device outside of the node_utils APIs
-    node.cache_flush()
+    config('no feature X__RESOURCE_NAME__X')
   end
 
   # TESTS
 
   def test_router_create_destroy_one
-    id = "blue"
-    rtr = __CLASS_NAME__.new(id)
-    s = @device.cmd("show runn | i 'router __RESOURCE_NAME__ #{id}'")
-    assert_match(s, /^router __RESOURCE_NAME__ #{id}$/,
-                 "Error: failed to create router __RESOURCE_NAME__ #{id}")
+    id = 'blue'
+    rtr = X__CLASS_NAME__X.new(id)
+    @default_show_command = "show runn | i 'router X__RESOURCE_NAME__X #{id}'"
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id}")
 
     rtr.destroy
-    s = @device.cmd("show runn | i 'router __RESOURCE_NAME__ #{id}'")
-    refute_match(s, /^router __RESOURCE_NAME__ #{id}$/,
-                 "Error: failed to destroy router __RESOURCE_NAME__ #{id}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id}")
 
-    s = @device.cmd("show runn | i 'feature __RESOURCE_NAME__'")
-    refute_match(s, /^feature __RESOURCE_NAME__$/,
-                 "Error: failed to disable feature __RESOURCE_NAME__")
+    refute_show_match(command: "show runn | i 'feature X__RESOURCE_NAME__X'",
+                      pattern: /^feature X__RESOURCE_NAME__X$/,
+                      msg:     'failed to disable feature X__RESOURCE_NAME__X')
   end
 
   def test_router_create_destroy_multiple
-    id1 = "blue"
-    rtr1 = __CLASS_NAME__.new(id1)
-    id2 = "red"
-    rtr2 = __CLASS_NAME__.new(id2)
+    id1 = 'blue'
+    rtr1 = X__CLASS_NAME__X.new(id1)
+    id2 = 'red'
+    rtr2 = X__CLASS_NAME__X.new(id2)
 
-    s = @device.cmd("show runn | i 'router __RESOURCE_NAME__'")
-    assert_match(s, /^router __RESOURCE_NAME__ #{id1}$/)
-    assert_match(s, /^router __RESOURCE_NAME__ #{id2}$/)
+    @default_show_command = "show runn | i 'router X__RESOURCE_NAME__X'"
+
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id1}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id1}")
+
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id2}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id2}")
 
     rtr1.destroy
-    s = @device.cmd("show runn | i 'router __RESOURCE_NAME__ #{id1}'")
-    refute_match(s, /^router __RESOURCE_NAME__ #{id1}$/,
-                 "Error: failed to destroy router __RESOURCE_NAME__ #{id1}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id1}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id1}")
 
     rtr2.destroy
-    s = @device.cmd("show runn | i 'router __RESOURCE_NAME__ #{id2}'")
-    refute_match(s, /^router __RESOURCE_NAME__ #{id2}$/,
-                 "Error: failed to destroy router __RESOURCE_NAME__ #{id2}")
+    refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id2}$/,
+                      msg:     "failed to destroy router X__RESOURCE_NAME__X #{id2}")
 
-    s = @device.cmd("show runn | i 'feature __RESOURCE_NAME__'")
-    refute_match(s, /^feature __RESOURCE_NAME__$/,
-                 "Error: failed to disable feature __RESOURCE_NAME__")
+    refute_show_match(command: "show runn | i 'feature X__RESOURCE_NAME__X'",
+                      pattern: /^feature X__RESOURCE_NAME__X$/,
+                      msg:     'failed to disable feature X__RESOURCE_NAME__X')
   end
 
-  def test_router___PROPERTY_INT__
-    id = "blue"
-    rtr = __CLASS_NAME__.new(id)
-    val = 5   # This value depends on property bounds
-    rtr.__PROPERTY_INT__ = val
-    assert_equal(rtr.__PROPERTY_INT__, val, "__PROPERTY_INT__ is not #{val}")
+  def test_router_X__PROPERTY_INT__X
+    id = 'blue'
+    rtr = X__CLASS_NAME__X.new(id)
+    val = 5 # This value depends on property bounds
+    rtr.X__PROPERTY_INT__X = val
+    assert_equal(rtr.X__PROPERTY_INT__X, val, "X__PROPERTY_INT__X is not #{val}")
 
     # Get default value from yaml
-    val = node.config_get_default("__RESOURCE_NAME__", "__PROPERTY_INT__")
-    rtr.__PROPERTY_INT__ = val
-    assert_equal(rtr.__PROPERTY_INT__, val, "__PROPERTY_INT__ is not #{val}")
+    val = node.config_get_default('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X')
+    rtr.X__PROPERTY_INT__X = val
+    assert_equal(rtr.X__PROPERTY_INT__X, val, "X__PROPERTY_INT__X is not #{val}")
   end
 
-  def test_router___PROPERTY_BOOL__
-    id = "blue"
-    rtr = __CLASS_NAME__.new(id)
-    rtr.__PROPERTY_BOOL__ = true
-    assert(rtr.__PROPERTY_BOOL__, "__PROPERTY_BOOL__ state is not true")
+  def test_router_X__PROPERTY_BOOL__X
+    id = 'blue'
+    rtr = X__CLASS_NAME__X.new(id)
+    rtr.X__PROPERTY_BOOL__X = true
+    assert(rtr.X__PROPERTY_BOOL__X, 'X__PROPERTY_BOOL__X state is not true')
 
-    rtr.__PROPERTY_BOOL__ = false
-    refute(rtr.__PROPERTY_BOOL__, "__PROPERTY_BOOL__ state is not false")
+    rtr.X__PROPERTY_BOOL__X = false
+    refute(rtr.X__PROPERTY_BOOL__X, 'X__PROPERTY_BOOL__X state is not false')
   end
 end

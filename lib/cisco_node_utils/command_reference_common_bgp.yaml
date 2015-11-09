@@ -1,0 +1,535 @@
+# Command Reference Common BGP
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+bgp:
+  _template:
+    config_get: "show running bgp all"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - "vrf <vrf>"
+
+  address_family:
+    config_set_append: '<state> address-family <afi> <safi>'
+
+  bestpath_always_compare_med:
+    config_get_token_append: '/^bestpath always-compare-med$/'
+    config_set_append: '<state> bestpath always-compare-med'
+    default_value: false
+
+  bestpath_aspath_multipath_relax:
+    config_get_token_append: '/^bestpath as-path multipath-relax$/'
+    config_set_append: '<state> bestpath as-path multipath-relax'
+    default_value: false
+
+  bestpath_compare_routerid:
+    config_get_token_append: '/^bestpath compare-routerid$/'
+    config_set_append: '<state> bestpath compare-routerid'
+    default_value: false
+
+  bestpath_cost_community_ignore:
+    config_get_token_append: '/^bestpath cost-community ignore$/'
+    config_set_append: '<state> bestpath cost-community ignore'
+    default_value: false
+
+  bestpath_med_confed:
+    config_get_token_append: '/^bestpath med confed$/'
+    config_set_append: '<state> bestpath med confed'
+    default_value: false
+
+  bestpath_med_missing_as_worst:
+    config_get_token_append: '/^bestpath med missing-as-worst$/'
+    config_set_append: '<state> bestpath med missing-as-worst'
+    default_value: false
+
+  bestpath_med_non_deterministic:
+    config_get_token_append: '/^bestpath med non-deterministic$/'
+    config_set_append: '<state> bestpath med non-deterministic'
+    default_value: false
+
+  cluster_id:
+    config_get_token_append: '/^cluster-id (\S+)$/'
+    config_set_append: '<state> cluster-id <id>'
+    default_value: ""
+
+  confederation_id:
+    config_get_token_append: '/^confederation identifier (\d+|\d+.\d+)$/'
+    config_set_append: '<state> confederation identifier <id>'
+    default_value: ""
+
+  confederation_peers:
+    config_get_token_append: '/^confederation peers (.*)$/'
+    config_set_append: '<state> confederation peers <peer_list>'
+    default_value: ""
+
+  create_destroy_neighbor:
+    config_set_append: '<state> neighbor <nbr>'
+
+  enforce_first_as:
+    config_get_token_append: '/^enforce-first-as$/'
+    config_set_append: '<state> enforce-first-as'
+    default_value: true
+
+  feature:
+    config_get: "show running bgp"
+    config_get_token: '/^feature bgp$/'
+    config_set: "<state> feature bgp"
+
+  graceful_restart:
+    config_get_token_append: '/^graceful-restart$/'
+    config_set_append: '<state> graceful-restart'
+    default_value: true
+
+  graceful_restart_timers_restart:
+    config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
+    config_set_append: '<state> graceful-restart restart-time <seconds>'
+    default_value: 120
+
+  graceful_restart_timers_stalepath_time:
+    config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
+    config_set_append: '<state> graceful-restart stalepath-time <seconds>'
+    default_value: 300
+
+  graceful_restart_helper:
+    config_get_token_append: '/^graceful-restart-helper$/'
+    config_set_append: '<state> graceful-restart-helper'
+    default_value: false
+
+  log_neighbor_changes:
+    config_get_token_append: '/^log-neighbor-changes$/'
+    config_set_append: '<state> log-neighbor-changes'
+    default_value: false
+
+  maxas_limit:
+    config_get_token_append: '/^maxas-limit (\d+)$/'
+    config_set_append: '<state> maxas-limit <limit>'
+    default_value: false
+
+  neighbor_fib_down_accelerate:
+    config_get_token_append: '/^neighbor-down fib-accelerate$/'
+    config_set_append: '<state> neighbor-down fib-accelerate'
+    default_value: false
+
+  reconnect_interval:
+    config_get_token_append: '/^reconnect-interval (\d+)$/'
+    config_set_append: '<state> reconnect-interval <seconds>'
+    default_value: 60
+
+  router:
+    config_get: "show running bgp"
+    config_get_token: '/^router bgp (\d+)$/'
+    config_set: "<state> router bgp <asnum>"
+
+  router_id:
+    config_get_token_append: '/^router-id (\S+)$/'
+    config_set_append: '<state> router-id <id>'
+    default_value: ""
+
+  shutdown:
+    # Shutdown only applies to global bgp
+    config_get: "show running bgp"
+    config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
+    config_set: ["router bgp <asnum>", "<state> shutdown"]
+    default_value: false
+
+  suppress_fib_pending:
+    config_get_token_append: '/^suppress-fib-pending$/'
+    config_set_append: '<state> suppress-fib-pending'
+    default_value: false
+
+  timer_bgp_keepalive_hold:
+    config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
+    config_set_append: '<state> timers bgp <keepalive> <hold>'
+
+  timer_bgp_keepalive:
+    default_value: 60
+
+  timer_bgp_hold:
+    default_value: 180
+
+  timer_bestpath_limit:
+    config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
+    config_set_append: '<state> timers bestpath-limit <seconds>'
+    default_value: 300
+
+  timer_bestpath_limit_always:
+    config_get_token_append: '/^timers bestpath-limit \d+ always$/'
+    config_set_append: '<state> timers bestpath-limit <seconds> always'
+    default_value: false
+
+  vrf:
+    config_get_token_append: '/^vrf\s+(\S+)$/'
+    config_set: ["router bgp <asnum>", "<state> vrf <vrf>", "end"]
+
+bgp_af:
+  _template:
+    config_get: 'show running bgp all'
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^address-family <afi> <safi>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - 'vrf <vrf>'
+      - 'address-family <afi> <safi>'
+
+  all_afs:
+    config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+  additional_paths_send:
+    config_get_token_append: '/^additional-paths send$/'
+    config_set_append: '<state> additional-paths send'
+    default_value: false
+
+  additional_paths_receive:
+    config_get_token_append: '/^additional-paths receive$/'
+    config_set_append: '<state> additional-paths receive'
+    default_value: false
+
+  additional_paths_install:
+    config_get_token_append: '/^additional-paths install backup$/'
+    config_set_append: '<state> additional-paths install backup'
+    default_value: false
+
+  additional_paths_selection:
+    config_get_token_append: '/^additional-paths selection route-map (.*)$/'
+    config_set_append: '<state> additional-paths selection route-map <route_map>'
+    default_value: ""
+
+  client_to_client:
+    config_get_token_append: '/^client-to-client reflection$/'
+    config_set_append: '<state> client-to-client reflection'
+    default_value: true
+
+  dampen_igp_metric:
+    config_get_token_append: '/^dampen-igp-metric (\d+)$/'
+    config_set_append: '<state> dampen-igp-metric <num>'
+    default_value: 600
+
+  dampening:
+    config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
+    config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
+    default_value: ""
+  
+  dampening_state:
+    default_value: true
+
+  dampening_max_suppress_time:
+    default_value: 45
+
+  dampening_half_time:
+    default_value: 15
+
+  dampening_reuse_time:
+    default_value: 750
+
+  dampening_routemap:
+    default_value: ""
+
+  dampening_suppress_time:
+    default_value: 2000
+
+  default_information:
+    config_get_token_append: '/^default-information originate$/'
+    config_set_append: '<state> default-information originate'
+    default_value: false
+
+  maximum_paths:
+    config_get_token_append: '/^maximum-paths (\d+)$/'
+    config_set_append: '<state> maximum-paths <num>'
+    default_value: 1
+
+  maximum_paths_ibgp:
+    config_get_token_append: '/^maximum-paths ibgp (\d+)$/'
+    config_set_append: '<state> maximum-paths ibgp <num>'
+    default_value: 1
+
+  next_hop_route_map:
+    config_get_token_append: '/^nexthop route-map (.*)$/'
+    config_set_append: '<state> nexthop route-map <route_map>'
+    default_value: ""
+
+  network:
+    config_get_token_append: '/^network (\S+) ?(?:route-map )?(\S+)?$/'
+    config_set_append: '<state> network <network> <route_map>'
+    default_value: []
+
+  redistribute:
+    config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
+    config_set_append: '<state> redistribute <protocol>'
+    default_value: []
+
+  redistribute_policy:
+    # route-map/policy is optional on some platforms, required on others
+    config_set_append: '<state> redistribute <protocol> route-map <policy>'
+
+bgp_neighbor:
+  _template:
+    config_get: "show running bgp all"
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^neighbor <nbr>$/'
+    config_set: "router bgp <asnum>"
+    config_set_append:
+      - "vrf <vrf>"
+      - "neighbor <nbr>"
+
+  af:
+    config_set_append: '<state> address-family <afi> <safi>'
+
+  all_neighbors:
+    config_get_token_append: '/^neighbor (\S+)$/'
+
+  description:
+    config_get_token_append: '/^description (.*)/'
+    config_set_append: '<state> description <desc>'
+    default_value: ""
+
+  connected_check:
+    config_get_token_append: '/^disable-connected-check$/'
+    config_set_append: '<state> disable-connected-check'
+    default_value: true
+
+  capability_negotiation:
+    config_get_token_append: '/^dont-capability-negotiate$/'
+    config_set_append: '<state> dont-capability-negotiate'
+    default_value: true
+
+  dynamic_capability:
+    config_get_token_append: '/^dynamic-capability$/'
+    config_set_append: '<state> dynamic-capability'
+    default_value: true
+
+  ebgp_multihop:
+    config_get_token_append: '/^ebgp-multihop (\d+)$/'
+    config_set_append: '<state> ebgp-multihop <ttl>'
+    default_value: false 
+
+  local_as:
+    config_get_token_append: '/^local-as (\d*?.?\d+?)$/'
+    config_set_append: '<state> local-as <local_as>'
+    default_value: 0
+
+  log_neighbor_changes:
+    config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
+    config_set_append: '<state> log-neighbor-changes <disable>'
+    default_value: "inherit"
+
+  low_memory_exempt:
+    config_get_token_append: '/^low-memory exempt$/'
+    config_set_append: '<state> low-memory exempt'
+    default_value: false
+
+  maximum_peers:
+    config_get_token_append: '/^maximum-peers (\d+)$/'
+    config_set_append: '<state> maximum-peers <num>'
+    default_value: 0
+
+  password:
+    config_get_token_append: '/^password \d+ (\S+)$/'
+    config_set_append: '<state> password <type> <passwd>'
+    default_value: ""
+
+  password_type:
+    config_get_token_append: '/^password (\d+)/'
+    default_value: 0
+
+  remote_as:
+    config_get_token_append: '/^remote-as (\d*?.?\d+?)$/'
+    config_set_append: '<state> remote-as <remote_as>'
+    default_value: 0
+
+  remove_private_as:
+    config_get_token_append: '/^remove-private-as\s+??(\S+)?\s+??$/'
+    config_set_append: '<state> remove-private-as <option>'
+    default_value: "disable"
+
+  shutdown:
+    config_get_token_append: '/^shutdown$/'
+    config_set_append: '<state> shutdown'
+    default_value: false
+
+  suppress_4_byte_as:
+    config_get_token_append: '/^capability suppress 4-byte-as$/'
+    config_set_append: '<state> capability suppress 4-byte-as'
+    default_value: false
+
+  timers_keepalive_hold:
+    config_get_token_append: '/^timers (\d+) (\d+)$/'
+    config_set_append: '<state> timers <keepalive> <hold>'
+
+  timers_keepalive:
+    default_value: 60
+
+  timers_holdtime:
+    default_value: 180
+
+  transport_passive_only:
+    config_get_token_append: '/^transport connection-mode passive$/'
+    config_set_append: '<state> transport connection-mode passive'
+    default_value: false
+
+  update_source:
+    config_get_token_append: '/^update-source (\S+)$/'
+    config_set_append: '<state> update-source <interface>'
+    default_value: ""
+
+bgp_neighbor_af:
+  _template:
+    config_get: 'show running bgp all'
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^neighbor <nbr>$/'
+      - '/^address-family <afi> <safi>$/'
+    config_set: 'router bgp <asnum>'
+    config_set_append:
+      - 'vrf <vrf>'
+      - 'neighbor <nbr>'
+      - 'address-family <afi> <safi>'
+
+  all_afs:
+    config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+  advertise_map_exist:
+    config_get_token_append: '/^advertise-map (\S+) exist-map (\S+)$/'
+    config_set_append: '<state> advertise-map <map1> exist-map <map2>'
+    default_value: ''
+
+  advertise_map_non_exist:
+    config_get_token_append: '/^advertise-map (\S+) non-exist-map (\S+)$/'
+    config_set_append: '<state> advertise-map <map1> non-exist-map <map2>'
+    default_value: ''
+
+  allowas_in:
+    config_get_token_append: '/^allowas-in(?: \d+)?/'
+    config_set_append: '<state> allowas-in <max>'
+    default_value: false
+
+  allowas_in_max:
+    default_value: 3
+
+  as_override:
+    config_get_token_append: '/^as-override$/'
+    config_set_append: '<state> as-override'
+    default_value: false
+
+  additional_paths_receive:
+    config_get_token_append: '/^capability additional-paths receive(?: disable)?/'
+    config_set_append: '<state> capability additional-paths receive <disable>'
+    default_value: 'inherit'
+
+  additional_paths_send:
+    config_get_token_append: '/^capability additional-paths send(?: disable)?/'
+    config_set_append: '<state> capability additional-paths send <disable>'
+    default_value: 'inherit'
+
+  default_originate:
+    config_get_token_append: '/^default-originate(?: route-map .*)?/'
+    config_set_append: '<state> default-originate <map>'
+    default_value: false
+
+  default_originate_route_map:
+    default_value: ~
+
+  disable_peer_as_check:
+    config_get_token_append: '/^disable-peer-as-check$/'
+    config_set_append: '<state> disable-peer-as-check'
+    default_value: false
+
+  filter_list_in:
+    config_get_token_append: '/^filter-list (\S+) in$/'
+    config_set_append: '<state> filter-list <str> in'
+    default_value: ''
+
+  filter_list_out:
+    config_get_token_append: '/^filter-list (\S+) out$/'
+    config_set_append: '<state> filter-list <str> out'
+    default_value: ''
+
+  max_prefix:
+    config_get_token_append: '/^maximum-prefix .*$/'
+    config_set_append: '<state> maximum-prefix <limit> <threshold> <opt>'
+
+  max_prefix_limit:
+    default_value: ~
+
+  max_prefix_interval:
+    default_value: ~
+
+  max_prefix_threshold:
+    default_value: ~
+
+  max_prefix_warning:
+    default_value: ~
+
+  next_hop_self:
+    config_get_token_append: '/^next-hop-self$/'
+    config_set_append: '<state> next-hop-self'
+    default_value: false
+
+  next_hop_third_party:
+    config_get_token_append: '/^next-hop-third-party$/'
+    config_set_append: '<state> next-hop-third-party'
+    default_value: true
+
+  prefix_list_in:
+    config_get_token_append: '/^prefix-list (\S+) in$/'
+    config_set_append: '<state> prefix-list <str> in'
+    default_value: ''
+
+  prefix_list_out:
+    config_get_token_append: '/^prefix-list (\S+) out$/'
+    config_set_append: '<state> prefix-list <str> out'
+    default_value: ''
+
+  route_map_in:
+    config_get_token_append: '/^route-map (\S+) in$/'
+    config_set_append: '<state> route-map <str> in'
+    default_value: ''
+
+  route_map_out:
+    config_get_token_append: '/^route-map (\S+) out$/'
+    config_set_append: '<state> route-map <str> out'
+    default_value: ''
+
+  route_reflector_client:
+    config_get_token_append: '/^route-reflector-client$/'
+    config_set_append: '<state> route-reflector-client'
+    default_value: false
+
+  send_community:
+    config_get_token_append: '/^send-community(?: .*)?/'
+    config_set_append: '<state> send-community <attr>'
+    default_value: 'none'
+
+  soft_reconfiguration_in:
+    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
+    config_set_append: '<state> soft-reconfiguration inbound <always>'
+    default_value: 'inherit'
+
+  soo:
+    config_get_token_append: '/^soo (.*)$/'
+    config_set_append: '<state> soo <str>'
+    default_value: ''
+
+  suppress_inactive:
+    config_get_token_append: '/^suppress-inactive$/'
+    config_set_append: '<state> suppress-inactive'
+    default_value: false
+
+  unsuppress_map:
+    config_get_token_append: '/^unsuppress-map (.*)$/'
+    config_set_append: '<state> unsuppress-map <str>'
+    default_value: ''
+
+  weight:
+    config_get_token_append: '/^weight (\d+)$/'
+    config_set_append: '<state> weight <int>'
+    default_value: false

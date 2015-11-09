@@ -21,35 +21,34 @@
 # purpose of group; thus this provider utility does not create snmp groups
 # and is limited to reporting group (role) existence only.
 
-require File.join(File.dirname(__FILE__), 'node')
+require_relative 'node_util'
 
 module Cisco
-class SnmpGroup
-  attr_reader :name
+  # SnmpGroup - node utility class for SNMP group configuration management
+  class SnmpGroup < NodeUtil
+    attr_reader :name
 
-  @@node = Cisco::Node.instance
-
-  def initialize(name)
-    raise TypeError unless name.is_a?(String)
-    @name = name
-  end
-
-  def self.groups
-    group_ids = @@node.config_get("snmp_group", "group")
-    return {} if group_ids.nil?
-
-    hash = {}
-    group_ids.each do |name|
-      hash[name] = SnmpGroup.new(name)
+    def initialize(name)
+      fail TypeError unless name.is_a?(String)
+      @name = name
     end
-    hash
-  end
 
-  def self.exists?(group)
-    raise ArgumentError if group.empty?
-    raise TypeError unless group.is_a? String
-    groups = @@node.config_get("snmp_group", "group")
-    (!groups.nil? and groups.include? group)
+    def self.groups
+      group_ids = config_get('snmp_group', 'group')
+      return {} if group_ids.nil?
+
+      hash = {}
+      group_ids.each do |name|
+        hash[name] = SnmpGroup.new(name)
+      end
+      hash
+    end
+
+    def self.exists?(group)
+      fail ArgumentError if group.empty?
+      fail TypeError unless group.is_a? String
+      groups = config_get('snmp_group', 'group')
+      (!groups.nil? && groups.include?(group))
+    end
   end
-end
 end

@@ -12,125 +12,85 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'basetest')
-require File.expand_path("../../lib/cisco_node_utils/platform_info", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/node", __FILE__)
+require_relative 'basetest'
+require_relative 'platform_info'
+require_relative '../lib/cisco_node_utils/node'
 
 include Cisco
 
 Node.lazy_connect = true # we'll specify the connection info later
 
+# CiscoTestCase - base class for all node utility minitests
 class CiscoTestCase < TestCase
+  # rubocop:disable Style/ClassVars
   @@node = nil
   @@interfaces = nil
   @@interfaces_id = nil
+  # rubocop:enable Style/ClassVars
 
   def node
     unless @@node
-      @@node = Node.instance
-      @@node.connect(@@address, @@username, @@password)
+      @@node = Node.instance # rubocop:disable Style/ClassVars
+      @@node.connect(address, username, password)
       @@node.cache_enable = true
       @@node.cache_auto = true
-      puts "Node in CiscoTestCase Class: #{@@node}"
+      # Record the platform we're running on
+      puts "\nNode under test:"
+      puts "  - name  - #{@@node.host_name}"
+      puts "  - type  - #{@@node.product_id}"
+      puts "  - image - #{@@node.system}\n\n"
     end
     @@node
+  rescue CiscoNxapi::HTTPUnauthorized
+    puts "Unauthorized to connect as #{username}:#{password}@#{address}"
+    exit
   end
 
-  def process_arguments
+  def setup
     super
-    node # Connect to device
-    # Record the platform we're running on
-    puts "Platform:"
-    puts "  - name  - #{@@node.host_name}"
-    puts "  - type  - #{@@node.product_id}"
-    puts "  - image - #{@@node.system}\n\n"
+    node
   end
 
   def cmd_ref
     node.cmd_ref
   end
 
+  def config(*args)
+    result = super
+    node.cache_flush
+    result
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
+      # rubocop:disable Style/ClassVars
       begin
         platform_info = PlatformInfo.new(node.host_name)
-        @@interfaces = platform_info.get_value_from_key("interfaces")
-      rescue Exception => e
-        # If there is a problem reading platform_info.yaml, assign default values
-        default_interfaces = ["Ethernet1/1", "Ethernet1/2", "Ethernet1/10"]
-        puts "Caught exception: #{e}, assigning interfaces to default - #{default_interfaces}"
+        @@interfaces = platform_info.get_value_from_key('interfaces')
+      rescue RuntimeError => e
+        # If there is a problem reading platform_info.yaml,
+        # assign default values
+        default_interfaces = ['Ethernet1/1', 'Ethernet1/2', 'Ethernet1/3']
+        puts "Caught exception: #{e}, assigning interfaces to default " \
+             "- #{default_interfaces}"
         @@interfaces = default_interfaces
       end
+      # rubocop:enable Style/ClassVars
     end
     @@interfaces
   end
 
   def interfaces_id
     unless @@interfaces_id
+      # rubocop:disable Style/ClassVars
       @@interfaces_id = []
-      interfaces.each { |interface|
-        id = interface.split("Ethernet")[1]
+      interfaces.each do |interface|
+        id = interface.split('Ethernet')[1]
         @@interfaces_id << id
-      }
+      end
+      # rubocop:enable Style/ClassVars
     end
     @@interfaces_id
-  end
-
-  # Class method method to set the class variable 'debug_flag'
-  # Can be true or false.
-  def self.debug_flag=(flag)
-    @@debug_flag = flag
-  end
-
-  # Class method to set the class variable 'debug_method'
-  # Can be name of the method or "all"
-  def self.debug_method=(name)
-    @@debug_method = name
-  end
-
-  # Class method to set the class variable 'debug_group'
-  # Can be the name of the method or "all"
-  def self.debug_group=(group)
-    @@debug_group = group
-  end
-
-  # Class method to set the class variable 'debug_detail'
-  # Can be true or false
-  def self.debug_detail=(detail)
-    @@debug_detail = detail
-  end
-
-  # Class method to dump debug data.
-  # The passed in parameters will control what is printed and how.
-  # Parameters:
-  #   method - Name of the method the debug belongs to.
-  #   group -  Name of the group the debug belongs to.
-  #   indent - Indent controls the display of the data.
-  #   detail - Detail controls if detail debugs should be displayed.
-  #   data -   Data to be displayed. Must be a fully formatted string.
-  def self.debug(method, group, indent, data)
-    if (@@debug_flag) &&
-       (((@@debug_method == method) || (@@debug_method == "all")) ||
-       ((@@debug_group == group) || (@@debug_group == "all")))
-      indent_spaces = " " * indent
-      puts "#{indent_spaces}#{method} - #{data}"
-    end
-  end
-
-  # Class method to dump detailed debug data.
-  # The passed in parameters will control what is printed and how.
-  # Parameters:
-  #   method - Name of the method the debug belongs to.
-  #   group -  Name of the group the debug belongs to.
-  #   indent - Indent controls the display of the data.
-  #   data -   Data to be displayed. Must be a fully formatted string.
-  def self.debug_detail(method, group, indent, data)
-    if (@@debug_detail) &&
-       (((@@debug_method == method) || (@@debug_method == "all")) ||
-       ((@@debug_group == group) || (@@debug_group == "all")))
-      indent_spaces = " " * indent
-      puts "#{indent_spaces}#{method} - #{data}"
-    end
   end
 end

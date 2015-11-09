@@ -14,52 +14,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Add some general-purpose constants and APIs to the Cisco namespace
 module Cisco
   # global constants
   DEFAULT_INSTANCE_NAME = 'default'
 
+  # Encryption - helper class for translating encryption type CLI
   class Encryption
     # password encryption types
-    def Encryption.cli_to_symbol(cli)
+    def self.cli_to_symbol(cli)
       case cli
-      when "0", 0
+      when '0', 0
         :cleartext
-      when "3", 3
-        :"3des"        # yuck :-(
-      when "5", 5
+      when '3', 3
+        :"3des" # yuck :-(
+      when '5', 5
         :md5
-      when "6", 6
+      when '6', 6
         :aes
-      when "7", 7
+      when '7', 7
         :cisco_type_7
       else
-        raise KeyError
+        fail KeyError
       end
     end
 
-    def Encryption.symbol_to_cli(symbol)
+    def self.symbol_to_cli(symbol)
       symbol = symbol.downcase if symbol.is_a? String
       case symbol
-      when :cleartext, :none, "cleartext", "none", "0", 0
-        "0"
-      when :"3des", "3des", "3", 3
-        "3"
-      when :md5, "md5", "5", 5
-        "5"
-      when :aes, "aes", "6", 6
-        "6"
-      when :cisco_type_7, :type_7, "cisco_type_7", "type_7", "7", 7
-        "7"
+      when :cleartext, :none, 'cleartext', 'none', '0', 0
+        '0'
+      when :"3des", '3des', '3', 3
+        '3'
+      when :md5, 'md5', '5', 5
+        '5'
+      when :aes, 'aes', '6', 6
+        '6'
+      when :cisco_type_7, :type_7, 'cisco_type_7', 'type_7', '7', 7
+        '7'
       else
-        raise KeyError
+        fail KeyError
       end
     end
   end
 
+  # ChefUtils - helper class for Chef code generation
   class ChefUtils
-    def ChefUtils.generic_prop_set(klass, rlbname, props)
+    def self.generic_prop_set(klass, rlbname, props)
       props.each do |prop|
-        klass.instance_eval {
+        klass.instance_eval do
           # Helper Chef setter method, e.g.:
           #   if @new_resource.foo.nil?
           #     def_prop = @rlb.default_foo
@@ -79,14 +82,45 @@ module Cisco
           end
           current = instance_variable_get(rlbname).send(prop)
           if current != @new_resource.send(prop)
-            converge_by("update #{prop} '#{current}' => " +
+            converge_by("update #{prop} '#{current}' => " \
                         "'#{@new_resource.send(prop)}'") do
               instance_variable_get(rlbname).send("#{prop}=",
-                                                       @new_resource.send(prop))
+                                                  @new_resource.send(prop))
             end
           end
-        }
+        end
       end
     end
   end # class ChefUtils
+
+  # General utility class
+  class Utils
+    require 'ipaddr'
+    # Helper utility method for ip/prefix format networks.
+    # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
+    # we need to mask the address using the prefix length so that they
+    # are converted to '1.1.1.0/24' or '2000:123:38::/64'
+    def self.process_network_mask(network)
+      mask = network.split('/')[1]
+      address = IPAddr.new(network).to_s
+      network = address + '/' + mask unless mask.nil?
+      network
+    end
+
+    # Helper to build a hash of add/remove commands for a nested array.
+    # Useful for network, redistribute, etc.
+    #   should: an array of expected cmds (manifest/recipe)
+    #  current: an array of existing cmds on the device
+    def self.delta_add_remove(should, current=[])
+      # Remove nil entries from array
+      should.each(&:compact!) unless should.empty?
+      delta = { add: should - current, remove: current - should }
+
+      # Delete entries from :remove if f1 is an update to an existing command
+      delta[:add].each do |id, _|
+        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+      end
+      delta
+    end # delta_add_remove
+  end # class Utils
 end   # module Cisco

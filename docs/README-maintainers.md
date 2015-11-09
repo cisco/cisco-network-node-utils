@@ -30,17 +30,47 @@ Either run `git flow init` from the repository root directory, or manually edit 
 
 Most of these are default for git-flow except for the `versiontag` setting.
 
+## Release Checklist
+
+When we are considering publishing a new release, all of the following steps must be carried out (using the latest code base in `develop`):
+
+1. Review cisco_node_utils.gemspec
+  * Is the data still relevant?
+  * Do the version dependencies need to be updated? (e.g. rubocop)
+
+2. Run full minitest suite with various Ruby versions and hardware platforms:
+  * Ruby versions:
+    - REQUIRED: the Ruby version(s) bundled with Chef and Puppet (currently 2.1.6)
+    - OPTIONAL: any/all other Ruby major versions currently supported by this gem (2.0, 2.2.2)
+  * Platforms (all with latest released software or release candidate)
+    - N30xx
+    - N31xx
+    - N9xxx
+
+3. Triage any minitest failures.
+
+4. Check code coverage results from minitest to see if there are any critical gaps in coverage.
+
+5. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
+
+6. Make sure CHANGELOG.md accurately reflects all changes since the last release.
+  * Add any significant changes that weren't documented in the changelog
+  * Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
+
 ## Release Process
 
-When we agree as a team that a new release should be published, the process is as follows:
+When the release checklist above has been fully completed, the process for publishing a new release is as follows:
 
-1. Create a release branch. Follow [semantic versioning](http://semver.org) - a bugfix release is a 0.0.x version bump, a new feature is a 0.x.0 bump, and a backward-incompatible change is a new x.0.0 version. 
+1. Create a release branch. Follow [semantic versioning](http://semver.org):
+    * 0.0.x - a bugfix release
+    * 0.x.0 - new feature(s)
+    * x.0.0 - backward-incompatible change (if unvoidable!)
 
     ```
     git flow release start 1.0.1
     ```
 
-2. In the newly created release branch, update `CHANGELOG.md`:
+2. In the newly created release branch, update `CHANGELOG.md` (this *should* be automatic if you have installed the Git hooks for this repository):
 
     ```diff
      Changelog

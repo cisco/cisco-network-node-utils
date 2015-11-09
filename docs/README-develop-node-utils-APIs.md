@@ -3,258 +3,86 @@
 #### Table of Contents
 
 * [Overview](#overview)
-* [Start here: Clone the Repo](#clone)
-* [Basic Example: feature bash-shell](#simple)
- * [Step 1. YAML Definitions: feature bash-shell](#yaml)
- * [Step 2. Create the node_utils API: feature bash-shell](#api)
- * [Step 3. Create the Minitest: feature bash-shell](#minitest)
- * [Step 4. rubocop / lint: feature bash-shell](#lint)
-* [Advanced Example: router eigrp](#complex)
+* [Before You Begin](#prerequisites)
+* [Start here: Fork and Clone the Repo](#clone)
+* [Example: router eigrp](#complex)
  * [Step 1. YAML Definitions: router eigrp](#comp_yaml)
  * [Step 2. Create the node_utils API: router eigrp](#comp_api)
  * [Step 3. Create the Minitest: router eigrp](#comp_minitest)
  * [Step 4. rubocop / lint: router eigrp](#comp_lint)
+ * [Step 5. Build and Install the gem](#comp_gem)
 
 ## <a name="overview">Overview</a>
 
-This document is a HowTo guide for writing new cisco node_utils APIs. The node_utils APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).
+This document is a HowTo guide for writing new cisco_node_utils APIs. The APIs act as an interface between the NX-OS CLI and an agent's resource/provider. If written properly the new API will work as a common framework for multiple providers (Puppet, Chef, etc).  In addition to this guide, please reference the [cisco_node_utils development 'best practices' guide.](./README-develop-best-practices.md)
 
-There are multiple components involved when creating new resources. This document focuses on the cisco node_utils API, command reference YAML files, and minitests.
+There are multiple components involved when creating new resources. This document focuses on the cisco_node_utils API, command reference YAML files, and minitests.
 
 ![1](agent_files.png)
 
-## <a name="clone">Start here: Clone the Repo</a>
+## <a name="prerequisites">Before You Begin</a>
 
-First install the code base. Clone the cisco_node_utils repo into a workspace:
+Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
-```bash
-git clone https://github.com/cisco/cisco-network-node-utils.git
-```
-
-## <a name="simple">Basic Example: feature bash-shell</a>
-
-Writing a new node_utils API is often easier to understand through example code. The NX-OS CLI for `feature bash-shell` is a simple on / off style configuration and therefore a good candidate for a simple API:
-
-`[no] feature bash-shell`
-
-### <a name="yaml">Step 1. YAML Definitions: feature bash-shell</a>
-
-The new API will need some basic YAML definitions. These are used with the `CommandReference` module as a way to abstract away platform CLI differences.
-
-`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `feature bash-shell` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
-
-`cisco_network_node_utils/lib/cisco_node_utils/command_reference_common.yaml`
-
-Four basic command_reference parameters will be defined for each resource property:
-
- 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
- 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
- 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
- 4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
-
-There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
-
-#### Example: YAML Property Definitions for feature bash-shell
-
-The `feature bash-shell` configuration is displayed with the `show running-config` command. Anchor the config_get_token regexp pattern carefully as it may match on unwanted configurations.
-
-*Note: YAML syntax has strict indentation rules. Do not use TABs.*
-
-```
-bash_shell:
-  feature:
-    config_get: 'show running'                   # get current bash config state
-    config_get_token: '/^feature bash-shell$/'   # Match only 'feature bash-shell'
-    config_set: '<state> feature bash-shell'     # Config needed to enable/disable
-```
-
-### <a name="api">Step 2. cisco_node_utils API file: feature bash-shell</a>
-
-* Before creating the new API, first add a new entry: `require "cisco_node_utils/bash_shell"`  to the master list of resources in:
-
-```
-cisco_network_node_utils/lib/cisco_node_utils.rb
-```
-
-* There are template files in /docs that may help when writing new APIs. These templates provide most of the necessary code with just a few customizations required for a new resource. Copy the `template-feature.rb` file to use as the basis for `bash_shell.rb`:
+This development guide uses tools that are packaged as gems that need to be installed on your server.
 
 ```bash
-cp  docs/template-feature.rb  cisco_network_node_utils/bash_shell.rb
+gem install cisco_nxapi
+gem install rake
+gem install rubocop
+gem install simplecov
+gem install minitest
 ```
 
-* Edit `bash_shell.rb` and substitute the placeholder text as shown here:
+**NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
 
 ```bash
-/X__CLASS_NAME__X/BashShell/
-
-/X__RESOURCE_NAME__X/bash_shell/
+gem install --user-install cisco_nxapi
+gem install --user-install rake
+gem install --user-install rubocop
+gem install --user-install simplecov
+gem install --user-install minitest
 ```
 
-#### Example: bash_shell.rb API
+## <a name="clone">Start here: Fork and Clone the Repo</a>
 
-This is the completed bash_shell API based on `template-feature.rb`:
+First [fork](https://help.github.com/articles/fork-a-repo) the [cisco-network-node-utils](https://github.com/cisco/cisco-network-node-utils) git repository 
 
-```ruby
-
-require File.join(File.dirname(__FILE__), 'node')
-module Cisco
-# Class name syntax will typically be the resource name in camelCase
-# format; for example: 'tacacs server host' becomes TacacsServerHost.
-class BashShell
-  # Establish connection to node
-  @@node = Cisco::Node.instance
-
-  def feature_enable
-    @@node.config_set('bash_shell', 'feature', { :state => '' })
-  end
-
-  def feature_disable
-    @@node.config_set('bash_shell', 'feature', { :state => 'no' })
-  end
-
-  # Check current state of the configuration
-  def BashShell.feature_enabled
-    feat =  @@node.config_get('bash_shell', 'feature')
-    return (!feat.nil? and !feat.empty?)
-  rescue Cisco::CliError => e
-    # This cmd will syntax reject if feature is not
-    # enabled. Just catch the reject and return false.
-    return false if e.clierror =~ /Syntax error/
-    raise
-  end
-end
-end
-```
-
-### <a name="minitest">Step 3. Minitest: feature bash-shell</a>
-
-* A minitest should be created to validate the new APIs. Minitests are stored in the tests directory: `cisco_network_node_utils/tests/`
-
-* Tests may use `@device.cmd("show ...")` to access the CLI directly set up tests and validate expected outcomes. The tests directory contains many examples of how these are used.
-
-* Our minitest will be very basic since the API itself is very basic. Use `template-test_feature.rb` to create a minitest for the bash_shell resource:
+Next install the code base. Clone the cisco-network-node-utils repo from your fork into a workspace:
 
 ```bash
-cp  docs/template-test_feature.rb  cisco_network_node_utils/tests/test_bash_shell.rb
+git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
+cd cisco-network-node-utils/
 ```
 
-* As with the API code, edit `test_bash_shell.rb` and change the placeholder names as shown:
+Please note that any code commits must be associated with your github account and email address. If you intend to commit code to this repository then use the following commands to update your workspace with your credentials:
 
 ```bash
-/X__CLASS_NAME__X/BashShell/
-
-/X__RESOURCE_NAME__X/bash_shell/
-
-/X__CLI_NAME__X/bash-shell/
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
 ```
 
-#### Example: test_bash_shell.rb
-
-This is the completed `bash_shell` minitest based on `template-test_feature.rb`:
-
-```ruby
-#
-# Minitest for BashShell class
-#
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/bash_shell", __FILE__)
-
-class TestBashShell < CiscoTestCase
-  def setup
-    # setup automatically runs at the beginning of each test
-    super
-    no_feature
-  end
-
-  def teardown
-    # teardown automatically runs at the end of each test
-    no_feature
-    super
-  end
-
-  def no_feature
-    # setup/teardown helper. Turn the feature off for a clean testbed.
-    @device.cmd('conf t ; no feature bash-shell ; end')
-    node.cache_flush()
-  end
-
-  def test_feature_on_off
-    feat = BashShell.new()
-    feat.feature_enable
-    assert(BashShell.feature_enabled)
-
-    feat.feature_disable
-    refute(BashShell.feature_enabled)
-  end
-
-end
-```
-
-
-We can now run the new minitest against our NX-OS device using this syntax:
+As a best practice create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
 
 ```bash
-ruby test_bash_shell.rb -- <node_ip_address> <user> <passwd>
+git branch feature/eigrp
+git branch
+* develop
+  feature/eigrp
 ```
-*Note. The minitest requires that the NX-OS device have 'feature nxapi' enabled. This will typically be enabled by default.*
 
-#### Example: Running bash_shell minitest
+
+## <a name="complex">Example: router eigrp</a>
+
+Before you start working on the eigrp feature, checkout the feature branch you created earlier.
 
 ```bash
-% ruby  test_bash_shell.rb  -- 192.168.0.1 admin admin
-Run options: -v -- --seed 23392
-
-# Running tests:
-
-CiscoTestCase#test_placeholder =
-Ruby Version - 1.9.3
-Node in CiscoTestCase Class: 192.168.0.1
-Platform:
-  - name  - my_n9k
-  - type  - N9K-C9504
-  - image - bootflash:///n9000-dk9.7.0.3.I2.0.509.bin
-
-1.79 s = .
-TestBashShell#test_feature_on_off = 1.42 s = .
-TestBashShell#test_placeholder = 0.95 s = .
-TestCase#test_placeholder = 0.81 s = .
-
-Finished tests in 4.975186s, 0.8040 tests/s, 0.4020 assertions/s.
-
-4 tests, 2 assertions, 0 failures, 0 errors, 0 skips
+git checkout feature/eigrp
+git branch
+  develop
+* feature/eigrp
 ```
 
-*Note. The minitest harness counts the helper methods as tests which is why the final tally shows 4 tests instead of just 2 tests.*
-
-### <a name="lint">Step 4. rubocop / lint: feature bash-shell</a>
-
-rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
-
-```bash
-% rubocop --lint bash_shell.rb
-Inspecting 1 file
-.
-
-1 file inspected, no offenses detected
-```
-
-## <a name="complex">Advanced Example: router eigrp</a>
-
-Now that we have a basic example working we can move on to a slightly more complex cli.
 `router eigrp` requires feature enablement and supports multiple eigrp instances. It also has multiple configuration levels for vrf and address-family.
 
 For the purposes of this example we will only implement the following properties:
@@ -274,10 +102,20 @@ Example:
 
 ### <a name="comp_yaml">Step 1. YAML Definitions: router eigrp</a>
 
-As with the earlier example, `router eigrp` will need YAML definitions in the common file:
+The new API for `router eigrp` will need some basic YAML definitions. 
 
-`cisco_network_node_utils/lib/cisco_node_utils/command_reference_common.yaml`
+`command_reference_common.yaml` is used for settings that are common across all platforms while other files are used for settings that are unique to a given platform. Our `router eigrp` example uses the same cli syntax on all platforms, thus we only need to edit the common file:
 
+`lib/cisco_node_utils/command_reference_common.yaml`
+
+Four basic command_reference parameters will be defined for each resource property:
+
+ 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
+ 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
+ 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
+ 4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
+
+There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/README_YAML.md) document for more information on the structure and semantics of these files.
 The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
@@ -317,16 +155,10 @@ eigrp:
 
 ### <a name="comp_api">Step 2. cisco_node_utils API: router eigrp</a>
 
-* Add a new entry: `require "cisco_node_utils/router_eigrp"` to the master list in:
-
-```
-cisco_network_node_utils/lib/cisco_node_utils.rb
-```
-
 * The `template-router.rb` file provides a basic router API that we will use as the basis for `router_eigrp.rb`:
 
 ```bash
-cp  docs/template-router.rb  cisco_network_node_utils/router_eigrp.rb
+cp  docs/template-router.rb  lib/cisco_node_utils/router_eigrp.rb
 ```
 
 * Our new `router_eigrp.rb` requires changes from the original template. Edit `router_eigrp.rb` and change the placeholder names as shown.
@@ -347,9 +179,6 @@ cp  docs/template-router.rb  cisco_network_node_utils/router_eigrp.rb
 This is the completed `router_eigrp` API based on `template-router.rb`:
 
 ```ruby
-#
-# NXAPI implementation of RouterEigrp class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -364,114 +193,111 @@ This is the completed `router_eigrp` API based on `template-router.rb`:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node')
+require_relative 'node_util'
 
 module Cisco
-class RouterEigrp
-  attr_reader :name
+  # RouterEigrp - node utility class for EIGRP config management.
+  class RouterEigrp < NodeUtil
+    attr_reader :name
 
-  # Establish connection to node
-  @@node = Cisco::Node.instance
-
-  # name: name of the router instance
-  # instantiate: true = create router instance
-  def initialize(name, instantiate=true)
-    raise ArgumentError unless name.length > 0
-    @name = name
-    create if instantiate
-  end
-
-  # Create a hash of all current router instances.
-  def RouterEigrp.routers
-    instances = @@node.config_get('eigrp', 'router')
-    return {} if instances.nil?
-    hash = {}
-    instances.each do |name|
-      hash[name] = RouterEigrp.new(name, false)
+    # name: name of the router instance
+    # instantiate: true = create router instance
+    def initialize(name, instantiate=true)
+      fail ArgumentError unless name.length > 0
+      @name = name
+      create if instantiate
     end
-    return hash
-  rescue Cisco::CliError => e
-    # cmd will syntax reject when feature is not enabled
-    raise unless e.clierror =~ /Syntax error/
-    return {}
-  end
 
-  def feature_enabled
-    feat =  @@node.config_get('eigrp', 'feature')
-    return (!feat.nil? and !feat.empty?)
-  rescue Cisco::CliError => e
-    # This cmd will syntax reject if feature is not
-    # enabled. Just catch the reject and return false.
-    return false if e.clierror =~ /Syntax error/
-    raise
-  end
-
-  def feature_enable
-    @@node.config_set('eigrp', 'feature', { :state => '' })
-  end
-
-  def feature_disable
-    @@node.config_set('eigrp', 'feature', { :state => 'no' })
-  end
-
-  # Enable feature and create router instance
-  def create
-    feature_enable unless feature_enabled
-    eigrp_router
-  end
-
-  # Destroy a router instance; disable feature on last instance
-  def destroy
-    ids = @@node.config_get('eigrp', 'router')
-    return if ids.nil?
-    if ids.size == 1
-      feature_disable
-    else
-      eigrp_router('no')
+    # Create a hash of all current router instances.
+    def self.routers
+      instances = config_get('eigrp', 'router')
+      return {} if instances.nil?
+      hash = {}
+      instances.each do |name|
+        hash[name] = RouterEigrp.new(name, false)
+      end
+      return hash
+    rescue Cisco::CliError => e
+      # CLI will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
-  rescue Cisco::CliError => e
-    # cmd will syntax reject when feature is not enabled
-    raise unless e.clierror =~ /Syntax error/
+
+    def feature_enabled
+      feat =  config_get('eigrp', 'feature')
+      return !(feat.nil? || feat.empty?)
+    rescue Cisco::CliError => e
+      # This cmd will syntax reject if feature is not
+      # enabled. Just catch the reject and return false.
+      return false if e.clierror =~ /Syntax error/
+      raise
+    end
+
+    def feature_enable
+      config_set('eigrp', 'feature', state: '')
+    end
+
+    def feature_disable
+      config_set('eigrp', 'feature', state: 'no')
+    end
+
+    # Enable feature and create router instance
+    def create
+      feature_enable unless feature_enabled
+      eigrp_router
+    end
+
+    # Destroy a router instance; disable feature on last instance
+    def destroy
+      ids = config_get('eigrp', 'router')
+      return if ids.nil?
+      if ids.size == 1
+        feature_disable
+      else
+        eigrp_router('no')
+      end
+    rescue Cisco::CliError => e
+      # CLI will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+    end
+
+    def eigrp_router(state='')
+      config_set('eigrp', 'router', name: @name, state: state)
+    end
+
+    # ----------
+    # PROPERTIES
+    # ----------
+
+    # Property methods for boolean property
+    def default_shutdown
+      config_get_default('eigrp', 'shutdown')
+    end
+
+    def shutdown
+      state = config_get('eigrp', 'shutdown', name: @name)
+      state ? true : false
+    end
+
+    def shutdown=(state)
+      state = (state ? '' : 'no')
+      config_set('eigrp', 'shutdown', name: @name, state: state)
+    end
+
+    # Property methods for integer property
+    def default_maximum_paths
+      config_get_default('eigrp', 'maximum_paths')
+    end
+
+    def maximum_paths
+      val = config_get('eigrp', 'maximum_paths', name: @name)
+      val.nil? ? default_maximum_paths : val.first.to_i
+    end
+
+    def maximum_paths=(val)
+      config_set('eigrp', 'maximum_paths', name: @name, val: val)
+    end
   end
-
-  def eigrp_router(state='')
-    @@node.config_set('eigrp', 'router', { :name => @name, :state => state })
-  end
-
-  # ----------
-  # PROPERTIES
-  # ----------
-
-  # Property methods for boolean property
-  def default_shutdown
-    @@node.config_get_default('eigrp', 'shutdown')
-  end
-
-  def shutdown
-    state = @@node.config_get('eigrp', 'shutdown', { :name => @name })
-    state ? true : false
-  end
-
-  def shutdown=(state)
-    state = (state ? '' : 'no')
-    @@node.config_set('eigrp', 'shutdown', { :name => @name, :state => state })
-  end
-
-  # Property methods for integer property
-  def default_maximum_paths
-    @@node.config_get_default('eigrp', 'maximum_paths')
-  end
-
-  def maximum_paths
-    val = @@node.config_get('eigrp', 'maximum_paths', { :name => @name })
-    val.nil? ? default_maximum_paths : val.first.to_i
-  end
-
-  def maximum_paths=(val)
-    @@node.config_set('eigrp', 'maximum_paths', { :name => @name, :val => val })
-  end
-
-end
 end
 ```
 
@@ -480,7 +306,7 @@ end
 * Use `template-test_router.rb` to build the minitest for `router_eigrp.rb`:
 
 ```
-cp  docs/template-test_router.rb  cisco_network_node_utils/tests/test_router_eigrp.rb
+cp  docs/template-test_router.rb  tests/test_router_eigrp.rb
 ```
 * As with the API code, edit `test_router_eigrp.rb` and change the placeholder names as shown:
 
@@ -504,9 +330,6 @@ cp  docs/template-test_router.rb  cisco_network_node_utils/tests/test_router_eig
 This is the completed `test_router_eigrp` minitest based on `template-test_router.rb`:
 
 ```ruby
-#
-# Minitest for RouterEigrp class
-#
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -521,9 +344,10 @@ This is the completed `test_router_eigrp` minitest based on `template-test_route
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path("../ciscotest", __FILE__)
-require File.expand_path("../../lib/cisco_node_utils/router_eigrp", __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/router_eigrp'
 
+# TestRouterEigrp - Minitest for RouterEigrp node utility class
 class TestRouterEigrp < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
@@ -539,75 +363,75 @@ class TestRouterEigrp < CiscoTestCase
 
   def no_feature_eigrp
     # Turn the feature off for a clean test.
-    @device.cmd("conf t ; no feature eigrp ; end")
-    node.cache_flush()
+    config('no feature eigrp')
   end
 
   # TESTS
 
   def test_router_create_destroy_one
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
-    s = @device.cmd("show runn | i 'router eigrp #{id}'")
-    assert_match(s, /^router eigrp #{id}$/,
-                 "Error: failed to create router eigrp #{id}")
+    @default_show_command = "show runn | i 'router eigrp #{id}'")
+    assert_show_match(pattern: /^router eigrp #{id}$/,
+                      msg:     "failed to create router eigrp #{id}")
 
     rtr.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id}'")
-    refute_match(s, /^router eigrp #{id}$/,
-                 "Error: failed to destroy router eigrp #{id}")
+    refute_show_match(pattern: /^router eigrp #{id}$/,
+                      msg:     "failed to destroy router eigrp #{id}")
 
-    s = @device.cmd("show runn | i 'feature eigrp'")
-    refute_match(s, /^feature eigrp$/,
-                 "Error: failed to disable feature eigrp")
+    refute_show_match(command: "show runn | i 'feature eigrp'",
+                      pattern: /^feature eigrp$/,
+                      msg:     "failed to disable feature eigrp")
   end
 
   def test_router_create_destroy_multiple
-    id1 = "blue"
+    id1 = 'blue'
     rtr1 = RouterEigrp.new(id1)
-    id2 = "red"
+    id2 = 'red'
     rtr2 = RouterEigrp.new(id2)
 
-    s = @device.cmd("show runn | i 'router eigrp'")
-    assert_match(s, /^router eigrp #{id1}$/)
-    assert_match(s, /^router eigrp #{id2}$/)
+    @default_show_command = "show runn | i 'router eigrp'"
+
+    assert_show_match(pattern: /^router eigrp #{id1}$/,
+                      msg:     "failed to create router eigrp #{id1}")
+
+    assert_show_match(pattern: /^router eigrp #{id2}$/,
+                      msg:     "failed to create router eigrp #{id2}")
 
     rtr1.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id1}'")
-    refute_match(s, /^router eigrp #{id1}$/,
-                 "Error: failed to destroy router eigrp #{id1}")
+    refute_show_match(pattern: /^router eigrp #{id1}$/,
+                      msg:     "failed to destroy router eigrp #{id1}")
 
     rtr2.destroy
-    s = @device.cmd("show runn | i 'router eigrp #{id2}'")
-    refute_match(s, /^router eigrp #{id2}$/,
-                 "Error: failed to destroy router eigrp #{id2}")
+    refute_show_match(pattern: /^router eigrp #{id2}$/,
+                      msg:     "failed to destroy router eigrp #{id2}")
 
-    s = @device.cmd("show runn | i 'feature eigrp'")
-    refute_match(s, /^feature eigrp$/,
-                 "Error: failed to disable feature eigrp")
+    refute_show_match(command: "show runn | i 'feature eigrp'",
+                      pattern: /^feature eigrp$/,
+                      msg:     "failed to disable feature eigrp")
   end
 
   def test_router_maximum_paths
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
-    val = 5   # This value depends on property bounds
+    val = 5 # This value depends on property bounds
     rtr.maximum_paths = val
     assert_equal(rtr.maximum_paths, val, "maximum_paths is not #{val}")
 
     # Get default value from yaml
-    val = node.config_get_default("eigrp", "maximum_paths")
+    val = node.config_get_default('eigrp', 'maximum_paths')
     rtr.maximum_paths = val
     assert_equal(rtr.maximum_paths, val, "maximum_paths is not #{val}")
   end
 
   def test_router_shutdown
-    id = "blue"
+    id = 'blue'
     rtr = RouterEigrp.new(id)
     rtr.shutdown = true
-    assert(rtr.shutdown, "shutdown state is not true")
+    assert(rtr.shutdown, 'shutdown state is not true')
 
     rtr.shutdown = false
-    refute(rtr.shutdown, "shutdown state is not false")
+    refute(rtr.shutdown, 'shutdown state is not false')
   end
 end
 ```
@@ -615,22 +439,17 @@ end
 Now run the test:
 
 ```bash
-% ruby-1.9.3-p0 test_router_eigrp.rb -v -- 192.168.0.1 admin admin
+% ruby test_router_eigrp.rb -v -- 192.168.0.1 admin admin
 Run options: -v -- --seed 56593
 
-# Running tests:
+# Running:
 
-CiscoTestCase#test_placeholder =
-Ruby Version - 1.9.3
-Node in CiscoTestCase Class: 192.168.0.1
-Platform:
+Node under test:
   - name  - my_n3k
   - type  - N3K-C3132Q-40GX
   - image -
 
 2.90 s = .
-TestCase#test_placeholder = 0.92 s = .
-TestRouterEigrp#test_placeholder = 0.97 s = .
 TestRouterEigrp#test_router_create_destroy_multiple = 10.77 s = .
 TestRouterEigrp#test_router_create_destroy_one = 6.14 s = .
 TestRouterEigrp#test_router_maximum_paths = 9.41 s = .
@@ -639,19 +458,50 @@ TestRouterEigrp#test_router_shutdown = 6.40 s = .
 
 Finished tests in 37.512356s, 0.1866 tests/s, 0.3199 assertions/s.
 
-7 tests, 12 assertions, 0 failures, 0 errors, 0 skips
+5 tests, 12 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### <a name="comp_lint">Step 4. rubocop / lint: router eigrp</a>
+### <a name="comp_lint">Step 4. rubocop: router eigrp</a>
 
-rubocop is a Ruby static analysis tool. Run rubocop with the --lint option to validate the new API:
+rubocop is a Ruby static analysis tool. Run rubocop to validate the new code:
 
 ```bash
-% rubocop --lint router_eigrp.rb
-Inspecting 1 file
-.
+% rubocop lib/cisco_node_utils/router_eigrp.rb tests/test_router_eigrp.rb
+Inspecting 2 file
+..
 
-1 file inspected, no offenses detected
+2 file inspected, no offenses detected
+```
+
+### <a name="comp_gem">Step 5. Build and Install the gem</a>
+
+The final step is to build and install the gem that contains the new APIs.
+
+Please note: `gem build` will only include files that are part of the repository. This means that new file `router_eigrp.rb` will be ignored by the build until it is added to the repo with `git add`:
+
+```bash
+git add lib/cisco_node_utils/router_eigrp.rb
+```
+
+From the root of the cisco-network-node-utils repository issue the following command.
+
+```bash
+% gem build cisco_node_utils.gemspec
+  Successfully built RubyGem
+  Name: cisco_node_utils
+  Version: 1.0.1
+  File: cisco_node_utils-1.0.1.gem
+```
+
+Copy the new gem to your NX-OS device and then install it.
+
+```bash
+n9k#gem install --local /bootflash/cisco_node_utils-1.0.1.gem
+Successfully installed cisco_node_utils-1.0.1
+Parsing documentation for cisco_node_utils-1.0.1
+Installing ri documentation for cisco_node_utils-1.0.1
+Done installing documentation for cisco_node_utils after 2 seconds
+1 gem installed
 ```
 
 ## Conclusion
