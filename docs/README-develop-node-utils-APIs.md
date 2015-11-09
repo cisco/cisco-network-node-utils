@@ -399,9 +399,11 @@ class TestRouterEigrp < CiscoTestCase
 
     @default_show_command = "show runn | i 'router eigrp'"
 
-    s = @device.cmd("show runn | i 'router eigrp'")
-    assert_match(s, /^router eigrp #{id1}$/)
-    assert_match(s, /^router eigrp #{id2}$/)
+    assert_show_match(pattern: /^router eigrp #{id1}$/,
+                      msg:     "failed to create router eigrp #{id1}")
+
+    assert_show_match(pattern: /^router eigrp #{id2}$/,
+                      msg:     "failed to create router eigrp #{id2}")
 
     rtr1.destroy
     refute_show_match(pattern: /^router eigrp #{id1}$/,

@@ -598,6 +598,9 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
+    interface.negotiate_auto = default
+    # Delay as this change is sometimes too quick for some interfaces
+    sleep 1 unless default == interface.negotiate_auto
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
@@ -631,7 +634,7 @@ class TestInterface < CiscoTestCase
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
-    pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
+    pattern = cmd_ref.test_config_get_regex[non_default ? 1 : 0]
     assert_show_match(pattern: pattern)
 
     # Clean up after ourselves
@@ -675,6 +678,15 @@ class TestInterface < CiscoTestCase
 
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
+
+    # Some platforms/interfaces/versions do not support negotiation changes
+    begin
+      interface.negotiate_auto = false
+    rescue => e
+      skip('Skip test: Interface type does not allow config change') if
+        e.message[/requested config change not allowed/]
+    end
+
     default = ref.default_value
     @default_show_command = show_cmd(inf_name)
 

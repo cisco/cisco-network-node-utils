@@ -60,7 +60,7 @@ cluster_id:
   default_value: ""
 
 confederation_id:
-  config_get_token_append: '/^confederation identifier (\d+.?\d+?)$/'
+  config_get_token_append: '/^confederation identifier (\d+|\d+.\d+)$/'
   config_set_append: '<state> confederation identifier <id>'
   default_value: ""
 

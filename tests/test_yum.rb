@@ -23,6 +23,9 @@ class TestYum < CiscoTestCase
   @@pkg = 'n9000_sample'
   @@pkg_ver = '1.0.0-7.0.3'
   @@pkg_filename = 'n9000_sample-1.0.0-7.0.3.x86_64.rpm'
+  @@incompatible_rpm_msg =
+    ': The sample rpm is compatible with NX-OS release version 7.0(3)I2(1). ' \
+    'This test may fail with other versions.'
   # rubocop:enable Style/ClassVars
 
   def setup
@@ -65,7 +68,7 @@ class TestYum < CiscoTestCase
     s = @device.cmd("show install package | include #{@@pkg}")[/@patching/]
     assert(s, "failed to find installed package #{@@pkg}")
   rescue RuntimeError => e
-    assert(false, e.message)
+    assert(false, e.message + @@incompatible_rpm_msg)
   end
 
   def test_remove
@@ -103,7 +106,7 @@ class TestYum < CiscoTestCase
       sleep 20
     end
     ver = Yum.query(@@pkg)
-    assert_equal(ver, @@pkg_ver)
+    assert_equal(ver, @@pkg_ver, @@incompatible_rpm_msg)
     @device.cmd("install deactivate #{@@pkg}")
     node.cache_flush
     sleep 20
