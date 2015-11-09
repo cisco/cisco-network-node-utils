@@ -43,15 +43,7 @@ module Cisco
     end
 
     def timestamp
-      timestamp = config_get('syslog_settings', 'timestamp')
-      if timestamp.nil?
-        # NXOS doesn't show if timestamp units is set to seconds, so we assume
-        # that no config displayed means that the parameter is set to seconds.
-        timestamp = config_get_default('syslog_settings', 'timestamp')
-      else
-        timestamp = config_get('syslog_settings', 'timestamp')[0]
-      end
-      timestamp
+      config_get('syslog_settings', 'timestamp')
     end
 
     def timestamp=(val)

@@ -59,8 +59,6 @@ module Cisco
       intf_list.each do |name|
         match = config_get('interface_ospf', 'area', name)
         next if match.nil?
-        # should only be a single match under a given interface
-        match = match.first
         # ip router ospf <name> area <area>
         ospf = match[0]
         area = match[1]
@@ -74,7 +72,7 @@ module Cisco
     def area
       match = config_get('interface_ospf', 'area', @interface.name)
       return nil if match.nil?
-      val = match[0][1]
+      val = match[1]
       # Coerce numeric area to the expected dot-decimal format.
       val = IPAddr.new(val.to_i, Socket::AF_INET).to_s unless val.match(/\./)
       val
@@ -103,8 +101,7 @@ module Cisco
     end
 
     def message_digest
-      !config_get('interface_ospf', 'message_digest',
-                  @interface.name).nil?
+      config_get('interface_ospf', 'message_digest', @interface.name)
     end
 
     # interface %s
@@ -119,10 +116,7 @@ module Cisco
     end
 
     def message_digest_key_id
-      match = config_get('interface_ospf', 'message_digest_key_id',
-                         @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_message_digest_key_id : match.first.to_i
+      config_get('interface_ospf', 'message_digest_key_id', @interface.name)
     end
 
     def default_message_digest_algorithm_type
@@ -133,8 +127,7 @@ module Cisco
     def message_digest_algorithm_type
       match = config_get('interface_ospf', 'message_digest_alg_type',
                          @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_message_digest_algorithm_type : match.first.to_sym
+      match.to_sym
     end
 
     def default_message_digest_encryption_type
@@ -145,18 +138,11 @@ module Cisco
     def message_digest_encryption_type
       match = config_get('interface_ospf', 'message_digest_enc_type',
                          @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      if match.nil?
-        default_message_digest_encryption_type
-      else
-        Encryption.cli_to_symbol(match.first)
-      end
+      Encryption.cli_to_symbol(match)
     end
 
     def message_digest_password
-      match = config_get('interface_ospf', 'message_digest_password',
-                         @interface.name)
-      match.nil? ? nil : match.first
+      config_get('interface_ospf', 'message_digest_password', @interface.name)
     end
 
     # interface %s
@@ -177,9 +163,7 @@ module Cisco
     end
 
     def cost
-      match = config_get('interface_ospf', 'cost', @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_cost : match.first.to_i
+      config_get('interface_ospf', 'cost', @interface.name)
     end
 
     def default_cost
@@ -197,10 +181,7 @@ module Cisco
     end
 
     def hello_interval
-      match = config_get('interface_ospf', 'hello_interval',
-                         @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_hello_interval : match.first.to_i
+      config_get('interface_ospf', 'hello_interval', @interface.name)
     end
 
     def default_hello_interval
@@ -215,10 +196,7 @@ module Cisco
     end
 
     def dead_interval
-      match = config_get('interface_ospf', 'dead_interval',
-                         @interface.name)
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_dead_interval : match.first.to_i
+      config_get('interface_ospf', 'dead_interval', @interface.name)
     end
 
     def default_dead_interval
@@ -237,8 +215,7 @@ module Cisco
     end
 
     def passive_interface
-      !config_get('interface_ospf', 'passive_interface',
-                  @interface.name).nil?
+      config_get('interface_ospf', 'passive_interface', @interface.name)
     end
 
     # interface %s

@@ -72,8 +72,7 @@ module Cisco
     end
 
     def self.feature_nv_overlay_evpn_enabled
-      feat = config_get('bgp_af', 'feature_nv_overlay_evpn')
-      return !(feat.nil? || feat.empty?)
+      config_get('bgp_af', 'feature_nv_overlay_evpn')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -138,9 +137,7 @@ module Cisco
     # Next Hop route map (Getter/Setter/Default)
     #
     def next_hop_route_map
-      route_map = config_get('bgp_af', 'next_hop_route_map', @get_args)
-      return '' if route_map.nil?
-      route_map.shift.strip
+      config_get('bgp_af', 'next_hop_route_map', @get_args)
     end
 
     def next_hop_route_map=(route_map)
@@ -216,9 +213,7 @@ module Cisco
 
     # additional_paths_selection
     def additional_paths_selection
-      route_map = config_get('bgp_af', 'additional_paths_selection', @get_args)
-      return '' if route_map.nil?
-      route_map.shift.strip
+      config_get('bgp_af', 'additional_paths_selection', @get_args)
     end
 
     def additional_paths_selection=(route_map)
@@ -243,8 +238,7 @@ module Cisco
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
       return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
-      state = config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
-      state ? true : false
+      config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
     end
 
     def advertise_l2vpn_evpn=(state)
@@ -264,8 +258,7 @@ module Cisco
 
     # dampen_igp_metric
     def dampen_igp_metric
-      result = config_get('bgp_af', 'dampen_igp_metric', @get_args)
-      result ? result.first.to_i : nil
+      config_get('bgp_af', 'dampen_igp_metric', @get_args)
     end
 
     def dampen_igp_metric=(val)
@@ -460,8 +453,7 @@ module Cisco
 
     # maximum_paths
     def maximum_paths
-      result = config_get('bgp_af', 'maximum_paths', @get_args)
-      result.nil? ? default_maximum_paths : result.first.to_i
+      config_get('bgp_af', 'maximum_paths', @get_args)
     end
 
     def maximum_paths=(val)
@@ -480,8 +472,7 @@ module Cisco
 
     # maximum_paths_ibgp
     def maximum_paths_ibgp
-      result = config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
-      result.nil? ? default_maximum_paths_ibgp : result.first.to_i
+      config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
     end
 
     def maximum_paths_ibgp=(val)
@@ -500,8 +491,7 @@ module Cisco
 
     # Build an array of all network commands currently on the device
     def networks
-      cmds = config_get('bgp_af', 'network', @get_args)
-      cmds.nil? ? default_networks : cmds.each(&:compact!)
+      config_get('bgp_af', 'network', @get_args).each(&:compact!)
     end
 
     # networks setter.
@@ -532,8 +522,7 @@ module Cisco
 
     # Build an array of all redistribute commands currently on the device
     def redistribute
-      cmds = config_get('bgp_af', 'redistribute', @get_args)
-      cmds.nil? ? default_redistribute : cmds.each(&:compact!)
+      config_get('bgp_af', 'redistribute', @get_args).each(&:compact!)
     end
 
     # redistribute setter.

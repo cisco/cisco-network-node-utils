@@ -1,0 +1,61 @@
+# interface_ospf
+---
+_template:
+  config_get: 'show running interface all'
+  config_get_token: ['/^interface %s$/i']
+  config_set: ["interface %s"]
+
+area:
+  config_get_token_append: ['/^\s*ip router ospf (\S+) area (\S+)/']
+  config_set_append: ["%s ip router ospf %s area %s"]
+
+cost:
+  kind: int
+  config_get_token_append: ['/^\s*ip ospf cost (\d+)/']
+  config_set_append: ["%s ip ospf cost %s"]
+  default_value: 0
+
+dead_interval:
+  kind: int
+  config_get_token_append: ['/^\s*ip ospf dead-interval (\d+)/']
+  config_set_append: ["%s ip ospf dead-interval %s"]
+  default_value: 40
+  test_config_result: [262141]
+
+hello_interval:
+  kind: int
+  config_get_token_append: ['/^\s*ip ospf hello-interval (\d+)/']
+  config_set_append: ["%s ip ospf hello-interval %s"]
+  default_value: 10
+
+message_digest:
+  kind: boolean
+  config_get_token_append: ['/^\s*ip ospf authentication message-digest/']
+  config_set_append: ["%s ip ospf authentication message-digest"]
+  default_value: false
+
+message_digest_alg_type:
+  config_get_token_append: ['/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  default_value: 'md5'
+
+message_digest_enc_type:
+  config_get_token_append: ['/^\s*ip ospf message-digest-key \d+ \S+ (\d+)/']
+  default_value: '0'
+
+message_digest_key_id:
+  kind: int
+  config_get_token_append: ['/^\s*ip ospf message-digest-key (\d+)/']
+  default_value: 0
+
+message_digest_key_set:
+  config_set_append: ["%s ip ospf message-digest-key %s %s %s %s"]
+
+message_digest_password:
+  default_value: ~
+  config_get_token_append: ['/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/']
+
+passive_interface:
+  kind: boolean
+  config_get_token_append: ['/^\s*ip ospf passive-interface/']
+  config_set_append: ["%s ip ospf passive-interface"]
+  default_value: false
