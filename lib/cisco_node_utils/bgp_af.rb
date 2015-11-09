@@ -558,5 +558,186 @@ module Cisco
     def default_redistribute
       config_get_default('bgp_af', 'redistribute')
     end
+    
+    #route target both 
+    # Build an array of all route_target_both_evpn commands currently on the device
+    def route_target_both
+      cmds = config_get('bgp_af', 'route_target_both', @get_args)
+      cmds.nil? ? default_route_target_both : cmds.each(&:compact!)
+    end
+
+    # route_target_both setter.
+    # Processes a hash of route_target_both_evpn commands from delta_add_remove().
+    def route_target_both=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_both)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_both delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_both', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_both
+      config_get_default('bgp_af', 'route_target_both')
+    end
+ 
+    #route target both evpn
+    # Build an array of all route_target_both_evpn commands currently on the device
+    def route_target_both_evpn
+      cmds = config_get('bgp_af', 'route_target_both_evpn', @get_args)
+      cmds.nil? ? default_route_target_both_evpn : cmds.each(&:compact!)
+    end
+
+    # route_target_both_evpn setter.
+    # Processes a hash of route_target_both_evpn commands from delta_add_remove().
+    def route_target_both_evpn=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_both_evpn)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_both_evpn delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_both_evpn', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_both_evpn
+      config_get_default('bgp_af', 'route_target_both_evpn')
+    end
+ 
+    #route target export 
+    # Build an array of all route_target_export_evpn commands currently on the device
+    def route_target_export
+      cmds = config_get('bgp_af', 'route_target_export', @get_args)
+      cmds.nil? ? default_route_target_export : cmds.each(&:compact!)
+    end
+
+    # route_target_export setter.
+    # Processes a hash of route_target_export_evpn commands from delta_add_remove().
+    def route_target_export=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_export)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_export delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_export', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_export
+      config_get_default('bgp_af', 'route_target_export')
+    end
+ 
+    #route target export evpn
+    # Build an array of all route_target_export_evpn commands currently on the device
+    def route_target_export_evpn
+      cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
+      cmds.nil? ? default_route_target_export_evpn : cmds.each(&:compact!)
+    end
+
+    # route_target_export_evpn setter.
+    # Processes a hash of route_target_export_evpn commands from delta_add_remove().
+    def route_target_export_evpn=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_export_evpn)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_export_evpn delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_export_evpn', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_export_evpn
+      config_get_default('bgp_af', 'route_target_export_evpn')
+    end
+ 
+    #route target import 
+    # Build an array of all route_target_import_evpn commands currently on the device
+    def route_target_import
+      cmds = config_get('bgp_af', 'route_target_import', @get_args)
+      cmds.nil? ? default_route_target_import : cmds.each(&:compact!)
+    end
+
+    # route_target_import setter.
+    # Processes a hash of route_target_import_evpn commands from delta_add_remove().
+    def route_target_import=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_import)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_import delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_import', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_import
+      config_get_default('bgp_af', 'route_target_import')
+    end
+ 
+    #route target import evpn
+    # Build an array of all route_target_import_evpn commands currently on the device
+    def route_target_import_evpn
+      cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
+      cmds.nil? ? default_route_target_import_evpn : cmds.each(&:compact!)
+    end
+
+    # route_target_import_evpn setter.
+    # Processes a hash of route_target_import_evpn commands from delta_add_remove().
+    def route_target_import_evpn=(should_list) # should_list is the manifest value
+      # compare the two arrays
+      delta_hash = Utils.delta_add_remove(should_list, route_target_import_evpn)
+      return if delta_hash.values.flatten.empty?
+
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("route_target_import_evpn delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no' 
+          set_args_keys(state: state, community: community)
+          config_set('bgp_af', 'route_target_import_evpn', @set_args)
+        end
+      end
+    end
+
+    def default_route_target_import_evpn
+      config_get_default('bgp_af', 'route_target_import_evpn')
+    end
+ 
   end
 end

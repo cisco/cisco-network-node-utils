@@ -959,4 +959,66 @@ class TestRouterBgpAF < CiscoTestCase
     result = Utils.delta_add_remove(should, current)
     assert_equal(expected, result, 'Test 5. delta mismatch')
   end
+
+  # test route_target
+  def test_route_target
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      route_target(55, 'red', af)
+    end
+  end
+
+  def route_target(asn, vrf, af)
+    # Common test for route-target providers. Tests evpn and non-evpn.
+    config("no vrf #{vrf}")
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    opts = [:both, :import, :export]
+
+    # Master list of communities to test against
+    master = [['1:1'], ['2:2'], ['3:3'], ['4:5']]
+
+    # Test 1: both/import/export when no commands are present. Each target
+    # option will be tested with and without evpn (6 separate types)
+    should = master.clone
+    route_target_tester(bgp_af, af, opts, should, 'Test 1')
+
+    # Test 2: remove half of the entries
+    should.shift(4)
+    route_target_tester(bgp_af, af, opts, should, 'Test 2')
+
+    # Test 3: restore the removed entries
+    should = master.clone
+    route_target_tester(bgp_af, af, opts, should, 'Test 3')
+
+    # Test 4: 'default'
+    should = bgp_af.default_route_target_both
+    route_target_tester(bgp_af, af, opts, should, 'Test 4')
+
+    # Cleanup.
+    config("no vrf #{vrf}")
+  end
+
+  def route_target_tester(bgp_af, af, opts, should, test_id)
+    # First configure all six property types
+    opts.each do |opt|
+      # non-evpn
+      bgp_af.send("route_target_#{opt}=", should)
+    end
+    opts.each do |opt|
+      bgp_af.send("route_target_#{opt}_evpn=", should)
+    end
+
+    # Now check the results
+    opts.each do |opt|
+      # non-evpn
+      result = bgp_af.send("route_target_#{opt}")
+      assert_equal(should.sort, result.sort,
+                   "#{test_id} : #{af} : route_target_#{opt}")
+    end
+    opts.each do |opt|
+      result = bgp_af.send("route_target_#{opt}_evpn")
+      assert_equal(should.sort, result.sort,
+                   "#{test_id} : #{af} : route_target_#{opt}_evpn")
+    end
+  end
 end

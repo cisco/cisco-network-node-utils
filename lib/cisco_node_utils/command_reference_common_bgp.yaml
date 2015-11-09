@@ -79,6 +79,12 @@ bgp:
     config_get: "show running bgp"
     config_get_token: '/^feature bgp$/'
     config_set: "<state> feature bgp"
+  
+  # This is a multi-provider, enable-only feature. Do not disable from provider.
+  feature_nv_overlay_evpn:
+    config_get: "show running section nv"
+    config_get_token: '/^nv overlay evpn$/'
+    config_set: "nv overlay evpn"
 
   graceful_restart:
     config_get_token_append: '/^graceful-restart$/'
@@ -120,11 +126,16 @@ bgp:
     config_set_append: '<state> reconnect-interval <seconds>'
     default_value: 60
 
+  route_distinguisher:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
+    config_set: ["vrf context <vrf>", "<state> rd <rd>"]
+    default_value: ""
+
   router:
     config_get: "show running bgp"
     config_get_token: '/^router bgp (\d+)$/'
     config_set: "<state> router bgp <asnum>"
-
+  
   router_id:
     config_get_token_append: '/^router-id (\S+)$/'
     config_set_append: '<state> router-id <id>'
@@ -278,6 +289,37 @@ bgp_af:
   redistribute_policy:
     # route-map/policy is optional on some platforms, required on others
     config_set_append: '<state> redistribute <protocol> route-map <policy>'
+  
+  #config in vrf context
+  route_target_both:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both (\S+)$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both <community>"]
+    default_value: []
+
+  route_target_both_evpn:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both (\S+) evpn$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both <community>"]
+    default_value: []
+
+  route_target_import:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+)$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community>"]
+    default_value: []
+
+  route_target_import_evpn:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+) evpn$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community>"]
+    default_value: []
+
+  route_target_export:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+)$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community>"]
+    default_value: []
+
+  route_target_export_evpn:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+) evpn$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community>"]
+    default_value: []
 
 bgp_neighbor:
   _template:
