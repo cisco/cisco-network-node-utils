@@ -120,7 +120,7 @@ class TestCommandConfig < CiscoTestCase
       sleep 30 # long-running command
       curr = @device.cmd('show int brief | count')[/^(\d+)$/]
       flunk('Timeout while creating 1024 loopback interfaces' \
-            "(pre:#{pre} curr:#{curr}") unless (pre == curr - 1024)
+            "(pre:#{pre} curr:#{curr}") unless pre == curr - 1024
     end
 
     # Remove 1024 loopback interfaces
@@ -134,7 +134,7 @@ class TestCommandConfig < CiscoTestCase
       sleep 30 # long-running: n95 can take 70+ sec to remove all of these
       curr = @device.cmd(show_int_count)[/^(\d+)$/]
       flunk('Timeout while deleting 1024 loopback interfaces ' \
-            "(pre:#{pre} curr:#{curr}") unless (pre == curr)
+            "(pre:#{pre} curr:#{curr}") unless pre == curr
     end
   end
 
