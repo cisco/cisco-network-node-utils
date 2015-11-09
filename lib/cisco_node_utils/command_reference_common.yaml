@@ -801,7 +801,7 @@ snmp_server:
     config_get: "show run snmp"
     config_get_token: '/snmp-server globalEnforcePriv/'
     config_set: "%s snmp-server globalEnforcePriv"
-    default_value: true
+    default_value: false
 
   location:
     config_get: "show snmp"
