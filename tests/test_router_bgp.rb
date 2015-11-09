@@ -400,7 +400,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_enforce_first_as
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
+    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert(bgp.enforce_first_as,
@@ -612,7 +612,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_log_neighbor_changes
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
+    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_log_neighbor_changes,
@@ -932,7 +932,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_timer_keepalive_hold_default
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
+    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(%w(60 180), bgp.default_timer_bgp_keepalive_hold,
