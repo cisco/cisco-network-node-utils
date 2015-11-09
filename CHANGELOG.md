@@ -20,7 +20,7 @@ Changelog
   * syslog_setting (@jonnytpuppet)
 * Miscellaneous 
   * dns_domain (@hunner)
-  * domain_name (@bmgen)
+  * domain_name (@bmjen)
   * name_server (@hunner)
   * network_snmp (@jonnytpuppet)
 
