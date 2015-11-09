@@ -138,8 +138,8 @@ graceful_restart:
     config_get_token_append: '/^graceful-restart$/'
     config_set_append: '<state> graceful-restart'
 
-# TODO: Does not exist in IOS XR
 graceful_restart_helper:
+  # Does not exist in IOS XR
   cli_nexus:
     config_get_token_append: '/^graceful-restart-helper$/'
     config_set_append: '<state> graceful-restart-helper'
