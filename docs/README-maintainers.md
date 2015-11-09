@@ -34,7 +34,11 @@ Most of these are default for git-flow except for the `versiontag` setting.
 
 When we are considering publishing a new release, all of the following steps must be carried out (using the latest code base in `develop`):
 
-1. Run full minitest suite with various Ruby versions and hardware platforms:
+1. Review cisco_node_utils.gemspec
+  * Is the data still relevant?
+  * Do the version dependencies need to be updated? (e.g. rubocop)
+
+2. Run full minitest suite with various Ruby versions and hardware platforms:
   * Ruby versions:
     - REQUIRED: the Ruby version(s) bundled with Chef and Puppet (currently 2.1.6)
     - OPTIONAL: any/all other Ruby major versions currently supported by this gem (2.0, 2.2.2)
@@ -43,13 +47,13 @@ When we are considering publishing a new release, all of the following steps mus
     - N31xx
     - N9xxx
 
-2. Triage any minitest failures.
+3. Triage any minitest failures.
 
-3. Check code coverage results from minitest to see if there are any critical gaps in coverage.
+4. Check code coverage results from minitest to see if there are any critical gaps in coverage.
 
-4. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
+5. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
 
-5. Make sure CHANGELOG.md accurately reflects all changes since the last release.
+6. Make sure CHANGELOG.md accurately reflects all changes since the last release.
   * Add any significant changes that weren't documented in the changelog
   * Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
 
