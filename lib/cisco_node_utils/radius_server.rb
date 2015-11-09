@@ -65,14 +65,11 @@ module Cisco
     end
 
     def auth_port
-      val = config_get('radius_server', 'auth-port', @name)
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_server', 'auth-port', @name)
     end
 
     def default_auth_port
-      val = config_get_default('radius_server', 'auth-port')
-      val
+      config_get_default('radius_server', 'auth-port')
     end
 
     def auth_port=(val)
@@ -81,7 +78,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !auth_port.nil?
+      if val.nil?
         config_set('radius_server',
                    'auth-port',
                    state: 'no',
@@ -97,14 +94,11 @@ module Cisco
     end
 
     def acct_port
-      val = config_get('radius_server', 'acct-port', @name)
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_server', 'acct-port', @name)
     end
 
     def default_acct_port
-      val = config_get_default('radius_server', 'acct-port')
-      val
+      config_get_default('radius_server', 'acct-port')
     end
 
     def acct_port=(val)
@@ -113,7 +107,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !acct_port.nil?
+      if val.nil?
         config_set('radius_server',
                    'acct-port',
                    state: 'no',
@@ -129,14 +123,11 @@ module Cisco
     end
 
     def timeout
-      val = config_get('radius_server', 'timeout', @name)
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_server', 'timeout', @name)
     end
 
     def default_timeout
-      val = config_get_default('radius_server', 'timeout')
-      val
+      config_get_default('radius_server', 'timeout')
     end
 
     def timeout=(val)
@@ -145,7 +136,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !timeout.nil?
+      if val.nil?
         config_set('radius_server',
                    'timeout',
                    state:   'no',
@@ -161,14 +152,11 @@ module Cisco
     end
 
     def retransmit_count
-      val = config_get('radius_server', 'retransmit', @name)
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_server', 'retransmit', @name)
     end
 
     def default_retransmit_count
-      val = config_get_default('radius_server', 'retransmit')
-      val
+      config_get_default('radius_server', 'retransmit')
     end
 
     def retransmit_count=(val)
@@ -177,7 +165,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !retransmit_count.nil?
+      if val.nil?
         config_set('radius_server',
                    'retransmit',
                    state: 'no',
@@ -197,13 +185,12 @@ module Cisco
       if val.nil?
         false
       else
-        val[0].eql?('accounting') ? true : false
+        val
       end
     end
 
     def default_accounting
-      val = config_get_default('radius_server', 'accounting')
-      val
+      config_get_default('radius_server', 'accounting')
     end
 
     def accounting=(val)
@@ -225,13 +212,12 @@ module Cisco
       if val.nil?
         false
       else
-        val[0].eql?('authentication') ? true : false
+        val
       end
     end
 
     def default_authentication
-      val = config_get_default('radius_server', 'authentication')
-      val
+      config_get_default('radius_server', 'authentication')
     end
 
     def authentication=(val)
@@ -249,15 +235,11 @@ module Cisco
     end
 
     def key_format
-      val = config_get('radius_server', 'key_format', @name)
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_server', 'key_format', @name)
     end
 
     def key
-      val = config_get('radius_server', 'key', @name)
-      val = val[0] unless val.nil?
-      val
+      config_get('radius_server', 'key', @name)
     end
 
     def key_set(value, format)

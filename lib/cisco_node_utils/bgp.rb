@@ -55,23 +55,20 @@ module Cisco
     # Create a hash of all router bgp default and non-default
     # vrf instances
     def self.routers
-      bgp_ids = config_get('bgp', 'router')
-      return {} if bgp_ids.nil?
+      asnum = config_get('bgp', 'router')
+      return {} if asnum.nil?
 
       hash_final = {}
-      # TODO: Remove loop if only single ASN supported by RFC?
-      bgp_ids.each do |asnum|
-        asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
-        hash_tmp = { asnum =>
-          { 'default' => RouterBgp.new(asnum, 'default', false) } }
-        vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
-        unless vrf_ids.nil?
-          vrf_ids.each do |vrf|
-            hash_tmp[asnum][vrf] = RouterBgp.new(asnum, vrf, false)
-          end
+      asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
+      hash_tmp = { asnum =>
+        { 'default' => RouterBgp.new(asnum, 'default', false) } }
+      vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
+      unless vrf_ids.nil?
+        vrf_ids.each do |vrf|
+          hash_tmp[asnum][vrf] = RouterBgp.new(asnum, vrf, false)
         end
-        hash_final.merge!(hash_tmp)
       end
+      hash_final.merge!(hash_tmp)
       return hash_final
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
@@ -80,8 +77,7 @@ module Cisco
     end
 
     def self.enabled
-      feat = config_get('bgp', 'feature')
-      return !(feat.nil? || feat.empty?)
+      config_get('bgp', 'feature')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -115,10 +111,10 @@ module Cisco
       # Raise an error if one is already configured that
       # differs from the one being created.
       configured = config_get('bgp', 'router')
-      if !configured.nil? && configured.first.to_s != asnum.to_s
+      if !configured.nil? && configured.to_s != asnum.to_s
         fail %(
           Changing the BGP Autonomous System Number is not allowed.
-          Current BGP asn: #{configured.first}
+          Current BGP asn: #{configured}
           Attempted change to asn: #{asnum})
       end
       @set_args[:state] = state
@@ -172,38 +168,31 @@ module Cisco
 
     # Bestpath Getters
     def bestpath_always_compare_med
-      match = config_get('bgp', 'bestpath_always_compare_med', @get_args)
-      match.nil? ? default_bestpath_always_compare_med : true
+      config_get('bgp', 'bestpath_always_compare_med', @get_args)
     end
 
     def bestpath_aspath_multipath_relax
-      match = config_get('bgp', 'bestpath_aspath_multipath_relax', @get_args)
-      match.nil? ? default_bestpath_aspath_multipath_relax : true
+      config_get('bgp', 'bestpath_aspath_multipath_relax', @get_args)
     end
 
     def bestpath_compare_routerid
-      match = config_get('bgp', 'bestpath_compare_routerid', @get_args)
-      match.nil? ? default_bestpath_compare_routerid : true
+      config_get('bgp', 'bestpath_compare_routerid', @get_args)
     end
 
     def bestpath_cost_community_ignore
-      match = config_get('bgp', 'bestpath_cost_community_ignore', @get_args)
-      match.nil? ? default_bestpath_cost_community_ignore : true
+      config_get('bgp', 'bestpath_cost_community_ignore', @get_args)
     end
 
     def bestpath_med_confed
-      match = config_get('bgp', 'bestpath_med_confed', @get_args)
-      match.nil? ? default_bestpath_med_confed : true
+      config_get('bgp', 'bestpath_med_confed', @get_args)
     end
 
     def bestpath_med_missing_as_worst
-      match = config_get('bgp', 'bestpath_med_missing_as_worst', @get_args)
-      match.nil? ? default_bestpath_med_missing_as_worst : true
+      config_get('bgp', 'bestpath_med_missing_as_worst', @get_args)
     end
 
     def bestpath_med_non_deterministic
-      match = config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
-      match.nil? ? default_bestpath_med_non_deterministic : true
+      config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
     end
 
     # Bestpath Setters
@@ -280,8 +269,7 @@ module Cisco
 
     # Cluster Id (Getter/Setter/Default)
     def cluster_id
-      match = config_get('bgp', 'cluster_id', @get_args)
-      match.nil? ? default_cluster_id : match.first
+      config_get('bgp', 'cluster_id', @get_args)
     end
 
     def cluster_id=(id)
@@ -308,8 +296,7 @@ module Cisco
 
     # Confederation Id (Getter/Setter/Default)
     def confederation_id
-      match = config_get('bgp', 'confederation_id', @get_args)
-      match.nil? ? default_confederation_id : match.first
+      config_get('bgp', 'confederation_id', @get_args)
     end
 
     def confederation_id=(id)
@@ -336,8 +323,7 @@ module Cisco
 
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
-      match = config_get('bgp', 'enforce_first_as', @get_args)
-      match.nil? ? false : true
+      config_get('bgp', 'enforce_first_as', @get_args)
     end
 
     def enforce_first_as=(enable)
@@ -352,8 +338,7 @@ module Cisco
 
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
-      match = config_get('bgp', 'confederation_peers', @get_args)
-      match.nil? ? default_confederation_peers : match.first
+      config_get('bgp', 'confederation_peers', @get_args)
     end
 
     def confederation_peers_set(peers)
@@ -378,28 +363,19 @@ module Cisco
 
     # Graceful Restart Getters
     def graceful_restart
-      match = config_get('bgp', 'graceful_restart', @get_args)
-      match.nil? ? false : true
+      config_get('bgp', 'graceful_restart', @get_args)
     end
 
     def graceful_restart_timers_restart
-      match = config_get('bgp', 'graceful_restart_timers_restart', @get_args)
-      match.nil? ? default_graceful_restart_timers_restart : match.first.to_i
+      config_get('bgp', 'graceful_restart_timers_restart', @get_args)
     end
 
     def graceful_restart_timers_stalepath_time
-      match = config_get('bgp', 'graceful_restart_timers_stalepath_time',
-                         @get_args)
-      if match.nil?
-        default_graceful_restart_timers_stalepath_time
-      else
-        match.first.to_i
-      end
+      config_get('bgp', 'graceful_restart_timers_stalepath_time', @get_args)
     end
 
     def graceful_restart_helper
-      match = config_get('bgp', 'graceful_restart_helper', @get_args)
-      match.nil? ? default_graceful_restart_helper : true
+      config_get('bgp', 'graceful_restart_helper', @get_args)
     end
 
     # Graceful Restart Setters
@@ -458,8 +434,7 @@ module Cisco
 
     # MaxAs Limit (Getter/Setter/Default)
     def maxas_limit
-      match = config_get('bgp', 'maxas_limit', @get_args)
-      match.nil? ? default_maxas_limit : match.first.to_i
+      config_get('bgp', 'maxas_limit', @get_args)
     end
 
     def maxas_limit=(limit)
@@ -480,8 +455,7 @@ module Cisco
 
     # Log Neighbor Changes (Getter/Setter/Default)
     def log_neighbor_changes
-      match = config_get('bgp', 'log_neighbor_changes', @get_args)
-      match.nil? ? default_log_neighbor_changes : true
+      config_get('bgp', 'log_neighbor_changes', @get_args)
     end
 
     def log_neighbor_changes=(enable)
@@ -496,8 +470,7 @@ module Cisco
 
     # Neighbor fib down accelerate (Getter/Setter/Default)
     def neighbor_fib_down_accelerate
-      match = config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
-      match.nil? ? default_neighbor_fib_down_accelerate : true
+      config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
     end
 
     def neighbor_fib_down_accelerate=(enable)
@@ -512,8 +485,7 @@ module Cisco
 
     # Reconnect Interval (Getter/Setter/Default)
     def reconnect_interval
-      match = config_get('bgp', 'reconnect_interval', @get_args)
-      match.nil? ? default_reconnect_interval : match.first.to_i
+      config_get('bgp', 'reconnect_interval', @get_args)
     end
 
     def reconnect_interval=(seconds)
@@ -534,8 +506,7 @@ module Cisco
 
     # Router ID (Getter/Setter/Default)
     def router_id
-      match = config_get('bgp', 'router_id', @get_args)
-      match.nil? ? default_router_id : match.first
+      config_get('bgp', 'router_id', @get_args)
     end
 
     def router_id=(id)
@@ -559,8 +530,7 @@ module Cisco
 
     # Shutdown (Getter/Setter/Default)
     def shutdown
-      match = config_get('bgp', 'shutdown', @asnum)
-      match.nil? ? default_shutdown : true
+      config_get('bgp', 'shutdown', @asnum)
     end
 
     def shutdown=(enable)
@@ -575,8 +545,7 @@ module Cisco
 
     # Supress Fib Pending (Getter/Setter/Default)
     def suppress_fib_pending
-      match = config_get('bgp', 'suppress_fib_pending', @get_args)
-      match.nil? ? default_suppress_fib_pending : true
+      config_get('bgp', 'suppress_fib_pending', @get_args)
     end
 
     def suppress_fib_pending=(enable)
@@ -592,7 +561,7 @@ module Cisco
     # BGP Timers Getters
     def timer_bgp_keepalive_hold
       match = config_get('bgp', 'timer_bgp_keepalive_hold', @get_args)
-      match.nil? ? default_timer_bgp_keepalive_hold : match.first
+      match.nil? ? default_timer_bgp_keepalive_hold : match
     end
 
     def timer_bgp_keepalive
@@ -608,13 +577,11 @@ module Cisco
     end
 
     def timer_bestpath_limit
-      match = config_get('bgp', 'timer_bestpath_limit', @get_args)
-      match.nil? ? default_timer_bestpath_limit : match.first.to_i
+      config_get('bgp', 'timer_bestpath_limit', @get_args)
     end
 
     def timer_bestpath_limit_always
-      match = config_get('bgp', 'timer_bestpath_limit_always', @get_args)
-      match.nil? ? default_timer_bestpath_limit_always : true
+      config_get('bgp', 'timer_bestpath_limit_always', @get_args)
     end
 
     # BGP Timers Setters

@@ -155,6 +155,11 @@ name:
     assert_raises(IndexError) { ref.test_config_get }
     type_check(ref.test_config_result(false), RuntimeError.class)
     type_check(ref.test_config_result(32), String)
+
+    assert(ref.default_value?)
+    assert(ref.config_get?)
+    assert(ref.config_get_token?)
+    assert(ref.config_set?)
   end
 
   def write_variants
@@ -212,6 +217,42 @@ name:
     write_variants
     reference = load_file(platform: :ios_xr, cli: true)
     assert_equal('gRPC base', reference.lookup('test', 'name').default_value)
+  end
+
+  def write_exclusions
+    write("
+_exclude:
+  - /N9K/
+
+name:
+  _exclude: [/C30../, /C31../]
+  default_value: hello
+
+rank:
+  default_value: 27
+")
+  end
+
+  def test_exclude_whole_file
+    write_exclusions
+    reference = load_file(product: 'N9K-C9396PX')
+    assert_empty(reference)
+    assert_raises(IndexError) { reference.lookup('test', 'name') }
+    assert_raises(IndexError) { reference.lookup('test', 'rank') }
+  end
+
+  def test_exclude_whole_item
+    write_exclusions
+    reference = load_file(product: 'N3K-C3172PQ')
+    assert_equal(27, reference.lookup('test', 'rank').default_value)
+    assert_raises(IndexError) { reference.lookup('test', 'name') }
+  end
+
+  def test_exclude_no_exclusion
+    write_exclusions
+    reference = load_file(product: 'N7K-C7010')
+    assert_equal('hello',  reference.lookup('test', 'name').default_value)
+    assert_equal(27, reference.lookup('test', 'rank').default_value)
   end
 
   def test_config_get_token_hash_substitution

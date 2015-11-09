@@ -15,6 +15,7 @@ auto_cost:
   default_value: [40, "Gbps"]
 
 default_metric:
+  kind: int
   config_get_token_append: '/^default-metric (\d+)?$/'
   config_set_append: "<state> default-metric <metric>"
   default_value: 0
@@ -25,11 +26,13 @@ feature:
   config_set: "%s feature ospf"
 
 log_adjacency:
+  auto_default: false
   config_get_token_append: '/^(log-adjacency-changes)\s*(detail)?$/'
   config_set_append: "<state> log-adjacency-changes <type>"
   default_value: :none
 
 router:
+  multiple: true
   config_get: "show running ospf"
   config_get_token: '/^router ospf (\S+)$/'
   config_set: "%s router ospf %s"
@@ -66,5 +69,6 @@ timer_throttle_spf_start:
   default_value: 200
 
 vrf:
+  multiple: true
   config_get_token: ['/^router ospf <name>$/i', '/^vrf\s+(\S+)$/']
   config_set: ["router ospf <name>", "<state> vrf <vrf>", "end"]

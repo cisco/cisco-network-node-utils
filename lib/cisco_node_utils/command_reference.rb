@@ -19,18 +19,19 @@ require 'yaml'
 module Cisco
   # Control a reference for an attribute.
   class CmdRef
-    attr_reader :feature
-    attr_reader :name
-    attr_reader :hash
+    attr_reader :feature, :name, :hash, :auto_default, :multiple, :kind
 
     KEYS = %w(default_value
               config_set config_set_append
               config_get config_get_token config_get_token_append
+              auto_default multiple kind
               test_config_get test_config_get_regex test_config_result)
 
     def self.keys
       KEYS
     end
+
+    KINDS = %w(boolean int string)
 
     # Construct a CmdRef describing the given (feature, name) pair.
     # Param "values" is a hash with keys as described in KEYS.
@@ -41,6 +42,9 @@ module Cisco
       @feature = feature
       @name = name
       @hash = {}
+      @auto_default = true
+      @multiple = false
+      @kind = nil
 
       values.each do |key, value|
         unless KEYS.include?(key)
@@ -50,14 +54,22 @@ module Cisco
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
           @hash[key] = value if key == 'default_value'
-          next
         elsif key == 'config_get_token' || key == 'config_set'
           # For simplicity, these are ALWAYS arrays
           value = [value] unless value.is_a?(Array)
           define_getter(key, value)
+          # We intentionally do this *after* the define_getter() call
+          @hash[key] = preprocess_value(value)
+        elsif key == 'auto_default'
+          @auto_default = value ? true : false
+        elsif key == 'multiple'
+          @multiple = value ? true : false
+        elsif key == 'kind'
+          fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
+          @kind = value.to_sym
+        else
+          @hash[key] = preprocess_value(value)
         end
-        # We intentionally do this *after* the define_getter() call above.
-        @hash[key] = preprocess_value(value)
       end
     end
 
@@ -192,9 +204,9 @@ module Cisco
     attr_reader :cli, :files, :platform, :product_id
 
     # Constructor.
-    # Normal usage is to pass product_id only, in which case all usual YAML
+    # Normal usage is to pass product, platform, cli, in which case usual YAML
     # files will be located then the list will be filtered down to only those
-    # matching the given product_id.
+    # matching the given settings.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
     def initialize(product:  nil,
@@ -224,16 +236,22 @@ module Cisco
         feature = File.basename(file).split('.')[0]
         debug "Processing file '#{file}' as feature '#{feature}'"
         feature_hash = load_yaml(file)
+        feature_hash = filter_hash(feature_hash)
+        if feature_hash.empty?
+          debug "Feature #{feature} is empty"
+          next
+        end
 
         base_hash = {}
         if feature_hash.key?('_template')
-          base_hash = hash_merge(feature_hash['_template'])
+          base_hash = CommandReference.hash_merge(feature_hash['_template'])
         end
 
         feature_hash.each do |name, value|
           fail "No entries under '#{name}' in '#{file}'" if value.nil?
+          next if value.empty? # filtered out by exclusions, etc
           @hash[feature] ||= {}
-          values = hash_merge(value, base_hash.clone)
+          values = CommandReference.hash_merge(value, base_hash.clone)
           @hash[feature][name] = CmdRef.new(feature, name, values, file)
         end
       end
@@ -264,23 +282,97 @@ module Cisco
 
     KNOWN_FILTERS = %w(cli_nexus cli_ios_xr)
 
+    def self.key_match(key, platform, product_id, cli)
+      if key[0] == '/' && key[-1] == '/'
+        # It's a product-id regexp. Does it match our given product_id?
+        return Regexp.new(key[1..-2]) =~ product_id ? true : false
+      elsif KNOWN_FILTERS.include?(key)
+        return false if key.match(/cli/) && !cli
+        return Regexp.new(platform.to_s) =~ key ? true : false
+      else
+        return :unknown
+      end
+    end
+
     # Helper method
-    # Given a Hash of command reference data (as read from YAML), does:
-    # - Filter any API-specific data
-    # - Filter any platform-specific data
+    # Given a Hash of command reference data as read from YAML, does:
+    # - Filter out any API-specific data not applicable to this API
+    # - Filter any platform-specific data not applicable to this product_id
+    # Returns the filtered hash (possibly empty)
+    def self.filter_hash(hash,
+                         platform:           nil,
+                         product_id:         nil,
+                         cli:                false,
+                         allow_unknown_keys: true)
+      result = {}
+
+      exclude = hash.delete('_exclude') || []
+      exclude.each do |value|
+        if key_match(value, platform, product_id, cli) == true
+          debug 'Exclude this product (#{product_id}, #{value})'
+          return result
+        end
+      end
+
+      # to_inspect: sub-keys we want to recurse into
+      to_inspect = []
+      # regexp_match: did we find a product_id regexp that matches?
+      regexp_match = false
+
+      hash.each do |key, value|
+        if CmdRef.keys.include?(key)
+          result[key] = value
+        elsif key != 'else'
+          match = key_match(key, platform, product_id, cli)
+          next if match == false
+          if match == :unknown
+            fail "Unrecognized key '#{key}'" unless allow_unknown_keys
+          end
+          regexp_match = true if match == true
+          to_inspect << key
+        end
+      end
+      # If we didn't find any platform regexp match,
+      # and an 'else' sub-hash is provided, descend into 'else'
+      to_inspect << 'else' if hash.key?('else') && !regexp_match
+      # Recurse! Sub-hashes can override the base hash
+      to_inspect.each do |key|
+        unless hash[key].is_a?(Hash)
+          result[key] = hash[key]
+          next
+        end
+        begin
+          result[key] = filter_hash(hash[key],
+                                    platform:           platform,
+                                    product_id:         product_id,
+                                    cli:                cli,
+                                    allow_unknown_keys: false)
+        rescue RuntimeError => e
+          raise "[#{key}]: #{e}"
+        end
+      end
+      result
+    end
+
+    def filter_hash(input_hash)
+      CommandReference.filter_hash(input_hash,
+                                   platform:   platform,
+                                   product_id: product_id,
+                                   cli:        cli)
+    end
+
+    # Helper method
+    # Given a suitably filtered Hash of command reference data, does:
     # - Inherit data from the given base_hash (if any) and extend/override it
     #   with the given input data.
     # - Append 'config_set_append' data to any existing 'config_set' data
     # - Append 'config_get_token_append' data to 'config_get_token', ditto
-    def hash_merge(input_hash, base_hash=nil)
+    def self.hash_merge(input_hash, base_hash=nil)
       return base_hash if input_hash.nil?
-
       result = base_hash
       result ||= {}
       # to_inspect: sub-hashes we want to recurse into
       to_inspect = []
-      # regexp_match: did we find a product_id regexp that matches?
-      regexp_match = false
 
       input_hash.each do |key, value|
         if CmdRef.keys.include?(key)
@@ -292,28 +384,11 @@ module Cisco
           else
             result[key] = value
           end
-        elsif key[0] == '/'
-          # it's a product-id regexp. Does it match our given product_id?
-          next unless Regexp.new(key[1..-2]) =~ product_id
-          regexp_match = true
-          # Platform match - we want to descend into this sub-hash
+        elsif value.is_a?(Hash)
           to_inspect << value
-        elsif KNOWN_FILTERS.include?(key)
-          next if key.match(/cli/) && !cli
-          next unless key.match(platform.to_s)
-          # API match - we want to descend into this sub-hash
-          to_inspect << value
-        elsif key == 'else'
-          # Skip for now, we revisit it below
-          next
         else
-          fail "Unrecognized key '#{key}'"
+          fail "Unexpected non-hash data: #{value}"
         end
-      end
-      # If we didn't find any platform regexp match,
-      # and an 'else' sub-hash is provided, descend into 'else'
-      if input_hash.key?('else') && !regexp_match
-        to_inspect << input_hash['else']
       end
       # Recurse! Sub-hashes can override the base hash
       to_inspect.each do |hash|
@@ -327,12 +402,11 @@ module Cisco
     # into a single combined array
     # value_append('foo', 'bar') ==> ['foo', 'bar']
     # value_append('foo', ['bar', 'baz']) ==> ['foo', 'bar', 'baz']
-    def value_append(base_value, new_value)
+    def self.value_append(base_value, new_value)
       base_value = [base_value] unless base_value.is_a?(Array)
       new_value = [new_value] unless new_value.is_a?(Array)
       base_value + new_value
     end
-    private :value_append
 
     def mapping?(node)
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }

@@ -7,6 +7,7 @@ acl:
   default_value: ""
 
 all_communities:
+  multiple: true
   config_get: "show running snmp all"
   config_get_token: '/^snmp-server community (\S+) /'
 

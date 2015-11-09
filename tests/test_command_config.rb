@@ -67,7 +67,7 @@ class TestCommandConfig < CiscoTestCase
     config_cmd_hash.each do |k, v|
       v.each_value do |v1|
         # Send commands
-        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}"
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
@@ -90,7 +90,6 @@ class TestCommandConfig < CiscoTestCase
   def build_int_scale_config(add=true)
     add ? s = '' : s = 'no '
     current_interface = 0
-    # num_interfaces = 1024
     num_interfaces = 1024
     command_list = ''
     while current_interface < num_interfaces

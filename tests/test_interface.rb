@@ -353,30 +353,13 @@ class TestInterface < CiscoTestCase
 
       if ref.config_set?
         cmd = show_cmd(interface.name)
-        if k.include?('loopback') && platform == :nexus
-          # Loopbacks don't support redirects on NX-OS but do on XR
-          assert_raises(Cisco::CliError) { interface.ipv4_redirects = true }
-        else
-          interface.ipv4_redirects = true
-          assert(interface.ipv4_redirects,
-                 "Couldn't set redirects to true for #{interface}")
-          unless interface.default_ipv4_redirects == true
-            assert_show_match(command: cmd,
-                              pattern: ref.test_config_get_regex[0])
-          end
-          refute_show_match(command: cmd,
-                            pattern: ref.test_config_get_regex[1])
+        interface.ipv4_redirects = true
+        assert(interface.ipv4_redirects, "Couldn't set redirects to true")
+        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[1])
 
-          interface.ipv4_redirects = false
-          refute(interface.ipv4_redirects,
-                 "Couldn't set redirects to false for #{interface}")
-          unless interface.default_ipv4_redirects == false
-            assert_show_match(command: cmd,
-                              pattern: ref.test_config_get_regex[1])
-          end
-          refute_show_match(command: cmd,
-                            pattern: ref.test_config_get_regex[0])
-        end
+        interface.ipv4_redirects = false
+        refute(interface.ipv4_redirects, "Couldn't set redirects to false")
+        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[0])
       else
         # Getter should return same value as default if setter isn't supported
         assert_equal(interface.ipv4_redirects, interface.default_ipv4_redirects,
@@ -520,6 +503,62 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_interface_speed_change
+    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    begin
+      interface.speed = 100
+      assert_equal('100', interface.speed)
+      interface.speed = 1000
+      assert_equal('1000', interface.speed)
+      interface_ethernet_default(interfaces_id[0])
+    rescue RuntimeError => e
+      assert_match(/port doesn t support this speed/, e.message)
+    end
+  end
+
+  def test_interface_speed_invalid
+    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    assert_raises(RuntimeError) { interface.speed = 'hello' }
+  end
+
+  def test_interface_speed_valid
+    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    assert_equal('1000', interface.speed)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_change
+    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    interface.duplex = 'full'
+    assert_equal('full', interface.duplex)
+    interface.duplex = 'auto'
+    assert_equal('auto', interface.duplex)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_invalid
+    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    assert_raises(RuntimeError) { interface.duplex = 'hello' }
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_duplex_valid
+    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
+    interface = Interface.new(interfaces[0])
+    interface.speed = 1000
+    interface.duplex = 'full'
+    assert_equal('full', interface.duplex)
+    interface_ethernet_default(interfaces_id[0])
+  end
+
   def test_interface_shutdown_valid
     interface = Interface.new(interfaces[0])
     interface.shutdown = true
@@ -589,6 +628,9 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
+    interface.negotiate_auto = default
+    # Delay as this change is sometimes too quick for some interfaces
+    sleep 1 unless default == interface.negotiate_auto
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
@@ -615,14 +657,14 @@ class TestInterface < CiscoTestCase
     begin
       interface.negotiate_auto = non_default
     rescue RuntimeError
-      assert_equal(interface.negotiate_auto, default,
+      assert_equal(default, interface.negotiate_auto,
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
-    pattern = cmd_ref.test_config_get_regex[non_default ? 0 : 1]
+    pattern = cmd_ref.test_config_get_regex[non_default ? 1 : 0]
     assert_show_match(pattern: pattern)
 
     # Clean up after ourselves
@@ -670,6 +712,15 @@ class TestInterface < CiscoTestCase
 
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
+
+    # Some platforms/interfaces/versions do not support negotiation changes
+    begin
+      interface.negotiate_auto = false
+    rescue => e
+      skip('Skip test: Interface type does not allow config change') if
+        e.message[/requested config change not allowed/]
+    end
+
     default = ref.default_value
     @default_show_command = show_cmd(inf_name)
 
@@ -1001,24 +1052,30 @@ class TestInterface < CiscoTestCase
     # pre-configure
     inttype_h = config_from_hash(inttype_h)
 
-    # Validate the collection
-    validate_interfaces_not_empty
-    validate_get_switchport(inttype_h)
-    validate_description(inttype_h)
-    validate_get_access_vlan(inttype_h)
-    validate_ipv4_address(inttype_h)
-    validate_ipv4_proxy_arp(inttype_h)
-    validate_ipv4_redirects(inttype_h)
-    validate_interface_shutdown(inttype_h)
-    validate_vrf(inttype_h)
-
-    # Cleanup the preload configuration
+    # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
       cfg << "#{/^Ethernet/.match(k) ? 'default' : 'no'} interface #{k}"
     end
     cfg << 'no feature interface-vlan'
-    config(*cfg)
+
+    begin
+      # Validate the collection
+      validate_interfaces_not_empty
+      validate_get_switchport(inttype_h)
+      validate_description(inttype_h)
+      validate_get_access_vlan(inttype_h)
+      validate_ipv4_address(inttype_h)
+      validate_ipv4_proxy_arp(inttype_h)
+      validate_ipv4_redirects(inttype_h)
+      validate_interface_shutdown(inttype_h)
+      validate_vrf(inttype_h)
+      config(*cfg)
+    rescue Minitest::Assertion
+      # clean up before failing
+      config(*cfg)
+      raise
+    end
   end
 
   def test_interface_vrf_default

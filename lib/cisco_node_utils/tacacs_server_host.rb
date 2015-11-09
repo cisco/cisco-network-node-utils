@@ -53,9 +53,7 @@ module Cisco
     end
 
     def port
-      p = config_get('tacacs_server_host', 'port', @name)
-      fail "unable to retrieve port information for #{@name}" if p.nil?
-      p.first.to_i
+      config_get('tacacs_server_host', 'port', @name)
     end
 
     def port=(n)
@@ -68,7 +66,7 @@ module Cisco
 
     def encryption_type
       type = config_get('tacacs_server_host', 'encryption_type', @name)
-      type.nil? ? TACACS_SERVER_ENC_UNKNOWN : type.first.to_i
+      type.nil? ? TACACS_SERVER_ENC_UNKNOWN : type.to_i
     end
 
     def self.default_encryption_type
@@ -76,8 +74,7 @@ module Cisco
     end
 
     def encryption_password
-      pass = config_get('tacacs_server_host', 'encryption_password', @name)
-      pass.nil? ? TacacsServerHost.default_encryption_password : pass.first
+      config_get('tacacs_server_host', 'encryption_password', @name)
     end
 
     def self.default_encryption_password
@@ -107,8 +104,7 @@ module Cisco
     end
 
     def timeout
-      t = config_get('tacacs_server_host', 'timeout', @name)
-      t.nil? ? TacacsServerHost.default_timeout : t.first.to_i
+      config_get('tacacs_server_host', 'timeout', @name)
     end
 
     def timeout=(t)

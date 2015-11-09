@@ -1,6 +1,7 @@
 # vlan
 ---
 all_vlans:
+  multiple: true
   config_get: "show vlan brief"
   config_get_token: '/^(\d+)\s/'
 

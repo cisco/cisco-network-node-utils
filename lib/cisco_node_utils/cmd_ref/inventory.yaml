@@ -11,6 +11,7 @@ _template:
     test_config_get: 'show inventory | no-more'
 
 all:
+  multiple: true
   cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv"]
 

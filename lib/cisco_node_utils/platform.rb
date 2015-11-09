@@ -58,9 +58,9 @@ module Cisco
         total.nil? || used.nil? || free.nil?
 
       {
-        'total' => total.first,
-        'used'  => used.first,
-        'free'  => free.first,
+        'total' => total,
+        'used'  => used,
+        'free'  => free,
       }
     end
 
@@ -73,13 +73,12 @@ module Cisco
     def self.uptime
       u = config_get('show_version', 'uptime')
       fail 'failed to retrieve platform uptime' if u.nil?
-      u.first
+      u
     end
 
     # Ex: '23113 usecs after  Mon Jul  1 15:24:29 2013'
     def self.last_reset
-      r = config_get('show_version', 'last_reset_time')
-      r.nil? ? nil : r.strip
+      config_get('show_version', 'last_reset_time')
     end
 
     # Ex: 'Reset Requested by CLI command reload'

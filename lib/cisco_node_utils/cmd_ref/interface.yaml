@@ -11,6 +11,7 @@ _template:
 access_vlan:
   config_get_token_append: '/^switchport access vlan (.*)$/'
   config_set_append: "switchport access vlan %s"
+  kind: int
   default_value: 1
 
 admin_state_ethernet_noswitchport_shutdown:
@@ -20,12 +21,14 @@ admin_state_ethernet_noswitchport_shutdown:
       default_value: "shutdown"
 
 all_interfaces:
+  multiple: true
   config_get_token: '/^interface (.*)/'
 
 create:
   config_set: "interface %s"
 
 description:
+  kind: string
   config_get_token_append: '/^description (.*)/'
   config_set_append: "%s description %s"
   default_value: ""
@@ -33,12 +36,21 @@ description:
 destroy:
   config_set: "no interface %s"
 
+duplex:
+  kind: string
+  config_get: "show running interface all"
+  config_get_token: ['/^interface %s$/i', '/^duplex (.*)$/']
+  config_set: ["interface %s", "duplex %s"]
+  default_value: "auto"
+
 encapsulation_dot1q:
+  kind: int
   config_get_token_append: '/^encapsulation dot1q (.*)/'
   config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 
 feature_lacp:
+  kind: boolean
   config_get: "show running | i ^feature"
   config_get_token: '/^feature lacp$/'
   config_set: "%s feature lacp"
@@ -48,11 +60,14 @@ feature_vlan:
     config_get: ~
     config_set: ~
   cli_nexus:
+    kind: boolean
     config_get: "show running | i ^feature"
     config_get_token: '/^feature interface-vlan$/'
     config_set: "%s feature interface-vlan"
 
 ipv4_addr_mask:
+  # This handles both primary and secondary addresses
+  multiple: true
   cli_nexus:
     config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
     config_set_append: "%s ip address %s"
@@ -67,6 +82,7 @@ ipv4_netmask_length:
   default_value: ~
 
 ipv4_proxy_arp:
+  kind: boolean
   default_value: false
   cli_nexus:
     config_get_token_append: '/^ip proxy-arp$/'
@@ -76,23 +92,15 @@ ipv4_proxy_arp:
     config_set_append: "%s proxy-arp"
 
 ipv4_redirects_loopback:
+  kind: boolean
   test_config_result:
     false: RuntimeError
     true: RuntimeError
   cli_nexus:
-    /N7K/:
-      default_value: false
-      config_set: ~
-      config_get: ~
-      config_get_token: ~
-    else:
-      config_get_token_append: '/^((?:no )?ip redirects)$/'
-      config_set_append: "%s ip redirects"
-      default_value: true
-      test_config_get_regex: [
-      '/^\s+ip redirects/',
-      '/^\s+no ip redirects/'
-      ]
+    default_value: false
+    config_set: ~
+    config_get: ~
+    config_get_token: ~
   cli_ios_xr:
     config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
     config_set_append: "%s ipv4 redirects"
@@ -103,6 +111,7 @@ ipv4_redirects_loopback:
     ]
 
 ipv4_redirects_other_interfaces:
+  kind: boolean
   test_config_result:
     false: false
     true: true
@@ -124,11 +133,13 @@ ipv4_redirects_other_interfaces:
     ]
 
 mtu:
+  kind: int
   config_get_token_append: '/^mtu (.*)$/'
   config_set_append: "%s mtu %s"
   default_value: 1500
 
 negotiate_auto_ethernet:
+  kind: boolean
   cli_nexus:
     test_config_get_regex: [
     '/^\s+no negotiate auto/',
@@ -156,6 +167,7 @@ negotiate_auto_ethernet:
       default_value: true
 
 negotiate_auto_other_interfaces:
+  kind: boolean
   config_get: ~
   config_set: ~
   default_value: false
@@ -164,6 +176,7 @@ negotiate_auto_other_interfaces:
     true: RuntimeError
 
 negotiate_auto_portchannel:
+  kind: boolean
   cli_nexus:
     test_config_get_regex: [
     '/^\s+no negotiate auto/',
@@ -184,6 +197,7 @@ negotiate_auto_portchannel:
     default_value: true
 
 shutdown:
+  kind: boolean
   config_get_token_append: '/^shutdown$/'
   config_set_append: "%s shutdown"
 
@@ -212,8 +226,15 @@ shutdown_vlan:
   cli_nexus:
     default_value: true
 
+speed:
+  config_get: "show running interface all"
+  config_get_token: ['/^interface %s$/i', '/^speed (.*)$/']
+  config_set: ["interface %s", "speed %s"]
+  default_value: "auto"
+
 svi_autostate:
-  config_get_token_append: '/^autostate$/'
+  kind: boolean
+  config_get_token_append: '/^(?:no )?autostate$/'
   config_set_append: "%s autostate"
   default_value: true
   test_config_result:
@@ -221,16 +242,19 @@ svi_autostate:
     true: true
 
 svi_management:
+  kind: boolean
   config_get_token_append: '/^management$/'
   config_set_append: "%s management"
   default_value: false
 
 switchport:
+  kind: boolean
   config_get_token_append: '/^switchport$/'
   config_set_append: "%s switchport"
   # default_value: n/a. This is derived from system_default_switchport
 
 switchport_autostate_exclude:
+  kind: boolean
   config_get_token_append: '/(^switchport autostate exclude)/'
   config_set_append: "%s switchport autostate exclude"
   default_value: false
@@ -240,7 +264,8 @@ switchport_mode_dot1q_tunnel:
     false: RuntimeError
 
 switchport_mode_ethernet:
-  config_get_token_append: '/^switchport mode (.*)$/'
+  auto_default: false
+  config_get_token_append: '/^(?:no )?switchport mode ?(.*)$/'
   config_set_append: "%s switchport mode %s"
   default_value: "access"
 
@@ -259,21 +284,25 @@ switchport_trunk_allowed_vlan:
   default_value: "all"
 
 switchport_trunk_native_vlan:
+  kind: int
   config_get_token_append: '/^switchport trunk native vlan (.*)$/'
   config_set_append: "%s switchport trunk native vlan %s"
   default_value: 1
 
 system_default_svi_autostate:
+  kind: boolean
   config_get: "show running all | include 'system default'"
   config_get_token: ['/^system default interface-vlan autostate$/']
   # default_value: n/a. This is a user-configurable system default.
 
 system_default_switchport:
+  kind: boolean
   config_get: "show running all | include 'system default'"
-  config_get_token: ['/^system default switchport$/']
-  # default_value: n/a. This is a user-configurable system default.
+  config_get_token: ['/^no system default switchport$/']
+  default_value: true
 
 system_default_switchport_shutdown:
+  kind: boolean
   config_get: "show running all | include 'system default'"
   config_get_token: ['/^system default switchport shutdown$/']
   # default_value: n/a. This is a user-configurable system default.
@@ -288,6 +317,7 @@ vrf:
     config_set_append: "%s vrf %s"
 
 vtp:
+  kind: boolean
   config_get_token_append: '/^vtp *$/'
   config_set_append: "%s vtp"
   default_value: false

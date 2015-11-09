@@ -2,6 +2,7 @@
 ---
 aaa_user_cache_timeout:
   cli_nexus:
+    kind: int
     config_get: "show snmp internal globals"
     config_get_token: '/AAA Cache Timeout :(\d+)/'
     config_set: "%s snmp-server aaa-user cache-timeout %d"
@@ -14,10 +15,11 @@ contact:
   default_value: ""
 
 global_enforce_priv:
-  config_get: "show run snmp"
-  config_get_token: '/snmp-server globalEnforcePriv/'
+  kind: boolean
+  config_get: "show run snmp all"
+  config_get_token: '/(no )?snmp-server globalEnforcePriv/'
   config_set: "%s snmp-server globalEnforcePriv"
-  default_value: true
+  default_value: false
 
 location:
   config_get: "show snmp"
@@ -26,6 +28,7 @@ location:
   default_value: ""
 
 packet_size:
+  kind: int
   config_get: "show snmp internal globals"
   config_get_token: '/SNMP Max packet size :(\d+)/'
   config_set: "%s snmp-server packetsize %d"

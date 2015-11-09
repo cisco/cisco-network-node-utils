@@ -1,5 +1,8 @@
 # snmp_user
 ---
+_template:
+  multiple: true
+
 auth_password:
   config_get: "show run snmp all"
   config_get_token: '/snmp-server user (\S+) \S+ auth \S+ (\S+)/'
