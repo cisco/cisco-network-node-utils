@@ -12,8 +12,8 @@ end
 Gem::Specification.new do |spec|
   spec.name          = 'cisco_node_utils'
   spec.version       = CiscoNodeUtils::VERSION if valid_rubygems_version
-  spec.authors       = ['@hunsbea', '@glennmatthews', '@chrisvanheuveln',
-                        '@mikewiebe', '@jyang09']
+  spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
+                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'
   spec.summary       = 'Utilities for management of Cisco network nodes'
   spec.description   = <<-EOF
