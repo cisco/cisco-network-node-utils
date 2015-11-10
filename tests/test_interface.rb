@@ -173,6 +173,9 @@ class TestInterface < CiscoTestCase
                    "Error: #{interface.name}, switchport mode, default, " \
                    'not correct')
     end
+  rescue => e
+    skip('NX-OS defect: system default switchport nvgens twice') if
+      e.message[/Expected zero.one value/]
   end
 
   def validate_description(inttype_h)
