@@ -164,7 +164,7 @@ class TestTacacsServerGroup < CiscoTestCase
     aaa_group = TacacsServerGroup.new('Group1')
 
     # pre check that default servers are empty
-    default_server = TacacsServerGroup.default_servers
+    default_server = aaa_group.default_servers
     assert_empty(default_server, 'Error: Default Servers are not empty')
 
     aaa_group.servers = [server_name1, server_name2]
@@ -316,7 +316,7 @@ class TestTacacsServerGroup < CiscoTestCase
   def test_get_default_vrf_tacacs
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(DEFAULT_AAA_SERVER_GROUP_VRF,
-                 TacacsServerGroup.default_vrf,
+                 aaa_group.default_vrf,
                  'Error: TacacsServerGroup, default vrf incorrect')
     detach_aaaservergroup(aaa_group)
   end
@@ -360,7 +360,7 @@ class TestTacacsServerGroup < CiscoTestCase
   def test_get_default_deadtime_tacacs
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(DEFAULT_AAA_SERVER_GROUP_DEADTIME,
-                 TacacsServerGroup.default_deadtime,
+                 aaa_group.default_deadtime,
                  'Error: TacacsServerGroup, default deadtime incorrect')
     detach_aaaservergroup(aaa_group)
   end
@@ -403,7 +403,7 @@ class TestTacacsServerGroup < CiscoTestCase
   def test_get_default_source_interface_tacacs
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(DEFAULT_AAA_SERVER_GROUP_SOURCE_INTERFACE,
-                 TacacsServerGroup.default_source_interface,
+                 aaa_group.default_source_interface,
                  'Error: Aaa_Group Server, default source-interface incorrect')
     detach_aaaservergroup(aaa_group)
   end

@@ -65,7 +65,7 @@ module Cisco
       end
     end
 
-    def self.default_servers
+    def default_servers
       config_get_default('aaa_server_group', 'servers')
     end
 
@@ -91,7 +91,7 @@ module Cisco
     def vrf
       # vrf is always present in running config
       v = config_get('aaa_server_group', 'tacacs_vrf', @name)
-      v.nil? ? TacacsServerGroup.default_vrf : v.first
+      v.nil? ? default_vrf : v.first
     end
 
     def vrf=(v)
@@ -100,38 +100,38 @@ module Cisco
       config_set('aaa_server_group', 'tacacs_vrf', @name, '', v)
     end
 
-    def self.default_vrf
+    def default_vrf
       config_get_default('aaa_server_group', 'vrf')
     end
 
     def deadtime
       d = config_get('aaa_server_group', 'tacacs_deadtime', @name)
-      d.nil? ? TacacsServerGroup.default_deadtime : d.first.to_i
+      d.nil? ? default_deadtime : d.first.to_i
     end
 
     def deadtime=(t)
-      no_cmd = t == TacacsServerGroup.default_deadtime ? 'no' : ''
+      no_cmd = t == default_deadtime ? 'no' : ''
       config_set('aaa_server_group', 'tacacs_deadtime', @name, no_cmd, t)
     end
 
-    def self.default_deadtime
+    def default_deadtime
       config_get_default('aaa_server_group', 'deadtime')
     end
 
     def source_interface
       i = config_get('aaa_server_group',
                      'tacacs_source_interface', @name)
-      i.nil? ? TacacsServerGroup.default_source_interface : i.first
+      i.nil? ? default_source_interface : i.first
     end
 
     def source_interface=(s)
       fail TypeError unless s.is_a? String
-      no_cmd = s == TacacsServerGroup.default_source_interface ? 'no' : ''
+      no_cmd = s == default_source_interface ? 'no' : ''
       config_set('aaa_server_group', 'tacacs_source_interface',
                  @name, no_cmd, s)
     end
 
-    def self.default_source_interface
+    def default_source_interface
       config_get_default('aaa_server_group', 'source_interface')
     end
   end
