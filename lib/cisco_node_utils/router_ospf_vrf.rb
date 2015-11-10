@@ -56,8 +56,9 @@ module Cisco
       RouterOspf.routers.each do |instance|
         name = instance[0]
         vrf_ids = config_get('ospf', 'vrf', name: name)
-        hash_tmp = { name =>
-          { 'default' => RouterOspfVrf.new(name, 'default', false) } }
+        hash_tmp = {
+          name => { 'default' => RouterOspfVrf.new(name, 'default', false) }
+        }
         unless vrf_ids.nil?
           vrf_ids.each do |vrf|
             hash_tmp[name][vrf] = RouterOspfVrf.new(name, vrf, false)

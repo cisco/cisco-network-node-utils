@@ -226,8 +226,8 @@ vrf blue",
     assert_equal('switch', name)
 
     return unless configured_name
-    config("hostname #{configured_name}") if (switchname == false)
-    config("switchname #{configured_name}") if (switchname == true)
+    config("hostname #{configured_name}") if switchname == false
+    config("switchname #{configured_name}") if switchname == true
   end
 
   def test_node_get_host_name_when_set
@@ -256,8 +256,8 @@ vrf blue",
     assert_equal('xyz', host_name)
 
     if configured_name
-      config("hostname #{configured_name}") if (switchname == false)
-      config("switchname #{configured_name}") if (switchname == true)
+      config("hostname #{configured_name}") if switchname == false
+      config("switchname #{configured_name}") if switchname == true
     else
       switchname ? config('no switchname') : config('no hostname')
     end

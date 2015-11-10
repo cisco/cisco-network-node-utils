@@ -131,7 +131,7 @@ class TestRouterOspfVrf < CiscoTestCase
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
         id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
-      },
+      }
     },
     'bxb300' => {
       'default' => {
@@ -139,7 +139,7 @@ class TestRouterOspfVrf < CiscoTestCase
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 10_000,
         id: '10.0.0.3', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
-      },
+      }
     },
   )
   # rubocop:enable Style/AlignHash
@@ -557,7 +557,7 @@ class TestRouterOspfVrf < CiscoTestCase
         cot: RouterOspfVrf::OSPF_AUTO_COST[:mbps], dm: 15_000,
         id: '9.0.0.2', l1: 130, l2: 530, l3: 1030, s1: 300,
         s2: 600, s3: 1100
-      },
+      }
     },
     'bxb300' => {
       'default' => {

@@ -124,7 +124,7 @@ negotiate_auto_ethernet:
       config_get_token: ~
       default_value: false
     else:
-      config_get_token_append: '/^negotiate auto$/'
+      config_get_token_append: '/^(no )?negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
 
@@ -150,7 +150,7 @@ negotiate_auto_portchannel:
       config_set: ~
       default_value: false
     else:
-      config_get_token_append: '/^negotiate auto$/'
+      config_get_token_append: '/^(no )?negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
 
