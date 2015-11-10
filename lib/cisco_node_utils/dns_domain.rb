@@ -43,8 +43,6 @@ module Cisco
       else
         domains = config_get('dnsclient', 'domain_list_vrf', vrf: vrf)
       end
-      return {} if domains.nil?
-
       hash = {}
       domains.each do |name|
         hash[name] = DnsDomain.new(name, vrf, false)

@@ -20,9 +20,7 @@ module Cisco
   # SnmpServer - node utility class for SNMP server management
   class SnmpServer < NodeUtil
     def aaa_user_cache_timeout
-      match = config_get('snmp_server', 'aaa_user_cache_timeout')
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_aaa_user_cache_timeout : match.first.to_i
+      config_get('snmp_server', 'aaa_user_cache_timeout')
     end
 
     def aaa_user_cache_timeout=(timeout)
@@ -75,9 +73,7 @@ module Cisco
     end
 
     def packet_size
-      match = config_get('snmp_server', 'packet_size')
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_packet_size : match.first.to_i
+      config_get('snmp_server', 'packet_size')
     end
 
     def packet_size=(size)
@@ -94,7 +90,7 @@ module Cisco
     end
 
     def global_enforce_priv?
-      !config_get('snmp_server', 'global_enforce_priv').nil?
+      config_get('snmp_server', 'global_enforce_priv')
     end
 
     def global_enforce_priv=(enforce)

@@ -1,0 +1,9 @@
+# fex
+---
+feature:
+  config_get: "show feature-set"
+  config_get_token: '/^fex[\s\d]+(\w+)/'
+  config_set: "%s feature-set fex"
+
+feature_install:
+  config_set: "%s install feature-set fex"

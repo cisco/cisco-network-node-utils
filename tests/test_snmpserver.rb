@@ -28,6 +28,15 @@ class TestSnmpServer < CiscoTestCase
   def setup
     super
     @default_show_command = 'show run snmp all | no-more'
+    # set all commands to defaults
+    s = SnmpServer.new
+    s.aaa_user_cache_timeout = s.default_aaa_user_cache_timeout
+    s.contact = s.default_contact
+    s.global_enforce_priv = s.default_global_enforce_priv
+    s.location = s.default_location
+    s.packet_size = 0
+    s.protocol = s.default_protocol
+    s.tcp_session_auth = s.default_tcp_session_auth
   end
 
   def test_snmpserver_aaa_user_cache_timeout_set_invalid_upper_range
