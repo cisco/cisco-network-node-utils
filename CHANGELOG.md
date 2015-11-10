@@ -3,9 +3,15 @@ Changelog
 
 ## [Unreleased]
 
+### Added
+
+* `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+
 ### Changed
 
-* Major refactor of `CommandReference` YAML files.
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
+  - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
 
 ## [v1.1.0]
 

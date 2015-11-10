@@ -214,16 +214,30 @@ rank:
   def test_exclude_whole_file
     write_exclusions
     reference = load_file(product: 'N9K-C9396PX')
-    assert_empty(reference)
-    assert_raises(IndexError) { reference.lookup('test', 'name') }
-    assert_raises(IndexError) { reference.lookup('test', 'rank') }
+
+    ref = reference.lookup('test', 'name')
+    refute(ref.default_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+
+    ref = reference.lookup('test', 'foobar')
+    refute(ref.default_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
   end
 
   def test_exclude_whole_item
     write_exclusions
     reference = load_file(product: 'N3K-C3172PQ')
     assert_equal(27, reference.lookup('test', 'rank').default_value)
-    assert_raises(IndexError) { reference.lookup('test', 'name') }
+
+    ref = reference.lookup('test', 'name')
+    refute(ref.default_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
   end
 
   def test_exclude_no_exclusion
@@ -231,6 +245,56 @@ rank:
     reference = load_file(product: 'N7K-C7010')
     assert_equal('hello',  reference.lookup('test', 'name').default_value)
     assert_equal(27, reference.lookup('test', 'rank').default_value)
+  end
+
+  def test_default_only_invalid
+    write("
+name:
+  default_only: true
+")
+    assert_raises(RuntimeError) { load_file }
+  end
+
+  def test_default_only_valid
+    write("
+name:
+  default_value: 'x'
+  default_only: true
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+  end
+
+  def test_default_only_cleanup
+    write("
+name:
+  default_value: 'x'
+  default_only: true
+  config_set: 'foo'
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+
+    write("
+name2:
+  config_set: 'foo'
+  default_value: 'x'
+  default_only: true
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name2')
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
   end
 
   def test_config_get_token_hash_substitution

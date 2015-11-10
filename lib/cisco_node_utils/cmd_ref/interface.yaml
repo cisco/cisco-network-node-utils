@@ -82,14 +82,9 @@ ipv4_proxy_arp:
 
 ipv4_redirects_loopback:
   kind: boolean
-  test_config_result:
-    false: RuntimeError
-    true: RuntimeError
   cli_nexus:
     default_value: false
-    config_set: ~
-    config_get: ~
-    config_get_token: ~
+    default_only: true
 
 ipv4_redirects_other_interfaces:
   kind: boolean
@@ -119,10 +114,8 @@ negotiate_auto_ethernet:
     '/^\s+negotiate auto/'
     ]
     /(N7K|C3064)/:
-      config_get: ~
-      config_set: ~
-      config_get_token: ~
       default_value: false
+      default_only: true
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -130,12 +123,8 @@ negotiate_auto_ethernet:
 
 negotiate_auto_other_interfaces:
   kind: boolean
-  config_get: ~
-  config_set: ~
   default_value: false
-  test_config_result:
-    false: RuntimeError
-    true: RuntimeError
+  default_only: yes
 
 negotiate_auto_portchannel:
   kind: boolean
@@ -145,10 +134,8 @@ negotiate_auto_portchannel:
     '/^\s+negotiate auto/'
     ]
     /N7K/:
-      config_get: ~
-      config_get_token: ~
-      config_set: ~
       default_value: false
+      default_only: true
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -228,8 +215,8 @@ switchport_mode_ethernet:
   default_value: "access"
 
 switchport_mode_other_interfaces:
-  config_get: ~
   default_value: ""
+  default_only: true
 
 switchport_mode_port_channel:
   config_get_token_append: '/^switchport mode (.*)$/'
