@@ -256,8 +256,7 @@ system_default_svi_autostate:
 system_default_switchport:
   kind: boolean
   config_get: "show running all | include 'system default'"
-  config_get_token: ['/^no system default switchport$/']
-  default_value: true
+  config_get_token: ['/^system default switchport$/']
 
 system_default_switchport_shutdown:
   kind: boolean
