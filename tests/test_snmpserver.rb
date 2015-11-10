@@ -312,9 +312,9 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.global_enforce_priv = true
     device_enabled = snmpserver.global_enforce_priv?
     if device_enabled
-      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
+      assert_show_match(pattern: /snmp-server globalEnforcePriv/)
     else
-      assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
+      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
     end
     # set to default
     snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv

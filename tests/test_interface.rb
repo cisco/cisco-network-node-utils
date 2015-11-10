@@ -75,6 +75,15 @@ class TestInterface < CiscoTestCase
     arr.count
   end
 
+  # Helper to check for misc speed change disallowed error messages.
+  def speed_change_disallowed(message)
+    pattern = Regexp.new('(port doesn t support this speed|' \
+                         'Changing interface speed is not permitted)')
+    skip('Skip test: Interface type does not allow config change') if
+         message[pattern]
+    fail
+  end
+
   def create_interface(ifname=interfaces[0])
     @default_show_command = show_cmd(ifname)
     Interface.new(ifname)
@@ -165,6 +174,10 @@ class TestInterface < CiscoTestCase
                    "Error: #{interface.name}, switchport mode, default, " \
                    'not correct')
     end
+  rescue RuntimeError => e
+    skip('NX-OS defect: system default switchport nvgens twice') if
+      e.message[/Expected zero.one value/]
+    raise
   end
 
   def validate_description(inttype_h)
@@ -465,7 +478,7 @@ class TestInterface < CiscoTestCase
       assert_equal('1000', interface.speed)
       interface_ethernet_default(interfaces_id[0])
     rescue RuntimeError => e
-      assert_match(/port doesn t support this speed/, e.message)
+      speed_change_disallowed(e.message)
     end
   end
 
@@ -479,6 +492,8 @@ class TestInterface < CiscoTestCase
     interface.speed = 1000
     assert_equal('1000', interface.speed)
     interface_ethernet_default(interfaces_id[0])
+  rescue RuntimeError => e
+    speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_change
@@ -489,6 +504,8 @@ class TestInterface < CiscoTestCase
     interface.duplex = 'auto'
     assert_equal('auto', interface.duplex)
     interface_ethernet_default(interfaces_id[0])
+  rescue RuntimeError => e
+    speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_invalid
@@ -496,6 +513,8 @@ class TestInterface < CiscoTestCase
     interface.speed = 1000
     assert_raises(RuntimeError) { interface.duplex = 'hello' }
     interface_ethernet_default(interfaces_id[0])
+  rescue RuntimeError => e
+    speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_valid
@@ -504,6 +523,8 @@ class TestInterface < CiscoTestCase
     interface.duplex = 'full'
     assert_equal('full', interface.duplex)
     interface_ethernet_default(interfaces_id[0])
+  rescue RuntimeError => e
+    speed_change_disallowed(e.message)
   end
 
   def test_interface_shutdown_valid
@@ -601,6 +622,7 @@ class TestInterface < CiscoTestCase
     interface.negotiate_auto = default
     # Delay as this change is sometimes too quick for some interfaces
     sleep 1 unless default == interface.negotiate_auto
+    node.cache_flush
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
@@ -631,6 +653,11 @@ class TestInterface < CiscoTestCase
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
+
+    # Delay as this change is sometimes too quick for some interfaces
+    sleep 1 unless non_default == interface.negotiate_auto
+    node.cache_flush
+
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
@@ -673,6 +700,9 @@ class TestInterface < CiscoTestCase
                          'negotiate_auto_ethernet')
     assert(ref, 'Error, reference not found')
 
+    # Cleanup
+    interface_ethernet_default(interfaces_id[0])
+
     # Some platforms does not support negotiate auto
     # if so then we abort the test.
 
@@ -682,9 +712,8 @@ class TestInterface < CiscoTestCase
     # Some platforms/interfaces/versions do not support negotiation changes
     begin
       interface.negotiate_auto = false
-    rescue => e
-      skip('Skip test: Interface type does not allow config change') if
-        e.message[/requested config change not allowed/]
+    rescue RuntimeError => e
+      speed_change_disallowed(e.message)
     end
 
     default = ref.default_value
