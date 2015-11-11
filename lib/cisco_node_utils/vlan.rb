@@ -85,9 +85,9 @@ module Cisco
       if str.empty?
         result = config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
-        if ('fabricpath' == str)
+        if 'fabricpath' == str
           fabricpath_feature_set(:enabled) unless
-            (:enabled == fabricpath_feature)
+            :enabled == fabricpath_feature
         end
         result = config_set('vlan', 'mode', @vlan_id, '', str)
       end

@@ -46,7 +46,7 @@ module Cisco
     end
 
     def create
-      fabricpath_feature_set(:enabled) unless (:enabled == fabricpath_feature)
+      fabricpath_feature_set(:enabled) unless :enabled == fabricpath_feature
       config_set('fabricpath_topology', 'create',
                  @topo_id) unless @topo_id == '0'
     end

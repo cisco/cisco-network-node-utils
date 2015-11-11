@@ -110,7 +110,7 @@ module Cisco
     end
 
     def aggregate_multicast_routes=(val)
-      if (val == true)
+      if val == true
         config_set('fabricpath', 'aggregate_multicast_routes', '')
       else
         config_set('fabricpath', 'aggregate_multicast_routes', 'no')

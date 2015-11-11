@@ -97,8 +97,9 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_allocate_delay
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal(10, @global.allocate_delay,
-                 'Default allocate_delay not set to 10')
+    assert_equal(@global.default_allocate_delay,
+                 @global.allocate_delay,
+                 'Default allocate_delay not set correctly')
     @global.allocate_delay = 20
     assert_equal(20, @global.allocate_delay,
                  'allocate_delay not set to 20')
@@ -108,7 +109,7 @@ class TestFabricpathGlobal < CiscoTestCase
     @global = FabricpathGlobal.new('default')
     # test default value
     assert(@global.graceful_merge,
-           'Default graceful_merge not set to true')
+           'Default graceful_merge not set correctly')
     @global.graceful_merge = false
     refute(@global.graceful_merge, 'graceful merge not set to false')
   end
@@ -116,8 +117,9 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_linkup_delay_all
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal(10, @global.linkup_delay,
-                 'Default linkup_delay not set to 10')
+    assert_equal(@global.default_linkup_delay,
+                 @global.linkup_delay,
+                 'Default linkup_delay not set correctly')
     @global.linkup_delay = 25
     assert_equal(25, @global.linkup_delay,
                  'linkup_delay not set to 25')
@@ -147,7 +149,8 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_loadbalance_multicast
     @global = FabricpathGlobal.new('default')
     # test default values first
-    assert_equal(6, @global.loadbalance_multicast_rotate,
+    assert_equal(@global.default_loadbalance_multicast_rotate,
+                 @global.loadbalance_multicast_rotate,
                  "default mcast rotate should be 6
                   but is #{@global.loadbalance_multicast_rotate}")
     assert(@global.loadbalance_multicast_has_vlan,
@@ -165,11 +168,13 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_loadbalance_unicast
     @global = FabricpathGlobal.new('default')
     # test default values first
-    assert_equal('mixed', @global.loadbalance_unicast_layer,
+    assert_equal(@global.default_loadbalance_unicast_layer,
+                 @global.loadbalance_unicast_layer,
                  "default unicast layer should be mixed
                   but is #{@global.loadbalance_unicast_layer}")
-    assert_equal(6, @global.loadbalance_unicast_rotate,
-                 "default mcast rotate should be 6
+    assert_equal(@global.default_loadbalance_unicast_rotate,
+                 @global.loadbalance_unicast_rotate,
+                 "default unicast rotate should be 6
                   but is #{@global.loadbalance_unicast_rotate}")
     assert(@global.loadbalance_unicast_has_vlan,
            "default unicast include-vlan should be true
@@ -189,7 +194,7 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_mode
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal('normal', @global.mode,
+    assert_equal(@global.default_mode, @global.mode,
                  "default mode should be normal but is #{@global.mode}")
     @global.mode = 'transit'
     assert_equal('transit', @global.mode,
@@ -210,8 +215,9 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_transition_delay
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal(10, @global.transition_delay,
-                 'Default allocate_delay not set to 10')
+    assert_equal(@global.default_transition_delay,
+                 @global.transition_delay,
+                 'Default allocate_delay not set correctly')
     @global.transition_delay = 20
     assert_equal(20, @global.transition_delay,
                  'transition_delay not set to 20')
@@ -220,8 +226,9 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_ttl_multicast
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal(32, @global.ttl_multicast,
-                 'Default multicast ttl not set to 32')
+    assert_equal(@global.default_ttl_multicast,
+                 @global.ttl_multicast,
+                 'Default multicast ttl not set correctly')
     @global.ttl_multicast = 16
     assert_equal(16, @global.ttl_multicast,
                  'multicast ttl not getting set to 16')
@@ -230,8 +237,9 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_ttl_unicast
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert_equal(32, @global.ttl_unicast,
-                 'Default unicast ttl not set to 32')
+    assert_equal(@global.default_ttl_unicast,
+                 @global.ttl_unicast,
+                 'Default unicast ttl not set correctly')
     @global.ttl_unicast = 40
     assert_equal(40, @global.ttl_unicast,
                  'unicast ttl not getting set to 40')
