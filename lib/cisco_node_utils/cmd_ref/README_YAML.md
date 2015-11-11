@@ -25,6 +25,7 @@ This document describes the structure and semantics of these files.
   * [`config_set`](#config_set)
   * [`config_set_append`](#config_set_append)
   * [`default_value`](#default_value)
+  * [`default_only`](#default_only)
   * [`kind`](#kind)
   * [`multiple`](#multiple)
   * [`auto_default`](#auto_default)
@@ -236,6 +237,8 @@ attribute:
   config_get: 'show attribute'
   config_set: 'attribute'
 ```
+
+When a feature or attribute is excluded in this way, attempting to call `config_get`, `config_set`, or `config_get_default` on an excluded node will result in a `Cisco::UnsupportedError` being raised.
 
 ### Combinations of these
 
@@ -469,6 +472,23 @@ By convention, a `default_value` of `''` (empty string) represents a configurabl
 
 `config_get()` will return the defined `default_value` if the defined `config_get_token` does not match anything on the node. Normally this is desirable behavior, but you can use [`auto_default`](#auto_default) to change this behavior if needed.
 
+### `default_only`
+
+Some attributes may be hard-coded in such a way that they have a meaningful default value but no relevant `config_get_token` or `config_set` behavior. For such attributes, the key `default_only` should be used as an alternative to `default_value`. The benefit of using this key is that it causes the `config_get()` API to always return the default value and `config_set()` to raise a `Cisco::UnsupportedError`.
+
+```yaml
+negotiate_auto_ethernet:
+  kind: boolean
+  cli_nexus:
+    /(N7K|C3064)/:
+      # this feature is always off on these platforms and cannot be changed
+      default_only: false
+    else:
+      config_get_token_append: '/^(no )?negotiate auto$/'
+      config_set_append: "%s negotiate auto"
+      default_value: true
+```
+
 ### `kind`
 
 The `kind` attribute is used to specify the type of value that is returned by `config_get()`. If unspecified, no attempt will be made to guess the return type and it will typically be one of string, array, or `nil`. If `kind` is specified, type conversion will automatically be performed as follows:
@@ -501,13 +521,13 @@ feature_lacp:
 
 ### `multiple`
 
-By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specifyg `multiple: true`. When this value is `true`, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
+By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specify the key `multiple:`. When this key is present, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
 
 ```yaml
 # interface.yaml
 ---
 all_interfaces:
-  multiple: true
+  multiple:
   config_get_token: '/^interface (.*)/'
 ```
 
