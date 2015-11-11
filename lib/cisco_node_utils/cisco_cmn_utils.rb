@@ -107,9 +107,9 @@ module Cisco
       network
     end
 
-    def self.depth (a)
+    def self.depth(a)
       return 0 unless a.is_a?(Array)
-      return 1 + depth(a[0])
+      1 + depth(a[0])
     end
 
     # Helper to build a hash of add/remove commands for a nested array.
@@ -118,9 +118,7 @@ module Cisco
     #  current: an array of existing cmds on the device
     def self.delta_add_remove(should, current=[])
       # Remove nil entries from array
-      if depth(should) > 1
-        should.each(&:compact!) unless should.empty?
-      end
+      should.each(&:compact!) unless should.empty? if depth(should) > 1
       delta = { add: should - current, remove: current - should }
 
       if depth(should) == 1

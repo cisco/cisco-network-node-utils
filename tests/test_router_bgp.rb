@@ -20,7 +20,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 
-XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
+XR_SUPPORTED_BROKEN = 'Supported in IOS XR - needs further work'
 
 def create_bgp_vrf(asnum, vrf)
   if platform == :nexus
@@ -542,7 +542,7 @@ class TestRouterBgp < CiscoTestCase
       assert_empty(bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be empty")
       bgp.confederation_peers = (15)
-      assert_equal("15", bgp.confederation_peers,
+      assert_equal('15', bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be '15'")
       bgp.confederation_peers = (16)
       assert_equal('16', bgp.confederation_peers,

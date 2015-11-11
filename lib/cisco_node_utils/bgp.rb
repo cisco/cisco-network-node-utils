@@ -62,7 +62,7 @@ module Cisco
       hash_final = {}
       asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
       hash_tmp = { asnum =>
-        { 'default' => RouterBgp.new(asnum, 'default', false) } }
+                   { 'default' => RouterBgp.new(asnum, 'default', false) } }
       vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
       unless vrf_ids.nil?
         vrf_ids.each do |vrf|
@@ -358,7 +358,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("confederation_peers delta " \
+        CiscoLogger.debug('confederation_peers delta ' \
                           "#{@get_args}\n #{action}: " \
                           "#{delta_hash[action]}")
         delta_hash[action].each do |peer|
