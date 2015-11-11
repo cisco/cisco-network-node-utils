@@ -236,5 +236,4 @@ class TestFabricpathGlobal < CiscoTestCase
     assert_equal(40, @global.ttl_unicast,
                  'unicast ttl not getting set to 40')
   end
-
 end

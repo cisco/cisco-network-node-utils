@@ -434,7 +434,7 @@ module Cisco
       return default_ttl_unicast if ttl.nil?
       ttl.first.to_i
     end
-   
+
     def ttl_unicast=(val)
       if val == ''
         config_set('fabricpath', 'ttl_unicast', 'no', '')
@@ -464,10 +464,9 @@ module Cisco
     rescue Cisco::CliError => e
       raise "[Setting ttl_multicast #{val}] '#{e.command}' : #{e.clierror}"
     end
-    
+
     def default_ttl_multicast
       config_get_default('fabricpath', 'ttl_multicast')
     end
-
   end # class
 end # module

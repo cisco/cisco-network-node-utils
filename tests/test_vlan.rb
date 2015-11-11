@@ -164,10 +164,9 @@ class TestVlan < CiscoTestCase
     assert_equal('ce', v.mode,
                  'Mode should have been default to ce')
 
-    e = assert_raises(CliError) { v.mode = 'junk'}
+    e = assert_raises(CliError) { v.mode = 'junk' }
     assert_match(/Invalid parameter detected/, e.message)
   end
-
 
   def test_vlan_state_extended
     v = Vlan.new(2000)
