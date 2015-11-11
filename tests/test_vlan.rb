@@ -148,6 +148,27 @@ class TestVlan < CiscoTestCase
     v2.destroy
   end
 
+  def test_vlan_mode
+    v = Vlan.new(2000)
+    assert_equal('ce', v.mode,
+                 'Mode should have been default to ce')
+    v.mode = 'fabricpath'
+    assert_equal(:enabled, v.fabricpath_feature,
+                 'Fabricpath feature should have been enabled')
+    assert_equal('fabricpath', v.mode,
+                 'Mode should have been set to fabricpath')
+  end
+
+  def test_vlan_mode_invalid
+    v = Vlan.new(100)
+    assert_equal('ce', v.mode,
+                 'Mode should have been default to ce')
+
+    e = assert_raises(CliError) { v.mode = 'junk'}
+    assert_match(/Invalid parameter detected/, e.message)
+  end
+
+
   def test_vlan_state_extended
     v = Vlan.new(2000)
     v.state = 'suspend'

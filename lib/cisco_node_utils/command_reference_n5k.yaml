@@ -111,7 +111,19 @@ fabricpath:
     config_set: "%s fabricpath timers transition-delay %s"
     default_value: 10
 
-fp_topology:
+  ttl_unicast:
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported %s'
+    default_value: 'unsupported'
+
+  ttl_multicast:
+    config_get: 'unsupported'
+    config_get_token: 'unsupported'
+    config_set: '%s unsupported %s'
+    default_value: 'unsupported'
+
+fabricpath_topology:
   all_topos:
     config_get: "show fabricpath topology"
     config_get_token: '/^\S+[\s]+(\d+)[\s]+/'

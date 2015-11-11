@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
+require_relative 'fabricpath_global'
 
 module Cisco
   # node_utils class for fabricpath_topology
@@ -35,7 +36,7 @@ module Cisco
       hash = {}
       fabricpath = config_get('fabricpath', 'feature')
       return hash if (:enabled != fabricpath.first.to_sym)
-      topo_list = config_get('fp_topology', 'all_topos')
+      topo_list = config_get('fabricpath_topology', 'all_topos')
       return hash if topo_list.nil?
 
       topo_list.each do |id|
@@ -46,11 +47,8 @@ module Cisco
 
     def create
       fabricpath_feature_set(:enabled) unless (:enabled == fabricpath_feature)
-      config_set('fp_topology', 'create', @topo_id) unless @topo_id == '0'
-    end
-
-    def destroy
-      config_set('fp_topology', 'destroy', @topo_id)
+      config_set('fabricpath_topology', 'create',
+                 @topo_id) unless @topo_id == '0'
     end
 
     def cli_error_check(result)
@@ -61,8 +59,20 @@ module Cisco
       fail result[2]['body'] unless result[2]['body'].empty?
     end
 
+    def destroy
+      config_set('fabricpath_topology', 'destroy', @topo_id)
+    end
+
+    def fabricpath_feature
+      FabricpathGlobal.fabricpath_feature
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
+    end
+
     def state
-      result = config_get('fp_topology', 'state', @topo_id)
+      result = config_get('fabricpath_topology', 'state', @topo_id)
       return default_state if result.nil?
       case result.first
       when /Up/
@@ -73,11 +83,11 @@ module Cisco
     end
 
     def default_state
-      config_get_default('fp_topology', 'state')
+      config_get_default('fabricpath_topology', 'state')
     end
 
     def member_vlans
-      array = config_get('fp_topology', 'member_vlans', @topo_id)
+      array = config_get('fabricpath_topology', 'member_vlans', @topo_id)
       str = array.first
       return [] if str == '--'
       str.gsub!('-', '..')
@@ -92,10 +102,12 @@ module Cisco
       debug "str is #{str} whose class is #{str.class}"
       str = str.join(',') unless str.empty?
       if str.empty?
-        result = config_set('fp_topology', 'member_vlans', @topo_id, 'no', '')
+        result = config_set('fabricpath_topology', 'member_vlans', @topo_id,
+                            'no', '')
       else
         str.gsub!('..', '-')
-        result = config_set('fp_topology', 'member_vlans', @topo_id, '', str)
+        result = config_set('fabricpath_topology', 'member_vlans', @topo_id,
+                            '', str)
       end
       cli_error_check(result)
     rescue CliError => e
@@ -103,7 +115,7 @@ module Cisco
     end
 
     def topo_name
-      desc = config_get('fp_topology', 'description', @topo_id)
+      desc = config_get('fabricpath_topology', 'description', @topo_id)
       return '' if desc.nil?
       desc.shift.strip
     end
@@ -111,16 +123,16 @@ module Cisco
     def topo_name=(desc)
       fail TypeError unless desc.is_a?(String)
       if desc.empty?
-        config_set('fp_topology', 'description', @topo_id, 'no', '')
+        config_set('fabricpath_topology', 'description', @topo_id, 'no', '')
       else
-        config_set('fp_topology', 'description', @topo_id, '', desc)
+        config_set('fabricpath_topology', 'description', @topo_id, '', desc)
       end
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_topo_name
-      config_get_default('fp_topology', 'description')
+      config_get_default('fabricpath_topology', 'description')
     end
   end # class
 end # module

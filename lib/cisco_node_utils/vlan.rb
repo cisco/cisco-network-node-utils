@@ -16,6 +16,7 @@
 
 require_relative 'node_util'
 require_relative 'interface'
+require_relative 'fabricpath_global'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
@@ -61,31 +62,11 @@ module Cisco
     end
 
     def fabricpath_feature
-      fabricpath = config_get('fabricpath', 'feature')
-      fail 'fabricpath_feature not found' if fabricpath.nil?
-      return :disabled if fabricpath.nil?
-      fabricpath.shift.to_sym
+      FabricpathGlobal.fabricpath_feature
     end
 
     def fabricpath_feature_set(fabricpath_set)
-      curr = fabricpath_feature
-      return if curr == fabricpath_set
-
-      case fabricpath_set
-      when :enabled
-        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
-        config_set('fabricpath', 'feature', '')
-      when :disabled
-        config_set('fabricpath', 'feature', 'no') if curr == :enabled
-        return
-      when :installed
-        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
-      when :uninstalled
-        config_set('fabricpath', 'feature', 'no') if curr == :enabled
-        config_set('fabricpath', 'feature_install', 'no')
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
     end
 
     def mode

@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.join(File.dirname(__FILE__), 'node_util')
+require_relative 'node_util'
 
 module Cisco
   # node_utils class for fabricpath_global
@@ -40,15 +40,15 @@ module Cisco
       hash
     end
 
-    def fabricpath_feature
+    def self.fabricpath_feature
       fabricpath = config_get('fabricpath', 'feature')
       fail 'fabricpath_feature not found' if fabricpath.nil?
       return :disabled if fabricpath.nil?
       fabricpath.shift.to_sym
     end
 
-    def fabricpath_feature_set(fabricpath_set)
-      curr = fabricpath_feature
+    def self.fabricpath_feature_set(fabricpath_set)
+      curr = FabricpathGlobal.fabricpath_feature
       return if curr == fabricpath_set
 
       case fabricpath_set
@@ -69,12 +69,13 @@ module Cisco
     end
 
     def create
-      fabricpath_feature_set(:enabled) unless :enabled == fabricpath_feature
+      FabricpathGlobal.fabricpath_feature_set(:enabled) unless
+      :enabled == FabricpathGlobal.fabricpath_feature
     end
 
     def destroy
       @name = nil
-      fabricpath_feature_set(:disabled)
+      FabricpathGlobal.fabricpath_feature_set(:disabled)
     end
 
     def my_munge(property, set_val)
@@ -421,11 +422,52 @@ module Cisco
         config_set('fabricpath', 'transition_delay', '', val)
       end
     rescue Cisco::CliError => e
-      raise "[Setting linkup-delay #{val}] '#{e.command}' : #{e.clierror}"
+      raise "[Setting transition_delay #{val}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_transition_delay
       config_get_default('fabricpath', 'transition_delay')
     end
+
+    def ttl_unicast
+      ttl = config_get('fabricpath', 'ttl_unicast')
+      return default_ttl_unicast if ttl.nil?
+      ttl.first.to_i
+    end
+   
+    def ttl_unicast=(val)
+      if val == ''
+        config_set('fabricpath', 'ttl_unicast', 'no', '')
+      else
+        config_set('fabricpath', 'ttl_unicast', '', val)
+      end
+    rescue Cisco::CliError => e
+      raise "[Setting ttl_unicast #{val}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_ttl_unicast
+      config_get_default('fabricpath', 'ttl_unicast')
+    end
+
+    def ttl_multicast
+      ttl = config_get('fabricpath', 'ttl_multicast')
+      return default_ttl_multicast if ttl.nil?
+      ttl.first.to_i
+    end
+
+    def ttl_multicast=(val)
+      if val == ''
+        config_set('fabricpath', 'ttl_multicast', 'no', '')
+      else
+        config_set('fabricpath', 'ttl_multicast', '', val)
+      end
+    rescue Cisco::CliError => e
+      raise "[Setting ttl_multicast #{val}] '#{e.command}' : #{e.clierror}"
+    end
+    
+    def default_ttl_multicast
+      config_get_default('fabricpath', 'ttl_multicast')
+    end
+
   end # class
 end # module

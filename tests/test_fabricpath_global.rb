@@ -70,7 +70,7 @@ class TestFabricpathGlobal < CiscoTestCase
     @global = FabricpathGlobal.new('default')
     assert_equal(true, @global.name == 'default',
                  "Global name not set correctly #{@global.name}")
-    assert_equal(:enabled, @global.fabricpath_feature,
+    assert_equal(:enabled, FabricpathGlobal.fabricpath_feature,
                  'Fabricpath feature should have been enabled')
     refute(FabricpathGlobal.globals.empty?,
            'Globals should not be empty after create')
@@ -216,4 +216,25 @@ class TestFabricpathGlobal < CiscoTestCase
     assert_equal(20, @global.transition_delay,
                  'transition_delay not set to 20')
   end
+
+  def test_ttl_multicast
+    @global = FabricpathGlobal.new('default')
+    # test default value
+    assert_equal(32, @global.ttl_multicast,
+                 'Default multicast ttl not set to 32')
+    @global.ttl_multicast = 16
+    assert_equal(16, @global.ttl_multicast,
+                 'multicast ttl not getting set to 16')
+  end
+
+  def test_ttl_unicast
+    @global = FabricpathGlobal.new('default')
+    # test default value
+    assert_equal(32, @global.ttl_unicast,
+                 'Default unicast ttl not set to 32')
+    @global.ttl_unicast = 40
+    assert_equal(40, @global.ttl_unicast,
+                 'unicast ttl not getting set to 40')
+  end
+
 end

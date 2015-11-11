@@ -114,7 +114,19 @@ fabricpath:
     config_set: "%s fabricpath timers transition-delay %s"
     default_value: 10
 
-fp_topology:
+  ttl_multicast:
+    config_get: "show fabricpath ttl"
+    config_get_token: '/^Multicast TTL:\s+(\d+) hops/'
+    config_set: "%s fabricpath ttl multicast %s"
+    default_value: 32
+
+  ttl_unicast:
+    config_get: "show fabricpath ttl"
+    config_get_token: '/^Unicast TTL:\s+(\d+) hops/'
+    config_set: "%s fabricpath ttl unicast %s"
+    default_value: 32
+
+fabricpath_topology:
   all_topos:
     config_get: "show fabricpath topology"
     config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
