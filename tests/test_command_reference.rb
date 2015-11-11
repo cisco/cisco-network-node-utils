@@ -23,7 +23,7 @@ require 'tempfile'
 require_relative '../lib/cisco_node_utils/command_reference'
 
 # TestCmdRef - Minitest for CommandReference and CmdRef classes.
-class TestCmdRef < MiniTest::Test
+class TestCmdRef < Minitest::Test
   include Cisco
 
   def setup
@@ -32,6 +32,17 @@ class TestCmdRef < MiniTest::Test
 
   def teardown
     @input_file.close!
+  end
+
+  # Extend standard Minitest error handling to report UnsupportedError as skip
+  def capture_exceptions
+    super do
+      begin
+        yield
+      rescue Cisco::UnsupportedError => e
+        skip(e.to_s)
+      end
+    end
   end
 
   def load_file(**args)
