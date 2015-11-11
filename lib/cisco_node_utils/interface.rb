@@ -211,16 +211,12 @@ module Cisco
 
     def ipv4_redirects
       config_get('interface', ipv4_redirects_lookup_string, @name)
-    rescue IndexError
-      default_ipv4_redirects
     end
 
     def ipv4_redirects=(redirects)
       check_switchport_disabled
       no_cmd = (redirects ? '' : 'no')
       config_set('interface', ipv4_redirects_lookup_string, @name, no_cmd)
-    rescue IndexError
-      raise "ipv4 redirects not supported on #{@name}"
     end
 
     def default_ipv4_redirects
@@ -298,12 +294,6 @@ module Cisco
 
     def negotiate_auto
       config_get('interface', negotiate_auto_lookup_string, @name)
-    rescue IndexError
-      # We return default state even if the config_get is not supported
-      # for this platform / interface type. This is done so that we can set
-      # the manifest to 'default' so there is a 'workaround' for the
-      # unsupported attribute
-      default_negotiate_auto
     end
 
     def negotiate_auto=(negotiate_auto)
@@ -313,8 +303,6 @@ module Cisco
         config_set('interface', lookup, @name, no_cmd)
       rescue Cisco::CliError => e
         raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      rescue IndexError
-        raise "[#{@name}] negotiate_auto is not supported on this interface"
       end
     end
 

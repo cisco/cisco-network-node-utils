@@ -19,9 +19,13 @@ require 'yaml'
 module Cisco
   # Control a reference for an attribute.
   class CmdRef
-    attr_reader :feature, :name, :hash, :auto_default, :multiple, :kind
+    attr_reader :feature, :name, :hash
+    attr_reader :auto_default, :multiple, :kind, :default_only
+    alias_method :auto_default?, :auto_default
+    alias_method :default_only?, :default_only
+    alias_method :multiple?, :multiple
 
-    KEYS = %w(default_value
+    KEYS = %w(default_value default_only
               config_set config_set_append
               config_get config_get_token config_get_token_append
               auto_default multiple kind
@@ -43,6 +47,7 @@ module Cisco
       @name = name
       @hash = {}
       @auto_default = true
+      @default_only = false
       @multiple = false
       @kind = nil
 
@@ -50,11 +55,7 @@ module Cisco
         unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
-        if value.nil?
-          # Some attributes can store an explicit nil.
-          # Others treat this as unset (allowing a platform to override common).
-          @hash[key] = value if key == 'default_value'
-        elsif key == 'config_get_token' || key == 'config_set'
+        if key == 'config_get_token' || key == 'config_set'
           # For simplicity, these are ALWAYS arrays
           value = [value] unless value.is_a?(Array)
           define_getter(key, value)
@@ -62,15 +63,33 @@ module Cisco
           @hash[key] = preprocess_value(value)
         elsif key == 'auto_default'
           @auto_default = value ? true : false
+        elsif key == 'default_only'
+          @default_only = true
+          # default_value overrides default_only
+          @hash['default_value'] ||= preprocess_value(value)
         elsif key == 'multiple'
-          @multiple = value ? true : false
+          @multiple = boolean_default_true(value)
         elsif key == 'kind'
           fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
           @kind = value.to_sym
         else
+          # default_value overrides default_only
+          @default_only = false if key == 'default_value'
           @hash[key] = preprocess_value(value)
         end
       end
+
+      if @default_only # rubocop:disable Style/GuardClause
+        %w(config_get_token config_set).each do |key|
+          instance_eval "undef #{key}" if @hash.key?(key)
+        end
+        @hash.delete_if { |key, _| key != 'default_value' }
+      end
+    end
+
+    # Property with an implicit value of 'true' if no value is given
+    def boolean_default_true(value)
+      value.nil? || value
     end
 
     # Create a getter method for the given key.
@@ -162,6 +181,9 @@ module Cisco
         # ref.foo -> return @hash[foo] or fail IndexError
         method_name = method_name.to_s
         unless @hash.include?(method_name)
+          if @default_only
+            fail UnsupportedError.new(@feature, @name, method_name)
+          end
           fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
         end
         # puts("get #{method_name}: '#{@hash[method_name]}'")
@@ -188,6 +210,45 @@ module Cisco
     def valid?
       return false unless @feature && @name
       true
+    end
+  end
+
+  # Exception class raised when a particular feature/attribute
+  # is explicitly excluded on the given node.
+  class UnsupportedError < RuntimeError
+    def initialize(feature, name, oper=nil, msg=nil)
+      @feature = feature
+      @name = name
+      @oper = oper
+      message = "Feature '#{feature}'"
+      message += ", attribute '#{name}'" unless name.nil?
+      message += ", operation '#{oper}'" unless oper.nil?
+      message += ' is unsupported on this node'
+      message += ": #{msg}" unless msg.nil?
+      super(message)
+    end
+  end
+
+  # Placeholder for known but explicitly excluded entry
+  class UnsupportedCmdRef < CmdRef
+    def initialize(feature, name, file)
+      super(feature, name, {}, file)
+    end
+
+    def valid?
+      true
+    end
+
+    def method_missing(method_name, *args, &block)
+      if KEYS.include?(method_name.to_s)
+        fail UnsupportedError.new(@feature, @name)
+      elsif method_name.to_s[-1] == '?' && \
+            KEYS.include?(method_name.to_s[0..-2])
+        # ref.foo? -> return true if @hash[foo], else false
+        false
+      else
+        super(method_name, *args, &block)
+      end
     end
   end
 
@@ -236,9 +297,14 @@ module Cisco
         feature = File.basename(file).split('.')[0]
         debug "Processing file '#{file}' as feature '#{feature}'"
         feature_hash = load_yaml(file)
-        feature_hash = filter_hash(feature_hash)
         if feature_hash.empty?
           debug "Feature #{feature} is empty"
+          next
+        end
+        feature_hash = filter_hash(feature_hash)
+        if feature_hash.empty?
+          debug "Feature #{feature} is excluded"
+          @hash[feature] = UnsupportedCmdRef.new(feature, nil, file)
           next
         end
 
@@ -249,10 +315,13 @@ module Cisco
 
         feature_hash.each do |name, value|
           fail "No entries under '#{name}' in '#{file}'" if value.nil?
-          next if value.empty? # filtered out by exclusions, etc
           @hash[feature] ||= {}
-          values = CommandReference.hash_merge(value, base_hash.clone)
-          @hash[feature][name] = CmdRef.new(feature, name, values, file)
+          if value.empty?
+            @hash[feature][name] = UnsupportedCmdRef.new(feature, name, file)
+          else
+            values = CommandReference.hash_merge(value, base_hash.clone)
+            @hash[feature][name] = CmdRef.new(feature, name, values, file)
+          end
         end
       end
 
@@ -261,12 +330,8 @@ module Cisco
 
     # Get the command reference
     def lookup(feature, name)
-      begin
-        value = @hash[feature][name]
-      rescue NoMethodError
-        # happens if @hash[feature] doesn't exist
-        value = nil
-      end
+      value = @hash[feature]
+      value = value[name] if value.is_a? Hash
       fail IndexError, "No CmdRef defined for #{feature}, #{name}" if value.nil?
       value
     end
@@ -524,10 +589,15 @@ module Cisco
     def valid?
       complete_status = true
       @hash.each_value do |names|
-        names.each_value do |ref|
-          status = ref.valid?
-          debug('Reference does not contain all supported values:' \
-                "\n#{ref}") unless status
+        if names.is_a? Hash
+          names.each_value do |ref|
+            status = ref.valid?
+            debug("Reference is invalid: \n#{ref}") unless status
+            complete_status = (status && complete_status)
+          end
+        else
+          status = names.valid?
+          debug("Reference is invalid: \n#{names}") unless status
           complete_status = (status && complete_status)
         end
       end

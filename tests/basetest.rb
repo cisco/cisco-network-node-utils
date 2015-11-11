@@ -119,6 +119,17 @@ class TestCase < Minitest::Test
     GC.start
   end
 
+  # Extend standard Minitest error handling to report UnsupportedError as skip
+  def capture_exceptions
+    super do
+      begin
+        yield
+      rescue Cisco::UnsupportedError => e
+        skip(e.to_s)
+      end
+    end
+  end
+
   def config(*args)
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
