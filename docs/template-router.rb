@@ -43,8 +43,7 @@ module Cisco
     end
 
     def feature_enabled
-      feat = config_get('X__RESOURCE_NAME__X', 'feature')
-      return !(feat.nil? || feat.empty?)
+      config_get('X__RESOURCE_NAME__X', 'feature')
     rescue Cisco::CliError => e
       # This cmd will syntax reject if feature is not
       # enabled. Just catch the reject and return false.
@@ -94,9 +93,7 @@ module Cisco
     end
 
     def X__PROPERTY_BOOL__X
-      state = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X',
-                         name: @name)
-      state ? true : false
+      config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_BOOL__X', name: @name)
     end
 
     def X__PROPERTY_BOOL__X=(state)
@@ -111,8 +108,7 @@ module Cisco
     end
 
     def X__PROPERTY_INT__X
-      val = config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', name: @name)
-      val.nil? ? default_X__PROPERTY_INT__X : val.first.to_i
+      config_get('X__RESOURCE_NAME__X', 'X__PROPERTY_INT__X', name: @name)
     end
 
     def X__PROPERTY_INT__X=(val)

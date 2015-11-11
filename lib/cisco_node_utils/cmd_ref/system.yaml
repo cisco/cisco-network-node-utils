@@ -1,0 +1,6 @@
+# system
+---
+resources:
+  config_get: "show system resources"
+  test_config_get: "show system resources | no-more"
+  test_config_get_regex: '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'

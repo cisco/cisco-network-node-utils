@@ -43,14 +43,11 @@ module Cisco
     end
 
     def timeout
-      val = config_get('radius_global', 'timeout')
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_global', 'timeout')
     end
 
     def default_timeout
-      val = config_get_default('radius_server', 'timeout').to_i
-      val
+      config_get_default('radius_global', 'timeout')
     end
 
     def timeout=(val)
@@ -59,7 +56,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !timeout.nil?
+      if val.nil?
         config_set('radius_global',
                    'timeout',
                    state:   'no',
@@ -73,14 +70,11 @@ module Cisco
     end
 
     def retransmit_count
-      val = config_get('radius_global', 'retransmit')
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_global', 'retransmit')
     end
 
     def default_retransmit_count
-      val = config_get_default('radius_server', 'retransmit').to_i
-      val
+      config_get_default('radius_global', 'retransmit').to_i
     end
 
     def retransmit_count=(val)
@@ -89,7 +83,7 @@ module Cisco
           unless val.is_a?(Integer)
       end
 
-      if val.nil? && !retransmit_count.nil?
+      if val.nil?
         config_set('radius_global',
                    'retransmit',
                    state: 'no',
@@ -103,15 +97,11 @@ module Cisco
     end
 
     def key_format
-      val = config_get('radius_global', 'key_format')
-      val = val[0].to_i unless val.nil?
-      val
+      config_get('radius_global', 'key_format')
     end
 
     def key
-      val = config_get('radius_global', 'key')
-      val = val[0] unless val.nil?
-      val
+      config_get('radius_global', 'key')
     end
 
     def key_set(value, format)

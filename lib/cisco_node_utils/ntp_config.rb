@@ -43,7 +43,7 @@ module Cisco
 
     def source_interface
       source_interface = config_get('ntp_config', 'source_interface')
-      source_interface = source_interface[0].downcase \
+      source_interface = source_interface.downcase \
                           unless source_interface.nil?
       source_interface
     end

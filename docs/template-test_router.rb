@@ -60,9 +60,11 @@ class TestX__CLASS_NAME__X < CiscoTestCase
 
     @default_show_command = "show runn | i 'router X__RESOURCE_NAME__X'"
 
-    s = @device.cmd("show runn | i 'router X__RESOURCE_NAME__X'")
-    assert_match(s, /^router X__RESOURCE_NAME__X #{id1}$/)
-    assert_match(s, /^router X__RESOURCE_NAME__X #{id2}$/)
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id1}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id1}")
+
+    assert_show_match(pattern: /^router X__RESOURCE_NAME__X #{id2}$/,
+                      msg:     "failed to create router X__RESOURCE_NAME__X #{id2}")
 
     rtr1.destroy
     refute_show_match(pattern: /^router X__RESOURCE_NAME__X #{id1}$/,

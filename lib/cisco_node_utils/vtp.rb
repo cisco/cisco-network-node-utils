@@ -30,7 +30,7 @@ module Cisco
     end
 
     def self.enabled
-      !config_get('vtp', 'feature').nil?
+      config_get('vtp', 'feature')
     end
 
     def enable
@@ -99,8 +99,7 @@ module Cisco
 
     # Get vtp filename
     def filename
-      match = config_get('vtp', 'filename')
-      match.nil? ? default_filename : match.first
+      config_get('vtp', 'filename')
     end
 
     # Set vtp filename
@@ -121,8 +120,7 @@ module Cisco
 
     # Get vtp version
     def version
-      match = config_get('vtp', 'version') if Vtp.enabled
-      match.nil? ? default_version : match.first.to_i
+      Vtp.enabled ? config_get('vtp', 'version') : default_version
     end
 
     # Set vtp version
