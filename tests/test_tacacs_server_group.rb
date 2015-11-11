@@ -15,16 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../ciscotest', __FILE__)
-require File.expand_path('../../lib/cisco_node_utils/tacacs_server_group', \
-                         __FILE__)
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/tacacs_server_group'
 
 # TestTacacsServerGroup - Minitest for TacacsServerGroup node utility.
 class TestTacacsServerGroup < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    config('feature tacacs+',
+    config('no feature tacacs+', 'feature tacacs+',
            'tacacs-server host 8.8.8.8',
            'tacacs-server host 9.9.9.9',
            'tacacs-server host 10.10.10.10',
@@ -36,12 +35,7 @@ class TestTacacsServerGroup < CiscoTestCase
 
   def teardown
     # teardown runs at the end of each test
-    config('no tacacs-server host 8.8.8.8',
-           'no tacacs-server host 9.9.9.9',
-           'no tacacs-server host 10.10.10.10',
-           'no tacacs-server host 11.11.11.11',
-           'no tacacs-server host 12.12.12.12',
-           'no tacacs-server host 13.13.13.13')
+    config('no feature tacacs+')
     no_tacacsserver
     super
   end

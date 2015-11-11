@@ -97,15 +97,9 @@ network node. It provides the base APIs `config_set`, `config_get`, and
 
 ### CommandReference
 
-The `CommandReference` module provides for the abstraction of NX-OS CLI,
-especially to handle its variance between hardware platforms.
-A series of YAML files are used to describe the CLI corresponding to a given
-`(feature, attribute)` tuple for any given platform. When a `Node` is
-connected, the platform identification of the Node is used to construct a
-`CmdRef` object that corresponds to this platform. The `Node` APIs
-`config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
+The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG), platform differences (NX-OS vs. IOS XR), or hardware differences (Nexus 9xxx vs. Nexus 3xxx). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
-See also [README_YAML](lib/cisco_node_utils/README_YAML.md).
+See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 
 ### Feature Providers
 

@@ -495,14 +495,14 @@ class TestInterfaceOspf < CiscoTestCase
     assert_show_match(pattern: pattern,
                       msg:     'Error: message digest enable missing in CLI')
     assert(interface.message_digest,
-           'Error: message digest get value mismatch')
+           'Error: message digest is false but should be true')
 
     # get default and set
     interface.message_digest = interface.default_message_digest
     refute_show_match(pattern: pattern,
                       msg:     'Error: default message digest set failed')
     refute(interface.message_digest,
-           'Error: message digest get value mismatch')
+           'Error: message digest is true but should be false (default)')
   end
 
   def test_interfaceospf_message_digest_key

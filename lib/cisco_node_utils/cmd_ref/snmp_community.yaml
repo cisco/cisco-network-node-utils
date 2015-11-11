@@ -1,0 +1,23 @@
+# snmp_community
+---
+acl:
+  config_get: "show running snmp all"
+  config_get_token: '/^snmp-server community %s use-acl (.*)$/'
+  config_set: "%s snmp-server community %s use-acl %s"
+  default_value: ""
+
+all_communities:
+  multiple: true
+  config_get: "show running snmp all"
+  config_get_token: '/^snmp-server community (\S+) /'
+
+community:
+  config_get: "show running snmp all"
+  config_get_token: '/^snmp-server community (%s) group .*$/'
+  config_set: "%s snmp-server community %s group %s"
+
+group:
+  config_get: "show running snmp all"
+  config_get_token: '/^snmp-server community %s group (.*)$/'
+  config_set: "snmp-server community %s group %s"
+  default_value: "network-operator"

@@ -67,6 +67,7 @@ class TestRouterBgpAF < CiscoTestCase
   ## BGP Address Family
   ## Configure router bgp, some VRF's and address-family statements
   ## - verify that the final instance objects are correctly populated
+  ## Enable VXLAN and the EVPN
   ##
   def test_collection_not_empty
     config('feature bgp',
@@ -346,6 +347,39 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string,
                  "Error: 'additional-paths selection route-map drop_all' is " \
                    'configured and should not be')
+  end
+
+  ##
+  ## advertise_l2vpn_evpn
+  ##
+  def advertise_l2vpn_evpn(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = false
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match set value')
+
+    val = true
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match set value')
+
+    val = bgp_af.default_advertise_l2vpn_evpn
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match default' \
+                 'value')
+  end
+
+  def test_advertise_l2vpn_evpn
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      advertise_l2vpn_evpn(55, 'red', af)
+    end
   end
 
   ##
@@ -638,6 +672,14 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
   end
   # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
+
+  ## feature nv overlay evpn
+  def test_feature_nv_overlay_evpn
+    config('no nv overlay evpn')
+    RouterBgpAF.feature_nv_overlay_evpn_enable
+    assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
+           'Error:feature nv overlay evpn is not enabled')
+  end
 
   ##
   ## maximum_paths

@@ -26,9 +26,7 @@ class TestVrf < CiscoTestCase
     vrfs = Vrf.vrfs
     vrfs.each_value do |vrf|
       next unless vrf.name =~ /^test_vrf/
-      @device.cmd('conf t')
-      @device.cmd("no vrf context #{vrf.name}")
-      node.cache_flush
+      config("no vrf context #{vrf.name}")
     end
   end
 

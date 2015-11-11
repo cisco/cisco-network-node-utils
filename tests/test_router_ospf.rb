@@ -66,7 +66,7 @@ class TestRouterOspf < CiscoTestCase
                       msg:     "'router ospf ospfTest' not configured")
     ospf.destroy
 
-    refute_show_match(command: 'show run all | no-more',
+    refute_show_match(command: 'show run all | inc feature | no-more',
                       pattern: /feature ospf/,
                       msg:     "Error: 'feature ospf' still configured")
   end

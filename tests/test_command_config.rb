@@ -67,7 +67,7 @@ class TestCommandConfig < CiscoTestCase
     config_cmd_hash.each do |k, v|
       v.each_value do |v1|
         # Send commands
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}"
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
@@ -142,7 +142,7 @@ class TestCommandConfig < CiscoTestCase
     cfg_hash = load_yaml(:negative)
     cfg_hash.each_value do |v|
       v.each_value do |v1|
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
         assert_raises(CliError) { node.config(cfg_string) }
       end

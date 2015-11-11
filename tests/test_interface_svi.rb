@@ -94,11 +94,7 @@ class TestSvi < CiscoTestCase
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'no autostate')
-    ref = cmd_ref_autostate
-    result = ref.default_value
-    result = false if ref.config_set
-    assert_equal(result, svi.svi_autostate,
-                 'Error: svi autostate not correct.')
+    refute(svi.svi_autostate, 'Error: svi autostate not correct.')
     svi.destroy
   end
 
@@ -106,12 +102,7 @@ class TestSvi < CiscoTestCase
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'autostate')
-
-    ref = cmd_ref_autostate
-    result = ref.default_value
-    result = true if ref.config_set
-    assert_equal(result, svi.svi_autostate,
-                 'Error: svi autostate not correct.')
+    assert(svi.svi_autostate, 'Error: svi autostate not correct.')
     svi.destroy
   end
 
@@ -200,13 +191,13 @@ class TestSvi < CiscoTestCase
     svis.each do |id, svi|
       case id
       when /^vlan1$/
-        result = true if ref.config_set
+        result = true if ref.config_set?
         assert_equal(result, svi.svi_autostate,
                      'Error: svis collection, Vlan1, incorrect autostate')
         refute(svi.svi_management,
                'Error: svis collection, Vlan1, incorrect management')
       when /^vlan/
-        result = false if ref.config_set
+        result = false if ref.config_set?
         assert_equal(result, svi.svi_autostate,
                      "Error: svis collection, Vlan#{id}, incorrect autostate")
         assert(svi.svi_management,

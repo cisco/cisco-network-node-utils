@@ -1,0 +1,7 @@
+# syslog_settings
+---
+timestamp:
+  config_get: "show running-config all | include '^logging timestamp'"
+  config_get_token: '/^logging timestamp (.*)$/'
+  config_set: '<state> logging timestamp <units>'
+  default_value: 'seconds'
