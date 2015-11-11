@@ -21,7 +21,7 @@ admin_state_ethernet_noswitchport_shutdown:
       default_value: "shutdown"
 
 all_interfaces:
-  multiple: true
+  multiple:
   config_get_token: '/^interface (.*)/'
 
 create:
@@ -67,7 +67,7 @@ feature_vlan:
 
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
-  multiple: true
+  multiple:
   cli_nexus:
     config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
     config_set_append: "%s ip address %s"
@@ -93,14 +93,8 @@ ipv4_proxy_arp:
 
 ipv4_redirects_loopback:
   kind: boolean
-  test_config_result:
-    false: RuntimeError
-    true: RuntimeError
   cli_nexus:
-    default_value: false
-    config_set: ~
-    config_get: ~
-    config_get_token: ~
+    default_only: false
   cli_ios_xr:
     config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
     config_set_append: "%s ipv4 redirects"
@@ -146,10 +140,7 @@ negotiate_auto_ethernet:
     '/^\s+negotiate auto/'
     ]
     /(N7K|C3064)/:
-      config_get: ~
-      config_set: ~
-      config_get_token: ~
-      default_value: false
+      default_only: false
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -157,10 +148,7 @@ negotiate_auto_ethernet:
   cli_ios_xr:
     # TODO: which XR platforms *do* support this?
     /XRV/:
-      config_get: ~
-      config_set: ~
-      config_get_token: ~
-      default_value: false
+      default_only: false
     else:
       config_get_token_append: '^/negotiation auto$/'
       config_set_append: "%s negotiation auto"
@@ -168,12 +156,7 @@ negotiate_auto_ethernet:
 
 negotiate_auto_other_interfaces:
   kind: boolean
-  config_get: ~
-  config_set: ~
-  default_value: false
-  test_config_result:
-    false: RuntimeError
-    true: RuntimeError
+  default_only: false
 
 negotiate_auto_portchannel:
   kind: boolean
@@ -183,10 +166,7 @@ negotiate_auto_portchannel:
     '/^\s+negotiate auto/'
     ]
     /N7K/:
-      config_get: ~
-      config_get_token: ~
-      config_set: ~
-      default_value: false
+      default_only: false
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -270,8 +250,7 @@ switchport_mode_ethernet:
   default_value: "access"
 
 switchport_mode_other_interfaces:
-  config_get: ~
-  default_value: ""
+  default_only: ""
 
 switchport_mode_port_channel:
   config_get_token_append: '/^switchport mode (.*)$/'

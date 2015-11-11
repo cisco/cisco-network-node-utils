@@ -4,4 +4,5 @@ vendor/*
 coverage
 Gemfile.lock
 *.gem
+*.swp
 TAGS

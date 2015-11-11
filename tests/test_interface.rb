@@ -366,10 +366,10 @@ class TestInterface < CiscoTestCase
                      'ipv4 redirects default incorrect')
 
         # Make sure setter fails
-        assert_raises(ref.test_config_result(true)) do
+        assert_raises(Cisco::UnsupportedError) do
           interface.ipv4_redirects = true
         end
-        assert_raises(ref.test_config_result(false)) do
+        assert_raises(Cisco::UnsupportedError) do
           interface.ipv4_redirects = false
         end
       end
@@ -747,10 +747,10 @@ class TestInterface < CiscoTestCase
     assert_equal(ref.default_value, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value mismatch")
 
-    assert_raises(ref.test_config_result(true)) do
+    assert_raises(Cisco::UnsupportedError) do
       interface.negotiate_auto = true
     end
-    assert_raises(ref.test_config_result(false)) do
+    assert_raises(Cisco::UnsupportedError) do
       interface.negotiate_auto = false
     end
 
