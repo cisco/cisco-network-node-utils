@@ -1,0 +1,25 @@
+# radius_global.yaml
+---
+key:
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server key \d+\s+(\S+)/'
+  config_set: '<state> radius-server key <key>'
+
+key_format:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server key (\d).*/'
+
+retransmit:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server retransmit (\d+).*/'
+  config_set: '<state> radius-server retransmit <count>'
+  default_value: 1
+
+timeout:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server timeout (\d+).*/'
+  config_set: '<state> radius-server timeout <timeout>'
+  default_value: 5

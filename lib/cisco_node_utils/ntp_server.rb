@@ -39,10 +39,9 @@ module Cisco
     def self.ntpservers
       hash = {}
       ntpservers_list = config_get('ntp_server', 'server')
-      return hash if ntpservers_list.nil?
+      return hash if ntpservers_list.empty?
 
       preferred_servers = config_get('ntp_server', 'prefer')
-      preferred_servers = [] unless preferred_servers
 
       ntpservers_list.each do |id|
         hash[id] = NtpServer.new(id, preferred_servers.include?(id), false)

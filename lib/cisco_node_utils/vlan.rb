@@ -62,8 +62,7 @@ module Cisco
 
     def vlan_name
       result = config_get('vlan', 'name', @vlan_id)
-      return default_vlan_name if result.nil?
-      result.shift
+      result.nil? ? default_vlan_name : result
     end
 
     def vlan_name=(str)
@@ -84,8 +83,7 @@ module Cisco
 
     def state
       result = config_get('vlan', 'state', @vlan_id)
-      return default_state if result.nil?
-      case result.first
+      case result
       when /act/
         return 'active'
       when /sus/
@@ -111,9 +109,8 @@ module Cisco
 
     def shutdown
       result = config_get('vlan', 'shutdown', @vlan_id)
-      return default_shutdown if result.nil?
       # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result.first[/shut/] ? true : false
+      result[/shut/] ? true : false
     end
 
     def shutdown=(val)

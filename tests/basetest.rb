@@ -27,11 +27,7 @@ require 'rubygems'
 gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-begin
-  require 'cisco_nxapi'
-rescue LoadError
-  require File.expand_path('../../../cisco-nxapi/lib/cisco_nxapi')
-end
+require 'cisco_nxapi'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared
@@ -88,7 +84,7 @@ class TestCase < Minitest::Test
     @device.login(username, password)
     CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
-    puts 'Connection refused - please check that the IP address is correct'
+    puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have enabled 'feature telnet' on the UUT"
     exit
   end
@@ -104,6 +100,8 @@ class TestCase < Minitest::Test
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
     @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
                 'Match'  => /^[^()]+[$%#>] \z/n)
+  rescue Net::ReadTimeout => e
+    raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end
 
   def assert_show_match(pattern: nil, command: nil, msg: nil)

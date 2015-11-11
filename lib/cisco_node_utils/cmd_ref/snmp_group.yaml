@@ -1,0 +1,7 @@
+# snmp_group
+---
+group:
+  multiple: true
+  config_get: "show snmp group"
+  config_get_token: "/^Role: (.*)$/"
+  default_value: ""

@@ -16,81 +16,119 @@
 
 require 'yaml'
 
-module CommandReference
-  # Helper class to match product id with reference files.
-  class CommandPlatformFile
-    attr_reader :regex, :file
-
-    def initialize(match_expression, reference_file)
-      self.regex = match_expression
-      self.file = reference_file
-    end
-
-    def regex=(expression)
-      if expression.is_a? Regexp
-        @regex = expression
-      else
-        fail ArgumentError
-      end
-    end
-
-    def file=(file)
-      if file.is_a? String
-        @file = file
-      else
-        fail ArgumentError
-      end
-    end
-
-    def match(product)
-      @regex.match(product)
-    end
-  end
-
+module Cisco
   # Control a reference for an attribute.
   class CmdRef
-    attr_reader :feature
-    attr_reader :name
-    attr_reader :sources
-    attr_reader :hash
+    attr_reader :feature, :name, :hash, :auto_default, :multiple, :kind
 
-    # rubocop:disable Style/ClassVars
-    @@keys = %w(default_value
-                config_set config_set_append
-                config_get config_get_token config_get_token_append
-                test_config_get test_config_get_regex test_config_result)
-    # rubocop:enable Style/ClassVars
+    KEYS = %w(default_value
+              config_set config_set_append
+              config_get config_get_token config_get_token_append
+              auto_default multiple kind
+              test_config_get test_config_get_regex test_config_result)
 
-    def initialize(feature, name, ref, source)
-      fail ArgumentError, "'#{ref}' is not a hash." unless ref.is_a? Hash
+    def self.keys
+      KEYS
+    end
+
+    KINDS = %w(boolean int string)
+
+    # Construct a CmdRef describing the given (feature, name) pair.
+    # Param "values" is a hash with keys as described in KEYS.
+    # Param "file" is for debugging purposes only.
+    def initialize(feature, name, values, file)
+      fail ArgumentError, "'#{values}' is not a hash." unless values.is_a? Hash
 
       @feature = feature
       @name = name
       @hash = {}
+      @auto_default = true
+      @multiple = false
+      @kind = nil
 
-      @sources = []
-      merge(ref, source)
-    end
-
-    # Overwrite values from more specific references.
-    def merge(values, file)
       values.each do |key, value|
-        unless @@keys.include?(key)
+        unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         if value.nil?
           # Some attributes can store an explicit nil.
           # Others treat this as unset (allowing a platform to override common).
-          if key == 'default_value'
-            @hash[key] = value
-          else
-            @hash.delete(key)
-          end
+          @hash[key] = value if key == 'default_value'
+        elsif key == 'config_get_token' || key == 'config_set'
+          # For simplicity, these are ALWAYS arrays
+          value = [value] unless value.is_a?(Array)
+          define_getter(key, value)
+          # We intentionally do this *after* the define_getter() call
+          @hash[key] = preprocess_value(value)
+        elsif key == 'auto_default'
+          @auto_default = value ? true : false
+        elsif key == 'multiple'
+          @multiple = value ? true : false
+        elsif key == 'kind'
+          fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
+          @kind = value.to_sym
         else
-          @hash[key] = value
+          @hash[key] = preprocess_value(value)
         end
       end
-      @sources << file
+    end
+
+    # Create a getter method for the given key.
+    # This getter method will automatically handle wildcard arguments.
+    def define_getter(key, value)
+      return unless value.is_a?(Array)
+      if value.any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
+        # Key-value substitution
+        define_singleton_method key.to_sym do |**args|
+          result = []
+          value.each do |line|
+            replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
+            replace.each do |item|
+              line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
+            end
+            result.push(line) unless /<\S+>/.match(line)
+          end
+          preprocess_value(result)
+        end
+      elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
+        # printf-style substitution
+        arg_count = value.join.scan(/%/).length
+        define_singleton_method key.to_sym do |*args|
+          unless args.length == arg_count
+            fail ArgumentError, "Given #{args.length} args, but " \
+              "#{key} requires #{arg_count}"
+          end
+          # Fill in the parameters
+          result = value.map do |line|
+            sprintf(line, *args.shift(line.scan(/%/).length))
+          end
+          preprocess_value(result)
+        end
+      else
+        # simple static token(s)
+        value = preprocess_value(value)
+        define_singleton_method key.to_sym, -> { value }
+      end
+    end
+
+    # Helper method.
+    # Converts a regexp-like string (or array thereof) into a proper
+    # Regexp object (or array thereof)
+    def preprocess_value(value)
+      if value.is_a?(Array)
+        # Recurse!
+        return value.map { |item| preprocess_value(item) }
+      elsif value.is_a?(String)
+        # Some 'Strings' in YAML are actually intended to be regexps
+        if value[0] == '/' && value[-1] == '/'
+          # '/foo/' => %r{foo}
+          return Regexp.new(value[1..-2])
+        elsif value[0] == '/' && value[-2..-1] == '/i'
+          # '/foo/i' => %r{foo}i
+          return Regexp.new(value[1..-3], Regexp::IGNORECASE)
+        end
+      end
+      value
     end
 
     def convert_to_constant(value)
@@ -104,7 +142,11 @@ module CommandReference
       # to a Constant.
       if value.is_a?(String) && !value.empty?
         if value[0].chr == value[0].chr.upcase
-          value = Object.const_get(value) if Object.const_defined?(value)
+          begin
+            value = Object.const_get(value) if Object.const_defined?(value)
+          rescue NameError
+            debug("'#{value}' is not a constant")
+          end
         end
       end
       value
@@ -116,13 +158,22 @@ module CommandReference
     end
 
     def method_missing(method_name, *args, &block)
-      super(method_name, *args, &block) unless @@keys.include?(method_name.to_s)
-      method_name = method_name.to_s
-      unless @hash.include?(method_name)
-        fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+      if KEYS.include?(method_name.to_s)
+        # ref.foo -> return @hash[foo] or fail IndexError
+        method_name = method_name.to_s
+        unless @hash.include?(method_name)
+          fail IndexError, "No #{method_name} defined for #{@feature}, #{@name}"
+        end
+        # puts("get #{method_name}: '#{@hash[method_name]}'")
+        @hash[method_name]
+      elsif method_name.to_s[-1] == '?' && \
+            KEYS.include?(method_name.to_s[0..-2])
+        # ref.foo? -> return true if @hash[foo], else false
+        method_name = method_name.to_s[0..-2]
+        @hash[method_name].nil? ? false : true
+      else
+        super(method_name, *args, &block)
       end
-      # puts("get #{method_name}: '#{@hash[method_name]}'")
-      @hash[method_name]
     end
 
     # Print useful debugging information about the object.
@@ -150,46 +201,26 @@ module CommandReference
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
-    attr_reader :files, :product_id
+    attr_reader :cli, :files, :platform, :product_id
 
     # Constructor.
-    # Normal usage is to pass product_id only, in which case all usual YAML
+    # Normal usage is to pass product, platform, cli, in which case usual YAML
     # files will be located then the list will be filtered down to only those
-    # matching the given product_id.
+    # matching the given settings.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
-    def initialize(product_id, files=nil)
-      @product_id = product_id
+    def initialize(product:  nil,
+                   platform: nil,
+                   cli:      false,
+                   files:    nil)
+      @product_id = product
+      @platform = platform
+      @cli = cli
       @hash = {}
       if files
         @files = files
       else
-        @files = []
-        # Hashes are unordered in Ruby 1.8.7, so instead, we use an array
-        # of objects.
-        # rubocop:disable Metrics/LineLength
-        platforms = [
-          CommandPlatformFile.new(//,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_common.yaml')),
-          CommandPlatformFile.new(//,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_common_bgp.yaml')),
-          CommandPlatformFile.new(/N9K/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n9k.yaml')),
-          CommandPlatformFile.new(/N7K/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n7k.yaml')),
-          CommandPlatformFile.new(/C3064/,
-                                  File.join(File.dirname(__FILE__),
-                                            'command_reference_n3064.yaml')),
-        ]
-        # rubocop:enable Metrics/LineLength
-        # Build array
-        platforms.each do |reference|
-          @files << reference.file if reference.match(@product_id)
-        end
+        @files = Dir.glob(__dir__ + '/cmd_ref/*.yaml')
       end
 
       build_cmd_ref
@@ -202,34 +233,27 @@ module CommandReference
       debug "Product: #{@product_id}"
       debug "Files being used: #{@files.join(', ')}"
 
-      reference_yaml = {}
-
       @files.each do |file|
-        debug "Processing file '#{file}'"
-        reference_yaml = load_yaml(file)
+        feature = File.basename(file).split('.')[0]
+        debug "Processing file '#{file}' as feature '#{feature}'"
+        feature_hash = load_yaml(file)
+        feature_hash = filter_hash(feature_hash)
+        if feature_hash.empty?
+          debug "Feature #{feature} is empty"
+          next
+        end
 
-        reference_yaml.each do |feature, names|
-          if names.nil? || names.empty?
-            fail "No names under feature #{feature}: #{names}"
-          elsif @hash[feature].nil?
-            @hash[feature] = {}
-          else
-            debug "  Merging feature '#{feature}' retrieved from '#{file}'."
-          end
-          names.each do |name, values|
-            debug "  Processing feature '#{feature}' name '#{name}'"
-            if @hash[feature][name].nil?
-              begin
-                @hash[feature][name] = CmdRef.new(feature, name, values, file)
-              rescue ArgumentError => e
-                raise "Invalid data for '#{feature}', '#{name}': #{e}"
-              end
-            else
-              debug "  Merging feature '#{feature}' name '#{name}' " \
-                    "from '#{file}'."
-              @hash[feature][name].merge(values, file)
-            end
-          end
+        base_hash = {}
+        if feature_hash.key?('_template')
+          base_hash = CommandReference.hash_merge(feature_hash['_template'])
+        end
+
+        feature_hash.each do |name, value|
+          fail "No entries under '#{name}' in '#{file}'" if value.nil?
+          next if value.empty? # filtered out by exclusions, etc
+          @hash[feature] ||= {}
+          values = CommandReference.hash_merge(value, base_hash.clone)
+          @hash[feature][name] = CmdRef.new(feature, name, values, file)
         end
       end
 
@@ -257,24 +281,143 @@ module CommandReference
       puts "DEBUG: #{text}" if @@debug
     end
 
+    KNOWN_FILTERS = %w(cli_nexus)
+
+    def self.key_match(key, platform, product_id, cli)
+      if key[0] == '/' && key[-1] == '/'
+        # It's a product-id regexp. Does it match our given product_id?
+        return Regexp.new(key[1..-2]) =~ product_id ? true : false
+      elsif KNOWN_FILTERS.include?(key)
+        return false if key.match(/cli/) && !cli
+        return Regexp.new(platform.to_s) =~ key ? true : false
+      else
+        return :unknown
+      end
+    end
+
+    # Helper method
+    # Given a Hash of command reference data as read from YAML, does:
+    # - Filter out any API-specific data not applicable to this API
+    # - Filter any platform-specific data not applicable to this product_id
+    # Returns the filtered hash (possibly empty)
+    def self.filter_hash(hash,
+                         platform:           nil,
+                         product_id:         nil,
+                         cli:                false,
+                         allow_unknown_keys: true)
+      result = {}
+
+      exclude = hash.delete('_exclude') || []
+      exclude.each do |value|
+        if key_match(value, platform, product_id, cli) == true
+          debug 'Exclude this product (#{product_id}, #{value})'
+          return result
+        end
+      end
+
+      # to_inspect: sub-keys we want to recurse into
+      to_inspect = []
+      # regexp_match: did we find a product_id regexp that matches?
+      regexp_match = false
+
+      hash.each do |key, value|
+        if CmdRef.keys.include?(key)
+          result[key] = value
+        elsif key != 'else'
+          match = key_match(key, platform, product_id, cli)
+          next if match == false
+          if match == :unknown
+            fail "Unrecognized key '#{key}'" unless allow_unknown_keys
+          end
+          regexp_match = true if match == true
+          to_inspect << key
+        end
+      end
+      # If we didn't find any platform regexp match,
+      # and an 'else' sub-hash is provided, descend into 'else'
+      to_inspect << 'else' if hash.key?('else') && !regexp_match
+      # Recurse! Sub-hashes can override the base hash
+      to_inspect.each do |key|
+        unless hash[key].is_a?(Hash)
+          result[key] = hash[key]
+          next
+        end
+        begin
+          result[key] = filter_hash(hash[key],
+                                    platform:           platform,
+                                    product_id:         product_id,
+                                    cli:                cli,
+                                    allow_unknown_keys: false)
+        rescue RuntimeError => e
+          raise "[#{key}]: #{e}"
+        end
+      end
+      result
+    end
+
+    def filter_hash(input_hash)
+      CommandReference.filter_hash(input_hash,
+                                   platform:   platform,
+                                   product_id: product_id,
+                                   cli:        cli)
+    end
+
+    # Helper method
+    # Given a suitably filtered Hash of command reference data, does:
+    # - Inherit data from the given base_hash (if any) and extend/override it
+    #   with the given input data.
+    # - Append 'config_set_append' data to any existing 'config_set' data
+    # - Append 'config_get_token_append' data to 'config_get_token', ditto
+    def self.hash_merge(input_hash, base_hash=nil)
+      result = base_hash
+      result ||= {}
+      # to_inspect: sub-hashes we want to recurse into
+      to_inspect = []
+
+      input_hash.each do |key, value|
+        if CmdRef.keys.include?(key)
+          if key == 'config_set_append'
+            result['config_set'] = value_append(result['config_set'], value)
+          elsif key == 'config_get_token_append'
+            result['config_get_token'] = value_append(
+              result['config_get_token'], value)
+          else
+            result[key] = value
+          end
+        elsif value.is_a?(Hash)
+          to_inspect << value
+        else
+          fail "Unexpected non-hash data: #{value}"
+        end
+      end
+      # Recurse! Sub-hashes can override the base hash
+      to_inspect.each do |hash|
+        result = hash_merge(hash, result)
+      end
+      result
+    end
+
+    # Helper method.
+    # Combines the two given values (either or both of which may be arrays)
+    # into a single combined array
+    # value_append('foo', 'bar') ==> ['foo', 'bar']
+    # value_append('foo', ['bar', 'baz']) ==> ['foo', 'bar', 'baz']
+    def self.value_append(base_value, new_value)
+      base_value = [base_value] unless base_value.is_a?(Array)
+      new_value = [new_value] unless new_value.is_a?(Array)
+      base_value + new_value
+    end
+
     def mapping?(node)
-      # Need to handle both Syck::Map and Psych::Nodes::Mapping
       node.class.ancestors.any? { |name| /Map/ =~ name.to_s }
     end
     private :mapping?
 
     def get_keys_values_from_map(node)
-      if node.class.ancestors.any? { |name| /Psych/ =~ name.to_s }
-        # A Psych::Node::Mapping instance has an Array of children in
-        # the format [key1, val1, key2, val2]
-        key_children = node.children.select.each_with_index { |_, i| i.even? }
-        val_children = node.children.select.each_with_index { |_, i| i.odd? }
-      else
-        # Syck::Map nodes have a .children method but it doesn't work :-(
-        # Instead we access the node.value which is a hash.
-        key_children = node.value.keys
-        val_children = node.value.values
-      end
+      # A Psych::Node::Mapping instance has an Array of children in
+      # the format [key1, val1, key2, val2]
+      key_children = node.children.select.each_with_index { |_, i| i.even? }
+      val_children = node.children.select.each_with_index { |_, i| i.odd? }
       debug "children of #{node} mapping: #{key_children}, #{val_children}"
       [key_children, val_children]
     end
@@ -291,9 +434,7 @@ module CommandReference
     # @param parents String describing parents of this node, for messages
     def validate_yaml(node, filename, depth=0, parents=nil)
       return unless node && (mapping?(node) || node.children)
-      # Psych wraps everything in a Document instance, while
-      # Syck does not. To keep the "depth" counting consistent,
-      # we need to ignore Documents.
+      # Psych wraps everything in a Document instance, which we ignore.
       unless node.class.ancestors.any? { |name| /Document/ =~ name.to_s }
         depth += 1
       end
@@ -308,7 +449,7 @@ module CommandReference
       end
 
       # For Mappings, we validate more extensively:
-      # 1. no duplicate keys are allowed (Syck/Psych don't catch this)
+      # 1. no duplicate keys are allowed (Psych doesn't catch this)
       # 2. Features must be listed in alphabetical order for maintainability
 
       # Take advantage of our known YAML structure to assign labels by depth
@@ -329,10 +470,6 @@ module CommandReference
         fail msg
       end
 
-=begin
-# Syck does not necessarily preserve ordering of keys in a mapping even during
-# the initial parsing stage. To avoid spurious failures, this is disabled
-# for now. Fixing this may require restructuring our YAML...
       # Enforce alphabetical ordering of features (only).
       # We can extend this later to enforce ordering of names if desired
       # by checking at depth 2 as well.
@@ -340,12 +477,11 @@ module CommandReference
         last_key = nil
         key_arr.each do |key|
           if last_key && key < last_key
-            raise RuntimeError, "features out of order (#{last_key} > #{key})"
+            fail "features out of order in #{filename}: (#{last_key} > #{key})"
           end
           last_key = key
         end
       end
-=end
 
       # Recurse to the children. We get a little fancy here so as to be able
       # to provide more meaningful debug/error messages, such as:
@@ -363,16 +499,13 @@ module CommandReference
     private :validate_yaml
 
     # Read in yaml file.
+    # The expectation is that a file corresponds to a feature
     def load_yaml(yaml_file)
       fail "File #{yaml_file} doesn't exist." unless File.exist?(yaml_file)
       # Parse YAML file into a tree of nodes
       # Psych::SyntaxError doesn't inherit from StandardError in some versions,
       # so we want to explicitly catch it if using Psych.
-      if defined?(::Psych::SyntaxError)
-        rescue_errors = [::StandardError, ::Psych::SyntaxError]
-      else
-        rescue_errors = [::StandardError]
-      end
+      rescue_errors = [::StandardError, ::Psych::SyntaxError]
       yaml_parsed = File.open(yaml_file, 'r') do |f|
         begin
           YAML.parse(f)
@@ -380,16 +513,11 @@ module CommandReference
           raise "unable to parse #{yaml_file}: #{e}"
         end
       end
-      if yaml_parsed
-        # Validate the node tree
-        validate_yaml(yaml_parsed, yaml_file)
-        # If validation passed, convert the node tree to a Ruby Hash.
-        return yaml_parsed.transform
-      else
-        # if yaml_file is empty, YAML.parse() returns false.
-        # Change this to an empty hash.
-        return {}
-      end
+      return {} unless yaml_parsed
+      # Validate the node tree
+      validate_yaml(yaml_parsed, yaml_file)
+      # If validation passed, convert the node tree to a Ruby Hash.
+      yaml_parsed.transform
     end
 
     # Check that all resources were pulled in correctly.

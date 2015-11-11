@@ -147,11 +147,11 @@ module Cisco
     def self.auth_password(name, engine_id)
       if engine_id.empty?
         users = config_get('snmp_user', 'auth_password')
-        return nil if users.nil?
+        return nil if users.nil? || users.empty?
         users.each_entry { |user| return user[1] if user[0] == name }
       else
         users = config_get('snmp_user', 'auth_password_with_engine_id')
-        return nil if users.nil?
+        return nil if users.nil? || users.empty?
         users.each_entry do |user|
           return user[1] if user[0] == name && user[2] == engine_id
         end
@@ -170,12 +170,12 @@ module Cisco
     def self.priv_password(name, engine_id)
       if engine_id.empty?
         users = config_get('snmp_user', 'priv_password')
-        unless users.nil?
+        unless users.nil? || users.empty?
           users.each_entry { |user| return user[1] if user[0] == name }
         end
       else
         users = config_get('snmp_user', 'priv_password_with_engine_id')
-        unless users.nil?
+        unless users.nil? || users.empty?
           users.each_entry do |user|
             return user[1] if user[0] == name && user[2] == engine_id
           end

@@ -171,6 +171,9 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_virtual_services
+    skip('Skip test: No virtual-services installed') unless
+      @device.cmd('show virtual-service list')[/Name\s+Status\s+Package Name/]
+
     # this would be beyond ugly to parse from ascii, utilize config_get
     vir_arr = node.config_get('virtual_service', 'services')
     vir_arr = [vir_arr] if vir_arr.is_a? Hash
