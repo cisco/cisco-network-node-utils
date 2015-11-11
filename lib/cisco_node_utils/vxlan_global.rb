@@ -48,12 +48,11 @@ module Cisco
 
     # dup-host-ip-addr-detection
     def dup_host_ip_addr_detection
-      get_args = {}
-      match = config_get('vxlan_global', 'dup_host_ip_addr_detection', get_args)
-      if match.nil? || match.first.nil?
+      match = config_get('vxlan_global', 'dup_host_ip_addr_detection')
+      if match.nil?
         default_dup_host_ip_addr_detection
       else
-        match.first.collect(&:to_i)
+        match.collect(&:to_i)
       end
     end
 
@@ -83,12 +82,11 @@ module Cisco
 
     # dup-host-mac-detection
     def dup_host_mac_detection
-      get_args = {}
-      match = config_get('vxlan_global', 'dup_host_mac_detection', get_args)
-      if match.nil? || match.first.nil?
+      match = config_get('vxlan_global', 'dup_host_mac_detection')
+      if match.nil?
         default_dup_host_mac_detection
       else
-        match.first.collect(&:to_i)
+        match.collect(&:to_i)
       end
     end
 
@@ -116,8 +114,7 @@ module Cisco
 
     # anycast-gateway-mac
     def anycast_gateway_mac
-      mac_addr = config_get('vxlan_global', 'anycast_gateway_mac')
-      mac_addr.nil? ? '' : mac_addr.first
+      config_get('vxlan_global', 'anycast_gateway_mac')
     end
 
     def anycast_gateway_mac_set(configure, mac_addr)

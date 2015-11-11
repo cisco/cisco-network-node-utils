@@ -1,6 +1,7 @@
 # vxlan_global
 ---
 anycast_gateway_mac:
+  kind: string
   config_get: 'show running fabric forwarding all'
   config_get_token: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
   config_set: "<state> fabric forwarding anycast-gateway-mac <mac_addr>"
