@@ -20,8 +20,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 
-XR_NOT_SUPPORTED     = 'Not supported in IOS XR'
-XR_NO_VRF_SUPPORT    = 'Feature not supported in a vrf in IOS XR'
 XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
 
 def create_bgp_vrf(asnum, vrf)
@@ -525,9 +523,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_confederation_peers
-    puts "RICHAA:"
-
-    # skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -625,7 +620,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_maxas_limit
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -647,7 +641,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_maxas_limit
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
@@ -656,7 +649,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_neighbor_fib_down_accelerate
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -678,7 +670,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_neighbor_fib_down_accelerate_not_configured
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.neighbor_fib_down_accelerate,
@@ -687,7 +678,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_neighbor_fib_down_accelerate
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_neighbor_fib_down_accelerate,
@@ -696,7 +686,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_reconnect_interval
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -718,7 +707,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_reconnect_interval_default
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -764,7 +752,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_shutdown
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.shutdown = true
@@ -775,7 +762,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_shutdown_not_configured
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.shutdown,
@@ -784,7 +770,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_shutdown
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_shutdown,
@@ -793,7 +778,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_suppress_fib_pending
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -815,7 +799,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_suppress_fib_pending_not_configured
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.suppress_fib_pending,
@@ -824,7 +807,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_suppress_fib_pending
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_suppress_fib_pending,
@@ -833,7 +815,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_timer_bestpath_limit
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -855,7 +836,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_timer_bestpath_limit_default
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(300, bgp.timer_bestpath_limit,
@@ -864,7 +844,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_timer_bestpath_limit_always
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -886,7 +865,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_get_timer_bestpath_limit_always_not_configured
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.timer_bestpath_limit_always,
@@ -895,7 +873,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_default_timer_bestpath_limit_always
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_timer_bestpath_limit_always,

@@ -355,9 +355,7 @@ module Cisco
       is = confederation_peers
       is = is.nil? ? [] : is.split(' ')
 
-      puts "is: #{is.class}, should: #{should.class}"
       delta_hash = Utils.delta_add_remove(should, is)
-      puts "delta hash=#{delta_hash}"
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         CiscoLogger.debug("confederation_peers delta " \
