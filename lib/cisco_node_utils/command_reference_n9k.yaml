@@ -10,15 +10,6 @@ inventory:
   inventory:
     test_config_get_regex: [!ruby/regexp '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/', !ruby/regexp '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/']
 
-
-show_version:
-  boot_image:
-    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
-
-  system_image:
-    config_get_token: "kick_file_name"
-    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
-
 snmp_user:
   auth_protocol:
     config_get_token: "auth"

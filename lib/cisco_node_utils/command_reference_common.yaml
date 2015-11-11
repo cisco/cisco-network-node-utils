@@ -590,13 +590,13 @@ radius_server:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server host %s.* auth-port (\d+).*$/'
     config_set: '<state> radius-server host <ip> auth-port <port>'
-    default_value: '1812'
+    default_value: 1812
 
   acct-port:
     config_get: "show running-config radius all"
     config_get_token: '/^radius-server host %s.* acct-port (\d+).*$/'
     config_set: '<state> radius-server host <ip> acct-port <port>'
-    default_value: '1813'
+    default_value: 1813
 
   timeout:
     config_get: "show running-config radius all"
@@ -632,6 +632,19 @@ radius_server:
     config_get_token: '/^radius-server host %s.* key \d+\s+(\S+)/'
     config_set: '<state> radius-server host <ip> key <key>'
     default_value: null
+
+radius_server_group:
+  group:
+    config_get: "show running-config radius all"
+    config_get_token: '/^aaa group server radius (\S+)/'
+    config_set: '<state> aaa group server radius <name>'
+    default_value: []
+
+  servers:
+    config_get: "show running-config radius all"
+    config_get_token: ['/^aaa group server radius %s $/i', '/server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/']
+    config_set: ['aaa group server radius <group>', '<state> server <ip>']
+    default_value: []
 
 radius_global:
   timeout:
@@ -714,9 +727,9 @@ show_version:
 
   system_image:
     config_get: "sh version"
-    config_get_token: "isan_file_name"
+    config_get_token: "kick_file_name"
     test_config_get: "sh version | no-more"
-    test_config_get_regex: !ruby/regexp '/.*system image file is:    (.*)$.*/'
+    test_config_get_regex: !ruby/regexp '/.*NXOS image file is: (.*)$.*/'
 
   uptime:
     config_get: 'show version'
@@ -986,6 +999,27 @@ vlan:
     config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
     config_set: ["vlan %d", "%s shutdown", "end"]
     default_value: false
+
+vrf:
+  all_vrfs:
+    config_get: "show running | section 'vrf context'"
+    config_get_token: '/^vrf context (.*)/'
+
+  create:
+    config_set:  "vrf context <vrf>"
+
+  description:
+    config_get: "show running | section 'vrf context'"
+    config_get_token: ['/^vrf context <vrf>$/i', '/^description (.*)/']
+    config_set: ["vrf context <vrf>", "<state> description <desc>"]
+
+  destroy:
+    config_set: "no vrf context <vrf>"
+
+  shutdown:
+    config_get: "show running | section 'vrf context'"
+    config_get_token: ['/^vrf context <vrf>$/i', '/^shutdown$/']
+    config_set: ["vrf context <vrf>", "<state> shutdown"]
 
 vtp:
   domain:

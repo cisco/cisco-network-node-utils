@@ -88,7 +88,7 @@ module Cisco
 
     def description=(desc)
       fail TypeError unless desc.is_a?(String)
-      if desc.empty?
+      if desc.strip.empty?
         config_set('interface', 'description', @name, 'no', '')
       else
         config_set('interface', 'description', @name, '', desc)
