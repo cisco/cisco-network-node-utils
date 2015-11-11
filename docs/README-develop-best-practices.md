@@ -21,6 +21,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [Y7](#yaml7): When possible, use the same `config_get` show command for all properties and document any anomalies.
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
 * [Y9](#yaml9): Selection of `show` commands for `config_get`.
+* [Y10](#yaml10): Use `true` and `false` for boolean values.
 
 
 
@@ -201,6 +202,9 @@ The following commands should be preferred over `show [feature]` commands since 
 * `show running [feature] all` if available.
 * `show running all` if `show running [feature] all` is *not* available.
 
+### <a name="yaml10">Y10: Use `true` and `false` for boolean values.
+
+YAML allows various synonyms for `true` and `false` such as `yes` and `no`, but for consistency and readability (especially to users more familiar with Ruby than with YAML), we recommend using `true` and `false` rather than any of their synonyms.
 
 ## Common Object Best Practices:
 
