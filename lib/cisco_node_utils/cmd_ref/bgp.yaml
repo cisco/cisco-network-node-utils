@@ -109,14 +109,14 @@ confederation_id:
     config_set_append: '<state> confederation identifier <id>'
 
 confederation_peers:
-  # TODO: Supported in XR but broken as identifier is nvgened on a seperate line.
   default_value: ""
   cli_ios_xr:
-    config_get_token_append: '/^bgp confederation peers (.*)$/'
-    config_set_append: ' <state> bgp confederation peers <peer_list>'
+    multiple: true
+    config_get_token_append: ['/^bgp confederation peers$/', '/(\S+)/']
+    config_set_append: ' <state> bgp confederation peers <peer>'
   cli_nexus:
     config_get_token_append: '/^confederation peers (.*)$/'
-    config_set_append: '<state> confederation peers <peer_list>'
+    config_set_append: '<state> confederation peers <peer>'
 
 create_destroy_neighbor:
   config_set_append: '<state> neighbor <nbr>'

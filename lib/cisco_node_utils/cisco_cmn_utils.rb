@@ -107,18 +107,32 @@ module Cisco
       network
     end
 
+    def self.depth (a)
+      return 0 unless a.is_a?(Array)
+      return 1 + depth(a[0])
+    end
+
     # Helper to build a hash of add/remove commands for a nested array.
     # Useful for network, redistribute, etc.
     #   should: an array of expected cmds (manifest/recipe)
     #  current: an array of existing cmds on the device
     def self.delta_add_remove(should, current=[])
       # Remove nil entries from array
-      should.each(&:compact!) unless should.empty?
+      if depth(should) > 1
+        should.each(&:compact!) unless should.empty?
+      end
       delta = { add: should - current, remove: current - should }
 
-      # Delete entries from :remove if f1 is an update to an existing command
-      delta[:add].each do |id, _|
-        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+      if depth(should) == 1
+        # Delete entries from :remove if f1 is an update to an existing command
+        delta[:add].each do |id, _| #todo remove _
+          delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
+        end
+      else
+        # Delete entries from :remove if f1 is an update to an existing command
+        delta[:add].each do |id, _|
+          delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        end
       end
       delta
     end # delta_add_remove

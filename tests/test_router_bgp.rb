@@ -525,13 +525,16 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_confederation_peers
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+    puts "RICHAA:"
+
+    # skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
         vrf = 'default'
         bgp = RouterBgp.new(asnum)
       else
+        next if platform == :ios_xr
         asnum = 99
         vrf = 'yamllll'
         bgp = create_bgp_vrf(asnum, vrf)
@@ -540,24 +543,25 @@ class TestRouterBgp < CiscoTestCase
       # confederation id be configured first so the expectation
       # in the next test is an empty peer list
       bgp.confederation_id = 55
+
       assert_empty(bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be empty")
-      bgp.confederation_peers_set(15)
-      assert_equal('15', bgp.confederation_peers,
+      bgp.confederation_peers = (15)
+      assert_equal("15", bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be '15'")
-      bgp.confederation_peers_set(16)
+      bgp.confederation_peers = (16)
       assert_equal('16', bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be '16'")
-      bgp.confederation_peers_set(55.77)
+      bgp.confederation_peers = (55.77)
       assert_equal('55.77', bgp.confederation_peers,
-                   "vrf #{vrf}: bgp confederation_peers list should be" \
+                   "vrf #{vrf}: bgp confederation_peers list should be " \
                    "'55.77'")
-      bgp.confederation_peers_set('15 16 55.77 18 555 299')
-      assert_equal('15 16 55.77 18 555 299',
+      bgp.confederation_peers = ('15 16 55.77 18 555 299')
+      assert_equal('15 16 18 299 555 55.77',
                    bgp.confederation_peers,
-                   "vrf #{vrf}: bgp confederation_peers list should be" \
-                   "'15 16 55.77 18 555 299'")
-      bgp.confederation_peers_set('')
+                   "vrf #{vrf}: bgp confederation_peers list should be " \
+                   "'15 16 18 299 555 55.77'")
+      bgp.confederation_peers = ('')
       assert_empty(bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be empty")
       bgp.destroy
