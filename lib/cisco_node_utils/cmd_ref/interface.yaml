@@ -19,7 +19,7 @@ admin_state_ethernet_noswitchport_shutdown:
       default_value: "shutdown"
 
 all_interfaces:
-  multiple: true
+  multiple:
   config_get_token: '/^interface (.*)/'
 
 create:
@@ -62,7 +62,7 @@ feature_vlan:
 
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
-  multiple: true
+  multiple:
   cli_nexus:
     config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
     config_set_append: "%s ip address %s"
@@ -83,8 +83,7 @@ ipv4_proxy_arp:
 ipv4_redirects_loopback:
   kind: boolean
   cli_nexus:
-    default_value: false
-    default_only: true
+    default_only: false
 
 ipv4_redirects_other_interfaces:
   kind: boolean
@@ -114,8 +113,7 @@ negotiate_auto_ethernet:
     '/^\s+negotiate auto/'
     ]
     /(N7K|C3064)/:
-      default_value: false
-      default_only: true
+      default_only: false
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -123,8 +121,7 @@ negotiate_auto_ethernet:
 
 negotiate_auto_other_interfaces:
   kind: boolean
-  default_value: false
-  default_only: yes
+  default_only: false
 
 negotiate_auto_portchannel:
   kind: boolean
@@ -134,8 +131,7 @@ negotiate_auto_portchannel:
     '/^\s+negotiate auto/'
     ]
     /N7K/:
-      default_value: false
-      default_only: true
+      default_only: false
     else:
       config_get_token_append: '/^negotiate auto$/'
       config_set_append: "%s negotiate auto"
@@ -215,8 +211,7 @@ switchport_mode_ethernet:
   default_value: "access"
 
 switchport_mode_other_interfaces:
-  default_value: ""
-  default_only: true
+  default_only: ""
 
 switchport_mode_port_channel:
   config_get_token_append: '/^switchport mode (.*)$/'

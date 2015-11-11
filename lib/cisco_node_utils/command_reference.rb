@@ -21,6 +21,9 @@ module Cisco
   class CmdRef
     attr_reader :feature, :name, :hash
     attr_reader :auto_default, :multiple, :kind, :default_only
+    alias_method :auto_default?, :auto_default
+    alias_method :default_only?, :default_only
+    alias_method :multiple?, :multiple
 
     KEYS = %w(default_value default_only
               config_set config_set_append
@@ -61,25 +64,32 @@ module Cisco
         elsif key == 'auto_default'
           @auto_default = value ? true : false
         elsif key == 'default_only'
-          @default_only = value ? true : false
+          @default_only = true
+          # default_value overrides default_only
+          @hash['default_value'] ||= preprocess_value(value)
         elsif key == 'multiple'
-          @multiple = value ? true : false
+          @multiple = boolean_default_true(value)
         elsif key == 'kind'
           fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
           @kind = value.to_sym
         else
+          # default_value overrides default_only
+          @default_only = false if key == 'default_value'
           @hash[key] = preprocess_value(value)
         end
       end
 
       if @default_only # rubocop:disable Style/GuardClause
-        fail "default_only but no default_value for #{feature}, " \
-          "#{name} in #{file}" unless @hash.key?('default_value')
         %w(config_get_token config_set).each do |key|
           instance_eval "undef #{key}" if @hash.key?(key)
         end
         @hash.delete_if { |key, _| key != 'default_value' }
       end
+    end
+
+    # Property with an implicit value of 'true' if no value is given
+    def boolean_default_true(value)
+      value.nil? || value
     end
 
     # Create a getter method for the given key.

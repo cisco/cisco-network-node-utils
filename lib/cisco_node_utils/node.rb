@@ -70,7 +70,7 @@ module Cisco
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
 
-      return ref.default_value if ref.default_only
+      return ref.default_value if ref.default_only?
 
       begin
         token = ref.config_get_token(*args)

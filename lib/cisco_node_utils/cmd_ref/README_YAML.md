@@ -474,17 +474,17 @@ By convention, a `default_value` of `''` (empty string) represents a configurabl
 
 ### `default_only`
 
-Some attributes may be hard-coded on certain platforms in such a way that they have a meaningful `default_value` but no relevant `config_get_token` or `config_set` behavior. On such platforms, the key `default_only: true` can be set, which causes the `config_get()` API to always return the default value and `config_set()` to raise a `Cisco::UnsupportedError`.
+Some attributes may be hard-coded in such a way that they have a meaningful default value but no relevant `config_get_token` or `config_set` behavior. For such attributes, the key `default_only` should be used as an alternative to `default_value`. The benefit of using this key is that it causes the `config_get()` API to always return the default value and `config_set()` to raise a `Cisco::UnsupportedError`.
 
 ```yaml
 negotiate_auto_ethernet:
   kind: boolean
   cli_nexus:
     /(N7K|C3064)/:
-      default_value: false
-      default_only: true
+      # this feature is always off on these platforms and cannot be changed
+      default_only: false
     else:
-      config_get_token_append: '/^negotiate auto$/'
+      config_get_token_append: '/^(no )?negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
 ```
@@ -521,13 +521,13 @@ feature_lacp:
 
 ### `multiple`
 
-By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specifyg `multiple: true`. When this value is `true`, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
+By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specify the key `multiple:`. When this key is present, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
 
 ```yaml
 # interface.yaml
 ---
 all_interfaces:
-  multiple: true
+  multiple:
   config_get_token: '/^interface (.*)/'
 ```
 
