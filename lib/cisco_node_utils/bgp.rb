@@ -347,11 +347,9 @@ module Cisco
     def confederation_peers=(should)
       # confederation peers are additive. So create a delta hash of entries
       # and only apply the changes
-      if should.instance_of? String
-        should = should.nil? ? [] : should.split(' ')
-      else
-        should = Array(should)
-      end
+      # Convert strings (1 2 3) to an array
+      # Or FixedNum (1) to a string then an array
+      should = should.to_s.nil? ? [] : should.to_s.split(' ')
       is = confederation_peers
       is = is.nil? ? [] : is.split(' ')
 
