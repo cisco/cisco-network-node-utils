@@ -81,7 +81,7 @@ class TestInterface < CiscoTestCase
                          'Changing interface speed is not permitted)')
     skip('Skip test: Interface type does not allow config change') if
          message[pattern]
-    fail
+    flunk(message)
   end
 
   def create_interface(ifname=interfaces[0])
@@ -177,7 +177,7 @@ class TestInterface < CiscoTestCase
   rescue RuntimeError => e
     skip('NX-OS defect: system default switchport nvgens twice') if
       e.message[/Expected zero.one value/]
-    raise
+    flunk(e.message)
   end
 
   def validate_description(inttype_h)
