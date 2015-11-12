@@ -40,8 +40,7 @@ class TestAceV4 < CiscoTestCase
   # TESTS
 
   def test_router_create_one
-    acl_name = @acl_name
-    rtr = RouterAcl.new(acl_name)
+    name = @acl_name
     seqno = 10
     action = "permit"
     proto = "tcp"
@@ -52,18 +51,11 @@ class TestAceV4 < CiscoTestCase
     ace_10 = RouterAce.new(name, seqno, action, proto, v4_src_addr_format,
                            v4_dst_addr_format, v4_src_port_format, 
                            v4_dst_port_format)
-    @default_show_command = "show runn | i 'ip access-list #{name}'"
-    assert_show_match(pattern: /^ip access-list #{name}$/,
+    @default_show_command = "show runn | sec 'ip access-list #{name}'"
+    assert_show_match(pattern: /\s+#{seqno} #{action}/,
                       msg:     "failed to create acl #{name}")
-    rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
-  end
-
-  def test_router_destroy_one
-    name = @acl_name
-    @default_show_command = "show runn | i 'ip access-list #{name}'"
-    refute_show_match(pattern: /^ip access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
+    ace_10.destroy
+    refute_show_match(pattern: /\s+#{seqno} #{action}/,
+                      msg:     "failed to create acl #{name}")
   end
 end

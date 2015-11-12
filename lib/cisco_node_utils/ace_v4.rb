@@ -24,7 +24,7 @@ module Cisco
     # instantiate: true = create router instance
     def initialize(acl_name, seqno, action, proto, v4_src_addr_format,
                    v4_dst_addr_format, v4_src_port_format, v4_dst_port_format,
-                   option_format="", instantiate=true)
+                   option_format='', instantiate=true)
       addr_regex = /(any|host \d+\.\d+\.\d+\.\d+|\d+\.\d+\.\d+\.\d+\/\d+|\d+\.\d+\.\d+\.\d+ \d+\.\d+\.\d+\.\d+)/
       addr_port_regex = /((eq|neq|lt|gt)\s+\d+|range\s+\d+\s+\d+){0,1}/
       action_regex = /(permit|deny)/
@@ -94,43 +94,49 @@ module Cisco
     
     # Destroy a router instance; disable feature on last instance
     def destroy
-      ids = config_get('ace_v4', 'l3_ace')
-      return if ids.nil?
-      ids = config_get('ace_v4', 'l4_ace')
-      return if ids.nil?
-      config_l4_ace('no')
-      config_l3_ace('no')
+      config_l4_ace('no') if is_l4_ace?
+      config_l3_ace('no') if !is_l4_ace?
     rescue Cisco::CliError => e
       # CLI will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
     end
 
-    def config_l4_ace(state='')
-      @set_args_acl = {}
-      @set_args_acl[:acl_name] = @acl_name
-      config_set('acl_v4', 'acl', @set_args_acl)
-      @set_args[:seqno] = @seqno
-      @set_args[:action] = @action
-      @set_args[:state] = state
-      @set_args[:proto] = @proto
-      @set_args[:v4_src_addr_format] = @v4_src_addr_format
-      @set_args[:v4_dst_addr_format] = @v4_dst_addr_format
-      @set_args[:v4_src_port_format] = @v4_src_port_format
-      @set_args[:v4_dst_port_format] = @v4_dst_port_format
-      @set_args[:option_format] = @option_format
-      config_set('ace_v4', 'l4_ace', @set_args)
+    def config_l4_ace(state=' ')
+      if (state == 'no')
+          @set_args[:acl_name] = @acl_name
+          @set_args[:seqno] = @seqno
+          @set_args[:state] = state
+      else
+          @set_args[:acl_name] = @acl_name
+          @set_args[:seqno] = @seqno
+          @set_args[:action] = @action
+          @set_args[:state] = state
+          @set_args[:proto] = @proto
+          @set_args[:v4_src_addr_format] = @v4_src_addr_format
+          @set_args[:v4_dst_addr_format] = @v4_dst_addr_format
+          @set_args[:v4_src_port_format] = @v4_src_port_format
+          @set_args[:v4_dst_port_format] = @v4_dst_port_format
+          @set_args[:option_format] = @option_format
+      end
+      config_set('acl_v4', 'l4_ace', @set_args)
     end
     
     def config_l3_ace(state='')
-      #@set_args[:acl_name] = @acl_name
-      @set_args[:seqno] = @seqno
-      @set_args[:state] = state
-      @set_args[:proto] = @proto
-      @set_args[:action] = @action
-      @set_args[:v4_src_addr_format] = @v4_src_addr_format
-      @set_args[:v4_dst_addr_format] = @v4_dst_addr_format
-      @set_args[:option_format] = @option_format
-      config_set('ace_v4', 'l3_ace', @set_args)
+      if (state == 'no')
+          @set_args[:acl_name] = @acl_name
+          @set_args[:seqno] = @seqno
+          @set_args[:state] = state
+      else
+          @set_args[:acl_name] = @acl_name
+          @set_args[:seqno] = @seqno
+          @set_args[:state] = state
+          @set_args[:proto] = @proto
+          @set_args[:action] = @action
+          @set_args[:v4_src_addr_format] = @v4_src_addr_format
+          @set_args[:v4_dst_addr_format] = @v4_dst_addr_format
+          @set_args[:option_format] = @option_format
+      end
+      config_set('acl_v4', 'l3_ace', @set_args)
     end
 
 
