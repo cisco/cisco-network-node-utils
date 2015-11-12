@@ -61,8 +61,9 @@ module Cisco
 
       hash_final = {}
       asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
-      hash_tmp = { asnum =>
-                   { 'default' => RouterBgp.new(asnum, 'default', false) } }
+      hash_tmp = {
+        asnum => { 'default' => RouterBgp.new(asnum, 'default', false) }
+      }
       vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
       unless vrf_ids.nil?
         vrf_ids.each do |vrf|
@@ -340,8 +341,9 @@ module Cisco
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
       cmds = config_get('bgp', 'confederation_peers', @get_args)
-      # For XR convert array of peers to a string
-      cmds.to_s.empty? ? default_confederation_peers : cmds.join(' ')
+      return default_confederation_peers if cmds.to_s.empty?
+      cmds = cmds.split(' ') if cmds.instance_of? String
+      cmds.sort.join(' ')
     end
 
     def confederation_peers=(should)
@@ -349,9 +351,9 @@ module Cisco
       # and only apply the changes
       # Convert strings (1 2 3) to an array
       # Or FixedNum (1) to a string then an array
-      should = should.to_s.nil? ? [] : should.to_s.split(' ')
+      should = should.to_s.empty? ? [] : should.to_s.split(' ')
       is = confederation_peers
-      is = is.nil? ? [] : is.split(' ')
+      is = is.empty? ? [] : is.split(' ')
 
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?

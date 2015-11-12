@@ -552,10 +552,10 @@ class TestRouterBgp < CiscoTestCase
                    "vrf #{vrf}: bgp confederation_peers list should be " \
                    "'55.77'")
       bgp.confederation_peers = ('15 16 55.77 18 555 299')
-      assert_equal('15 16 18 299 555 55.77',
+      assert_equal('15 16 18 299 55.77 555',
                    bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be " \
-                   "'15 16 18 299 555 55.77'")
+                   "'15 16 18 299 55.77 555'")
       bgp.confederation_peers = ('')
       assert_empty(bgp.confederation_peers,
                    "vrf #{vrf}: bgp confederation_peers list should be empty")
@@ -563,7 +563,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_confederation_peers_not_configured
+  def test_get_confederation_peers_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.confederation_peers,
@@ -571,7 +571,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_confederation_peers
+  def test_default_confederation_peers
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.default_confederation_peers,
@@ -579,7 +579,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_log_neighbor_changes
+  def test_set_get_log_neighbor_changes
     skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
@@ -601,7 +601,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_log_neighbor_changes_not_configured
+  def test_get_log_neighbor_changes_not_configured
     skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
@@ -610,7 +610,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_log_neighbor_changes
+  def test_default_log_neighbor_changes
     skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
@@ -619,7 +619,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_maxas_limit
+  def test_set_get_maxas_limit
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -640,7 +640,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_default_maxas_limit
+  def test_default_maxas_limit
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
@@ -648,7 +648,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_neighbor_fib_down_accelerate
+  def test_set_get_neighbor_fib_down_accelerate
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -669,7 +669,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_neighbor_fib_down_accelerate_not_configured
+  def test_get_neighbor_fib_down_accelerate_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.neighbor_fib_down_accelerate,
@@ -677,7 +677,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_neighbor_fib_down_accelerate
+  def test_default_neighbor_fib_down_accelerate
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_neighbor_fib_down_accelerate,
@@ -685,7 +685,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_reconnect_interval
+  def test_set_get_reconnect_interval
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -706,7 +706,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_reconnect_interval_default
+  def test_get_reconnect_interval_default
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -714,7 +714,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_router_id
+  def test_set_get_router_id
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -735,7 +735,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_router_id_not_configured
+  def test_get_router_id_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.router_id,
@@ -743,7 +743,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_router_id
+  def test_default_router_id
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.default_router_id,
@@ -751,7 +751,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_shutdown
+  def test_set_get_shutdown
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.shutdown = true
@@ -761,7 +761,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_get_shutdown_not_configured
+  def test_get_shutdown_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.shutdown,
@@ -769,7 +769,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_shutdown
+  def test_default_shutdown
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_shutdown,
@@ -777,7 +777,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_suppress_fib_pending
+  def test_set_get_suppress_fib_pending
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -798,7 +798,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_suppress_fib_pending_not_configured
+  def test_get_suppress_fib_pending_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.suppress_fib_pending,
@@ -806,7 +806,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_suppress_fib_pending
+  def test_default_suppress_fib_pending
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_suppress_fib_pending,
@@ -814,7 +814,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_timer_bestpath_limit
+  def test_set_get_timer_bestpath_limit
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -835,7 +835,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_timer_bestpath_limit_default
+  def test_get_timer_bestpath_limit_default
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(300, bgp.timer_bestpath_limit,
@@ -843,7 +843,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_timer_bestpath_limit_always
+  def test_set_get_timer_bestpath_limit_always
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -864,7 +864,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_get_timer_bestpath_limit_always_not_configured
+  def test_get_timer_bestpath_limit_always_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.timer_bestpath_limit_always,
@@ -872,7 +872,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_default_timer_bestpath_limit_always
+  def test_default_timer_bestpath_limit_always
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_timer_bestpath_limit_always,
@@ -880,7 +880,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_timer_bgp_keepalive_hold
+  def test_set_get_timer_bgp_keepalive_hold
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -912,7 +912,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_default_timer_keepalive_hold_default
+  def test_default_timer_keepalive_hold_default
     skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
