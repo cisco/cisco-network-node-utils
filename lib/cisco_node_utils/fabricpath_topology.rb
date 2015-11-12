@@ -87,8 +87,7 @@ module Cisco
     end
 
     def member_vlans
-      array = config_get('fabricpath_topology', 'member_vlans', @topo_id)
-      str = array.first
+      str = config_get('fabricpath_topology', 'member_vlans', @topo_id)
       return [] if str == '--'
       str.gsub!('-', '..')
       if /,/.match(str)
@@ -114,10 +113,12 @@ module Cisco
       raise "[topo #{@topo_id}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_member_vlans
+      []
+    end
+
     def topo_name
-      desc = config_get('fabricpath_topology', 'description', @topo_id)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('fabricpath_topology', 'description', @topo_id)
     end
 
     def topo_name=(desc)

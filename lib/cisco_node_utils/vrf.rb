@@ -51,9 +51,7 @@ module Cisco
     end
 
     def description
-      desc = config_get('vrf', 'description', @args)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('vrf', 'description', @args)
     end
 
     def description=(desc)
@@ -66,8 +64,7 @@ module Cisco
     end
 
     def shutdown
-      result = config_get('vrf', 'shutdown', @args)
-      result ? true : false
+      config_get('vrf', 'shutdown', @args)
     end
 
     def shutdown=(val)

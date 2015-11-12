@@ -1,0 +1,34 @@
+# dnsclient
+---
+_template:
+  config_get: "show running-config all"
+
+domain_list:
+  multiple: true
+  config_get_token: '/^ip domain-list (\S+)$/'
+  config_set: '<state> ip domain-list <name>'
+  default_value: []
+
+domain_list_vrf:
+  multiple: true
+  config_get_token: ['/vrf context <vrf>/', '/ip domain-list (\S+)/']
+  config_set: ['vrf context <vrf>', '<state> ip domain-list <name>']
+  default_value: []
+
+domain_name:
+  cli_nexus:
+    config_set: '<state> ip domain-name <name>'
+    config_get_token: '/^ip domain-name (\S+)$/'
+    default_value: ''
+
+domain_name_vrf:
+  config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
+  config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+  default_value: ''
+
+name_server:
+  multiple: true
+  default_value: []
+  config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+  config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
+  config_set: '<state> ip name-server <ip>'

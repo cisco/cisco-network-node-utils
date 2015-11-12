@@ -35,7 +35,7 @@ module Cisco
     def self.globals
       hash = {}
       is_fabricpath_feature = config_get('fabricpath', 'feature')
-      return hash if (:enabled != is_fabricpath_feature.first.to_sym)
+      return hash if (:enabled != is_fabricpath_feature.to_sym)
       hash['default'] = FabricpathGlobal.new('default', false)
       hash
     end
@@ -44,7 +44,7 @@ module Cisco
       fabricpath = config_get('fabricpath', 'feature')
       fail 'fabricpath_feature not found' if fabricpath.nil?
       return :disabled if fabricpath.nil?
-      fabricpath.shift.to_sym
+      fabricpath.to_sym
     end
 
     def self.fabricpath_feature_set(fabricpath_set)
@@ -79,7 +79,7 @@ module Cisco
     end
 
     def my_munge(property, set_val)
-      val = config_get_default('supported', property)
+      val = config_get_default('fabricpath', property)
       case property
       when /loadbalance_algorithm/
         if (val == 'source-destination') &&
@@ -104,9 +104,7 @@ module Cisco
     ########################################################
 
     def aggregate_multicast_routes
-      agg_routes = config_get('fabricpath', 'aggregate_multicast_routes')
-      return default_aggregate_multicast_routes if agg_routes.nil?
-      agg_routes.first == 'aggregate-routes' ? true : false
+      config_get('fabricpath', 'aggregate_multicast_routes')
     end
 
     def aggregate_multicast_routes=(val)
@@ -124,9 +122,7 @@ module Cisco
     end
 
     def allocate_delay
-      delay = config_get('fabricpath', 'allocate_delay')
-      return default_allocate_routes if delay.nil?
-      delay.first.to_i
+      config_get('fabricpath', 'allocate_delay')
     end
 
     def allocate_delay=(val)
@@ -143,15 +139,15 @@ module Cisco
       config_get_default('fabricpath', 'allocate_delay')
     end
 
-    def graceful_merge
-      graceful_merge_conf = config_get('fabricpath', 'graceful_merge')
-      return default_graceful_merge if graceful_merge_conf.nil?
-      graceful_merge_conf.first == 'disable' ? false : true
+    def auto_switch_id
+      config_get('fabricpath', 'auto_switch_id')
     end
 
-    def auto_switch_id
-      val = config_get('fabricpath', 'auto_switch_id')
-      val.first.to_i
+    def graceful_merge
+      graceful_merge_conf = config_get('fabricpath', 'graceful_merge')
+      # opposite meaning with the cli
+      return true if graceful_merge_conf.nil?
+      graceful_merge_conf == true ? false : true
     end
 
     def graceful_merge=(val)
@@ -169,9 +165,7 @@ module Cisco
     end
 
     def linkup_delay
-      delay = config_get('fabricpath', 'linkup_delay')
-      return default_linkup_delay if delay.nil?
-      delay.first.to_i
+      config_get('fabricpath', 'linkup_delay')
     end
 
     def linkup_delay=(val)
@@ -189,9 +183,7 @@ module Cisco
     end
 
     def linkup_delay_always
-      enabled = config_get('fabricpath', 'linkup_delay_always')
-      return default_linkup_delay_always if enabled.nil?
-      enabled.first.strip == 'always' ? true : false
+      config_get('fabricpath', 'linkup_delay_always')
     end
 
     def linkup_delay_always=(val)
@@ -210,9 +202,9 @@ module Cisco
     end
 
     def linkup_delay_enable
-      enabled = config_get('fabricpath', 'linkup_delay_enable')
-      return default_linkup_delay_enable if enabled.nil?
-      enabled.first.strip == 'Enabled' ? true : false
+      delay = config_get('fabricpath', 'linkup_delay_enable')
+      return false if delay.nil?
+      delay
     end
 
     def linkup_delay_enable=(val)
@@ -232,8 +224,7 @@ module Cisco
 
     def loadbalance_algorithm
       algo = config_get('fabricpath', 'loadbalance_algorithm')
-      return default_loadbalance_algorithm if algo.nil?
-      algo.first.strip.downcase
+      algo.downcase
     end
 
     def loadbalance_algorithm=(val)
@@ -252,15 +243,11 @@ module Cisco
     end
 
     def loadbalance_multicast_rotate
-      multicast = config_get('fabricpath', 'loadbalance_multicast_rotate')
-      return default_loadbalance_multicast_rotate if multicast.nil?
-      multicast.first.to_i
+      config_get('fabricpath', 'loadbalance_multicast_rotate')
     end
 
     def loadbalance_multicast_has_vlan
-      multicast = config_get('fabricpath', 'loadbalance_multicast_has_vlan')
-      return default_loadbalance_multicast_has_vlan if multicast.nil?
-      multicast.first.strip == 'TRUE' ? true : false
+      config_get('fabricpath', 'loadbalance_multicast_has_vlan')
     end
 
     def loadbalance_multicast=(rotate, has_vlan)
@@ -288,7 +275,7 @@ module Cisco
     def loadbalance_unicast_layer
       unicast = config_get('fabricpath', 'loadbalance_unicast_layer')
       return default_loadbalance_unicast_layer if unicast.nil?
-      case unicast.first.strip
+      case unicast
       when /L4/
         'layer4'
       when /L3/
@@ -299,15 +286,11 @@ module Cisco
     end
 
     def loadbalance_unicast_rotate
-      unicast = config_get('fabricpath', 'loadbalance_unicast_rotate')
-      return default_loadbalance_unicast_rotate if unicast.nil?
-      unicast.first.to_i
+      config_get('fabricpath', 'loadbalance_unicast_rotate')
     end
 
     def loadbalance_unicast_has_vlan
-      unicast = config_get('fabricpath', 'loadbalance_unicast_has_vlan')
-      return default_loadbalance_unicast_has_vlan if unicast.nil?
-      unicast.first.strip == 'TRUE' ? true : false
+      config_get('fabricpath', 'loadbalance_unicast_has_vlan')
     end
 
     def split_loadbalance_unicast_layer=(val)
@@ -318,17 +301,6 @@ module Cisco
       end
     rescue Cisco::CliError => e
       raise "[Setting loadbalance layer #{val} ] '#{e.command}'
-            : #{e.clierror}"
-    end
-
-    def split_loadbalance_unicast_rotate=(val)
-      if val == ''
-        config_set('fabricpath', 'loadbalance_unicast_rotate', 'no', val)
-      else
-        config_set('fabricpath', 'loadbalance_unicast_rotate', '', val)
-      end
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance rotate #{val} ] '#{e.command}'
             : #{e.clierror}"
     end
 
@@ -344,7 +316,7 @@ module Cisco
     end
 
     def loadbalance_unicast=(layer, rotate, has_vlan)
-      support = config_get_default('supported', 'loadbalance_unicast')
+      support = config_get('fabricpath', 'loadbalance_unicast_support')
       if support == 'combined'
         if layer == '' && rotate == '' && (has_vlan == '' || has_vlan == false)
           config_set('fabricpath', 'loadbalance_unicast_reset')
@@ -356,7 +328,6 @@ module Cisco
         end
       else
         self.split_loadbalance_unicast_layer = layer
-        self.split_loadbalance_unicast_rotate = rotate
         self.split_loadbalance_unicast_has_vlan = has_vlan
       end
     rescue Cisco::CliError => e
@@ -377,9 +348,7 @@ module Cisco
     end
 
     def mode
-      mode_conf = config_get('fabricpath', 'mode')
-      return default_mode if mode_conf.nil?
-      mode_conf.first
+      config_get('fabricpath', 'mode')
     end
 
     def mode=(val)
@@ -399,7 +368,7 @@ module Cisco
     def switch_id
       switch_id_conf = config_get('fabricpath', 'switch_id')
       return auto_switch_id if switch_id_conf.nil?
-      switch_id_conf.first.to_i
+      switch_id_conf
     end
 
     def switch_id=(val)
@@ -410,9 +379,7 @@ module Cisco
     end
 
     def transition_delay
-      delay = config_get('fabricpath', 'transition_delay')
-      return default_transition_delay if delay.nil?
-      delay.first.to_i
+      config_get('fabricpath', 'transition_delay')
     end
 
     def transition_delay=(val)
@@ -429,30 +396,8 @@ module Cisco
       config_get_default('fabricpath', 'transition_delay')
     end
 
-    def ttl_unicast
-      ttl = config_get('fabricpath', 'ttl_unicast')
-      return default_ttl_unicast if ttl.nil?
-      ttl.first.to_i
-    end
-
-    def ttl_unicast=(val)
-      if val == ''
-        config_set('fabricpath', 'ttl_unicast', 'no', '')
-      else
-        config_set('fabricpath', 'ttl_unicast', '', val)
-      end
-    rescue Cisco::CliError => e
-      raise "[Setting ttl_unicast #{val}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_ttl_unicast
-      config_get_default('fabricpath', 'ttl_unicast')
-    end
-
     def ttl_multicast
-      ttl = config_get('fabricpath', 'ttl_multicast')
-      return default_ttl_multicast if ttl.nil?
-      ttl.first.to_i
+      config_get('fabricpath', 'ttl_multicast')
     end
 
     def ttl_multicast=(val)
@@ -467,6 +412,24 @@ module Cisco
 
     def default_ttl_multicast
       config_get_default('fabricpath', 'ttl_multicast')
+    end
+
+    def ttl_unicast
+      config_get('fabricpath', 'ttl_unicast')
+    end
+
+    def ttl_unicast=(val)
+      if val == ''
+        config_set('fabricpath', 'ttl_unicast', 'no', '')
+      else
+        config_set('fabricpath', 'ttl_unicast', '', val)
+      end
+    rescue Cisco::CliError => e
+      raise "[Setting ttl_unicast #{val}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_ttl_unicast
+      config_get_default('fabricpath', 'ttl_unicast')
     end
   end # class
 end # module

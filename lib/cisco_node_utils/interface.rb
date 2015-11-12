@@ -65,9 +65,7 @@ module Cisco
     ########################################################
 
     def access_vlan
-      vlan = config_get('interface', 'access_vlan', @name)
-      return default_access_vlan if vlan.nil?
-      vlan.shift.to_i
+      config_get('interface', 'access_vlan', @name)
     end
 
     def access_vlan=(vlan)
@@ -81,9 +79,7 @@ module Cisco
     end
 
     def description
-      desc = config_get('interface', 'description', @name)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('interface', 'description', @name)
     end
 
     def description=(desc)
@@ -118,9 +114,7 @@ module Cisco
     end
 
     def encapsulation_dot1q
-      val = config_get('interface', 'encapsulation_dot1q', @name)
-      return default_encapsulation_dot1q if val.nil?
-      val.shift.strip.to_i
+      config_get('interface', 'encapsulation_dot1q', @name)
     end
 
     def encapsulation_dot1q=(val)
@@ -165,7 +159,7 @@ module Cisco
     def fex_feature
       fex = config_get('fex', 'feature')
       fail 'fex_feature not found' if fex.nil?
-      fex.shift.to_sym
+      fex.to_sym
     end
 
     def fex_feature_set(fex_set)
@@ -208,7 +202,7 @@ module Cisco
     def ipv4_address
       val = ipv4_addr_mask
       return default_ipv4_address if val.nil?
-      # val is [[addr, mask]] - we just want the addr
+      # val is [[addr, mask], [addr, mask secondary]] - we just want the addr
       val.shift.first
     end
 
@@ -219,7 +213,7 @@ module Cisco
     def ipv4_netmask_length
       val = ipv4_addr_mask
       return default_ipv4_netmask_length if val.nil?
-      # val is [[addr, mask]] - we just want the mask
+      # val is [[addr, mask], [addr, mask secondary]] - we just want the mask
       val.shift.last.to_i
     end
 
@@ -228,8 +222,7 @@ module Cisco
     end
 
     def ipv4_proxy_arp
-      state = config_get('interface', 'ipv4_proxy_arp', @name)
-      state.nil? ? false : true
+      config_get('interface', 'ipv4_proxy_arp', @name)
     end
 
     def ipv4_proxy_arp=(proxy_arp)
@@ -252,24 +245,13 @@ module Cisco
     end
 
     def ipv4_redirects
-      begin
-        state = config_get('interface',
-                           ipv4_redirects_lookup_string, @name)
-      rescue IndexError
-        state = nil
-      end
-      # We return default state for the platform if the platform doesn't support
-      # the command
-      return default_ipv4_redirects if state.nil? || state.empty?
-      state.shift[/^ip redirects$/] ? true : false
+      config_get('interface', ipv4_redirects_lookup_string, @name)
     end
 
     def ipv4_redirects=(redirects)
       check_switchport_disabled
       no_cmd = (redirects ? '' : 'no')
       config_set('interface', ipv4_redirects_lookup_string, @name, no_cmd)
-    rescue IndexError
-      raise "ipv4 redirects not supported on #{@name}"
     end
 
     def default_ipv4_redirects
@@ -277,7 +259,7 @@ module Cisco
     end
 
     def feature_lacp?
-      !config_get('interface', 'feature_lacp').nil?
+      config_get('interface', 'feature_lacp')
     end
 
     def feature_lacp_set(val)
@@ -286,9 +268,7 @@ module Cisco
     end
 
     def mtu
-      mtu = config_get('interface', 'mtu', @name)
-      return default_mtu if mtu.nil?
-      mtu.shift.strip.to_i
+      config_get('interface', 'mtu', @name)
     end
 
     def mtu=(val)
@@ -300,6 +280,40 @@ module Cisco
 
     def default_mtu
       config_get_default('interface', 'mtu')
+    end
+
+    def speed
+      config_get('interface', 'speed', @name)
+    end
+
+    def speed=(val)
+      if node.product_id =~ /C31\d\d/
+        fail 'Changing interface speed is not permitted on this platform'
+      end
+      config_set('interface', 'speed', @name, val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_speed
+      config_get_default('interface', 'speed')
+    end
+
+    def duplex
+      config_get('interface', 'duplex', @name)
+    end
+
+    def duplex=(val)
+      if node.product_id =~ /C31\d\d/
+        fail 'Changing interface duplex is not permitted on this platform'
+      end
+      config_set('interface', 'duplex', @name, val)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_duplex
+      config_get_default('interface', 'duplex')
     end
 
     def negotiate_auto_lookup_string
@@ -314,17 +328,7 @@ module Cisco
     end
 
     def negotiate_auto
-      lookup = negotiate_auto_lookup_string
-      begin
-        state = config_get('interface', lookup, @name)
-      rescue IndexError
-        # We return default state even if the config_get is not supported
-        # for this platform / interface type. This is done so that we can set
-        # the manifest to 'default' so there is a 'workaround' for the
-        # unsupported attribute
-        return default_negotiate_auto
-      end
-      state.nil? ? false : true
+      config_get('interface', negotiate_auto_lookup_string, @name)
     end
 
     def negotiate_auto=(negotiate_auto)
@@ -334,8 +338,6 @@ module Cisco
         config_set('interface', lookup, @name, no_cmd)
       rescue Cisco::CliError => e
         raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      rescue IndexError
-        raise "[#{@name}] negotiate_auto is not supported on this interface"
       end
     end
 
@@ -344,8 +346,7 @@ module Cisco
     end
 
     def shutdown
-      state = config_get('interface', 'shutdown', @name)
-      state ? true : false
+      config_get('interface', 'shutdown', @name)
     end
 
     def shutdown=(state)
@@ -390,8 +391,7 @@ module Cisco
 
     def switchport
       # This is "switchport", not "switchport mode"
-      sw = config_get('interface', 'switchport', @name)
-      sw.nil? ? false : true
+      config_get('interface', 'switchport', @name)
     end
 
     def switchport_enable(val=true)
@@ -400,8 +400,8 @@ module Cisco
 
     # switchport_autostate_exclude is exclusive to switchport interfaces
     def switchport_autostate_exclude
-      !config_get('interface',
-                  'switchport_autostate_exclude', @name).nil?
+      config_get('interface',
+                 'switchport_autostate_exclude', @name)
     end
 
     def switchport_autostate_exclude=(val)
@@ -431,7 +431,7 @@ module Cisco
     def switchport_mode
       mode = config_get('interface', switchport_mode_lookup_string, @name)
 
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode.shift)
+      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
 
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
@@ -491,10 +491,7 @@ module Cisco
     end
 
     def switchport_trunk_allowed_vlan
-      val = config_get(
-        'interface', 'switchport_trunk_allowed_vlan', @name)
-      return default_switchport_trunk_allowed_vlan if val.nil?
-      val.shift.strip
+      config_get('interface', 'switchport_trunk_allowed_vlan', @name)
     end
 
     def switchport_trunk_allowed_vlan=(val)
@@ -514,10 +511,7 @@ module Cisco
     end
 
     def switchport_trunk_native_vlan
-      val = config_get(
-        'interface', 'switchport_trunk_native_vlan', @name)
-      return default_switchport_trunk_native_vlan if val.nil?
-      val.shift.strip.to_i
+      config_get('interface', 'switchport_trunk_native_vlan', @name)
     end
 
     def switchport_trunk_native_vlan=(val)
@@ -538,22 +532,17 @@ module Cisco
 
     def system_default_switchport
       # This command is a user-configurable system default.
-      sys_def = config_get('interface', 'system_default_switchport')
-      sys_def.nil? ? false : true
+      config_get('interface', 'system_default_switchport')
     end
 
     def system_default_switchport_shutdown
       # This command is a user-configurable system default.
-      sys_def = config_get('interface',
-                           'system_default_switchport_shutdown')
-      sys_def.nil? ? false : true
+      config_get('interface', 'system_default_switchport_shutdown')
     end
 
     def system_default_svi_autostate
       # This command is a user-configurable system default.
-      sys_def = config_get('interface',
-                           'system_default_svi_autostate')
-      sys_def.nil? ? false : true
+      config_get('interface', 'system_default_svi_autostate')
     end
 
     def switchport_vtp_mode_capable?
@@ -562,8 +551,7 @@ module Cisco
 
     def switchport_vtp
       return false unless switchport_vtp_mode_capable?
-      vtp = config_get('interface', 'vtp', @name)
-      vtp.nil? ? false : true
+      config_get('interface', 'vtp', @name)
     end
 
     def switchport_vtp=(vtp_set)
@@ -582,7 +570,7 @@ module Cisco
     # svi_autostate is exclusive to svi interfaces
     def svi_autostate
       return nil unless @name[/^vlan/i]
-      !config_get('interface', 'svi_autostate', @name).nil?
+      config_get('interface', 'svi_autostate', @name)
     end
 
     def svi_autostate=(val)
@@ -596,7 +584,7 @@ module Cisco
     end
 
     def feature_vlan?
-      !config_get('interface', 'feature_vlan').nil?
+      config_get('interface', 'feature_vlan')
     end
 
     def feature_vlan_set(val)
@@ -607,7 +595,7 @@ module Cisco
     # svi_management is exclusive to svi interfaces
     def svi_management
       return nil unless @name[/^vlan/i]
-      !config_get('interface', 'svi_management', @name).nil?
+      config_get('interface', 'svi_management', @name)
     end
 
     def svi_management=(val)
@@ -634,9 +622,7 @@ module Cisco
     end
 
     def vrf
-      vrf = config_get('interface', 'vrf', @name)
-      return '' if vrf.nil?
-      vrf.shift.strip
+      config_get('interface', 'vrf', @name)
     end
 
     def vrf=(vrf)

@@ -1,0 +1,49 @@
+# tacacs_server
+---
+deadtime:
+  kind: int
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
+  config_set: "%s tacacs-server deadtime %d"
+  default_value: 0
+
+directed_request:
+  kind: boolean
+  # oddly, directed request must be retrieved from aaa output
+  config_get: "show running aaa all"
+  config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
+  config_set: "%s tacacs-server directed-request"
+  default_value: false
+
+encryption:
+  config_set: "%s tacacs-server key %d %s"
+
+encryption_password:
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  default_value: ""
+
+encryption_type:
+  auto_default: false
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  default_value: 0
+
+feature:
+  kind: boolean
+  config_get: "show run tacacs all"
+  config_get_token: '/^feature tacacs/'
+  config_set: "%s feature tacacs+"
+
+source_interface:
+  config_get: "show run tacacs all"
+  config_get_token: '/(no)?\s*ip tacacs source-interface\s+(\S+)?/'
+  config_set: "%s ip tacacs source-interface %s"
+  default_value: ""
+
+timeout:
+  kind: int
+  config_get: "show run tacacs all"
+  config_get_token: '/tacacs-server timeout\s+(\d+)/'
+  config_set: "%s tacacs-server timeout %d"
+  default_value: 5
