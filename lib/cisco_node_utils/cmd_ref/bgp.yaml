@@ -84,6 +84,13 @@ feature:
   config_get_token: '/^feature bgp$/'
   config_set: "<state> feature bgp"
 
+# This is a multi-provider, enable-only feature. Do not disable from provider.
+feature_nv_overlay_evpn:
+  kind: boolean
+  config_get: "show running section nv"
+  config_get_token: '/^nv overlay evpn$/'
+  config_set: "nv overlay evpn"
+
 graceful_restart:
   kind: boolean
   config_get_token_append: '/^(no )?graceful-restart$/'
@@ -131,6 +138,11 @@ reconnect_interval:
   config_get_token_append: '/^reconnect-interval (\d+)$/'
   config_set_append: '<state> reconnect-interval <seconds>'
   default_value: 60
+
+route_distinguisher:
+  config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
+  config_set: ["vrf context <vrf>", "<state> rd <rd>"]
+  default_value: ""
 
 router:
   config_get: "show running bgp"

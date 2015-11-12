@@ -161,7 +161,6 @@ module Cisco
 
     def self.feature_nv_overlay_evpn_enabled
       feat = config_get('bgp_af', 'feature_nv_overlay_evpn')
-      return !(feat.nil? || feat.empty?)
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -512,8 +511,7 @@ module Cisco
     # Configure in vrf context
     def route_distinguisher
       return false unless RouterBgp.feature_nv_overlay_evpn_enabled
-      match = config_get('bgp', 'route_distinguisher', @get_args)
-      match.nil? ? default_route_distinguisher : match.first
+      config_get('bgp', 'route_distinguisher', @get_args)
     end
 
     def route_distinguisher=(rd)
