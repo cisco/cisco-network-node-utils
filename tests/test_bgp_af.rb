@@ -970,10 +970,9 @@ class TestRouterBgpAF < CiscoTestCase
 
   def route_target(asn, vrf, af)
     # Common test for route-target providers. Tests evpn and non-evpn.
-    config("no vrf #{vrf}")
+
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
-=begin 
     # test route target both auto and route target both auto evpn
     refute(bgp_af.default_route_target_both_auto,
            'default value for route target both auto should be false')
@@ -983,24 +982,24 @@ class TestRouterBgpAF < CiscoTestCase
 
     bgp_af.route_target_both_auto = true
     assert(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto should be enabled') 
-    
+           'bgp_af route-target both auto should be enabled')
+
     bgp_af.route_target_both_auto = false
     refute(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
            'bgp_af route-target both auto should be disabled')
-    
+
     bgp_af.route_target_both_auto_evpn = true
     assert(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
            'bgp_af route-target both auto evpn should be enabled')
 
     bgp_af.route_target_both_auto_evpn = false
     refute(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto evpn should be disabled') 
-=end
+           'bgp_af route-target both auto evpn should be disabled')
+
     opts = [:import, :export]
 
     # Master list of communities to test against
-    master = ['1:1', '2:2', '3:3', '4:5']
+    master = '1:1 2:2 3:3 4:5'
 
     # Test 1: both/import/export when no commands are present. Each target
     # option will be tested with and without evpn (6 separate types)
@@ -1008,7 +1007,7 @@ class TestRouterBgpAF < CiscoTestCase
     route_target_tester(bgp_af, af, opts, should, 'Test 1')
 
     # Test 2: remove half of the entries
-    should.shift(4)
+    should = '1:1 4:4'
     route_target_tester(bgp_af, af, opts, should, 'Test 2')
 
     # Test 3: restore the removed entries
@@ -1018,9 +1017,6 @@ class TestRouterBgpAF < CiscoTestCase
     # Test 4: 'default'
     should = bgp_af.default_route_target_import
     route_target_tester(bgp_af, af, opts, should, 'Test 4')
-
-    # Cleanup.
-    config("no vrf #{vrf}")
   end
 
   def route_target_tester(bgp_af, af, opts, should, test_id)
@@ -1029,22 +1025,22 @@ class TestRouterBgpAF < CiscoTestCase
       # non-evpn
       bgp_af.send("route_target_#{opt}=", should)
     end
-    
+
     # Now check the results
     opts.each do |opt|
       # non-evpn
       result = bgp_af.send("route_target_#{opt}")
-      assert_equal(should.sort, result.sort,
+      assert_equal(should, result,
                    "#{test_id} : #{af} : route_target_#{opt}")
     end
-    
+
     opts.each do |opt|
       bgp_af.send("route_target_#{opt}_evpn=", should)
     end
 
     opts.each do |opt|
       result = bgp_af.send("route_target_#{opt}_evpn")
-      assert_equal(should.sort, result.sort,
+      assert_equal(should, result,
                    "#{test_id} : #{af} : route_target_#{opt}_evpn")
     end
   end
