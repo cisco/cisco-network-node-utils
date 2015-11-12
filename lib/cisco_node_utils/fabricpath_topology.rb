@@ -35,7 +35,7 @@ module Cisco
     def self.topos
       hash = {}
       fabricpath = config_get('fabricpath', 'feature')
-      return hash if (:enabled != fabricpath.first.to_sym)
+      return hash if (:enabled != fabricpath.to_sym)
       topo_list = config_get('fabricpath_topology', 'all_topos')
       return hash if topo_list.nil?
 
@@ -74,7 +74,7 @@ module Cisco
     def state
       result = config_get('fabricpath_topology', 'state', @topo_id)
       return default_state if result.nil?
-      case result.first
+      case result
       when /Up/
         return 'up'
       when /Down/
