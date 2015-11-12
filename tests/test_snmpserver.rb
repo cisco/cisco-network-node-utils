@@ -293,46 +293,26 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.packet_size = 0
   end
 
-  def test_snmpserver_global_enforce_priv_get_default
+  def test_snmpserver_global_enforce_priv
     snmpserver = SnmpServer.new
-    # default is false
-    snmpserver.global_enforce_priv = false
-    device_enabled = snmpserver.global_enforce_priv?
-    if device_enabled
-      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
+    default = snmpserver.default_global_enforce_priv
+    snmpserver.global_enforce_priv = default
+    if default == true
+      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
+      assert(snmpserver.global_enforce_priv?)
+
+      snmpserver.global_enforce_priv = false
+      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
+      refute(snmpserver.global_enforce_priv?)
     else
-      assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
+      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
+      refute(snmpserver.global_enforce_priv?)
+
+      snmpserver.global_enforce_priv = true
+      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
+      assert(snmpserver.global_enforce_priv?)
     end
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_global_enforce_priv_get_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = true
-    device_enabled = snmpserver.global_enforce_priv?
-    if device_enabled
-      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    else
-      assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    end
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_global_enforce_priv_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = true
-    assert_show_match(pattern: /snmp-server globalEnforcePriv/)
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_global_enforce_priv_set_disabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = false
-    assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    # set to default
+    # Cleanup
     snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
   end
 
