@@ -118,9 +118,8 @@ module Cisco
 
     def self.delta_add_remove(should, current=[])
       # Remove nil entries from array
-      if depth(should) > 1
-        should.each(&:compact!) unless should.empty?
-      end
+      should.each(&:compact!) unless should.empty? if depth(should) > 1
+
       delta = { add: should - current, remove: current - should }
 
       # Delete entries from :remove if f1 is an update to an existing command

@@ -160,7 +160,7 @@ module Cisco
     end
 
     def self.feature_nv_overlay_evpn_enabled
-      feat = config_get('bgp_af', 'feature_nv_overlay_evpn')
+      config_get('bgp_af', 'feature_nv_overlay_evpn')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
