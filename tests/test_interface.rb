@@ -79,19 +79,21 @@ class TestInterface < CiscoTestCase
   def interface_ipv4_config(ifname, address, length,
                             do_config=true, secip=false)
     if do_config
+      config("interface #{ifname}",
+             'no switchport') if platform == :nexus
       if !secip
         config("interface #{ifname}",
-               'no switchport',
                "#{ipv4} address #{address}/#{length}")
       else
         config("interface #{ifname}",
-               'no switchport',
                "#{ipv4} address #{address}/#{length} secondary")
       end
     else
       config("interface #{ifname}",
              "no #{ipv4} address", # This will remove both primary and secondary
-             'switchport')
+            )
+      config("interface #{ifname}",
+             'switchport') if platform == :nexus
     end
   end
 
@@ -149,6 +151,7 @@ class TestInterface < CiscoTestCase
 
   def system_default_switchport_shutdown
     state = []
+    return state if platform == :ios_xr
     s = @device.cmd("sh run all | in \"system default switchport\"")
 
     s.split("\n")[1..-2].each do |line|
@@ -218,7 +221,7 @@ class TestInterface < CiscoTestCase
                    "Error: #{interface.name}, switchport mode, default, " \
                    'not correct')
     end
-  rescue RuntimeError => e
+  rescue Cisco::CliError => e
     skip('NX-OS defect: system default switchport nvgens twice') if
       e.message[/Expected zero.one value/]
     flunk(e.message)
@@ -444,7 +447,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_description_too_long
-    skip('No description length limit on XR') if platform == :ios_xr
+    skip('No description length limit on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     description = 'a' * (IF_DESCRIPTION_SIZE + 1)
     assert_raises(RuntimeError) { interface.description = description }
@@ -467,7 +470,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_encapsulation_dot1q_change
     interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
 
     subif.encapsulation_dot1q = 20
@@ -479,7 +482,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_encapsulation_dot1q_invalid
     interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
 
     assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
@@ -488,7 +491,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_encapsulation_dot1q_valid
     interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
 
     subif.encapsulation_dot1q = 20
@@ -518,7 +521,6 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_speed_change
-    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     begin
       interface.speed = 100
@@ -526,29 +528,26 @@ class TestInterface < CiscoTestCase
       interface.speed = 1000
       assert_equal('1000', interface.speed)
       interface_ethernet_default(interfaces_id[0])
-    rescue RuntimeError => e
+    rescue Cisco::CliError => e
       speed_change_disallowed(e.message)
     end
   end
 
   def test_interface_speed_invalid
-    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     assert_raises(RuntimeError) { interface.speed = 'hello' }
   end
 
   def test_interface_speed_valid
-    skip('Speed changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     interface.speed = 1000
     assert_equal('1000', interface.speed)
     interface_ethernet_default(interfaces_id[0])
-  rescue RuntimeError => e
+  rescue Cisco::CliError => e
     speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_change
-    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     interface.speed = 1000
     interface.duplex = 'full'
@@ -556,28 +555,26 @@ class TestInterface < CiscoTestCase
     interface.duplex = 'auto'
     assert_equal('auto', interface.duplex)
     interface_ethernet_default(interfaces_id[0])
-  rescue RuntimeError => e
+  rescue Cisco::CliError => e
     speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_invalid
-    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     interface.speed = 1000
     assert_raises(RuntimeError) { interface.duplex = 'hello' }
     interface_ethernet_default(interfaces_id[0])
-  rescue RuntimeError => e
+  rescue Cisco::CliError => e
     speed_change_disallowed(e.message)
   end
 
   def test_interface_duplex_valid
-    skip('Duplex changes not supported on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     interface.speed = 1000
     interface.duplex = 'full'
     assert_equal('full', interface.duplex)
     interface_ethernet_default(interfaces_id[0])
-  rescue RuntimeError => e
+  rescue Cisco::CliError => e
     speed_change_disallowed(e.message)
   end
 
@@ -602,7 +599,7 @@ class TestInterface < CiscoTestCase
   #   def test_interface_get_prefix_list_with_ipv4_address_assignment
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
-  #     interface.switchport_mode = :disabled
+  #     interface.switchport_mode = :disabled if platform == :nexus
   #     config("interface #{interfaces[0]}",
   #            'ip address 192.168.1.100 255.255.255.0')
   #     prefixes = interface.prefixes
@@ -616,7 +613,7 @@ class TestInterface < CiscoTestCase
   #   def test_interface_get_prefix_list_with_ipv6_address_assignment
   #     interface = Interface.new(interfaces[0] )
   #     interface.switchport_mode = :access
-  #     interface.switchport_mode = :disabled
+  #     interface.switchport_mode = :disabled if platform == :nexus
   #     config("interface #{interfaces[0]}",
   #            'ipv6 address fd56:31f7:e4ad:5585::1/64")
   #     prefixes = interface.prefixes
@@ -630,7 +627,7 @@ class TestInterface < CiscoTestCase
   #   def test_interface_prefix_list_with_both_ip4_and_ipv6_address_assignments
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
-  #     interface.switchport_mode = :disabled
+  #     interface.switchport_mode = :disabled if platform == :nexus
   #     config("interface #{interfaces[0]}",
   #            'ip address 192.168.1.100 255.255.255.0',
   #            'ipv6 address fd56:31f7:e4ad:5585::1/64')
@@ -747,7 +744,7 @@ class TestInterface < CiscoTestCase
     # Some platforms/interfaces/versions do not support negotiation changes
     begin
       interface.negotiate_auto = false
-    rescue RuntimeError => e
+    rescue Cisco::CliError => e
       skip('Skip test: Interface type does not allow config change') if
         e.message[/requested config change not allowed/]
       flunk(e.message)
@@ -796,7 +793,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_addr_mask_set_address_invalid
     interface = create_interface
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('', 14)
     end
@@ -805,7 +802,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_addr_mask_set_netmask_invalid
     interface = create_interface
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(RuntimeError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
@@ -814,7 +811,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_address
     interface = create_interface
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
     address = '8.7.1.1'
     length = 15
 
@@ -892,7 +889,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_proxy_arp
     interface = create_interface
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
 
     # set with value true
     interface.ipv4_proxy_arp = true
@@ -931,7 +928,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_redirects
     interface = create_interface
-    interface.switchport_mode = :disabled
+    interface.switchport_mode = :disabled if platform == :nexus
 
     ref = cmd_ref.lookup('interface', 'ipv4_redirects_other_interfaces')
     assert(ref, 'Error, reference not found')
@@ -1096,7 +1093,7 @@ class TestInterface < CiscoTestCase
       validate_interfaces_not_empty
       validate_get_switchport(inttype_h)
       validate_description(inttype_h)
-      validate_get_access_vlan(inttype_h)
+      validate_get_access_vlan(inttype_h) unless platform == :ios_xr
       validate_ipv4_address(inttype_h)
       validate_ipv4_proxy_arp(inttype_h)
       validate_ipv4_redirects(inttype_h)

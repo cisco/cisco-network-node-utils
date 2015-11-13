@@ -92,6 +92,7 @@ class TestCase < Minitest::Test
                     'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
                    )
     rescue Errno::ECONNRESET
+      @device.close
       # TODO
       puts 'Connection reset by peer? Try again'
       sleep 1

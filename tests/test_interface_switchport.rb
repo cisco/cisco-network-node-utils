@@ -24,9 +24,24 @@ class TestInterfaceSwitchport < CiscoTestCase
   DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = '1-4094'
   DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
 
+  attr_reader :interface
+
   def setup
     super
     config('no feature vtp', 'no feature interface-vlan')
+    @interface = Interface.new(interfaces[0])
+  end
+
+  def teardown
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def mgmt_intf
+    if platform == :nexus
+      'mgmt0'
+    elsif platform == :ios_xr
+      'MgmtEth0/RP0/CPU0/0'
+    end
   end
 
   def interface_ethernet_default(ethernet_id)
@@ -59,120 +74,96 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_interface_get_access_vlan
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     interface.switchport_mode = :access
     assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_get_access_vlan_switchport_disabled
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_get_access_vlan_switchport_trunk
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     interface.switchport_mode = :trunk
     assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_vtp_disabled_feature_enabled
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
     vtp.destroy
   end
 
   def test_switchport_vtp_disabled_feature_disabled_eth1_1
-    interface = Interface.new(interfaces[0])
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_switchport_vtp_disabled_feature_disabled_mgmt0
-    interface = Interface.new('mgmt0')
+  def test_switchport_vtp_disabled_feature_disabled_mgmt_intf
+    interface = Interface.new(mgmt_intf)
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
   def test_switchport_vtp_disabled_unsupported_mode_disabled
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_vtp_disabled_unsupported_mode_fex
-    begin
-      interface = Interface.new(interfaces[0])
-      interface.switchport_mode = :fex_fabric
-      refute(interface.switchport_vtp,
-             'Error: interface, access, vtp not disabled')
-    rescue RuntimeError => e
-      msg = "[#{interfaces[0]}] switchport_mode is not supported " \
-            'on this interface'
-      assert_equal(msg.downcase, e.message)
-    end
-    interface_ethernet_default(interfaces_id[0])
+    interface.switchport_mode = :fex_fabric
+    refute(interface.switchport_vtp,
+           'Error: interface, access, vtp not disabled')
+  rescue Cisco::CliError => e
+    msg = "[#{interfaces[0]}] switchport_mode is not supported " \
+          'on this interface'
+    assert_equal(msg.downcase, e.message)
   end
 
   def test_switchport_vtp_enabled_access
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     config("interface ethernet #{interfaces_id[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_vtp_disabled_access
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     config("interface ethernet #{interfaces_id[0]}", 'no vtp')
 
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_vtp_enabled_trunk
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
     config("interface ethernet #{interfaces_id[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, trunk, vtp not enabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_vtp_disabled_trunk
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :trunk
     refute(interface.switchport_vtp,
            'Error: interface, trunk, vtp not disabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_default_access
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
 
     interface.switchport_vtp = interface.default_switchport_vtp
@@ -188,13 +179,10 @@ class TestInterfaceSwitchport < CiscoTestCase
            'Error:(3) mode :access, vtp should be default (false)')
 
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_default_trunk
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :trunk
     interface.switchport_vtp = interface.default_switchport_vtp
     refute(interface.switchport_vtp,
@@ -208,47 +196,37 @@ class TestInterfaceSwitchport < CiscoTestCase
     refute(interface.switchport_vtp,
            'Error:(3) mode :trunk, vtp should be default (false)')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_true_access
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :access
     interface.switchport_vtp = true
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_true_trunk
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :trunk
     interface.switchport_vtp = true
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_true_unsupported_mode_disabled
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :disabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp is enabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_set_switchport_vtp_true_unsupported_mgmt0
+  def test_set_switchport_vtp_true_unsupported_mgmt_intf
     vtp = Vtp.new(true)
-    interface = Interface.new('mgmt0')
+    interface = Interface.new(mgmt_intf)
 
     interface.switchport_vtp = true
     refute(interface.switchport_vtp,
@@ -258,71 +236,57 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def test_set_switchport_vtp_false_access
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :access
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_false_trunk
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :trunk
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_vtp_false_unsupported_mode_disabled
     vtp = Vtp.new(true)
-    interface = Interface.new(interfaces[0])
-
     interface.switchport_mode = :disabled
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: mode :disabled, vtp should be false')
     vtp.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_autostate_disabled_feature_enabled
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
     svi.destroy
   end
 
   def test_switchport_autostate_disabled_feature_disabled_eth1_1
-    interface = Interface.new(interfaces[0])
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_disabled_feature_disabled_mgmt0
-    interface = Interface.new('mgmt0')
+  def test_switchport_autostate_disabled_feature_disabled_mgmt_intf
+    interface = Interface.new(mgmt_intf)
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
   end
 
   def test_switchport_autostate_disabled_unsupported_mode
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_autostate_enabled_access
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     config("interface ethernet #{interfaces_id[0]}",
            'switchport',
            'switchport autostate exclude')
@@ -336,14 +300,11 @@ class TestInterfaceSwitchport < CiscoTestCase
                    interface.switchport_autostate_exclude,
                    'Error: interface, access, autostate exclude not disabled')
     end
-
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_autostate_disabled_access
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
     svi.destroy
@@ -351,7 +312,6 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def test_switchport_autostate_enabled_trunk
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
     config("interface ethernet #{interfaces_id[0]}",
            'switchport autostate exclude')
@@ -365,14 +325,11 @@ class TestInterfaceSwitchport < CiscoTestCase
                    interface.switchport_autostate_exclude,
                    'Error: interface, access, autostate exclude not disabled')
     end
-
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_switchport_autostate_disabled_trunk
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
     config("interface ethernet #{interfaces_id[0]}",
            'no switchport autostate exclude')
@@ -380,13 +337,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_raise_error_switchport_not_enabled
-    interface = Interface.new(interfaces[0])
-
-    config("interface #{interfaces[0]}", 'no switchport')
+    interface.switchport_enable(false)
 
     assert_raises(RuntimeError) do
       interface.switchport_autostate_exclude = true
@@ -395,10 +349,8 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def test_set_switchport_autostate_default_access
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
-
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = interface.default_switchport_autostate_exclude
     assert_result(result,
@@ -406,16 +358,14 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_default_trunk
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
 
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = false
     assert_result(result,
@@ -423,15 +373,12 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_true_access
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
-
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = true
     assert_result(result,
@@ -439,16 +386,14 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_true_trunk
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
 
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = true
     assert_result(result,
@@ -456,24 +401,21 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_true_unsupported_mode_disabled
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
 
     assert_raises RuntimeError do
       interface.switchport_autostate_exclude = true
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_set_switchport_autostate_true_unsupported_mgmt0
+  def test_set_switchport_autostate_true_unsupported_mgmt_intf
     svi = Interface.new('Vlan23')
-    interface = Interface.new('mgmt0')
+    interface = Interface.new(mgmt_intf)
     assert_raises RuntimeError do
       interface.switchport_autostate_exclude = true
     end
@@ -482,10 +424,8 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def test_set_switchport_autostate_false_access
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
-
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = false
     assert_result(result,
@@ -493,16 +433,14 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_false_trunk
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :trunk
 
     # switchport must be enabled to configure autostate
-    config("interface #{interfaces[0]}", 'switchport')
+    interface.switchport_enable(true)
 
     result = false
     assert_result(result,
@@ -510,35 +448,26 @@ class TestInterfaceSwitchport < CiscoTestCase
       interface.switchport_autostate_exclude = result
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_set_switchport_autostate_false_unsupported_mode_disabled
     svi = Interface.new('Vlan23')
-    interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
 
     assert_raises RuntimeError do
       interface.switchport_autostate_exclude = false
     end
     svi.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_mode_invalid
-    interface = Interface.new(interfaces[0])
     assert_raises(ArgumentError) { interface.switchport_mode = :unknown }
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_mode_not_supported
-    interface = Interface.new('mgmt0')
-    assert_raises(RuntimeError) { interface.switchport_mode = :access }
-    begin
+    interface = Interface.new(mgmt_intf)
+    assert_raises(Cisco::CliError, Cisco::UnsupportedError) do
       interface.switchport_mode = :access
-    rescue RuntimeError => e
-      msg = '[mgmt0] switchport_mode is not supported on this interface'
-      assert_equal(msg, e.message)
     end
   end
 
@@ -552,8 +481,6 @@ class TestInterfaceSwitchport < CiscoTestCase
       :tunnel,
     ]
 
-    interface = Interface.new(interfaces[0])
-
     switchport_modes.each do |start|
       switchport_modes.each do |finish|
         next if start == :unknown || finish == :unknown
@@ -566,14 +493,11 @@ class TestInterfaceSwitchport < CiscoTestCase
           interface.switchport_mode = finish
           assert_equal(finish, interface.switchport_mode,
                        "Error: Switchport mode, #{finish}, not as expected")
-        rescue RuntimeError => e
-          msg = "[#{interfaces[0]}] switchport_mode is not supported " \
-                'on this interface'
-          assert_equal(msg.downcase, e.message)
+        rescue Cisco::CliError
+          next
         end
       end
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_mode_valid_fex
@@ -582,7 +506,6 @@ class TestInterfaceSwitchport < CiscoTestCase
       :fex_fabric,
     ]
 
-    interface = Interface.new(interfaces[0])
     switchport_modes.each do |start|
       switchport_modes.each do |finish|
         next if start == :unknown || finish == :unknown
@@ -594,108 +517,87 @@ class TestInterfaceSwitchport < CiscoTestCase
           interface.switchport_mode = finish
           assert_equal(finish, interface.switchport_mode,
                        "Error: Switchport mode, #{finish}, not as expected")
-        rescue RuntimeError => e
+        rescue Cisco::CliError => e
           msg = "[#{interfaces[0]}] switchport_mode is not supported " \
                 'on this interface'
           assert_equal(msg.downcase, e.message)
         end
       end
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_all
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_allowed_vlan = 'all'
     assert_equal(
       DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
       interface.switchport_trunk_allowed_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_change
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_allowed_vlan = '20'
     assert_equal('20', interface.switchport_trunk_allowed_vlan)
     interface.switchport_trunk_allowed_vlan = '30'
     assert_equal('30', interface.switchport_trunk_allowed_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_default
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_allowed_vlan =
       interface.default_switchport_trunk_allowed_vlan
     assert_equal(
       DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
       interface.switchport_trunk_allowed_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_invalid
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     assert_raises(RuntimeError) do
       interface.switchport_trunk_allowed_vlan = 'hello'
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_none
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_allowed_vlan = 'none'
     assert_equal('none', interface.switchport_trunk_allowed_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_allowed_vlan_valid
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_allowed_vlan = '20, 30'
     assert_equal('20,30', interface.switchport_trunk_allowed_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_native_vlan_change
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_native_vlan = 20
     assert_equal(20, interface.switchport_trunk_native_vlan)
     interface.switchport_trunk_native_vlan = 30
     assert_equal(30, interface.switchport_trunk_native_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_native_vlan_default
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_native_vlan =
       interface.default_switchport_trunk_native_vlan
     assert_equal(
       DEFAULT_IF_SWITCHPORT_NATIVE_VLAN,
       interface.switchport_trunk_native_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_native_vlan_invalid
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     assert_raises(RuntimeError) do
       interface.switchport_trunk_native_vlan = '20, 30'
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_switchport_trunk_native_vlan_valid
-    interface = Interface.new(interfaces[0])
     interface.switchport_enable
     interface.switchport_trunk_native_vlan = 20
     assert_equal(20, interface.switchport_trunk_native_vlan)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   # TODO: Run this test at your peril as it can cause timeouts for this test and
@@ -739,14 +641,14 @@ class TestInterfaceSwitchport < CiscoTestCase
   #   end
 
   def test_system_default_switchport_on_off
-    interface = Interface.new('Eth1/1')
+    if platform == :nexus
+      system_default_switchport('')
+      assert(interface.system_default_switchport,
+             'Test for enabled - failed')
 
-    system_default_switchport('')
-    assert(interface.system_default_switchport,
-           'Test for enabled - failed')
-
-    # common default is "no switch"
-    system_default_switchport('no ')
+      # common default is "no switch"
+      system_default_switchport('no ')
+    end
     refute(interface.system_default_switchport,
            'Test for disabled - failed')
   rescue RuntimeError => e
@@ -756,22 +658,20 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_system_default_switchport_shutdown_on_off
-    interface = Interface.new('Eth1/1')
+    if platform == :nexus
+      system_default_switchport_shutdown('no ')
+      refute(interface.system_default_switchport_shutdown,
+             'Test for disabled - failed')
 
-    system_default_switchport_shutdown('no ')
-    refute(interface.system_default_switchport_shutdown,
-           'Test for disabled - failed')
-
-    # common default is "shutdown"
-    system_default_switchport_shutdown('')
+      # common default is "shutdown"
+      system_default_switchport_shutdown('')
+    end
     assert(interface.system_default_switchport_shutdown,
            'Test for enabled - failed')
   end
 
   def test_interface_svi_command_on_non_vlan
-    interface = Interface.new(interfaces[0])
     assert_raises(RuntimeError) { interface.svi_autostate = true }
     assert_raises(RuntimeError) { interface.svi_management = true }
-    interface_ethernet_default(interfaces_id[0])
   end
 end
