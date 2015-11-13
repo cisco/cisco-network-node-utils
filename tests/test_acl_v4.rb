@@ -34,25 +34,54 @@ class TestAclV4 < CiscoTestCase
   def no_ip_access_list_foo
     # Turn the feature off for a clean test.
     config('no ip access-list ' + @acl_name)
+    config('no ipv6 access-list ' + @acl_name)
   end
 
   # TESTS
 
-  def test_router_create_one
+  def test_router_create_acl_v4
     name = @acl_name
-    rtr = RouterAcl.new(name)
+    rtr = RouterAcl.new(name, "v4")
     @default_show_command = "show runn | i 'ip access-list #{name}'"
     assert_show_match(pattern: /^ip access-list #{name}$/,
                       msg:     "failed to create acl #{name}")
-    #rtr.destroy
+    rtr.destroy
     refute_show_match(pattern: /^ip access-list #{name}$/,
                       msg:     "failed to destroy acl #{name}")
   end
 
-  def test_router_destroy_one
+  def test_router_stats_enable
     name = @acl_name
-    @default_show_command = "show runn | i 'ip access-list #{name}'"
+    rtr = RouterAcl.new(name, "v4")
+    rtr.config_stats_enable
+    @default_show_command = "show runn | sec 'ip access-list #{name}'"
+    assert_show_match(pattern: /statistics per-entry/,
+                      msg:     "failed to enable stats")
+    rtr.destroy
     refute_show_match(pattern: /^ip access-list #{name}$/,
+                      msg:     "failed to destroy acl #{name}")
+  end
+
+  def test_router_create_acl_v6
+    name = @acl_name
+    rtr = RouterAcl.new(name, "v6")
+    @default_show_command = "show runn | i 'ipv6 access-list #{name}'"
+    assert_show_match(pattern: /^ipv6 access-list #{name}$/,
+                      msg:     "failed to create acl #{name}")
+    rtr.destroy
+    refute_show_match(pattern: /^ipv6 access-list #{name}$/,
+                      msg:     "failed to destroy acl #{name}")
+  end
+
+  def test_router_stats_enable_v6
+    name = @acl_name
+    rtr = RouterAcl.new(name, "v6")
+    rtr.config_stats_enable
+    @default_show_command = "show runn | sec 'ipv6 access-list #{name}'"
+    assert_show_match(pattern: /statistics per-entry/,
+                      msg:     "failed to enable stats")
+    rtr.destroy
+    refute_show_match(pattern: /^ipv6 access-list #{name}$/,
                       msg:     "failed to destroy acl #{name}")
   end
 end

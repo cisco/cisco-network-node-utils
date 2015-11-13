@@ -17,13 +17,14 @@ require_relative 'node_util'
 module Cisco
   # RouterAcl - node utility class for RouterAcl config mgmt.
   class RouterAcl < NodeUtil
-    attr_reader :acl_name
+    attr_reader :acl_name, :afi
 
     # name: name of the router instance
     # instantiate: true = create router instance
-    def initialize(acl_name, instantiate=true)
+    def initialize(acl_name, afi, instantiate=true)
       fail ArgumentError unless acl_name.length > 0
       @acl_name = acl_name
+      @afi = afi
       @set_args = {} 
       @get_args = {} 
       create if instantiate
@@ -31,7 +32,8 @@ module Cisco
 
     # Create a hash of all current router instances.
     def self.routers
-      instances = config_get('acl_v4' , 'acl')
+      instances = config_get('acl_v4' , 'acl') if @afi == "v4"
+      instances = config_get('acl_v6' , 'acl') if @afi == "v6"
       return {} if instances.nil?
       hash = {}
       instances.each do |name|
@@ -51,8 +53,6 @@ module Cisco
 
     # Destroy a router instance; disable feature on last instance
     def destroy
-      ids = config_get('acl_v4', 'acl')
-      return if ids.nil?
       config_ip_acl('no')
     rescue Cisco::CliError => e
       # CLI will syntax reject when feature is not enabled
@@ -62,12 +62,27 @@ module Cisco
     def config_ip_acl(state='')
       @set_args[:acl_name] = @acl_name.to_s
       @set_args[:state] = state
-      config_set('acl_v4', 'acl', @set_args)
+      config_set('acl_v4', 'acl', @set_args) if @afi == "v4"
+      config_set('acl_v6', 'acl', @set_args) if @afi == "v6"
+    end
+
+    def config_stats_enable
+        @set_args[":state"] = ""
+        config_set('acl_v4', 'stats_perentry', @set_args) if @afi == "v4"
+        config_set('acl_v6', 'stats_perentry', @set_args) if @afi == "v6"
     end
     
+    def stats_disable
+        @set_args[":state"] = "no"
+        config_set('acl_v4', 'stats_perentry', @set_args) if @afi == "v4"
+        config_set('acl_v6', 'stats_perentry', @set_args) if @afi == "v6"
+    end
+
     def stats_enabled
-        stats = config_get('acl_v4', 'stats_perentry')
-        return !(stats.nil? || stats.empty?)
+        stats = config_get('acl_v4', 'stats_perentry') if @afi == "v4"
+        return !(stats.nil? || stats.empty?) if @afi == "v4"
+        stats = config_get('acl_v6', 'stats_perentry') if @afi == "v6"
+        return !(stats.nil? || stats.empty?) if @afi == "v6"
     end
 
     # ----------
@@ -75,23 +90,5 @@ module Cisco
     # ----------
 
     # Property methods for boolean property
-    def stats_perentry
-        stats_enabled? ? true : false
-    end
-
-    def stats_perentry=(state)
-      state = (state ? '' : 'no')
-      config_set('acl_v4', 'stats_perentry', state: state)
-    end
-
-    def get_acl_name
-      val = config_get('acl_v4', 'acl', @get_args)
-      val.nil? ? nil : val.first
-    end
-
-    def get_acl_name=(acl_name)
-      @set_args[:acl_name] = acl_name
-      config_set('acl_v4', 'acl', @set_args)
-    end
   end
 end
