@@ -44,15 +44,13 @@ def create_bgp_vrf(asnum, vrf)
 end
 
 def setup_default
-  asnum = 55
   @vrf = 'default'
-  RouterBgp.new(asnum)
+  RouterBgp.new(55)
 end
 
 def setup_vrf
-  asnum = 99
   @vrf = 'yamllll'
-  create_bgp_vrf(asnum, @vrf)
+  create_bgp_vrf(99, @vrf)
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
@@ -256,9 +254,7 @@ class TestRouterBgp < CiscoTestCase
     assert(bgp.bestpath_cost_community_ignore, "vrf #{@vrf}: "\
            'bgp bestpath_cost_community_ignore should be enabled')
     bgp.bestpath_med_confed = true
-    if platform == :nexus ||
-       (platform == :ios_xr && @vrf == 'default')
-      # TODO: This property only works on IOS XR at the global level.
+    unless platform == :ios_xr && !@vrf == 'default'
       assert(bgp.bestpath_med_confed, "vrf #{@vrf}: "\
              'bgp bestpath_med_confed should be enabled')
     end
@@ -266,7 +262,6 @@ class TestRouterBgp < CiscoTestCase
     assert(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
            'bgp bestpath_med_missing_as_worst should be enabled')
     if platform == :nexus
-      # TODO: only applies to :nexus
       bgp.bestpath_med_non_deterministic = true
       assert(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
              'bgp bestpath_med_non_deterministic should be enabled')
@@ -290,7 +285,6 @@ class TestRouterBgp < CiscoTestCase
     refute(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
            'bgp bestpath_med_missing_as_worst should be disabled')
     if platform == :nexus
-      # TODO: Only applies to :nexus
       bgp.bestpath_med_non_deterministic = false
       refute(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
            'bgp bestpath_med_non_deterministic should be disabled')
@@ -320,7 +314,6 @@ class TestRouterBgp < CiscoTestCase
     refute(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
            'bgp bestpath_med_missing_as_worst should *NOT* be enabled')
     if platform == :nexus
-      # TODO: Only applies to :nexus
       refute(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
            'bgp bestpath_med_non_deterministic should *NOT* be enabled')
     end
@@ -343,7 +336,6 @@ class TestRouterBgp < CiscoTestCase
     refute(bgp.default_bestpath_med_missing_as_worst,
            'default value for bestpath_med_missing_as_worst should be false')
     if platform == :nexus
-      # TODO: Only applies to :nexus
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
     end
@@ -432,7 +424,6 @@ class TestRouterBgp < CiscoTestCase
                  "vrf #{@vrf}: bgp graceful restart timers stalepath time" \
                  "should be set to '77'")
     if platform == :nexus
-      # TODO: Only applies to :nexus
       bgp.graceful_restart_helper = true
       assert(bgp.graceful_restart_helper,
              "vrf #{@vrf}: bgp graceful restart helper should be enabled")
@@ -449,7 +440,6 @@ class TestRouterBgp < CiscoTestCase
                  "vrf #{@vrf}: bgp graceful restart timers stalepath time" \
                  "should be set to default value of '300'")
     if platform == :nexus
-      # TODO: Only applies to :nexus
       bgp.graceful_restart_helper = false
       refute(bgp.graceful_restart_helper,
              "vrf #{@vrf}: bgp graceful restart helper should be disabled")

@@ -343,10 +343,9 @@ module Cisco
       # XR: retrieved as an array.
       # So make it an array in the NX case.
       # Sort the end results to make it consistent across both platforms.
-      # And if peers is an empty list - make it an empty array.
       peers = config_get('bgp', 'confederation_peers', @get_args)
       peers = peers.split(' ') if peers.is_a?(String)
-      peers.empty? ? [] : peers.sort
+      peers.sort
     end
 
     def confederation_peers=(should)

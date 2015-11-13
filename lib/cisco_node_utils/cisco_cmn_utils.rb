@@ -121,8 +121,8 @@ module Cisco
       should.each(&:compact!) unless should.empty? if depth(should) > 1
       delta = { add: should - current, remove: current - should }
 
-      # To allow this method to handle comparing nested and unnested arrays
-      # the depth checks differentiate between the two cases.
+      # Differentiate between comparing nested and unnested arrays by
+      # checking the depth of the array.
       if depth(should) == 1
         # Delete entries from :remove if f1 is an update to an existing command
         delta[:add].each do |id|
