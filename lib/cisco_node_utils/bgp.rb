@@ -61,9 +61,8 @@ module Cisco
 
       hash_final = {}
       asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
-      hash_tmp = {
-        asnum => { 'default' => RouterBgp.new(asnum, 'default', false) }
-      }
+      hash_tmp = { asnum =>
+        { 'default' => RouterBgp.new(asnum, 'default', false) } }
       vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
       unless vrf_ids.nil?
         vrf_ids.each do |vrf|
@@ -340,20 +339,20 @@ module Cisco
 
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
-      cmds = config_get('bgp', 'confederation_peers', @get_args)
-      return default_confederation_peers if cmds.to_s.empty?
-      cmds = cmds.split(' ') if cmds.instance_of? String
-      cmds.sort.join(' ')
+      # NX: confederation peers is retrieved as a string '1 2 3'
+      # XR: retrieved as an array.
+      # So make it an array in the NX case.
+      # Sort the end results to make it consistent across both platforms.
+      # And if peers is an empty list - make it an empty array.
+      peers = config_get('bgp', 'confederation_peers', @get_args)
+      peers = peers.split(' ') if peers.is_a?(String)
+      peers.empty? ? [] : peers.sort
     end
 
     def confederation_peers=(should)
       # confederation peers are additive. So create a delta hash of entries
       # and only apply the changes
-      # Convert strings (1 2 3) to an array
-      # Or FixedNum (1) to a string then an array
-      should = should.to_s.empty? ? [] : should.to_s.split(' ')
       is = confederation_peers
-      is = is.empty? ? [] : is.split(' ')
 
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?

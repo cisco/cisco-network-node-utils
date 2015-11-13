@@ -109,7 +109,7 @@ confederation_id:
     config_set_append: '<state> confederation identifier <id>'
 
 confederation_peers:
-  default_value: ""
+  default_value: []
   cli_ios_xr:
     multiple: true
     config_get_token_append: ['/^bgp confederation peers$/', '/(\S+)/']
