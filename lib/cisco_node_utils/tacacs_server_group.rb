@@ -55,12 +55,20 @@ module Cisco
       new_servs.each do |s|
         # add any servers not yet configured
         next if current_servs.include? s
-        config_set('tacacs_server_group', 'servers', name: @name, state: '', server: s)
+        config_set('tacacs_server_group',
+                   'servers',
+                   name:   @name,
+                   state:  '',
+                   server: s)
       end
       current_servs.each do |s|
         # remove any undesired existing servers
         next if new_servs.include? s
-        config_set('tacacs_server_group', 'servers', name: @name, state: 'no', server: s)
+        config_set('tacacs_server_group',
+                   'servers',
+                   name:   @name,
+                   state:  'no',
+                   server: s)
       end
     end
 
@@ -110,7 +118,11 @@ module Cisco
 
     def deadtime=(t)
       no_cmd = t == default_deadtime ? 'no' : ''
-      config_set('tacacs_server_group', 'deadtime', name: @name, state: no_cmd, deadtime: t)
+      config_set('tacacs_server_group',
+                 'deadtime',
+                 name:     @name,
+                 state:    no_cmd,
+                 deadtime: t)
     end
 
     def default_deadtime
@@ -125,7 +137,11 @@ module Cisco
     def source_interface=(s)
       fail TypeError unless s.is_a? String
       no_cmd = s == default_source_interface ? 'no' : ''
-      config_set('tacacs_server_group', 'source_interface', name: @name, state: no_cmd, interface: s)
+      config_set('tacacs_server_group',
+                 'source_interface',
+                 name:      @name,
+                 state:     no_cmd,
+                 interface: s)
     end
 
     def default_source_interface
