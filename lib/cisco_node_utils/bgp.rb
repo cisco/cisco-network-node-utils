@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'bgp_af'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -152,19 +153,6 @@ module Cisco
       else
         @set_args = { asnum: @asnum, vrf: @vrf }
       end
-    end
-
-    # This is an enable-only method for enabling the 'nv overlay evpn' feature
-    def self.feature_nv_overlay_evpn_enable
-      config_set('bgp_af', 'feature_nv_overlay_evpn')
-    end
-
-    def self.feature_nv_overlay_evpn_enabled
-      config_get('bgp_af', 'feature_nv_overlay_evpn')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
     end
 
     # Attributes:
@@ -510,20 +498,17 @@ module Cisco
     # Route Distinguisher (Getter/Setter/Default)
     # Configure in vrf context
     def route_distinguisher
-      return false unless RouterBgp.feature_nv_overlay_evpn_enabled
+      return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       config_get('bgp', 'route_distinguisher', @get_args)
     end
 
     def route_distinguisher=(rd)
       # In order to remove a bgp route-distinguisher you cannot simply issue
-      # 'no rd'. Dummy-id specified to work around this.
-      RouterBgp.feature_nv_overlay_evpn_enable if
-        rd != default_route_distinguisher &&
-        !RouterBgp.feature_nv_overlay_evpn_enabled
-      dummy_rd = '1:1'
+      RouterBgpAF.feature_nv_overlay_evpn_enable unless
+        RouterBgpAF.feature_nv_overlay_evpn_enabled
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
-        @set_args[:rd] = dummy_rd
+        @set_args[:rd] = route_distinguisher
       else
         @set_args[:state] = ''
         @set_args[:rd] = rd

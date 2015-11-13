@@ -625,25 +625,14 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_routerbgp_set_get_route_distinguisher
-    asnum = 55
-    vrf = 'blue'
-    bgp = RouterBgp.new(asnum, vrf)
+    bgp = RouterBgp.new(55, 'blue')
     bgp.route_distinguisher = 'auto'
     assert_equal('auto', bgp.route_distinguisher,
                  "bgp route_distinguisher should be set to 'auto'")
     bgp.route_distinguisher = '1:1'
     assert_equal('1:1', bgp.route_distinguisher,
                  "bgp route_distinguisher should be set to '1:1'")
-    bgp.route_distinguisher = ''
-    assert_empty(bgp.route_distinguisher,
-                 'bgp route_distinguisher should *NOT* be configured')
-    bgp.destroy
-  end
-
-  def test_routerbgp_get_route_distinguisher_not_configured
-    asnum = 55
-    vrf = 'blue'
-    bgp = RouterBgp.new(asnum, vrf)
+    bgp.route_distinguisher = bgp.default_route_distinguisher
     assert_empty(bgp.route_distinguisher,
                  'bgp route_distinguisher should *NOT* be configured')
     bgp.destroy

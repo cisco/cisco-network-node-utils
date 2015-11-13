@@ -581,34 +581,11 @@ module Cisco
     # route target export
     def route_target_export
       cmds = config_get('bgp_af', 'route_target_export', @get_args)
-      # config_get returns an array, so cmds == ['1:1','2:2']
-
-      # normalize to a string
-      cmds.empty? ? default_route_target_export : cmds.join(' ')
+      cmds.empty? ? [] : cmds.sort
     end
 
     def route_target_export=(should)
-      # 'should'comes in as a string, normalize into array
-      should = should.nil? ? [] : should.split(' ')
-
-      # 'is' is a string, normalize into array
-      is = route_target_export
-      is = is.nil? ? [] : is.split(' ')
-
-      delta_hash = Utils.delta_add_remove(should, is)
-      puts "delta hash=#{delta_hash}"
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug('route_target_export delta ' \
-          "#{@get_args}\n #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |target|
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:community] = target
-
-          config_set('bgp_af', 'route_target_export', @set_args)
-        end
-      end
+      route_target_delta(should, route_target_export, 'route_target_export')
     end
 
     def default_route_target_export
@@ -618,34 +595,12 @@ module Cisco
     # route target export_evpn
     def route_target_export_evpn
       cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
-      # config_get returns an array, so cmds == ['1:1','2:2']
-
-      # normalize to a string
-      cmds.empty? ? default_route_target_export_evpn : cmds.join(' ')
+      cmds.empty? ? [] : cmds.sort
     end
 
     def route_target_export_evpn=(should)
-      # 'should'comes in as a string, normalize into array
-      should = should.nil? ? [] : should.split(' ')
-
-      # 'is' is a string, normalize into array
-      is = route_target_export_evpn
-      is = is.nil? ? [] : is.split(' ')
-
-      delta_hash = Utils.delta_add_remove(should, is)
-      puts "delta hash=#{delta_hash}"
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug('route_target_export_evpn delta ' \
-          "#{@get_args}\n #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |target|
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:community] = target
-
-          config_set('bgp_af', 'route_target_export_evpn', @set_args)
-        end
-      end
+      route_target_delta(should, route_target_export_evpn,
+                         'route_target_export_evpn')
     end
 
     def default_route_target_export_evpn
@@ -655,34 +610,11 @@ module Cisco
     # route target import
     def route_target_import
       cmds = config_get('bgp_af', 'route_target_import', @get_args)
-      # config_get returns an array, so cmds == ['1:1','2:2']
-
-      # normalize to a string
-      cmds.empty? ? default_route_target_import : cmds.join(' ')
+      cmds.empty? ? [] : cmds.sort
     end
 
     def route_target_import=(should)
-      # 'should'comes in as a string, normalize into array
-      should = should.nil? ? [] : should.split(' ')
-
-      # 'is' is a string, normalize into array
-      is = route_target_import
-      is = is.nil? ? [] : is.split(' ')
-
-      delta_hash = Utils.delta_add_remove(should, is)
-      puts "delta hash=#{delta_hash}"
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug('route_target_import delta ' \
-          "#{@get_args}\n #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |target|
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:community] = target
-
-          config_set('bgp_af', 'route_target_import', @set_args)
-        end
-      end
+      route_target_delta(should, route_target_import, 'route_target_import')
     end
 
     def default_route_target_import
@@ -692,38 +624,32 @@ module Cisco
     # route target import_evpn
     def route_target_import_evpn
       cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
-      # config_get returns an array, so cmds == ['1:1','2:2']
-
-      # normalize to a string
-      cmds.empty? ? default_route_target_import_evpn : cmds.join(' ')
+      cmds.empty? ? [] : cmds.sort
     end
 
     def route_target_import_evpn=(should)
-      # 'should'comes in as a string, normalize into array
-      should = should.nil? ? [] : should.split(' ')
-
-      # 'is' is a string, normalize into array
-      is = route_target_import_evpn
-      is = is.nil? ? [] : is.split(' ')
-
-      delta_hash = Utils.delta_add_remove(should, is)
-      puts "delta hash=#{delta_hash}"
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug('route_target_import_evpn delta ' \
-          "#{@get_args}\n #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |target|
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:community] = target
-
-          config_set('bgp_af', 'route_target_import_evpn', @set_args)
-        end
-      end
+      route_target_delta(should, route_target_import_evpn,
+                         'route_target_import_evpn')
     end
 
     def default_route_target_import_evpn
       config_get_default('bgp_af', 'route_target_import_evpn')
+    end
+
+    def route_target_delta(should, is, prop)
+      puts "delta #{should} is #{is}"
+      delta_hash = Utils.delta_add_remove(should, is)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("#{prop}" \
+          "#{@get_args}\n #{action}: #{delta_hash[action]}")
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no'
+          @set_args[:state] = state
+          @set_args[:community] = community
+          config_set('bgp_af', prop, @set_args)
+        end
+      end
     end
   end
 end

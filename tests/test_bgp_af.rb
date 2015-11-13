@@ -910,6 +910,47 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## common utilities
   ##
+  def test_utils_delta_add_remove_depth_1
+    # Note: AF context is not needed. This test is only validating the
+    # delta_add_remove class method and does not test directly on the device.
+
+    # Initial 'should' state
+    should = ['1:1', '2:2', '3:3', '4:4', '5:5', '6:6']
+    # rubocop:enable Style/WordArray
+
+    # Test: Check delta when every protocol is specified and has a route-map.
+    current = []
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 1. delta mismatch')
+
+    # Test: Check delta when should is the same as current.
+    current = should.clone
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 2. delta mismatch')
+
+    # Test: Move half the 'current' entries to 'should'. Check delta.
+    should = current.shift(4)
+    expected = { add: should, remove: current }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 3. delta mismatch')
+
+    # Test: Remove the route-maps from the current list. Check delta.
+    #       Note: The :remove list should be empty since this is just
+    #       an update of the route-map.
+    should = current.map { |prot_only, _route_map| [prot_only] }
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 4. delta mismatch')
+
+    # Test: Check empty inputs
+    should = []
+    current = []
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
 
   def test_utils_delta_add_remove
     # Note: AF context is not needed. This test is only validating the
@@ -999,7 +1040,7 @@ class TestRouterBgpAF < CiscoTestCase
     opts = [:import, :export]
 
     # Master list of communities to test against
-    master = '1:1 2:2 3:3 4:5'
+    master = ['1:1', '2:2', '3:3', '4:5']
 
     # Test 1: both/import/export when no commands are present. Each target
     # option will be tested with and without evpn (6 separate types)
@@ -1007,7 +1048,7 @@ class TestRouterBgpAF < CiscoTestCase
     route_target_tester(bgp_af, af, opts, should, 'Test 1')
 
     # Test 2: remove half of the entries
-    should = '1:1 4:4'
+    should = ['1:1', '4:4']
     route_target_tester(bgp_af, af, opts, should, 'Test 2')
 
     # Test 3: restore the removed entries
@@ -1024,6 +1065,8 @@ class TestRouterBgpAF < CiscoTestCase
     opts.each do |opt|
       # non-evpn
       bgp_af.send("route_target_#{opt}=", should)
+      # evpn
+      bgp_af.send("route_target_#{opt}_evpn=", should)
     end
 
     # Now check the results
@@ -1032,13 +1075,7 @@ class TestRouterBgpAF < CiscoTestCase
       result = bgp_af.send("route_target_#{opt}")
       assert_equal(should, result,
                    "#{test_id} : #{af} : route_target_#{opt}")
-    end
-
-    opts.each do |opt|
-      bgp_af.send("route_target_#{opt}_evpn=", should)
-    end
-
-    opts.each do |opt|
+      # evpn
       result = bgp_af.send("route_target_#{opt}_evpn")
       assert_equal(should, result,
                    "#{test_id} : #{af} : route_target_#{opt}_evpn")

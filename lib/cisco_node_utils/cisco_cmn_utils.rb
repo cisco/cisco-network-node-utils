@@ -113,7 +113,7 @@ module Cisco
     #  current: an array of existing cmds on the device
     def self.depth(a)
       return 0 unless a.is_a?(Array)
-      return 1 + depth(a[0])
+      1 + depth(a[0])
     end
 
     def self.delta_add_remove(should, current=[])
