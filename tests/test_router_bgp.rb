@@ -242,52 +242,60 @@ class TestRouterBgp < CiscoTestCase
 
   def bestpath(bgp)
     bgp.bestpath_always_compare_med = true
-    assert(bgp.bestpath_always_compare_med, "vrf #{@vrf}: "\
+    assert(bgp.bestpath_always_compare_med,
            'bgp bestpath_always_compare_med should be enabled')
     bgp.bestpath_aspath_multipath_relax = true
-    assert(bgp.bestpath_aspath_multipath_relax, "vrf #{@vrf}: "\
+    assert(bgp.bestpath_aspath_multipath_relax,
            'bgp bestpath_aspath_multipath_relax should be enabled')
     bgp.bestpath_compare_routerid = true
-    assert(bgp.bestpath_compare_routerid, "vrf #{@vrf}: "\
+    assert(bgp.bestpath_compare_routerid,
            'bgp bestpath_compare_routerid should be enabled')
     bgp.bestpath_cost_community_ignore = true
-    assert(bgp.bestpath_cost_community_ignore, "vrf #{@vrf}: "\
+    assert(bgp.bestpath_cost_community_ignore,
            'bgp bestpath_cost_community_ignore should be enabled')
     bgp.bestpath_med_confed = true
-    unless platform == :ios_xr && !@vrf == 'default'
-      assert(bgp.bestpath_med_confed, "vrf #{@vrf}: "\
+    unless platform == :ios_xr && !@vrf[/default/]
+      assert(bgp.bestpath_med_confed,
              'bgp bestpath_med_confed should be enabled')
     end
     bgp.bestpath_med_missing_as_worst = true
-    assert(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
+    assert(bgp.bestpath_med_missing_as_worst,
            'bgp bestpath_med_missing_as_worst should be enabled')
     if platform == :nexus
       bgp.bestpath_med_non_deterministic = true
-      assert(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
+      assert(bgp.bestpath_med_non_deterministic,
              'bgp bestpath_med_non_deterministic should be enabled')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.bestpath_med_non_deterministic = true
+      end
     end
     bgp.bestpath_always_compare_med = false
-    refute(bgp.bestpath_always_compare_med, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_always_compare_med,
            'bgp bestpath_always_compare_med should be disabled')
     bgp.bestpath_aspath_multipath_relax = false
-    refute(bgp.bestpath_aspath_multipath_relax, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_aspath_multipath_relax,
            'bgp bestpath_aspath_multipath_relax should be disabled')
     bgp.bestpath_compare_routerid = false
-    refute(bgp.bestpath_compare_routerid, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_compare_routerid,
            'bgp bestpath_compare_routerid should be disabled')
     bgp.bestpath_cost_community_ignore = false
-    refute(bgp.bestpath_cost_community_ignore, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_cost_community_ignore,
            'bgp bestpath_cost_community_ignore should be disabled')
     bgp.bestpath_med_confed = false
-    refute(bgp.bestpath_med_confed, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_med_confed,
            'bgp bestpath_med_confed should be disabled')
     bgp.bestpath_med_missing_as_worst = false
-    refute(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_med_missing_as_worst,
            'bgp bestpath_med_missing_as_worst should be disabled')
     if platform == :nexus
       bgp.bestpath_med_non_deterministic = false
-      refute(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
-           'bgp bestpath_med_non_deterministic should be disabled')
+      refute(bgp.bestpath_med_non_deterministic,
+             'bgp bestpath_med_non_deterministic should be disabled')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.bestpath_med_non_deterministic = false
+      end
     end
     bgp.destroy
   end
@@ -301,21 +309,25 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def bestpath_not_configured(bgp)
-    refute(bgp.bestpath_always_compare_med, "vrf #{@vrf}: "\
-             'bgp bestpath_always_compare_med should *NOT* be enabled')
-    refute(bgp.bestpath_aspath_multipath_relax, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_always_compare_med,
+           'bgp bestpath_always_compare_med should *NOT* be enabled')
+    refute(bgp.bestpath_aspath_multipath_relax,
            'bgp bestpath_aspath_multipath_relax should *NOT* be enabled')
-    refute(bgp.bestpath_compare_routerid, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_compare_routerid,
            'bgp bestpath_compare_routerid should be *NOT* enabled')
-    refute(bgp.bestpath_cost_community_ignore, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_cost_community_ignore,
            'bgp bestpath_cost_community_ignore should *NOT* be enabled')
-    refute(bgp.bestpath_med_confed, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_med_confed,
            'bgp bestpath_med_confed should *NOT* be enabled')
-    refute(bgp.bestpath_med_missing_as_worst, "vrf #{@vrf}: "\
+    refute(bgp.bestpath_med_missing_as_worst,
            'bgp bestpath_med_missing_as_worst should *NOT* be enabled')
     if platform == :nexus
-      refute(bgp.bestpath_med_non_deterministic, "vrf #{@vrf}: "\
-           'bgp bestpath_med_non_deterministic should *NOT* be enabled')
+      refute(bgp.bestpath_med_non_deterministic,
+             'bgp bestpath_med_non_deterministic should *NOT* be enabled')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.bestpath_med_non_deterministic
+      end
     end
     bgp.destroy
   end
@@ -338,6 +350,10 @@ class TestRouterBgp < CiscoTestCase
     if platform == :nexus
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.bestpath_med_non_deterministic
+      end
     end
     bgp.destroy
   end
@@ -354,13 +370,13 @@ class TestRouterBgp < CiscoTestCase
   def cluster_id(bgp)
     bgp.cluster_id = 34
     assert_equal('34', bgp.cluster_id,
-                 "vrf #{@vrf}: bgp cluster_id should be set to '34'")
+                 "bgp cluster_id should be set to '34'")
     bgp.cluster_id = '1.2.3.4'
     assert_equal('1.2.3.4', bgp.cluster_id,
-                 "vrf #{@vrf}: bgp cluster_id should be set to '1.2.3.4'")
+                 "bgp cluster_id should be set to '1.2.3.4'")
     bgp.cluster_id = ''
     assert_empty(bgp.cluster_id,
-                 "vrf #{@vrf}: bgp cluster_id should *NOT* be configured")
+                 'bgp cluster_id should *NOT* be configured')
     bgp.destroy
   end
 
@@ -414,35 +430,43 @@ class TestRouterBgp < CiscoTestCase
   def graceful_restart(bgp)
     bgp.graceful_restart = true
     assert(bgp.graceful_restart,
-           "vrf #{@vrf}: bgp graceful restart should be enabled")
+           'bgp graceful restart should be enabled')
     bgp.graceful_restart_timers_restart = 55
     assert_equal(55, bgp.graceful_restart_timers_restart,
-                 "vrf #{@vrf}: bgp graceful restart timers restart" \
+                 'bgp graceful restart timers restart' \
                  "should be set to '55'")
     bgp.graceful_restart_timers_stalepath_time = 77
     assert_equal(77, bgp.graceful_restart_timers_stalepath_time,
-                 "vrf #{@vrf}: bgp graceful restart timers stalepath time" \
+                 'bgp graceful restart timers stalepath time' \
                  "should be set to '77'")
     if platform == :nexus
       bgp.graceful_restart_helper = true
       assert(bgp.graceful_restart_helper,
-             "vrf #{@vrf}: bgp graceful restart helper should be enabled")
+             'bgp graceful restart helper should be enabled')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.graceful_restart_helper = true
+      end
     end
     bgp.graceful_restart = false
     refute(bgp.graceful_restart,
-           "vrf #{@vrf}: bgp graceful_restart should be disabled")
+           'bgp graceful_restart should be disabled')
     bgp.graceful_restart_timers_restart = 120
     assert_equal(120, bgp.graceful_restart_timers_restart,
-                 "vrf #{@vrf}: bgp graceful restart timers restart" \
+                 'bgp graceful restart timers restart' \
                  "should be set to default value of '120'")
     bgp.graceful_restart_timers_stalepath_time = 300
     assert_equal(300, bgp.graceful_restart_timers_stalepath_time,
-                 "vrf #{@vrf}: bgp graceful restart timers stalepath time" \
+                 'bgp graceful restart timers stalepath time' \
                  "should be set to default value of '300'")
     if platform == :nexus
       bgp.graceful_restart_helper = false
       refute(bgp.graceful_restart_helper,
-             "vrf #{@vrf}: bgp graceful restart helper should be disabled")
+             'bgp graceful restart helper should be disabled')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.graceful_restart_helper = false
+      end
     end
     bgp.destroy
   end
@@ -456,11 +480,14 @@ class TestRouterBgp < CiscoTestCase
                  "bgp graceful restart default timer value should be '120'")
     assert_equal(300, bgp.default_graceful_restart_timers_stalepath_time,
                  "bgp graceful restart default timer value should be '300'")
-    # rubocop:disable Style/GuardClause
     if platform == :nexus
       refute(bgp.default_graceful_restart_helper,
              'graceful restart helper default value ' \
              'should be enabled = false')
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.default_graceful_restart_helper
+      end
     end
     # rubocop:enable Style/GuardClause
   end
@@ -477,9 +504,9 @@ class TestRouterBgp < CiscoTestCase
   def confederation_id(bgp)
     bgp.confederation_id = 77
     assert_equal('77', bgp.confederation_id,
-                 "vrf #{@vrf}: bgp confederation_id should be set to '77'")
+                 "bgp confederation_id should be set to '77'")
     bgp.confederation_id = ''
-    assert_empty(bgp.confederation_id, "vrf #{@vrf}: " \
+    assert_empty(bgp.confederation_id, '' \
                  'bgp confederation_id should *NOT* be configured')
     bgp.destroy
   end
@@ -524,25 +551,25 @@ class TestRouterBgp < CiscoTestCase
     bgp.confederation_id = 55
 
     assert_empty(bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be empty")
+                 'bgp confederation_peers list should be empty')
     bgp.confederation_peers = [15]
     assert_equal(['15'], bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be ['15']")
+                 "bgp confederation_peers list should be ['15']")
     bgp.confederation_peers = [16]
     assert_equal(['16'], bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be ['16']")
+                 "bgp confederation_peers list should be ['16']")
     bgp.confederation_peers = [55.77]
     assert_equal(['55.77'], bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be " \
+                 'bgp confederation_peers list should be ' \
                  "['55.77']")
     bgp.confederation_peers = ['15', '55.77', '16', '18', '555', '299']
     assert_equal(['15', '16', '18', '299', '55.77', '555'],
                  bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be " \
+                 'bgp confederation_peers list should be ' \
                  "'['15', '16', '18', '299', '55.77', '555']'")
     bgp.confederation_peers = []
     assert_empty(bgp.confederation_peers,
-                 "vrf #{@vrf}: bgp confederation_peers list should be empty")
+                 'bgp confederation_peers list should be empty')
     bgp.destroy
   end
 
@@ -609,10 +636,10 @@ class TestRouterBgp < CiscoTestCase
   def maxas_limit(bgp)
     bgp.maxas_limit = 50
     assert_equal(50, bgp.maxas_limit,
-                 "vrf #{@vrf}: bgp maxas-limit should be set to '50'")
+                 "bgp maxas-limit should be set to '50'")
     bgp.maxas_limit = bgp.default_maxas_limit
     assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
-                 "vrf #{@vrf}: bgp maxas-limit should be set to default value")
+                 'bgp maxas-limit should be set to default value')
     bgp.destroy
   end
 
