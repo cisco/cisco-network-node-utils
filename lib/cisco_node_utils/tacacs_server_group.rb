@@ -32,16 +32,15 @@ module Cisco
       return unless create
 
       TacacsServer.new.enable unless TacacsServer.enabled
-      config_set('aaa_server_group', 'tacacs_group', '', name)
+      config_set('tacacs_server_group', 'group', state: '', name: name)
     end
 
     def destroy
-      config_set('aaa_server_group', 'tacacs_group', 'no', @name)
+      config_set('tacacs_server_group', 'group', state: 'no', name: @name)
     end
 
     def servers
-      tacservers = config_get('aaa_server_group',
-                              'tacacs_servers', @name)
+      tacservers = config_get('tacacs_server_group', 'servers', @name)
       servs = {}
       unless tacservers.nil?
         tacservers.each { |s| servs[s] = TacacsServerHost.new(s, false) }
@@ -56,17 +55,17 @@ module Cisco
       new_servs.each do |s|
         # add any servers not yet configured
         next if current_servs.include? s
-        config_set('aaa_server_group', 'tacacs_server', @name, '', s)
+        config_set('tacacs_server_group', 'servers', name: @name, state: '', server: s)
       end
       current_servs.each do |s|
         # remove any undesired existing servers
         next if new_servs.include? s
-        config_set('aaa_server_group', 'tacacs_server', @name, 'no', s)
+        config_set('tacacs_server_group', 'servers', name: @name, state: 'no', server: s)
       end
     end
 
     def default_servers
-      config_get_default('aaa_server_group', 'servers')
+      config_get_default('tacacs_server_group', 'servers')
     end
 
     def ==(other)
@@ -80,7 +79,7 @@ module Cisco
 
     def self.groups
       grps = {}
-      tacgroups = config_get('aaa_server_group', 'tacacs_groups') if
+      tacgroups = config_get('tacacs_server_group', 'group') if
         TacacsServer.enabled
       unless tacgroups.nil?
         tacgroups.each { |s| grps[s] = TacacsServerGroup.new(s, false) }
@@ -90,49 +89,47 @@ module Cisco
 
     def vrf
       # vrf is always present in running config
-      v = config_get('aaa_server_group', 'tacacs_vrf', @name)
-      v.nil? ? default_vrf : v.first
+      v = config_get('tacacs_server_group', 'vrf', @name)
+      v.nil? ? default_vrf : v
     end
 
     def vrf=(v)
       fail TypeError unless v.is_a? String
       # vrf = "default" is equivalent to unconfiguring vrf
-      config_set('aaa_server_group', 'tacacs_vrf', @name, '', v)
+      config_set('tacacs_server_group', 'vrf', name: @name, state: '', vrf: v)
     end
 
     def default_vrf
-      config_get_default('aaa_server_group', 'vrf')
+      config_get_default('tacacs_server_group', 'vrf')
     end
 
     def deadtime
-      d = config_get('aaa_server_group', 'tacacs_deadtime', @name)
-      d.nil? ? default_deadtime : d.first.to_i
+      d = config_get('tacacs_server_group', 'deadtime', @name)
+      d.nil? ? default_deadtime : d.to_i
     end
 
     def deadtime=(t)
       no_cmd = t == default_deadtime ? 'no' : ''
-      config_set('aaa_server_group', 'tacacs_deadtime', @name, no_cmd, t)
+      config_set('tacacs_server_group', 'deadtime', name: @name, state: no_cmd, deadtime: t)
     end
 
     def default_deadtime
-      config_get_default('aaa_server_group', 'deadtime')
+      config_get_default('tacacs_server_group', 'deadtime')
     end
 
     def source_interface
-      i = config_get('aaa_server_group',
-                     'tacacs_source_interface', @name)
-      i.nil? ? default_source_interface : i.first
+      i = config_get('tacacs_server_group', 'source_interface', @name)
+      i.nil? ? default_source_interface : i
     end
 
     def source_interface=(s)
       fail TypeError unless s.is_a? String
       no_cmd = s == default_source_interface ? 'no' : ''
-      config_set('aaa_server_group', 'tacacs_source_interface',
-                 @name, no_cmd, s)
+      config_set('tacacs_server_group', 'source_interface', name: @name, state: no_cmd, interface: s)
     end
 
     def default_source_interface
-      config_get_default('aaa_server_group', 'source_interface')
+      config_get_default('tacacs_server_group', 'source_interface')
     end
   end
 end

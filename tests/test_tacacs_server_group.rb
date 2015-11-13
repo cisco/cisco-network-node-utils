@@ -193,9 +193,9 @@ class TestTacacsServerGroup < CiscoTestCase
     aaa_group.servers = [server_name1, server_name2]
 
     assert_show_match(command: 'show run tacacs+ all | no-more',
-                      pattern: /server1/)
+                      pattern: /server server1/)
     assert_show_match(command: 'show run tacacs+ all | no-more',
-                      pattern: /server2/)
+                      pattern: /server server2/)
 
     detach_aaaservergroup(aaa_group)
     detach_tacacsserverhost(server1)
