@@ -749,6 +749,10 @@ class TestInterfaceSwitchport < CiscoTestCase
     system_default_switchport('no ')
     refute(interface.system_default_switchport,
            'Test for disabled - failed')
+  rescue RuntimeError => e
+    skip('NX-OS defect: system default switchport nvgens twice') if
+      e.message[/Expected zero.one value/]
+    flunk(e.message)
   end
 
   def test_system_default_switchport_shutdown_on_off
