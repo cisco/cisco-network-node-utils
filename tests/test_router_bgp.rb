@@ -352,7 +352,7 @@ class TestRouterBgp < CiscoTestCase
              'default value for bestpath_med_non_deterministic should be false')
     else
       assert_raises(Cisco::UnsupportedError) do
-        bgp.bestpath_med_non_deterministic
+        bgp.default_bestpath_med_non_deterministic
       end
     end
     bgp.destroy
