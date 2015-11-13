@@ -503,7 +503,6 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
-      # In order to remove a bgp route-distinguisher you cannot simply issue
       RouterBgpAF.feature_nv_overlay_evpn_enable unless
         RouterBgpAF.feature_nv_overlay_evpn_enabled
       if rd == default_route_distinguisher

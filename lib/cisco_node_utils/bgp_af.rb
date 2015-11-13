@@ -581,7 +581,7 @@ module Cisco
     # route target export
     def route_target_export
       cmds = config_get('bgp_af', 'route_target_export', @get_args)
-      cmds.empty? ? [] : cmds.sort
+      cmds.sort
     end
 
     def route_target_export=(should)
@@ -595,7 +595,7 @@ module Cisco
     # route target export_evpn
     def route_target_export_evpn
       cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
-      cmds.empty? ? [] : cmds.sort
+      cmds.sort
     end
 
     def route_target_export_evpn=(should)
@@ -610,7 +610,7 @@ module Cisco
     # route target import
     def route_target_import
       cmds = config_get('bgp_af', 'route_target_import', @get_args)
-      cmds.empty? ? [] : cmds.sort
+      cmds.sort
     end
 
     def route_target_import=(should)
@@ -624,7 +624,7 @@ module Cisco
     # route target import_evpn
     def route_target_import_evpn
       cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
-      cmds.empty? ? [] : cmds.sort
+      cmds.sort
     end
 
     def route_target_import_evpn=(should)
@@ -637,7 +637,6 @@ module Cisco
     end
 
     def route_target_delta(should, is, prop)
-      puts "delta #{should} is #{is}"
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
