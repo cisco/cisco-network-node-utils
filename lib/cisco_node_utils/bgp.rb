@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 
 module Cisco
@@ -338,23 +339,34 @@ module Cisco
 
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
-      config_get('bgp', 'confederation_peers', @get_args)
+      # NX: confederation peers is retrieved as a string '1 2 3'
+      # XR: retrieved as an array.
+      # So make it an array in the NX case.
+      # Sort the end results to make it consistent across both platforms.
+      peers = config_get('bgp', 'confederation_peers', @get_args)
+      peers = peers.split(' ') if peers.is_a?(String)
+      peers.sort
     end
 
-    def confederation_peers_set(peers)
-      # The confederation peers command is additive so we first need to
-      # remove any existing peers.
-      unless confederation_peers.empty?
-        @set_args[:state] = 'no'
-        @set_args[:peer_list] = confederation_peers
-        config_set('bgp', 'confederation_peers', @set_args)
+    def confederation_peers=(should)
+      # confederation peers are additive. So create a delta hash of entries
+      # and only apply the changes
+      is = confederation_peers
+
+      delta_hash = Utils.delta_add_remove(should, is)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug('confederation_peers delta ' \
+                          "#{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |peer|
+          state = (action == :add) ? '' : 'no'
+          @set_args[:state] = state
+          @set_args[:peer] = peer
+
+          config_set('bgp', 'confederation_peers', @set_args)
+        end
       end
-      unless peers == default_confederation_peers
-        @set_args[:state] = ''
-        @set_args[:peer_list] = peers
-        config_set('bgp', 'confederation_peers', @set_args)
-      end
-      set_args_keys_default
     end
 
     def default_confederation_peers
