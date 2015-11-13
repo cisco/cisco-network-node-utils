@@ -154,6 +154,7 @@ name:
   test_config_result:
     false: RuntimeError
     32: "Long VLAN name knob is not enabled"
+    nil: ~
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
@@ -166,6 +167,7 @@ name:
     assert_raises(IndexError) { ref.test_config_get }
     type_check(ref.test_config_result(false), RuntimeError.class)
     type_check(ref.test_config_result(32), String)
+    type_check(ref.test_config_result('nil'), NilClass)
 
     assert(ref.default_value?)
     assert(ref.config_get?)
@@ -180,7 +182,7 @@ name:
   cli_nexus:
     default_value: 'NXAPI base'
     /N7K/:
-      default_value: 'NXAPI N7K'
+      default_value: ~
     /N9K/:
       default_value: 'NXAPI N9K'
   cli_ios_xr:
@@ -207,7 +209,7 @@ name:
   def test_load_n7k
     write_variants
     reference = load_file(platform: :nexus, product: 'N7K-C7010', cli: true)
-    assert_equal('NXAPI N7K', reference.lookup('test', 'name').default_value)
+    assert_equal(nil, reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n3k_3064
@@ -249,14 +251,17 @@ rank:
     reference = load_file(product: 'N9K-C9396PX')
 
     ref = reference.lookup('test', 'name')
-    refute(ref.default_value?)
-    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    # default_value is nil for an unsupported property
+    assert(ref.default_value?, 'default_value? returned false')
+    assert_nil(ref.default_value)
     refute(ref.config_get?)
     assert_raises(Cisco::UnsupportedError) { ref.config_get }
 
+    # Because the whole file is excluded, we don't know which
+    # attributes are 'valid' - so any attribute name is permitted:
     ref = reference.lookup('test', 'foobar')
-    refute(ref.default_value?)
-    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
     refute(ref.config_get?)
     assert_raises(Cisco::UnsupportedError) { ref.config_get }
   end
@@ -267,8 +272,8 @@ rank:
     assert_equal(27, reference.lookup('test', 'rank').default_value)
 
     ref = reference.lookup('test', 'name')
-    refute(ref.default_value?)
-    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
     refute(ref.config_get?)
     assert_raises(Cisco::UnsupportedError) { ref.config_get }
   end
@@ -288,8 +293,8 @@ name:
 ")
     reference = load_file(platform: 'nexus', cli: false)
     ref = reference.lookup('test', 'name')
-    refute(ref.default_value?)
-    assert_raises(Cisco::UnsupportedError) { ref.default_value }
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
   end
 
   def test_default_only
