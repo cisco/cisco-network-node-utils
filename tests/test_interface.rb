@@ -714,7 +714,9 @@ class TestInterface < CiscoTestCase
     begin
       interface.negotiate_auto = false
     rescue RuntimeError => e
-      speed_change_disallowed(e.message)
+      skip('Skip test: Interface type does not allow config change') if
+        e.message[/requested config change not allowed/]
+      flunk(e.message)
     end
 
     default = ref.default_value
