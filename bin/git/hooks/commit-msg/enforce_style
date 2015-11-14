@@ -76,6 +76,14 @@ if $errors > 0 # rubocop:disable Style/GlobalVars
   puts '{'
   puts message_lines.join("\n")
   puts '}'
+
+  fd = IO.sysopen('/dev/tty', 'w+')
+  a = IO.new(fd, 'w+')
+  a.puts 'Continue anyway? [y/N] '
+  response = a.gets.chomp
+  # rubocop:disable Style/GlobalVars
+  $errors = 0 if response.downcase[0] == 'y'
+  # rubocop:enable Style/GlobalVars
 end
 
 exit $errors # rubocop:disable Style/GlobalVars

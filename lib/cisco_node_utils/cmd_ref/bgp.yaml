@@ -132,6 +132,11 @@ reconnect_interval:
   config_set_append: '<state> reconnect-interval <seconds>'
   default_value: 60
 
+route_distinguisher:
+  config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
+  config_set: ["vrf context <vrf>", "<state> rd <rd>"]
+  default_value: ""
+
 router:
   config_get: "show running bgp"
   config_get_token: '/^router bgp (\d+)$/'
