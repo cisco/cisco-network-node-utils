@@ -38,26 +38,6 @@ class TestFabricpathTopo < CiscoTestCase
     config('no install feature-set fabricpath')
   end
 
-  def assert(val, str)
-    return if val == 'unsupported'
-    super
-  end
-
-  def refute(val, str)
-    return if val == 'unsupported'
-    super
-  end
-
-  def assert_equal(expected, actual, str)
-    return if actual == 'unsupported'
-    super
-  end
-
-  def refute_equal(expected, actual, str)
-    return if actual == 'unsupported'
-    super
-  end
-
   # TESTS
 
   def test_topo_create

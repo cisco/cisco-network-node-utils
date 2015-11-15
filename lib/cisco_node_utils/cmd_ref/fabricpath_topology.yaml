@@ -9,23 +9,23 @@ all_topos:
   config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
 
 create:
-  config_set: ["fabricpath topology %s" , "end"]
+  config_set: ["fabricpath topology <topo>" , "end"]
 
 description:
   kind: string
   config_get: "show fabricpath topology"
   config_get_token: '/^(\S+)[\s]+%d+[\s]+\S+/'
-  config_set: ["fabricpath topology %d" , "%s description %s", "end"]
+  config_set: ["fabricpath topology <topo>" , "<state> description <name>", "end"]
   default_value: ""
 
 destroy:
-  config_set: "no fabricpath topology %s"
+  config_set: "no fabricpath topology <topo>"
 
 member_vlans:
   kind: string
   config_get: "show fabricpath topology vlan"
   config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
-  config_set: ["fabricpath topology %d" , "%s member vlan %s", "end"]
+  config_set: ["fabricpath topology <topo>" , "<state> member vlan <vlan_range>", "end"]
   default_value: "--"
 
 state:

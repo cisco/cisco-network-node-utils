@@ -26,6 +26,7 @@ module Cisco
 
     def initialize(topo_id, instantiate=true)
       @topo_id = topo_id.to_s
+      @set_params = {}
       fail ArgumentError, "Invalid value(non-numeric
                           Topo id #{@topo_id})" unless @topo_id[/^\d+$/]
 
@@ -48,7 +49,7 @@ module Cisco
     def create
       fabricpath_feature_set(:enabled) unless :enabled == fabricpath_feature
       config_set('fabricpath_topology', 'create',
-                 @topo_id) unless @topo_id == '0'
+                 topo: @topo_id) unless @topo_id == '0'
     end
 
     def cli_error_check(result)
@@ -60,7 +61,7 @@ module Cisco
     end
 
     def destroy
-      config_set('fabricpath_topology', 'destroy', @topo_id)
+      config_set('fabricpath_topology', 'destroy', topo: @topo_id)
     end
 
     def fabricpath_feature
@@ -99,15 +100,19 @@ module Cisco
 
     def member_vlans=(str)
       debug "str is #{str} whose class is #{str.class}"
+      @set_params = {}
       str = str.join(',') unless str.empty?
       if str.empty?
-        result = config_set('fabricpath_topology', 'member_vlans', @topo_id,
-                            'no', '')
+        @set_params[:topo] = @topo_id
+        @set_params[:state] = 'no'
+        @set_params[:vlan_range] = ''
       else
         str.gsub!('..', '-')
-        result = config_set('fabricpath_topology', 'member_vlans', @topo_id,
-                            '', str)
+        @set_params[:topo] = @topo_id
+        @set_params[:state] = ''
+        @set_params[:vlan_range] = str
       end
+      result = config_set('fabricpath_topology', 'member_vlans', @set_params)
       cli_error_check(result)
     rescue CliError => e
       raise "[topo #{@topo_id}] '#{e.command}' : #{e.clierror}"
@@ -123,11 +128,17 @@ module Cisco
 
     def topo_name=(desc)
       fail TypeError unless desc.is_a?(String)
+      @set_params = {}
       if desc.empty?
-        config_set('fabricpath_topology', 'description', @topo_id, 'no', '')
+        @set_params[:topo] = @topo_id
+        @set_params[:state] = 'no'
+        @set_params[:name] = ''
       else
-        config_set('fabricpath_topology', 'description', @topo_id, '', desc)
+        @set_params[:topo] = @topo_id
+        @set_params[:state] = ''
+        @set_params[:name] = desc
       end
+      config_set('fabricpath_topology', 'description', @set_params)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
