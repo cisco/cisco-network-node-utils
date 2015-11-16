@@ -192,7 +192,7 @@ module Cisco
             KEYS.include?(method_name.to_s[0..-2])
         # ref.foo? -> return true if @hash[foo], else false
         method_name = method_name.to_s[0..-2]
-        @hash[method_name].nil? ? false : true
+        @hash.include?(method_name)
       else
         super(method_name, *args, &block)
       end
@@ -204,12 +204,6 @@ module Cisco
       str << "Command: #{@feature} #{@name}\n"
       @hash.each { |key, value| str << "  #{key}: #{value}\n" }
       str
-    end
-
-    # Check that all necessary values have been populated.
-    def valid?
-      return false unless @feature && @name
-      true
     end
   end
 
@@ -230,25 +224,10 @@ module Cisco
   end
 
   # Placeholder for known but explicitly excluded entry
+  # For these, we have an implied default_only value of nil.
   class UnsupportedCmdRef < CmdRef
     def initialize(feature, name, file)
-      super(feature, name, {}, file)
-    end
-
-    def valid?
-      true
-    end
-
-    def method_missing(method_name, *args, &block)
-      if KEYS.include?(method_name.to_s)
-        fail UnsupportedError.new(@feature, @name)
-      elsif method_name.to_s[-1] == '?' && \
-            KEYS.include?(method_name.to_s[0..-2])
-        # ref.foo? -> return true if @hash[foo], else false
-        false
-      else
-        super(method_name, *args, &block)
-      end
+      super(feature, name, { 'default_only' => nil }, file)
     end
   end
 
@@ -325,8 +304,6 @@ module Cisco
           end
         end
       end
-
-      fail 'Missing values in CommandReference.' unless valid?
     end
 
     # Get the command reference
@@ -583,25 +560,6 @@ module Cisco
       validate_yaml(yaml_parsed, yaml_file)
       # If validation passed, convert the node tree to a Ruby Hash.
       yaml_parsed.transform
-    end
-
-    # Check that all resources were pulled in correctly.
-    def valid?
-      complete_status = true
-      @hash.each_value do |names|
-        if names.is_a? Hash
-          names.each_value do |ref|
-            status = ref.valid?
-            debug("Reference is invalid: \n#{ref}") unless status
-            complete_status = (status && complete_status)
-          end
-        else
-          status = names.valid?
-          debug("Reference is invalid: \n#{names}") unless status
-          complete_status = (status && complete_status)
-        end
-      end
-      complete_status
     end
 
     def to_s
