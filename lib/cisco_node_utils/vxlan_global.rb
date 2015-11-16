@@ -23,6 +23,12 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for vxlan_global
   class VxlanGlobal < NodeUtil
+
+    # Constructor for vxlan_global
+    def initialize(instantiate=true)
+      enable if instantiate && !VxlanGlobal.enabled
+    end
+
     def enable
       config_set('vxlan_global', 'feature', state: '')
     end
