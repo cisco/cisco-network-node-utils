@@ -351,6 +351,7 @@ module Cisco
     def confederation_peers=(should)
       # confederation peers are additive. So create a delta hash of entries
       # and only apply the changes
+      should = should.flatten
       is = confederation_peers
 
       delta_hash = Utils.delta_add_remove(should, is)
