@@ -27,13 +27,6 @@ class TestRouterBgpNeighbor < CiscoTestCase
   @@asn = 55
   @@addr = '1.1.1.1'
   @@remote_asn = 99
-
-  # some test data for use in several tests
-  @@test_data = []
-  @@test_data << { vrf: 'default', neighbors: ['1.1.1.1'] }
-  @@test_data << { vrf:       'red',
-                   neighbors: ['2.2.2.0', '2000::2', '2000:123:38::'] }
-  # was 2.2.2.0/24 and 2000:123:38::/64
   # rubocop:enable Style/ClassVars
 
   def setup
@@ -56,6 +49,21 @@ class TestRouterBgpNeighbor < CiscoTestCase
       config('no router bgp')
     else
       config('no feature bgp')
+    end
+  end
+
+  # Returns some test data for use in several tests.
+  def test_data
+    test_data = []
+    test_data << { vrf: 'default', neighbors: ['1.1.1.1'] }
+
+    if platform == :ios_xr
+      # XR doesn't support prefix/len addresses
+      test_data << { vrf:       'red',
+                     neighbors: ['2.2.2.0', '2000::2', '2000:123:38::'] }
+    else
+      test_data << { vrf:       'red',
+                     neighbors: ['2.2.2.0/24', '2000::2', '2000:123:38::/64'] }
     end
   end
 
@@ -103,7 +111,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
     test_data_hash = {}
 
     cmds = ['router bgp 55']
-    @@test_data.each do |d|
+
+    test = test_data
+    test.each do |d|
       test_data_hash[d[:vrf]] = d[:neighbors]
       cmds << "vrf #{d[:vrf]}" unless d[:vrf] == 'default'
       d[:neighbors].each do |neighbor|
@@ -117,7 +127,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     refute_empty(bgp_neighbors, 'BGP neighbor collection is empty')
 
     # see if all expected neighbors are there
-    @@test_data.each do |d|
+    test.each do |d|
       d[:neighbors].each do |neighbor|
         assert(neighbor_exists?(neighbor, d[:vrf], bgp_neighbors),
                "Did not find match for nbr '#{neighbor}', vrf '#{d[:vrf]}'")
@@ -126,7 +136,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   def test_create_destroy
-    @@test_data.each do |d|
+    get_test_data.each do |d|
       d[:neighbors].each do |addr|
         neighbor = RouterBgpNeighbor.new(@@asn, d[:vrf], addr)
         exists = neighbor_exists?(addr, d[:vrf])
@@ -154,7 +164,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
   def test_set_get_multiple_descriptions
     # First create multiple routers with multiple descriptions.
-    @@test_data.each do |d|
+    get_test_data.each do |d|
       d[:neighbors].each do |addr|
         neighbor = create_neighbor(d[:vrf], addr)
         neighbor.description = "#{d[:vrf]}:#{addr}"
