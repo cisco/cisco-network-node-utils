@@ -23,11 +23,9 @@ require_relative '../lib/cisco_node_utils/bgp_neighbor'
 
 # TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
 class TestRouterBgpNeighbor < CiscoTestCase
-  # rubocop:disable Style/ClassVars
-  @@asn = 55
-  @@addr = '1.1.1.1'
-  @@remote_asn = 99
-  # rubocop:enable Style/ClassVars
+  ASN = 55
+  ADDR = '1.1.1.1'
+  REMOTE_ASN = 99
 
   def setup
     # Disable feature bgp before each test to ensure we
@@ -92,12 +90,12 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   # Creates a neighbor for use in tests, and sets its remote_as.
-  def create_neighbor(vrf, addr=@@addr)
-    neighbor = RouterBgpNeighbor.new(@@asn, vrf, addr)
+  def create_neighbor(vrf, addr=ADDR)
+    neighbor = RouterBgpNeighbor.new(ASN, vrf, addr)
 
     # XR requires a remote_as in order to set other properties
     # (description, password, etc.)
-    neighbor.remote_as = @@remote_asn
+    neighbor.remote_as = REMOTE_ASN
     neighbor
   end
 
@@ -138,7 +136,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_create_destroy
     test_data.each do |d|
       d[:neighbors].each do |addr|
-        neighbor = RouterBgpNeighbor.new(@@asn, d[:vrf], addr)
+        neighbor = RouterBgpNeighbor.new(ASN, d[:vrf], addr)
         exists = neighbor_exists?(addr, d[:vrf])
         assert(exists, "Failed to create bgp neighbor #{addr}")
         neighbor.destroy
@@ -403,7 +401,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
   def test_remote_as
     %w(default test_vrf).each do |vrf|
-      neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
+      neighbor = RouterBgpNeighbor.new(ASN, vrf, ADDR)
       remote_asnum = [42, '1.1', neighbor.default_remote_as]
       remote_asnum.each do |asnum|
         neighbor.remote_as = asnum
