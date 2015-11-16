@@ -21,10 +21,6 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 
-XR_NOT_SUPPORTED     = 'Not supported in IOS XR'
-XR_NO_VRF_SUPPORT    = 'Feature not supported in a vrf in IOS XR'
-XR_SUPPORTED_BROKEN  = 'Supported in IOS XR - needs further work'
-
 # TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
 class TestRouterBgpNeighbor < CiscoTestCase
   # rubocop:disable Style/ClassVars
