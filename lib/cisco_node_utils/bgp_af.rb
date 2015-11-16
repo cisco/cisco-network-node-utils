@@ -547,5 +547,108 @@ module Cisco
     def default_redistribute
       config_get_default('bgp_af', 'redistribute')
     end
+
+    # route target both auto(Getter/Setter/Default)
+    def route_target_both_auto
+      config_get('bgp_af', 'route_target_both_auto', @get_args)
+    end
+
+    def route_target_both_auto=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp_af', 'route_target_both_auto', @set_args)
+      set_args_keys_default
+    end
+
+    def default_route_target_both_auto
+      config_get_default('bgp_af', 'route_target_both_auto')
+    end
+
+    # route target both auto evpn(Getter/Setter/Default)
+    def route_target_both_auto_evpn
+      config_get('bgp_af', 'route_target_both_auto_evpn', @get_args)
+    end
+
+    def route_target_both_auto_evpn=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp_af', 'route_target_both_auto_evpn', @set_args)
+      set_args_keys_default
+    end
+
+    def default_route_target_both_auto_evpn
+      config_get_default('bgp_af', 'route_target_both_auto_evpn')
+    end
+
+    # route target export
+    def route_target_export
+      cmds = config_get('bgp_af', 'route_target_export', @get_args)
+      cmds.sort
+    end
+
+    def route_target_export=(should)
+      route_target_delta(should, route_target_export, 'route_target_export')
+    end
+
+    def default_route_target_export
+      config_get_default('bgp_af', 'route_target_export')
+    end
+
+    # route target export_evpn
+    def route_target_export_evpn
+      cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
+      cmds.sort
+    end
+
+    def route_target_export_evpn=(should)
+      route_target_delta(should, route_target_export_evpn,
+                         'route_target_export_evpn')
+    end
+
+    def default_route_target_export_evpn
+      config_get_default('bgp_af', 'route_target_export_evpn')
+    end
+
+    # route target import
+    def route_target_import
+      cmds = config_get('bgp_af', 'route_target_import', @get_args)
+      cmds.sort
+    end
+
+    def route_target_import=(should)
+      route_target_delta(should, route_target_import, 'route_target_import')
+    end
+
+    def default_route_target_import
+      config_get_default('bgp_af', 'route_target_import')
+    end
+
+    # route target import_evpn
+    def route_target_import_evpn
+      cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
+      cmds.sort
+    end
+
+    def route_target_import_evpn=(should)
+      route_target_delta(should, route_target_import_evpn,
+                         'route_target_import_evpn')
+    end
+
+    def default_route_target_import_evpn
+      config_get_default('bgp_af', 'route_target_import_evpn')
+    end
+
+    def route_target_delta(should, is, prop)
+      delta_hash = Utils.delta_add_remove(should, is)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("#{prop}" \
+          "#{@get_args}\n #{action}: #{delta_hash[action]}")
+        delta_hash[action].each do |community|
+          state = (action == :add) ? '' : 'no'
+          @set_args[:state] = state
+          @set_args[:community] = community
+          config_set('bgp_af', prop, @set_args)
+        end
+      end
+    end
   end
 end
