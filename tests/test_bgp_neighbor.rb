@@ -136,7 +136,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   def test_create_destroy
-    get_test_data.each do |d|
+    test_data.each do |d|
       d[:neighbors].each do |addr|
         neighbor = RouterBgpNeighbor.new(@@asn, d[:vrf], addr)
         exists = neighbor_exists?(addr, d[:vrf])
@@ -148,7 +148,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_description
+  def test_description
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       description = "tested by mini test for vrf #{vrf}"
@@ -162,9 +162,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_multiple_descriptions
+  def test_multiple_descriptions
     # First create multiple routers with multiple descriptions.
-    get_test_data.each do |d|
+    test_data.each do |d|
       d[:neighbors].each do |addr|
         neighbor = create_neighbor(d[:vrf], addr)
         neighbor.description = "#{d[:vrf]}:#{addr}"
@@ -186,7 +186,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_connected_check
+  def test_connected_check
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = [true, false, neighbor.default_connected_check]
@@ -198,7 +198,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_capability_negotiation
+  def test_capability_negotiation
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
@@ -216,7 +216,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_dynamic_capability
+  def test_dynamic_capability
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
@@ -234,7 +234,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_ebgp_multihop
+  def test_ebgp_multihop
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       ttls = [24, neighbor.default_ebgp_multihop]
@@ -246,7 +246,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_local_as
+  def test_local_as
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       local_asnum = [42, '52', '1.1', neighbor.default_local_as]
@@ -266,7 +266,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_log_neighbor_changes
+  def test_log_neighbor_changes
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
@@ -286,7 +286,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_low_memory_exempt
+  def test_low_memory_exempt
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
@@ -304,7 +304,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_maximum_peers
+  def test_maximum_peers
     skip('Maximum-peers does not apply to IOS XR') if platform == :ios_xr
 
     # only "address/prefix" type of neighbor address will accept
@@ -321,7 +321,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_password
+  def test_password
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       passwords = {}
@@ -368,7 +368,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_default_password_type
+  def test_default_password_type
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       password = 'test'
@@ -401,7 +401,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_remote_as
+  def test_remote_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
       remote_asnum = [42, '1.1', neighbor.default_remote_as]
@@ -413,7 +413,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_remove_private_as_options
+  def test_remove_private_as_options
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
@@ -437,7 +437,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_shutdown
+  def test_shutdown
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = [true, false, neighbor.default_shutdown]
@@ -449,7 +449,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_suppress_4_byte_as
+  def test_suppress_4_byte_as
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = [true, false, neighbor.default_suppress_4_byte_as]
@@ -461,7 +461,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_timers
+  def test_timers
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       timers = [{ keep: 40, hold: 90 },
@@ -480,7 +480,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_transport_passive_mode
+  def test_transport_passive_mode
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = []
@@ -498,7 +498,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_transport_passive_only
+  def test_transport_passive_only
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = [true, false, neighbor.default_transport_passive_only]
@@ -510,7 +510,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     end
   end
 
-  def test_set_get_update_source
+  def test_update_source
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       test_interfaces = ['loopback1', interfaces[0], interfaces[0].downcase,
