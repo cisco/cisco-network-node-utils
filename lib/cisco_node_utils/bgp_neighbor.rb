@@ -20,6 +20,7 @@ require 'ipaddr'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'bgp'
+require_relative 'command_reference'
 
 module Cisco
   # RouterBgpNeighbor - node utility class for BGP neighbor configs
@@ -260,7 +261,7 @@ module Cisco
 
     def password_type
       result = config_get('bgp_neighbor', 'password_type', @get_args)
-      Encryption.cli_to_symbol(result.to_i)
+      Encryption.cli_to_symbol(result.to_s)
     end
 
     def default_password_type
@@ -379,18 +380,59 @@ module Cisco
       ["#{default_timers_keepalive}", "#{default_timers_holdtime}"]
     end
 
+    def transport_passive_mode=(val)
+      if platform == :nexus
+        if val == :active_only
+          fail Cisco::UnsupportedError.new(
+            'RouterBgpNeighbor', 'transport_passive_mode',
+            nil, "value '#{val}'")
+        else
+          set_args_keys(state: (val == :passive_only) ? '' : 'no')
+          config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
+        end
+      else
+        set_args_keys(mode: mode_symbol_to_cli(val))
+        config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
+      end
+    end
+
+    def transport_passive_mode
+      result = config_get('bgp_neighbor', 'transport_passive_mode', @get_args)
+      if platform == :nexus
+        result ? :passive_only : :both
+      else
+        mode_cli_to_symbol(result)
+      end
+    end
+
+    def default_transport_passive_mode
+      result = config_get_default('bgp_neighbor', 'transport_passive_mode')
+      if platform == :nexus
+        result ? :passive_only : :both
+      else
+        mode_cli_to_symbol(result)
+      end
+    end
+
     def transport_passive_only=(val)
-      set_args_keys(state: (val) ? '' : 'no')
-      config_set('bgp_neighbor', 'transport_passive_only', @set_args)
+      # TODO: add real warning
+      puts('Warning: transport_passive_only is deprecated. '\
+           'Use transport_passive_mode.')
+      self.transport_passive_mode = (val ? :passive_only : :both)
     end
 
     def transport_passive_only
-      result = config_get('bgp_neighbor', 'transport_passive_only', @get_args)
-      result ? true : false
+      # TODO: add real warning
+      puts('Warning: transport_passive_only is deprecated. '\
+           'Use transport_passive_mode.')
+      transport_passive_mode == :passive_only
     end
 
     def default_transport_passive_only
-      config_get_default('bgp_neighbor', 'transport_passive_only')
+      # TODO: add real warning
+      puts('Warning: default_transport_passive_only is deprecated. '\
+           'Use default_transport_passive_mode.')
+      default_transport_passive_mode == :passive_only
     end
 
     def update_source=(val)
@@ -409,6 +451,33 @@ module Cisco
 
     def default_update_source
       config_get_default('bgp_neighbor', 'update_source')
+    end
+
+    def mode_symbol_to_cli(symbol)
+      symbol = symbol.downcase if symbol.is_a? String
+      case symbol
+      when :active_only
+        'active-only'
+      when :passive_only
+        'passive-only'
+      when :both
+        'both'
+      else
+        fail KeyError
+      end
+    end
+
+    def mode_cli_to_symbol(cli)
+      case cli
+      when 'active-only'
+        :active_only
+      when 'passive-only'
+        :passive_only
+      when 'both'
+        :both
+      else
+        fail KeyError
+      end
     end
   end # class
 end # module

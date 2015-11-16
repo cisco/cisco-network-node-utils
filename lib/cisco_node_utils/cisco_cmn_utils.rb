@@ -34,6 +34,10 @@ module Cisco
         :aes
       when '7', 7
         :cisco_type_7
+      when 'clear'
+        :clear
+      when 'encrypted'
+        :encrypted
       else
         fail KeyError
       end
@@ -52,6 +56,10 @@ module Cisco
         '6'
       when :cisco_type_7, :type_7, 'cisco_type_7', 'type_7', '7', 7
         '7'
+      when :clear
+        'clear'
+      when :encrypted
+        'encrypted'
       else
         fail KeyError
       end
