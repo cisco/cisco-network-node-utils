@@ -83,7 +83,8 @@ module Cisco
         return massage(show(ref.config_get, :structured), ref)
       elsif token[0].kind_of?(Regexp)
         return massage(find_ascii(show(ref.config_get, :ascii),
-                                  token[-1], *token[0..-2]), ref)
+                                  token[-1],
+                                  *token[0..-2]), ref)
       else
         return massage(
           config_get_handle_structured(token,
