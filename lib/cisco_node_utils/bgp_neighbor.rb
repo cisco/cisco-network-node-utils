@@ -415,23 +415,15 @@ module Cisco
     end
 
     def transport_passive_only=(val)
-      # TODO: add real warning
-      puts('Warning: transport_passive_only is deprecated. '\
-           'Use transport_passive_mode.')
+      # TODO: add "deprecated" warning?
       self.transport_passive_mode = (val ? :passive_only : :both)
     end
 
     def transport_passive_only
-      # TODO: add real warning
-      puts('Warning: transport_passive_only is deprecated. '\
-           'Use transport_passive_mode.')
       transport_passive_mode == :passive_only
     end
 
     def default_transport_passive_only
-      # TODO: add real warning
-      puts('Warning: default_transport_passive_only is deprecated. '\
-           'Use default_transport_passive_mode.')
       default_transport_passive_mode == :passive_only
     end
 
