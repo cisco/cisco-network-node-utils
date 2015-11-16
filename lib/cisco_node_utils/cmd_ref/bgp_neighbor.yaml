@@ -14,7 +14,6 @@ _template:
       - " vrf <vrf>"
       - " neighbor <nbr>"
   cli_nexus:
-
     config_get: "show running bgp all"
     config_set_append:
       - "vrf <vrf>"
@@ -32,7 +31,7 @@ capability_negotiation:
   auto_default: false
   kind: boolean
   config_get_token_append: '/^dont-capability-negotiate$/'
-  config_set_append: ' <state> dont-capability-negotiate'
+  config_set_append: '<state> dont-capability-negotiate'
   default_value: true
 
 connected_check:
@@ -42,7 +41,6 @@ connected_check:
     config_get_token_append: '/^ignore-connected-check$/'
     config_set_append: ' <state> ignore-connected-check'
   cli_nexus:
-
     config_get_token_append: '/^disable-connected-check$/'
     config_set_append: ' <state> disable-connected-check'
   default_value: true
@@ -76,21 +74,21 @@ log_neighbor_changes:
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
-  config_set_append: ' <state> log-neighbor-changes <disable>'
+  config_set_append: '<state> log-neighbor-changes <disable>'
   default_value: "inherit"
 
 low_memory_exempt:
   _exclude: [cli_ios_xr]
   kind: boolean
   config_get_token_append: '/^low-memory exempt$/'
-  config_set_append: ' <state> low-memory exempt'
+  config_set_append: '<state> low-memory exempt'
   default_value: false
 
 maximum_peers:
   _exclude: [cli_ios_xr]
   kind: int
   config_get_token_append: '/^maximum-peers (\d+)$/'
-  config_set_append: ' <state> maximum-peers <num>'
+  config_set_append: '<state> maximum-peers <num>'
   default_value: 0
 
 password:
@@ -103,13 +101,11 @@ password:
 
 password_type:
   kind: string
+  default_value: 0
   cli_ios_xr:
     config_get_token_append: '/^password ([a-z]+)/'
-    default_value: "clear"
   cli_nexus:
-
     config_get_token_append: '/^password (\d+)/'
-    default_value: 0
 
 remote_as:
   config_get_token_append: '/^remote-as (\d*?.?\d+?)$/'
@@ -121,7 +117,7 @@ remove_private_as:
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   config_get_token_append: '/^remove-private-as\s+??(\S+)?\s+??$/'
-  config_set_append: ' <state> remove-private-as <option>'
+  config_set_append: '<state> remove-private-as <option>'
   default_value: "disable"
 
 shutdown:

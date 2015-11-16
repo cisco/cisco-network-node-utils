@@ -20,7 +20,6 @@ require 'ipaddr'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'bgp'
-require_relative 'command_reference'
 
 module Cisco
   # RouterBgpNeighbor - node utility class for BGP neighbor configs
@@ -244,8 +243,24 @@ module Cisco
                       type:   Encryption.symbol_to_cli(default_password_type),
                       passwd: val.to_s)
       else
+        cli_type = nil
+        if platform == :ios_xr
+          case type
+          when :cleartext
+            cli_type = 'clear'
+          when :md5
+            cli_type = 'encrypted'
+          else
+            fail Cisco::UnsupportedError.new(
+              'RouterBgpNeighbor', 'password',
+              nil, "type '#{type}'")
+          end
+        else
+          cli_type = Encryption.symbol_to_cli(type)
+        end
+
         set_args_keys(state:  '',
-                      type:   Encryption.symbol_to_cli(type),
+                      type:   cli_type,
                       passwd: val.to_s)
       end
       config_set('bgp_neighbor', 'password', @set_args)

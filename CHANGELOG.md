@@ -6,7 +6,7 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
-* XR support for bgp_neighbor (currently node_utils only)
+* XR support for bgp_neighbor
 
 ### Changed
 

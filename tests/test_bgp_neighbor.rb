@@ -201,17 +201,16 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_capability_negotiation
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      check = []
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          check = [true, false, neighbor.default_capability_negotiation]
+          neighbor.capability_negotiation = true
         end
       else
         check = [true, false, neighbor.default_capability_negotiation]
-      end
-      check.each do |value|
-        neighbor.capability_negotiation = value
-        assert_equal(value, neighbor.capability_negotiation)
+        check.each do |value|
+          neighbor.capability_negotiation = value
+          assert_equal(value, neighbor.capability_negotiation)
+        end
       end
       neighbor.destroy
     end
@@ -220,17 +219,16 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_dynamic_capability
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      check = []
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          check = [true, false, neighbor.default_dynamic_capability]
+          neighbor.dynamic_capability = true
         end
       else
         check = [true, false, neighbor.default_dynamic_capability]
-      end
-      check.each do |value|
-        neighbor.dynamic_capability = value
-        assert_equal(value, neighbor.dynamic_capability)
+        check.each do |value|
+          neighbor.dynamic_capability = value
+          assert_equal(value, neighbor.dynamic_capability)
+        end
       end
       neighbor.destroy
     end
@@ -271,21 +269,18 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_log_neighbor_changes
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-
-      check = []
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-                   neighbor.default_log_neighbor_changes]
+          neighbor.log_neighbor_changes = :enable
         end
       else
         check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
                  neighbor.default_log_neighbor_changes]
-      end
 
-      check.each do |value|
-        neighbor.log_neighbor_changes = value
-        assert_equal(value.to_sym, neighbor.log_neighbor_changes)
+        check.each do |value|
+          neighbor.log_neighbor_changes = value
+          assert_equal(value.to_sym, neighbor.log_neighbor_changes)
+        end
       end
       neighbor.destroy
     end
@@ -294,27 +289,23 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_low_memory_exempt
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      check = []
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          check = [true, false, neighbor.default_low_memory_exempt]
+          neighbor.low_memory_exempt = true
         end
       else
         check = [true, false, neighbor.default_low_memory_exempt]
-      end
-      check.each do |value|
-        neighbor.low_memory_exempt = value
-        assert_equal(value, neighbor.low_memory_exempt)
+        check.each do |value|
+          neighbor.low_memory_exempt = value
+          assert_equal(value, neighbor.low_memory_exempt)
+        end
       end
       neighbor.destroy
     end
   end
 
   def test_set_get_maximum_peers
-    # XR doesn't allow "address/prefix" type addresses
-    if platform == :ios_xr
-      fail Cisco::UnsupportedError.new('bgp_neighbor', 'maximum_peers')
-    end
+    skip('Maximum-peers does not apply to IOS XR') if platform == :ios_xr
 
     # only "address/prefix" type of neighbor address will accept
     # maximum_peers command, so not supported on XR
@@ -335,8 +326,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
       neighbor = create_neighbor(vrf)
       passwords = {}
       if platform == :ios_xr
-        passwords[:clear] = 'test'
-        passwords[:encrypted] = '386c0565965f89de'
+        passwords[:cleartext] = 'test'
+        passwords[:md5] = '386c0565965f89de'
         # not currently supporting XR specific 'password inheritance-disable'
       else
         passwords[:cleartext] = 'test'
@@ -347,9 +338,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
       passwords.each do |type, password|
         neighbor.password_set(password, type)
         if platform == :ios_xr
-          if type == :clear
+          if type == :cleartext
             # will always be type "encrypted" on XR
-            assert_equal(:encrypted, neighbor.password_type)
+            assert_equal(:md5, neighbor.password_type)
             # don't know what the encrypted password will look like
             # so just make sure it is not empty
             refute_empty(neighbor.password)
@@ -406,7 +397,6 @@ class TestRouterBgpNeighbor < CiscoTestCase
       # cleartext, and verify.
       neighbor.password_set(password, neighbor.default_password_type)
       test.call
-
       neighbor.destroy
     end
   end
@@ -426,27 +416,19 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_remove_private_as_options
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      options = []
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          options = [:enable, :disable, :all, :"replace-as", 'enable',
-                     'disable', 'all', 'replace-as',
-                     neighbor.default_remove_private_as]
+          neighbor.remove_private_as = :enable
         end
       else
         options = [:enable, :disable, :all, :"replace-as", 'enable', 'disable',
                    'all', 'replace-as', neighbor.default_remove_private_as]
-      end
-      options.each do |option|
-        neighbor.remove_private_as = option
-        assert_equal(option.to_sym, neighbor.remove_private_as)
-      end
 
-      if platform == :ios_xr
-        assert_raises(Cisco::UnsupportedError) do
-          neighbor.remove_private_as = neighbor.default_remove_private_as
+        options.each do |option|
+          neighbor.remove_private_as = option
+          assert_equal(option.to_sym, neighbor.remove_private_as)
         end
-      else
+
         neighbor.remove_private_as = neighbor.default_remove_private_as
         assert_equal(neighbor.default_remove_private_as,
                      neighbor.remove_private_as)
@@ -531,20 +513,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_set_get_update_source
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-
-      interfaces = []
-
-      if platform == :ios_xr
-        interfaces = ['loopback1',
-                      'GigabitEthernet0/0/0/0',
-                      'gigabitethernet0/0/0/0',
-                      neighbor.default_update_source]
-      else
-        interfaces = ['loopback1', 'Ethernet1/1', 'ethernet1/1',
-                      neighbor.default_update_source]
-      end
-
-      interfaces.each do |interface|
+      test_interfaces = ['loopback1', interfaces[0], interfaces[0].downcase,
+                         neighbor.default_update_source]
+      test_interfaces.each do |interface|
         neighbor.update_source = interface
         assert_equal(interface.downcase, neighbor.update_source)
       end
