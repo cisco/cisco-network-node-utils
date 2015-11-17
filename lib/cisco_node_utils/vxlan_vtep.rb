@@ -34,8 +34,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      is_vxlan_feature = config_get('vxlan', 'feature')
-      return hash if (:enabled != is_vxlan_feature.to_sym)
+      return hash unless feature_enabled
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -46,38 +45,24 @@ module Cisco
       hash
     end
 
-    def vxlan_feature
-      vxlan = config_get('vxlan', 'feature')
-      fail 'vxlan/nv_overlay feature not found' if vxlan.nil?
-      return :disabled if vxlan.nil?
-      vxlan.to_sym
+    def self.feature_enabled
+      config_get('vxlan', 'feature')
+    rescue Cisco::CliError => e
+      # cmd will syntax when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
     end
 
-    def vxlan_feature_set(vxlan_set)
-      curr = vxlan_feature
-      return if curr == vxlan_set
-
-      case vxlan_set
-      when :enabled
-        config_set('vxlan', 'feature', '')
-      when :disabled
-        config_set('vxlan', 'feature', 'no') if curr == :enabled
-        return
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    def self.enable(state='')
+      config_set('vxlan', 'feature', state: state)
     end
 
     def create
-      unless (:enabled == vxlan_feature)
-        vdc_name = config_get('limit_resource', 'vdc')
+      unless VxlanVtep.feature_enabled
         # Only supported on n7k currently.
-        unless vdc_name.nil?
-          @apply_to = vdc_name
-          debug("###### VDC is #{@apply_to}")
-          config_set('limit_resource', 'vxlan', @apply_to)
-        end
-        vxlan_feature_set(:enabled)
+        vdc_name = config_get('limit_resource', 'vdc')
+        config_set('limit_resource', 'vxlan', vdc_name) unless vdc_name.nil?
+        VxlanVtep.enable
       end
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
@@ -97,9 +82,7 @@ module Cisco
     ########################################################
 
     def description
-      desc = config_get('interface', 'description', @name)
-      return default_description if desc.nil?
-      desc
+      config_get('interface', 'description', @name)
     end
 
     def description=(desc)
@@ -192,16 +175,15 @@ module Cisco
     end
 
     def mac_distribution=(val)
-      debug "mac_distrib val is #{val} and class is #{val.class}"
       if val == :flood
         if @mac_dist_proto == :evpn
           config_set('vxlan_vtep', 'mac_distribution',
-                     name: @name, no_cmd: 'no', proto: 'bgp')
+                     name: @name, state: 'no', proto: 'bgp')
         end
         @mac_dist_proto = :flood
       elsif val == :evpn
         config_set('vxlan_vtep', 'mac_distribution',
-                   name: @name, no_cmd: '', proto: 'bgp')
+                   name: @name, state: '', proto: 'bgp')
         @mac_dist_proto = :evpn
       end
     rescue Cisco::CliError => e
@@ -210,7 +192,6 @@ module Cisco
 
     def source_interface
       src_intf = config_get('vxlan_vtep', 'source_intf', name: @name)
-      debug "src_intf is #{src_intf}"
       return default_source_interface if src_intf.nil?
       src_intf
     end
@@ -219,10 +200,10 @@ module Cisco
       fail TypeError unless val.is_a?(String)
       if val.empty?
         config_set('vxlan_vtep', 'source_intf',
-                   name: @name, no_cmd: 'no', lpbk_intf: val)
+                   name: @name, state: 'no', lpbk_intf: val)
       else
         config_set('vxlan_vtep', 'source_intf',
-                   name: @name, no_cmd: '', lpbk_intf: val)
+                   name: @name, state: '', lpbk_intf: val)
       end
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
@@ -237,9 +218,9 @@ module Cisco
       state ? true : false
     end
 
-    def shutdown=(state)
-      no_cmd = (state ? '' : 'no')
-      config_set('interface', 'shutdown', @name, no_cmd)
+    def shutdown=(bool)
+      state = (bool ? '' : 'no')
+      config_set('interface', 'shutdown', @name, state)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end

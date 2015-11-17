@@ -8,7 +8,7 @@ all_interfaces:
 mac_distribution:
   config_get: 'show running-config interface all'
   config_get_token: ['/^interface <name>$/', '/^host-reachability protocol (\S+)/']
-  config_set: ['interface <name>', '<no_cmd> host-reachability protocol <proto>', 'end']
+  config_set: ['interface <name>', '<state> host-reachability protocol <proto>']
 
 #TODO: move to vxlan_vtp_vni.rb
 #member_vni_mgrp:
@@ -17,10 +17,10 @@ mac_distribution:
 #  config_set: ['interface <name>', '<no_cmd> member vni <vni>', 'mcast-group <mcast_grp>','end']
 
 member_vni_arp:
-  config_set: ['interface <name>', '<no_cmd> member vni <vni>', 'suppress-arp']
+  config_set: ['interface <name>', '<state> member vni <vni>', 'suppress-arp']
 
 source_intf:
   config_get: 'show running-config interface'
   config_get_token: ['/^interface <name>$/','/^source\-interface (\S+)$/']
-  config_set: ['interface <name>', '<no_cmd> source-interface <lpbk_intf>', 'end']
+  config_set: ['interface <name>', '<state> source-interface <lpbk_intf>']
   default_value: ''

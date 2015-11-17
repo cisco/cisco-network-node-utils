@@ -1,6 +1,7 @@
 # vxlan
 ---
 feature:
-  config_get: 'show feature'
-  config_get_token: '/^nve\s+\d+\s+(\S+)/'
-  config_set: "%s feature nv overlay"
+  kind: boolean
+  config_get: 'show running nv overlay'
+  config_get_token: '/^feature nv overlay$/'
+  config_set: "<state> feature nv overlay"

@@ -97,23 +97,21 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_description
-    id = 'nve1'
-    vtep = VxlanVtep.new(id)
+    vtep = VxlanVtep.new('nve1')
 
     # Set description to non-default value and verify
     desc = 'vxlan interface'
     vtep.description = desc
     assert_equal(vtep.description, desc, "description is not #{desc}")
 
-    # Set description to default value and verfiy
+    # Set description to default value and verify
     desc = vtep.default_description
     vtep.description = desc
     assert_equal(vtep.description, desc, "description is not #{desc}")
   end
 
   def test_mac_distribution
-    id = 'nve1'
-    vtep = VxlanVtep.new(id)
+    vtep = VxlanVtep.new('nve1')
 
     val = :flood
     vtep.mac_distribution = val
@@ -133,8 +131,7 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_shutdown
-    id = 'nve1'
-    vtep = VxlanVtep.new(id)
+    vtep = VxlanVtep.new('nve1')
 
     vtep.shutdown = true
     assert(vtep.shutdown, 'source_interface is not shutdown')
@@ -144,8 +141,7 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_source_interface
-    id = 'nve1'
-    vtep = VxlanVtep.new(id)
+    vtep = VxlanVtep.new('nve1')
 
     # Set source_interface to non-default value
     val = 'loopback55'
