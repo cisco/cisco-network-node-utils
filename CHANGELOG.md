@@ -3,6 +3,11 @@ Changelog
 
 ## [Unreleased]
 
+### New feature support
+* VXLAN
+  * vxlan_global (@alok-aggarwal)
+  * vxlan_vtep (@dcheriancisco)
+
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
