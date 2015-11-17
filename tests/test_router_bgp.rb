@@ -397,7 +397,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_enforce_first_as
-    # skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     bgp.enforce_first_as = true
@@ -415,7 +414,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_default_enforce_first_as
-    # skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert(bgp.enforce_first_as,
