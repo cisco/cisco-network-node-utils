@@ -403,21 +403,21 @@ class TestRouterBgp < CiscoTestCase
     assert(bgp.enforce_first_as,
            'bgp enforce-first-as should be enabled')
     bgp.enforce_first_as = false
-    if platform == :ios_xr
-      assert(bgp.enforce_first_as,
-             'bgp enforce-first-as disable should be empty')
-    else
-      refute(bgp.enforce_first_as,
-             'bgp enforce-first-as should be disabled')
-    end
+    refute(bgp.enforce_first_as,
+           'bgp enforce-first-as should be disabled')
     bgp.destroy
   end
 
   def test_default_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    assert(bgp.enforce_first_as,
-           'bgp enforce-first-as value should be enabled = true')
+    if platform == :ios_xr
+      refute(bgp.enforce_first_as,
+             'bgp enforce-first-as value should be enabled = false')
+    else
+      assert(bgp.enforce_first_as,
+             'bgp enforce-first-as value should be enabled = true')
+    end
     bgp.destroy
   end
 
