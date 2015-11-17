@@ -588,8 +588,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_log_neighbor_changes
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+  def test_log_neighbor_changes
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -606,8 +605,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_get_log_neighbor_changes_not_configured
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+  def test_log_neighbor_changes_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.log_neighbor_changes,
@@ -616,7 +614,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_default_log_neighbor_changes
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_log_neighbor_changes,

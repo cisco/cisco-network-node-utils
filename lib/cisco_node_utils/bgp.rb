@@ -471,8 +471,8 @@ module Cisco
       config_get('bgp', 'log_neighbor_changes', @get_args)
     end
 
-    def log_neighbor_changes=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
+    def log_neighbor_changes=(state)
+      @set_args[:state] = (state ? '' : 'no')
       config_set('bgp', 'log_neighbor_changes', @set_args)
       set_args_keys_default
     end
