@@ -327,10 +327,17 @@ module Cisco
       config_get('bgp', 'enforce_first_as', @get_args)
     end
 
-    def enforce_first_as=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp', 'enforce_first_as', @set_args)
-      set_args_keys_default
+    #    def enforce_first_as=(enable)
+    # XR: action is disable (on by default, but command is removed)
+    # Nexus: action is enable (on by default, but no command is nvgenned)
+    def enforce_first_as=(action)
+      # if platform == :ios_xr
+    # 
+      # else
+        @set_args[:state] = (action ? '' : 'no')
+        config_set('bgp', 'enforce_first_as', @set_args)
+        set_args_keys_default
+      # end
     end
 
     def default_enforce_first_as
