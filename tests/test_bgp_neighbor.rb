@@ -58,7 +58,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     if platform == :ios_xr
       # XR doesn't support prefix/len addresses
       test_data << { vrf:       'red',
-                     neighbors: ['2.2.2.0', '2000::2', '2000:123:38::'] }
+                     neighbors: ['2.2.2.0', '2000::2'] }
     else
       test_data << { vrf:       'red',
                      neighbors: ['2.2.2.0/24', '2000::2', '2000:123:38::/64'] }
