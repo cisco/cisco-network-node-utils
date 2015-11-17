@@ -327,8 +327,8 @@ module Cisco
       config_get('bgp', 'enforce_first_as', @get_args)
     end
 
-    def enforce_first_as=(action)
-      @set_args[:state] = (action ? '' : 'no')
+    def enforce_first_as=(state)
+      @set_args[:state] = (state ? '' : 'no')
       config_set('bgp', 'enforce_first_as', @set_args)
       set_args_keys_default
     end
