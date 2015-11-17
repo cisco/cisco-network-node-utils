@@ -855,7 +855,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_timer_bgp_keepalive_hold
+  def test_timer_bgp_keepalive_hold
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -883,8 +883,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_default_timer_keepalive_hold_default
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+  def test_default_timer_bgp_keepalive_hold_default
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(%w(60 180), bgp.default_timer_bgp_keepalive_hold,
