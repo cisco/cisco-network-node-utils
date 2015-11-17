@@ -122,13 +122,19 @@ create_destroy_neighbor:
   config_set_append: ' <state> neighbor <nbr>'
 
 enforce_first_as:
-  # TODO: Different format for IOS XR
-  # Enabled by default, disabled by command
-  # 'bgp enforce-first-as disable'
+  # XR 'enabled' means command is nvgenned with 'disable' at the end
+  #  i.e. 'bgp enforce-first-as disable'
+  # Nexus 'enabled' means command is nvgenned with 'no' at the beginning
+  #  i.e. 'no enforce-first-as'
   kind: boolean
-  config_get_token_append: '/^(no )?enforce-first-as$/'
-  config_set_append: '<state> enforce-first-as'
-  default_value: true
+  cli_ios_xr:
+    default_value: false
+    config_get_token_append: '/^bgp enforce-first-as disable$/'
+    config_set_append: ' <state> bgp enforce-first-as disable'
+  cli_nexus:
+    default_value: true
+    config_get_token_append: '/^(no )?enforce-first-as$/'
+    config_set_append: '<state> enforce-first-as'
 
 feature:
   kind: boolean
