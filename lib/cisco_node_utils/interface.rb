@@ -80,8 +80,6 @@ module Cisco
 
     def access_vlan=(vlan)
       config_set('interface', 'access_vlan', name: @name, vlan: vlan)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_access_vlan
@@ -101,8 +99,6 @@ module Cisco
         config_set('interface', 'description',
                    name: @name, state: '', desc: desc)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
@@ -121,8 +117,6 @@ module Cisco
         config_set('interface', 'encapsulation_dot1q',
                    name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encapsulation_dot1q
@@ -152,8 +146,6 @@ module Cisco
         config_set('fex', 'feature', 'no') if curr == :enabled
         config_set('fex', 'feature_install', 'no')
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def ipv4_addr_mask
@@ -175,8 +167,6 @@ module Cisco
         config_set('interface', 'ipv4_addr_mask',
                    name: @name, state: '', addr: "#{addr}/#{mask}")
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def ipv4_address
@@ -255,8 +245,6 @@ module Cisco
     def mtu=(val)
       check_switchport_disabled
       config_set('interface', 'mtu', name: @name, state: '', mtu: val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_mtu
@@ -325,8 +313,6 @@ module Cisco
     def shutdown=(state)
       no_cmd = (state ? '' : 'no')
       config_set('interface', 'shutdown', name: @name, state: no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
@@ -378,10 +364,12 @@ module Cisco
     end
 
     def switchport_autostate_exclude=(val)
-      # cannot configure autostate unless feature vlan is enabled
-      fail('switchport mode must be configured before ' \
-           'switchport autostate') unless switchport
-      feature_vlan_set(true)
+      if platform == :nexus
+        # cannot configure autostate unless feature vlan is enabled
+        fail('switchport mode must be configured before ' \
+             'switchport autostate') unless switchport
+        feature_vlan_set(true)
+      end
       config_set('interface', 'switchport_autostate_exclude',
                  name: @name, state: val ? '' : 'no')
     end
@@ -402,6 +390,7 @@ module Cisco
     end
 
     def switchport_mode
+      return nil if platform == :ios_xr
       mode = config_get('interface', switchport_mode_lookup_string, name: @name)
 
       return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
@@ -410,6 +399,7 @@ module Cisco
       # Assume this is an interface that doesn't support switchport.
       # Do not raise exception since the providers will prefetch this property
       # regardless of interface type.
+      # TODO: this should probably be nil instead
       return :disabled
     end
 
@@ -450,6 +440,7 @@ module Cisco
     end
 
     def default_switchport_mode
+      return nil if platform == :ios_xr
       return :disabled unless system_default_switchport
       IF_SWITCHPORT_MODE.key(
         config_get_default('interface', switchport_mode_lookup_string))
@@ -467,8 +458,6 @@ module Cisco
         config_set('interface', 'switchport_trunk_allowed_vlan',
                    name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_trunk_allowed_vlan
@@ -487,8 +476,6 @@ module Cisco
         config_set('interface', 'switchport_trunk_native_vlan',
                    name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_trunk_native_vlan
@@ -515,7 +502,7 @@ module Cisco
     end
 
     def switchport_vtp
-      return false unless switchport_vtp_mode_capable?
+      return nil unless switchport_vtp_mode_capable?
       config_get('interface', 'vtp', name: @name)
     end
 
@@ -523,8 +510,6 @@ module Cisco
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', name: @name, state: no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def svi_cmd_allowed?(cmd)
@@ -584,8 +569,9 @@ module Cisco
     end
 
     def check_switchport_disabled
-      fail "#{caller[0][/`.*'/][1..-2]} cannot be set unless switchport mode" \
-        ' is disabled' unless switchport_mode == :disabled
+      return if switchport_mode == :disabled || switchport_mode.nil?
+      fail("#{caller[0][/`.*'/][1..-2]} cannot be set unless " \
+           'switchport mode is disabled')
     end
 
     def vrf
@@ -599,8 +585,6 @@ module Cisco
       else
         config_set('interface', 'vrf', name: @name, state: '', vrf: vrf)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_vrf

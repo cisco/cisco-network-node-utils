@@ -468,34 +468,21 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_interface_encapsulation_dot1q_change
+  def test_encapsulation_dot1q
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
-
-    subif.encapsulation_dot1q = 20
-    assert_equal(20, subif.encapsulation_dot1q)
-    subif.encapsulation_dot1q = 25
-    assert_equal(25, subif.encapsulation_dot1q)
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_encapsulation_dot1q_invalid
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled if platform == :nexus
-    subif = Interface.new(interfaces[0] + '.1')
-
-    assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
-    interface_ethernet_default(interfaces_id[0])
-  end
-
-  def test_interface_encapsulation_dot1q_valid
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled if platform == :nexus
-    subif = Interface.new(interfaces[0] + '.1')
-
-    subif.encapsulation_dot1q = 20
-    assert_equal(20, subif.encapsulation_dot1q)
+    if platform == :ios_xr
+      assert_nil(subif.encapsulation_dot1q)
+      assert_nil(subif.default_encapsulation_dot1q)
+      assert_raises(Cisco::UnsupportedError) { subif.encapsulation_dot1q = 20 }
+    else
+      assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
+      subif.encapsulation_dot1q = 20
+      assert_equal(20, subif.encapsulation_dot1q)
+      subif.encapsulation_dot1q = 25
+      assert_equal(25, subif.encapsulation_dot1q)
+    end
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -520,62 +507,45 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_interface_speed_change
+  def test_speed
     interface = Interface.new(interfaces[0])
-    begin
-      interface.speed = 100
-      assert_equal('100', interface.speed)
-      interface.speed = 1000
-      assert_equal('1000', interface.speed)
-      interface_ethernet_default(interfaces_id[0])
-    rescue Cisco::CliError => e
-      speed_change_disallowed(e.message)
+    if platform == :ios_xr
+      assert_nil(interface.speed)
+      assert_nil(interface.default_speed)
+      assert_raises(Cisco::UnsupportedError) { interface.speed = 1000 }
+    else
+      assert_raises(RuntimeError) { interface.speed = 'hello' }
+      begin
+        interface.speed = 1000
+        assert_equal('1000', interface.speed)
+        interface.speed = 100
+        assert_equal('100', interface.speed)
+      rescue Cisco::CliError => e
+        speed_change_disallowed(e.message)
+      end
     end
-  end
-
-  def test_interface_speed_invalid
-    interface = Interface.new(interfaces[0])
-    assert_raises(RuntimeError) { interface.speed = 'hello' }
-  end
-
-  def test_interface_speed_valid
-    interface = Interface.new(interfaces[0])
-    interface.speed = 1000
-    assert_equal('1000', interface.speed)
     interface_ethernet_default(interfaces_id[0])
-  rescue Cisco::CliError => e
-    speed_change_disallowed(e.message)
   end
 
-  def test_interface_duplex_change
+  def test_duplex
     interface = Interface.new(interfaces[0])
-    interface.speed = 1000
-    interface.duplex = 'full'
-    assert_equal('full', interface.duplex)
-    interface.duplex = 'auto'
-    assert_equal('auto', interface.duplex)
+    if platform == :ios_xr
+      assert_nil(interface.duplex)
+      assert_nil(interface.default_duplex)
+      assert_raises(Cisco::UnsupportedError) { interface.duplex = 'full' }
+    else
+      assert_raises(RuntimeError) { interface.duplex = 'hello' }
+      interface.speed = 1000
+      begin
+        interface.duplex = 'full'
+        assert_equal('full', interface.duplex)
+        interface.duplex = 'auto'
+        assert_equal('auto', interface.duplex)
+      rescue Cisco::CliError => e
+        speed_change_disallowed(e.message)
+      end
+    end
     interface_ethernet_default(interfaces_id[0])
-  rescue Cisco::CliError => e
-    speed_change_disallowed(e.message)
-  end
-
-  def test_interface_duplex_invalid
-    interface = Interface.new(interfaces[0])
-    interface.speed = 1000
-    assert_raises(RuntimeError) { interface.duplex = 'hello' }
-    interface_ethernet_default(interfaces_id[0])
-  rescue Cisco::CliError => e
-    speed_change_disallowed(e.message)
-  end
-
-  def test_interface_duplex_valid
-    interface = Interface.new(interfaces[0])
-    interface.speed = 1000
-    interface.duplex = 'full'
-    assert_equal('full', interface.duplex)
-    interface_ethernet_default(interfaces_id[0])
-  rescue Cisco::CliError => e
-    speed_change_disallowed(e.message)
   end
 
   def test_interface_shutdown_valid
@@ -586,6 +556,14 @@ class TestInterface < CiscoTestCase
     interface.shutdown = false
     refute(interface.shutdown, 'Error: shutdown state is not false')
     interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_svi_prop_nil_when_ethernet
+    intf = Interface.new(interfaces[0])
+    assert_nil(intf.svi_autostate,
+               'Error: svi_autostate should be nil when interface is ethernet')
+    assert_nil(intf.svi_management,
+               'Error: svi_management should be nil when interface is ethernet')
   end
 
   #   def test_interface_get_prefix_list_when_switchport
@@ -740,6 +718,15 @@ class TestInterface < CiscoTestCase
 
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
+
+    if platform == :ios_xr
+      assert_nil(interface.negotiate_auto)
+      assert_nil(interface.default_negotiate_auto)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.negotiate_auto = false
+      end
+      return
+    end
 
     # Some platforms/interfaces/versions do not support negotiation changes
     begin
@@ -1010,8 +997,8 @@ class TestInterface < CiscoTestCase
       shutdown:            false,
       change_shutdown:     true,
       default_shutdown:    false,
-      switchport:          :disabled,
-      default_switchport:  :disabled,
+      switchport:          platform == :ios_xr ? nil : :disabled,
+      default_switchport:  platform == :ios_xr ? nil : :disabled,
       access_vlan:         DEFAULT_IF_ACCESS_VLAN,
       default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
       vrf_new:             'test2',
@@ -1064,8 +1051,8 @@ class TestInterface < CiscoTestCase
       shutdown:            false,
       change_shutdown:     true,
       default_shutdown:    false,
-      switchport:          :disabled,
-      default_switchport:  :disabled,
+      switchport:          platform == :ios_xr ? nil : :disabled,
+      default_switchport:  platform == :ios_xr ? nil : :disabled,
       access_vlan:         DEFAULT_IF_ACCESS_VLAN,
       default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
       vrf_new:             'test2',
