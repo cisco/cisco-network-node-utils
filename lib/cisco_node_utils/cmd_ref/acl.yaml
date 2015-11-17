@@ -1,0 +1,68 @@
+# Command Reference Common ACL
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+acl_v4:
+  _template:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ip access-list <acl_name>$/'
+    config_get_token_append: 
+      - '/^<seqno>/'
+    config_set: 'ip access-list <acl_name>'
+    config_set_append:
+      - '<state> <seqno> <action> <proto> <v4_src_addr_format> <v4_src_port_format> <v4_dst_addr_format> <v4_dst_port_format> <option_format>'
+
+  acl:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ip access-list <acl_name>$/'
+    config_set: '<state> ip access-list <acl_name>'
+
+  stats_perentry:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ip access-list <acl_name>$/'
+    config_set_append: '<state> statistics per-entry'
+ 
+  l3_ace:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ip access-list <acl_name>$/'
+    config_set_append: ["ip access-list <acl_name>", 
+                        "<state> <seqno> <action> <proto> <v4_src_addr_format> <v4_dst_addr_format> <option_format>", 
+                        "end"]
+
+  l4_ace:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ip access-list <acl_name>$/'
+    config_set_append: ["ip access-list <acl_name>", 
+        "<state> <seqno> <action> <proto> <v4_src_addr_format> <v4_src_port_format> <v4_dst_addr_format> <v4_dst_port_format> <option_format>",
+                        "end"]
+
+acl_v6:
+  _template:
+    config_get: 'show ipv6 access-list <acl_name>'
+    config_get_token: '/^ipv6 access-list <acl_name>$/'
+    config_set: "ipv6 access-list <acl_name>"
+    config_set_append: 
+      - '<state> <seqno> <action> <proto> <v6_src_addr_format> <v6_dst_addr_format> <option_format>'
+
+  acl:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ipv6 access-list <acl_name>$/'
+    config_set: '<state> ipv6 access-list <acl_name>'
+
+  stats_perentry:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ipv6 access-list <acl_name>$/'
+    config_set_append: '<state> statistics per-entry'
+
+  l3_ace:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ipv6 access-list <acl_name>$/'
+    config_set_append: '<state> <seqno> <action> <proto> <v6_src_addr_format> <v6_dst_addr_format> <option_format>'
+
+  l4_ace:
+    config_get: 'show run aclmgr'
+    config_get_token: '/^ipv6 access-list <acl_name>$/'
+    config_set_append: '<state> <seqno> <action> <proto> <v6_src_addr_format> <v6_src_port_format> <v6_dst_addr_format> <v6_dst_port_format> <option_format>'
+
