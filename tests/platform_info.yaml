@@ -6,5 +6,6 @@
 # an array of ethernet interfaces. More device specific
 # attributes can be added in future.
 
-example_node:
-  interfaces: [Ethernet1/1, Ethernet1/2, Ethernet1/3]
+default:
+  nexus:
+    interfaces: [Ethernet1/1, Ethernet1/2, Ethernet1/3]

@@ -48,14 +48,8 @@ module Cisco
 
       syslogservers_list.each do |id|
         level = config_get('syslog_server', 'level', id)
-        level = level[0].to_i unless level.nil?
 
         vrf = config_get('syslog_server', 'vrf', id)
-        if vrf.nil?
-          vrf = 'default'
-        else
-          vrf = vrf[0]
-        end
 
         hash[id] = SyslogServer.new(id, level, vrf, false)
       end

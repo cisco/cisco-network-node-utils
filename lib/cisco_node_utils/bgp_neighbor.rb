@@ -95,9 +95,7 @@ module Cisco
     end
 
     def description
-      desc = config_get('bgp_neighbor', 'description', @get_args)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('bgp_neighbor', 'description', @get_args)
     end
 
     def default_description
@@ -158,7 +156,7 @@ module Cisco
 
     def ebgp_multihop
       result = config_get('bgp_neighbor', 'ebgp_multihop', @get_args)
-      result.nil? ? default_ebgp_multihop : result.first.to_i
+      result.nil? ? default_ebgp_multihop : result.to_i
     end
 
     def default_ebgp_multihop
@@ -177,9 +175,8 @@ module Cisco
 
     def local_as
       result = config_get('bgp_neighbor', 'local_as', @get_args)
-      return default_local_as if result.nil?
-      return result.first.to_i unless /\d+\.\d+$/.match(result.first)
-      result.first
+      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
+      result
     end
 
     def default_local_as
@@ -230,8 +227,7 @@ module Cisco
     end
 
     def maximum_peers
-      result = config_get('bgp_neighbor', 'maximum_peers', @get_args)
-      result.nil? ? default_maximum_peers : result.first.to_i
+      config_get('bgp_neighbor', 'maximum_peers', @get_args)
     end
 
     def default_maximum_peers
@@ -255,8 +251,7 @@ module Cisco
     end
 
     def password
-      result = config_get('bgp_neighbor', 'password', @get_args)
-      result.nil? ? '' : result.first.to_s
+      config_get('bgp_neighbor', 'password', @get_args)
     end
 
     def default_password
@@ -265,11 +260,7 @@ module Cisco
 
     def password_type
       result = config_get('bgp_neighbor', 'password_type', @get_args)
-      if result.nil?
-        default_password_type
-      else
-        Encryption.cli_to_symbol(result.first.to_i)
-      end
+      Encryption.cli_to_symbol(result.to_i)
     end
 
     def default_password_type
@@ -289,9 +280,8 @@ module Cisco
 
     def remote_as
       result = config_get('bgp_neighbor', 'remote_as', @get_args)
-      return default_remote_as if result.nil?
-      return result.first.to_i unless /\d+\.\d+$/.match(result.first)
-      result.first
+      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
+      result
     end
 
     def default_remote_as
@@ -362,7 +352,7 @@ module Cisco
 
     def timers_keepalive_hold
       match = config_get('bgp_neighbor', 'timers_keepalive_hold', @get_args)
-      match.nil? ? default_timers_keepalive_hold : match.first
+      match.nil? ? default_timers_keepalive_hold : match
     end
 
     def timers_keepalive
@@ -414,8 +404,7 @@ module Cisco
 
     def update_source
       result = config_get('bgp_neighbor', 'update_source', @get_args)
-      return default_update_source if result.nil? || result.first.nil?
-      result.first.downcase.strip
+      result.downcase.strip
     end
 
     def default_update_source
