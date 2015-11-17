@@ -199,7 +199,6 @@ log_neighbor_changes:
     config_get_token_append: '/^log-neighbor-changes$/'
     config_set_append: '<state> log-neighbor-changes'
 
-
 maxas_limit:
   # Note: Does not exist in IOS XR
   cli_nexus:
