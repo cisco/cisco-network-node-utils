@@ -89,12 +89,10 @@ module Cisco
     def auto_cost
       match = config_get('ospf', 'auto_cost', @get_args)
       return default_auto_cost if match.nil?
-      # Multiple matches are possible but the first match is used.
-      # This can be removed when rally defect DE3614 is resolved.
-      if match[0].last.nil?
-        [match[0].first.to_i, OSPF_AUTO_COST[:mbps]]
+      if match.last.nil?
+        [match.first.to_i, OSPF_AUTO_COST[:mbps]]
       else
-        [match[0].first.to_i, match[0].last]
+        [match.first.to_i, match.last]
       end
     end
 
@@ -110,8 +108,7 @@ module Cisco
     end
 
     def default_metric
-      match = config_get('ospf', 'default_metric', @get_args)
-      match.nil? ? default_default_metric : match.first.to_i
+      config_get('ospf', 'default_metric', @get_args)
     end
 
     def default_metric=(metric)
@@ -133,9 +130,7 @@ module Cisco
     def log_adjacency
       match = config_get('ospf', 'log_adjacency', @get_args)
       return default_log_adjacency if match.nil?
-      # Multiple matches are possible but the first match is used.
-      # This can be removed when rally defect DE3614 is resolved.
-      match[0].flatten.last.nil? ? :log : :detail
+      match.flatten.last.nil? ? :log : :detail
     end
 
     def log_adjacency=(type)
@@ -156,8 +151,7 @@ module Cisco
     end
 
     def router_id
-      match = config_get('ospf', 'router_id', @get_args)
-      match.nil? ? default_router_id : match.first
+      config_get('ospf', 'router_id', @get_args)
     end
 
     def router_id=(router_id)
@@ -179,10 +173,10 @@ module Cisco
 
     def timer_throttle_lsa
       match = config_get('ospf', 'timer_throttle_lsa', @get_args)
-      if match.nil? || match.first.nil?
+      if match.nil?
         default_timer_throttle_lsa
       else
-        match.first.collect(&:to_i)
+        match.collect(&:to_i)
       end
     end
 
@@ -232,10 +226,10 @@ module Cisco
 
     def timer_throttle_spf
       match = config_get('ospf', 'timer_throttle_spf', @get_args)
-      if match.nil? || match.first.nil?
+      if match.nil?
         default_timer_throttle_spf
       else
-        match.first.collect(&:to_i)
+        match.collect(&:to_i)
       end
     end
 

@@ -333,7 +333,7 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     unconfig_tacacs
   end
 
-  # rubocop:disable Metrics/MethodLength,Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
   # TODO: Consider refactoring this method
   def test_service_default_and_console_mix
     aaaauthloginservice_default =

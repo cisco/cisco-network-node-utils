@@ -1,0 +1,13 @@
+# yum
+---
+install:
+  config_set: "install add %s %s activate"
+
+query:
+  multiple: true
+  config_get: "show install packages"
+  # pass in the pkg name, retrieve version
+  config_get_token: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
+
+remove:
+  config_set: "install deactivate %s"

@@ -23,15 +23,11 @@ require_relative 'node_util'
 module Cisco
   # NXAPI implementation of AAA Authentication Login class
   class AaaAuthenticationLogin < NodeUtil
+    # rubocop:disable DoubleNegation
     # There is no "feature aaa" or "aaa new-model" on nxos, and only one
     # instance which is always available
-
-    # TODO: Missing properties: mschap, mschapv2, chap, default fallback,
-    # console fallback.
-
     def self.ascii_authentication
-      !config_get('aaa_authentication_login',
-                  'ascii_authentication').nil?
+      !!config_get('aaa_authentication_login', 'ascii_authentication')
     end
 
     def self.ascii_authentication=(val)
@@ -46,7 +42,7 @@ module Cisco
     end
 
     def self.chap
-      !config_get('aaa_authentication_login', 'chap').nil?
+      !!config_get('aaa_authentication_login', 'chap')
     end
 
     def self.chap=(val)
@@ -59,7 +55,7 @@ module Cisco
     end
 
     def self.error_display
-      !config_get('aaa_authentication_login', 'error_display').nil?
+      !!config_get('aaa_authentication_login', 'error_display')
     end
 
     def self.error_display=(val)
@@ -72,7 +68,7 @@ module Cisco
     end
 
     def self.mschap
-      !config_get('aaa_authentication_login', 'mschap').nil?
+      !!config_get('aaa_authentication_login', 'mschap')
     end
 
     def self.mschap=(val)
@@ -85,7 +81,7 @@ module Cisco
     end
 
     def self.mschapv2
-      !config_get('aaa_authentication_login', 'mschapv2').nil?
+      !!config_get('aaa_authentication_login', 'mschapv2')
     end
 
     def self.mschapv2=(val)

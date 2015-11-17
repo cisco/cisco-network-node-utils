@@ -17,13 +17,14 @@
 # limitations under the License.
 #
 
-require 'minitest/autorun'
+require_relative 'basetest'
+
 require 'tempfile'
 require_relative '../lib/cisco_node_utils/command_reference'
 
 # TestCmdRef - Minitest for CommandReference and CmdRef classes.
-class TestCmdRef < MiniTest::Test
-  include CommandReference
+class TestCmdRef < Minitest::Test
+  include Cisco
 
   def setup
     @input_file = Tempfile.new('test.yaml')
@@ -33,8 +34,19 @@ class TestCmdRef < MiniTest::Test
     @input_file.close!
   end
 
-  def load_file
-    CommandReference.new('', [@input_file.path])
+  # Extend standard Minitest error handling to report UnsupportedError as skip
+  def capture_exceptions
+    super do
+      begin
+        yield
+      rescue Cisco::UnsupportedError => e
+        skip(e.to_s)
+      end
+    end
+  end
+
+  def load_file(**args)
+    CommandReference.new(**args, :files => [@input_file.path])
   end
 
   def write(string)
@@ -42,44 +54,39 @@ class TestCmdRef < MiniTest::Test
     @input_file.flush
   end
 
+  def test_data_sanity
+    # Make sure the actual YAML in our library loads for various platforms
+    CommandReference.new
+    CommandReference.new(platform: :nexus, cli: true)
+    CommandReference.new(platform: :nexus, product: 'N9K-C9396PX', cli: true)
+    CommandReference.new(platform: :nexus, product: 'N7K-C7010', cli: true)
+    CommandReference.new(platform: :nexus, product: 'N3K-C3064PQ-10GE',
+                         cli: true)
+  end
+
   def test_load_empty_file
     # should load successfully but yield an empty hash
     reference = load_file
-    assert(reference.empty?)
+    assert_empty(reference)
   end
 
   def test_load_whitespace_only
     write('   ')
     reference = load_file
-    assert(reference.empty?)
+    assert_empty(reference)
   end
 
   def test_load_not_valid_yaml
     # The control characters embedded below are not permitted in YAML.
-    # Syck (in older Ruby versions) will incorrectly accept these
-    # while parsing the file, but our CmdRef constructor will eventually
-    # reject the data.
-    # Psych (in newer Ruby versions) will correctly reject
-    # this data at parse time.
     write("
-feature\a\e:
-  name\b\f:
-    default_value:\vtrue")
+name\a\e\b\f:
+  default_value:\vtrue")
     assert_raises(RuntimeError) { load_file }
-  end
-
-  def test_load_feature_no_name
-    # should error out
-    write('feature:')
-    assert_raises(RuntimeError) do
-      load_file
-    end
   end
 
   def test_load_feature_name_no_data
     write("
-feature:
-  name:")
+name:")
     assert_raises(RuntimeError) do
       load_file
     end
@@ -87,122 +94,286 @@ feature:
 
   def test_load_feature_name_default
     write("
-feature:
-  name:
-    default_value: true")
+name:
+  default_value: true")
     reference = load_file
     assert(!reference.empty?)
-    ref = reference.lookup('feature', 'name')
+    ref = reference.lookup('test', 'name')
     assert_equal(true, ref.default_value)
-  end
-
-  def test_load_duplicate_feature
-    write("
-feature:
-  name:
-    default_value: false
-feature:
-  name:
-    config_get: 'show feature'
-")
-    assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_name
     write("
-feature:
-  name:
-    default_value: false
-  name:
-    config_get: 'show feature'")
+name:
+  default_value: false
+name:
+  config_get: 'show feature'")
     assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_duplicate_param
     write("
-feature:
-  name:
-    default_value: false
-    default_value: true")
+name:
+  default_value: false
+  default_value: true")
     assert_raises(RuntimeError) { load_file }
   end
 
   def test_load_unsupported_key
     write("
-feature:
-  name:
-    config_get: 'show feature'
-    what_is_this: \"I don't even\"")
+name:
+  config_get: 'show feature'
+  what_is_this: \"I don't even\"")
     assert_raises(RuntimeError) { load_file }
   end
 
-  #   # Alphabetization of features is not enforced at this time.
-  #   def test_load_features_unalphabetized
-  #     write("
-  # zzz:
-  #   name:
-  #     default_value: true
-  # zzy:
-  #   name:
-  #     default_value: false")
-  #     self.assert_raises(RuntimeError) { load_file }
-  #   end
+  def test_load_unalphabetized
+    write("
+name_b:
+  default_value: true
+name_a:
+  default_value: false")
+    assert_raises(RuntimeError) { load_file }
+  end
 
   def type_check(obj, cls)
     assert(obj.is_a?(cls), "#{obj} should be #{cls} but is #{obj.class}")
   end
 
   def test_load_types
-    write("
-feature:
-  name:
-    default_value: true
-    config_get: show hello
-    config_get_token: !ruby/regexp '/hello world/'
-    config_set: [ \"hello\", \"world\" ]
-    test_config_get_regex: !ruby/regexp '/hello world/'
-")
+    write(%q(
+name:
+  default_value: true
+  config_get: show hello
+  config_get_token: '/hello world/'
+  config_set: [ \"hello\", \"world\" ]
+  test_config_get_regex: '/hello world/'
+  test_config_result:
+    false: RuntimeError
+    32: "Long VLAN name knob is not enabled"
+    nil: ~
+))
     reference = load_file
-    ref = reference.lookup('feature', 'name')
+    ref = reference.lookup('test', 'name')
     type_check(ref.default_value, TrueClass)
     type_check(ref.config_get, String)
-    type_check(ref.config_get_token, Regexp)
+    type_check(ref.config_get_token, Array)
+    type_check(ref.config_get_token[0], Regexp)
     type_check(ref.config_set, Array)
     type_check(ref.test_config_get_regex, Regexp)
+    assert_raises(IndexError) { ref.test_config_get }
+    type_check(ref.test_config_result(false), RuntimeError.class)
+    type_check(ref.test_config_result(32), String)
+    type_check(ref.test_config_result('nil'), NilClass)
+
+    assert(ref.default_value?)
+    assert(ref.config_get?)
+    assert(ref.config_get_token?)
+    assert(ref.config_set?)
   end
 
-  def test_load_common
-    reference = CommandReference.new('')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
-    # Some spot checks
-    type_check(reference.lookup('vtp', 'feature').config_get_token, String)
-    type_check(reference.lookup('vtp', 'version').default_value, Integer)
+  def write_variants
+    write("
+name:
+  default_value: 'generic'
+  cli_nexus:
+    default_value: 'NXAPI base'
+    /N7K/:
+      default_value: ~
+    /N9K/:
+      default_value: 'NXAPI N9K'
+")
+  end
+
+  def test_load_generic
+    write_variants
+    reference = load_file
+    assert_equal('generic', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n9k
-    reference = CommandReference.new('N9K-C9396PX')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file(platform: :nexus, product: 'N9K-C9396PX', cli: true)
+    assert_equal('NXAPI N9K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n7k
-    reference = CommandReference.new('N7K-C7010')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file(platform: :nexus, product: 'N7K-C7010', cli: true)
+    assert_equal(nil, reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n3k_3064
-    reference = CommandReference.new('N3K-C3064PQ-10GE')
-    assert(reference.files.any? { |filename| /common.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n9k.yaml/ =~ filename })
-    refute(reference.files.any? { |filename| /n7k.yaml/ =~ filename })
-    assert(reference.files.any? { |filename| /n3064.yaml/ =~ filename })
+    write_variants
+    reference = load_file(platform: :nexus, product: 'N3K-C3064PQ-10GE',
+                          cli: true)
+    assert_equal('NXAPI base', reference.lookup('test', 'name').default_value)
+  end
+
+  def write_exclusions
+    write("
+_exclude:
+  - /N9K/
+
+name:
+  _exclude: [/C30../, /C31../]
+  default_value: hello
+
+rank:
+  default_value: 27
+")
+  end
+
+  def test_exclude_whole_file
+    write_exclusions
+    reference = load_file(product: 'N9K-C9396PX')
+
+    ref = reference.lookup('test', 'name')
+    # default_value is nil for an unsupported property
+    assert(ref.default_value?, 'default_value? returned false')
+    assert_nil(ref.default_value)
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+
+    # Because the whole file is excluded, we don't know which
+    # attributes are 'valid' - so any attribute name is permitted:
+    ref = reference.lookup('test', 'foobar')
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+  end
+
+  def test_exclude_whole_item
+    write_exclusions
+    reference = load_file(product: 'N3K-C3172PQ')
+    assert_equal(27, reference.lookup('test', 'rank').default_value)
+
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
+    refute(ref.config_get?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+  end
+
+  def test_exclude_no_exclusion
+    write_exclusions
+    reference = load_file(product: 'N7K-C7010')
+    assert_equal('hello',  reference.lookup('test', 'name').default_value)
+    assert_equal(27, reference.lookup('test', 'rank').default_value)
+  end
+
+  def test_exclude_implicit
+    write("
+name:
+  cli_nexus:
+    default_value: 1
+")
+    reference = load_file(platform: 'nexus', cli: false)
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_value?)
+    assert_nil(ref.default_value)
+  end
+
+  def test_default_only
+    write("
+name:
+  default_only: 'x'
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_only?)
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+  end
+
+  def test_default_only_cleanup
+    write("
+name:
+  default_only: 'x'
+  config_set: 'foo'
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_only?)
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+
+    write("
+name2:
+  config_set: 'foo'
+  default_only: 'x'
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name2')
+    assert(ref.default_only?)
+    assert(ref.default_value?)
+    assert_equal('x', ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+  end
+
+  def test_default_only_default_value
+    write("
+name:
+  kind: int
+  cli_nexus:
+    default_value: 10
+    config_set: 'hello'
+  default_only: 0
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    assert(ref.default_only?)
+    assert(ref.default_value?)
+    assert_equal(0, ref.default_value)
+    refute(ref.config_set?)
+    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+
+    reference = load_file(cli: true, platform: 'nexus')
+    ref = reference.lookup('test', 'name')
+    refute(ref.default_only?)
+    assert(ref.default_value?)
+    assert_equal(10, ref.default_value)
+    assert(ref.config_set?)
+    assert_raises(IndexError) { ref.config_get }
+  end
+
+  def test_config_get_token_hash_substitution
+    write(%q(
+name:
+  config_get_token:
+    ['/^router ospf <name>$/',
+     '/^vrf <vrf>$/',
+     '/^router-id (\S+)$/']
+))
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    token = ref.config_get_token(name: 'red')
+    assert_equal([/^router ospf red$/, /^router-id (\S+)$/],
+                 token)
+    token = ref.config_get_token(name: 'blue', vrf: 'green')
+    assert_equal([/^router ospf blue$/, /^vrf green$/, /^router-id (\S+)$/],
+                 token)
+    # TODO: add negative tests?
+  end
+
+  def test_config_get_token_printf_substitution
+    write("
+name:
+  config_get_token: ['/^interface %s$/i', '/^description (.*)/']
+")
+    reference = load_file
+    ref = reference.lookup('test', 'name')
+    token = ref.config_get_token('Ethernet1/1')
+    assert_equal([%r{^interface Ethernet1/1$}i, /^description (.*)/],
+                 token)
+    # Negative tests - wrong # of args
+    assert_raises(ArgumentError) { ref.config_get_token }
+    assert_raises(ArgumentError) { ref.config_get_token('eth1/1', 'foo') }
   end
 end

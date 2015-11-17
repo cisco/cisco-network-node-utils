@@ -1,0 +1,35 @@
+# tacacs_server_host
+---
+encryption:
+  config_set: "%s tacacs-server host %s key %s %s"
+
+encryption_password:
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server host %s key \d+\s+(\S+)/'
+  default_value: ""
+
+encryption_type:
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server host %s key (\d+)/'
+
+host:
+  config_set: "%s tacacs-server host %s"
+
+hosts:
+  multiple: true
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server host (\S+)/'
+
+port:
+  kind: int
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server host %s .*port (\d+)/'
+  config_set: "tacacs-server host %s port %s"
+  default_value: 49
+
+timeout:
+  kind: int
+  config_get: "show run tacacs all"
+  config_get_token: '/^tacacs-server host %s .*timeout (\d+)/'
+  config_set: "%s tacacs-server host %s timeout %s"
+  default_value: 0

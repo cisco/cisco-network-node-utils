@@ -1,0 +1,7 @@
+# ntp_config
+---
+source_interface:
+  config_get: "show running-config ntp"
+  config_get_token: '/^ntp source-interface\s+(.*)$/'
+  config_set: '<state> ntp source-interface <source_interface>'
+  default_value: ~

@@ -32,15 +32,11 @@ module Cisco
     def self.domainnames(vrf=nil)
       hash = {}
       if vrf.nil?
-        domains = config_get('dnsclient', 'domain_name')
+        domain = config_get('dnsclient', 'domain_name')
       else
-        domains = config_get('dnsclient', 'domain_name_vrf', vrf: vrf)
+        domain = config_get('dnsclient', 'domain_name_vrf', vrf: vrf)
       end
-      return hash if domains.nil?
-
-      domains.each do |name|
-        hash[name] = DomainName.new(name, vrf, false)
-      end
+      hash[domain] = DomainName.new(domain, vrf, false) unless domain.empty?
       hash
     end
 

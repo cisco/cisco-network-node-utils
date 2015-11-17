@@ -81,7 +81,7 @@ module Cisco
       #   "cmd_type": "config-commands",
       #   "methods": "group foo bar local "}], ...
       hsh_arr = config_get('aaa_authorization_service', 'groups')
-      fail 'unable to retrieve aaa groups information' if hsh_arr.nil?
+      fail 'unable to retrieve aaa groups information' if hsh_arr.empty?
       type_s = AaaAuthorizationService.auth_type_sym_to_str(@type)
       hsh = hsh_arr.find do |x|
         x['appl_subtype'] == @name && x['cmd_type'] == type_s
@@ -105,7 +105,7 @@ module Cisco
     def method
       t_str = AaaAuthorizationService.auth_type_sym_to_str(@type)
       m = config_get('aaa_authorization_service', 'method', @name, t_str)
-      m.nil? ? :unselected : m.first.to_sym
+      m.nil? ? :unselected : m.to_sym
     end
 
     # default is :local

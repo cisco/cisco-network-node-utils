@@ -75,8 +75,8 @@ module Cisco
       # config_get returns the following format:
       # [{service:"default",method:"group group1 none "},
       #  {service:"console",method:"local "}]
-      hsh_arr = config_get('aaa_auth_login_service', 'groups', @name)
-      fail 'unable to retrieve aaa groups information' if hsh_arr.nil?
+      hsh_arr = config_get('aaa_auth_login_service', 'groups')
+      fail 'unable to retrieve aaa groups information' if hsh_arr.empty?
       hsh = hsh_arr.find { |x| x['service'] == @name }
       # this should never happen unless @name is invalid
       fail "no aaa info found for service #{@name}" if hsh.nil?
@@ -97,7 +97,7 @@ module Cisco
 
     def method
       m = config_get('aaa_auth_login_service', 'method', @name)
-      m.nil? ? :unselected : m.first.to_sym
+      m.nil? ? :unselected : m.to_sym
     end
 
     # default is :local

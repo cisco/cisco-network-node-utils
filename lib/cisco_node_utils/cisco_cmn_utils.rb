@@ -92,4 +92,45 @@ module Cisco
       end
     end
   end # class ChefUtils
+
+  # General utility class
+  class Utils
+    require 'ipaddr'
+    # Helper utility method for ip/prefix format networks.
+    # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
+    # we need to mask the address using the prefix length so that they
+    # are converted to '1.1.1.0/24' or '2000:123:38::/64'
+    def self.process_network_mask(network)
+      mask = network.split('/')[1]
+      address = IPAddr.new(network).to_s
+      network = address + '/' + mask unless mask.nil?
+      network
+    end
+
+    # Helper to build a hash of add/remove commands for a nested array.
+    # Useful for network, redistribute, etc.
+    #   should: an array of expected cmds (manifest/recipe)
+    #  current: an array of existing cmds on the device
+    def self.depth(a)
+      return 0 unless a.is_a?(Array)
+      1 + depth(a[0])
+    end
+
+    def self.delta_add_remove(should, current=[])
+      # Remove nil entries from array
+      should.each(&:compact!) unless should.empty? if depth(should) > 1
+
+      delta = { add: should - current, remove: current - should }
+
+      # Delete entries from :remove if f1 is an update to an existing command
+      delta[:add].each do |id, _|
+        if depth(should) == 1
+          delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
+        else
+          delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        end
+      end
+      delta
+    end # delta_add_remove
+  end # class Utils
 end   # module Cisco

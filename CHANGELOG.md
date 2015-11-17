@@ -5,10 +5,40 @@ Changelog
 
 ### Added
 
+* `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+
+### Changed
+
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
+  - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+
+## [v1.1.0]
+
+### New feature support
+* BGP
+  * bgp (@mikewiebe)
+  * bgp_af (@richwellum)
+  * bgp_neighbor (@jyang09)
+  * bgp_neighbor_af (@chrisvanheuveln)
+* NTP
+  * ntp_config (@jonnytpuppet)
+  * ntp_server (@jonnytpuppet)
+* RADIUS
+  * radius_global (@jonnytpuppet)
+  * radius_server (@jonnytpuppet)
+* SYSLOG
+  * syslog_server (@jonnytpuppet)
+  * syslog_setting (@jonnytpuppet)
+* Miscellaneous
+  * dns_domain (@hunner)
+  * domain_name (@bmjen)
+  * name_server (@hunner)
+  * network_snmp (@jonnytpuppet)
+
+### Added
+
 * Enabled [Travis-CI](https://travis-ci.org) integration to automatically run [rubocop](https://github.com/bbatsov/rubocop). Fixed all baseline rubocop warnings.
-* Added support for name_server (@hunner)
-* Added support for ntp_server (@jonnytpuppet)
-* Added support for ntp_config (@jonnytpuppet)
 * Added git hooks to streamline certain processes:
   * Validate commit message format for consistency
   * Don't allow commit of code failing RuboCop `--lint` checks
@@ -24,17 +54,20 @@ Changelog
   * UUT can be specified by the `NODE` environment variable or at runtime, in addition to the classic method of command line arguments to `ruby test_my_file.rb`
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
+* Added best practices development guide.
+* Added support for radius_global (@jonnytpuppet)
+* Added support for radius_server_group (@jonnytpuppet)
 
 ### Fixed
 
 * Fixed several bugs in `SnmpUser.(auth|priv)_password_equal?`
-* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
 * Fixed a bug in `test_interface.rb` that was keeping it from properly exercising the `negotiate_auto` functionality.
 * Added a cache_flush call in `Platform.chassis` to work around an infrequent issue.
 
 ### Changed
 
-* Doc change: Add git config comments
+* Added missing steps to CONTRIBUTING.md and README-develop-node-utils-APIs.md
+* Added git config comments
 * Moved `platform_info.(rb|yaml)` from `lib/` to `tests/` as it is test-only code.
 * Now requires Minitest ~> 5.0 instead of Minitest < 5.0.
 
@@ -73,7 +106,8 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
 
