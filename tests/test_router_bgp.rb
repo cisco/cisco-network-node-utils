@@ -324,10 +324,6 @@ class TestRouterBgp < CiscoTestCase
     if platform == :nexus
       refute(bgp.bestpath_med_non_deterministic,
              'bgp bestpath_med_non_deterministic should *NOT* be enabled')
-    else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.bestpath_med_non_deterministic
-      end
     end
     bgp.destroy
   end
@@ -350,10 +346,6 @@ class TestRouterBgp < CiscoTestCase
     if platform == :nexus
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
-    else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.default_bestpath_med_non_deterministic
-      end
     end
     bgp.destroy
   end
@@ -483,10 +475,6 @@ class TestRouterBgp < CiscoTestCase
       refute(bgp.default_graceful_restart_helper,
              'graceful restart helper default value ' \
              'should be enabled = false')
-    else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.default_graceful_restart_helper
-      end
     end
     # rubocop:enable Style/GuardClause
   end
@@ -698,6 +686,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_reconnect_interval_default
+    skip('Not supported on IOS XR') if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -815,6 +804,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_timer_bestpath_limit_default
+    skip('Not supported on IOS XR') if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(300, bgp.timer_bestpath_limit,
@@ -823,6 +813,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_set_get_timer_bestpath_limit_always
+    skip('Not supported on IOS XR') if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
