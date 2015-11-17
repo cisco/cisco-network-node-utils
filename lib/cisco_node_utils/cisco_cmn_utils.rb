@@ -24,11 +24,11 @@ module Cisco
     # password encryption types
     def self.cli_to_symbol(cli)
       case cli
-      when '0', 0
+      when '0', 0, 'clear'
         :cleartext
       when '3', 3
         :"3des" # yuck :-(
-      when '5', 5
+      when '5', 5, 'encrypted'
         :md5
       when '6', 6
         :aes

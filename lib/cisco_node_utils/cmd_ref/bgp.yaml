@@ -119,7 +119,7 @@ confederation_peers:
     config_set_append: '<state> confederation peers <peer>'
 
 create_destroy_neighbor:
-  config_set_append: '<state> neighbor <nbr>'
+  config_set_append: ' <state> neighbor <nbr>'
 
 enforce_first_as:
   # TODO: Different format for IOS XR
