@@ -159,6 +159,29 @@ module Cisco
       config_get_default('bgp_af', 'next_hop_route_map')
     end
 
+    def next_hop_route_policy
+      config_get('bgp_af', 'next_hop_route_policy', @get_args)
+    end
+
+    def next_hop_route_policy=(route_policy)
+      route_policy.strip!
+      if route_policy.empty?
+        state = 'no'
+        # Dummy route policy required if not configured.
+        if next_hop_route_policy.empty?
+          route_policy = 'dummy_routepolicy'
+        else
+          route_policy = next_hop_route_policy
+        end
+      end
+      set_args_keys(state: state, route_policy: route_policy)
+      config_set('bgp_af', 'next_hop_route_policy', @set_args)
+    end
+
+    def default_next_hop_route_policy
+      config_get_default('bgp_af', 'next_hop_route_policy')
+    end
+
     #
     # additional paths (Getter/Setter/Default)
     #
@@ -227,7 +250,7 @@ module Cisco
           route_map = additional_paths_selection
         end
       end
-      set_args_keys(state: state, route_map: route_map)
+      set_args_keys(state: state, route_map: route_map, route_policy: route_map)
       config_set('bgp_af', 'additional_paths_selection', @set_args)
     end
 
@@ -502,11 +525,12 @@ module Cisco
       [:add, :remove].each do |action|
         CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
                           "#{delta_hash[action]}")
-        delta_hash[action].each do |network, route_map|
+        delta_hash[action].each do |network, route_map_policy|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
-          route_map = "route-map #{route_map}" unless route_map.nil?
-          set_args_keys(state: state, network: network, route_map: route_map)
+          route_map = "route-map #{route_map_policy}" unless route_map_policy.nil?
+          route_policy = "route-policy #{route_map_policy}" unless route_map_policy.nil?
+          set_args_keys(state: state, network: network, route_map: route_map, route_policy: route_policy)
           config_set('bgp_af', 'network', @set_args)
         end
       end
