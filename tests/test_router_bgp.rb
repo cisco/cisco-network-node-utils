@@ -44,13 +44,15 @@ def create_bgp_vrf(asnum, vrf)
 end
 
 def setup_default
+  @asnum = 55
   @vrf = 'default'
-  RouterBgp.new(55)
+  RouterBgp.new(@asnum)
 end
 
 def setup_vrf
+  @asnum = 99
   @vrf = 'yamllll'
-  create_bgp_vrf(99, @vrf)
+  create_bgp_vrf(@asnum, @vrf)
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
@@ -324,6 +326,9 @@ class TestRouterBgp < CiscoTestCase
     if platform == :nexus
       refute(bgp.bestpath_med_non_deterministic,
              'bgp bestpath_med_non_deterministic should *NOT* be enabled')
+    else
+      assert_nil(bgp.bestpath_med_non_deterministic,
+                 'bgp bestpath_med_non_deterministic should *NOT* be supported')
     end
     bgp.destroy
   end
@@ -346,6 +351,10 @@ class TestRouterBgp < CiscoTestCase
     if platform == :nexus
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
+    else
+      assert_nil(bgp.default_bestpath_med_non_deterministic,
+                 'bgp default_bestpath_med_non_deterministic should ' \
+                 '*NOT* be supported')
     end
     bgp.destroy
   end
@@ -391,12 +400,38 @@ class TestRouterBgp < CiscoTestCase
   def test_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    bgp.enforce_first_as = true
-    assert(bgp.enforce_first_as,
-           'bgp enforce-first-as should be enabled')
-    bgp.enforce_first_as = false
-    refute(bgp.enforce_first_as,
-           'bgp enforce-first-as should be disabled')
+    if platform == :ios_xr
+      @device.cmd('term width 300')
+      # Lets assert based on XR standard output if a command is not found
+      pattern = 'No such configuration item'
+
+      # Test default
+      s = @device.cmd("show running-config router bgp #{asnum} " \
+                      'bgp enforce-first-as disable')
+      assert_match(pattern, s,
+                   'bgp enforce-first-as disable should not be enabled')
+
+      # Disable enforce-first-as
+      bgp.enforce_first_as = false
+      s = @device.cmd("show running-config router bgp #{asnum} " \
+                      'bgp enforce-first-as disable')
+      refute_match(pattern, s,
+                   'bgp enforce-first-as disable should be enabled')
+
+      # Enable enforce-first-as
+      bgp.enforce_first_as = true
+      s = @device.cmd("show running-config router bgp #{asnum} " \
+                      'bgp enforce-first-as disable')
+      assert_match(pattern, s,
+                   'bgp enforce-first-as disable should not be enabled')
+    else
+      bgp.enforce_first_as = true
+      assert(bgp.enforce_first_as,
+             'bgp enforce-first-as should be enabled')
+      bgp.enforce_first_as = false
+      refute(bgp.enforce_first_as,
+             'bgp enforce-first-as should be disabled')
+    end
     bgp.destroy
   end
 
@@ -471,10 +506,15 @@ class TestRouterBgp < CiscoTestCase
                  "bgp graceful restart default timer value should be '120'")
     assert_equal(300, bgp.default_graceful_restart_timers_stalepath_time,
                  "bgp graceful restart default timer value should be '300'")
-    refute(bgp.default_graceful_restart_helper,
-           'graceful restart helper default value ' \
-           'should be enabled = false') if platform == :nexus
-    # rubocop:enable Style/GuardClause
+    if platform == :nexus
+      refute(bgp.default_graceful_restart_helper,
+             'graceful restart helper default value ' \
+             'should be enabled = false')
+    else
+      assert_nil(bgp.default_graceful_restart_helper,
+                 'bgp default_graceful_restart_helper should ' \
+                 '*NOT* be supported')
+    end
   end
 
   def test_confederation_id_default
@@ -574,13 +614,46 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_log_neighbor_changes
-    %w(test_default test_vrf).each do |t|
-      if t == 'test_default'
-        bgp = setup_default
+  def test_log_neighbor_changes_default
+    log_neighbor_changes(setup_default)
+  end
+
+  def test_log_neighbor_changes_vrf
+    log_neighbor_changes(setup_vrf)
+  end
+
+  def log_neighbor_changes(bgp)
+    if platform == :ios_xr
+      @device.cmd('term width 300')
+      # Lets assert based on XR standard output if a command is not found
+      pattern = 'No such configuration item'
+
+      if @vrf == 'default'
+        vrf_str = ''
       else
-        bgp = setup_vrf
+        vrf_str = "vrf #{@vrf}"
       end
+
+      # Test default
+      s = @device.cmd("show running-config router bgp #{@asnum} " \
+                      "#{vrf_str} bgp log neighbor changes disable")
+      assert_match(pattern, s,
+                   'bgp log_neighbor_changes disable should not be enabled')
+
+      # Disable log neighbors
+      bgp.log_neighbor_changes = false
+      s = @device.cmd("show running-config router bgp #{@asnum} " \
+                      "#{vrf_str} bgp log neighbor changes disable")
+      refute_match(pattern, s,
+                   'bgp log_neighbor_changes disable should be enabled')
+
+      # Enable log neighbors
+      bgp.log_neighbor_changes = true
+      s = @device.cmd("show running-config router bgp #{@asnum} " \
+                      "#{vrf_str} bgp log neighbor changes disable")
+      assert_match(pattern, s,
+                   'bgp log_neighbor_changes disable should not be enabled')
+    else
       bgp.log_neighbor_changes = true
       assert(bgp.log_neighbor_changes,
              "vrf #{@vrf}: bgp log_neighbor_changes should be enabled")

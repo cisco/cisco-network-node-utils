@@ -327,10 +327,19 @@ module Cisco
       config_get('bgp', 'enforce_first_as', @get_args)
     end
 
-    def enforce_first_as=(state)
-      @set_args[:state] = (state ? '' : 'no')
-      config_set('bgp', 'enforce_first_as', @set_args)
-      set_args_keys_default
+    def enforce_first_as=(enable)
+      if platform == :ios_xr
+        # XR enforce_first_as is on by default (=>true)
+        # =>true  = enable enforce_first_as  = 'no bgp enforce-first-as disable'
+        # =>false = disable enforce_first_as = 'bgp enforce-first-as disable'
+        @set_args[:state] = (enable ? 'no' : '')
+        config_set('bgp', 'enforce_first_as', @set_args)
+        set_args_keys_default
+      else
+        @set_args[:state] = (enable ? '' : 'no')
+        config_set('bgp', 'enforce_first_as', @set_args)
+        set_args_keys_default
+      end
     end
 
     def default_enforce_first_as
@@ -471,10 +480,19 @@ module Cisco
       config_get('bgp', 'log_neighbor_changes', @get_args)
     end
 
-    def log_neighbor_changes=(state)
-      @set_args[:state] = (state ? '' : 'no')
-      config_set('bgp', 'log_neighbor_changes', @set_args)
-      set_args_keys_default
+    def log_neighbor_changes=(enable)
+      if platform == :ios_xr
+        # XR logging is on by default (=>true)
+        # =>true  = enable logging  = 'no bgp log neighbor changes disable'
+        # =>false = disable logging = 'bgp log neighbor changes disable'
+        @set_args[:state] = (enable ? 'no' : '')
+        config_set('bgp', 'log_neighbor_changes', @set_args)
+        set_args_keys_default
+      else
+        @set_args[:state] = (enable ? '' : 'no')
+        config_set('bgp', 'log_neighbor_changes', @set_args)
+        set_args_keys_default
+      end
     end
 
     def default_log_neighbor_changes

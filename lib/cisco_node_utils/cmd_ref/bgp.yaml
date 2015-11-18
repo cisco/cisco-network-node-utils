@@ -122,17 +122,12 @@ create_destroy_neighbor:
   config_set_append: '<state> neighbor <nbr>'
 
 enforce_first_as:
-  # XR 'enabled' means command is nvgenned with 'disable' at the end
-  #  i.e. 'bgp enforce-first-as disable'
-  # Nexus 'enabled' means command is nvgenned with 'no' at the beginning
-  #  i.e. 'no enforce-first-as'
   kind: boolean
+    default_value: true
   cli_ios_xr:
-    default_value: false
     config_get_token_append: '/^bgp enforce-first-as disable$/'
     config_set_append: ' <state> bgp enforce-first-as disable'
   cli_nexus:
-    default_value: true
     config_get_token_append: '/^(no )?enforce-first-as$/'
     config_set_append: '<state> enforce-first-as'
 
@@ -191,11 +186,12 @@ graceful_restart_timers_stalepath_time:
 
 log_neighbor_changes:
   kind: boolean
-  default_value: false
   cli_ios_xr:
+    default_value: true
     config_get_token_append: '/^bgp log neighbor changes disable$/'
     config_set_append: ' <state> bgp log neighbor changes disable'
   cli_nexus:
+    default_value: false
     config_get_token_append: '/^log-neighbor-changes$/'
     config_set_append: '<state> log-neighbor-changes'
 
