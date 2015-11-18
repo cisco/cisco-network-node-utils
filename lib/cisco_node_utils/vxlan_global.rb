@@ -154,13 +154,15 @@ module Cisco
 
     def anycast_gateway_mac=(mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
+
       if mac_addr == default_anycast_gateway_mac
-        config_set('vxlan_global', 'anycast_gateway_mac',
-                   state: 'no', mac_addr: '')
+        state = 'no'
+        mac_addr = ''
       else
-        config_set('vxlan_global', 'anycast_gateway_mac',
-                   state: '', mac_addr: mac_addr)
+        state = ''
       end
+        config_set('vxlan_global', 'anycast_gateway_mac',
+                   state: state, mac_addr: mac_addr)
     end
 
     def default_anycast_gateway_mac

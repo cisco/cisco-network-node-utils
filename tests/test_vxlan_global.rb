@@ -95,8 +95,9 @@ class TestVxlanGlobal < CiscoTestCase
 
   def test_anycast_gateway_mac_clear
     vxlan_global = VxlanGlobal.new
-    vxlan_global.anycast_gateway_mac = ''
-    assert_equal('', vxlan_global.anycast_gateway_mac,
+    vxlan_global.anycast_gateway_mac = vxlan_global.default_anycast_gateway_mac
+    assert_equal(vxlan_global.default_anycast_gateway_mac,
+                 vxlan_global.anycast_gateway_mac,
                  'Error: anycast-gateway-mac mismatch')
   end
 end
