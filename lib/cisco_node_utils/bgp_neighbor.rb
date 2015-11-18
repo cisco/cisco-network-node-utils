@@ -203,7 +203,7 @@ module Cisco
 
     def default_log_neighbor_changes
       result = config_get_default('bgp_neighbor', 'log_neighbor_changes')
-      result.to_sym
+      result.nil? ? nil : result.to_sym
     end
 
     def low_memory_exempt=(val)
@@ -323,7 +323,7 @@ module Cisco
 
     def default_remove_private_as
       result = config_get_default('bgp_neighbor', 'remove_private_as')
-      result.to_sym
+      result.nil? ? nil : result.to_sym
     end
 
     def shutdown=(val)
