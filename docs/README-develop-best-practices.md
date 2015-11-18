@@ -22,7 +22,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
 * [Y9](#yaml9): Selection of `show` commands for `config_get`.
 * [Y10](#yaml10): Use `true` and `false` for boolean values.
-
+* [Y11](#yaml11): Use `_exclude` to return `nil` for unsupported properties.
 
 
 ## <a name="odbp">Common Object Development Best Practices</a>
@@ -40,7 +40,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [MT3](#mt3): Do not hardcode interface names.
 * [MT4](#mt4): Make use of the `config` helper method for device configuration instead of `@device.cmd`.
 * [MT5](#mt5): Make use of the `assert_show_match` and `refute_show_match` helper methods to validate expected outcomes in the CLI instead of `@device.cmd("show...")`.
-
+* [MT6](#mt6): Unsupported properties must include negative test cases.
 
 
 ## YAML Best Practices:
@@ -206,6 +206,12 @@ The following commands should be preferred over `show [feature]` commands since 
 
 YAML allows various synonyms for `true` and `false` such as `yes` and `no`, but for consistency and readability (especially to users more familiar with Ruby than with YAML), we recommend using `true` and `false` rather than any of their synonyms.
 
+### <a name="yaml11">Y11: Use `_exclude` to return `nil` for unsupported properties.
+
+Some properties are only applicable to specific platforms. Rather than using `default_only` to specify an 'unconfigured' default like `''` or `false`, it is more accurate to return `nil` for a property that is not applicable at all. By returning `nil`, the property will not even appear in commands like `puppet resource`, which is the desired outcome.
+
+Rather than specifying `default_only: nil`, the most straightforward and self-evident way to mark a property as unsupported is to use the `_exclude: [my_platform]` YAML tag. See [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md#_exclude) for more details about the `_exclude` tag.
+
 ## Common Object Best Practices:
 
 ### <a name="co1">CO1: Features that can be configured under the global and non-global vrfs need to account for this in the object design.
@@ -360,6 +366,16 @@ See [TacacsServer](../lib/cisco_node_utils/tacacs_server.rb) and [SnmpServer](..
 
 ### <a name="mt1">MT1: Ensure that *all new API's* have minitest coverage.
 
+Running minitest will automatically produce code coverage results using the [SimpleCov](http://www.rubydoc.info/gems/simplecov) Gem:
+
+```
+test_interface:
+39 runs, 316 assertions, 0 failures, 0 errors, 2 skips
+Coverage report generated for MiniTest to cisco-network-node-utils/coverage. 602 / 814 LOC (73.96%) covered.
+```
+
+If you are adding new APIs, after running the tests, you should inspect the coverage results (open `coverage/index.html` with a web browser) to ensure that your new APIs are being exercised appropriately by your new tests.
+
 ### <a name="mt2">MT2: Use appropriate `assert_foo` and `refute_foo` statements rather than `assert_equal`.
 
 
@@ -419,4 +435,19 @@ assert_output_match(pattern: /interface port-channel 10/)
 refute_output_match(pattern: /interface port-channel 11/)
 refute_output_match(pattern: /interface port-channel 12/)
 assert_output_match(pattern: /interface port-channel 13/)
+```
+
+### <a name="mt6">MT6: Unsupported properties must include negative test cases.
+
+Some properties are only applicable to a particular platform and are unsupported on other platforms. To ensure that this lack of support is properly validated, at least one of the test cases for this property should include tests of the getter and default methods and a negative test for the setter method. If you followed [Y11](#yaml11), this means checking that the getter and default methods return `nil` and the setter method raises a `Cisco::UnsupportedError`:
+
+```ruby
+def test_foo_bar
+  if platform == :platform_not_supporting_bar
+    assert_nil(foo.bar)
+    assert_nil(foo.default_bar)
+    assert_raises(Cisco::UnsupportedError) { foo.bar = baz }
+  else
+    # tests for foo.bar on a platform that supports this
+    ...
 ```
