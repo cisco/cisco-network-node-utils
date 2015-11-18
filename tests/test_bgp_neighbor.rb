@@ -374,7 +374,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
       test = proc do
         if platform == :ios_xr
-          assert_equal(:encrypted, neighbor.password_type)
+          assert_equal(:md5, neighbor.password_type)
           refute_empty(neighbor.password)
         else
           assert_equal(expected_password, neighbor.password)
@@ -387,7 +387,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
 
       # Test 1: if we don't set password type, default should be cleartext,
       # we can verify by checking return type to be
-      # :3des/:encrypted, and encrypted text.
+      # :3des/:md5, and encrypted text.
       neighbor.password_set(password)
       test.call
 
