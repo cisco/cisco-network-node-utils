@@ -23,7 +23,6 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for vxlan_global
   class VxlanGlobal < NodeUtil
-
     # Constructor for vxlan_global
     def initialize(instantiate=true)
       enable if instantiate && !VxlanGlobal.enabled
@@ -62,11 +61,24 @@ module Cisco
       end
     end
 
-    def dup_host_ip_addr_detection_set(configure, host_moves, timeout)
-      if configure == 'True'
-        state = ''
-      else
+    def dup_host_ip_addr_detection_host_moves
+      host_moves, _timeout = dup_host_ip_addr_detection
+      return default_dup_host_ip_addr_detection_host_moves if host_moves.nil?
+      host_moves
+    end
+
+    def dup_host_ip_addr_detection_timeout
+      _host_moves, timeout = dup_host_ip_addr_detection
+      return default_dup_host_ip_addr_detection_timeout if timeout.nil?
+      timeout
+    end
+
+    def dup_host_ip_addr_detection_set(host_moves, timeout)
+      if host_moves == default_dup_host_ip_addr_detection_host_moves &&
+         timeout == default_dup_host_ip_addr_detection_timeout
         state = 'no'
+      else
+        state = ''
       end
       set_args = { state: state, host_moves: host_moves, timeout: timeout }
       config_set('vxlan_global', 'dup_host_ip_addr_detection', set_args)
@@ -96,9 +108,26 @@ module Cisco
       end
     end
 
+    def dup_host_mac_detection_host_moves
+      host_moves, _timeout = dup_host_mac_detection
+      return default_dup_host_mac_detection_host_moves if host_moves.nil?
+      host_moves
+    end
+
+    def dup_host_mac_detection_timeout
+      _host_moves, timeout = dup_host_mac_detection
+      return default_dup_host_mac_detection_timeout if timeout.nil?
+      timeout
+    end
+
     def dup_host_mac_detection_set(host_moves, timeout)
       set_args = { host_moves: host_moves, timeout: timeout }
-      config_set('vxlan_global', 'dup_host_mac_detection', set_args)
+      if host_moves == default_dup_host_mac_detection_host_moves &&
+         timeout == default_dup_host_mac_detection_timeout
+        dup_host_mac_detection_default
+      else
+        config_set('vxlan_global', 'dup_host_mac_detection', set_args)
+      end
     end
 
     def dup_host_mac_detection_default
@@ -123,15 +152,19 @@ module Cisco
       config_get('vxlan_global', 'anycast_gateway_mac')
     end
 
-    def anycast_gateway_mac_set(configure, mac_addr)
+    def anycast_gateway_mac=(mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
-      if configure == 'True'
-        config_set('vxlan_global', 'anycast_gateway_mac',
-                   state: '', mac_addr: mac_addr)
-      else
+      if mac_addr == default_anycast_gateway_mac
         config_set('vxlan_global', 'anycast_gateway_mac',
                    state: 'no', mac_addr: '')
+      else
+        config_set('vxlan_global', 'anycast_gateway_mac',
+                   state: '', mac_addr: mac_addr)
       end
+    end
+
+    def default_anycast_gateway_mac
+      config_get_default('vxlan_global', 'anycast_gateway_mac')
     end
   end # class
 end # module
