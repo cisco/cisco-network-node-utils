@@ -54,16 +54,14 @@ module Cisco
     end
 
     def self.enable(state='')
+      # vdc only supported on n7k currently.
+      vdc_name = config_get('limit_resource', 'vdc')
+      config_set('limit_resource', 'vxlan', vdc_name) unless vdc_name.nil?
       config_set('vxlan', 'feature', state: state)
     end
 
     def create
-      unless VxlanVtep.feature_enabled
-        # Only supported on n7k currently.
-        vdc_name = config_get('limit_resource', 'vdc')
-        config_set('limit_resource', 'vxlan', vdc_name) unless vdc_name.nil?
-        VxlanVtep.enable
-      end
+      VxlanVtep.enable unless VxlanVtep.feature_enabled
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
     end
