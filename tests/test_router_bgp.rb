@@ -401,29 +401,36 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     if platform == :ios_xr
-      @device.cmd('term width 300')
       # Lets assert based on XR standard output if a command is not found
       pattern = 'No such configuration item'
 
-      # Test default
+      # Test default running-config test
       s = @device.cmd("show running-config router bgp #{asnum} " \
                       'bgp enforce-first-as disable')
       assert_match(pattern, s,
                    'bgp enforce-first-as disable should not be enabled')
 
-      # Disable enforce-first-as
+      # Disable enforce-first-as running-config test
       bgp.enforce_first_as = false
       s = @device.cmd("show running-config router bgp #{asnum} " \
                       'bgp enforce-first-as disable')
       refute_match(pattern, s,
                    'bgp enforce-first-as disable should be enabled')
 
-      # Enable enforce-first-as
+      # Enable enforce-first-as running-config test
       bgp.enforce_first_as = true
       s = @device.cmd("show running-config router bgp #{asnum} " \
                       'bgp enforce-first-as disable')
       assert_match(pattern, s,
                    'bgp enforce-first-as disable should not be enabled')
+
+      # Test node utils reporting
+      bgp.enforce_first_as = true
+      assert(bgp.enforce_first_as,
+             'bgp enforce-first-as disable should not be enabled')
+      bgp.enforce_first_as = false
+      refute(bgp.enforce_first_as,
+             'bgp enforce-first-as disable should be enabled')
     else
       bgp.enforce_first_as = true
       assert(bgp.enforce_first_as,
@@ -624,7 +631,6 @@ class TestRouterBgp < CiscoTestCase
 
   def log_neighbor_changes(bgp)
     if platform == :ios_xr
-      @device.cmd('term width 300')
       # Lets assert based on XR standard output if a command is not found
       pattern = 'No such configuration item'
 
@@ -634,25 +640,33 @@ class TestRouterBgp < CiscoTestCase
         vrf_str = "vrf #{@vrf}"
       end
 
-      # Test default
+      # Test default running-config test
       s = @device.cmd("show running-config router bgp #{@asnum} " \
                       "#{vrf_str} bgp log neighbor changes disable")
       assert_match(pattern, s,
                    'bgp log_neighbor_changes disable should not be enabled')
 
-      # Disable log neighbors
+      # Disable log neighbors running-config test
       bgp.log_neighbor_changes = false
       s = @device.cmd("show running-config router bgp #{@asnum} " \
                       "#{vrf_str} bgp log neighbor changes disable")
       refute_match(pattern, s,
                    'bgp log_neighbor_changes disable should be enabled')
 
-      # Enable log neighbors
+      # Enable log neighbors running-config test
       bgp.log_neighbor_changes = true
       s = @device.cmd("show running-config router bgp #{@asnum} " \
                       "#{vrf_str} bgp log neighbor changes disable")
       assert_match(pattern, s,
                    'bgp log_neighbor_changes disable should not be enabled')
+
+      # Test node utils reporting
+      bgp.log_neighbor_changes = true
+      assert(bgp.log_neighbor_changes,
+             "vrf #{@vrf}: bgp log_neighbor_changes should not be enabled")
+      bgp.log_neighbor_changes = false
+      refute(bgp.log_neighbor_changes,
+             "vrf #{@vrf}: bgp log_neighbor_changes should be disabled")
     else
       bgp.log_neighbor_changes = true
       assert(bgp.log_neighbor_changes,
@@ -660,8 +674,8 @@ class TestRouterBgp < CiscoTestCase
       bgp.log_neighbor_changes = false
       refute(bgp.log_neighbor_changes,
              "vrf #{@vrf}: bgp log_neighbor_changes should be disabled")
-      bgp.destroy
     end
+    bgp.destroy
   end
 
   def test_log_neighbor_changes_not_configured

@@ -123,7 +123,7 @@ create_destroy_neighbor:
 
 enforce_first_as:
   kind: boolean
-    default_value: true
+  default_value: true
   cli_ios_xr:
     config_get_token_append: '/^bgp enforce-first-as disable$/'
     config_set_append: ' <state> bgp enforce-first-as disable'

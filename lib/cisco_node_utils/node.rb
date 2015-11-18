@@ -111,6 +111,8 @@ module Cisco
           value = false
         elsif /^no / =~ value
           value = false
+        elsif /disable$/ =~ value
+          value = false
         else
           value = true
         end
