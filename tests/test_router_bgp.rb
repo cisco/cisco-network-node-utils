@@ -44,13 +44,15 @@ def create_bgp_vrf(asnum, vrf)
 end
 
 def setup_default
+  @asnum = 55
   @vrf = 'default'
-  RouterBgp.new(55)
+  RouterBgp.new(@asnum)
 end
 
 def setup_vrf
+  @asnum = 99
   @vrf = 'yamllll'
-  create_bgp_vrf(99, @vrf)
+  create_bgp_vrf(@asnum, @vrf)
 end
 
 # TestRouterBgp - Minitest for RouterBgp class
@@ -325,9 +327,8 @@ class TestRouterBgp < CiscoTestCase
       refute(bgp.bestpath_med_non_deterministic,
              'bgp bestpath_med_non_deterministic should *NOT* be enabled')
     else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.bestpath_med_non_deterministic
-      end
+      assert_nil(bgp.bestpath_med_non_deterministic,
+                 'bgp bestpath_med_non_deterministic should *NOT* be supported')
     end
     bgp.destroy
   end
@@ -351,9 +352,9 @@ class TestRouterBgp < CiscoTestCase
       refute(bgp.default_bestpath_med_non_deterministic,
              'default value for bestpath_med_non_deterministic should be false')
     else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.default_bestpath_med_non_deterministic
-      end
+      assert_nil(bgp.default_bestpath_med_non_deterministic,
+                 'bgp default_bestpath_med_non_deterministic should ' \
+                 '*NOT* be supported')
     end
     bgp.destroy
   end
@@ -399,12 +400,21 @@ class TestRouterBgp < CiscoTestCase
   def test_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    bgp.enforce_first_as = true
-    assert(bgp.enforce_first_as,
-           'bgp enforce-first-as should be enabled')
+    if platform == :ios_xr
+      @default_show_command = 'show running-config router bgp 55'
+      @default_output_pattern = /bgp enforce-first-as disable/
+    else
+      @default_show_command = 'show run bgp all'
+      @default_output_pattern = /no enforce-first-as/
+    end
     bgp.enforce_first_as = false
-    refute(bgp.enforce_first_as,
-           'bgp enforce-first-as should be disabled')
+    refute(bgp.enforce_first_as)
+    assert_show_match(msg: 'enforce-first-as should be disabled')
+
+    bgp.enforce_first_as = true
+    assert(bgp.enforce_first_as)
+    refute_show_match(msg: 'enforce-first-as should be enabled')
+
     bgp.destroy
   end
 
@@ -484,11 +494,10 @@ class TestRouterBgp < CiscoTestCase
              'graceful restart helper default value ' \
              'should be enabled = false')
     else
-      assert_raises(Cisco::UnsupportedError) do
-        bgp.default_graceful_restart_helper
-      end
+      assert_nil(bgp.default_graceful_restart_helper,
+                 'bgp default_graceful_restart_helper should ' \
+                 '*NOT* be supported')
     end
-    # rubocop:enable Style/GuardClause
   end
 
   def test_confederation_id_default
@@ -588,26 +597,54 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_log_neighbor_changes
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
-    %w(test_default test_vrf).each do |t|
-      if t == 'test_default'
-        bgp = setup_default
-      else
-        bgp = setup_vrf
-      end
-      bgp.log_neighbor_changes = true
-      assert(bgp.log_neighbor_changes,
-             "vrf #{@vrf}: bgp log_neighbor_changes should be enabled")
-      bgp.log_neighbor_changes = false
-      refute(bgp.log_neighbor_changes,
-             "vrf #{@vrf}: bgp log_neighbor_changes should be disabled")
-      bgp.destroy
-    end
+  def test_log_neighbor_changes_default
+    log_neighbor_changes(setup_default)
   end
 
-  def test_get_log_neighbor_changes_not_configured
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+  def test_log_neighbor_changes_vrf
+    log_neighbor_changes(setup_vrf)
+  end
+
+  def log_neighbor_changes(bgp)
+    if platform == :ios_xr
+      if @vrf == 'default'
+        vrf_str = ''
+      else
+        vrf_str = "vrf #{@vrf}"
+      end
+      @default_show_command =
+        "show running-config router bgp #{@asnum} #{@vrf_str}"
+      @default_output_pattern = /bgp log neighbor changes disable/
+    else
+      @default_show_command = 'show run bgp all'
+      @default_output_pattern = /log-neighbor-changes/
+    end
+    bgp.log_neighbor_changes = false
+    refute(bgp.log_neighbor_changes)
+
+    msg_disable = 'log neighbor changes should be disabled'
+    msg_enable  = 'log neighbor changes should be enabled'
+
+    if platform == :ios_xr
+      # XR the disable keyword added
+      assert_show_match(msg: msg_disable)
+    else
+      # Nexus the command is removed
+      refute_show_match(msg: msg_disable)
+    end
+    bgp.log_neighbor_changes = true
+    assert(bgp.log_neighbor_changes)
+    if platform == :ios_xr
+      # XR removes the whole command including disable keyword
+      refute_show_match(msg: msg_enable)
+    else
+      # Nexus adds the log-neighbor-changes command
+      assert_show_match(msg: msg_enable)
+    end
+    bgp.destroy
+  end
+
+  def test_log_neighbor_changes_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.log_neighbor_changes,
@@ -616,7 +653,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_default_log_neighbor_changes
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.default_log_neighbor_changes,
@@ -701,6 +737,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_reconnect_interval_default
+    skip('Not supported on IOS XR') if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(60, bgp.reconnect_interval,
@@ -818,6 +855,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_timer_bestpath_limit_default
+    skip('Not supported on IOS XR') if platform == :ios_xr
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(300, bgp.timer_bestpath_limit,
@@ -826,6 +864,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_set_get_timer_bestpath_limit_always
+    skip('Not supported on IOS XR') if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -858,7 +897,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_timer_bgp_keepalive_hold
+  def test_timer_bgp_keepalive_hold
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -886,8 +925,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_default_timer_keepalive_hold_default
-    skip(XR_SUPPORTED_BROKEN) if platform == :ios_xr
+  def test_default_timer_bgp_keepalive_hold_default
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(%w(60 180), bgp.default_timer_bgp_keepalive_hold,
