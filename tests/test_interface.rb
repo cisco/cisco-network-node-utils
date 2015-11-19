@@ -1136,4 +1136,36 @@ class TestInterface < CiscoTestCase
     assert_equal(vrf, interface.vrf)
     interface.destroy
   end
+
+  def test_vrf_change_with_ip_addr
+    interface = Interface.new('loopback1')
+    address = '192.168.100.1'
+    length = 24
+    interface_ipv4_config('loopback1', address, length)
+    assert_equal(address, interface.ipv4_address)
+    assert_equal(length, interface.ipv4_netmask_length)
+
+    vrf1 = 'test1'
+    interface.vrf = vrf1
+    assert_equal(address, interface.ipv4_address,
+                 'IPv4 address wrong after changing from vrf default => test1')
+    assert_equal(length, interface.ipv4_netmask_length,
+                 'IPv4 mask wrong after changing from vrf default => test1')
+    assert_equal(vrf1, interface.vrf)
+
+    vrf2 = 'test2'
+    interface.vrf = vrf2
+    assert_equal(address, interface.ipv4_address,
+                 'IPv4 address wrong after changing from vrf test1 => test2')
+    assert_equal(length, interface.ipv4_netmask_length,
+                 'IPv4 mask wrong after changing from vrf test1 => test2')
+    assert_equal(vrf2, interface.vrf)
+
+    interface.vrf = DEFAULT_IF_VRF
+    assert_equal(address, interface.ipv4_address,
+                 'IPv4 address wrong after changing from vrf test2 => default')
+    assert_equal(length, interface.ipv4_netmask_length,
+                 'IPv4 mask wrong after changing from vrf test2 => default')
+    assert_equal(DEFAULT_IF_VRF, interface.vrf)
+  end
 end

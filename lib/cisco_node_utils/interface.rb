@@ -578,13 +578,20 @@ module Cisco
       config_get('interface', 'vrf', name: @name)
     end
 
-    def vrf=(vrf)
-      fail TypeError unless vrf.is_a?(String)
-      if vrf.empty?
+    def vrf=(v)
+      fail TypeError unless v.is_a?(String)
+      return if v == vrf
+      # Changing the VRF can result in loss of IP address, so cache it
+      addr_mask = ipv4_addr_mask
+      addr_mask = addr_mask[0] unless addr_mask.nil?
+      # XR actually blocks you from changing the VRF if IP addr is present
+      ipv4_addr_mask_set(nil, nil) unless addr_mask.nil? || platform == :nexus
+      if v.empty?
         config_set('interface', 'vrf', name: @name, state: 'no', vrf: '')
       else
-        config_set('interface', 'vrf', name: @name, state: '', vrf: vrf)
+        config_set('interface', 'vrf', name: @name, state: '', vrf: v)
       end
+      ipv4_addr_mask_set(*addr_mask) unless addr_mask.nil?
     end
 
     def default_vrf
