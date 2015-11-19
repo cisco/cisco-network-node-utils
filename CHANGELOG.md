@@ -14,6 +14,10 @@ Changelog
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
 
+### Fixed
+
+* Interface: correctly restore IP address when changing VRF membership
+
 ## [v1.1.0]
 
 ### New feature support
