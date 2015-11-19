@@ -413,7 +413,7 @@ class TestRouterBgp < CiscoTestCase
 
     bgp.enforce_first_as = true
     assert(bgp.enforce_first_as)
-    refute_show_match(msg: 'enforce-first-as should not be enabled')
+    refute_show_match(msg: 'enforce-first-as should be enabled')
 
     bgp.destroy
   end
@@ -621,21 +621,25 @@ class TestRouterBgp < CiscoTestCase
     end
     bgp.log_neighbor_changes = false
     refute(bgp.log_neighbor_changes)
+
+    msg_disable = 'log neighbor changes should be disabled'
+    msg_enable  = 'log neighbor changes should be enabled'
+
     if platform == :ios_xr
       # XR the disable keyword added
-      assert_show_match(msg: 'log neighbor changes should be disabled')
+      assert_show_match(msg: msg_disable)
     else
       # Nexus the command is removed
-      refute_show_match(msg: 'log neighbor changes should be disabled')
+      refute_show_match(msg: msg_disable)
     end
     bgp.log_neighbor_changes = true
     assert(bgp.log_neighbor_changes)
     if platform == :ios_xr
       # XR removes the whole command including disable keyword
-      refute_show_match(msg: 'log neighbor changes should not be enabled')
+      refute_show_match(msg: msg_enable)
     else
       # Nexus adds the log-neighbor-changes command
-      assert_show_match(msg: 'log neighbor changes should not be enabled')
+      assert_show_match(msg: msg_enable)
     end
     bgp.destroy
   end
