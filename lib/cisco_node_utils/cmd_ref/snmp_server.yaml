@@ -17,7 +17,7 @@ contact:
 global_enforce_priv:
   kind: boolean
   config_get: "show run snmp all"
-  config_get_token: '/(no )?snmp-server globalEnforcePriv/'
+  config_get_token: '/^(?:no )?snmp-server globalEnforcePriv/'
   config_set: "%s snmp-server globalEnforcePriv"
   default_value: false
 
