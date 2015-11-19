@@ -79,15 +79,15 @@ module Cisco
 
     # getter stats perentry info
     def stats_perentry
-      config_get('acl_v4', 'acl', @get_args) if @afi == "v4"
-      config_get('acl_v6', 'acl', @get_args) if @afi == "v6"
+      config_get('acl_v4', 'stats_perentry', @get_args) if @afi == "v4"
+      config_get('acl_v6', 'stats_perentry', @get_args) if @afi == "v6"
     end
 
     # setter stats perentry info
     def stats_perentry=(state)
       @set_args[:state] = (state ? '' : 'no') 
-      config_set('acl_v4', 'acl', @set_args) if @afi == "v4"
-      config_set('acl_v6', 'acl', @set_args) if @afi == "v6"
+      config_set('acl_v4', 'stats_perentry', @set_args) if @afi == "v4"
+      config_set('acl_v6', 'stats_perentry', @set_args) if @afi == "v6"
     end
   end
 end
