@@ -1,0 +1,25 @@
+# Command Reference Common ACL
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+_template:
+  config_get: 'show run aclmgr'
+  config_get_token: '/^ip access-list <acl_name>$/'
+  config_set: 'ip access-list <acl_name>'
+
+ace:
+  config_get_token_append: '/\s+(<seqno>)\s+(permit|deny)\s+(sctp|tcp|ip|udp|pim|icmp|igmp|gre|nos|pcp|ospf|eigrp|ahp|esp|\d+)\s+(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s+(eq \d+|neq \d+|lt \d+|gt \d+|range \d+ \d+)*\s*(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s*(eq \d+|neq \d+|lt \d+|gt \d+|range \d+ \d+)*( [a-zA-Z0-9\/ ]*)*$'
+  config_set_append: 
+      '<state> <seqno> <action> <proto> <v4_src_addr_format> <v4_src_port_format> <v4_dst_addr_format> <v4_dst_port_format> <option_format>'
+
+acl:
+  config_get_token: '/^ip access-list (/s+)$/'
+  config_set: '<state> ip access-list <acl_name>'
+                      
+stats_perentry:
+  kind: boolean
+  config_get_token_append: '/statistics per-entry$/'
+  config_set_append: '<state> statistics per-entry'
+  default_value: false
