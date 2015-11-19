@@ -5,6 +5,7 @@ anycast_gateway_mac:
   config_get: 'show running fabric forwarding all'
   config_get_token: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
   config_set: "<state> fabric forwarding anycast-gateway-mac <mac_addr>"
+  default_value: ""
 
 dup_host_ip_addr_detection:
   config_get: 'show running fabric forwarding all'

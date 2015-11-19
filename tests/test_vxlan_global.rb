@@ -45,8 +45,7 @@ class TestVxlanGlobal < CiscoTestCase
   def test_dup_host_ip_addr_detection_set
     vxlan_global = VxlanGlobal.new
     val = [200, 20]
-    vxlan_global.enable
-    vxlan_global.dup_host_ip_addr_detection_set('True', val[0], val[1])
+    vxlan_global.dup_host_ip_addr_detection_set(val[0], val[1])
     assert_equal(val, vxlan_global.dup_host_ip_addr_detection,
                  'Error: fabric forwarding dup_host_ip_addr_detection ' \
                  'get values mismatch')
@@ -54,13 +53,12 @@ class TestVxlanGlobal < CiscoTestCase
 
   def test_dup_host_ip_addr_detection_clear
     vxlan_global = VxlanGlobal.new
-    val = [200, 20]
+    val = [5, 180]
     # After the config is cleared, the get method should return
     # the default values
     default = [vxlan_global.default_dup_host_ip_addr_detection_host_moves,
                vxlan_global.default_dup_host_ip_addr_detection_timeout]
-    vxlan_global.enable
-    vxlan_global.dup_host_ip_addr_detection_set('False', val[0], val[1])
+    vxlan_global.dup_host_ip_addr_detection_set(val[0], val[1])
     assert_equal(default, vxlan_global.dup_host_ip_addr_detection,
                  'Error: fabric forwarding dup_host_ip_addr_detection ' \
                  'get values mismatch')
@@ -68,7 +66,7 @@ class TestVxlanGlobal < CiscoTestCase
 
   def test_dup_host_mac_detection_set
     vxlan_global = VxlanGlobal.new
-    val = [200, 20]
+    val = [160, 16]
     vxlan_global.dup_host_mac_detection_set(val[0], val[1])
     assert_equal(val, vxlan_global.dup_host_mac_detection,
                  'Error: l2rib dup_host_mac_detection ' \
@@ -90,17 +88,16 @@ class TestVxlanGlobal < CiscoTestCase
   def test_anycast_gateway_mac_set
     vxlan_global = VxlanGlobal.new
     mac_addr = '1223.3445.5668'
-    vxlan_global.enable
-    vxlan_global.anycast_gateway_mac_set('True', mac_addr)
+    vxlan_global.anycast_gateway_mac = mac_addr
     assert_equal(mac_addr, vxlan_global.anycast_gateway_mac,
                  'Error: anycast-gateway-mac mismatch')
   end
 
   def test_anycast_gateway_mac_clear
     vxlan_global = VxlanGlobal.new
-    vxlan_global.enable
-    vxlan_global.anycast_gateway_mac_set('False', '')
-    assert_equal('', vxlan_global.anycast_gateway_mac,
+    vxlan_global.anycast_gateway_mac = vxlan_global.default_anycast_gateway_mac
+    assert_equal(vxlan_global.default_anycast_gateway_mac,
+                 vxlan_global.anycast_gateway_mac,
                  'Error: anycast-gateway-mac mismatch')
   end
 end
