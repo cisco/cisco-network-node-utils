@@ -607,13 +607,9 @@ class TestRouterBgp < CiscoTestCase
 
   def log_neighbor_changes(bgp)
     if platform == :ios_xr
-      if @vrf == 'default'
-        vrf_str = ''
-      else
-        vrf_str = "vrf #{@vrf}"
-      end
+      @vrf == 'default' ? vrf_str = '' : vrf_str = "vrf #{@vrf}"
       @default_show_command =
-        "show running-config router bgp #{@asnum} #{@vrf_str}"
+        "show running-config router bgp #{@asnum} #{vrf_str}"
       @default_output_pattern = /bgp log neighbor changes disable/
     else
       @default_show_command = 'show run bgp all'

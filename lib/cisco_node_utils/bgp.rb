@@ -329,11 +329,11 @@ module Cisco
 
     def enforce_first_as=(enable)
       # enforce_first_as is on by default (=>true)
-      # XR =>true  = enable enforce_first_as  = 'no bgp enforce-first-as disable'
-      # XR =>false = disable enforce_first_as = 'bgp enforce-first-as disable'
+      # XR=>true  = enable enforce_first_as  = 'no bgp enforce-first-as disable'
+      # XR=>false = disable enforce_first_as = 'bgp enforce-first-as disable'
       # Nexus nvgens the 'no' command.
-      # Nexus =>true  = enable enforce_first_as  = 'enforce-first-as'
-      # Nexus =>false = disable enforce_first_as = 'no enforce-first-as'
+      # Nexus=>true  = enable enforce_first_as  = 'enforce-first-as'
+      # Nexus=>false = disable enforce_first_as = 'no enforce-first-as'
       enable = !enable if platform == :ios_xr
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'enforce_first_as', @set_args)
@@ -479,12 +479,12 @@ module Cisco
     end
 
     def log_neighbor_changes=(enable)
-        # XR logging is on by default (=>true)
-        # XR =>true  = enable logging  = 'no bgp log neighbor changes disable'
-        # XR =>false = disable logging = 'bgp log neighbor changes disable'
-        # Nexus logging is off by default (=>false)
-        # Nexus =>true  = enable logging  = 'log-neighbor-changes'
-        # Nexus =>false = disable logging = 'no log-neighbor-changes'
+      # XR logging is on by default (=>true)
+      # XR=>true  = enable logging  = 'no bgp log neighbor changes disable'
+      # XR=>false = disable logging = 'bgp log neighbor changes disable'
+      # Nexus logging is off by default (=>false)
+      # Nexus=>true  = enable logging  = 'log-neighbor-changes'
+      # Nexus=>false = disable logging = 'no log-neighbor-changes'
       enable = !enable if platform == :ios_xr
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'log_neighbor_changes', @set_args)
