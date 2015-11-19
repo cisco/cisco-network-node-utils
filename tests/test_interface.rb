@@ -507,6 +507,15 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_mtu_invalid_loopback
+    # Loopback interfaces don't permit MTU configuration
+    interface = Interface.new('loopback100')
+    assert_nil(interface.mtu)
+    assert_nil(interface.default_mtu)
+    assert_raises(Cisco::UnsupportedError) { interface.mtu = 1550 }
+    interface.destroy
+  end
+
   def test_speed
     interface = Interface.new(interfaces[0])
     if platform == :ios_xr

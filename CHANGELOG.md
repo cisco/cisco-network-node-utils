@@ -16,7 +16,9 @@ Changelog
 
 ### Fixed
 
-* Interface: correctly restore IP address when changing VRF membership
+* Interface:
+  - Correctly restore IP address when changing VRF membership
+  - MTU is not supported on loopback interfaces
 
 ## [v1.1.0]
 

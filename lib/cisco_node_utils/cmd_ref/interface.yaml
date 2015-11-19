@@ -121,7 +121,11 @@ ipv4_redirects_other_interfaces:
     '/^\s+no ipv4 redirects/'
     ]
 
-mtu:
+mtu_loopback:
+  kind: boolean
+  default_only: ~
+
+mtu_other_interfaces:
   kind: int
   config_get_token_append: '/^mtu (.*)$/'
   config_set_append: "<state> mtu <mtu>"

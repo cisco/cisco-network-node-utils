@@ -238,17 +238,27 @@ module Cisco
       config_set('interface', 'feature_lacp', state: val ? '' : 'no')
     end
 
+    def mtu_lookup_string
+      case @name
+      when /loopback/i
+        return 'mtu_loopback'
+      else
+        return 'mtu_other_interfaces'
+      end
+    end
+
     def mtu
-      config_get('interface', 'mtu', name: @name)
+      config_get('interface', mtu_lookup_string, name: @name)
     end
 
     def mtu=(val)
       check_switchport_disabled
-      config_set('interface', 'mtu', name: @name, state: '', mtu: val)
+      config_set('interface', mtu_lookup_string,
+                 name: @name, state: '', mtu: val)
     end
 
     def default_mtu
-      config_get_default('interface', 'mtu')
+      config_get_default('interface', mtu_lookup_string)
     end
 
     def speed
