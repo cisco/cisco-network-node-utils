@@ -35,14 +35,6 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-  def remove_route_policies
-    ['my_policy', 'my_policy_2', 'drop_all', 'rtmap1', 'rtmap2', 'rtmap3',
-     'rtmap5', 'rtmap6', 'rtmap7', 'rtmap1_55', 'rtmap2_55', 'rtmap3_55',
-     'rtmap5_55', 'rtmap6_55', 'rtmap7_55'].each do |policy|
-      config("no route-policy #{policy}")
-    end
-  end
-
   def get_bgp_af_cfg(asn, vrf, af)
     afi, safi = af
     string =
@@ -124,12 +116,14 @@ class TestRouterBgpAF < CiscoTestCase
     # router bgp 55
     #  vrf red
     #   address-family ipv4 unicast
-    # !!% 'BGP' detected the 'warning' condition 'The RD for the VRF must be present before an address family is activated'
+    # !!% 'BGP' detected the 'warning' condition 'The RD for the VRF must
+    #    be present before an address family is activated'
 
     # router bgp 55
     #  vrf red
     #   rd auto
-    # !!% 'BGP' detected the 'warning' condition 'BGP router ID must be configured.'
+    # !!% 'BGP' detected the 'warning' condition 'BGP router ID must be
+    #     configured.'
     # Configure loopback0 with ip 10.1.1.1 and
     # router bgp 55
     #  bgp router-id 10.1.1.1
@@ -137,7 +131,8 @@ class TestRouterBgpAF < CiscoTestCase
     # router bgp 55
     #  vrf red
     #   address-family ipv4 unicast
-    # !!% 'BGP' detected the 'warning' condition 'The parent address family has not been initialized'
+    # !!% 'BGP' detected the 'warning' condition 'The parent address family
+    #     has not been initialized'
     # Configure
     # router bgp 55
     #  address-family vpnv4 unicast
@@ -172,12 +167,12 @@ class TestRouterBgpAF < CiscoTestCase
     assert(bgp_af.default_information_originate,
            'Error: default-information originate not set')
 
+    pattern = /^ *default-information originate$/
     if platform == :nexus
-      pattern = /^ *default-information originate$/
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      pattern = /^ default-information originate$/
-      af_string = @device.cmd("show run router bgp | in default-information")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'default-information originate')
     end
     assert_match(pattern, af_string,
                  "Error: 'default_information originate' is not" \
@@ -194,7 +189,8 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in default-information")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'default-information originate')
     end
 
     refute_match(pattern, af_string,
@@ -206,33 +202,28 @@ class TestRouterBgpAF < CiscoTestCase
   ## client-to-client reflection
   ##
   def test_client_to_client
+    asn = '55'
+    vrf = 'default'
+    af = %w(ipv4 unicast)
+    config_ios_xr_dependencies(asn) if platform == :ios_xr
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
     if platform == :ios_xr
-      # default is client-to-client reflection enabled but doesn't show up in config
+      #
+      # Default is:
+      #   client-to-client reflection enabled but doesn't show up in config
       # router bgp 55
       #  address-family ipv4 unicast
       #   bgp client-to-client reflection disable
-      asn = '55'
-      vrf = 'default'
-      af = %w(ipv4 unicast)
-      config_ios_xr_dependencies(asn)
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-      af_string = @device.cmd("show run router bgp | in bgp client-to-client")
+      #
       pattern = /^ *bgp client-to-client reflection disable$/
-      refute_match(pattern, af_string, "bgp client-to-client disable is configured but should not be")
-      # Set and verify
-      bgp_af.client_to_client = true
-      af_string = @device.cmd("show run router bgp | in bgp client-to-client")
-      assert_match(pattern, af_string, "bgp client-to-client disable is configured and should be")
-      # Unset and verify
-      bgp_af.client_to_client = false
-      af_string = @device.cmd("show run router bgp | in bgp client-to-client")
-      refute_match(pattern, af_string, "bgp client-to-client disable is configured but should not be")
+      af_string = @device.cmd("show run router bgp #{asn} address-family " \
+                              'ipv4 unicast bgp client-to-client ' \
+                              'reflection disable')
+      refute_match(pattern, af_string,
+                   'bgp client-to-client disable is configured ' \
+                   'but should not be')
     elsif platform == :nexus
-      asn = '55'
-      vrf = 'red'
-      af = %w(ipv4 unicast)
-
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
       pattern = /^ *client-to-client reflection$/
       #
       # Default is 'client-to-client' is configured
@@ -240,105 +231,124 @@ class TestRouterBgpAF < CiscoTestCase
       af_string = get_bgp_af_cfg(asn, vrf, af)
 
       assert_match(pattern, af_string,
-                 "Error: 'client-to-client reflection' is not configured " \
+                   "Error: 'client-to-client reflection' is not configured " \
                    'and should be')
 
       assert(bgp_af.client_to_client,
-           "Error: 'client-to-client is not configured but should be")
+             "Error: 'client-to-client is not configured but should be")
     end
+
+    #
+    # Set and verify
+    #
+    bgp_af.client_to_client = true
+    if platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} address-family " \
+                              'ipv4 unicast bgp client-to-client ' \
+                              'reflection disable')
+
+      pattern = /^ *bgp client-to-client reflection disable$/
+      assert_match(pattern, af_string,
+                   'bgp client-to-client disable is configured and should be')
+    elsif platform == :nexus
+      # Do a 'client-to-client reflection'
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+      pattern = /^ *client-to-client reflection$/
+
+      refute_match(pattern, af_string,
+                   "Error: 'no client-to-client' " \
+                   'is configured and should not be')
+    end
+
     #
     # Unset and verify
     #
-
-    # Do a 'no client-to-client reflection'
-    if platform == :nexus
-      bgp_af.client_to_client = false
+    bgp_af.client_to_client = false
+    if platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} address-family " \
+                              'ipv4 unicast bgp client-to-client ' \
+                              'reflection disable')
+      pattern = /^ *bgp client-to-client reflection disable$/
+      refute_match(pattern, af_string,
+                   'bgp client-to-client disable is configured ' \
+                   'but should not be')
+    elsif platform == :nexus
+      # Do a 'no client-to-client reflection'
       pattern = /^ *no client-to-client reflection$/
       af_string = get_bgp_af_cfg(asn, vrf, af)
 
       assert_match(pattern, af_string,
-                 "Error: 'no client-to-client' is not configured and should be")
-
-      #
-      # Set and verify
-      #
-
-      # Do a 'client-to-client reflection'
-      bgp_af.client_to_client = true
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      refute_match(pattern, af_string,
-                 "Error: 'no client-to-client' is configured and should not be")
+                   "Error: 'no client-to-client' " \
+                   'is not configured and should be')
     end
   end
 
   ##
-  ## next_hop route-map
+  ## next_hop route-map or route-policy
   ##
-  def test_next_hop_route_map
-    return if platform != :nexus
+  def test_next_hop_route_map_or_policy
     asn = '55'
-    vrf = 'red'
+    if platform == :nexus
+      vrf = 'red'
+    elsif platform == :ios_xr
+      vrf = 'default'
+    end
     af = %w(ipv4 unicast)
 
     #
     # Set and verify
     #
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.next_hop_route_map = 'drop_all'
-    assert_match(bgp_af.next_hop_route_map, 'drop_all',
-                 'Error: nexthop route-map not set')
-    pattern = /^ *nexthop route-map drop_all$/
-    af_string = get_bgp_af_cfg(asn, vrf, af)
+    if platform == :nexus
+      bgp_af.next_hop_route_map = 'drop_all'
+    elsif platform == :ios_xr
+      config('route-policy drop_all', 'end') if platform == :ios_xr
+      bgp_af.next_hop_route_policy = 'drop_all'
+    end
 
-    assert_match(pattern, af_string,
-                 "Error: 'nexthop route-map drop_all' is " \
+    if platform == :nexus
+      assert_match(bgp_af.next_hop_route_map, 'drop_all',
+                   'Error: nexthop route-map not set')
+      pattern = /^ *nexthop route-map drop_all$/
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+
+      assert_match(pattern, af_string,
+                   "Error: 'nexthop route-map drop_all' is " \
                    'not configured and should be')
+    elsif platform == :ios_xr
+      assert_match(bgp_af.next_hop_route_policy, 'drop_all',
+                   'Error: nexthop route-policy not set')
+      pattern = /^ *nexthop route-policy drop_all$/
+      af_string = @device.cmd("show run router bgp #{asn} address-family " \
+                              'ipv4 unicast nexthop route-policy drop_all')
+
+      assert_match(pattern, af_string,
+                   "Error: 'nexthop route-policy drop_all' is " \
+                   'not configured and should be')
+    end
 
     #
     # Unset and verify
     #
 
     # Do a 'no nexthop route-map drop_all'
-    bgp_af.next_hop_route_map = bgp_af.default_next_hop_route_map
-    af_string = get_bgp_af_cfg(asn, vrf, af)
+    if platform == :nexus
+      bgp_af.next_hop_route_map = bgp_af.default_next_hop_route_map
+      af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    refute_match(pattern, af_string,
-                 "Error: 'nexthop route-map drop_all' is " \
+      refute_match(pattern, af_string,
+                   "Error: 'nexthop route-map drop_all' is " \
                    'configured and should not be')
-  end
+    elsif platform == :ios_xr
+      bgp_af.next_hop_route_policy = bgp_af.default_next_hop_route_policy
+      af_string = @device.cmd("show run router bgp #{asn} address-family " \
+                              'ipv4 unicast nexthop route-policy drop_all')
 
-  def test_next_hop_route_policy
-    return if platform != :ios_xr
-    asn = '55'
-    vrf = 'default'
-    af = %w(ipv4 unicast)
-    
-    config('route-policy my_policy', 'end')
-#   config('router bgp 55', 'address-family ipv4 unicast')
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.next_hop_route_policy = 'my_policy'
-    assert_match(bgp_af.next_hop_route_policy, 'my_policy',
-                 'Error: nexthop route-policy not set')
-    pattern = /^ *nexthop route-policy my_policy$/
-    af_string = @device.cmd("show run router bgp | in nexthop route-policy")
-
-    assert_match(pattern, af_string,
-                 "Error: 'nexthop route-policy my_policy' is " \
-                   'not configured and should be')
-
-    #
-    # Unset and verify
-    #
-
-    # Do a 'no nexthop route-policy drop_all'
-    bgp_af.next_hop_route_policy = bgp_af.default_next_hop_route_policy
-    af_string = @device.cmd("show run router bgp | in nexthop route-policy")
-
-    refute_match(pattern, af_string,
-                 "Error: 'nexthop route-policy my_policy' is " \
+      refute_match(pattern, af_string,
+                   "Error: 'nexthop route-policy drop_all' is " \
                    'configured and should not be')
-    config('no route-policy my_policy')
+      config('no route-policy drop_all')
+    end
   end
 
   ##
@@ -363,11 +373,12 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in additional-paths")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'address-family ipv4 unicast')
     end
 
     patterns = [pattern_send, pattern_receive]
-    patterns.push pattern.install if platform == :nexus
+    patterns.push pattern_install if platform == :nexus
 
     patterns.each do |pat|
       refute_match(pat, af_string,
@@ -395,9 +406,9 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in additional-paths")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'address-family ipv4 unicast')
     end
-
 
     patterns.each do |pat|
       assert_match(pat, af_string,
@@ -408,8 +419,10 @@ class TestRouterBgpAF < CiscoTestCase
     # Test getter
     #
 
-    assert(bgp_af.additional_paths_send, "No additional-paths send configured")
-    assert(bgp_af.additional_paths_receive, "No additional-paths receive configured")
+    assert(bgp_af.additional_paths_send,
+           'No additional-paths send configured')
+    assert(bgp_af.additional_paths_receive,
+           'No additional-paths receive configured')
     assert(bgp_af.additional_paths_install) if platform == :nexus
 
     #
@@ -424,7 +437,8 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in additional-paths")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'address-family ipv4 unicast')
     end
 
     patterns.each do |pat|
@@ -435,7 +449,7 @@ class TestRouterBgpAF < CiscoTestCase
 
   ##
   ## additional_paths_selection route-map
-  ## 
+  ##
   def test_additional_paths_selection
     asn = '55'
     vrf = 'red'
@@ -458,20 +472,22 @@ class TestRouterBgpAF < CiscoTestCase
       af_string = get_bgp_af_cfg(asn, vrf, af)
       pattern = /^ *additional-paths selection route-map drop_all$/
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in additional-paths selection")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'address-family ipv4 unicast')
       pattern = /^ *additional-paths selection route-policy drop_all$/
     end
 
     assert_match(pattern, af_string,
-                 "Error: 'additional-paths selection route-map/policy drop_all' is " \
-                   'not configured and should be')
+                 "Error: 'additional-paths selection route-map/policy " \
+                 "drop_all' is not configured and should be")
 
     #
     # Test getter
     #
     pattern = /^ *drop_all$/
     assert_match(pattern, bgp_af.additional_paths_selection,
-                 "Error: 'route-map/policy drop_all' is not configured and should be")
+                 "Error: 'route-map/policy drop_all' " \
+                 'is not configured and should be')
 
     #
     # Unset and verify
@@ -485,12 +501,14 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in additional-paths selection")
+      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
+                              'address-family ipv4 unicast')
     end
 
     refute_match(pattern, af_string,
                  "Error: 'additional-paths selection route-map drop_all' is " \
                    'configured and should not be')
+    config('no route-policy drop_all') if platform == :ios_xr
   end
 
   ##
@@ -520,8 +538,7 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   def test_advertise_l2vpn_evpn
-    # no equivalent for IOS XR
-    return if platform != :nexus
+    skip('L2VPN EVPN is unsupported on IOS XR') if platform == :ios_xr
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
       advertise_l2vpn_evpn(55, 'red', af)
@@ -532,8 +549,7 @@ class TestRouterBgpAF < CiscoTestCase
   ## get_dampen_igp_metric
   ##
   def test_dampen_igp_metric
-    # no equvalent for IOS XR
-    return if platform == :ios_xr
+    skip('dampen-igp-metric unsupported on IOS XR') if platform == :ios_xr
     asn = '44'
     vrf = 'green'
     af = %w(ipv4 multicast)
@@ -628,42 +644,50 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :nexus
       af_string = get_bgp_af_cfg(asn, vrf, af)
     elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp | in bgp dampening")
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              'address-family ipv4 unicast bgp dampening')
     end
 
     assert_match(pattern, af_string,
                  "Error: 'dampening' is not configured and should be")
 
-    return if platform == :ios_xr
+    if platform == :nexus
 
-    # Check properties got set
-    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+      # Check properties got set
+      af_string = get_bgp_af_dampening_params(asn, vrf, af)
 
-    pattern_params1 = 'Half-life time                 : 15 mins'
-    pattern_params2 = 'Suppress penalty               : 2000'
-    pattern_params3 = 'Reuse penalty                  : 750'
-    pattern_params4 = 'Max suppress time              : 45 mins'
-    pattern_params5 = 'Max suppress penalty           : 6000'
+      pattern_params1 = 'Half-life time                 : 15 mins'
+      pattern_params2 = 'Suppress penalty               : 2000'
+      pattern_params3 = 'Reuse penalty                  : 750'
+      pattern_params4 = 'Max suppress time              : 45 mins'
+      pattern_params5 = 'Max suppress penalty           : 6000'
 
-    error = ("Error: 'dampening' properties are incorrect")
+      error = ("Error: 'dampening' properties are incorrect")
 
-    assert_match(pattern_params1, af_string, error)
-    assert_match(pattern_params2, af_string, error)
-    assert_match(pattern_params3, af_string, error)
-    assert_match(pattern_params4, af_string, error)
-    assert_match(pattern_params5, af_string, error)
-
-    # Check getter
-    assert_empty(bgp_af.dampening, 'Error: dampening is configured and ' \
-                 'should not be')
+      assert_match(pattern_params1, af_string, error)
+      assert_match(pattern_params2, af_string, error)
+      assert_match(pattern_params3, af_string, error)
+      assert_match(pattern_params4, af_string, error)
+      assert_match(pattern_params5, af_string, error)
+      # Check getter
+      assert_empty(bgp_af.dampening, 'Error: dampening is configured and ' \
+                   'should not be')
+    end
+    # "show bgp dampening param not supported on IOS XR"
 
     #
     # Unset and verify
     #
     bgp_af.dampening = nil
 
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-    pattern = /^ *dampening$/
+    if platform == :nexus
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+      pattern = /^ *dampening$/
+    elsif platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              'address-family ipv4 unicast bgp dampening')
+      pattern = /^ *bgp dampening$/
+    end
 
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
 
@@ -682,103 +706,146 @@ class TestRouterBgpAF < CiscoTestCase
     #############################################
     # Set and verify 'dampening' with overrides #
     #############################################
-    vrf = 'green'
+    if platform == :nexus
+      vrf = 'green'
+    elsif platform == :ios_xr
+      vrf = 'default'
+    end
     af = %w(ipv4 multicast)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     bgp_af.dampening = %w(1 2 3 4)
 
     # Check property got set
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-    pattern = /^ *dampening 1 2 3 4$/
+    if platform == :nexus
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+      pattern = /^ *dampening 1 2 3 4$/
+    elsif platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              "address-family #{af[0]} #{af[1]}")
+      pattern = /^ *bgp dampening 1 2 3 4$/
+    end
 
     assert_match(pattern, af_string,
                  "Error: 'dampening' is not configured and should be")
 
-    # Check properties got set
-    af_string = get_bgp_af_dampening_params(asn, vrf, af)
+    if platform == :nexus
+      # Check properties got set
+      af_string = get_bgp_af_dampening_params(asn, vrf, af)
 
-    pattern_params1 = 'Half-life time                 : 1 mins'
-    pattern_params2 = 'Suppress penalty               : 3'
-    pattern_params3 = 'Reuse penalty                  : 2'
-    pattern_params4 = 'Max suppress time              : 4 mins'
-    pattern_params5 = 'Max suppress penalty           : 32'
+      pattern_params1 = 'Half-life time                 : 1 mins'
+      pattern_params2 = 'Suppress penalty               : 3'
+      pattern_params3 = 'Reuse penalty                  : 2'
+      pattern_params4 = 'Max suppress time              : 4 mins'
+      pattern_params5 = 'Max suppress penalty           : 32'
 
-    error = ("Error: 'dampening' properties are incorrect")
+      error = ("Error: 'dampening' properties are incorrect")
 
-    assert_match(pattern_params1, af_string, error)
-    assert_match(pattern_params2, af_string, error)
-    assert_match(pattern_params3, af_string, error)
-    assert_match(pattern_params4, af_string, error)
-    assert_match(pattern_params5, af_string, error)
+      assert_match(pattern_params1, af_string, error)
+      assert_match(pattern_params2, af_string, error)
+      assert_match(pattern_params3, af_string, error)
+      assert_match(pattern_params4, af_string, error)
+      assert_match(pattern_params5, af_string, error)
 
-    # Check getters
-    assert_equal(bgp_af.dampening, %w(1 2 3 4),
-                 'Error: dampening getter did not match')
-    assert_equal(1, bgp_af.dampening_half_time,
-                 'The wrong dampening half_time value is configured')
-    assert_equal(2, bgp_af.dampening_reuse_time,
-                 'The wrong dampening reuse_time value is configured')
-    assert_equal(3, bgp_af.dampening_suppress_time,
-                 'The wrong dampening suppress_time value is configured')
-    assert_equal(4, bgp_af.dampening_max_suppress_time,
-                 'The wrong dampening max_suppress_time value is configured')
-    assert_empty(bgp_af.dampening_routemap,
-                 'A routemap should not be configured')
+      # Check getters
+      assert_equal(bgp_af.dampening, %w(1 2 3 4),
+                   'Error: dampening getter did not match')
+      assert_equal(1, bgp_af.dampening_half_time,
+                   'The wrong dampening half_time value is configured')
+      assert_equal(2, bgp_af.dampening_reuse_time,
+                   'The wrong dampening reuse_time value is configured')
+      assert_equal(3, bgp_af.dampening_suppress_time,
+                   'The wrong dampening suppress_time value is configured')
+      assert_equal(4, bgp_af.dampening_max_suppress_time,
+                   'The wrong dampening max_suppress_time value is configured')
+      assert_empty(bgp_af.dampening_routemap,
+                   'A routemap should not be configured')
+    end
 
     #
     # Unset and verify
     #
     bgp_af.dampening = nil
 
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-    pattern = /^ *dampening$/
+    if platform == :nexus
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+      pattern = /^ *dampening$/
+    elsif platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              'address-family ipv4 unicast bgp dampening')
+      pattern = /^ *bgp dampening$/
+    end
 
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
 
     #############################################
     # Set and verify 'dampening' with route-map #
     #############################################
-    vrf = 'brown'
-    af = %w(ipv6 unicast)
+    if platform == :nexus
+      vrf = 'brown'
+      af = %w(ipv6 unicast)
+    elsif platform == :ios_xr
+      vrf = 'default'
+      af = %w(ipv4 unicast)
+      config('route-policy DropAllTraffic', 'end')
+    end
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     bgp_af.dampening = 'DropAllTraffic'
 
-    pattern = /^ *dampening route-map DropAllTraffic$/
-
     # Check property got set
-    af_string = get_bgp_af_cfg(asn, vrf, af)
+    if platform == :nexus
+      pattern = /^ *dampening route-map DropAllTraffic$/
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+    elsif platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              'address-family ipv4 unicast bgp dampening')
+      pattern = /^ *bgp dampening route-policy DropAllTraffic$/
+    end
 
     assert_match(pattern, af_string,
                  "Error: 'dampening' is not configured and should be")
 
     # Check properties got set
-    af_string = get_bgp_af_dampening_params(asn, vrf, af)
-    pattern_params = 'Dampening policy configured: DropAllTraffic'
+    if platform == :nexus
+      af_string = get_bgp_af_dampening_params(asn, vrf, af)
+      pattern_params = 'Dampening policy configured: DropAllTraffic'
 
-    assert_match(pattern_params, af_string,
-                 'Error: dampening properties DropAllTraffic is not ' \
+      assert_match(pattern_params, af_string,
+                   'Error: dampening properties DropAllTraffic is not ' \
                    'configured and should be')
 
-    # Check getters
-    assert_equal(bgp_af.dampening, 'DropAllTraffic',
-                 'Error: dampening getter did not match')
-    assert_equal(bgp_af.dampening_routemap, 'DropAllTraffic',
-                 'Error: dampening getter did not match')
+      # Check getters
+      assert_equal(bgp_af.dampening, 'DropAllTraffic',
+                   'Error: dampening getter did not match')
+      assert_equal(bgp_af.dampening_routemap, 'DropAllTraffic',
+                   'Error: dampening getter did not match')
+    end
 
     #
     # Unset and verify
     #
     bgp_af.dampening = nil
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-    pattern = /^ *dampening$/
+
+    if platform == :nexus
+      af_string = get_bgp_af_cfg(asn, vrf, af)
+      pattern = /^ *dampening$/
+    elsif platform == :ios_xr
+      af_string = @device.cmd("show run router bgp #{asn} " \
+                              'address-family ipv4 unicast bgp dampening')
+      pattern = /^ *bgp dampening$/
+    end
 
     refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+
+    config('no route-policy DropAllTraffic') if platform == :ios_xr
 
     #############################################
     # Set and verify 'dampening' with default   #
     #############################################
+    return if platform == :ios_xr
+    # the rest is not supported on XR
+
     vrf = 'sangria'
     af = %w(ipv4 multicast)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
@@ -838,8 +905,7 @@ class TestRouterBgpAF < CiscoTestCase
 
   ## feature nv overlay evpn
   def test_feature_nv_overlay_evpn
-    # no equivalent in IOS XR
-    return if platform != :nexus
+    skip('nv overlay evpn unsupported on IOS XR') if platform == :ios_xr
     config('no nv overlay evpn')
     RouterBgpAF.feature_nv_overlay_evpn_enable
     assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
@@ -950,7 +1016,7 @@ class TestRouterBgpAF < CiscoTestCase
 
   def network_cmd(af, dbg)
     if platform == :ios_xr
-      ['rtmap1', 'rtmap2', 'rtmap3', 'rtmap5', 'rtmap6', 'rtmap7'].each do |policy|
+      %w(rtmap1, rtmap2, rtmap3, rtmap5, rtmap6, rtmap7).each do |policy|
         config("route-policy #{policy}", 'end')
       end
     end
@@ -1002,7 +1068,8 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Test: Change route-maps on existing networks
     if platform == :ios_xr
-      ['rtmap1_55', 'rtmap2_55', 'rtmap3_55', 'rtmap5_55', 'rtmap6_55', 'rtmap7_55'].each do |policy|
+      %w(rtmap1_55, rtmap2_55, rtmap3_55, rtmap5_55,
+         rtmap6_55, rtmap7_55).each do |policy|
         config("route-policy #{policy}", 'end')
       end
       should = master.map { |network, rm| [network, rm.nil? ? nil : "#{rm}_55"] }
@@ -1020,6 +1087,11 @@ class TestRouterBgpAF < CiscoTestCase
     result = af.networks
     assert_equal(should.sort, result.sort,
                  "#{dbg} Test 5. 'Default'")
+    %w(rtmap1, rtmap2, rtmap3, rtmap5, rtmap6, rtmap7,
+       rtmap1_55, rtmap2_55, rtmap3_55,
+       rtmap5_55, rtmap6_55, rtmap7_55).each do |policy|
+      config("no route-policy #{policy}")
+    end if platform == :ios_xr
   end
 
   ##
@@ -1057,7 +1129,7 @@ class TestRouterBgpAF < CiscoTestCase
                 ['eigrp 1',   'my_policy'],
                 [ospf,        'my_policy'],
                 ['static',    'my_policy']]
-      master.push(['isis abc',  'my_policy']) if dbg.include? 'default'
+      master.push(['isis abc', 'my_policy']) if dbg.include? 'default'
     end
     # rubocop:enable Style/WordArray
 
@@ -1096,6 +1168,9 @@ class TestRouterBgpAF < CiscoTestCase
     result = af.redistribute
     assert_equal(should.sort, result.sort,
                  "#{dbg} Test 5. 'Default'")
+    %w(my_policy my_policy_2).each do |policy|
+      config("no route-policy #{policy}")
+    end if platform == :ios_xr
   end
 
   ##

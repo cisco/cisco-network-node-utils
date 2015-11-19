@@ -3,19 +3,16 @@
 _template:
   config_get_token: '/^router bgp <asnum>$/'
   config_set: "router bgp <asnum>"
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+    - '/^address-family <afi> <safi>$/'
   cli_nexus:
     config_get: 'show running bgp all'
-    config_get_token_append:
-      - '/^vrf <vrf>$/'
-      - '/^address-family <afi> <safi>$/'
     config_set_append:
       - 'vrf <vrf>'
       - 'address-family <afi> <safi>'
   cli_ios_xr:
     config_get: 'show running-config router bgp'
-    config_get_token_append:
-      - '/^vrf <vrf>$/'
-      - '/^address-family <afi> <safi>$/'
     config_set_append:
       - ' vrf <vrf>'
       - ' address-family <afi> <safi>'
@@ -74,9 +71,9 @@ client_to_client:
     config_set_append:
       - ' address-family <afi> <safi>'
       - ' <state> bgp client-to-client reflection disable'
-    config_get: 'show running-config router bgp | in bgp client-to-client'
-    config_get_token: '/^router bgp <asnum>$/'
-    config_get_token_append: '/^bgp client-to-client reflection disable$/'
+    config_get_token_append: 
+      - '/^address-family <afi> <safi>$/'
+      - '/^bgp client-to-client reflection disable$/'
     default_value: false
 
 dampen_igp_metric:
@@ -92,12 +89,12 @@ dampening:
     config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   cli_ios_xr:
-    config_set: 'router bgp <asnum>'
     config_set_append:
       - ' address-family <afi> <safi>'
-      - ' <state> bgp dampening <decay> <reuse> <suppress> <suppress_max>'
-    config_get: 'show running-config router bgp | in bgp dampening'
-    config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
+      - ' <state> bgp dampening <route_policy> <decay> <reuse> <suppress> <suppress_max>'
+    config_get_token_append:
+      - '/^address-family <afi> <safi>$/'
+      - '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
   default_value: ""
 
 dampening_half_time:
@@ -110,6 +107,9 @@ dampening_reuse_time:
   default_value: 750
 
 dampening_routemap:
+  default_value: ""
+
+dampening_routepolicy:
   default_value: ""
 
 dampening_state:
@@ -126,10 +126,14 @@ default_information:
     default_value: true
   cli_ios_xr:
     config_set: 'router bgp <asnum>'
-    config_set_append: ' <state> default-information originate'
+    config_set_append: 
+      - ' vrf <vrf>'
+      - ' <state> default-information originate'
     config_get: 'show running-config router bgp'
     config_get_token: '/^router bgp <asnum>$/'
-    config_get_token_append: '/default-information originate/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/default-information originate/'
     default_value: false
 
 # This is a multi-provider, enable-only feature. Do not disable from provider.
@@ -175,7 +179,6 @@ next_hop_route_map:
 
 next_hop_route_policy:
   cli_ios_xr:
-    config_set: 'router bgp <asnum>'
     config_set_append:
       - 'address-family <afi> <safi>'
       - '<state> nexthop route-policy <route_policy>'

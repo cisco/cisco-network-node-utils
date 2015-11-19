@@ -399,6 +399,7 @@ module Cisco
       # Set defaults args
       state = ''
       route_map = ''
+      route_policy = ''
       decay = ''
       reuse = ''
       suppress = ''
@@ -421,9 +422,15 @@ module Cisco
         CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       elsif route_map.is_a? String
         # 'dampening route-map WORD' command
-        route_map = "route-map #{damp_array}"
-        route_map.strip!
-        CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+        if platform == :nexus
+          route_map = "route-map #{damp_array}"
+          route_map.strip!
+          CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+        elsif platform == :ios_xr
+          route_policy = "route-policy #{damp_array}"
+          route_policy.strip!
+          CiscoLogger.debug("Dampening 'dampening #{route_policy}'")
+        end
       else
         # Array not in a valid format
         fail ArgumentError
@@ -433,6 +440,7 @@ module Cisco
       set_args_keys(
         state:        state,
         route_map:    route_map,
+        route_policy: route_policy,
         decay:        decay,
         reuse:        reuse,
         suppress:     suppress,
