@@ -17,11 +17,13 @@ require_relative '../lib/cisco_node_utils/aaa_authentication_login'
 
 # Test class for AAA Authentication Login
 class TestAaaAuthenticationLogin < CiscoTestCase
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE = false
-  DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE = false
+  # DEFAULT(:ascii_authentication)
+  # => false
+  # rubocop:disable Style/MethodName
+  def DEFAULT(prop_name)
+    cmd_ref.lookup('aaa_authentication_login', prop_name.to_s).default_value
+  end
+  # rubocop:enable Style/MethodName
 
   def aaaauthenticationlogin_detach(authlogin)
     # Reset the device to a clean test state. Note that AAA will raise an error
@@ -30,8 +32,8 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     if s[/aaa authentication login (\S+) enable/]
       config("no aaa authentication login #{Regexp.last_match(1)} enable")
     end
-    authlogin.ascii_authentication = DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH
-    authlogin.error_display = DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE
+    authlogin.ascii_authentication = DEFAULT(:ascii_authentication)
+    authlogin.error_display = DEFAULT(:error_display)
   end
 
   def test_get_ascii_authentication
@@ -49,7 +51,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
   def test_get_default_ascii_authentication
     aaaauthlogin = AaaAuthenticationLogin
     config('no aaa authentication login ascii-authentication')
-    assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH,
+    assert_equal(DEFAULT(:ascii_authentication),
                  aaaauthlogin.default_ascii_authentication,
                  'Error: AAA authentication login, default ascii incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
@@ -62,8 +64,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login ascii-authentication/)
 
-    aaaauthlogin.ascii_authentication =
-      DEFAULT_AAA_AUTHENTICATION_LOGIN_ASCII_AUTH
+    aaaauthlogin.ascii_authentication = false
     refute_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login ascii-authentication/)
 
@@ -86,7 +87,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login chap enable')
-    assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE,
+    assert_equal(DEFAULT(:chap),
                  aaaauthlogin.default_chap,
                  'Error: AAA authentication login, default chap incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
@@ -98,7 +99,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin.chap = true
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login chap enable/)
-    aaaauthlogin.chap = DEFAULT_AAA_AUTHENTICATION_LOGIN_CHAP_ENABLE
+    aaaauthlogin.chap = false
     refute_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login chap enable/)
 
@@ -122,7 +123,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login error-enable')
-    assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE,
+    assert_equal(DEFAULT(:error_display),
                  aaaauthlogin.default_error_display,
                  'Error: default error display incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
@@ -135,7 +136,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login error-enable/)
 
-    aaaauthlogin.error_display = DEFAULT_AAA_AUTHENTICATION_LOGIN_ERROR_ENABLE
+    aaaauthlogin.error_display = false
     refute_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login error-enable/)
 
@@ -159,7 +160,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login mschap enable')
-    assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE,
+    assert_equal(DEFAULT(:mschap),
                  aaaauthlogin.default_mschap,
                  'Error: AAA authentication login, default mschap incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
@@ -172,7 +173,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login mschap enable/)
 
-    aaaauthlogin.mschap = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAP_ENABLE
+    aaaauthlogin.mschap = false
     refute_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login mschap enable/)
 
@@ -196,7 +197,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     aaaauthlogin = AaaAuthenticationLogin
 
     config('no aaa authentication login mschapv2 enable')
-    assert_equal(DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE,
+    assert_equal(DEFAULT(:mschapv2),
                  aaaauthlogin.default_mschapv2,
                  'Error: AAA authentication login, default mschapv2 incorrect')
     aaaauthenticationlogin_detach(aaaauthlogin)
@@ -209,7 +210,7 @@ class TestAaaAuthenticationLogin < CiscoTestCase
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login mschapv2 enable/)
 
-    aaaauthlogin.mschapv2 = DEFAULT_AAA_AUTHENTICATION_LOGIN_MSCHAPV2_ENABLE
+    aaaauthlogin.mschapv2 = false
     refute_show_match(command: 'show run aaa all | no-more',
                       pattern: /^aaa authentication login mschapv2 enable/)
 
