@@ -20,7 +20,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 
-XR_SUPPORTED_BROKEN = 'Supported in IOS XR - needs further work'
 XR_NO_VRF_SUPPORT = 'Not supported in a BGP VRF'
 
 def create_bgp_vrf(asnum, vrf)
