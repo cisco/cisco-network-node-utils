@@ -21,20 +21,20 @@ module Cisco
 
     # name: name of the router instance
     # instantiate: true = create router instance
-    def initialize(acl_name, seqno, afi, instantiate=true)
+    def initialize(acl_name, seqno, afi)
       @acl_name = acl_name
       @afi = afi
       @seqno = seqno
-      @set_args = @get_args = {acl_name: @acl_name, seqno: @seqno}
+      @set_args = @get_args = { acl_name: @acl_name, seqno: @seqno }
     end
 
     # Create a hash of all current router instances.
     def self.aces
-      instances = config_get('acl_v4' , 'ace')
+      instances = config_get('acl_v4', 'ace')
       return {} if instances.nil?
       hash = {}
       instances.each do |name|
-          hash[name] = Ace.new(acl_name, false)
+        hash[name] = Ace.new(acl_name, false)
       end
       return hash
     rescue Cisco::CliError => e
@@ -42,7 +42,7 @@ module Cisco
       raise unless e.clierror =~ /Syntax error/
       return {}
     end
-    
+
     # Destroy a router instance; disable feature on last instance
     def destroy
       config_ace('no')
@@ -64,7 +64,7 @@ module Cisco
     def seqno
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      seqno = match[0]
+      match[0]
     end
 
     # setter of seqno
@@ -76,7 +76,7 @@ module Cisco
     def action
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      action = match[1]
+      match[1]
     end
 
     # setter of action
@@ -88,9 +88,9 @@ module Cisco
     def proto
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      proto = match[2]
+      match[2]
     end
-    
+
     # setter of proto
     def proto=(proto)
       @set_args[:proto] = proto
@@ -100,9 +100,9 @@ module Cisco
     def v4_src_addr_format
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      src_addr = match[3]
+      match[3]
     end
-    
+
     # setter of v4_src_addr_format
     def v4_src_addr_format=(src_addr)
       @set_args[:v4_src_addr_format] = src_addr
@@ -112,9 +112,9 @@ module Cisco
     def v4_src_port_format
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      src_port = match[5]
+      match[5]
     end
-    
+
     # setter of v4_src_port_format
     def v4_src_port_format=(src_port)
       @set_args[:v4_src_port_format] = src_port
@@ -124,9 +124,9 @@ module Cisco
     def v4_dst_addr_format
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      dst_addr = match[6]
+      match[6]
     end
-    
+
     # setter of v4_dst_addr_format
     def v4_dst_addr_format=(dst_addr)
       @set_args[:v4_dst_addr_format] = dst_addr
@@ -136,9 +136,9 @@ module Cisco
     def v4_dst_port_format
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      src_port = match[7]
+      match[7]
     end
-    
+
     # setter of v4_dst_port_format
     def v4_dst_port_format=(src_port)
       @set_args[:v4_dst_port_format] = src_port
@@ -148,9 +148,9 @@ module Cisco
     def option_format
       match = config_get('acl_v4', 'ace', @get_args)
       return if match.nil?
-      option_format = match[7]
+      match[8]
     end
-    
+
     # setter of option_format
     def option_format=(option)
       @set_args[:option_format] = option

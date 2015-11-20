@@ -15,13 +15,14 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 
+# test client for acl creation and deletion
 class TestAcl < CiscoTestCase
   attr_reader :acl_name_v4, :acl_name_v6
   def setup
     # setup runs at the beginning of each test
     super
-    @acl_name_v4 = "test-foo-v4-1"
-    @acl_name_v6 = "test-foo-v6-1"
+    @acl_name_v4 = 'test-foo-v4-1'
+    @acl_name_v6 = 'test-foo-v6-1'
     no_ip_access_list_foo
   end
 
@@ -41,9 +42,9 @@ class TestAcl < CiscoTestCase
 
   def test_router_create_acl_v4
     name = @acl_name_v4
-    rtr = Acl.new(name, "v4")
+    rtr = Acl.new(name, 'v4')
     @default_show_command = "show runn | i 'ip access-list #{name}'"
-    assert_show_match(pattern: /^ip access-list #{name}$/,
+    assert_show_match(pattern: %r{/^ip access-list #{name}$/},
                       msg:     "failed to create acl #{name}")
     rtr.destroy
     refute_show_match(pattern: /^ip access-list #{name}$/,
@@ -52,11 +53,11 @@ class TestAcl < CiscoTestCase
 
   def test_router_stats_enable
     name = @acl_name_v4
-    rtr = Acl.new(name, "v4")
+    rtr = Acl.new(name, 'v4')
     rtr.stats_perentry = true
     @default_show_command = "show runn | sec 'ip access-list #{name}'"
     assert_show_match(pattern: /statistics per-entry/,
-                      msg:     "failed to enable stats")
+                      msg:     'failed to enable stats')
     rtr.destroy
     refute_show_match(pattern: /^ip access-list #{name}$/,
                       msg:     "failed to destroy acl #{name}")
@@ -64,7 +65,7 @@ class TestAcl < CiscoTestCase
 
   def test_router_create_acl_v6
     name = @acl_name_v6
-    rtr = Acl.new(name, "v6")
+    rtr = Acl.new(name, 'v6')
     @default_show_command = "show runn | i 'ipv6 access-list #{name}'"
     assert_show_match(pattern: /^ipv6 access-list #{name}$/,
                       msg:     "failed to create acl #{name}")
@@ -75,11 +76,11 @@ class TestAcl < CiscoTestCase
 
   def test_router_stats_enable_v6
     name = @acl_name_v6
-    rtr = Acl.new(name, "v6")
+    rtr = Acl.new(name, 'v6')
     rtr.stats_perentry = true
     @default_show_command = "show runn | sec 'ipv6 access-list #{name}'"
     assert_show_match(pattern: /statistics per-entry/,
-                      msg:     "failed to enable stats")
+                      msg:     'failed to enable stats')
     rtr.destroy
     refute_show_match(pattern: /^ipv6 access-list #{name}$/,
                       msg:     "failed to destroy acl #{name}")

@@ -23,9 +23,9 @@ class TestAceV4 < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    @acl_name = "test-foo-1"
+    @acl_name = 'test-foo-1'
     @seqno = 10
-    @afi = "v4"
+    @afi = 'v4'
     no_ip_access_list_foo
   end
 
@@ -45,13 +45,13 @@ class TestAceV4 < CiscoTestCase
   def test_router_create_one
     acl = Acl.new(@acl_name, @afi)
     ace = Ace.new(@acl_name, @seqno, @afi)
-    ace.action = "permit"
-    ace.proto  = "tcp"
-    ace.v4_src_addr_format = "7.8.9.6 2.3.4.5"
-    ace.v4_src_port_format = "eq 40"
-    ace.v4_dst_addr_format = "1.2.3.4/32"
-    ace.v4_dst_port_format = "neq 20"
-    ace.option_format = "precedence critical"
+    ace.action = 'permit'
+    ace.proto  = 'tcp'
+    ace.v4_src_addr_format = '7.8.9.6 2.3.4.5'
+    ace.v4_src_port_format = 'eq 40'
+    ace.v4_dst_addr_format = '1.2.3.4/32'
+    ace.v4_dst_port_format = 'neq 20'
+    ace.option_format = 'precedence critical'
     ace.config_ace
     @default_show_command = "show runn | sec 'ip access-list #{@acl_name}'"
     assert_show_match(pattern: /\s+#{ace.seqno} #{ace.action} #{ace.proto}.*$/,
