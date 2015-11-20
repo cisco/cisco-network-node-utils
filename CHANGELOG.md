@@ -6,6 +6,7 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+* Extend cisco_vrf with vni attribute
 
 ### Changed
 

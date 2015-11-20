@@ -24,3 +24,10 @@ shutdown:
   config_get_token: ['/^vrf context <vrf>$/i', '/^shutdown$/']
   config_set: ["vrf context <vrf>", "<state> shutdown"]
   default_value: false
+
+vni:
+  kind: int
+  config_get: "show running | section 'vrf context'"
+  config_get_token: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']
+  config_set: ["vrf context <vrf>", "<state> vni <id>"]
+  default_value: false

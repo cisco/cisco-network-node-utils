@@ -89,4 +89,21 @@ class TestVrf < CiscoTestCase
     assert_empty(vrf.description, 'failed to remove description')
     vrf.destroy
   end
+
+  def test_vrf_vni
+    vrf = Vrf.new('test_vrf_vni')
+    vrf.vni = 4096
+    assert_equal(4096, vrf.vni,
+                 "vrf vni should be set to '4096'")
+    vrf.vni = vrf.default_vni
+    assert_equal(vrf.default_vni, vrf.vni,
+                 'vrf vni should be set to default value')
+    vrf.destroy
+  end
+
+  def test_vrf_default_vni
+    vrf = Vrf.new('test_vrf_default_vni')
+    assert_equal(vrf.default_vni, vrf.vni,
+                 'vrf vni should be default value')
+  end
 end

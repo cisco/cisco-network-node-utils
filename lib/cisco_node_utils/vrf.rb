@@ -73,5 +73,25 @@ module Cisco
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
+
+    # Vni (Getter/Setter/Default)
+    def vni
+      config_get('vrf', 'vni', @args)
+    end
+
+    def vni=(id)
+      if id == default_vni
+        @args[:state] = 'no'
+        @args[:id] = vni
+      else
+        @args[:state] = ''
+        @args[:id] = id
+      end
+      config_set('vrf', 'vni', @args)
+    end
+
+    def default_vni
+      config_get_default('vrf', 'vni')
+    end
   end # class
 end # module
