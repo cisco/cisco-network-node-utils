@@ -1,0 +1,33 @@
+# Command Reference Common ACL
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+_template:
+  config_get: 'show run aclmgr'
+  config_get_token: '/^<afi> access-list <acl_name>$/'
+  config_set: '<afi> access-list <acl_name>'
+
+ace:
+  config_get_token_append: '/^(<seqno>)\s+(\S+)\s+(\S+|\d+)\s+(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s+(eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+)*\s*(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s*(eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+)*( [a-zA-Z0-9\/ ]*)*$/'
+  config_set_append: 
+      '<state> <seqno> <action> <proto> <src_addr_format> <src_port_format> <dst_addr_format> <dst_port_format> <option_format>'
+
+acl:
+  config_get_token: '/^<afi> access-list (\S+)$/'
+  config_set: '<state> <afi> access-list <acl_name>'
+                      
+all_ace:
+  multiple: true
+  config_get_token_append: '/^(\d+)\s+(\S+)\s+(\S+|\d+)\s+(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s+(eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+)*\s*(any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+)\s*(eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+)*( [a-zA-Z0-9\/ ]*)*$/'
+
+all_acl:
+  multiple: true
+  config_get_token: '/^<afi> access-list (\S+)$/'
+
+stats_perentry:
+  kind: boolean
+  config_get_token_append: '/statistics per-entry$/'
+  config_set_append: '<state> statistics per-entry'
+  default_value: false
