@@ -23,9 +23,9 @@ module Cisco
     # seqno is sequence number of ace
     # afi is either v4 or v6
     def initialize(acl_name, seqno, afi)
-      fail TypeError unless acl_name.is_a?(String) && seqno.is_a?(Integer)\
+      fail TypeError unless acl_name.is_a?(String) && seqno.is_a?(Integer) \
       && afi.is_a?(String)
-      fail ArgumentError 'we expect ipv4 or ipv6' unless afi == 'ip'\
+      fail ArgumentError 'we expect ipv4 or ipv6' unless afi == 'ip' \
       || afi == 'ipv6'
       @acl_name = acl_name
       @afi = afi
@@ -42,12 +42,11 @@ module Cisco
       afis.each do |afi|
         @get_args = { afi: afi }
         instances = config_get('acl', 'all_acl', @get_args)
-        return {} if instances.nil?
+        next {} if instances.nil?
         instances.each do |name|
           hash[name] = Acl.new(name, @get_args[:afi], false)
-          @get_args[:acl_name] = name
-          aces = config_get('acl', 'all_ace', @get_args)
-          return {} if aces.nil?
+          aces = config_get('acl', 'all_ace', acl_name: name)
+          next {} if aces.nil?
           aces.each do |ace|
             item = Ace.new(name, ace[0].to_i, @get_args[:afi])
             item.seqno = ace[0].to_i
