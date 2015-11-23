@@ -261,7 +261,7 @@ class TestInterface < CiscoTestCase
     # Validate the collection
     inttype_h.each do |k, v|
       # Skipping loopback, proxy arp not supported
-      next if (k == 'loopback0')
+      next if k == 'loopback0'
 
       interface = v[:interface]
       cmd = show_cmd(interface.name)

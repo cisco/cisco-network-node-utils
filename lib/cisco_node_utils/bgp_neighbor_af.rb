@@ -37,7 +37,7 @@ module Cisco
         vrfs.keys.each do |vrf|
           af_hash[asn][vrf] = {}
           get_args = { asnum: asn }
-          get_args[:vrf] = vrf unless (vrf == 'default')
+          get_args[:vrf] = vrf unless vrf == 'default'
 
           nbrs = config_get('bgp_neighbor', 'all_neighbors', get_args)
           next if nbrs.nil?

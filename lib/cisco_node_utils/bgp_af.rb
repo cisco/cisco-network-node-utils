@@ -40,7 +40,7 @@ module Cisco
         af_hash[asn] = {}
         vrfs.keys.each do |vrf_name|
           get_args = { asnum: asn }
-          get_args[:vrf] = vrf_name unless (vrf_name == 'default')
+          get_args[:vrf] = vrf_name unless vrf_name == 'default'
           # Call yaml and search for address-family statements
           af_list = config_get('bgp_af', 'all_afs', get_args)
 
