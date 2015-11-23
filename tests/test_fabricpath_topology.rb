@@ -23,6 +23,8 @@ class TestFabricpathTopo < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
     no_feature_fabricpath
   end
 

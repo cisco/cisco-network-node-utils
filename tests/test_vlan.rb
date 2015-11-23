@@ -149,6 +149,8 @@ class TestVlan < CiscoTestCase
   end
 
   def test_vlan_mode
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
     v = Vlan.new(2000)
     assert_equal('ce', v.mode,
                  'Mode should have been default to ce')
@@ -160,6 +162,8 @@ class TestVlan < CiscoTestCase
   end
 
   def test_vlan_mode_invalid
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
     v = Vlan.new(100)
     assert_equal('ce', v.mode,
                  'Mode should have been default to ce')
