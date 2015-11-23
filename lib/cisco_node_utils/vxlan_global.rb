@@ -34,6 +34,7 @@ module Cisco
 
     def disable
       config_set('vxlan_global', 'feature', state: 'no')
+      dup_host_mac_detection_default
     end
 
     # Check current state of the configuration
