@@ -22,8 +22,7 @@ require_relative '../lib/cisco_node_utils/bgp'
 
 XR_NO_VRF_SUPPORT = 'Not supported in a BGP VRF'
 
-# Not a replacement for cisco debugging
-# just a simple show command useful without all the other noise
+# Temporary debug helper. Not for production and not to replace Cisco debugging.
 def debug_bgp
   s = @device.cmd('show running-config router bgp')
   caller_locations(1, 1).first.tap do |loc|
@@ -193,7 +192,7 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_create_valid_no_feature
+  def test_destroy
     bgp = setup_default
     line = get_routerbgp_match_line(@asnum)
     refute_nil(line, "Error: 'router bgp #{@asnum}' not configured")
@@ -231,13 +230,6 @@ class TestRouterBgp < CiscoTestCase
     assert_equal(asnum, bgp.asnum,
                  'Error: router asnum not correct')
     bgp.destroy
-  end
-
-  def test_destroy
-    bgp = setup_default
-    bgp.destroy
-    line = get_routerbgp_match_line(@asnum)
-    assert_nil(line, "Error: 'router bgp #{@asnum}' not destroyed")
   end
 
   def test_bestpath_default
@@ -761,7 +753,7 @@ class TestRouterBgp < CiscoTestCase
       end
       bgp.router_id = '7.8.9.11'
       assert_equal('7.8.9.11', bgp.router_id,
-                   "vrf #{@vrf}: bgp router_id should be set to '1.2.3.4'")
+                   "vrf #{@vrf}: bgp router_id invalid")
       bgp.router_id = ''
       assert_empty(bgp.router_id,
                    "vrf #{@vrf}: bgp router_id should *NOT* be configured")
