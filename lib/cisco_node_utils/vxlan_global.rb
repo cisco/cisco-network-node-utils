@@ -34,6 +34,7 @@ module Cisco
 
     def disable
       config_set('vxlan_global', 'feature', state: 'no')
+      dup_host_mac_detection_default
     end
 
     # Check current state of the configuration
@@ -161,8 +162,8 @@ module Cisco
       else
         state = ''
       end
-        config_set('vxlan_global', 'anycast_gateway_mac',
-                   state: state, mac_addr: mac_addr)
+      config_set('vxlan_global', 'anycast_gateway_mac',
+                 state: state, mac_addr: mac_addr)
     end
 
     def default_anycast_gateway_mac
