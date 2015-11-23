@@ -6,7 +6,7 @@ Changelog
 ### New feature support
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
-  * fabricpath_topology (dcheriancisco)
+  * fabricpath_topology (@dcheriancisco)
 
 ### Added
 
