@@ -83,66 +83,67 @@ module Cisco
       fail result[2]['body'] unless result[2]['body'].empty?
     end
 
-    def encap_dot1q
-      final_hash = {}
-      show = show("sh encapsulation profile | inc 'vni [0-9,]*' p 1")
-      debug("show class is #{show.class} and show op is #{show}")
-      return final_hash if show == {}
-      match_pat = /vni (\S+).*dot1q\s+([ 0-9,\-]+)vni ([ 0-9,\-]+)/m
-      split_pat = /encapsulation profile /
-      pair_arr = show.split(split_pat)
-      pair_arr.each do |pair|
-        match_arr = match_pat.match(pair)
-        next if match_arr.nil?
-        debug "match arr 1 : #{match_arr[1]} 2: #{match_arr[2]} " \
-              "3: #{match_arr[3]}"
-        key_arr = (match_arr[3].split(/,/)).map do |x|
-          x.strip!
-          if /-/.match(x)
-            x.gsub!('-', '..')
-          else
-            x
-          end
-        end
-        val_arr = (match_arr[2].split(/,/)).map do |x|
-          x.strip!
-          if /-/.match(x)
-            x.gsub!('-', '..')
-          else
-            x
-          end
-        end
-
-        debug "key_arr = #{key_arr} val_arr = #{val_arr}"
-
-        index = 0
-        value = nil
-        key_arr.each do |key|
-          # puts "checking |#{key}| against |#{@vni_id}|"
-          # puts "checking #{key.class} against #{my_vni.class}"
-          if /\.\./.match(key)
-            range = eval(key) ###################### *MUSTFIX* REMOVE eval
-            if range.include?(@vni_id.to_i)
-              val_range = eval(val_arr[index]) ##### *MUSTFIX* REMOVE eval
-              position = @vni_id.to_i - range.begin
-              value = val_range.begin + position
-              value = value.to_s
-              debug "matched #{@vni_id} value is #{value}"
-              break
-            end
-          elsif key == @vni_id
-            value = val_arr[index]
-            debug "matched #{key} value is #{value}"
-          end
-          index += 1
-        end
-        unless value.nil?
-          # final_hash[match_arr[1]] = value.to_i
-          final_hash[match_arr[1]] = value
-        end
-      end # pair.each
-      final_hash
-    end # end of encap_dot1q
+    # TODO: This method will be refactored as part of US52662
+    # def encap_dot1q
+    #  final_hash = {}
+    #  show = show("sh encapsulation profile | inc 'vni [0-9,]*' p 1")
+    #  debug("show class is #{show.class} and show op is #{show}")
+    #  return final_hash if show == {}
+    #  match_pat = /vni (\S+).*dot1q\s+([ 0-9,\-]+)vni ([ 0-9,\-]+)/m
+    #  split_pat = /encapsulation profile /
+    #  pair_arr = show.split(split_pat)
+    #  pair_arr.each do |pair|
+    #    match_arr = match_pat.match(pair)
+    #    next if match_arr.nil?
+    #    debug "match arr 1 : #{match_arr[1]} 2: #{match_arr[2]} " \
+    #          "3: #{match_arr[3]}"
+    #    key_arr = (match_arr[3].split(/,/)).map do |x|
+    #      x.strip!
+    #      if /-/.match(x)
+    #        x.gsub!('-', '..')
+    #      else
+    #        x
+    #      end
+    #    end
+    #    val_arr = (match_arr[2].split(/,/)).map do |x|
+    #      x.strip!
+    #      if /-/.match(x)
+    #        x.gsub!('-', '..')
+    #      else
+    #        x
+    #      end
+    #    end
+    #
+    #    debug "key_arr = #{key_arr} val_arr = #{val_arr}"
+    #
+    #    index = 0
+    #    value = nil
+    #    key_arr.each do |key|
+    #      # puts "checking |#{key}| against |#{@vni_id}|"
+    #      # puts "checking #{key.class} against #{my_vni.class}"
+    #      if /\.\./.match(key)
+    #        range = eval(key) ###################### *MUSTFIX* REMOVE eval
+    #        if range.include?(@vni_id.to_i)
+    #          val_range = eval(val_arr[index]) ##### *MUSTFIX* REMOVE eval
+    #          position = @vni_id.to_i - range.begin
+    #          value = val_range.begin + position
+    #          value = value.to_s
+    #          debug "matched #{@vni_id} value is #{value}"
+    #          break
+    #        end
+    #      elsif key == @vni_id
+    #        value = val_arr[index]
+    #        debug "matched #{key} value is #{value}"
+    #      end
+    #      index += 1
+    #    end
+    #    unless value.nil?
+    #      # final_hash[match_arr[1]] = value.to_i
+    #      final_hash[match_arr[1]] = value
+    #    end
+    #  end # pair.each
+    #  final_hash
+    # end # end of encap_dot1q
 
     def encap_dot1q=(val, prev_val=nil)
       debug "val is of class #{val.class} and is #{val} prev is #{prev_val}"
