@@ -16,6 +16,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'bgp_af'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -30,12 +31,7 @@ module Cisco
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
       else
-        if platform == :ios_xr
-          @rd = 'auto'
-          @get_args = @set_args = { asnum: @asnum, vrf: @vrf, rd: @rd }
-        else
-          @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
-        end
+        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
       end
       create if instantiate
     end
@@ -529,6 +525,35 @@ module Cisco
 
     def default_reconnect_interval
       config_get_default('bgp', 'reconnect_interval')
+    end
+
+    # Route Distinguisher (Getter/Setter/Default)
+    # Configure in vrf context
+    def route_distinguisher
+      if platform == :nexus
+        return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
+      end
+      config_get('bgp', 'route_distinguisher', @get_args)
+    end
+
+    def route_distinguisher=(rd)
+      if platform == :nexus
+        RouterBgpAF.feature_nv_overlay_evpn_enable unless
+          RouterBgpAF.feature_nv_overlay_evpn_enabled
+      end
+      if rd == default_route_distinguisher
+        @set_args[:state] = 'no'
+        @set_args[:rd] = route_distinguisher
+      else
+        @set_args[:state] = ''
+        @set_args[:rd] = rd
+      end
+      config_set('bgp', 'route_distinguisher', @set_args)
+      set_args_keys_default
+    end
+
+    def default_route_distinguisher
+      config_get_default('bgp', 'route_distinguisher')
     end
 
     # Router ID (Getter/Setter/Default)
