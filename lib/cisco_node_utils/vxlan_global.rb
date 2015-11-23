@@ -161,8 +161,8 @@ module Cisco
       else
         state = ''
       end
-        config_set('vxlan_global', 'anycast_gateway_mac',
-                   state: state, mac_addr: mac_addr)
+      config_set('vxlan_global', 'anycast_gateway_mac',
+                 state: state, mac_addr: mac_addr)
     end
 
     def default_anycast_gateway_mac
