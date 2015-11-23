@@ -416,8 +416,8 @@ module Cisco
     def switchport_enable_and_mode(mode_set)
       switchport_enable unless switchport
 
-      if (:fex_fabric == mode_set)
-        fex_feature_set(:enabled) unless (:enabled == fex_feature)
+      if :fex_fabric == mode_set
+        fex_feature_set(:enabled) unless :enabled == fex_feature
       end
       config_set('interface', switchport_mode_lookup_string,
                  name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])

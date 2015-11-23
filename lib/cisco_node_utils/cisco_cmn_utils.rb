@@ -118,7 +118,7 @@ module Cisco
     #  current: an array of existing cmds on the device
     def self.delta_add_remove(should, current=[])
       # Remove nil entries from array
-      should.each(&:compact!) unless should.empty? if depth(should) > 1
+      should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }
 
       # Differentiate between comparing nested and unnested arrays by

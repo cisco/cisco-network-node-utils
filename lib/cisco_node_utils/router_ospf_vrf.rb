@@ -56,8 +56,10 @@ module Cisco
       RouterOspf.routers.each do |instance|
         name = instance[0]
         vrf_ids = config_get('ospf', 'vrf', name: name)
+        # rubocop:disable Style/AlignHash
         hash_tmp = { name =>
           { 'default' => RouterOspfVrf.new(name, 'default', false) } }
+        # rubocop:enable Style/AlignHash
         unless vrf_ids.nil?
           vrf_ids.each do |vrf|
             hash_tmp[name][vrf] = RouterOspfVrf.new(name, vrf, false)
