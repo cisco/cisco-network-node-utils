@@ -100,10 +100,4 @@ class TestVrf < CiscoTestCase
                  'vrf vni should be set to default value')
     vrf.destroy
   end
-
-  def test_vrf_default_vni
-    vrf = Vrf.new('test_vrf_default_vni')
-    assert_equal(vrf.default_vni, vrf.vni,
-                 'vrf vni should be default value')
-  end
 end
