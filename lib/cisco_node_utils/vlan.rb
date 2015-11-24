@@ -60,65 +60,6 @@ module Cisco
       fail result[2]['body'] unless result[2]['body'].empty?
     end
 
-    def fabricpath_feature
-      fabricpath = config_get('fabricpath', 'feature')
-      fail 'fabricpath_feature not found' if fabricpath.nil?
-      return :disabled if fabricpath.nil?
-      fabricpath.shift.to_sym
-    end
-
-    def fabricpath_feature_set(fabricpath_set)
-      curr = fabricpath_feature
-      return if curr == fabricpath_set
-
-      case fabricpath_set
-      when :enabled
-        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
-        config_set('fabricpath', 'feature', '')
-      when :disabled
-        config_set('fabricpath', 'feature', 'no') if curr == :enabled
-        return
-      when :installed
-        config_set('fabricpath', 'feature_install', '') if curr == :uninstalled
-      when :uninstalled
-        config_set('fabricpath', 'feature', 'no') if curr == :enabled
-        config_set('fabricpath', 'feature_install', 'no')
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def mode
-      result = config_get('vlan', 'mode', @vlan_id)
-      return default_mode if result.nil?
-      case result.first
-      when /fabricpath/i
-        return 'fabricpath'
-      when /ce/i
-        return 'ce'
-      end
-    end
-
-    def mode=(str)
-      str = str.to_s
-      if str.empty?
-        result = config_set('vlan', 'mode', @vlan_id, 'no', '')
-      else
-        if ('fabricpath' == str)
-          fabricpath_feature_set(:enabled) unless
-            (:enabled == fabricpath_feature)
-        end
-        result = config_set('vlan', 'mode', @vlan_id, '', str)
-      end
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_mode
-      config_get_default('vlan', 'mode')
-    end
-
     def vlan_name
       result = config_get('vlan', 'name', @vlan_id)
       result.nil? ? default_vlan_name : result
