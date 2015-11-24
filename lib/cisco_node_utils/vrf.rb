@@ -73,5 +73,57 @@ module Cisco
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
+
+    def self.feature_vni_enabled
+      config_get('vrf', 'feature_vni')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.feature_vni_enable
+      config_set('vrf', 'feature_vni')
+    end
+
+    def self.feature_vn_segment_vlan_based_enabled
+      config_get('vrf', 'feature_vn_segment_vlan_based')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.feature_vn_segment_vlan_based_enable
+      config_set('vrf', 'feature_vn_segment_vlan_based')
+    end
+
+    def enable_vni_features
+      # config_get_default returns nil if command is unsupported on a platform
+      unless config_get_default('vrf', 'feature_vni').nil?
+        Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+      end
+      return if config_get_default('vrf', 'feature_vn_segment_vlan_based').nil?
+      Vrf.feature_vn_segment_vlan_based_enable unless
+        Vrf.feature_vn_segment_vlan_based_enabled
+    end
+
+    # Vni (Getter/Setter/Default)
+    def vni
+      config_get('vrf', 'vni', @args)
+    end
+
+    def vni=(id)
+      enable_vni_features
+      no_cmd = (id) ? '' : 'no'
+      id = (id) ? id : vni
+      config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)
+    rescue Cisco::CliError => e
+      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_vni
+      config_get_default('vrf', 'vni')
+    end
   end # class
 end # module
