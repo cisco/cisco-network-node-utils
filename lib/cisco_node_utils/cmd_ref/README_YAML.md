@@ -570,4 +570,4 @@ version:
 
 ## Style Guide
 
-Please see [YAML Best Practices](../../docs/README-develop-best-practices.md#ydbp).
+Please see [YAML Best Practices](../../../docs/README-develop-best-practices.md#ydbp).
