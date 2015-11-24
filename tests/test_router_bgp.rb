@@ -21,6 +21,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 
 XR_NO_VRF_SUPPORT = 'Not supported in a BGP VRF'
+XR_NOT_SUPPORTED  = 'Not supported on IOS XR'
 
 # Temporary debug helper. Not for production and not to replace Cisco debugging.
 def debug_bgp
@@ -51,14 +52,12 @@ def create_bgp_vrf(asnum, vrf)
 end
 
 def setup_default
-  @device.cmd('no router bgp')
   @asnum = 55
   @vrf = 'default'
   RouterBgp.new(@asnum)
 end
 
 def setup_vrf
-  @device.cmd('no router bgp')
   @asnum = 99
   @vrf = 'yamllll'
   create_bgp_vrf(@asnum, @vrf)
@@ -631,7 +630,7 @@ class TestRouterBgp < CiscoTestCase
 
   def test_default_log_neighbor_changes
     bgp = setup_default
-    if platform == :ios_xr
+    if bgp.default_log_neighbor_changes
       # XR logging is on by default
       assert(bgp.log_neighbor_changes,
              'bgp log_neighbor_changes should be enabled')
@@ -716,7 +715,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_reconnect_interval_default
-    skip('Not supported on IOS XR') if platform == :ios_xr
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     bgp = setup_default
     assert_equal(60, bgp.reconnect_interval,
                  "reconnect_interval should be set to default value of '60'")
@@ -847,7 +846,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_timer_bestpath_limit_default
-    skip('Not supported on IOS XR') if platform == :ios_xr
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     bgp = setup_default
     assert_equal(300, bgp.timer_bestpath_limit,
                  "timer_bestpath_limit should be default value of '300'")
@@ -855,7 +854,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_set_get_timer_bestpath_limit_always
-    skip('Not supported on IOS XR') if platform == :ios_xr
+    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
