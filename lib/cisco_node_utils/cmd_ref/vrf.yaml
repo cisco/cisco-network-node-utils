@@ -19,7 +19,7 @@ destroy:
 
 feature_vn_segment_vlan_based:
   _exclude:
-    - /N7K/  # Support for multi-tenancy full only
+    - [/N7K/]  # Support for multi-tenancy full only
   kind: boolean
   default_value: false
   cli_nexus:
@@ -44,6 +44,8 @@ shutdown:
   default_value: false
 
 vni:
+  _exclude:
+    - [/N3/]   # N3: Support Unknown
   kind: int
   config_get: "show running | section 'vrf context'"
   config_get_token: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']
