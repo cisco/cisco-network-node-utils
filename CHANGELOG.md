@@ -4,6 +4,9 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
+* Fabric Path
+  * fabricpath_global (@dcheriancisco)
+  * fabricpath_topology (@dcheriancisco)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
@@ -11,6 +14,7 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+* Extensions to interface and vlan providers to support fabric path. (dcheriancisco)
 * Extend cisco_vrf with `vni` attribute
 
 ### Changed
