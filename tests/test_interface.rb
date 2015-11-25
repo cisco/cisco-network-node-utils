@@ -261,7 +261,7 @@ class TestInterface < CiscoTestCase
     # Validate the collection
     inttype_h.each do |k, v|
       # Skipping loopback, proxy arp not supported
-      next if (k == 'loopback0')
+      next if k == 'loopback0'
 
       interface = v[:interface]
       cmd = show_cmd(interface.name)
@@ -1097,5 +1097,24 @@ class TestInterface < CiscoTestCase
     interface.vrf = vrf
     assert_equal(vrf, interface.vrf)
     interface.destroy
+  end
+
+  def test_interface_port_channel_add_delete
+    interface1 = Interface.new(interfaces[0])
+    interface2 = Interface.new(interfaces[1])
+    interface3 = Interface.new(interfaces[2])
+    pc = '100'
+    interface1.port_channel = pc
+    interface2.port_channel = pc
+    interface3.port_channel = pc
+    assert_equal(pc.to_i, interface1.port_channel)
+    assert_equal(pc.to_i, interface2.port_channel)
+    assert_equal(pc.to_i, interface3.port_channel)
+    interface1.port_channel = ''
+    interface2.port_channel = ''
+    interface3.port_channel = ''
+    assert_nil(interface1.port_channel)
+    assert_nil(interface2.port_channel)
+    assert_nil(interface3.port_channel)
   end
 end
