@@ -101,17 +101,22 @@ module Cisco
     # Client to client (Getter/Setter/Default)
     #
     def client_to_client
+      return nil if platform == :ios_xr && @vrf != 'default'
       state = config_get('bgp_af', 'client_to_client', @get_args)
       state ? true : false
     end
 
     def client_to_client=(state)
+      fail Cisco::UnsupportedError.new('bgp_af', 'client-to-client', 'set',
+        'client-to-client is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
       state = (state ? '' : 'no')
       set_args_keys(state: state)
       config_set('bgp_af', 'client_to_client', @set_args)
     end
 
     def default_client_to_client
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp_af', 'client_to_client')
     end
 
@@ -160,10 +165,14 @@ module Cisco
     end
 
     def next_hop_route_policy
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp_af', 'next_hop_route_policy', @get_args)
     end
 
     def next_hop_route_policy=(route_policy)
+      fail Cisco::UnsupportedError.new('bgp_af', 'nexthop route-policy', 'set',
+        'nexthop route-policy is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
       route_policy.strip!
       if route_policy.empty?
         state = 'no'
@@ -179,6 +188,7 @@ module Cisco
     end
 
     def default_next_hop_route_policy
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp_af', 'next_hop_route_policy')
     end
 
@@ -308,6 +318,7 @@ module Cisco
     # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
     # [nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
+      return nil if platform == :ios_xr && @vrf != 'default'
       data = config_get('bgp_af', 'dampening', @get_args)
 
       if data.nil?
@@ -392,6 +403,9 @@ module Cisco
     end
 
     def dampening=(damp_array)
+      fail Cisco::UnsupportedError.new('bgp_af', 'dampening', 'set',
+        'dampening is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
       fail ArgumentError if damp_array.kind_of?(Array) &&
                             !(damp_array.length == 4 ||
                               damp_array.length == 0)
@@ -451,6 +465,7 @@ module Cisco
     end
 
     def default_dampening
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp_af', 'dampening')
     end
 

@@ -199,13 +199,32 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
+  ## Negative tests with non-default vrf on ios_xr
+  ##
+  def client_to_client_vrf_xr_neg_test
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    assert_nil(bgp_af.client_to_client,
+               'client_to_client should return nil on XR with non-default vrf')
+    assert_raises(Cisco::UnsupportedError) do
+      bgp_af.client_to_client = true
+    end
+  end
+
+  ##
   ## client-to-client reflection
   ##
   def test_client_to_client
     asn = '55'
-    vrf = 'default'
+    vrf = 'red'
+    if platform == :ios_xr
+      config_ios_xr_dependencies(asn)
+      client_to_client_vrf_xr_neg_test
+      vrf = 'default'
+    end
     af = %w(ipv4 unicast)
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     if platform == :ios_xr
@@ -284,13 +303,29 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
+  ## Negative tests with non-default vrf on ios_xr
+  ##
+  def next_hop_route_policy_vrf_xr_neg_test
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    assert_nil(bgp_af.next_hop_route_policy,
+               'next_hop_route_policy should return nil on XR with non-default vrf')
+    assert_raises(Cisco::UnsupportedError) do
+      bgp_af.next_hop_route_policy = 'drop_all'
+    end
+  end
+
+  ##
   ## next_hop route-map or route-policy
   ##
   def test_next_hop_route_map_or_policy
     asn = '55'
-    if platform == :nexus
-      vrf = 'red'
-    elsif platform == :ios_xr
+    vrf = 'red'
+    if platform == :ios_xr
+      config_ios_xr_dependencies(asn)
+      next_hop_route_policy_vrf_xr_neg_test
       vrf = 'default'
     end
     af = %w(ipv4 unicast)
@@ -611,6 +646,21 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
+  ## Negative tests with non-default vrf on ios_xr
+  ##
+  def dampening_vrf_xr_neg_test
+    asn = '101'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    assert_nil(bgp_af.dampening,
+               'dampening should return nil on XR with non-default vrf')
+    assert_raises(Cisco::UnsupportedError) do
+      bgp_af.dampening = %w('one' 'two')
+    end
+  end
+
+  ##
   ## dampening
   ##
   # rubocop:disable Metrics/MethodLength
@@ -620,13 +670,13 @@ class TestRouterBgpAF < CiscoTestCase
     ############################################
     # Set and verify 'dampening' with defaults #
     ############################################
-    if platform == :nexus
-      vrf = 'orange'
-    elsif platform == :ios_xr
+    vrf = 'orange'
+    if platform == :ios_xr
+      config_ios_xr_dependencies(asn)
+      dampening_vrf_xr_neg_test
       vrf = 'default'
     end
     af = %w(ipv4 unicast)
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     # Test no dampening configured
