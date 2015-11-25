@@ -504,19 +504,19 @@ module Cisco
       config_get_default('bgp', 'log_neighbor_changes')
     end
 
-    # Neighbor fib down accelerate (Getter/Setter/Default)
-    def neighbor_fib_down_accelerate
-      config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
+    # Neighbor down fib accelerate (Getter/Setter/Default)
+    def neighbor_down_fib_accelerate
+      config_get('bgp', 'neighbor_down_fib_accelerate', @get_args)
     end
 
-    def neighbor_fib_down_accelerate=(enable)
+    def neighbor_down_fib_accelerate=(enable)
       @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp', 'neighbor_fib_down_accelerate', @set_args)
+      config_set('bgp', 'neighbor_down_fib_accelerate', @set_args)
       set_args_keys_default
     end
 
-    def default_neighbor_fib_down_accelerate
-      config_get_default('bgp', 'neighbor_fib_down_accelerate')
+    def default_neighbor_down_fib_accelerate
+      config_get_default('bgp', 'neighbor_down_fib_accelerate')
     end
 
     # Reconnect Interval (Getter/Setter/Default)

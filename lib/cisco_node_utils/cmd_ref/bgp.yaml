@@ -138,7 +138,7 @@ maxas_limit:
   config_set_append: '<state> maxas-limit <limit>'
   default_value: false
 
-neighbor_fib_down_accelerate:
+neighbor_down_fib_accelerate:
   kind: boolean
   config_get_token_append: '/^neighbor-down fib-accelerate$/'
   config_set_append: '<state> neighbor-down fib-accelerate'
