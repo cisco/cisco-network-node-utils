@@ -78,11 +78,23 @@ enforce_first_as:
   config_set_append: '<state> enforce-first-as'
   default_value: true
 
+fast_external_fallover:
+  kind: boolean
+  config_get_token_append: '/^(no )?fast-external-fallover$/'
+  config_set_append: '<state> fast-external-fallover'
+  default_value: true
+
 feature:
   kind: boolean
   config_get: "show running bgp"
   config_get_token: '/^feature bgp$/'
   config_set: "<state> feature bgp"
+
+flush_routes:
+  kind: boolean
+  config_get_token_append: '/flush-routes$/'
+  config_set_append: '<state> flush-routes'
+  default_value: false
 
 graceful_restart:
   kind: boolean
@@ -107,6 +119,12 @@ graceful_restart_timers_stalepath_time:
   config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
   config_set_append: '<state> graceful-restart stalepath-time <seconds>'
   default_value: 300
+
+isolate:
+  kind: boolean
+  config_get_token_append: '/^isolate$/'
+  config_set_append: '<state> isolate'
+  default_value: false
 
 log_neighbor_changes:
   kind: boolean

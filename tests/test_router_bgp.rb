@@ -335,6 +335,46 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_routerbgp_set_get_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.fast_external_fallover = true
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be enabled')
+    bgp.fast_external_fallover = false
+    refute(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover default value should be true')
+    bgp.destroy
+  end
+
+  def test_routerbgp_set_get_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.flush_routes = true
+    assert(bgp.flush_routes,
+           'bgp flush-routes should be enabled')
+    bgp.flush_routes = false
+    refute(bgp.flush_routes,
+           'bgp flush-routes should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.flush_routes,
+           'bgp flush-routes value default value should be false')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_graceful_restart
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
@@ -489,6 +529,26 @@ class TestRouterBgp < CiscoTestCase
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.default_confederation_peers,
                  'bgp confederation_peers default value should be empty')
+    bgp.destroy
+  end
+
+  def test_routerbgp_set_get_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.isolate = true
+    assert(bgp.isolate,
+           'bgp isolate should be enabled')
+    bgp.isolate = false
+    refute(bgp.isolate,
+           'bgp isolate should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.isolate,
+           'bgp isolate default value should be false')
     bgp.destroy
   end
 

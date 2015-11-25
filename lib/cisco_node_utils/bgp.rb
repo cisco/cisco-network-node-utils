@@ -327,6 +327,36 @@ module Cisco
       config_get_default('bgp', 'enforce_first_as')
     end
 
+    # Fast External fallover (Getter/Setter/Default)
+    def fast_external_fallover
+      config_get('bgp', 'fast_external_fallover', @get_args)
+    end
+
+    def fast_external_fallover=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'fast_external_fallover', @set_args)
+      set_args_keys_default
+    end
+
+    def default_fast_external_fallover
+      config_get_default('bgp', 'fast_external_fallover')
+    end
+
+    # Neighbor fib down accelerate (Getter/Setter/Default)
+    def flush_routes
+      config_get('bgp', 'flush_routes', @get_args)
+    end
+
+    def flush_routes=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'flush_routes', @set_args)
+      set_args_keys_default
+    end
+
+    def default_flush_routes
+      config_get_default('bgp', 'flush_routes')
+    end
+
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
       config_get('bgp', 'confederation_peers', @get_args)
@@ -421,6 +451,21 @@ module Cisco
 
     def default_graceful_restart_helper
       config_get_default('bgp', 'graceful_restart_helper')
+    end
+
+    # Neighbor fib down accelerate (Getter/Setter/Default)
+    def isolate
+      config_get('bgp', 'isolate', @get_args)
+    end
+
+    def isolate=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'isolate', @set_args)
+      set_args_keys_default
+    end
+
+    def default_isolate
+      config_get_default('bgp', 'isolate')
     end
 
     # MaxAs Limit (Getter/Setter/Default)
