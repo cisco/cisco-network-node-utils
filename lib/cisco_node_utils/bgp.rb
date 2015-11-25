@@ -342,7 +342,7 @@ module Cisco
       config_get_default('bgp', 'fast_external_fallover')
     end
 
-    # Neighbor fib down accelerate (Getter/Setter/Default)
+    # Flush Routes (Getter/Setter/Default)
     def flush_routes
       config_get('bgp', 'flush_routes', @get_args)
     end
@@ -453,7 +453,7 @@ module Cisco
       config_get_default('bgp', 'graceful_restart_helper')
     end
 
-    # Neighbor fib down accelerate (Getter/Setter/Default)
+    # Isolate (Getter/Setter/Default)
     def isolate
       config_get('bgp', 'isolate', @get_args)
     end
