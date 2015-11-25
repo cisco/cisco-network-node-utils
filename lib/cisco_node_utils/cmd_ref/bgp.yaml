@@ -92,7 +92,7 @@ feature:
 
 flush_routes:
   kind: boolean
-  config_get_token_append: '/flush-routes$/'
+  config_get_token_append: '/^flush-routes$/'
   config_set_append: '<state> flush-routes'
   default_value: false
 
