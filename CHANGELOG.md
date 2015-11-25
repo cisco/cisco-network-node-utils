@@ -1,7 +1,9 @@
 Changelog
 =========
 
-## [Unreleased]
+### Added
+
+* port_channel property to `Cisco::Interface` class
 
 ### New feature support
 * VXLAN
