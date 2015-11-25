@@ -56,8 +56,9 @@ module Cisco
 
       hash_final = {}
       asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
-      hash_tmp = { asnum =>
-        { 'default' => RouterBgp.new(asnum, 'default', false) } }
+      hash_tmp = {
+        asnum => { 'default' => RouterBgp.new(asnum, 'default', false) }
+      }
       vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
       unless vrf_ids.nil?
         vrf_ids.each do |vrf|

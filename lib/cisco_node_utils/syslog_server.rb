@@ -31,10 +31,10 @@ module Cisco
       fail TypeError unless name.length > 0
       @name = name
 
-      fail TypeError unless level.is_a?(Integer) unless level.nil?
+      fail TypeError unless level.is_a?(Integer) || level.nil?
       @level = level
 
-      fail TypeError unless vrf.is_a?(String) unless vrf.nil?
+      fail TypeError unless vrf.is_a?(String) || vrf.nil?
       @vrf = vrf
 
       create if instantiate
