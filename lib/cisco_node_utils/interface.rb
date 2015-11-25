@@ -303,6 +303,39 @@ module Cisco
       config_get_default('interface', negotiate_auto_lookup_string)
     end
 
+    def port_channel
+      config_get('interface', 'port_channel', @name)
+    end
+
+    def port_channel=(val)
+      case @name
+      when /Ethernet/i
+        unless val.empty?
+          config_set('interface',
+                     'port_channel', @name, '', val, 'force')
+          return
+        end
+        pc = config_get('interface', 'port_channel', @name)
+        config_set('interface',
+                   'port_channel', @name, 'no', '', '')
+        cga = config_get('interface', 'all_channel_groups')
+        found = false
+        unless cga.nil?
+          cga.each do |num|
+            if num.to_i == pc
+              found = true
+              break
+            end
+          end
+        end
+        config_set('interface', 'port_channel_destroy', pc.to_s) unless found
+      else
+        fail "port-channel not supported on #{@name}"
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
     def shutdown
       config_get('interface', 'shutdown', @name)
     end
@@ -401,8 +434,8 @@ module Cisco
     def switchport_enable_and_mode(mode_set)
       switchport_enable unless switchport
 
-      if (:fex_fabric == mode_set)
-        fex_feature_set(:enabled) unless (:enabled == fex_feature)
+      if :fex_fabric == mode_set
+        fex_feature_set(:enabled) unless :enabled == fex_feature
       end
       config_set('interface', switchport_mode_lookup_string, @name, '',
                  IF_SWITCHPORT_MODE[mode_set])
