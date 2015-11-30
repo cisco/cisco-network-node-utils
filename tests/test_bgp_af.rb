@@ -682,6 +682,66 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
+  ## distance
+  ##
+  def test_distance
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    distance = [{ ebgp: 20, ibgp: 40, local: 60 },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: bgp_af.default_distance_local },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  40,
+                  local: 60 },
+                { ebgp:  20,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: bgp_af.default_distance_local },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: 60 },
+               ]
+    distance.each do |distancer|
+      bgp_af.distance_set(distancer[:ebgp], distancer[:ibgp], distancer[:local])
+      assert_equal(distancer[:ebgp], bgp_af.distance_ebgp)
+      assert_equal(distancer[:ibgp], bgp_af.distance_ibgp)
+      assert_equal(distancer[:local], bgp_af.distance_local)
+    end
+    bgp_af.destroy
+  end
+
+  ##
+  ## default_metric
+  ##
+  def default_metric(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = 50
+    bgp_af.default_metric = val
+    assert_equal(val, bgp_af.default_metric,
+                 'Error: default metric value does not match set value')
+
+    val = bgp_af.default_default_metric
+    bgp_af.default_metric = val
+    assert_equal(val, bgp_af.default_metric,
+                 'Error: default metric value does not match default' \
+                 'value')
+  end
+
+  def test_default_metric
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      default_metric(55, 'red', af)
+    end
+  end
+
+  ##
   ## maximum_paths
   ##
   def maximum_paths(asn, vrf, af)
@@ -1079,6 +1139,100 @@ class TestRouterBgpAF < CiscoTestCase
       result = bgp_af.send("route_target_#{opt}_evpn")
       assert_equal(should, result,
                    "#{test_id} : #{af} : route_target_#{opt}_evpn")
+    end
+  end
+
+  ##
+  ## suppress_inactive
+  ##
+  def suppress_inactive(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = false
+    bgp_af.suppress_inactive = val
+    assert_equal(val, bgp_af.suppress_inactive,
+                 'Error: suppress inactive value does not match set value')
+
+    val = true
+    bgp_af.suppress_inactive = val
+    assert_equal(val, bgp_af.suppress_inactive,
+                 'Error: suppress inactive value does not match set value')
+
+    val = bgp_af.default_suppress_inactive
+    bgp_af.suppress_inactive = val
+    assert_equal(val, bgp_af.suppress_inactive,
+                 'Error: suppress inactive value does not match default' \
+                 'value')
+  end
+
+  def test_suppress_inactive
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      suppress_inactive(55, 'red', af)
+    end
+  end
+
+  ##
+  ## table_map
+  ##
+  def table_map(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = 'sjc'
+    bgp_af.table_map_set(val)
+    assert_equal(val, bgp_af.table_map,
+                 'Error: default metric value does not match set value')
+
+    val = bgp_af.default_table_map
+    bgp_af.table_map_set(val)
+    assert_equal(val, bgp_af.table_map,
+                 'Error: default metric value does not match default' \
+                 'value')
+  end
+
+  def test_table_map
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      table_map(55, 'red', af)
+    end
+  end
+
+  ##
+  ## table_map_filter
+  ##
+  def table_map_filter(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = false
+    bgp_af.table_map_set('sjc', val)
+    assert_equal(val, bgp_af.table_map_filter,
+                 'Error: suppress inactive value does not match set value')
+
+    val = true
+    bgp_af.table_map_set('sjc', val)
+    assert_equal(val, bgp_af.table_map_filter,
+                 'Error: suppress inactive value does not match set value')
+
+    val = bgp_af.default_table_map_filter
+    bgp_af.table_map_set('sjc', val)
+    assert_equal(val, bgp_af.table_map_filter,
+                 'Error: suppress inactive value does not match default' \
+                 'value')
+  end
+
+  def test_table_map_filter
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      table_map_filter(55, 'red', af)
     end
   end
 end
