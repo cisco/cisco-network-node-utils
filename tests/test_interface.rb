@@ -54,7 +54,7 @@ class TestInterface < CiscoTestCase
       @port_channel = 'Bundle-Ether'
       @switchport_shutdown_hash = {
         # Not really applicable to XR
-        'shutdown_ethernet_noswitchport_shutdown' => [],
+        'shutdown_ethernet_noswitchport_shutdown' => []
       }
     end
   end
@@ -306,7 +306,7 @@ class TestInterface < CiscoTestCase
     # Validate the collection
     inttype_h.each do |k, v|
       # Skipping loopback, proxy arp not supported
-      next if (k == 'loopback0')
+      next if k == 'loopback0'
 
       interface = v[:interface]
       cmd = show_cmd(interface.name)
