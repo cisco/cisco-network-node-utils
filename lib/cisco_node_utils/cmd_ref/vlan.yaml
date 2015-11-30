@@ -11,6 +11,16 @@ create:
 destroy:
   config_set: "no vlan %s"
 
+mode:
+  _exclude:
+    - /N9K/
+    - /N3/
+  kind: string
+  config_get: "show vlan"
+  config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
+  config_set: ["vlan %d" , "%s mode %s", "end"]
+  default_value: "ce"
+  
 name:
   config_get: "show vlan brief"
   config_get_token: '/^%d+\s+(\S+)\s/'

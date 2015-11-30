@@ -164,7 +164,7 @@ module Cisco
       # convert to expected format
       virts_hsh = {}
       virts.each do |serv|
-        # rubocop:disable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:disable Style/AlignHash
         virts_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
                               'path'     => serv['ova_path'],
@@ -184,7 +184,7 @@ module Cisco
                               'cpu'      => serv['cpu_reservation'],
           },
         }
-        # rubocop:enable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:enable Style/AlignHash
       end
       virts_hsh
     end
