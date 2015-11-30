@@ -1,6 +1,8 @@
 Changelog
 =========
 
+## [Unreleased]
+
 ### New feature support
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
