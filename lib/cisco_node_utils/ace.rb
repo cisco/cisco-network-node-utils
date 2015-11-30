@@ -18,21 +18,33 @@ module Cisco
   # Ace - node utility class for Ace Configuration
   class Ace < NodeUtil
     attr_reader :acl_name, :seqno, :afi, :set_args, :get_args
+    attr_reader :regexp_str
 
     # acl_name is name of acl
     # seqno is sequence number of ace
     # afi is either v4 or v6
     def initialize(acl_name, seqno, afi)
-      fail TypeError unless acl_name.is_a?(String) && seqno.is_a?(Integer) \
-      && afi.is_a?(String)
-      fail ArgumentError 'we expect ipv4 or ipv6' unless afi == 'ip' \
-      || afi == 'ipv6'
+      fail TypeError unless
+        acl_name.is_a?(String) && seqno.is_a?(Integer) && afi.is_a?(String)
+      fail ArgumentError 'we expect ip or ipv6' unless
+        afi == 'ip' || afi == 'ipv6'
       @acl_name = acl_name
       @afi = afi
       @seqno = seqno
       @set_args = @get_args = { acl_name: @acl_name, seqno: @seqno, afi: @afi,
-                                src_port_format: '', dst_port_format: '',
+                                src_port: '', dst_port: '',
                                 option_format: '' }
+      @regexp_str = '(?<seqno>\d+) (?<action>\S+)'\
+                 ' *(?<proto>\d+|\S+)'\
+                 ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|'\
+                 'addrgroup \S+)*'\
+                 ' *(?<src_port>eq \S+|neq \S+|lt \S+|''gt \S+|range \S+ \S+|'\
+                 'portgroup \S+)?'\
+                 ' *(?<dst_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|'\
+                 'addrgroup \S+)'\
+                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|'\
+                 'portgroup \S+)?'\
+                 ' *(?<option>[a-zA-Z0-9-\/ ]*)*'
     end
 
     # Create a hash of all aces under give acl_name.
@@ -88,8 +100,11 @@ module Cisco
     # ----------
     # getter of seqno
     def seqno
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[0]
     end
 
@@ -100,8 +115,11 @@ module Cisco
 
     # getter of action
     def action
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[1]
     end
 
@@ -112,8 +130,11 @@ module Cisco
 
     # getter of proto
     def proto
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[2]
     end
 
@@ -122,58 +143,73 @@ module Cisco
       @set_args[:proto] = proto
     end
 
-    # getter of src_addr_format
-    def src_addr_format
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+    # getter of src_addr
+    def src_addr
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[3]
     end
 
-    # setter of src_addr_format
-    def src_addr_format=(src_addr)
-      @set_args[:src_addr_format] = src_addr
+    # setter of src_addr
+    def src_addr=(src_addr)
+      @set_args[:src_addr] = src_addr
     end
 
-    # getter of src_port_format
-    def src_port_format
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+    # getter of src_port
+    def src_port
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[5]
     end
 
     # setter of src_port_format
-    def src_port_format=(src_port)
-      @set_args[:src_port_format] = src_port
+    def src_port=(src_port)
+      @set_args[:src_port] = src_port
     end
 
     # getter of dst_addr_format
-    def dst_addr_format
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+    def dst_addr
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[6]
     end
 
     # setter of dst_addr_format
-    def dst_addr_format=(dst_addr)
-      @set_args[:dst_addr_format] = dst_addr
+    def dst_addr=(dst_addr)
+      @set_args[:dst_addr] = dst_addr
     end
 
     # getter of dst_port_format
-    def dst_port_format
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+    def dst_port
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[7]
     end
 
     # setter of dst_port_format
-    def dst_port_format=(src_port)
-      @set_args[:dst_port_format] = src_port
+    def dst_port=(src_port)
+      @set_args[:dst_port] = src_port
     end
 
     # getter of option_format
     def option_format
-      match = config_get('acl', 'ace', @get_args)
-      return if match.nil?
+      str = config_get('acl', 'ace', @get_args)
+      return if str.nil?
+
+      regexp = Regexp.new(@regexp_str)
+      match = regexp.match(str)
       match[8]
     end
 

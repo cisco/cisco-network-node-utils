@@ -49,10 +49,10 @@ class TestAceV4 < CiscoTestCase
     @default_show_command = "show runn | sec 'ip access-list #{@acl_name}'"
     action = ace.action = 'permit'
     proto = ace.proto = 'tcp'
-    ace.src_addr_format = '7.8.9.6 2.3.4.5'
-    ace.src_port_format = 'eq 40'
-    ace.dst_addr_format = '1.2.3.4/32'
-    ace.dst_port_format = 'neq 20'
+    ace.src_addr = '7.8.9.6 2.3.4.5'
+    ace.src_port = 'eq 40'
+    ace.dst_addr = '1.2.3.4/32'
+    ace.dst_port = 'neq 20'
     ace.option_format = 'precedence critical'
     ace.config_ace
     assert_show_match(pattern: /\s+#{@seqno} #{action} #{proto}.*$/,
@@ -63,10 +63,46 @@ class TestAceV4 < CiscoTestCase
 
     @seqno = 20
     ace = Ace.new(@acl_name, @seqno, @afi)
+    action = ace.action = 'deny'
+    proto = ace.proto = 'udp'
+    ace.src_addr = '6.6.6.6/24'
+    ace.dst_addr = 'addrgroup foo'
+    ace.config_ace
+    assert_show_match(pattern: /\s+#{seqno} #{action} #{proto}.*$/,
+                      msg:     "failed to create ace seqno #{@seqno}")
+    ace.destroy
+    refute_show_match(pattern: /\s+#{seqno} #{action} #{proto}.*$/,
+                      msg:     "failed to remove ace seqno #{@seqno}")
+    acl.destroy
+  end
+
+  def test_router_create_destroy_ipv6_ace_one
+    @acl_name = 'test-foo-v6-2'
+    @afi = 'ipv6'
+    acl = Acl.new(@acl_name, @afi)
+    @seqno = 10
+    ace = Ace.new(@acl_name, @seqno, @afi)
+    @default_show_command = "show runn | sec 'ipv6 access-list #{@acl_name}'"
+    action = ace.action = 'permit'
+    ace.proto = '6'
+    ace.src_addr = 'addrgroup fi'
+    ace.dst_addr = '1::7/32'
+    ace.option_format = 'dscp cs2 fragments packet-length eq 30'
+    ace.config_ace
+    # CLI will convert 6 to tcp
+    proto = 'tcp'
+    assert_show_match(pattern: /\s+#{@seqno} #{action} #{proto}.*$/,
+                      msg:     "failed to create ace seqno #{@seqno}")
+    ace.destroy
+    refute_show_match(pattern: /\s+#{@seqno} #{action} #{proto}.*$/,
+                      msg:     "failed to remove ace seqno #{@seqno}")
+
+    @seqno = 20
+    ace = Ace.new(@acl_name, @seqno, @afi)
     action = ace.action = 'permit'
     proto = ace.proto = 'udp'
-    ace.src_addr_format = 'any'
-    ace.dst_addr_format = 'any'
+    ace.src_addr = 'any'
+    ace.dst_addr = 'any'
     ace.config_ace
     assert_show_match(pattern: /\s+#{seqno} #{action} #{proto}.*$/,
                       msg:     "failed to create ace seqno #{@seqno}")
