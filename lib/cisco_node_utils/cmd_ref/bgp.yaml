@@ -1,7 +1,6 @@
 # bgp.yaml
 ---
 _template:
-  config_get: "show running bgp all"
   config_get_token: '/^router bgp <asnum>$/'
   config_get_token_append:
     - '/^vrf <vrf>$/'

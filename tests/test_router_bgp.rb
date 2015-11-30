@@ -20,9 +20,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 
-XR_NO_VRF_SUPPORT = 'Not supported in a BGP VRF'
-XR_NOT_SUPPORTED  = 'Not supported on IOS XR'
-
 # Temporary debug helper. Not for production and not to replace Cisco debugging.
 def debug_bgp
   s = @device.cmd('show running-config router bgp')
@@ -359,12 +356,21 @@ class TestRouterBgp < CiscoTestCase
     cluster_id(setup_default)
   end
 
-  def test_cluster_is_vrf
-    skip(XR_NO_VRF_SUPPORT) if platform == :ios_xr
+  def test_cluster_id_vrf
     cluster_id(setup_vrf)
   end
 
   def cluster_id(bgp)
+    if platform == :ios_xr && @vrf != 'default'
+      # XR does not support this under a VRF, so test the getter and setter
+      assert_nil(bgp.cluster_id,
+                 'cluster_id should return nil on XR with non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.cluster_id = 34
+      end
+      bgp.destroy
+      return
+    end
     bgp.cluster_id = 34
     assert_equal('34', bgp.cluster_id,
                  "bgp cluster_id should be set to '34'")
@@ -424,11 +430,35 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_graceful_restart_vrf
-    skip(XR_NO_VRF_SUPPORT) if platform == :ios_xr
     graceful_restart(setup_vrf)
   end
 
   def graceful_restart(bgp)
+    if platform == :ios_xr && @vrf != 'default'
+      # XR does not support this under a VRF, so test the getter and setter
+      assert_nil(bgp.graceful_restart,
+                 'graceful_restart should return nil on XR with ' \
+                 'non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.graceful_restart = true
+      end
+
+      assert_nil(bgp.graceful_restart_timers_restart,
+                 'graceful_restart_timers_restart should return nil on XR ' \
+                 'with non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.graceful_restart_timers_restart = 55
+      end
+
+      assert_nil(bgp.graceful_restart_timers_stalepath_time,
+                 'graceful_restart_timers_stalepath_time should return nil ' \
+                 'on XR with non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.graceful_restart_timers_stalepath_time = 77
+      end
+      bgp.destroy
+      return
+    end
     bgp.graceful_restart = true
     assert(bgp.graceful_restart,
            'bgp graceful restart should be enabled')
@@ -497,11 +527,21 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_confederation_id_vrf
-    skip(XR_NO_VRF_SUPPORT) if platform == :ios_xr
     confederation_id(setup_vrf)
   end
 
   def confederation_id(bgp)
+    if platform == :ios_xr && @vrf != 'default'
+      # XR does not support this under a VRF, so test the getter and setter
+      assert_nil(bgp.confederation_id,
+                 'confederation_id should return nil on XR with ' \
+                 'non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.confederation_id = 77
+      end
+      bgp.destroy
+      return
+    end
     bgp.confederation_id = 77
     assert_equal('77', bgp.confederation_id,
                  "bgp confederation_id should be set to '77'")
@@ -538,7 +578,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_confederation_peers_vrf
-    skip(XR_NO_VRF_SUPPORT) if platform == :ios_xr
     confed_peers_test(setup_vrf)
   end
 
@@ -546,6 +585,17 @@ class TestRouterBgp < CiscoTestCase
     # Confederation peer configuration requires that a
     # confederation id be configured first so the expectation
     # in the next test is an empty peer list
+    if platform == :ios_xr && @vrf != 'default'
+      # XR does not support this under a VRF, so test the getter and setter
+      assert_nil(bgp.confederation_peers,
+                 'confederation_peers should return nil on XR ' \
+                 'with non-default vrf')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.confederation_peers = ['15', '55.77', '16', '18', '555', '299']
+      end
+      bgp.destroy
+      return
+    end
     bgp.confederation_id = 55
 
     assert_empty(bgp.confederation_peers,
@@ -715,11 +765,15 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_reconnect_interval_default
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     bgp = setup_default
-    assert_equal(60, bgp.reconnect_interval,
-                 "reconnect_interval should be set to default value of '60'")
-    bgp.destroy
+    if platform == :ios_xr
+      assert_nil(bgp.reconnect_interval,
+                 'reconnect_interval should return nil on XR')
+    else
+      assert_equal(60, bgp.reconnect_interval,
+                   "reconnect_interval should be set to default value of '60'")
+      bgp.destroy
+    end
   end
 
   def test_route_distinguisher
@@ -846,29 +900,33 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_get_timer_bestpath_limit_default
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
     bgp = setup_default
-    assert_equal(300, bgp.timer_bestpath_limit,
-                 "timer_bestpath_limit should be default value of '300'")
-    bgp.destroy
-  end
-
-  def test_set_get_timer_bestpath_limit_always
-    skip(XR_NOT_SUPPORTED) if platform == :ios_xr
-    %w(test_default test_vrf).each do |t|
-      if t == 'test_default'
-        bgp = setup_default
-      else
-        bgp = setup_vrf
-      end
-      bgp.timer_bestpath_limit_set(34, true)
-      assert(bgp.timer_bestpath_limit_always,
-             "vrf #{@vrf}: bgp timer_bestpath_limit_always should be enabled")
-      bgp.timer_bestpath_limit_set(34, false)
-      refute(bgp.timer_bestpath_limit_always,
-             "vrf #{@vrf}: bgp timer_bestpath_limit_always should be disabled")
+    if platform == :ios_xr
+      assert_nil(bgp.timer_bestpath_limit,
+                 'timer_bestpath_limit should be nil for XR')
+    else
+      assert_equal(300, bgp.timer_bestpath_limit,
+                   "timer_bestpath_limit should be default value of '300'")
       bgp.destroy
     end
+  end
+
+  def test_timer_bestpath_limit_always_default
+    timer_bestpath_limit_always(setup_default)
+  end
+
+  def test_timer_bestpath_limit_always_vrf
+    timer_bestpath_limit_always(setup_vrf)
+  end
+
+  def timer_bestpath_limit_always(bgp)
+    bgp.timer_bestpath_limit_set(34, true)
+    assert(bgp.timer_bestpath_limit_always,
+           "vrf #{@vrf}: bgp timer_bestpath_limit_always should be enabled")
+    bgp.timer_bestpath_limit_set(34, false)
+    refute(bgp.timer_bestpath_limit_always,
+           "vrf #{@vrf}: bgp timer_bestpath_limit_always should be disabled")
+    bgp.destroy
   end
 
   def test_get_timer_bestpath_limit_always_not_configured
