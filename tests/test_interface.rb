@@ -1099,22 +1099,12 @@ class TestInterface < CiscoTestCase
     interface.destroy
   end
 
-  def test_interface_port_channel_add_delete
-    interface1 = Interface.new(interfaces[0])
-    interface2 = Interface.new(interfaces[1])
-    interface3 = Interface.new(interfaces[2])
+  def test_interface_channel_group_add_delete
+    interface = Interface.new(interfaces[0])
     pc = '100'
-    interface1.port_channel = pc
-    interface2.port_channel = pc
-    interface3.port_channel = pc
-    assert_equal(pc.to_i, interface1.port_channel)
-    assert_equal(pc.to_i, interface2.port_channel)
-    assert_equal(pc.to_i, interface3.port_channel)
-    interface1.port_channel = ''
-    interface2.port_channel = ''
-    interface3.port_channel = ''
-    assert_nil(interface1.port_channel)
-    assert_nil(interface2.port_channel)
-    assert_nil(interface3.port_channel)
+    interface.channel_group = pc
+    assert_equal(pc.to_i, interface.channel_group)
+    interface.channel_group = interface.default_channel_group
+    assert_equal(interface.default_channel_group, interface.channel_group)
   end
 end

@@ -18,14 +18,15 @@ admin_state_ethernet_noswitchport_shutdown:
     /N7K/:
       default_value: "shutdown"
 
-all_channel_groups:
-  multiple:
-  config_get: "show running interface all | include channel-group"
-  config_get_token: ['/channel-group (\d+)$/']
-
 all_interfaces:
   multiple:
   config_get_token: '/^interface (.*)/'
+
+channel_group:
+  kind: int
+  config_get_token_append: ['/^channel-group (\d+)$/']
+  config_set_append: ["%s channel-group %s %s"]
+  default_value: ''
 
 create:
   config_set: "interface %s"
@@ -141,15 +142,6 @@ negotiate_auto_portchannel:
       config_get_token_append: '/^(no )?negotiate auto$/'
       config_set_append: "%s negotiate auto"
       default_value: true
-
-port_channel:
-  kind: int
-  config_get: "show running interface all"
-  config_get_token: ['/^interface %s$/i', '/^channel-group (\d+)$/']
-  config_set: ["interface %s", "%s channel-group %s %s"]
-
-port_channel_destroy:
-  config_set: ["no interface port-channel %s"]
 
 shutdown:
   kind: boolean
