@@ -1,10 +1,6 @@
 Changelog
 =========
 
-### Added
-
-* port_channel property to `Cisco::Interface` class
-
 ### New feature support
 * VXLAN
   * vxlan_global (@alok-aggarwal)
@@ -14,6 +10,7 @@ Changelog
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend cisco_vrf with `vni` attribute
+* Extend cisco_interface with `channel_group` property
 
 ### Changed
 
