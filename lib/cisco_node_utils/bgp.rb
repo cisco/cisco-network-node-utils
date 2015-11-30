@@ -16,6 +16,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'bgp_af'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -30,12 +31,7 @@ module Cisco
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
       else
-        if platform == :ios_xr
-          @rd = 'auto'
-          @get_args = @set_args = { asnum: @asnum, vrf: @vrf, rd: @rd }
-        else
-          @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
-        end
+        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
       end
       create if instantiate
     end
@@ -272,6 +268,7 @@ module Cisco
 
     # Cluster Id (Getter/Setter/Default)
     def cluster_id
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'cluster_id', @get_args)
     end
 
@@ -279,7 +276,11 @@ module Cisco
       # In order to remove a bgp cluster_id you cannot simply issue
       # 'no bgp cluster-id'.  IMO this should be possible because you
       # can only configure a single bgp cluster-id.
-      #
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'cluster_id', 'set',
+                                         'cluster-id is not configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       # HACK: specify a dummy id when removing the feature.
       dummy_id = 1
       if id == default_cluster_id
@@ -294,11 +295,13 @@ module Cisco
     end
 
     def default_cluster_id
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'cluster_id')
     end
 
     # Confederation Id (Getter/Setter/Default)
     def confederation_id
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'confederation_id', @get_args)
     end
 
@@ -306,7 +309,12 @@ module Cisco
       # In order to remove a bgp confed id you cannot simply issue
       # 'no bgp confederation id'.  IMO this should be possible
       # because you can only configure a single bgp confed id.
-      #
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'confederation_id', 'set',
+                                         'confederation-id is not ' \
+                                         'configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       # HACK: specify a dummy id when removing the feature.
       dummy_id = 1
       if id == default_confederation_id
@@ -321,6 +329,7 @@ module Cisco
     end
 
     def default_confederation_id
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'confederation_id')
     end
 
@@ -352,6 +361,7 @@ module Cisco
       # XR: retrieved as an array.
       # So make it an array in the NX case.
       # Sort the end results to make it consistent across both platforms.
+      return nil if platform == :ios_xr && @vrf != 'default'
       peers = config_get('bgp', 'confederation_peers', @get_args)
       peers = peers.split(' ') if peers.is_a?(String)
       peers.sort
@@ -360,6 +370,12 @@ module Cisco
     def confederation_peers=(should)
       # confederation peers are additive. So create a delta hash of entries
       # and only apply the changes
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'confederation_peers', 'set',
+                                         'confederation-peers is not ' \
+                                         'configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       should = should.flatten
       is = confederation_peers
 
@@ -380,34 +396,53 @@ module Cisco
     end
 
     def default_confederation_peers
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'confederation_peers')
     end
 
     # Graceful Restart Getters
     def graceful_restart
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'graceful_restart', @get_args)
     end
 
     def graceful_restart_timers_restart
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'graceful_restart_timers_restart', @get_args)
     end
 
     def graceful_restart_timers_stalepath_time
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'graceful_restart_timers_stalepath_time', @get_args)
     end
 
     def graceful_restart_helper
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'graceful_restart_helper', @get_args)
     end
 
     # Graceful Restart Setters
     def graceful_restart=(enable)
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'graceful_restart', 'set',
+                                         'graceful_restart is not ' \
+                                         'configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'graceful_restart', @set_args)
       set_args_keys_default
     end
 
     def graceful_restart_timers_restart=(seconds)
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp',
+                                         'graceful_restart_timers_restart',
+                                         'set',
+                                         'graceful_restart_timers_restart is ' \
+                                         'not configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       if seconds == default_graceful_restart_timers_restart
         @set_args[:state] = 'no'
         @set_args[:seconds] = ''
@@ -420,6 +455,14 @@ module Cisco
     end
 
     def graceful_restart_timers_stalepath_time=(seconds)
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp',
+                                         'graceful_restart_timers_' \
+                                         'stalepath_time', 'set',
+                                         'graceful_restart_timers_' \
+                                         'stalepath_time is not configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       if seconds == default_graceful_restart_timers_stalepath_time
         @set_args[:state] = 'no'
         @set_args[:seconds] = ''
@@ -432,6 +475,13 @@ module Cisco
     end
 
     def graceful_restart_helper=(enable)
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp',
+                                         'graceful_restart_helper', 'set',
+                                         'graceful_restart_helper ' \
+                                         'is not configurable ' \
+                                         'on a per-VRF basis on IOS XR')
+      end
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'graceful_restart_helper', @set_args)
       set_args_keys_default
@@ -439,18 +489,22 @@ module Cisco
 
     # Graceful Restart Defaults
     def default_graceful_restart
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'graceful_restart')
     end
 
     def default_graceful_restart_timers_restart
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'graceful_restart_timers_restart')
     end
 
     def default_graceful_restart_timers_stalepath_time
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'graceful_restart_timers_stalepath_time')
     end
 
     def default_graceful_restart_helper
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'graceful_restart_helper')
     end
 
@@ -531,6 +585,35 @@ module Cisco
 
     def default_reconnect_interval
       config_get_default('bgp', 'reconnect_interval')
+    end
+
+    # Route Distinguisher (Getter/Setter/Default)
+    # Configure in vrf context
+    def route_distinguisher
+      if platform == :nexus
+        return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
+      end
+      config_get('bgp', 'route_distinguisher', @get_args)
+    end
+
+    def route_distinguisher=(rd)
+      if platform == :nexus
+        RouterBgpAF.feature_nv_overlay_evpn_enable unless
+          RouterBgpAF.feature_nv_overlay_evpn_enabled
+      end
+      if rd == default_route_distinguisher
+        @set_args[:state] = 'no'
+        @set_args[:rd] = route_distinguisher
+      else
+        @set_args[:state] = ''
+        @set_args[:rd] = rd
+      end
+      config_set('bgp', 'route_distinguisher', @set_args)
+      set_args_keys_default
+    end
+
+    def default_route_distinguisher
+      config_get_default('bgp', 'route_distinguisher')
     end
 
     # Router ID (Getter/Setter/Default)
@@ -632,6 +715,13 @@ module Cisco
     def timer_bestpath_limit_set(seconds, always=false)
       if always
         feature = 'timer_bestpath_limit_always'
+        if platform == :ios_xr
+          fail Cisco::UnsupportedError.new('bgp',
+                                           'timer_bestpath_limit_always',
+                                           'set',
+                                           'timer_bestpath_limit_always is ' \
+                                           'not configurable on IOS XR')
+        end
       else
         feature = 'timer_bestpath_limit'
       end
@@ -660,10 +750,12 @@ module Cisco
     end
 
     def default_timer_bestpath_limit
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'timer_bestpath_limit')
     end
 
     def default_timer_bestpath_limit_always
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'timer_bestpath_limit_always')
     end
   end
