@@ -582,7 +582,6 @@ module Cisco
     end
 
     def default_reconnect_interval
-      return nil if platform == :ios_xr
       config_get_default('bgp', 'reconnect_interval')
     end
 
@@ -692,7 +691,6 @@ module Cisco
     end
 
     def timer_bestpath_limit_always
-      return nil if platform == :ios_xr
       config_get('bgp', 'timer_bestpath_limit_always', @get_args)
     end
 
