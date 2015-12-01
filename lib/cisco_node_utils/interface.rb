@@ -88,6 +88,12 @@ module Cisco
         config_set('interface',
                    'channel_group', @name, 'no', '', '')
       else
+        # 'force' is needed by cli_nxos to handle the case where a port-channel
+        # interface is created prior to the channel-group cli; in which case
+        # the properties of the port-channel interface will be different from
+        # the ethernet interface. 'force' is not needed if the port-channel is
+        # created as a result of the channel-group cli but since it does no
+        # harm we will use it every time.
         config_set('interface',
                    'channel_group', @name, '', val, 'force')
       end
