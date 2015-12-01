@@ -51,6 +51,7 @@ host_name:
     # not displayed in 'show version' on IOS XR
     config_get: "show running | i hostname"
     config_get_token: '/^hostname (.*)$/'
+    default_value: 'ios'
 
 last_reset_reason:
   config_get_token: "rr_reason"

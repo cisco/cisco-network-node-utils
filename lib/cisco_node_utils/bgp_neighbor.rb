@@ -203,7 +203,7 @@ module Cisco
 
     def default_log_neighbor_changes
       result = config_get_default('bgp_neighbor', 'log_neighbor_changes')
-      result.to_sym
+      result.nil? ? nil : result.to_sym
     end
 
     def low_memory_exempt=(val)
@@ -243,8 +243,24 @@ module Cisco
                       type:   Encryption.symbol_to_cli(default_password_type),
                       passwd: val.to_s)
       else
+        cli_type = nil
+        if platform == :ios_xr
+          case type
+          when :cleartext
+            cli_type = 'clear'
+          when :md5
+            cli_type = 'encrypted'
+          else
+            fail Cisco::UnsupportedError.new(
+              'RouterBgpNeighbor', 'password',
+              nil, "type '#{type}'")
+          end
+        else
+          cli_type = Encryption.symbol_to_cli(type)
+        end
+
         set_args_keys(state:  '',
-                      type:   Encryption.symbol_to_cli(type),
+                      type:   cli_type,
                       passwd: val.to_s)
       end
       config_set('bgp_neighbor', 'password', @set_args)
@@ -260,7 +276,7 @@ module Cisco
 
     def password_type
       result = config_get('bgp_neighbor', 'password_type', @get_args)
-      Encryption.cli_to_symbol(result.to_i)
+      Encryption.cli_to_symbol(result.to_s)
     end
 
     def default_password_type
@@ -307,7 +323,7 @@ module Cisco
 
     def default_remove_private_as
       result = config_get_default('bgp_neighbor', 'remove_private_as')
-      result.to_sym
+      result.nil? ? nil : result.to_sym
     end
 
     def shutdown=(val)
@@ -379,18 +395,51 @@ module Cisco
       ["#{default_timers_keepalive}", "#{default_timers_holdtime}"]
     end
 
+    def transport_passive_mode=(val)
+      if platform == :nexus
+        if val == :active_only
+          fail Cisco::UnsupportedError.new(
+            'RouterBgpNeighbor', 'transport_passive_mode',
+            nil, "value '#{val}'")
+        else
+          set_args_keys(state: (val == :passive_only) ? '' : 'no')
+          config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
+        end
+      else
+        set_args_keys(mode: mode_symbol_to_cli(val))
+        config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
+      end
+    end
+
+    def transport_passive_mode
+      result = config_get('bgp_neighbor', 'transport_passive_mode', @get_args)
+      if platform == :nexus
+        result ? :passive_only : :both
+      else
+        mode_cli_to_symbol(result)
+      end
+    end
+
+    def default_transport_passive_mode
+      result = config_get_default('bgp_neighbor', 'transport_passive_mode')
+      if platform == :nexus
+        result ? :passive_only : :both
+      else
+        mode_cli_to_symbol(result)
+      end
+    end
+
     def transport_passive_only=(val)
-      set_args_keys(state: (val) ? '' : 'no')
-      config_set('bgp_neighbor', 'transport_passive_only', @set_args)
+      # TODO: add "deprecated" warning?
+      self.transport_passive_mode = (val ? :passive_only : :both)
     end
 
     def transport_passive_only
-      result = config_get('bgp_neighbor', 'transport_passive_only', @get_args)
-      result ? true : false
+      transport_passive_mode == :passive_only
     end
 
     def default_transport_passive_only
-      config_get_default('bgp_neighbor', 'transport_passive_only')
+      default_transport_passive_mode == :passive_only
     end
 
     def update_source=(val)
@@ -409,6 +458,33 @@ module Cisco
 
     def default_update_source
       config_get_default('bgp_neighbor', 'update_source')
+    end
+
+    def mode_symbol_to_cli(symbol)
+      symbol = symbol.downcase if symbol.is_a? String
+      case symbol
+      when :active_only
+        'active-only'
+      when :passive_only
+        'passive-only'
+      when :both
+        'both'
+      else
+        fail KeyError
+      end
+    end
+
+    def mode_cli_to_symbol(cli)
+      case cli
+      when 'active-only'
+        :active_only
+      when 'passive-only'
+        :passive_only
+      when 'both'
+        :both
+      else
+        fail KeyError
+      end
     end
   end # class
 end # module

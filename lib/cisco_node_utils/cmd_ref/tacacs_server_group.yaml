@@ -1,0 +1,33 @@
+# tacacs_server_group
+---
+deadtime:
+  config_get: "show run tacacs all"
+  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^deadtime (\d+)/']
+  config_set: ["aaa group server tacacs <name>", "<state> deadtime <deadtime>"]
+  default_value: 0
+
+group:
+  multiple: true
+  config_get: "show running-config tacacs all"
+  config_get_token: '/^aaa group server tacacs\+ (\S+)/'
+  config_set: '<state> aaa group server tacacs <name>'
+  default_value: []
+
+servers:
+  multiple: true
+  config_get: "show running-config tacacs all"
+  config_get_token: ['/^aaa group server tacacs\+ %s/i', '/^server (\S+)/']
+  config_set: ['aaa group server tacacs <name>', '<state> server <server>']
+  default_value: []
+
+source_interface:
+  config_get: "show run tacacs all"
+  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^source-interface (\S+)/']
+  config_set: ["aaa group server tacacs <name>", "<state> source-interface <interface>"]
+  default_value: ""
+
+vrf:
+  config_get: "show run tacacs all"
+  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^use-vrf (\S+)/']
+  config_set: ["aaa group server tacacs <name>", "<state> use-vrf <vrf>"]
+  default_value: "default"

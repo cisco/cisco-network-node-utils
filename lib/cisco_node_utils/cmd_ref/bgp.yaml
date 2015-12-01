@@ -1,7 +1,6 @@
 # bgp.yaml
 ---
 _template:
-  config_get: "show running bgp all"
   config_get_token: '/^router bgp <asnum>$/'
   config_get_token_append:
     - '/^vrf <vrf>$/'
@@ -109,26 +108,27 @@ confederation_id:
     config_set_append: '<state> confederation identifier <id>'
 
 confederation_peers:
-  # TODO: Supported in XR but broken as identifier is nvgened on a seperate line.
-  default_value: ""
+  default_value: []
   cli_ios_xr:
-    config_get_token_append: '/^bgp confederation peers (.*)$/'
-    config_set_append: ' <state> bgp confederation peers <peer_list>'
+    multiple: true
+    config_get_token_append: ['/^bgp confederation peers$/', '/(\S+)/']
+    config_set_append: ' <state> bgp confederation peers <peer>'
   cli_nexus:
     config_get_token_append: '/^confederation peers (.*)$/'
-    config_set_append: '<state> confederation peers <peer_list>'
+    config_set_append: '<state> confederation peers <peer>'
 
 create_destroy_neighbor:
-  config_set_append: '<state> neighbor <nbr>'
+  config_set_append: ' <state> neighbor <nbr>'
 
 enforce_first_as:
-  # TODO: Different format for IOS XR
-  # Enabled by default, disabled by command
-  # 'bgp enforce-first-as disable'
   kind: boolean
-  config_get_token_append: '/^(no )?enforce-first-as$/'
-  config_set_append: '<state> enforce-first-as'
   default_value: true
+  cli_ios_xr:
+    config_get_token_append: '/^bgp enforce-first-as disable$/'
+    config_set_append: ' <state> bgp enforce-first-as disable'
+  cli_nexus:
+    config_get_token_append: '/^(no )?enforce-first-as$/'
+    config_set_append: '<state> enforce-first-as'
 
 feature:
   kind: boolean
@@ -185,12 +185,14 @@ graceful_restart_timers_stalepath_time:
 
 log_neighbor_changes:
   kind: boolean
-  #TODO: Equivalent for bgp is 'bgp log'
-  # Currently supported but broken in IOS XR
+  cli_ios_xr:
+    default_value: true
+    config_get_token_append: '/^bgp log neighbor changes disable$/'
+    config_set_append: ' <state> bgp log neighbor changes disable'
   cli_nexus:
+    default_value: false
     config_get_token_append: '/^log-neighbor-changes$/'
     config_set_append: '<state> log-neighbor-changes'
-    default_value: false
 
 maxas_limit:
   # Note: Does not exist in IOS XR
@@ -215,6 +217,15 @@ reconnect_interval:
     config_get_token_append: '/^reconnect-interval (\d+)$/'
     config_set_append: '<state> reconnect-interval <seconds>'
     default_value: 60
+
+route_distinguisher:
+  default_value: ""
+  cli_ios_xr:
+    config_get_token_append: '/^rd (\S+)$/'
+    config_set_append: ' <state> rd <rd>'
+  cli_nexus:
+    config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
+    config_set: ["vrf context <vrf>", "<state> rd <rd>"]
 
 router:
   config_get_token: '/^router bgp (\d+)$/'
@@ -283,6 +294,3 @@ vrf:
   multiple: true
   config_get_token_append: '/^vrf\s+(\S+)$/'
   config_set: ["router bgp <asnum>", "<state> vrf <vrf>"]
-  cli_ios_xr:
-    config_set_append:
-      - "  rd <rd>"

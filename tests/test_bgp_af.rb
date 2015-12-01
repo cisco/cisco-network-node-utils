@@ -1226,6 +1226,47 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## common utilities
   ##
+  def test_utils_delta_add_remove_depth_1
+    # Note: AF context is not needed. This test is only validating the
+    # delta_add_remove class method and does not test directly on the device.
+
+    # Initial 'should' state
+    should = ['1:1', '2:2', '3:3', '4:4', '5:5', '6:6']
+    # rubocop:enable Style/WordArray
+
+    # Test: Check delta when every protocol is specified and has a route-map.
+    current = []
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 1. delta mismatch')
+
+    # Test: Check delta when should is the same as current.
+    current = should.clone
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 2. delta mismatch')
+
+    # Test: Move half the 'current' entries to 'should'. Check delta.
+    should = current.shift(4)
+    expected = { add: should, remove: current }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 3. delta mismatch')
+
+    # Test: Remove the route-maps from the current list. Check delta.
+    #       Note: The :remove list should be empty since this is just
+    #       an update of the route-map.
+    should = current.map { |prot_only, _route_map| [prot_only] }
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 4. delta mismatch')
+
+    # Test: Check empty inputs
+    should = []
+    current = []
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
 
   def test_utils_delta_add_remove
     # Note: AF context is not needed. This test is only validating the
@@ -1274,5 +1315,86 @@ class TestRouterBgpAF < CiscoTestCase
     expected = { add: [], remove: [] }
     result = Utils.delta_add_remove(should, current)
     assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
+
+  # test route_target
+  def test_route_target
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      route_target(55, 'red', af)
+    end
+  end
+
+  def route_target(asn, vrf, af)
+    # Common test for route-target providers. Tests evpn and non-evpn.
+
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    # test route target both auto and route target both auto evpn
+    refute(bgp_af.default_route_target_both_auto,
+           'default value for route target both auto should be false')
+
+    refute(bgp_af.default_route_target_both_auto_evpn,
+           'default value for route target both auto evpn should be false')
+
+    bgp_af.route_target_both_auto = true
+    assert(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
+           'bgp_af route-target both auto should be enabled')
+
+    bgp_af.route_target_both_auto = false
+    refute(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
+           'bgp_af route-target both auto should be disabled')
+
+    bgp_af.route_target_both_auto_evpn = true
+    assert(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
+           'bgp_af route-target both auto evpn should be enabled')
+
+    bgp_af.route_target_both_auto_evpn = false
+    refute(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
+           'bgp_af route-target both auto evpn should be disabled')
+
+    opts = [:import, :export]
+
+    # Master list of communities to test against
+    master = ['1:1', '2:2', '3:3', '4:5']
+
+    # Test 1: both/import/export when no commands are present. Each target
+    # option will be tested with and without evpn (6 separate types)
+    should = master.clone
+    route_target_tester(bgp_af, af, opts, should, 'Test 1')
+
+    # Test 2: remove half of the entries
+    should = ['1:1', '4:4']
+    route_target_tester(bgp_af, af, opts, should, 'Test 2')
+
+    # Test 3: restore the removed entries
+    should = master.clone
+    route_target_tester(bgp_af, af, opts, should, 'Test 3')
+
+    # Test 4: 'default'
+    should = bgp_af.default_route_target_import
+    route_target_tester(bgp_af, af, opts, should, 'Test 4')
+  end
+
+  def route_target_tester(bgp_af, af, opts, should, test_id)
+    # First configure all four property types
+    opts.each do |opt|
+      # non-evpn
+      bgp_af.send("route_target_#{opt}=", should)
+      # evpn
+      bgp_af.send("route_target_#{opt}_evpn=", should)
+    end
+
+    # Now check the results
+    opts.each do |opt|
+      # non-evpn
+      result = bgp_af.send("route_target_#{opt}")
+      assert_equal(should, result,
+                   "#{test_id} : #{af} : route_target_#{opt}")
+      # evpn
+      result = bgp_af.send("route_target_#{opt}_evpn")
+      assert_equal(should, result,
+                   "#{test_id} : #{af} : route_target_#{opt}_evpn")
+    end
   end
 end

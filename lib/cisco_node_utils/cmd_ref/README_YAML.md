@@ -227,7 +227,7 @@ attribute:
   config_set: 'attribute'
 ```
 
-When a feature or attribute is excluded in this way, attempting to call `config_get`, `config_set`, or `config_get_default` on an excluded node will result in a `Cisco::UnsupportedError` being raised.
+When a feature or attribute is excluded in this way, attempting to call `config_get` or `config_set` on an excluded node will result in a `Cisco::UnsupportedError` being raised. Calling `config_get_default` on such a node will always return `nil`.
 
 ### Combinations of these
 
@@ -570,4 +570,4 @@ version:
 
 ## Style Guide
 
-Please see [YAML Best Practices](../../docs/README-develop-best-practices.md#ydbp).
+Please see [YAML Best Practices](../../../docs/README-develop-best-practices.md#ydbp).

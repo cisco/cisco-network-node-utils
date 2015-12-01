@@ -82,8 +82,8 @@ module Cisco
         # Just get the whole output
         return massage(show(ref.config_get, :structured), ref)
       elsif token[0].kind_of?(Regexp)
-        return massage(find_ascii(show(ref.config_get, :ascii),
-                                  token[-1], *token[0..-2]), ref)
+        return massage(Cisco.find_ascii(show(ref.config_get, :ascii),
+                                        token[-1], *token[0..-2]), ref)
       else
         return massage(
           config_get_handle_structured(token,
@@ -110,6 +110,8 @@ module Cisco
         if value.nil? || value.empty?
           value = false
         elsif /^no / =~ value
+          value = false
+        elsif /disable$/ =~ value
           value = false
         else
           value = true

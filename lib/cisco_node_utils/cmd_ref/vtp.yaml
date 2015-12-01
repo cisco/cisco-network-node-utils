@@ -1,5 +1,7 @@
 # vtp
 ---
+_exclude: [cli_ios_xr]
+
 domain:
   config_get: "show vtp status"
   config_get_token: "domain_name"

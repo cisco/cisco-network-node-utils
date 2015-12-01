@@ -24,11 +24,11 @@ module Cisco
     # password encryption types
     def self.cli_to_symbol(cli)
       case cli
-      when '0', 0
+      when '0', 0, 'clear'
         :cleartext
       when '3', 3
         :"3des" # yuck :-(
-      when '5', 5
+      when '5', 5, 'encrypted'
         :md5
       when '6', 6
         :aes
@@ -111,14 +111,25 @@ module Cisco
     # Useful for network, redistribute, etc.
     #   should: an array of expected cmds (manifest/recipe)
     #  current: an array of existing cmds on the device
+    def self.depth(a)
+      return 0 unless a.is_a?(Array)
+      1 + depth(a[0])
+    end
+
     def self.delta_add_remove(should, current=[])
       # Remove nil entries from array
-      should.each(&:compact!) unless should.empty?
+      should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }
 
       # Delete entries from :remove if f1 is an update to an existing command
       delta[:add].each do |id, _|
-        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        # Differentiate between comparing nested and unnested arrays by
+        # checking the depth of the array.
+        if depth(should) == 1
+          delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
+        else
+          delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        end
       end
       delta
     end # delta_add_remove
