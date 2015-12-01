@@ -31,20 +31,19 @@ module Cisco
     # it will return all acls in the switch
     def self.acls
       afis = %w(ip ipv6)
+      acl_hash = {}
       afis.each do |afi|
+        acl_hash[afi] = {}
         @get_args = { afi: afi }
         instances = config_get('acl', 'all_acl', @get_args)
-        return {} if instances.nil?
-        hash = {}
+
+        next if instances.nil?
+
         instances.each do |name|
-          hash[name] = Acl.new(name, @get_args[:afi], false)
+          acl_hash[afi][name] = Acl.new(name, afi, false)
         end
       end
-      return hash
-    rescue Cisco::CliError => e
-      # CLI will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return {}
+      return acl_hash
     end
 
     # config ip access-list and create
@@ -52,12 +51,9 @@ module Cisco
       config_acl('')
     end
 
-    # Destroy a router instance; disable feature on last instance
+    # Destroy acl instance
     def destroy
       config_acl('no')
-    rescue Cisco::CliError => e
-      # CLI will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
     end
 
     def config_acl(state)

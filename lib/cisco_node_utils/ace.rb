@@ -54,20 +54,20 @@ module Cisco
       afis.each do |afi|
         @get_args = { afi: afi }
         instances = config_get('acl', 'all_acl', @get_args)
-        next {} if instances.nil?
+        next if instances.nil?
         instances.each do |name|
           hash[name] = Acl.new(name, @get_args[:afi], false)
           aces = config_get('acl', 'all_ace', acl_name: name)
-          next {} if aces.nil?
+          next if aces.nil?
           aces.each do |ace|
             item = Ace.new(name, ace[0].to_i, @get_args[:afi])
             item.seqno = ace[0].to_i
             item.action = ace[1]
             item.proto = ace[2]
-            item.src_addr_format = ace[3]
-            item.src_port_format = ace[4]
-            item.dst_addr_format = ace[5]
-            item.dst_port_format = ace[6]
+            item.src_addr = ace[3]
+            item.src_port = ace[4]
+            item.dst_addr = ace[5]
+            item.dst_port = ace[6]
             item.option_format = ace[7]
             hash[name] = {}
             hash[name][ace[0].to_i] = item
@@ -75,18 +75,11 @@ module Cisco
         end
       end
       return hash
-    rescue Cisco::CliError => e
-      # CLI will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return {}
     end
 
     # Destroy a router instance; disable feature on last instance
     def destroy
       config_ace('no')
-    rescue Cisco::CliError => e
-      # CLI will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
     end
 
     # First create acl

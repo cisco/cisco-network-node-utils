@@ -17,7 +17,6 @@ require_relative '../lib/cisco_node_utils/acl'
 
 # test client for acl creation and deletion
 class TestAcl < CiscoTestCase
-  attr_reader :acl_name_v4, :acl_name_v6
   def setup
     # setup runs at the beginning of each test
     super

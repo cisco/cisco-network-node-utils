@@ -19,11 +19,11 @@ acl:
   config_set: '<state> <afi> access-list <acl_name>'
                       
 all_ace:
-  multiple: true
+  multiple:
   config_get_token_append: '/^(\d+) .*$/'
 
 all_acl:
-  multiple: true
+  multiple:
   config_get_token: '/^<afi> access-list (\S+)$/'
 
 stats_perentry:
