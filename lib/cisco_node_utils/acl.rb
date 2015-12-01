@@ -43,7 +43,7 @@ module Cisco
           acl_hash[afi][name] = Acl.new(name, afi, false)
         end
       end
-      return acl_hash
+      acl_hash
     end
 
     # config ip access-list and create

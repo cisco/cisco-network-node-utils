@@ -74,7 +74,7 @@ module Cisco
           end
         end
       end
-      return hash
+      hash
     end
 
     # Destroy a router instance; disable feature on last instance
