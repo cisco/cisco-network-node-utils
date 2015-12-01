@@ -1101,7 +1101,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_channel_group_add_delete
     interface = Interface.new(interfaces[0])
-    pc = '100'
+    pc = 100
     interface.channel_group = pc
     assert_equal(pc.to_i, interface.channel_group)
     interface.channel_group = interface.default_channel_group

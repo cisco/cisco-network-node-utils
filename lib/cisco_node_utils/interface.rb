@@ -84,7 +84,7 @@ module Cisco
 
     def channel_group=(val)
       fail "channel_group is not supported on #{name}" unless @name[/Ethernet/i]
-      if val.empty?
+      if val.to_s.empty?
         config_set('interface',
                    'channel_group', @name, 'no', '', '')
       else
