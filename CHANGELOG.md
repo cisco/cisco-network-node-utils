@@ -16,6 +16,7 @@ Changelog
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extensions to interface and vlan providers to support fabric path. (dcheriancisco)
 * Extend cisco_vrf with `vni` attribute
+* Extend cisco_interface with `channel_group` property
 
 ### Changed
 

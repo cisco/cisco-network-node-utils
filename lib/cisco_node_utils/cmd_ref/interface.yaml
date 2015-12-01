@@ -22,6 +22,12 @@ all_interfaces:
   multiple:
   config_get_token: '/^interface (.*)/'
 
+channel_group:
+  kind: int
+  config_get_token_append: ['/^channel-group (\d+)$/']
+  config_set_append: ["%s channel-group %s %s"]
+  default_value: ''
+
 create:
   config_set: "interface %s"
 

@@ -78,6 +78,27 @@ module Cisco
       config_get_default('interface', 'access_vlan')
     end
 
+    def channel_group
+      config_get('interface', 'channel_group', @name)
+    end
+
+    def channel_group=(val)
+      fail "channel_group is not supported on #{name}" unless @name[/Ethernet/i]
+      if val.to_s.empty?
+        config_set('interface',
+                   'channel_group', @name, 'no', '', '')
+      else
+        config_set('interface',
+                   'channel_group', @name, '', val, 'force')
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_channel_group
+      config_get_default('interface', 'channel_group')
+    end
+
     def description
       config_get('interface', 'description', @name)
     end
