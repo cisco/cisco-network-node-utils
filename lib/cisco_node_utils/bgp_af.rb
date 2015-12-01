@@ -451,13 +451,7 @@ module Cisco
     # Distance (Getter/Setter/Default)
     #
     def distance_set(ebgp, ibgp, local)
-      if ebgp == default_distance_ebgp && ibgp == default_distance_ibgp &&
-         local == default_distance_local
-        set_args_keys(state: 'no', ebgp: distance_ebgp, ibgp: distance_ibgp,
-                      local: distance_local)
-      else
-        set_args_keys(state: '', ebgp: ebgp, ibgp: ibgp, local: local)
-      end
+      set_args_keys(state: '', ebgp: ebgp, ibgp: ibgp, local: local)
       config_set('bgp_af', 'distance', @set_args)
     end
 
@@ -518,6 +512,35 @@ module Cisco
 
     def default_default_metric
       config_get_default('bgp_af', 'default_metric')
+    end
+
+    #
+    # inject_map (Getter/Setter/Default)
+    #
+  
+    def inject_map
+      cmds = config_get('bgp_af', 'inject_map', @get_args)
+      cmds.sort
+    end
+
+    def inject_map=(should_list)
+      delta_hash = Utils.delta_add_remove(should_list, networks)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("inject_map delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |inject, exist, copy|
+          # inject & exist are mandatory, copy is optional
+          state = (action == :add) ? '' : 'no'
+          copy = 'copy-attributes' unless copy.nil?
+          set_args_keys(state: state, inject: inject, exist: exist, copy: copy)
+          config_set('bgp_af', 'inject_map', @set_args)
+        end
+      end
+    end
+
+    def default_inject_map
+      config_get_default('bgp_af', 'inject_map')
     end
 
     #
@@ -728,13 +751,11 @@ module Cisco
     # Suppress Inactive (Getter/Setter/Default)
     #
     def suppress_inactive
-      state = config_get('bgp_af', 'suppress_inactive', @get_args)
-      state ? true : false
+      config_get('bgp_af', 'suppress_inactive', @get_args)
     end
 
     def suppress_inactive=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
+      set_args_keys(state: state ? '' : 'no')
       config_set('bgp_af', 'suppress_inactive', @set_args)
     end
 
@@ -756,9 +777,9 @@ module Cisco
 
     def table_map_set(map, filter=false)
       if filter
-        feature = 'table_map_filter'
+        attr = 'table_map_filter'
       else
-        feature = 'table_map'
+        attr = 'table_map'
       end
       if map == default_table_map
         @set_args[:state] = 'no'
@@ -767,7 +788,7 @@ module Cisco
         @set_args[:state] = ''
         @set_args[:map] = map
       end
-      config_set('bgp_af', feature, @set_args)
+      config_set('bgp_af', attr, @set_args)
       set_args_keys_default
     end
 
