@@ -14,10 +14,11 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
-* Extensions to interface and vlan providers to support fabric path. (dcheriancisco)
-* Extend cisco_vrf with `vni` attribute
-* Extend cisco_bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
-* Extend cisco_bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
+* Extend bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
+* Extend bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
+* Extend interface with `channel_group` attribute and support for fabric path attributes
+* Extend vrf with `vni` attribute
+* Extend vlan with `mode` attribute
 
 ### Changed
 
