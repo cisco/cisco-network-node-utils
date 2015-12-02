@@ -335,6 +335,46 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_routerbgp_set_get_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.fast_external_fallover = true
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be enabled')
+    bgp.fast_external_fallover = false
+    refute(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover default value should be true')
+    bgp.destroy
+  end
+
+  def test_routerbgp_set_get_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.flush_routes = true
+    assert(bgp.flush_routes,
+           'bgp flush-routes should be enabled')
+    bgp.flush_routes = false
+    refute(bgp.flush_routes,
+           'bgp flush-routes should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.flush_routes,
+           'bgp flush-routes value default value should be false')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_graceful_restart
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
@@ -492,6 +532,26 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_routerbgp_set_get_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.isolate = true
+    assert(bgp.isolate,
+           'bgp isolate should be enabled')
+    bgp.isolate = false
+    refute(bgp.isolate,
+           'bgp isolate should be disabled')
+    bgp.destroy
+  end
+
+  def test_routerbgp_default_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.isolate,
+           'bgp isolate default value should be false')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_log_neighbor_changes
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
@@ -558,7 +618,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_neighbor_fib_down_accelerate
+  def test_routerbgp_set_get_neighbor_down_fib_accelerate
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         asnum = 55
@@ -569,29 +629,29 @@ class TestRouterBgp < CiscoTestCase
         vrf = 'yamllll'
         bgp = RouterBgp.new(asnum, vrf)
       end
-      bgp.neighbor_fib_down_accelerate = true
-      assert(bgp.neighbor_fib_down_accelerate,
-             "vrf #{vrf}: bgp neighbor_fib_down_accelerate should be enabled")
-      bgp.neighbor_fib_down_accelerate = false
-      refute(bgp.neighbor_fib_down_accelerate,
-             "vrf #{vrf}: bgp neighbor_fib_down_accelerate should be disabled")
+      bgp.neighbor_down_fib_accelerate = true
+      assert(bgp.neighbor_down_fib_accelerate,
+             "vrf #{vrf}: bgp neighbor_down_fib_accelerate should be enabled")
+      bgp.neighbor_down_fib_accelerate = false
+      refute(bgp.neighbor_down_fib_accelerate,
+             "vrf #{vrf}: bgp neighbor_down_fib_accelerate should be disabled")
       bgp.destroy
     end
   end
 
-  def test_routerbgp_get_neighbor_fib_down_accelerate_not_configured
+  def test_routerbgp_get_neighbor_down_fib_accelerate_not_configured
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    refute(bgp.neighbor_fib_down_accelerate,
-           'bgp neighbor_fib_down_accelerate should be disabled')
+    refute(bgp.neighbor_down_fib_accelerate,
+           'bgp neighbor_down_fib_accelerate should be disabled')
     bgp.destroy
   end
 
-  def test_routerbgp_default_neighbor_fib_down_accelerate
+  def test_routerbgp_default_neighbor_down_fib_accelerate
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    refute(bgp.default_neighbor_fib_down_accelerate,
-           'bgp neighbor_fib_down_accelerate default value should be false')
+    refute(bgp.default_neighbor_down_fib_accelerate,
+           'bgp neighbor_down_fib_accelerate default value should be false')
     bgp.destroy
   end
 
