@@ -42,7 +42,7 @@ class TestAceV4 < CiscoTestCase
 
   # TESTS
 
-  def test_router_create_destroy_ipv4_ace_one
+  def test_create_destroy_ipv4_ace_one
     acl = Acl.new(@acl_name, @afi)
     @seqno = 10
     ace = Ace.new(@acl_name, @seqno, @afi)
@@ -76,7 +76,7 @@ class TestAceV4 < CiscoTestCase
     acl.destroy
   end
 
-  def test_router_create_destroy_ipv6_ace_one
+  def test_create_destroy_ipv6_ace_one
     @acl_name = 'test-foo-v6-2'
     @afi = 'ipv6'
     acl = Acl.new(@acl_name, @afi)

@@ -38,50 +38,86 @@ class TestAcl < CiscoTestCase
   end
 
   # TESTS
-  def test_router_create_acl_v4
-    name = @acl_name_v4
-    rtr = Acl.new(name, 'ip')
-    Acl.acls
-    @default_show_command = "show runn | i 'ip access-list #{name}'"
-    assert_show_match(pattern: /^ip access-list #{name}$/,
-                      msg:     "failed to create acl #{name}")
+  def test_create_acl_v4
+    rtr = Acl.new(@acl_name_v4, 'ip')
+    hash = Acl.acls
+    found = false
+    hash['ip'].each do |acl|
+      found = true if acl[1].acl_name == rtr.acl_name
+    end
+
+    assert_equal(found, true,
+                 "#{rtr.afi} acl #{rtr.acl_name}"\
+                 ' is not in the system')
+
+    @default_show_command = "show runn | i 'ip access-list #{@acl_name_v4}'"
+    assert_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
+                      msg:     "failed to create acl #{@acl_name_v4}")
     rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
+    refute_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
+                      msg:     "failed to destroy acl #{@acl_name_v4}")
   end
 
-  def test_router_stats_enable
-    name = @acl_name_v4
-    rtr = Acl.new(name, 'ip')
-    rtr.stats_perentry = true
-    @default_show_command = "show runn | sec 'ip access-list #{name}'"
+  def test_stats_enable
+    rtr = Acl.new(@acl_name_v4, 'ip')
+    # setter function
+    rtr.stats_per_entry = true
+    @default_show_command = "show runn | sec 'ip access-list #{@acl_name_v4}'"
+    assert_show_match(pattern: /statistics per-entry/,
+                      msg:     'failed to enable stats')
+
+    # getter function
+    val = rtr.stats_per_entry
+    assert_equal(val, true, 'value is not true')
+
+    # default getter function
+    val = rtr.default_stats_per_entry
+    assert_equal(val, false, 'value is not false')
+
+    rtr.destroy
+    refute_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
+                      msg:     "failed to destroy acl #{@acl_name_v4}")
+  end
+
+  def test_create_acl_v6
+    rtr = Acl.new(@acl_name_v6, 'ipv6')
+    hash = Acl.acls
+
+    found = false
+    hash['ipv6'].each do |acl|
+      found = true if acl[1].acl_name == rtr.acl_name
+    end
+
+    assert_equal(found, false,
+                 "#{rtr.afi} acl #{rtr.acl_name}"\
+                 ' is not in the system')
+
+    @default_show_command = "show runn | i 'ipv6 access-list #{@acl_name_v6}'"
+    assert_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
+                      msg:     "failed to create acl #{@acl_name_v6}")
+    rtr.destroy
+    refute_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
+                      msg:     "failed to destroy acl #{@acl_name_v6}")
+  end
+
+  def test_stats_enable_v6
+    name = @acl_name_v6
+    rtr = Acl.new(name, 'ipv6')
+    rtr.stats_per_entry = true
+
+    # getter function
+    val = rtr.stats_per_entry
+    assert_equal(val, true, 'value is not true')
+
+    # default getter function
+    val = rtr.default_stats_per_entry
+    assert_equal(val, false, 'value is not false')
+
+    @default_show_command = "show runn | sec 'ipv6 access-list #{@acl_name_v6}'"
     assert_show_match(pattern: /statistics per-entry/,
                       msg:     'failed to enable stats')
     rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
-  end
-
-  def test_router_create_acl_v6
-    name = @acl_name_v6
-    rtr = Acl.new(name, 'ipv6')
-    @default_show_command = "show runn | i 'ipv6 access-list #{name}'"
-    assert_show_match(pattern: /^ipv6 access-list #{name}$/,
-                      msg:     "failed to create acl #{name}")
-    rtr.destroy
-    refute_show_match(pattern: /^ipv6 access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
-  end
-
-  def test_router_stats_enable_v6
-    name = @acl_name_v6
-    rtr = Acl.new(name, 'ipv6')
-    rtr.stats_perentry = true
-    @default_show_command = "show runn | sec 'ipv6 access-list #{name}'"
-    assert_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to enable stats')
-    rtr.destroy
-    refute_show_match(pattern: /^ipv6 access-list #{name}$/,
-                      msg:     "failed to destroy acl #{name}")
+    refute_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
+                      msg:     "failed to destroy acl #{@acl_name_v6}")
   end
 end

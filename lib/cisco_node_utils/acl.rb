@@ -22,6 +22,9 @@ module Cisco
     # acl_name: name of the acl
     # instantiate: true = create acl instance
     def initialize(acl_name, afi, instantiate=true)
+      fail TypeError unless acl_name.is_a?(String)
+      fail ArgumentError 'we expect ip or ipv6' unless
+        afi == 'ip' || afi == 'ipv6'
       @acl_name = acl_name
       @afi = afi
       @set_args = @get_args = { acl_name: @acl_name, afi: @afi }
@@ -34,8 +37,8 @@ module Cisco
       acl_hash = {}
       afis.each do |afi|
         acl_hash[afi] = {}
-        @get_args = { afi: afi }
-        instances = config_get('acl', 'all_acl', @get_args)
+        get_args = { afi: afi }
+        instances = config_get('acl', 'all_acl', get_args)
 
         next if instances.nil?
 
@@ -64,26 +67,25 @@ module Cisco
     # ----------
     # PROPERTIES
     # ----------
-    # getter acl info
-    def acl
-      config_get('acl', 'acl', @get_args)
-    end
-
-    # setter acl info
-    def acl=(state)
-      @set_args[:state] = (state ? '' : 'no')
-      config_set('acl', 'acl', @set_args)
-    end
-
     # getter stats perentry info
-    def stats_perentry
-      config_get('acl', 'stats_perentry', @get_args)
+    def stats_per_entry
+      config_get('acl', 'stats_per_entry', @get_args)
     end
 
     # setter stats perentry info
-    def stats_perentry=(state)
+    def stats_per_entry=(state)
       @set_args[:state] = (state ? '' : 'no')
-      config_set('acl', 'stats_perentry', @set_args)
+      config_set('acl', 'stats_per_entry', @set_args)
+    end
+
+    # default stats perentry info
+    def default_stats_per_entry
+      config_get_default('acl', 'stats_per_entry')
+    end
+
+    # acl == overide func
+    def ==(other)
+      acl_name == other.acl_name && afi == other.afi
     end
   end
 end

@@ -17,8 +17,7 @@ require_relative 'node_util'
 module Cisco
   # Ace - node utility class for Ace Configuration
   class Ace < NodeUtil
-    attr_reader :acl_name, :seqno, :afi, :set_args, :get_args
-    attr_reader :regexp_str
+    attr_reader :acl_name, :seqno, :afi
 
     # acl_name is name of acl
     # seqno is sequence number of ace
@@ -52,15 +51,15 @@ module Cisco
       afis = %w(ip ipv6)
       hash = {}
       afis.each do |afi|
-        @get_args = { afi: afi }
-        instances = config_get('acl', 'all_acl', @get_args)
+        get_args = { afi: afi }
+        instances = config_get('acl', 'all_acl', get_args)
         next if instances.nil?
         instances.each do |name|
-          hash[name] = Acl.new(name, @get_args[:afi], false)
+          hash[name] = {}
           aces = config_get('acl', 'all_ace', acl_name: name)
           next if aces.nil?
           aces.each do |ace|
-            item = Ace.new(name, ace[0].to_i, @get_args[:afi])
+            item = Ace.new(name, ace[0].to_i, afi)
             item.seqno = ace[0].to_i
             item.action = ace[1]
             item.proto = ace[2]
@@ -69,7 +68,6 @@ module Cisco
             item.dst_addr = ace[5]
             item.dst_port = ace[6]
             item.option_format = ace[7]
-            hash[name] = {}
             hash[name][ace[0].to_i] = item
           end
         end
