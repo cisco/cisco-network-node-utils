@@ -38,7 +38,7 @@ graceful_merge:
   config_get: "show run fabricpath"
   config_get_token: '/^fabricpath graceful\-merge disable$/'
   config_set: "<state> fabricpath graceful-merge disable"
-  default_value: true
+  default_value: enable
 
 linkup_delay:
   kind: int
@@ -82,7 +82,7 @@ loadbalance_multicast_has_vlan:
   kind: boolean
   config_get: "show fabricpath load-balance | begin Ftag"
   config_get_token: '/^Use VLAN: TRUE$/'
-  default_value: false
+  default_value: true
 
 loadbalance_multicast_reset:
   _exclude:
@@ -107,7 +107,7 @@ loadbalance_unicast_has_vlan:
   config_get: "show fabricpath load-balance | begin ECMP next 4"
   config_get_token: '/^Use VLAN: TRUE$/'
   config_set: "<state> fabricpath load-balance unicast include-vlan"
-  default_value: false
+  default_value: true
 
 loadbalance_unicast_layer:
   kind: string

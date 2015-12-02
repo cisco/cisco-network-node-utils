@@ -25,8 +25,8 @@ module Cisco
     attr_reader :name
 
     def initialize(name, instantiate=true)
-      fail TypeError unless name.is_a?(String)
-      fail ArgumentError unless name == 'default'
+      debug "name is #{name} class is #{name.class}"
+      fail ArgumentError unless name.to_s == 'default'
       @name = name.downcase
       @set_params = {}
 
@@ -146,13 +146,13 @@ module Cisco
     def graceful_merge
       graceful_merge_conf = config_get('fabricpath', 'graceful_merge')
       # opposite meaning with the cli
-      return true if graceful_merge_conf.nil?
-      graceful_merge_conf ? false : true
+      return :enable if graceful_merge_conf.nil?
+      graceful_merge_conf ? :disable : :enable
     end
 
     def graceful_merge=(val)
       @set_params = {}
-      if val == '' || val == true
+      if val == :enable
         @set_params[:state] = 'no'
       else
         @set_params[:state] = ''
@@ -163,7 +163,8 @@ module Cisco
     end
 
     def default_graceful_merge
-      config_get_default('fabricpath', 'graceful_merge')
+      graceful_merge = config_get_default('fabricpath', 'graceful_merge')
+      graceful_merge.to_sym
     end
 
     def linkup_delay
@@ -239,7 +240,7 @@ module Cisco
       @set_params[:algo] = val ? val : ''
       config_set('fabricpath', 'loadbalance_algorithm', @set_params)
     rescue Cisco::CliError => e
-      raise "[Setting loadbalance-algo #{val}] '#{e.command}' : #{e.clierror}"
+      raise "[Setting loadbalance-algo #{val}] #{e.command} : #{e.clierror}"
     end
 
     def default_loadbalance_algorithm
@@ -264,7 +265,7 @@ module Cisco
                    rotate_amt: rotate, inc_vlan: has_vlan)
       end
     rescue Cisco::CliError => e
-      raise "[Setting loadbalance #{rotate} #{has_vlan}] '#{e.command}'
+      raise "[Setting loadbalance #{rotate} #{has_vlan}] #{e.command}
              : #{e.clierror}"
     end
 
