@@ -745,13 +745,13 @@ class TestRouterBgpAF < CiscoTestCase
   ## inject_map
   ##
   def inject_map(asn, vrf, af)
+    # rubocop:disable Style/WordArray
     master = [['lax', 'sfo'],
               ['lax', 'sjc'],
               ['nyc', 'sfo', 'copy-attributes'],
               ['sjc', 'nyc', 'copy-attributes']]
-
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    
+
     # Test1: both/import/export when no commands are present. Each target
     # option will be tested with and without evpn (6 separate types)
     should = master.clone
@@ -759,21 +759,21 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Test 2: remove half of the entries
     should = [['lax', 'sfo'], ['nyc', 'sfo', 'copy-attributes']]
-    inject_map_tester(bgp_af,  should, 'Test 2')
+    # rubocop:enable Style/WordArray
+    inject_map_tester(bgp_af, should, 'Test 2')
 
     # Test 3: restore the removed entries
     should = master.clone
     inject_map_tester(bgp_af, should, 'Test 3')
 
     # Test 4: 'default'
-    should = bgp_af.default_inject_map_import
+    should = bgp_af.default_inject_map
     inject_map_tester(bgp_af, should, 'Test 4')
   end
 
   def inject_map_tester(bgp_af, should, test_id)
-    bgp_af.send("inject_map=", should)
-    
-    result = bgp_af.send("inject_map")
+    bgp_af.send('inject_map=', should)
+    result = bgp_af.send('inject_map')
     assert_equal(should, result,
                  "#{test_id} : inject_map")
   end

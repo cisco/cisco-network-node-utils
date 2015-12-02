@@ -517,14 +517,14 @@ module Cisco
     #
     # inject_map (Getter/Setter/Default)
     #
-  
+
     def inject_map
-      cmds = config_get('bgp_af', 'inject_map', @get_args)
+      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
       cmds.sort
     end
 
     def inject_map=(should_list)
-      delta_hash = Utils.delta_add_remove(should_list, networks)
+      delta_hash = Utils.delta_add_remove(should_list, inject_map)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         CiscoLogger.debug("inject_map delta #{@get_args}\n #{action}: " \

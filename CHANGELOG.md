@@ -13,7 +13,7 @@ Changelog
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend cisco_vrf with `vni` attribute
 * Extend cisco_bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
-* Extend cisco_bgp_af with attributes: `suppress-inactive`, `default-metric`, `table-map`, `distance_ebgp`,`distance_ibgp`,`disteance_local`
+* Extend cisco_bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
 
 ### Changed
 
