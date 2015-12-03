@@ -434,7 +434,7 @@ module Cisco
         suppress =     damp_array[2]
         suppress_max = damp_array[3]
         CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
-      elsif route_map.is_a? String
+      else
         # 'dampening route-map WORD' command
         if platform == :nexus
           route_map = "route-map #{damp_array}"
@@ -445,9 +445,6 @@ module Cisco
           route_policy.strip!
           CiscoLogger.debug("Dampening 'dampening #{route_policy}'")
         end
-      else
-        # Array not in a valid format
-        fail ArgumentError
       end
 
       # Set final args
