@@ -60,18 +60,17 @@ class TestAceV4 < CiscoTestCase
     all_aces = Ace.aces
     found = false
     all_aces[@acl_name].each do |item|
-      if item[1].seqno.to_i == @seqno.to_i
-        found = true
-        found = false if item[1].action != ace.action
-        found = false if item[1].proto != ace.proto
-        found = false if item[1].src_addr != ace.src_addr
-        found = false if item[1].src_port != ace.src_port
-        found = false if item[1].dst_addr != ace.dst_addr
-        found = false if item[1].dst_port != ace.dst_port
-        found = false if item[1].option_format != ace.option_format
-      end
+      next unless item[1].seqno.to_i == @seqno.to_i
+      found = true
+      found = false if item[1].action != ace.action
+      found = false if item[1].proto != ace.proto
+      found = false if item[1].src_addr != ace.src_addr
+      found = false if item[1].src_port != ace.src_port
+      found = false if item[1].dst_addr != ace.dst_addr
+      found = false if item[1].dst_port != ace.dst_port
+      found = false if item[1].option_format != ace.option_format
     end
-    
+
     assert_equal(found, true,
                  "#{acl.afi} acl #{acl.acl_name} seqno #{ace.seqno}"\
                  ' is not in the system')

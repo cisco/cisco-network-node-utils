@@ -44,7 +44,7 @@ module Cisco
                  'portgroup \S+)?'\
                  ' *(?<option>[a-zA-Z0-9\-\/ ]*)*'
     end
-    
+
     # Create a hash of all aces under give acl_name.
     def self.aces
       regexp_str = '(?<seqno>\d+) (?<action>\S+)'\
@@ -69,13 +69,11 @@ module Cisco
           get_args[:acl_name] = name
           aces = config_get('acl', 'all_ace', get_args)
           next if aces.nil?
-          #puts aces
           aces.each do |ace|
             regexp = Regexp.new(regexp_str)
             match = regexp.match(ace)
             item = Ace.new(name, match[1].to_i, afi)
             item.seqno = match[1].to_i
-            #puts " #{match[1]} #{match[2]} #{match[3]}"
             item.action = match[2]
             item.proto = match[3]
             item.src_addr = match[4]
