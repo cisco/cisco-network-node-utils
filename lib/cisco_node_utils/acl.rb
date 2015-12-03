@@ -23,11 +23,9 @@ module Cisco
     # instantiate: true = create acl instance
     def initialize(acl_name, afi, instantiate=true)
       fail TypeError unless acl_name.is_a?(String)
-      fail ArgumentError 'we expect ip or ipv6' unless
+      fail ArgumentError 'Argument afi must be ip or ipv6' unless
         afi == 'ip' || afi == 'ipv6'
-      @acl_name = acl_name
-      @afi = afi
-      @set_args = @get_args = { acl_name: @acl_name, afi: @afi }
+      @set_args = @get_args = { acl_name: acl_name, afi: afi }
       create if instantiate
     end
 
@@ -67,20 +65,38 @@ module Cisco
     # ----------
     # PROPERTIES
     # ----------
-    # getter stats perentry info
     def stats_per_entry
       config_get('acl', 'stats_per_entry', @get_args)
     end
 
-    # setter stats perentry info
     def stats_per_entry=(state)
       @set_args[:state] = (state ? '' : 'no')
       config_set('acl', 'stats_per_entry', @set_args)
     end
 
-    # default stats perentry info
     def default_stats_per_entry
       config_get_default('acl', 'stats_per_entry')
+    end
+
+    def fragments
+      config_get('acl', 'fragments', @get_args)
+    end
+
+    def fragments=(permit)
+      @set_args[:state] = (permit ? '' : 'no')
+      if permit
+        @set_args[:permit] = permit
+        config_set('acl', 'fragments', @set_args)
+      else
+        @set_args[:permit] = 'permit-all'
+        config_set('acl', 'fragments', @set_args)
+        @set_args[:permit] = 'deny-all'
+        config_set('acl', 'fragments', @set_args)
+      end
+    end
+
+    def default_fragments
+      config_get_default('acl', 'fragments')
     end
 
     # acl == overide func

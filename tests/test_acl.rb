@@ -22,6 +22,8 @@ class TestAcl < CiscoTestCase
     super
     @acl_name_v4 = 'test-foo-v4-1'
     @acl_name_v6 = 'test-foo-v6-1'
+    @permit = 'permit-all'
+    @deny = 'deny-all'
     no_ip_access_list_foo
   end
 
@@ -38,86 +40,122 @@ class TestAcl < CiscoTestCase
   end
 
   # TESTS
-  def test_create_acl_v4
-    rtr = Acl.new(@acl_name_v4, 'ip')
-    hash = Acl.acls
-    found = false
-    hash['ip'].each do |acl|
-      found = true if acl[1].acl_name == rtr.acl_name
-    end
+  def create_acl(afi, acl_name)
+    rtr = Acl.new(acl_name, afi)
+    assert(Acl.acls[afi].key?(acl_name),
+           "ACL #{afi} #{acl_name} is not configured")
 
-    assert_equal(found, true,
-                 "#{rtr.afi} acl #{rtr.acl_name}"\
-                 ' is not in the system')
-
-    @default_show_command = "show runn | i 'ip access-list #{@acl_name_v4}'"
-    assert_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
-                      msg:     "failed to create acl #{@acl_name_v4}")
+    @default_show_command = "show runn | i '#{afi} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+                      msg:     "failed to create acl #{acl_name}")
     rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
-                      msg:     "failed to destroy acl #{@acl_name_v4}")
+    refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+                      msg:     "failed to destroy acl #{acl_name}")
+  end
+
+  def test_create_acl
+    %w(ip ipv6).each do |afi|
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      create_acl(afi, acl_name)
+    end
+  end
+
+  def stats_enable(afi, acl_name)
+    rtr = Acl.new(acl_name, afi)
+
+    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+                      msg:     "failed to create acl #{acl_name}")
+
+    # setter function
+    rtr.stats_per_entry = true
+    assert_show_match(pattern: /statistics per-entry/,
+                      msg:     'failed to enable stats')
+
+    # getter function
+    val = rtr.stats_per_entry
+    assert(val, 'value is not true')
+
+    # default getter function
+    val = rtr.default_stats_per_entry
+    refute(val, 'value is not false')
+
+    rtr.destroy
+    refute_show_match(pattern: /^ip access-list #{acl_name}$/,
+                      msg:     "failed to destroy acl #{acl_name}")
   end
 
   def test_stats_enable
-    rtr = Acl.new(@acl_name_v4, 'ip')
-    # setter function
-    rtr.stats_per_entry = true
-    @default_show_command = "show runn | sec 'ip access-list #{@acl_name_v4}'"
-    assert_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to enable stats')
-
-    # getter function
-    val = rtr.stats_per_entry
-    assert_equal(val, true, 'value is not true')
-
-    # default getter function
-    val = rtr.default_stats_per_entry
-    assert_equal(val, false, 'value is not false')
-
-    rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{@acl_name_v4}$/,
-                      msg:     "failed to destroy acl #{@acl_name_v4}")
-  end
-
-  def test_create_acl_v6
-    rtr = Acl.new(@acl_name_v6, 'ipv6')
-    hash = Acl.acls
-
-    found = false
-    hash['ipv6'].each do |acl|
-      found = true if acl[1].acl_name == rtr.acl_name
+    %w(ip ipv6).each do |afi|
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      stats_enable(afi, acl_name)
     end
-
-    assert_equal(found, false,
-                 "#{rtr.afi} acl #{rtr.acl_name}"\
-                 ' is not in the system')
-
-    @default_show_command = "show runn | i 'ipv6 access-list #{@acl_name_v6}'"
-    assert_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
-                      msg:     "failed to create acl #{@acl_name_v6}")
-    rtr.destroy
-    refute_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
-                      msg:     "failed to destroy acl #{@acl_name_v6}")
   end
 
-  def test_stats_enable_v6
-    name = @acl_name_v6
-    rtr = Acl.new(name, 'ipv6')
-    rtr.stats_per_entry = true
+  def set_fragments(rtr, afi, acl_name, option)
+    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+
+    # setter function
+    rtr.fragments = option
+    assert_show_match(pattern: /fragments #{option}/,
+                      msg:     'failed to set fragments #{option} ' + option)
 
     # getter function
-    val = rtr.stats_per_entry
-    assert_equal(val, true, 'value is not true')
+    val = rtr.fragments
+    assert_equal(val, 'fragments ' + option, 'value not correct')
+  end
+
+  def unset_fragments(rtr, afi, acl_name)
+    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+
+    # setter function
+    rtr.fragments = nil
+    refute_show_match(pattern: /fragments #{@permit}|fragments #{@deny}/,
+                      msg:     'failed to unset set fragments')
+
+    # getter function
+    val = rtr.fragments
+    assert_equal(val, 'nil', 'value not correct')
+  end
+
+  def fragments(afi, acl_name)
+    rtr = Acl.new(acl_name, afi)
+
+    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+                      msg:     "failed to create acl #{acl_name}")
+
+    # set 'no frgaments ...'
+    unset_fragments(rtr, afi, acl_name)
+
+    # set 'fragments permit-all' from nothing set
+    set_fragments(rtr, afi, acl_name, @permit)
+
+    # set 'no fragments ...'
+    unset_fragments(rtr, afi, acl_name)
+
+    # set 'fragments deny-all' from nothing set
+    set_fragments(rtr, afi, acl_name, @deny)
+
+    # set 'fragments permit-all' from 'fragments deny-all'
+    set_fragments(rtr, afi, acl_name, @permit)
+
+    # set 'fragments deny-all' from 'fragments permit-all'
+    set_fragments(rtr, afi, acl_name, @deny)
 
     # default getter function
     val = rtr.default_stats_per_entry
-    assert_equal(val, false, 'value is not false')
+    refute_equal(val, nil, 'value is not nil')
 
-    @default_show_command = "show runn | sec 'ipv6 access-list #{@acl_name_v6}'"
-    assert_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to enable stats')
     rtr.destroy
-    refute_show_match(pattern: /^ipv6 access-list #{@acl_name_v6}$/,
-                      msg:     "failed to destroy acl #{@acl_name_v6}")
+    refute_show_match(pattern: /^ip access-list #{acl_name}$/,
+                      msg:     "failed to destroy acl #{acl_name}")
+  end
+
+  def test_fragments
+    %w(ip ipv6).each do |afi|
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      fragments(afi, acl_name)
+    end
   end
 end

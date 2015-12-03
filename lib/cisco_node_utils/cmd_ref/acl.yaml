@@ -9,24 +9,20 @@ _template:
   config_get_token: '/^<afi> access-list <acl_name>$/'
   config_set: '<afi> access-list <acl_name>'
 
-ace:
-  config_get_token_append: '/^(<seqno>) .*$'
-  config_set_append:
-      '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port> <option_format>'
-
 acl:
   config_get_token: '/^<afi> access-list (\S+)$/'
   config_set: '<state> <afi> access-list <acl_name>'
                       
-all_ace:
-  multiple:
-  config_get_token_append: '/^(\d+) .*$/'
-
 all_acl:
   multiple:
   config_get_token: '/^<afi> access-list (\S+)$/'
 
-stats_perentry:
+fragments:
+  config_get_token_append: '/fragments permit-all$|fragments deny-all$/'
+  config_set_append: '<state> fragments <permit>'
+  default_value: nil
+
+stats_per_entry:
   kind: boolean
   config_get_token_append: '/statistics per-entry$/'
   config_set_append: '<state> statistics per-entry'
