@@ -27,14 +27,13 @@ module Cisco
       @vni_id = vni_id.to_s
       fail ArgumentError,
            'Invalid value(non-numeric VNI id)' unless @vni_id[/^\d+$/]
-
       create if instantiate
     end
 
     def self.vnis
       hash = {}
-      vni_feature = config_get('vni', 'feature')
-      return hash if (:enabled != vni_feature.first.to_sym)
+      feature = config_get('vni', 'feature')
+      return hash if (:enabled != feature.to_sym)
       vni_list = config_get('vni', 'all_vnis')
       return hash if vni_list.nil? || vni_list == {}
 
@@ -44,22 +43,41 @@ module Cisco
       hash
     end
 
-    def vni_feature
-      vni = config_get('vni', 'feature')
-      fail 'vni feature not found' if vni.nil?
+    def feature
+      if /N9K/.match(node.product_id)
+        vni = config_get('vni', 'feature_n9k')
+      else
+        vni = config_get('vni', 'feature')
+      end
       return :disabled if vni.nil?
-      vni.first.to_sym
+      :enabled
     end
 
-    def vni_feature_set(vni_set)
-      curr = vni_feature
+    def feature_set(vni_set)
+      curr = feature
       return if curr == vni_set
 
       case vni_set
       when :enabled
-        config_set('vni', 'feature', '')
+        if /N9K/.match(node.product_id)
+          config_set('vni', 'feature_n9k', state: '')
+        else
+          config_set('vni', 'feature', '')
+        end
       when :disabled
-        config_set('vni', 'feature', 'no') if curr == :enabled
+        if /N9K/.match(node.product_id)
+          # feature nv overlay is a dependency for disabling
+          # feature vn-segment-vlan-based. Disable it first.
+          if config_get('vni', 'feature_nv_overlay')
+            config_set('vni', 'feature_nv_overlay', state: 'no')
+            # Disabling feature nv overlay takes about 7-8 seconds.
+            # Sleep for the time.
+            sleep(8)
+          end
+          config_set('vni', 'feature_n9k', state: 'no') if curr == :enabled
+        else
+          config_set('vni', 'feature', 'no') if curr == :enabled
+        end
         return
       end
     rescue Cisco::CliError => e
@@ -67,7 +85,8 @@ module Cisco
     end
 
     def create
-      vni_feature_set(:enabled) unless (:enabled == vni_feature)
+      feature_set(:enabled) unless :enabled == feature
+      return if /N9K/.match(node.product_id)
       config_set('vni', 'create', @vni_id)
     end
 
@@ -200,6 +219,30 @@ module Cisco
       return default_shutdown if result.nil?
       # valid result is either: "active"(aka no shutdown) or "shutdown"
       result.first[/shut/] ? true : false
+    end
+
+    def mapped_vlan
+      vlans = config_get('vlan', 'all_vlans')
+      return nil if vlans.nil?
+      vlans.each do |vlan|
+        return vlan.to_i if
+              config_get('vni', 'mapped_vlan', vlan: vlan) == @vni_id
+      end
+      nil
+    end
+
+    def mapped_vlan=(vlan)
+      if vlan == default_vlan
+        state = 'no'
+        vlan = mapped_vlan
+      else
+        state = ''
+      end
+      config_set('vni', 'mapped_vlan', vlan: vlan, state: state, vni: @vni_id)
+    end
+
+    def default_vlan
+      config_get_default('vni', 'mapped_vlan')
     end
 
     def shutdown=(val)
