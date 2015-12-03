@@ -4,8 +4,7 @@
 _exclude: [/N3/, /N9K/]
 
 aggregate_multicast_routes:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: boolean
   config_get: "show run fabricpath"
   config_get_token: '/^fabricpath multicast aggregate\-routes$/'
@@ -28,6 +27,7 @@ feature:
   config_get: "show feature-set"
   config_get_token: '/^fabricpath[\s]+[\d]+[\s]+(\S+)/'
   config_set: "<state> feature-set fabricpath"
+  default_value: disabled
 
 feature_install:
   config_set: "<state> install feature-set fabricpath"
@@ -48,8 +48,7 @@ linkup_delay:
   default_value: 10
 
 linkup_delay_always:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: boolean
   config_get: "show fabricpath timers"
   config_get_token: '/^Link\-up Delay Timer\s+:\s+\d+\s+\(always\)$/'
@@ -57,8 +56,7 @@ linkup_delay_always:
   default_value: false
   
 linkup_delay_enable:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   auto_default: false
   kind: boolean
   config_get: "show fabricpath timers"
@@ -77,29 +75,25 @@ loadbalance_algorithm:
     default_value: "symmetric"
 
 loadbalance_multicast_has_vlan:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: boolean
   config_get: "show fabricpath load-balance | begin Ftag"
   config_get_token: '/^Use VLAN: TRUE$/'
   default_value: true
 
 loadbalance_multicast_reset:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   config_set: "no fabricpath load-balance multicast"
 
 loadbalance_multicast_rotate:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: int
   config_get: "show fabricpath load-balance | begin Ftag"
   config_get_token: '/^Rotate amount: (\d+)/'
   default_value: 1
  
 loadbalance_multicast_set:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   config_set: 'fabricpath load-balance multicast <rotate_amt> <inc_vlan>'
 
 loadbalance_unicast_has_vlan:
@@ -120,8 +114,7 @@ loadbalance_unicast_reset:
   config_set: "no fabricpath load-balance unicast"
 
 loadbalance_unicast_rotate:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: int
   config_get: "show fabricpath load-balance | begin ECMP next 4"
   config_get_token: '/^Rotate amount: (\d+)/'
@@ -159,8 +152,7 @@ transition_delay:
   default_value: 10
 
 ttl_multicast:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: int
   config_get: "show fabricpath ttl"
   config_get_token: '/^Multicast TTL:\s+(\d+) hops/'
@@ -168,8 +160,7 @@ ttl_multicast:
   default_value: 32
 
 ttl_unicast:
-  _exclude:
-    - /N5K/
+  _exclude: [/N5K/, /N6K/]
   kind: int
   config_get: "show fabricpath ttl"
   config_get_token: '/^Unicast TTL:\s+(\d+) hops/'

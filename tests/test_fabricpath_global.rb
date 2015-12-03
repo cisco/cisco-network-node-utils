@@ -41,7 +41,7 @@ class TestFabricpathGlobal < CiscoTestCase
   end
 
   def n5k_platform?
-    /N5K/ =~ node.product_id
+    /N[56]K/ =~ node.product_id
   end
 
   # TESTS
