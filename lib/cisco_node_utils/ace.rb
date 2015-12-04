@@ -79,7 +79,7 @@ module Cisco
     def ace_set(attrs)
       state = attrs.empty? ? 'no ' : ''
       @set_args[:state] = state
-      @set_args.merge!(attrs)
+      @set_args.merge!(attrs) unless attrs.empty?
       config_set('acl', 'ace', @set_args)
     end
 

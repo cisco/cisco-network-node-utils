@@ -68,7 +68,9 @@ class TestAceV4 < CiscoTestCase
       action:        'permit',
       proto:         '6',
       src_addr:      'addrgroup fi',
+      src_port:      '',
       dst_addr:      '1::7/32',
+      dst_port:      '',
       option_format: 'dscp cs2 fragments packet-length eq 30',
     }
 
@@ -78,12 +80,13 @@ class TestAceV4 < CiscoTestCase
       src_addr:      '1::8/56',
       src_port:      'eq 41',
       dst_addr:      'any',
+      dst_port:      '',
       option_format: '',
     }
 
     props = {
-      ip:   [attr_v4_1, attr_v4_2],
-      ipv6: [attr_v6_1, attr_v6_2],
+      'ip'   => [attr_v4_1, attr_v4_2],
+      'ipv6' => [attr_v6_1, attr_v6_2],
     }
 
     %w(ip ipv6).each do |afi|
@@ -102,7 +105,6 @@ class TestAceV4 < CiscoTestCase
     ace = Ace.new(afi, acl_name, @seqno)
     ace.ace_set(entry)
 
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
     all_aces = Ace.aces
     found = false
     all_aces[acl_name].each do |seqno, _inst|
@@ -110,6 +112,7 @@ class TestAceV4 < CiscoTestCase
       found = true
     end
 
+    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
     assert_equal(found, true,
                  "#{afi} acl #{acl_name} seqno #{@seqno}"\
                  ' is not in the system')
