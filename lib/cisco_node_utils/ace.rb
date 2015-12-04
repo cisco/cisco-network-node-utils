@@ -18,10 +18,11 @@ module Cisco
   # Ace - node utility class for Ace Configuration
   class Ace < NodeUtil
     attr_reader :acl_name, :seqno, :afi
+
     # acl_name is name of acl
     # seqno is sequence number of ace
     # afi is either v4 or v6
-    def initialize(acl_name, seqno, afi)
+    def initialize(afi, acl_name, seqno)
       fail TypeError unless
         acl_name.is_a?(String) && seqno.is_a?(Integer) && afi.is_a?(String)
       fail ArgumentError 'we expect ip or ipv6' unless
@@ -29,10 +30,15 @@ module Cisco
       @acl_name = acl_name
       @afi = afi
       @seqno = seqno
-      @set_args = @get_args = { acl_name: @acl_name, seqno: @seqno, afi: @afi,
-                                src_port: '', dst_port: '',
-                                option_format: '' }
-      @regexp_str = '(?<seqno>\d+) (?<action>\S+)'\
+      @set_args = @get_args = { acl_name: @acl_name, seqno: @seqno, afi: @afi }
+    end
+
+    # common ace getter
+    def ace_get
+      str = config_get('acl', 'ace', @get_args)
+      return nil if str.nil?
+
+      regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
                  ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|'\
                  'addrgroup \S+)*'\
@@ -42,89 +48,55 @@ module Cisco
                  'addrgroup \S+)'\
                  ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|'\
                  'portgroup \S+)?'\
-                 ' *(?<option>[a-zA-Z0-9\-\/ ]*)*'
+                 ' *(?<option_format>[a-zA-Z0-9\-\/ ]*)*')
+      regexp.match(str)
     end
 
     # Create a hash of all aces under give acl_name.
     def self.aces
-      regexp_str = '(?<seqno>\d+) (?<action>\S+)'\
-                 ' *(?<proto>\d+|\S+)'\
-                 ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|'\
-                 'addrgroup \S+)*'\
-                 ' *(?<src_port>eq \S+|neq \S+|lt \S+|''gt \S+|range \S+ \S+|'\
-                 'portgroup \S+)?'\
-                 ' *(?<dst_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|'\
-                 'addrgroup \S+)'\
-                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|'\
-                 'portgroup \S+)?'\
-                 ' *(?<option>[a-zA-Z0-9\-\/ ]*)*'
       afis = %w(ip ipv6)
       hash = {}
       afis.each do |afi|
-        get_args = { afi: afi }
-        instances = config_get('acl', 'all_acl', get_args)
-        next if instances.nil?
-        instances.each do |name|
-          hash[name] = {}
-          get_args[:acl_name] = name
-          aces = config_get('acl', 'all_ace', get_args)
+        acls = config_get('acl', 'all_acls', afi: afi)
+        next if acls.nil?
+
+        acls.each do |acl_name|
+          hash[acl_name] = {}
+          aces = config_get('acl', 'all_aces', afi: afi, acl_name: acl_name)
           next if aces.nil?
-          aces.each do |ace|
-            regexp = Regexp.new(regexp_str)
-            match = regexp.match(ace)
-            item = Ace.new(name, match[1].to_i, afi)
-            item.seqno = match[1].to_i
-            item.action = match[2]
-            item.proto = match[3]
-            item.src_addr = match[4]
-            item.src_port = match[5]
-            item.dst_addr = match[6]
-            item.dst_port = match[7]
-            item.option_format = match[8]
-            hash[name][match[1].to_i] = item
+
+          aces.each do |seqno|
+            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno.to_i)
           end
         end
+        # puts "hash #{hash}"
       end
       hash
     end
 
-    # Destroy a router instance; disable feature on last instance
-    def destroy
-      config_ace('no')
-    end
-
-    # First create acl
-    def config_ace(state='')
+    # common setter. Put the values you need in a hash and pass it in.
+    # attrs = {:action=>'permit', :proto=>'ip', :src =>'host 1.1.1.1'}
+    def ace_set(attrs)
+      state = attrs.empty? ? 'no ' : ''
       @set_args[:state] = state
+      @set_args[:action] = attrs[:action]
+      @set_args[:proto] = attrs[:proto]
+      @set_args[:src_addr] = attrs[:src_addr]
+      @set_args[:src_port] = attrs[:src_port]
+      @set_args[:dst_addr] = attrs[:dst_addr]
+      @set_args[:dst_port] = attrs[:dst_port]
+      @set_args[:option_format] = attrs[:option_format]
       config_set('acl', 'ace', @set_args)
     end
 
-    # ----------
     # PROPERTIES
     # ----------
-    # getter of seqno
-    def seqno
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
-
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[1]
-    end
-
-    # setter of seqno
-    def seqno=(state)
-      @set_args[:state] = state ? '' : 'no'
-    end
-
     # getter of action
     def action
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[2]
+      match[:action]
     end
 
     # setter of action
@@ -134,12 +106,10 @@ module Cisco
 
     # getter of proto
     def proto
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[3]
+      match[:proto]
     end
 
     # setter of proto
@@ -149,12 +119,10 @@ module Cisco
 
     # getter of src_addr
     def src_addr
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[4]
+      match[:src_addr]
     end
 
     # setter of src_addr
@@ -164,12 +132,10 @@ module Cisco
 
     # getter of src_port
     def src_port
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[5]
+      match[:src_port]
     end
 
     # setter of src_port_format
@@ -179,12 +145,10 @@ module Cisco
 
     # getter of dst_addr_format
     def dst_addr
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[6]
+      match[:dst_addr]
     end
 
     # setter of dst_addr_format
@@ -194,12 +158,10 @@ module Cisco
 
     # getter of dst_port_format
     def dst_port
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[7]
+      match[:dst_port]
     end
 
     # setter of dst_port_format
@@ -209,12 +171,10 @@ module Cisco
 
     # getter of option_format
     def option_format
-      str = config_get('acl', 'ace', @get_args)
-      return if str.nil?
+      match = ace_get
+      return nil if match.nil?
 
-      regexp = Regexp.new(@regexp_str)
-      match = regexp.match(str)
-      match[8]
+      match[:option_format]
     end
 
     # setter of option_format
