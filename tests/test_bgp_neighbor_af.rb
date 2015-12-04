@@ -30,13 +30,20 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def setup
     super
     if @@reset_feat
-      config('no feature bgp', 'feature bgp')
-      config('no nv overlay evpn', 'nv overlay evpn')
+      if platform == :nexus
+        config('no feature bgp', 'feature bgp')
+        config('no nv overlay evpn', 'nv overlay evpn')
+      else
+        cleanup_ios_xr
+        setup_ios_xr
+      end
       @@reset_feat = false # rubocop:disable Style/ClassVars
     else
-      # Just ensure that feature is enabled
-      config('feature bgp')
-      config('nv overlay evpn')
+      if platform == :nexus
+        # Just ensure that feature is enabled
+        config('feature bgp')
+        config('nv overlay evpn')
+      end
     end
   end
 
@@ -56,6 +63,67 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     [obj_af, dbg]
   end
 
+  # One time setup for XR
+  # this doesn't support the matrix very well but
+  # really only need to test 3 cases (ipv4 uni, l2vpn and a vrf)
+  def setup_ios_xr
+    return if platform == :nexus
+    asn  = 1
+    vrf  = 'aa'
+    nbr  = '1.1.1.1'
+    af   = 'ipv4 unicast'
+    vpn  = 'vpnv4 unicast'
+    evpn = 'l2vpn evpn'
+
+    # Global requirements
+    # route policies
+    str1 = 'route-map-in-name'
+    str2 = 'route-map-out-name'
+    config("route-policy #{str1}", 'end-policy')
+    config("route-policy #{str2}", 'end-policy')
+    config("route-policy #{str1.reverse}", 'end-policy')
+    config("route-policy #{str2.reverse}", 'end-policy')
+    config('route-policy foo_bar', 'end-policy')
+    config('route-policy baz_inga', 'end-policy')
+
+    # vpn stuff - possibly not needed
+    config("vrf #{vrf} address-family #{af}")
+    config('rd-set auto', 'end-set')
+
+    # router-id and address-family under the global bgp
+    # remote-as under the neighbor
+    # VRF statements
+    config("router bgp #{asn}")
+    config("router bgp #{asn} bgp router-id 1.1.1.1")
+    config("router bgp #{asn} neighbor #{nbr} remote-as #{asn}")
+    config("router bgp #{asn} address-family #{af}")
+    config("router bgp #{asn} address-family #{vpn}")
+    config("router bgp #{asn} address-family #{evpn}")
+    config("router bgp #{asn} vrf #{vrf} rd auto")
+    config("router bgp #{asn} vrf #{vrf} address-family #{af}")
+    config("router bgp #{asn} vrf #{vrf} address-family #{evpn}")
+    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}")
+    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
+           "address-family #{af}")
+    @@node.show('show run')
+  end
+
+  def cleanup_ios_xr
+    return if platform == :nexus
+    config('no router bgp')
+    config('no vrf aa address-family ipv4 unicast')
+    config('no vrf aa')
+
+    str1 = 'route-map-in-name'
+    str2 = 'route-map-out-name'
+    config("no route-policy #{str1}")
+    config("no route-policy #{str2}")
+    config("no route-policy #{str1.reverse}")
+    config("no route-policy #{str2.reverse}")
+    config('no route-policy foo_bar')
+    config('no route-policy baz_inga')
+  end
+
   # def test_foo
   #   af, dbg = clean_af([2, 'red', '1.1.1.1', %w(ipv4 unicast)])
   #   foo(af, dbg)
@@ -64,28 +132,27 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   # AF test matrix
   @@matrix = { # rubocop:disable Style/ClassVars
     # 1  => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
-    # 2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
+    # 2  => [1, 'default', '10:1::1', %w(ipv4 unicast)], # UNSUPPORTED in XR
     # 3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
     # 4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
     # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)], # yes
     # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
-    # 9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
-    # 10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
+    # 8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)], #Go
+    # 9 => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
+    10 => [1, 'aa', '1.1.1.1', %w(ipv4 unicast)], # yes
     # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
     # 12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
     # 13 => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
     # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
     # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
     # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
-    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
+    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)], # yes
   }
 
   # ---------------------------------
   def test_nbr_af_create_destroy
-    config('no feature bgp', 'feature bgp')
-
+    config('no feature bgp', 'feature bgp') if platform == :nexus
     # Creates
     obj = {}
     @@matrix.each do |k, v|
@@ -117,6 +184,16 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
+      if platform == :ios_xr
+        # XR does not do slash masks and neighbors
+        # so make sure to catch the error
+        assert_raises(ArgumentError, 'Neighbors do not support /') do
+          RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+        end
+        # Finish the test case with regular neighbor
+        # to avoid skipping whole testcase
+        nbr = '1.1.1.1'
+      end
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
@@ -129,6 +206,12 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       nbr += (nbr[/:/]) ? '/64' : '/16'
+      if platform == :ios_xr
+        assert_raises(ArgumentError, 'Neighbors do not support /') do
+          RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+        end
+        nbr = '1.1.1.1'
+      end
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
       nbr_munged = Utils.process_network_mask(nbr)
@@ -150,15 +233,17 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def props_bool(af, dbg)
     # These properties have simple boolean states. As such we can use a common
     # set of tests to validate each property.
+    # Common to both XR and nexus
     props = [
       :as_override,
-      :disable_peer_as_check,
       :next_hop_self,
-      :next_hop_third_party,
-      :suppress_inactive,
     ]
 
-    props = [:disable_peer_as_check] if dbg.include?('l2vpn/evpn')
+    if platform == :nexus
+      props << :next_hop_third_party
+      props << :suppress_inactive
+      props = [:disable_peer_as_check] if dbg.include?('l2vpn/evpn')
+    end
 
     # Call setter to false, then validate with getter
     props.each { |k| af.send("#{k}=", false) }
@@ -193,17 +278,20 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def props_string(af, dbg)
     # These properties have a common string value (route-map), allowing them
     # to use a common set of tests to validate each property.
+    # Common to both XR and nexus
     props = {
-      filter_list_in:  'filt-in-name',
-      filter_list_out: 'filt-out-name',
-      prefix_list_in:  'pref-in-name',
-      prefix_list_out: 'pref-out-name',
-      route_map_in:    'route-map-in-name',
-      route_map_out:   'route-map-out-name',
-      unsuppress_map:  'unsupp-map-name',
+      route_map_in:  'route-map-in-name',
+      route_map_out: 'route-map-out-name',
     }
 
-    props.delete(:unsuppress_map) if dbg.include?('l2vpn/evpn')
+    if platform == :nexus
+      props << "filter_list_in:  'filt-in-name'"
+      props << "filter_list_out: 'filt-out-name'"
+      props << "prefix_list_in:  'pref-in-name'"
+      props << "prefix_list_out: 'pref-out-name'"
+      props << "unsuppress_map:  'unsupp-map-name'" unless
+        dbg.include?('l2vpn/evpn')
+    end
 
     props.each do |k, v|
       # Call setter.
@@ -233,7 +321,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
 
-      unless dbg.include?('l2vpn/evpn')
+      unless dbg.include?('l2vpn/evpn') || platform == :ios_xr
         %w(additional_paths_receive additional_paths_send).each do |k|
           [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
            af.send("default_#{k}")
@@ -267,6 +355,12 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def advertise_map(af, dbg)
     %w(advertise_map_exist advertise_map_non_exist).each do |k|
       v = %w(foo bar)
+      if platform == :ios_xr
+        assert_raises(ArgumentError) do
+          af.send("#{k}=", v)
+        end
+        break
+      end
       af.send("#{k}=", v)
       assert_equal(v, af.send(k),
                    "Test 1. #{dbg} [#{k}=] did not set strings '#{v}'")
@@ -336,20 +430,32 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
   def default_originate(af, dbg)
     # Test basic true
-    af.default_originate_set(true)
-    assert(af.default_originate,
-           "Test 1. #{dbg} Failed to set state to True")
-
+    if platform == :ios_xr
+      # XR does not support a default route-policy
+      assert_raises(ArgumentError) do
+        af.default_originate_set(true)
+      end
+    else
+      af.default_originate_set(true)
+      assert(af.default_originate,
+             "Test 1. #{dbg} Failed to set state to True")
+    end
     # Test true with route-map
     af.default_originate_set(true, 'foo_bar')
     assert_equal('foo_bar', af.default_originate_route_map,
                  "Test 2. #{dbg} Failed to set True with Route-map")
 
     # Test false with route-map
-    af.default_originate_set(false)
-    refute(af.default_originate,
-           "Test 3. #{dbg} Failed to set state to False")
-
+    if platform == :ios_xr
+      # XR does not support a default route-policy
+      assert_raises(ArgumentError) do
+        af.default_originate_set(false)
+      end
+    else
+      af.default_originate_set(false)
+      refute(af.default_originate,
+             "Test 3. #{dbg} Failed to set state to False")
+    end
     # Test true with route-map, from false
     af.default_originate_set(true, 'baz_inga')
     assert_equal('baz_inga', af.default_originate_route_map,
@@ -357,14 +463,28 @@ class TestRouterBgpNeighborAF < CiscoTestCase
                  'from false state')
 
     # Test default route-map, from true
-    af.default_originate_set(true, af.default_default_originate_route_map)
-    refute(af.default_originate_route_map,
-           "Test 5. #{dbg} Failed to set default route-map from existing")
+    if platform == :ios_xr
+      # XR does not support a default route-policy
+      assert_raises(ArgumentError) do
+        af.default_originate_set(true, af.default_default_originate_route_map)
+      end
+    else
+      af.default_originate_set(true, af.default_default_originate_route_map)
+      refute(af.default_originate_route_map,
+             "Test 5. #{dbg} Failed to set default route-map from existing")
+    end
 
     # Test default_state
-    af.default_originate_set(af.default_default_originate)
-    refute(af.default_originate,
-           "Test 6. #{dbg} Failed to set state to default")
+    if platform == :ios_xr
+      # XR does not support a default route-policy
+      assert_raises(ArgumentError) do
+        af.default_originate_set(af.default_default_originate)
+      end
+    else
+      af.default_originate_set(af.default_default_originate)
+      refute(af.default_originate,
+             "Test 6. #{dbg} Failed to set state to default")
+    end
   end
 
   # ---------------------------------
@@ -407,7 +527,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.max_prefix_set(limit, threshold, warning)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 4a. #{dbg} Failed to set limit to '#{limit}'")
-    assert_equal(threshold, af.max_prefix_threshold,
+    assert_equal((platform == :nexus ? threshold : 75), af.max_prefix_threshold,
                  "Test 4b. #{dbg} Failed to set threshold to '#{threshold}'")
     assert_equal(warning, af.max_prefix_warning,
                  "Test 4c. #{dbg} Failed to set warning to '#{warning}'")
@@ -418,7 +538,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.max_prefix_set(limit, threshold, interval)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 5a. #{dbg} Failed to set limit to '#{limit}'")
-    assert_equal(threshold, af.max_prefix_threshold,
+    assert_equal((platform == :nexus ? threshold : 75), af.max_prefix_threshold,
                  "Test 5b. #{dbg} Failed to set threshold to '#{threshold}'")
     assert_equal(interval, af.max_prefix_interval,
                  "Test 5c. #{dbg} Failed to set interval to '#{interval}'")
@@ -446,7 +566,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.max_prefix_set(limit, threshold, interval)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 8a. #{dbg} Failed to set limit to '#{limit}'")
-    assert_equal(threshold, af.max_prefix_threshold,
+    assert_equal((platform == :nexus ? threshold : 75), af.max_prefix_threshold,
                  "Test 8b. #{dbg} Failed to set threshold to '#{threshold}'")
     assert_equal(interval, af.max_prefix_interval,
                  "Test 8c. #{dbg} Failed to set interval to '#{interval}'")
@@ -457,9 +577,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.max_prefix_set(limit, threshold, warning)
     assert_equal(limit, af.max_prefix_limit,
                  "Test 9a. #{dbg} Failed to set limit to '#{limit}'")
-    assert_equal(threshold, af.max_prefix_threshold,
+    assert_equal((platform == :nexus ? threshold : 75), af.max_prefix_threshold,
                  "Test 9b. #{dbg} Failed to set threshold to '#{threshold}'")
-    assert_equal(warning, af.max_prefix_warning,
+    assert_equal((platform == :nexus ? warning : nil), af.max_prefix_warning,
                  "Test 9c. #{dbg} Failed to set warning to '#{warning}'")
 
     af.max_prefix_set(nil)
@@ -495,15 +615,15 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   # ---------------------------------
   def test_send_community
     # iBGP only, do extra cleanup
-    config('no feature bgp', 'feature bgp')
+    config('no feature bgp', 'feature bgp') unless platform == :ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
-      send_community(af, dbg)
+      platform == :nexus ? send_comm_nexus(af, dbg) : send_comm_xr(af, dbg)
     end
     @@reset_feat = true # rubocop:disable Style/ClassVars
   end
 
-  def send_community(af, dbg)
+  def send_comm_nexus(af, dbg)
     v = 'both'
     af.send_community = v
     assert_equal(v, af.send_community,
@@ -525,7 +645,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 3b. #{dbg} Failed to set '#{v}' from 'standard'")
-
     v = 'extended'
     af.send_community = v
     assert_equal(v, af.send_community,
@@ -535,7 +654,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 5. #{dbg} Failed to set '#{v}' from 'extended'")
-
     v = 'standard'
     af.send_community = v
     assert_equal(v, af.send_community,
@@ -544,7 +662,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 7. #{dbg} Failed to set '#{v}' from 'standard'")
-
     v = 'none'
     af.send_community = v
     assert_equal(v, af.send_community,
@@ -552,7 +669,71 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
     v = 'both'
     af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 9. #{dbg} Failed to set '#{v}' from None")
+
+    v = af.default_send_community
+    af.send_community = af.default_send_community
     assert_equal(v, af.send_community,
+                 "Test 10. #{dbg} Failed to set state to default")
+  end
+
+  def send_comm_xr(af, dbg)
+    v = 'both'
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 1a. #{dbg} Failed to set '#{v}' from None")
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 1b. #{dbg} Failed to set '#{v}' from None")
+
+    v = 'extended'
+    af.send_community = v
+    assert_equal('send-extended-community-ebgp', af.send_community,
+                 "Test 2a. #{dbg} Failed to set '#{v}' from 'both'")
+    af.send_community = v
+    assert_equal('send-extended-community-ebgp', af.send_community,
+                 "Test 2b. #{dbg} Failed to set '#{v}' from 'extended'")
+    v = 'standard'
+    af.send_community = v
+    # XR it's additive
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 3a. #{dbg} Failed to set '#{v}' from 'extended'")
+    af.send_community = v
+    assert_equal('send-community-ebgp', af.send_community,
+                 "Test 3b. #{dbg} Failed to set '#{v}' from 'standard'")
+    v = 'extended'
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 4. #{dbg} Failed to set '#{v}' from 'standard'")
+    v = 'both'
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 5. #{dbg} Failed to set '#{v}' from 'extended'")
+    v = 'standard'
+    af.send_community = v
+    assert_equal('send-community-ebgp', af.send_community,
+                 "Test 6. #{dbg} Failed to set '#{v}' from 'both'")
+    v = 'both'
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
+                 "Test 7. #{dbg} Failed to set '#{v}' from 'standard'")
+    v = 'none'
+    af.send_community = v
+    assert_equal(v, af.send_community,
+                 "Test 8. #{dbg} Failed to remove send-community")
+
+    v = 'both'
+    af.send_community = v
+    assert_equal('send-community-ebgp send-extended-community-ebgp',
+                 af.send_community,
                  "Test 9. #{dbg} Failed to set '#{v}' from None")
 
     v = af.default_send_community
@@ -572,29 +753,61 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def soo(af, dbg)
     val = '1.1.1.1:1'
 
-    if dbg.include?('default')
-      assert_raises(CliError, "Test 1. #{dbg}[soo=] did not raise CliError") do
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
         af.soo = val
       end
-      # SOO is only allowed in non-default VRF
-      return
+    else
+      if dbg.include?('default')
+        str = "Test 1. #{dbg}[soo=] did not raise CliError"
+        assert_raises(CliError, str) do
+          af.soo = val
+        end
+        # SOO is only allowed in non-default VRF
+        return
+      end
     end
 
-    # Set initial
-    af.soo = val
-    assert_equal(val, af.soo,
-                 "Test 2. #{dbg} Failed to set '#{val}'")
+    if platform == :nexus
+      # Set initial
+      af.soo = val
+      assert_equal(val, af.soo,
+                   "Test 2. #{dbg} Failed to set '#{val}'")
 
-    # Change to new string
-    val = '2:2'
-    af.soo = val
-    assert_equal(val, af.soo,
-                 "Test 3. #{dbg} Failed to change to '#{val}'")
+      # Change to new string
+      val = '2:2'
+      af.soo = val
+      assert_equal(val, af.soo,
+                   "Test 3. #{dbg} Failed to change to '#{val}'")
 
-    # Set to default
-    val = af.default_soo
-    af.soo = val
-    assert_empty(af.soo,
-                 "Test 4. #{dbg} Failed to set default '#{val}'")
+      # Set to default
+      val = af.default_soo
+      af.soo = val
+      assert_empty(af.soo,
+                   "Test 4. #{dbg} Failed to set default '#{val}'")
+    else
+      assert_raises(Cisco::UnsupportedError) do
+        af.soo = val
+      end
+    end
+  end
+
+  # --------------------------------
+  def test_weight
+    @@matrix.values.each do |af_args|
+      af, dbg = clean_af(af_args)
+      weight(af, dbg)
+    end
+  end
+
+  def weight(af, dbg)
+    af.weight = 22
+    assert_equal(22, af.weight, "Test 1. #{dbg} Failed to set weight")
+
+    # Seems odd to set an int to false - but normally there's a default value
+    # of some kind but in bgp weight is ignored unless configured. 0 is not
+    # acceptable as is nvgens.
+    af.weight = false
+    assert_equal(nil, af.weight, "Test 2. #{dbg} Failed to remove weight")
   end
 end

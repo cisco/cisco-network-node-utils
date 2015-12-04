@@ -70,6 +70,11 @@ module Cisco
       fail ArgumentError, "'af' must be an array specifying afi and safi" unless
         af.is_a?(Array) || af.length == 2
 
+      # XR BGP does not support <address>/<mask>
+      if platform == :ios_xr && nbr['/'] == '/'
+        fail ArgumentError, "IOS XR does not support 'slash' notation"
+      end
+
       nbr = Utils.process_network_mask(nbr)
       @asn = asn
       @vrf = vrf
@@ -110,10 +115,12 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_exist
+      fail ArgumentError if platform == :ios_xr
       config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
     end
 
     def advertise_map_exist=(arr)
+      fail ArgumentError if platform == :ios_xr
       if arr.empty?
         state = 'no'
         map1, map2 = advertise_map_exist
@@ -125,6 +132,7 @@ module Cisco
     end
 
     def default_advertise_map_exist
+      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'advertise_map_exist')
     end
 
@@ -133,10 +141,12 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_non_exist
+      fail ArgumentError if platform == :ios_xr
       config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
     end
 
     def advertise_map_non_exist=(arr)
+      fail ArgumentError if platform == :ios_xr
       if arr.empty?
         state = 'no'
         map1, map2 = advertise_map_non_exist
@@ -148,6 +158,7 @@ module Cisco
     end
 
     def default_advertise_map_non_exist
+      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'advertise_map_non_exist')
     end
 
@@ -223,7 +234,8 @@ module Cisco
     end
 
     def default_additional_paths_receive
-      config_get_default('bgp_neighbor_af', 'additional_paths_receive').to_sym
+      ret = config_get_default('bgp_neighbor_af', 'additional_paths_receive')
+      ret.to_sym unless ret.to_s == ''
     end
 
     # -----------------------
@@ -257,7 +269,7 @@ module Cisco
     def default_originate_get
       val = config_get('bgp_neighbor_af', 'default_originate', @get_args)
       return nil unless val
-      (val[/route-map/]) ? val.split.last : true
+      (val[/route-/]) ? val.split.last : true
     end
 
     def default_originate
@@ -271,16 +283,23 @@ module Cisco
     end
 
     def default_originate_set(state, map=nil)
-      map = "route-map #{map}" unless map.nil?
+      if platform == :ios_xr
+        map = "route-policy #{map}" unless map.nil?
+      else
+        map = "route-map #{map}" unless map.nil?
+      end
+      fail ArgumentError if platform == :ios_xr && map.nil?
       set_args_keys(state: (state ? '' : 'no'), map: map)
       config_set('bgp_neighbor_af', 'default_originate', @set_args)
     end
 
     def default_default_originate
+      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'default_originate')
     end
 
     def default_default_originate_route_map
+      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'default_originate_route_map')
     end
 
@@ -544,15 +563,20 @@ module Cisco
     end
 
     # -----------------------
-    # <state> send-community [ both | extended | standard ]
-    # NOTE: 'standard' is default but does not nvgen on some platforms
-    # Returns: none, both, extended, or standard
+    # Nexus: <state> send-community [ both | extended | standard ]
+    #  NOTE: 'standard' is default but does not nvgen on some platforms
+    #  Returns: none, both, extended, or standard
+    #
+    # XR: 'send-community-ebgp' and 'send-extended-community-ebgp' are
+    #  the equivalents of the NXOS: standard | extended functionality
+    #  Returns: node, 'send-community-ebgp', 'send-extended-community-ebgp' or
+    #  'send-community-ebgp send-extended-community-ebgp' (both equiv.)
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
-      val = val.split.last
-      return 'standard' if val[/send-community/] # Workaround
-      val
+      val = val.split.last unless platform == :ios_xr
+      return 'standard' unless platform == :ios_xr || !val[/send-community/]
+      val.join(' ')
     end
 
     def send_community=(val)
@@ -561,6 +585,11 @@ module Cisco
         val = 'both'
       end
       if val[/extended|standard/]
+        # Case where already configured.
+        if send_community ==
+           'send-community-ebgp send-extended-community-ebgp'
+          send_community = 'both'
+        end
         case send_community
         when /both/
           state = 'no'
@@ -570,13 +599,34 @@ module Cisco
         when /extended|standard/
           # This is an additive property therefore remove the entire command
           # when switching from: ext <--> std
-          set_args_keys(state: 'no', attr: 'both')
+          if platform == :nexus
+            set_args_keys(state: 'no', attr: 'both')
+            config_set('bgp_neighbor_af', 'send_community', @set_args)
+          elsif platform == :ios_xr && val == 'standard'
+            set_args_keys(state: 'no', attr: 'send-community-ebgp')
+          else # platform == :ios_xr && val == 'extended'
+            set_args_keys(state: 'no', attr: 'send-extended-community-ebgp')
+          end
           config_set('bgp_neighbor_af', 'send_community', @set_args)
           state = ''
         end
       end
-      set_args_keys(state: state, attr: val)
-      config_set('bgp_neighbor_af', 'send_community', @set_args)
+      if platform == :nexus
+        set_args_keys(state: state, attr: val)
+      else
+        if val == 'both'
+          set_args_keys(state: state, attr: 'send-community-ebgp')
+          config_set('bgp_neighbor_af', 'send_community', @set_args)
+          set_args_keys(state: state, attr: 'send-extended-community-ebgp')
+          config_set('bgp_neighbor_af', 'send_community', @set_args)
+        elsif val == 'standard'
+          set_args_keys(state: state, attr: 'send-community-ebgp')
+        else
+          set_args_keys(state: state, attr: 'send-extended-community-ebgp')
+        end
+      end
+      config_set('bgp_neighbor_af', 'send_community', @set_args) unless
+        val == 'both'
     end
 
     def default_send_community
