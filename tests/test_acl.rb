@@ -67,18 +67,21 @@ class TestAcl < CiscoTestCase
     assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
                       msg:     "failed to create acl #{acl_name}")
 
-    # setter function
+    # set to true
     rtr.stats_per_entry = true
     assert_show_match(pattern: /statistics per-entry/,
                       msg:     'failed to enable stats')
 
-    # getter function
-    val = rtr.stats_per_entry
-    assert(val, 'value is not true')
+    assert(rtr.stats_per_entry)
+
+    # set to false
+    rtr.stats_per_entry = false
+    refute_show_match(pattern: /statistics per-entry/,
+                      msg:     'failed to disnable stats')
+    refute(rtr.stats_per_entry)
 
     # default getter function
-    val = rtr.default_stats_per_entry
-    refute(val, 'value is not false')
+    refute(rtr.default_stats_per_entry)
 
     rtr.destroy
     refute_show_match(pattern: /^ip access-list #{acl_name}$/,
@@ -101,8 +104,7 @@ class TestAcl < CiscoTestCase
                       msg:     'failed to set fragments #{option} ' + option)
 
     # getter function
-    val = rtr.fragments
-    assert_equal(val, option, 'value not correct')
+    assert_equal(option, rtr.fragments)
   end
 
   def unset_fragments(rtr, afi, acl_name)
