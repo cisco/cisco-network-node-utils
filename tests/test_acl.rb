@@ -102,7 +102,7 @@ class TestAcl < CiscoTestCase
 
     # getter function
     val = rtr.fragments
-    assert_equal(val, 'fragments ' + option, 'value not correct')
+    assert_equal(val, option, 'value not correct')
   end
 
   def unset_fragments(rtr, afi, acl_name)
@@ -115,7 +115,7 @@ class TestAcl < CiscoTestCase
 
     # getter function
     val = rtr.fragments
-    assert_equal(val, 'nil', 'value not correct')
+    assert_nil(val)
   end
 
   def fragments(afi, acl_name)
@@ -125,7 +125,7 @@ class TestAcl < CiscoTestCase
     assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
                       msg:     "failed to create acl #{acl_name}")
 
-    # set 'no frgaments ...'
+    # set 'no fragments ...'
     unset_fragments(rtr, afi, acl_name)
 
     # set 'fragments permit-all' from nothing set

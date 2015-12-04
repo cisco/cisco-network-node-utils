@@ -35,8 +35,7 @@ module Cisco
       acl_hash = {}
       afis.each do |afi|
         acl_hash[afi] = {}
-        get_args = { afi: afi }
-        instances = config_get('acl', 'all_acl', get_args)
+        instances = config_get('acl', 'all_acls', afi: afi)
 
         next if instances.nil?
 
@@ -82,17 +81,11 @@ module Cisco
       config_get('acl', 'fragments', @get_args)
     end
 
-    def fragments=(permit)
-      @set_args[:state] = (permit ? '' : 'no')
-      if permit
-        @set_args[:permit] = permit
-        config_set('acl', 'fragments', @set_args)
-      else
-        @set_args[:permit] = 'permit-all'
-        config_set('acl', 'fragments', @set_args)
-        @set_args[:permit] = 'deny-all'
-        config_set('acl', 'fragments', @set_args)
-      end
+    def fragments=(action)
+      @set_args[:state] = (action ? '' : 'no')
+      action = fragments unless action
+      @set_args[:action] = action
+      config_set('acl', 'fragments', @set_args) if action
     end
 
     def default_fragments
