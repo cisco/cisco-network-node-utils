@@ -406,7 +406,8 @@ module Cisco
           config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
         end
       else
-        set_args_keys(mode: mode_symbol_to_cli(val))
+        set_args_keys(mode:  mode_symbol_to_cli(val),
+                      state: (val == :none) ? 'no' : '')
         config_set('bgp_neighbor', 'transport_passive_mode', @set_args)
       end
     end
@@ -414,7 +415,7 @@ module Cisco
     def transport_passive_mode
       result = config_get('bgp_neighbor', 'transport_passive_mode', @get_args)
       if platform == :nexus
-        result ? :passive_only : :both
+        result ? :passive_only : :none
       else
         mode_cli_to_symbol(result)
       end
@@ -423,7 +424,7 @@ module Cisco
     def default_transport_passive_mode
       result = config_get_default('bgp_neighbor', 'transport_passive_mode')
       if platform == :nexus
-        result ? :passive_only : :both
+        result ? :passive_only : :none
       else
         mode_cli_to_symbol(result)
       end
@@ -431,7 +432,7 @@ module Cisco
 
     def transport_passive_only=(val)
       # TODO: add "deprecated" warning?
-      self.transport_passive_mode = (val ? :passive_only : :both)
+      self.transport_passive_mode = (val ? :passive_only : :none)
     end
 
     def transport_passive_only
@@ -469,6 +470,8 @@ module Cisco
         'passive-only'
       when :both
         'both'
+      when :none
+        ''
       else
         fail KeyError
       end
@@ -482,6 +485,8 @@ module Cisco
         :passive_only
       when 'both'
         :both
+      when ''
+        :none
       else
         fail KeyError
       end

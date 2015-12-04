@@ -483,10 +483,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
       neighbor = create_neighbor(vrf)
       check = []
       if platform == :ios_xr
-        check = [:active_only, :passive_only, :both,
+        check = [:active_only, :passive_only, :both, :none,
                  neighbor.default_transport_passive_mode]
       else
-        check = [:passive_only, :both, neighbor.default_transport_passive_mode]
+        check = [:passive_only, :none,
+                 neighbor.default_transport_passive_mode]
       end
       check.each do |value|
         neighbor.transport_passive_mode = value
