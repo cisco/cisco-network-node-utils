@@ -79,13 +79,7 @@ module Cisco
     def ace_set(attrs)
       state = attrs.empty? ? 'no ' : ''
       @set_args[:state] = state
-      @set_args[:action] = attrs[:action]
-      @set_args[:proto] = attrs[:proto]
-      @set_args[:src_addr] = attrs[:src_addr]
-      @set_args[:src_port] = attrs[:src_port]
-      @set_args[:dst_addr] = attrs[:dst_addr]
-      @set_args[:dst_port] = attrs[:dst_port]
-      @set_args[:option_format] = attrs[:option_format]
+      @set_args.merge!(attrs)
       config_set('acl', 'ace', @set_args)
     end
 
