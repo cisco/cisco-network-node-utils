@@ -28,7 +28,7 @@ module Cisco
 
     # Return all acls currently on the switch
     def self.acls
-      afis = %w(ip ipv6)
+      afis = %w(ip ipv6) # TBD ip vs ipv4
       acl_hash = {}
       afis.each do |afi|
         acl_hash[afi] = {}
