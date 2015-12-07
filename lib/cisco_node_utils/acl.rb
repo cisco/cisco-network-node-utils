@@ -19,9 +19,6 @@ module Cisco
   class Acl < NodeUtil
     attr_reader :acl_name, :afi
 
-    # acl_name: name of the acl
-    # instantiate: true = create acl instance
-
     def initialize(afi, acl_name, instantiate=true)
       fail TypeError unless acl_name.is_a?(String)
       afi = 'ip' if afi[/ipv4/] # TBD platform-specific
@@ -29,7 +26,7 @@ module Cisco
       create if instantiate
     end
 
-    # it will return all acls in the switch
+    # Return all acls currently on the switch
     def self.acls
       afis = %w(ip ipv6)
       acl_hash = {}
@@ -38,7 +35,6 @@ module Cisco
         instances = config_get('acl', 'all_acls', afi: afi)
 
         next if instances.nil?
-
         instances.each do |acl_name|
           acl_hash[afi][acl_name] = Acl.new(afi, acl_name, false)
         end
@@ -46,12 +42,10 @@ module Cisco
       acl_hash
     end
 
-    # config ip access-list and create
     def create
       config_acl('')
     end
 
-    # Destroy acl instance
     def destroy
       config_acl('no')
     end
