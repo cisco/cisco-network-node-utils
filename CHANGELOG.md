@@ -4,6 +4,8 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
+* ACL
+  * acl (@saqibraza)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
