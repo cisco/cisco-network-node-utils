@@ -21,11 +21,11 @@ module Cisco
 
     # acl_name: name of the acl
     # instantiate: true = create acl instance
-    def initialize(acl_name, afi, instantiate=true)
+
+    def initialize(afi, acl_name, instantiate=true)
       fail TypeError unless acl_name.is_a?(String)
-      fail ArgumentError 'Argument afi must be ip or ipv6' unless
-        afi == 'ip' || afi == 'ipv6'
-      @set_args = @get_args = { acl_name: acl_name, afi: afi }
+      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
+      @set_args = @get_args = { afi: afi, acl_name: acl_name }
       create if instantiate
     end
 
@@ -39,8 +39,8 @@ module Cisco
 
         next if instances.nil?
 
-        instances.each do |name|
-          acl_hash[afi][name] = Acl.new(name, afi, false)
+        instances.each do |acl_name|
+          acl_hash[afi][acl_name] = Acl.new(afi, acl_name, false)
         end
       end
       acl_hash

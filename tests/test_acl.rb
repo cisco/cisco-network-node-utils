@@ -34,14 +34,17 @@ class TestAcl < CiscoTestCase
   end
 
   def no_ip_access_list_foo
-    # Turn the feature off for a clean test.
-    config('no ip access-list ' + @acl_name_v4)
-    config('no ipv6 access-list ' + @acl_name_v6)
+    # Turn the feature off for a clean test
+    %w(ipv4 ipv6).each do |afi|
+      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      config('no ' + afi + ' access-list ' + acl_name)
+    end
   end
 
   # TESTS
   def create_acl(afi, acl_name)
-    rtr = Acl.new(acl_name, afi)
+    rtr = Acl.new(afi, acl_name)
     assert(Acl.acls[afi].key?(acl_name),
            "ACL #{afi} #{acl_name} is not configured")
 
@@ -54,14 +57,17 @@ class TestAcl < CiscoTestCase
   end
 
   def test_create_acl
-    %w(ip ipv6).each do |afi|
+    %w(ipv4 ipv6).each do |afi|
+      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       create_acl(afi, acl_name)
     end
   end
 
   def stats_enable(afi, acl_name)
-    rtr = Acl.new(acl_name, afi)
+    rtr = Acl.new(afi, acl_name)
+
+    afi = 'ip' if afi[/ipv4/] # TBD platform-specific
 
     @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
     assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
@@ -84,12 +90,12 @@ class TestAcl < CiscoTestCase
     refute(rtr.default_stats_per_entry)
 
     rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{acl_name}$/,
+    refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
   end
 
   def test_stats_enable
-    %w(ip ipv6).each do |afi|
+    %w(ipv4 ipv6).each do |afi|
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       stats_enable(afi, acl_name)
     end
@@ -121,7 +127,9 @@ class TestAcl < CiscoTestCase
   end
 
   def fragments(afi, acl_name)
-    rtr = Acl.new(acl_name, afi)
+    rtr = Acl.new(afi, acl_name)
+
+    afi = 'ip' if afi[/ipv4/] # TBD platform-specific
 
     @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
     assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
@@ -150,12 +158,12 @@ class TestAcl < CiscoTestCase
     refute_equal(val, nil, 'value is not nil')
 
     rtr.destroy
-    refute_show_match(pattern: /^ip access-list #{acl_name}$/,
+    refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
   end
 
   def test_fragments
-    %w(ip ipv6).each do |afi|
+    %w(ipv4 ipv6).each do |afi|
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       fragments(afi, acl_name)
     end
