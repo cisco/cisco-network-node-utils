@@ -242,19 +242,19 @@ class TestSnmpUser < CiscoTestCase
 
   def test_snmpuser_auth_password_equal_localizedkey
     name = 'testV3PwEqual'
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     create_user(name, "network-admin auth md5 #{auth_pw} localizedkey")
 
     # get users
     snmpuser = SnmpUser.users[name]
     assert(snmpuser.auth_password_equal?(auth_pw, true))
     # verify that if we give a wrong password, the api will return false
-    refute(snmpuser.auth_password_equal?('0xfe6c', true))
+    refute(snmpuser.auth_password_equal?('0xFe6c', true))
   end
 
   def test_snmpuser_auth_priv_password_equal_localizedkey
     name = 'testV3PwEqual'
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     priv_pw = '0x29916eac22d90362598abef1b9045018'
     create_user(name, "network-admin auth md5 #{auth_pw} " \
                 "priv aes-128 #{priv_pw} localizedkey")
@@ -297,7 +297,7 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_md5_nopriv_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
@@ -333,7 +333,7 @@ class TestSnmpUser < CiscoTestCase
   def test_create_1_group_auth_sha_nopriv_pw_localized_localizedkey_false
     name = 'userv3testauthsha3'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
 
     snmpuser = SnmpUser.new(name,
                             groups,
@@ -350,7 +350,7 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_sha_nopriv_pw_localized
     name = 'userv3testauthsha4'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,
@@ -383,8 +383,8 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_md5_priv_des_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
@@ -419,8 +419,8 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_md5_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
@@ -455,8 +455,8 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_md5_priv_sha_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,
@@ -491,8 +491,8 @@ class TestSnmpUser < CiscoTestCase
   def test_snmpuser_create_with_single_group_auth_sha_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,

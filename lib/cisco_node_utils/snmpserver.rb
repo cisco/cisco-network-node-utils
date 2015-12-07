@@ -106,16 +106,15 @@ module Cisco
     end
 
     def protocol?
-      match = config_get('snmp_server', 'protocol')
-      !match.nil? && match.include?('Enable')
+      config_get('snmp_server', 'protocol')
     end
 
     def protocol=(enable)
-      if enable
-        config_set('snmp_server', 'protocol', '')
-      else
-        config_set('snmp_server', 'protocol', 'no')
-      end
+      fail TypeError unless enable == true || enable == false
+      no_cmd = (enable ? '' : 'no')
+      config_set('snmp_server', 'protocol', no_cmd)
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_protocol
@@ -123,16 +122,18 @@ module Cisco
     end
 
     def tcp_session_auth?
-      match = config_get('snmp_server', 'tcp_session_auth')
-      !match.nil? && match.include?('Enabled')
+      config_get('snmp_server', 'tcp_session_auth')
     end
 
     def tcp_session_auth=(enable)
+      fail TypeError unless enable == true || enable == false
       if enable
         config_set('snmp_server', 'tcp_session_auth', '', 'auth')
       else
         config_set('snmp_server', 'tcp_session_auth', 'no', '')
       end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_tcp_session_auth
