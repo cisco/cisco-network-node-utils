@@ -4,10 +4,9 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
-* ACE
-  * ace (@yjyongz)
 * ACL
   * acl (@saqibraza)
+  * ace (@yjyongz)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)

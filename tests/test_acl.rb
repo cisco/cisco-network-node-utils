@@ -24,41 +24,42 @@ class TestAcl < CiscoTestCase
     @acl_name_v6 = 'test-foo-v6-1'
     @permit = 'permit-all'
     @deny = 'deny-all'
-    no_ip_access_list_foo
+    no_access_list_foo
   end
 
   def teardown
     # teardown runs at the end of each test
-    no_ip_access_list_foo
+    no_access_list_foo
     super
   end
 
-  def no_ip_access_list_foo
-    # Turn the feature off for a clean test
+  def no_access_list_foo
+    # Remove the test ACLs
     %w(ipv4 ipv6).each do |afi|
-      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
-      config('no ' + afi + ' access-list ' + acl_name)
+      config('no ' + Acl.afi_cli(afi) + ' access-list ' + acl_name)
     end
   end
 
   # TESTS
   def create_acl(afi, acl_name)
     rtr = Acl.new(afi, acl_name)
-    assert(Acl.acls[afi].key?(acl_name),
-           "ACL #{afi} #{acl_name} is not configured")
+    afi_cli = Acl.afi_cli(afi)
 
-    @default_show_command = "show runn | i '#{afi} access-list #{acl_name}'"
-    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
-                      msg:     "failed to create acl #{acl_name}")
+    assert(Acl.acls[afi].key?(acl_name),
+           "ACL #{afi_cli} #{acl_name} is not configured")
+
+    @default_show_command =
+      "show runn aclmgr | i '#{afi_cli} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
+                      msg:     "failed to create acl '#{afi_cli} #{acl_name}'")
     rtr.destroy
     refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
-                      msg:     "failed to destroy acl #{acl_name}")
+                      msg:     "failed to destroy acl '#{afi_cli} #{acl_name}")
   end
 
   def test_create_acl
     %w(ipv4 ipv6).each do |afi|
-      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       create_acl(afi, acl_name)
     end
@@ -66,11 +67,11 @@ class TestAcl < CiscoTestCase
 
   def stats_enable(afi, acl_name)
     rtr = Acl.new(afi, acl_name)
+    afi_cli = Acl.afi_cli(afi)
 
-    afi = 'ip' if afi[/ipv4/] # TBD platform-specific
-
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
-    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+    @default_show_command =
+      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to create acl #{acl_name}")
 
     # set to true
@@ -90,7 +91,7 @@ class TestAcl < CiscoTestCase
     refute(rtr.default_stats_per_entry)
 
     rtr.destroy
-    refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+    refute_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
   end
 
@@ -102,7 +103,9 @@ class TestAcl < CiscoTestCase
   end
 
   def set_fragments(rtr, afi, acl_name, option)
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+    afi_cli = Acl.afi_cli(afi)
+    @default_show_command =
+      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
 
     # setter function
     rtr.fragments = option
@@ -114,7 +117,9 @@ class TestAcl < CiscoTestCase
   end
 
   def unset_fragments(rtr, afi, acl_name)
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
+    afi_cli = Acl.afi_cli(afi)
+    @default_show_command =
+      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
 
     # setter function
     rtr.fragments = nil
@@ -128,11 +133,11 @@ class TestAcl < CiscoTestCase
 
   def fragments(afi, acl_name)
     rtr = Acl.new(afi, acl_name)
+    afi_cli = Acl.afi_cli(afi)
 
-    afi = 'ip' if afi[/ipv4/] # TBD platform-specific
-
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
-    assert_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+    @default_show_command =
+      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
+    assert_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to create acl #{acl_name}")
 
     # set 'no fragments ...'
@@ -158,7 +163,7 @@ class TestAcl < CiscoTestCase
     refute_equal(val, nil, 'value is not nil')
 
     rtr.destroy
-    refute_show_match(pattern: /^#{afi} access-list #{acl_name}$/,
+    refute_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
   end
 

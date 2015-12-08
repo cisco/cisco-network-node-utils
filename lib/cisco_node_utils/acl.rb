@@ -20,19 +20,18 @@ module Cisco
     attr_reader :acl_name, :afi
 
     def initialize(afi, acl_name, instantiate=true)
-      fail TypeError unless acl_name.is_a?(String)
-      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
-      @set_args = @get_args = { afi: afi, acl_name: acl_name }
+      @set_args = @get_args = { afi: Acl.afi_cli(afi), acl_name: acl_name.to_s }
       create if instantiate
     end
 
     # Return all acls currently on the switch
     def self.acls
-      afis = %w(ip ipv6) # TBD ip vs ipv4
+      afis = %w(ipv4 ipv6)
       acl_hash = {}
       afis.each do |afi|
         acl_hash[afi] = {}
-        instances = config_get('acl', 'all_acls', afi: afi)
+        afi_cli = Acl.afi_cli(afi)
+        instances = config_get('acl', 'all_acls', afi: afi_cli)
 
         next if instances.nil?
         instances.each do |acl_name|
@@ -40,6 +39,14 @@ module Cisco
         end
       end
       acl_hash
+    end
+
+    # Platform-specific afi cli string
+    def self.afi_cli(afi)
+      fail ArgumentError, "Argument afi must be 'ipv4' or 'ipv6'" unless
+        afi[/(ipv4|ipv6)/]
+      return 'ip' if afi[/ipv4/]
+      afi
     end
 
     def create
