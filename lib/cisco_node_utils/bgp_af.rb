@@ -505,8 +505,11 @@ module Cisco
     end
 
     def default_metric=(val)
-      set_args_keys(state: (val) ? '' : 'no',
-                    num:   (val) ? val : default_metric)
+      # To remove the default_metric you can not use 'no default_metric'
+      # dummy metric to work around this
+      dummy_metric = 1
+      set_args_keys(state: (val == default_default_metric) ? 'no' : '',
+                    num:   (val == default_default_metric) ? dummy_metric : val)
       config_set('bgp_af', 'default_metric', @set_args)
     end
 
@@ -776,14 +779,17 @@ module Cisco
     end
 
     def table_map_set(map, filter=false)
+      # To remove table map we can not use 'no table-map'
+      # Dummy-map specified to work around this
       if filter
         attr = 'table_map_filter'
       else
         attr = 'table_map'
       end
+      dummy_map = 'dummy'
       if map == default_table_map
         @set_args[:state] = 'no'
-        @set_args[:map] = table_map
+        @set_args[:map] = dummy_map
       else
         @set_args[:state] = ''
         @set_args[:map] = map
