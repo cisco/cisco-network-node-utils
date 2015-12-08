@@ -276,21 +276,22 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   end
 
   def props_string(af, dbg)
-    # These properties have a common string value (route-map), allowing them
-    # to use a common set of tests to validate each property.
-    # Common to both XR and nexus
-    props = {
-      route_map_in:  'route-map-in-name',
-      route_map_out: 'route-map-out-name',
-    }
-
     if platform == :nexus
-      props << "filter_list_in:  'filt-in-name'"
-      props << "filter_list_out: 'filt-out-name'"
-      props << "prefix_list_in:  'pref-in-name'"
-      props << "prefix_list_out: 'pref-out-name'"
-      props << "unsuppress_map:  'unsupp-map-name'" unless
-        dbg.include?('l2vpn/evpn')
+      props = {
+        filter_list_in:  'filt-in-name',
+        filter_list_out: 'filt-out-name',
+        prefix_list_in:  'pref-in-name',
+        prefix_list_out: 'pref-out-name',
+        route_map_in:    'route-map-in-name',
+        route_map_out:   'route-map-out-name',
+        unsuppress_map:  'unsupp-map-name',
+      }
+      props.delete(:unsuppress_map) if dbg.include?('l2vpn/evpn')
+    else
+      props = {
+        route_map_in:  'route-map-in-name',
+        route_map_out: 'route-map-out-name',
+      }
     end
 
     props.each do |k, v|
@@ -669,8 +670,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
     v = 'both'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal('both', af.send_community,
                  "Test 9. #{dbg} Failed to set '#{v}' from None")
 
     v = af.default_send_community
@@ -796,7 +796,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_weight
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
-      weight(af, dbg)
+      weight(af, dbg) unless dbg.include?('l2vpn/evpn') && platform == :nexus
     end
   end
 

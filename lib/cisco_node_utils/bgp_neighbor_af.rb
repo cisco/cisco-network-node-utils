@@ -563,33 +563,43 @@ module Cisco
     end
 
     # -----------------------
-    # Nexus: <state> send-community [ both | extended | standard ]
-    #  NOTE: 'standard' is default but does not nvgen on some platforms
-    #  Returns: none, both, extended, or standard
-    #
-    # XR: 'send-community-ebgp' and 'send-extended-community-ebgp' are
-    #  the equivalents of the NXOS: standard | extended functionality
-    #  Returns: node, 'send-community-ebgp', 'send-extended-community-ebgp' or
-    #  'send-community-ebgp send-extended-community-ebgp' (both equiv.)
+    # Nexus and XR implementations of send community differ enough that it makes
+    # sense to split up the individual methods to support them
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
-      val = val.split.last unless platform == :ios_xr
-      return 'standard' unless platform == :ios_xr || !val[/send-community/]
+      platform == :nexus ? send_comm_nexus_get(val) : send_comm_iosxr_get(val)
+    end
+
+    # Nexus: <state> send-community [ both | extended | standard ]
+    #  NOTE: 'standard' is default but does not nvgen on some platforms
+    #  Returns: none, both, extended, or standard
+    def send_comm_nexus_get(val)
+      val = val.split.last
+      return 'standard' if val[/send-community/] # Workaround
+      val
+    end
+
+    # XR: 'send-community-ebgp' and 'send-extended-community-ebgp' are
+    #  the equivalents of the NXOS: standard | extended functionality
+    #  Returns: node, 'send-community-ebgp', 'send-extended-community-ebgp' or
+    #  'send-community-ebgp send-extended-community-ebgp' which is the 'both'
+    # keyword equivalent
+    def send_comm_iosxr_get(val)
       val.join(' ')
     end
 
     def send_community=(val)
+      platform == :nexus ? send_comm_nexus_set(val) : send_comm_iosxr_set(val)
+    end
+
+    def send_comm_nexus_set(val)
       if val[/none/]
         state = 'no'
         val = 'both'
       end
       if val[/extended|standard/]
         # Case where already configured.
-        if send_community ==
-           'send-community-ebgp send-extended-community-ebgp'
-          send_community = 'both'
-        end
         case send_community
         when /both/
           state = 'no'
@@ -599,32 +609,57 @@ module Cisco
         when /extended|standard/
           # This is an additive property therefore remove the entire command
           # when switching from: ext <--> std
-          if platform == :nexus
-            set_args_keys(state: 'no', attr: 'both')
-            config_set('bgp_neighbor_af', 'send_community', @set_args)
-          elsif platform == :ios_xr && val == 'standard'
+          set_args_keys(state: 'no', attr: 'both')
+          config_set('bgp_neighbor_af', 'send_community', @set_args)
+          state = ''
+        end
+      end
+      set_args_keys(state: state, attr: val)
+      config_set('bgp_neighbor_af', 'send_community', @set_args)
+    end
+
+    def send_comm_iosxr_set(val)
+      if val[/none/]
+        state = 'no'
+        val = 'both'
+      end
+      if val[/extended|standard/]
+        # Case where already configured.
+        if send_community == 'send-community-ebgp send-extended-community-ebgp'
+          send_community = 'both'
+        end
+
+        case send_community
+        when /both/ # legacy command on Nexus
+          state = 'no'
+          # Unset the opposite property
+          val = val[/extended/] ? 'standard' : 'extended'
+        when /extended|standard/
+          # This is an additive property therefore remove the entire command
+          # when switching from: ext <--> std
+          if val == 'standard'
             set_args_keys(state: 'no', attr: 'send-community-ebgp')
-          else # platform == :ios_xr && val == 'extended'
+          else # val == 'extended'
             set_args_keys(state: 'no', attr: 'send-extended-community-ebgp')
           end
           config_set('bgp_neighbor_af', 'send_community', @set_args)
           state = ''
         end
       end
-      if platform == :nexus
-        set_args_keys(state: state, attr: val)
-      else
-        if val == 'both'
-          set_args_keys(state: state, attr: 'send-community-ebgp')
-          config_set('bgp_neighbor_af', 'send_community', @set_args)
-          set_args_keys(state: state, attr: 'send-extended-community-ebgp')
-          config_set('bgp_neighbor_af', 'send_community', @set_args)
-        elsif val == 'standard'
-          set_args_keys(state: state, attr: 'send-community-ebgp')
-        else
-          set_args_keys(state: state, attr: 'send-extended-community-ebgp')
-        end
+      if val == 'both'
+        # Although XR does not support a 'both' keyword - lets provide
+        # equivalent functionality to allow the user to use it consistently
+        # from a manifest.
+        set_args_keys(state: state, attr: 'send-community-ebgp')
+        config_set('bgp_neighbor_af', 'send_community', @set_args)
+        set_args_keys(state: state, attr: 'send-extended-community-ebgp')
+        config_set('bgp_neighbor_af', 'send_community', @set_args)
+      elsif val == 'standard'
+        set_args_keys(state: state, attr: 'send-community-ebgp')
+      else # val == 'extended'
+        set_args_keys(state: state, attr: 'send-extended-community-ebgp')
       end
+      # Set the comman unless 'both' which is handled above.
       config_set('bgp_neighbor_af', 'send_community', @set_args) unless
         val == 'both'
     end
