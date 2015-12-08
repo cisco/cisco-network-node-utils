@@ -83,7 +83,8 @@ module Cisco
     end
 
     def channel_group=(val)
-      fail "channel_group is not supported on #{@name}" unless @name[/Ethernet/i]
+      fail "channel_group is not supported on #{@name}" unless
+        @name[/Ethernet/i]
       # 'force' is needed by cli_nxos to handle the case where a port-channel
       # interface is created prior to the channel-group cli; in which case
       # the properties of the port-channel interface will be different from
