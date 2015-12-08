@@ -26,7 +26,7 @@ channel_group:
   kind: int
   config_get_token_append: '/^channel-group (\d+)$/'
   config_set_append: "%s channel-group %s %s"
-  default_value: ''
+  default_value: false
 
 create:
   config_set: "interface %s"
