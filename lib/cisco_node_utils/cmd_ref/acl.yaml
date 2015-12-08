@@ -9,10 +9,18 @@ _template:
   config_get_token: '/^<afi> access-list <acl_name>$/'
   config_set: '<afi> access-list <acl_name>'
 
+ace:
+  config_get_token_append: '/^<seqno> .+$/'
+  config_set_append: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port> <option_format>'
+
 acl:
   config_get_token: '/^<afi> access-list (\S+)$/'
   config_set: '<state> <afi> access-list <acl_name>'
                       
+all_aces:
+  multiple:
+  config_get_token_append: '/^(\d+) .+$/'
+
 all_acls:
   multiple:
   config_get_token: '/^<afi> access-list (\S+)$/'
