@@ -720,7 +720,7 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     refute(bgp_af.default_default_metric,
-	   'default value for default default metric should be false')
+           'default value for default default metric should be false')
     #
     # Set and verify
     #
