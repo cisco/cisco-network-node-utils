@@ -101,17 +101,22 @@ module Cisco
     # Client to client (Getter/Setter/Default)
     #
     def client_to_client
+      return nil if platform == :ios_xr && @vrf != 'default'
       state = config_get('bgp_af', 'client_to_client', @get_args)
       state ? true : false
     end
 
     def client_to_client=(state)
+      fail Cisco::UnsupportedError.new('bgp_af', 'client-to-client', 'set',
+        'client-to-client is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
       state = (state ? '' : 'no')
       set_args_keys(state: state)
       config_set('bgp_af', 'client_to_client', @set_args)
     end
 
     def default_client_to_client
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp_af', 'client_to_client')
     end
 
@@ -157,6 +162,34 @@ module Cisco
 
     def default_next_hop_route_map
       config_get_default('bgp_af', 'next_hop_route_map')
+    end
+
+    def next_hop_route_policy
+      return nil if platform == :ios_xr && @vrf != 'default'
+      config_get('bgp_af', 'next_hop_route_policy', @get_args)
+    end
+
+    def next_hop_route_policy=(route_policy)
+      fail Cisco::UnsupportedError.new('bgp_af', 'nexthop route-policy', 'set',
+        'nexthop route-policy is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
+      route_policy.strip!
+      if route_policy.empty?
+        state = 'no'
+        # Dummy route policy required if not configured.
+        if next_hop_route_policy.empty?
+          route_policy = 'dummy_routepolicy'
+        else
+          route_policy = next_hop_route_policy
+        end
+      end
+      set_args_keys(state: state, route_policy: route_policy)
+      config_set('bgp_af', 'next_hop_route_policy', @set_args)
+    end
+
+    def default_next_hop_route_policy
+      return nil if platform == :ios_xr && @vrf != 'default'
+      config_get_default('bgp_af', 'next_hop_route_policy')
     end
 
     #
@@ -227,7 +260,7 @@ module Cisco
           route_map = additional_paths_selection
         end
       end
-      set_args_keys(state: state, route_map: route_map)
+      set_args_keys(state: state, route_map: route_map, route_policy: route_map)
       config_set('bgp_af', 'additional_paths_selection', @set_args)
     end
 
@@ -285,6 +318,7 @@ module Cisco
     # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
     # [nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
+      return nil if platform == :ios_xr && @vrf != 'default'
       data = config_get('bgp_af', 'dampening', @get_args)
 
       if data.nil?
@@ -369,6 +403,9 @@ module Cisco
     end
 
     def dampening=(damp_array)
+      fail Cisco::UnsupportedError.new('bgp_af', 'dampening', 'set',
+        'dampening is not configurable on a per-VRF basis on IOS XR') \
+        if platform == :ios_xr && @vrf != 'default'
       fail ArgumentError if damp_array.kind_of?(Array) &&
                             !(damp_array.length == 4 ||
                               damp_array.length == 0)
@@ -376,6 +413,7 @@ module Cisco
       # Set defaults args
       state = ''
       route_map = ''
+      route_policy = ''
       decay = ''
       reuse = ''
       suppress = ''
@@ -396,20 +434,24 @@ module Cisco
         suppress =     damp_array[2]
         suppress_max = damp_array[3]
         CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
-      elsif route_map.is_a? String
-        # 'dampening route-map WORD' command
-        route_map = "route-map #{damp_array}"
-        route_map.strip!
-        CiscoLogger.debug("Dampening 'dampening #{route_map}'")
       else
-        # Array not in a valid format
-        fail ArgumentError
+        # 'dampening route-map WORD' command
+        if platform == :nexus
+          route_map = "route-map #{damp_array}"
+          route_map.strip!
+          CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+        elsif platform == :ios_xr
+          route_policy = "route-policy #{damp_array}"
+          route_policy.strip!
+          CiscoLogger.debug("Dampening 'dampening #{route_policy}'")
+        end
       end
 
       # Set final args
       set_args_keys(
         state:        state,
         route_map:    route_map,
+        route_policy: route_policy,
         decay:        decay,
         reuse:        reuse,
         suppress:     suppress,
@@ -420,6 +462,7 @@ module Cisco
     end
 
     def default_dampening
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp_af', 'dampening')
     end
 
@@ -502,11 +545,12 @@ module Cisco
       [:add, :remove].each do |action|
         CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
                           "#{delta_hash[action]}")
-        delta_hash[action].each do |network, route_map|
+        delta_hash[action].each do |network, route_map_policy|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
-          route_map = "route-map #{route_map}" unless route_map.nil?
-          set_args_keys(state: state, network: network, route_map: route_map)
+          route_map = "route-map #{route_map_policy}" unless route_map_policy.nil?
+          route_policy = "route-policy #{route_map_policy}" unless route_map_policy.nil?
+          set_args_keys(state: state, network: network, route_map: route_map, route_policy: route_policy)
           config_set('bgp_af', 'network', @set_args)
         end
       end
