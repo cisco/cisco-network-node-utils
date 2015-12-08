@@ -682,14 +682,11 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def send_comm_xr(af, dbg)
     v = 'both'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal(v, af.send_community,
                  "Test 1a. #{dbg} Failed to set '#{v}' from None")
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal(v, af.send_community,
                  "Test 1b. #{dbg} Failed to set '#{v}' from None")
-
     v = 'extended'
     af.send_community = v
     assert_equal('send-extended-community-ebgp', af.send_community,
@@ -700,21 +697,18 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     v = 'standard'
     af.send_community = v
     # XR it's additive
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal('both', af.send_community,
                  "Test 3a. #{dbg} Failed to set '#{v}' from 'extended'")
     af.send_community = v
     assert_equal('send-community-ebgp', af.send_community,
                  "Test 3b. #{dbg} Failed to set '#{v}' from 'standard'")
     v = 'extended'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal('both', af.send_community,
                  "Test 4. #{dbg} Failed to set '#{v}' from 'standard'")
     v = 'both'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal(v, af.send_community,
                  "Test 5. #{dbg} Failed to set '#{v}' from 'extended'")
     v = 'standard'
     af.send_community = v
@@ -722,18 +716,15 @@ class TestRouterBgpNeighborAF < CiscoTestCase
                  "Test 6. #{dbg} Failed to set '#{v}' from 'both'")
     v = 'both'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal(v, af.send_community,
                  "Test 7. #{dbg} Failed to set '#{v}' from 'standard'")
     v = 'none'
     af.send_community = v
     assert_equal(v, af.send_community,
                  "Test 8. #{dbg} Failed to remove send-community")
-
     v = 'both'
     af.send_community = v
-    assert_equal('send-community-ebgp send-extended-community-ebgp',
-                 af.send_community,
+    assert_equal(v, af.send_community,
                  "Test 9. #{dbg} Failed to set '#{v}' from None")
 
     v = af.default_send_community

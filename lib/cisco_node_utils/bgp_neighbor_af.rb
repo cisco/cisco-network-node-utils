@@ -586,7 +586,13 @@ module Cisco
     #  'send-community-ebgp send-extended-community-ebgp' which is the 'both'
     # keyword equivalent
     def send_comm_iosxr_get(val)
-      val.join(' ')
+      if val == ['send-community-ebgp', 'send-extended-community-ebgp']
+        val = 'both'
+      else
+        # Properties are an array
+        val = val.join
+      end
+      val
     end
 
     def send_community=(val)
@@ -624,11 +630,6 @@ module Cisco
         val = 'both'
       end
       if val[/extended|standard/]
-        # Case where already configured.
-        if send_community == 'send-community-ebgp send-extended-community-ebgp'
-          send_community = 'both'
-        end
-
         case send_community
         when /both/ # legacy command on Nexus
           state = 'no'
@@ -659,7 +660,7 @@ module Cisco
       else # val == 'extended'
         set_args_keys(state: state, attr: 'send-extended-community-ebgp')
       end
-      # Set the comman unless 'both' which is handled above.
+      # Set the command unless 'both' which is handled above.
       config_set('bgp_neighbor_af', 'send_community', @set_args) unless
         val == 'both'
     end
