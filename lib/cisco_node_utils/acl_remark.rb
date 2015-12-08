@@ -76,19 +76,17 @@ module Cisco
       @set_args[:state] = state ? '' : 'no'
     end
 
-    # getter of remark 
-    def remark_str 
+    # getter of remark
+    def remark_str
       match = config_get('acl', 'remark', @get_args)
       return if match.nil?
       match[2]
     end
 
-    # setter of remark 
+    # setter of remark
     def remark_str=(remark_str)
       puts remark_str
       @set_args[:remark_str] = remark_str
-      return remark_str 
     end
-
   end
 end

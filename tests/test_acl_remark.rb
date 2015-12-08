@@ -23,9 +23,11 @@ class TestAclRemark < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    @acl_name = 'test-foo-1-pradeep1'
+    @acl_name_v4 = 'test-foo-v4-1'
+    @acl_name_v6 = 'test-foo-v6-1'
+    @rem_str_v4 = 'this is an ipv4 ace'
+    @rem_str_v6 = 'this is an ipv6 ace'
     @seqno = 200
-    @afi = 'ip'
     no_ip_access_list_foo
   end
 
@@ -36,28 +38,42 @@ class TestAclRemark < CiscoTestCase
   end
 
   def no_ip_access_list_foo
-    # Turn the feature off for a clean test.
-    config('no ip access-list ' + @acl_name)
+    # Turn the feature off for a clean test
+    %w(ipv4 ipv6).each do |afi|
+      afi = 'ip' if afi[/ipv4/] # TBD platform-specific
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      config('no ' + afi + ' access-list ' + acl_name)
+    end
   end
 
   # TESTS
 
-  def test_router_create_one
-    acl = Acl.new(@afi, @acl_name)
-    remarkvar = Remark.new(@afi, @acl_name, @seqno)
-    remarkvar.remark_str = 'this is pradeepb '
-    remarkvar.config_remark('')
-    print @seqno 
-    #print remarkvar.remark_str.to_s
-  
-    puts remarkvar.remark_str 
-    puts "hi" 
-    @default_show_command = "show runn | sec 'ip access-list #{@acl_name}'"
-    assert_show_match(pattern: /\s+#{@seqno} remark #{remarkvar.remark_str}.*$/,
-                      msg:     "failed to create new_remark #{remarkvar.remark_str}")
-    remarkvar.destroy
-    refute_show_match(pattern: /\s+#{remarkvar.seqno} remark #{remarkvar.remark_str}.*$/,
+  def create_destroy_remark(afi, acl_name)
+    rtr = Acl.new(afi, acl_name, @seqno)
+    afi = 'ip' if afi[/ipv4/] # TBD platform-specific
+    rv = Remark.new(afi, acl_name, @seqno)
+    if afi == 'ip'
+      rv.remark_str = @rem_str_v4
+    else
+      rv.remark_str = @rem_str_v6
+    end
+    rv.config_remark('')
+    puts rv.remark_str
+    @default_show_command = "show runn | sec '#{afi} access-list #{@acl_name}'"
+    assert_show_match(pattern: /\s+#{@seqno} remark #{rv.remark_str}.*$/,
+                      msg:     'failed to create new_remark '\
+                               "#{rv.remark_str}")
+    # puts "I am here"
+    rv.destroy
+    refute_show_match(pattern: /\s+#{@seqno} remark #{rv.remark_str}.*$/,
                       msg:     "failed to remove remark #{@remark_str}")
-    acl.destroy
+    rtr.destroy
+  end
+
+  def test_create_destroy_remark
+    %w(ipv4 ipv6).each do |afi|
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      create_destroy_remark(afi, acl_name)
+    end
   end
 end
