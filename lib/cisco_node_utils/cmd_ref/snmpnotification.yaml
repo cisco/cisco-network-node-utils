@@ -1,0 +1,11 @@
+# snmpnotification
+---
+enable:
+  config_get: "sh run snmp all | include 'snmp-server enable traps'"
+  config_get_token: '/^snmp-server enable traps <trap_name> ?$/'
+  config_set: "<state> snmp-server enable traps <trap_name>"
+
+notifications:
+  config_get: "sh run snmp all | include 'snmp-server enable traps'"
+  config_get_token: '/.*snmp-server enable traps (.*)?$/'
+  multiple:

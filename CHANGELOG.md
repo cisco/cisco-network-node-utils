@@ -19,6 +19,8 @@ Changelog
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
+* SNMP
+  * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
