@@ -34,8 +34,8 @@ module Cisco
 
         acls.each do |acl_name|
           hash[acl_name] = {}
-          aces = config_get('acl', 'all_aces', afi: Acl.afi_cli(afi),
-                            acl_name: acl_name)
+          aces = config_get('acl', 'all_aces',
+                            afi: Acl.afi_cli(afi), acl_name: acl_name)
           next if aces.nil?
 
           aces.each do |seqno|
