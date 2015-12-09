@@ -17,20 +17,11 @@ require_relative 'node_util'
 module Cisco
   # Ace - node utility class for Ace Configuration
   class Ace < NodeUtil
-    attr_reader :acl_name, :seqno, :afi
+    attr_reader :afi, :acl_name, :seqno
 
-    # acl_name is name of acl
-    # seqno is sequence number of ace
-    # afi is either v4 or v6
     def initialize(afi, acl_name, seqno)
-      fail TypeError unless
-        acl_name.is_a?(String) && seqno.is_a?(Integer) && afi.is_a?(String)
-      fail ArgumentError 'argument afi must be either ip or ipv6' unless
-        afi == 'ip' || afi == 'ipv6'
-      @acl_name = acl_name
-      @afi = afi
-      @seqno = seqno
-      @set_args = @get_args = { acl_name: @acl_name, seqno: @seqno, afi: @afi }
+      @set_args = @get_args =
+        { afi: Acl.afi_cli(afi), acl_name: acl_name.to_s, seqno: seqno.to_s }
     end
 
     # common ace getter
@@ -50,126 +41,106 @@ module Cisco
       regexp.match(str)
     end
 
-    # Create a hash of all aces under give acl_name.
+    # Create a hash of all aces under a given acl_name.
     def self.aces
-      afis = %w(ip ipv6)
+      afis = %w(ipv4 ipv6)
       hash = {}
       afis.each do |afi|
-        acls = config_get('acl', 'all_acls', afi: afi)
+        afi_cli = Acl.afi_cli(afi)
+        acls = config_get('acl', 'all_acls', afi: afi_cli)
         next if acls.nil?
 
         acls.each do |acl_name|
           hash[acl_name] = {}
-          aces = config_get('acl', 'all_aces', afi: afi, acl_name: acl_name)
+          aces = config_get('acl', 'all_aces', afi: afi_cli, acl_name: acl_name)
           next if aces.nil?
 
           aces.each do |seqno|
-            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno.to_i)
+            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno)
           end
         end
-        # puts "hash #{hash}"
       end
       hash
     end
 
     # common setter. Put the values you need in a hash and pass it in.
-    # attrs = {:action=>'permit', :proto=>'ip', :src =>'host 1.1.1.1'}
+    # attrs = {:action=>'permit', :proto=>'tcp', :src =>'host 1.1.1.1'}
     def ace_set(attrs)
-      state = attrs.empty? ? 'no ' : ''
-      @set_args[:state] = state
+      @set_args[:state] = attrs.empty? ? 'no ' : ''
       @set_args.merge!(attrs) unless attrs.empty?
       config_set('acl', 'ace', @set_args)
     end
 
     # PROPERTIES
     # ----------
-    # getter of action
     def action
       match = ace_get
       return nil if match.nil?
-
       match[:action]
     end
 
-    # setter of action
     def action=(action)
       @set_args[:action] = action
     end
 
-    # getter of proto
     def proto
       match = ace_get
       return nil if match.nil?
-
       match[:proto]
     end
 
-    # setter of proto
     def proto=(proto)
-      @set_args[:proto] = proto
+      @set_args[:proto] = proto # TBD ip vs ipv4
     end
 
-    # getter of src_addr
     def src_addr
       match = ace_get
       return nil if match.nil?
-
       match[:src_addr]
     end
 
-    # setter of src_addr
     def src_addr=(src_addr)
       @set_args[:src_addr] = src_addr
     end
 
-    # getter of src_port
     def src_port
       match = ace_get
       return nil if match.nil?
-
       match[:src_port]
     end
 
-    # setter of src_port_format
     def src_port=(src_port)
       @set_args[:src_port] = src_port
     end
 
-    # getter of dst_addr_format
     def dst_addr
       match = ace_get
       return nil if match.nil?
-
       match[:dst_addr]
     end
 
-    # setter of dst_addr_format
     def dst_addr=(dst_addr)
       @set_args[:dst_addr] = dst_addr
     end
 
-    # getter of dst_port_format
     def dst_port
       match = ace_get
       return nil if match.nil?
-
       match[:dst_port]
     end
 
-    # setter of dst_port_format
     def dst_port=(src_port)
       @set_args[:dst_port] = src_port
     end
 
-    # getter of option_format
+    # TBD option_format is currently a catch-all for all other ace properties.
+    # This will likely need to be reworked to support explicit properties.
     def option_format
       match = ace_get
       return nil if match.nil?
-
       match[:option_format]
     end
 
-    # setter of option_format
     def option_format=(option)
       @set_args[:option_format] = option
     end

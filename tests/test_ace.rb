@@ -18,28 +18,27 @@ require_relative '../lib/cisco_node_utils/ace'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestAceV4 < CiscoTestCase
-  attr_reader :acl_name, :seqno, :afi
-
   def setup
     # setup runs at the beginning of each test
     super
     @acl_name_v4 = 'test-foo-v4-1'
     @acl_name_v6 = 'test-foo-v6-1'
     @seqno = 10
-    @afi = 'ip'
-    no_ip_access_list_foo
+    no_access_list_foo
   end
 
   def teardown
     # teardown runs at the end of each test
-    no_ip_access_list_foo
+    no_access_list_foo
     super
   end
 
-  def no_ip_access_list_foo
-    # Turn the feature off for a clean test.
-    config('no ip access-list ' + @acl_name_v4)
-    config('no ipv6 access-list ' + @acl_name_v6)
+  def no_access_list_foo
+    # Remove the test ACLs
+    %w(ipv4 ipv6).each do |afi|
+      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
+      config('no ' + Acl.afi_cli(afi) + ' access-list ' + acl_name)
+    end
   end
 
   # TESTS
@@ -85,11 +84,11 @@ class TestAceV4 < CiscoTestCase
     }
 
     props = {
-      'ip'   => [attr_v4_1, attr_v4_2],
+      'ipv4' => [attr_v4_1, attr_v4_2],
       'ipv6' => [attr_v6_1, attr_v6_2],
     }
 
-    %w(ip ipv6).each do |afi|
+    %w(ipv4 ipv6).each do |afi|
       @seqno = 0
       props[afi].each do |item|
         create_destroy_ace(afi, item)
@@ -98,13 +97,15 @@ class TestAceV4 < CiscoTestCase
   end
 
   def create_destroy_ace(afi, entry)
-    acl_name = @acl_name_v4 if afi == 'ip'
-    acl_name = @acl_name_v6 if afi == 'ipv6'
+    acl_name = @acl_name_v4 if afi[/(ip|ipv4)$/]
+    acl_name = @acl_name_v6 if afi[/ipv6/]
     @seqno += 10
+
     Acl.new(afi, acl_name)
     ace = Ace.new(afi, acl_name, @seqno)
     ace.ace_set(entry)
 
+    afi_cli = Acl.afi_cli(afi)
     all_aces = Ace.aces
     found = false
     all_aces[acl_name].each do |seqno, _inst|
@@ -112,10 +113,10 @@ class TestAceV4 < CiscoTestCase
       found = true
     end
 
-    @default_show_command = "show runn | sec '#{afi} access-list #{acl_name}'"
-    assert_equal(found, true,
-                 "#{afi} acl #{acl_name} seqno #{@seqno}"\
-                 ' is not in the system')
+    @default_show_command =
+      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
+    assert(found,
+           "#{afi_cli} acl #{acl_name} seqno #{@seqno} is not configured")
 
     assert_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
                       msg:     "failed to create ace seqno #{@seqno}")
