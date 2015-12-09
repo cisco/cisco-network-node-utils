@@ -75,6 +75,8 @@ Changelog
 * RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
+* SNMP
+  * snmp_notification_receiver (@jonnytpuppet)
 * SYSLOG
   * syslog_server (@jonnytpuppet)
   * syslog_setting (@jonnytpuppet)
