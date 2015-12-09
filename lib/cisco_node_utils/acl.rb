@@ -45,8 +45,7 @@ module Cisco
     def self.afi_cli(afi)
       fail ArgumentError, "Argument afi must be 'ipv4' or 'ipv6'" unless
         afi[/(ipv4|ipv6)/]
-      return 'ip' if afi[/ipv4/]
-      afi
+      afi[/ipv4/] ? 'ip' : afi
     end
 
     def create
