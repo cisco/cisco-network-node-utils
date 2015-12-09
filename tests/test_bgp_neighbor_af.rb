@@ -190,10 +190,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
         assert_raises(ArgumentError, 'Neighbors do not support /') do
           RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
         end
-        # Finish the test case with regular neighbor
-        # to avoid skipping whole testcase
-        nbr = '1.1.1.1'
+        next
       end
+      next if platform == :ios_xr
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
@@ -210,8 +209,9 @@ class TestRouterBgpNeighborAF < CiscoTestCase
         assert_raises(ArgumentError, 'Neighbors do not support /') do
           RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
         end
-        nbr = '1.1.1.1'
+        next
       end
+      next if platform == :ios_xr
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k].destroy
       nbr_munged = Utils.process_network_mask(nbr)
@@ -319,10 +319,37 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   #   additional_paths_send
   #   soft_reconfiguration_in
   def test_tri_states
+    platform == :nexus ? tri_states_nexus : tri_states_ios_xr
+  end
+
+  def tri_states_ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      %w(additional_paths_receive additional_paths_send).each do |k|
+        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit'
+        ].each do |val|
+          assert_raises(UnsupportedError,
+                        "This feature #{k}, #{val} is not supported}") do
+            af.send("#{k}=", val)
+          end
+        end
+      end
 
-      unless dbg.include?('l2vpn/evpn') || platform == :ios_xr
+      %w(soft_reconfiguration_in).each do |k|
+        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
+         af.send("default_#{k}")
+        ].each do |val|
+          af.send("#{k}=", val)
+          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
+        end
+      end
+    end
+  end
+
+  def tri_states_nexus
+    @@matrix.values.each do |af_args|
+      af, dbg = clean_af(af_args)
+      unless dbg.include?('l2vpn/evpn')
         %w(additional_paths_receive additional_paths_send).each do |k|
           [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
            af.send("default_#{k}")
@@ -357,7 +384,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     %w(advertise_map_exist advertise_map_non_exist).each do |k|
       v = %w(foo bar)
       if platform == :ios_xr
-        assert_raises(ArgumentError) do
+        assert_raises(UnsupportedError) do
           af.send("#{k}=", v)
         end
         break
@@ -727,6 +754,38 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_equal(v, af.send_community,
                  "Test 9. #{dbg} Failed to set '#{v}' from None")
 
+    # Add in a test to reverse the order in which extended and
+    # standard are configured
+    v = 'none'
+    af.send_community = v
+    assert_equal(v, af.send_community,
+                 "Test 9. #{dbg} Failed to remove send-community")
+    v = 'extended'
+    af.send_community = v
+    assert_equal('send-extended-community-ebgp', af.send_community,
+                 "Test 9.1 #{dbg} Failed to set '#{v}' from 'none'")
+    v = 'standard'
+    af.send_community = v
+    # XR it's additive
+    assert_equal('both', af.send_community,
+                 "Test 9.2. #{dbg} Failed to add '#{v}' to 'extended'")
+    v = 'none'
+    af.send_community = v
+    assert_equal(v, af.send_community,
+                 "Test 9.3. #{dbg} Failed to remove send-community")
+    v = 'standard'
+    af.send_community = v
+    # XR it's additive
+    assert_equal('send-community-ebgp', af.send_community,
+                 "Test 9.4. #{dbg} Failed to set '#{v}' from 'none'")
+    v = 'extended'
+    af.send_community = v
+    assert_equal('both', af.send_community,
+                 "Test 9.5 #{dbg} Failed to add '#{v}' from 'standard'")
+    v = 'none'
+    af.send_community = v
+    assert_equal(v, af.send_community,
+                 "Test 9.6. #{dbg} Failed to remove send-community")
     v = af.default_send_community
     af.send_community = af.default_send_community
     assert_equal(v, af.send_community,

@@ -72,7 +72,7 @@ module Cisco
 
       # XR BGP does not support <address>/<mask>
       if platform == :ios_xr && nbr['/'] == '/'
-        fail ArgumentError, "IOS XR does not support 'slash' notation"
+        fail UnsupportedError, "IOS XR does not support 'slash' notation"
       end
 
       nbr = Utils.process_network_mask(nbr)
@@ -115,12 +115,10 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_exist
-      fail ArgumentError if platform == :ios_xr
       config_get('bgp_neighbor_af', 'advertise_map_exist', @get_args)
     end
 
     def advertise_map_exist=(arr)
-      fail ArgumentError if platform == :ios_xr
       if arr.empty?
         state = 'no'
         map1, map2 = advertise_map_exist
@@ -132,7 +130,6 @@ module Cisco
     end
 
     def default_advertise_map_exist
-      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'advertise_map_exist')
     end
 
@@ -141,12 +138,10 @@ module Cisco
 
     # Returns ['<map1>', '<map2>']
     def advertise_map_non_exist
-      fail ArgumentError if platform == :ios_xr
       config_get('bgp_neighbor_af', 'advertise_map_non_exist', @get_args)
     end
 
     def advertise_map_non_exist=(arr)
-      fail ArgumentError if platform == :ios_xr
       if arr.empty?
         state = 'no'
         map1, map2 = advertise_map_non_exist
@@ -158,7 +153,6 @@ module Cisco
     end
 
     def default_advertise_map_non_exist
-      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'advertise_map_non_exist')
     end
 
@@ -224,6 +218,7 @@ module Cisco
     end
 
     def additional_paths_receive=(val)
+      # return if val.nil?
       val = val.to_sym
       if val == default_additional_paths_receive
         set_args_keys(state: 'no', disable: '')
@@ -260,7 +255,8 @@ module Cisco
     end
 
     def default_additional_paths_send
-      config_get_default('bgp_neighbor_af', 'additional_paths_send').to_sym
+      ret = config_get_default('bgp_neighbor_af', 'additional_paths_send')
+      ret.to_sym unless ret.to_s == ''
     end
 
     # -----------------------
@@ -269,7 +265,7 @@ module Cisco
     def default_originate_get
       val = config_get('bgp_neighbor_af', 'default_originate', @get_args)
       return nil unless val
-      (val[/route-/]) ? val.split.last : true
+      (val[/route-(map|policy)/]) ? val.split.last : true
     end
 
     def default_originate
@@ -294,12 +290,10 @@ module Cisco
     end
 
     def default_default_originate
-      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'default_originate')
     end
 
     def default_default_originate_route_map
-      fail ArgumentError if platform == :ios_xr
       config_get_default('bgp_neighbor_af', 'default_originate_route_map')
     end
 
@@ -568,7 +562,7 @@ module Cisco
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
       return default_send_community if val.nil?
-      platform == :nexus ? send_comm_nexus_get(val) : send_comm_iosxr_get(val)
+      platform == :nexus ? send_comm_nexus_get(val) : send_comm_ios_xr_get(val)
     end
 
     # Nexus: <state> send-community [ both | extended | standard ]
@@ -585,7 +579,7 @@ module Cisco
     #  Returns: node, 'send-community-ebgp', 'send-extended-community-ebgp' or
     #  'send-community-ebgp send-extended-community-ebgp' which is the 'both'
     # keyword equivalent
-    def send_comm_iosxr_get(val)
+    def send_comm_ios_xr_get(val)
       if val == ['send-community-ebgp', 'send-extended-community-ebgp']
         val = 'both'
       else
@@ -596,7 +590,7 @@ module Cisco
     end
 
     def send_community=(val)
-      platform == :nexus ? send_comm_nexus_set(val) : send_comm_iosxr_set(val)
+      platform == :nexus ? send_comm_nexus_set(val) : send_comm_ios_xr_set(val)
     end
 
     def send_comm_nexus_set(val)
@@ -624,7 +618,7 @@ module Cisco
       config_set('bgp_neighbor_af', 'send_community', @set_args)
     end
 
-    def send_comm_iosxr_set(val)
+    def send_comm_ios_xr_set(val)
       if val[/none/]
         state = 'no'
         val = 'both'

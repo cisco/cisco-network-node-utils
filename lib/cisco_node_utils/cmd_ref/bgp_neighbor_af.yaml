@@ -106,13 +106,13 @@ max_prefix_limit:
   default_value: ~
 
 max_prefix_threshold:
-  default_value: ~
-
-max_prefix_warning:
   cli_ios_xr:
     default_value: 75
   cli_nexus:
     default_value: ~
+
+max_prefix_warning:
+  default_value: ~
 
 next_hop_self:
   kind: boolean
@@ -175,8 +175,8 @@ send_community:
     default_value: 'none'
   cli_ios_xr:
     multiple:
-    # XR four seperate commands: send-community-ebgp  send-community-gshut-ebgp
-    # send-extended-community-ebgp  send-multicast-attributes
+    # XR three seperate commands: send-community-ebgp  send-community-gshut-ebgp
+    # and send-extended-community-ebgp
     # send-community-ebgp' and 'send-extended-community-ebgp' are the equivalents
     # of the NXOS: standard | extended functionality
     config_get_token_append:
