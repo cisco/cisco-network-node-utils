@@ -24,6 +24,28 @@ module Cisco
         { afi: Acl.afi_cli(afi), acl_name: acl_name.to_s, seqno: seqno.to_s }
     end
 
+    # Create a hash of all aces under a given acl_name.
+    def self.aces
+      afis = %w(ipv4 ipv6)
+      hash = {}
+      afis.each do |afi|
+        acls = config_get('acl', 'all_acls', afi: Acl.afi_cli(afi))
+        next if acls.nil?
+
+        acls.each do |acl_name|
+          hash[acl_name] = {}
+          aces = config_get('acl', 'all_aces', afi: Acl.afi_cli(afi),
+                            acl_name: acl_name)
+          next if aces.nil?
+
+          aces.each do |seqno|
+            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno)
+          end
+        end
+      end
+      hash
+    end
+
     # common ace getter
     def ace_get
       str = config_get('acl', 'ace', @get_args)
@@ -41,29 +63,7 @@ module Cisco
       regexp.match(str)
     end
 
-    # Create a hash of all aces under a given acl_name.
-    def self.aces
-      afis = %w(ipv4 ipv6)
-      hash = {}
-      afis.each do |afi|
-        afi_cli = Acl.afi_cli(afi)
-        acls = config_get('acl', 'all_acls', afi: afi_cli)
-        next if acls.nil?
-
-        acls.each do |acl_name|
-          hash[acl_name] = {}
-          aces = config_get('acl', 'all_aces', afi: afi_cli, acl_name: acl_name)
-          next if aces.nil?
-
-          aces.each do |seqno|
-            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno)
-          end
-        end
-      end
-      hash
-    end
-
-    # common setter. Put the values you need in a hash and pass it in.
+    # common ace setter. Put the values you need in a hash and pass it in.
     # attrs = {:action=>'permit', :proto=>'tcp', :src =>'host 1.1.1.1'}
     def ace_set(attrs)
       @set_args[:state] = attrs.empty? ? 'no ' : ''
