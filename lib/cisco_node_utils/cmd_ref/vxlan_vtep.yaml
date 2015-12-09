@@ -1,26 +1,22 @@
 # vxlan_vtep
 ---
+_template:
+  config_get: "show running-config interface all | section 'interface nve'"
+  config_get_token: '/^interface <name>$/i'
+  config_set: 'interface <name>'
+
 all_interfaces:
   multiple:
-  config_get: 'show running-config interface all'
-  config_get_token: '/^interface\s+(nve.*)$/'
+  config_get_token: '/^interface (.*)$/'
 
 mac_distribution:
-  config_get: 'show running-config interface all'
-  config_get_token: ['/^interface <name>$/', '/^host-reachability protocol (\S+)/']
-  config_set: ['interface <name>', '<state> host-reachability protocol <proto>']
-
-#TODO: move to vxlan_vtp_vni.rb
-#member_vni_mgrp:
-#  config_get: 'show running-config interface all'
-#  config_get_token: ['/^interface <name>$/', '/^member vni (\S+)/', '/^mcast-group (\S+)$/']
-#  config_set: ['interface <name>', '<no_cmd> member vni <vni>', 'mcast-group <mcast_grp>','end']
-
-member_vni_arp:
-  config_set: ['interface <name>', '<state> member vni <vni>', 'suppress-arp']
+  config_get_token_append: '/^host-reachability protocol (\S+)/'
+  config_set_append: '<state> host-reachability protocol <proto>'
 
 source_intf:
-  config_get: 'show running-config interface'
-  config_get_token: ['/^interface <name>$/','/^source\-interface (\S+)$/']
-  config_set: ['interface <name>', '<state> source-interface <lpbk_intf>']
+  config_get_token_append: '/^source\-interface (\S+)$/'
+  config_set_append: '<state> source-interface <lpbk_intf>'
   default_value: ''
+
+vni:
+  config_set_append: '<state> member vni <vni>'
