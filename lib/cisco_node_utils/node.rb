@@ -20,7 +20,7 @@
 
 require 'singleton'
 
-require 'cisco_os_shim'
+require_relative 'client'
 require_relative 'command_reference'
 
 # Add node management classes and APIs to the Cisco namespace.
@@ -199,7 +199,7 @@ module Cisco
 
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
-      @client = Cisco::Shim::Client.create(*args)
+      @client = Cisco::Client::Client.create(*args)
       @cmd_ref = CommandReference.new(product:  product_id,
                                       platform: @client.platform,
                                       cli:      @client.supports?(:cli))
@@ -267,7 +267,7 @@ module Cisco
         CiscoLogger.debug("#{commands}")
       end
       @client.config(commands)
-    rescue Cisco::Shim::RequestFailed => e
+    rescue Cisco::Client::RequestFailed => e
       raise Cisco::CliError.new(
         e.rejected_input,
         e.respond_to?(:clierror) ? e.clierror : e.message,
@@ -282,7 +282,7 @@ module Cisco
     def show(command, type=:ascii)
       CiscoLogger.debug("Show command sent to device: '#{command}'")
       @client.show(command, type)
-    rescue Cisco::Shim::RequestFailed => e
+    rescue Cisco::Client::RequestFailed => e
       raise Cisco::CliError.new(
         e.rejected_input,
         e.respond_to?(:clierror) ? e.clierror : e.message,
