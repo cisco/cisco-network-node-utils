@@ -59,9 +59,9 @@ module Cisco
                             privproto.is_a?(Symbol) &&
                             privpass.is_a?(String) &&
                             engineid.is_a?(String)
-      fail ArgumentError if name.empty?
       # empty password but protocol provided = bad
       # non-empty password and no protocol provided = bad
+      fail ArgumentError if name.empty?
       if authpass.empty?
         fail ArgumentError if [:sha, :md5].include?(authproto) && instantiate
       else
@@ -74,32 +74,37 @@ module Cisco
       end
     end
 
-    ENGINE_ID_PATTERN = /([0-9]{1,3}(:[0-9]{1,3}){4,31})/
     def self.users
       users_hash = {}
       # config_get returns hash if 1 user, array if multiple, nil if none
       users = config_get('snmp_user', 'user')
       return users_hash if users.nil?
-      users = [users] if users.is_a?(Hash)
       users.each do |user|
-        name = user['user']
-        engineid = user['engineID']
-        if engineid.nil?
+        next if user.include?('enforcePriv')
+        next if user.include?('use-ipv4acl')
+        next if user.include?('use-ipv6acl')
+        user_var_arr = _get_snmp_user_parse(user)
+        name = user_var_arr[0]
+        engineid = user_var_arr[1]
+        if engineid.empty?
           index = name
         else
-          engineid_str = engineid.match(ENGINE_ID_PATTERN)[1]
-          index = name + ' ' + engineid_str
+          index = name + ' ' + engineid
         end
-        auth = _auth_str_to_sym(user['auth'])
-        priv = _priv_str_to_sym(user['priv'])
-
+        auth = user_var_arr[2]
+        priv = user_var_arr[3]
         groups_arr = []
-        groups = _user_to_groups(user)
-        groups.each { |group| groups_arr << group['group'].strip }
+        # we need to take care of multiple groups here
+        if users_hash.key?(index)
+          groups_arr = users_hash[index].groups
+          auth = users_hash[index].auth_protocol
+          priv = users_hash[index].priv_protocol
+        end
 
+        groups_arr << _get_group_arr(user_var_arr)
         users_hash[index] = SnmpUser.new(name, groups_arr, auth,
                                          '', priv, '', false,
-                                         engineid.nil? ? '' : engineid_str,
+                                         engineid,
                                          false)
       end
       users_hash
@@ -297,6 +302,37 @@ module Cisco
 
     private
 
+    def self._get_group_arr(user_var_arr)
+      user_groups = []
+      auth_index = user_var_arr[4]
+      engineid_index = user_var_arr[5]
+      user_groups << user_var_arr[6] unless auth_index == 1 ||
+                                            engineid_index == 1
+      user_groups
+    end
+
+    def self._get_snmp_user_parse(user)
+      user_var = []
+      lparams = user.split(' ')
+      name = lparams[0]
+      engineid_index = lparams.index('engineID')
+      auth_index = lparams.index('auth')
+      priv_index = lparams.index('priv')
+      engineid = engineid_index.nil? ? '' : lparams[engineid_index + 1]
+      aut = auth_index.nil? ? '' : lparams[auth_index + 1]
+      pri = priv_index.nil? ? '' : lparams[priv_index + 1]
+      # for the empty priv protocol default
+      pri = 'des' unless pri.empty? || pri == 'aes-128'
+      auth = _auth_str_to_sym(aut)
+      priv = _priv_str_to_sym(pri)
+      # add the vars to array
+      user_var << name << engineid << auth << priv
+      # lparams[1] can be group, it is not known here,
+      # but will be determined in the get_groups method
+      user_var << auth_index << engineid_index << lparams[1]
+      user_var
+    end
+
     def _auth_sym_to_str(sym)
       case sym
       when :sha
@@ -348,15 +384,6 @@ module Cisco
       else
         return :none
       end
-    end
-
-    def self._user_to_groups(user_hash)
-      return [] if user_hash.nil?
-      groups = user_hash['TABLE_groups']['ROW_groups'] unless
-        user_hash['TABLE_groups'].nil?
-      return [] if groups.nil?
-      groups = [groups] if groups.is_a?(Hash)
-      groups
     end
   end
 end
