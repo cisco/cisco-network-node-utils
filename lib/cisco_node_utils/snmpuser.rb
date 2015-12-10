@@ -102,7 +102,7 @@ module Cisco
         end
 
         groups_arr << _get_group_arr(user_var_arr)
-        users_hash[index] = SnmpUser.new(name, groups_arr, auth,
+        users_hash[index] = SnmpUser.new(name, groups_arr.flatten, auth,
                                          '', priv, '', false,
                                          engineid,
                                          false)

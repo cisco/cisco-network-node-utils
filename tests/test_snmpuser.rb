@@ -176,6 +176,7 @@ class TestSnmpUser < CiscoTestCase
     destroy_user(snmpuser)
     # check user got removed.
     sleep(5)
+    node.cache_flush
     refute_show_match(command: 'show run snmp all | no-more',
                       pattern: user_pat(name, group))
     assert_nil(SnmpUser.users[name])
