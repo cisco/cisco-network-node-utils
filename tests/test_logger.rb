@@ -15,26 +15,26 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_os_shim/core/cisco_logger'
+require_relative '../lib/cisco_node_utils/logger'
 
-# TestLogger - unit tests for CiscoLogger module
+# TestLogger - unit tests for Cisco::Logger module
 class TestLogger < TestCase
   def test_logger_methods
-    assert(defined?(CiscoLogger.debug), 'debug method not defined')
-    assert(defined?(CiscoLogger.info), 'info method not defined')
-    assert(defined?(CiscoLogger.warn), 'warning method not defined')
-    assert(defined?(CiscoLogger.error), 'error method not defined')
+    assert(defined?(Cisco::Logger.debug), 'debug method not defined')
+    assert(defined?(Cisco::Logger.info), 'info method not defined')
+    assert(defined?(Cisco::Logger.warn), 'warning method not defined')
+    assert(defined?(Cisco::Logger.error), 'error method not defined')
   end
 
   # Due to current limitation of minitest, the following test case actually
   # will never fail. But it will print out all the messages that the tested
   # functions are supposed to print. So I still keep this test here
   def test_default_logger_output
-    CiscoLogger.debug_enable
-    assert_output { CiscoLogger.debug('Test default debug output') }
-    assert_output { CiscoLogger.info('Test default info output') }
-    assert_output { CiscoLogger.warn('Test default warn output') }
-    assert_output { CiscoLogger.error('Test default error output') }
-    CiscoLogger.debug_disable
+    Cisco::Logger.debug_enable
+    assert_output { Cisco::Logger.debug('Test default debug output') }
+    assert_output { Cisco::Logger.info('Test default info output') }
+    assert_output { Cisco::Logger.warn('Test default warn output') }
+    assert_output { Cisco::Logger.error('Test default error output') }
+    Cisco::Logger.debug_disable
   end
 end

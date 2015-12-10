@@ -22,6 +22,7 @@ require 'singleton'
 
 require_relative 'client'
 require_relative 'command_reference'
+require_relative 'logger'
 
 # Add node management classes and APIs to the Cisco namespace.
 module Cisco
@@ -95,13 +96,13 @@ module Cisco
     # Attempt to massage the given value into the format specified by the
     # given CmdRef object.
     def massage(value, ref)
-      CiscoLogger.debug "Massaging '#{value}' (#{value.inspect})"
+      Cisco::Logger.debug "Massaging '#{value}' (#{value.inspect})"
       if value.is_a?(Array) && !ref.multiple
         fail "Expected zero/one value but got '#{value}'" if value.length > 1
         value = value[0]
       end
       if (value.nil? || value.empty?) && ref.default_value? && ref.auto_default
-        CiscoLogger.debug "Default: #{ref.default_value}"
+        Cisco::Logger.debug "Default: #{ref.default_value}"
         return ref.default_value
       end
       return value unless ref.kind
@@ -122,7 +123,7 @@ module Cisco
         value = '' if value.nil?
         value = value.to_s.strip
       end
-      CiscoLogger.debug "Massaged to '#{value}'"
+      Cisco::Logger.debug "Massaged to '#{value}'"
       value
     end
 
@@ -260,11 +261,11 @@ module Cisco
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def config(commands)
-      CiscoLogger.debug('CLI sent to device:')
+      Cisco::Logger.debug('CLI sent to device:')
       if commands.is_a?(Array)
-        commands.each { |cli| CiscoLogger.debug("#{cli}") }
+        commands.each { |cli| Cisco::Logger.debug("#{cli}") }
       else
-        CiscoLogger.debug("#{commands}")
+        Cisco::Logger.debug("#{commands}")
       end
       @client.config(commands)
     rescue Cisco::Client::RequestFailed => e
@@ -280,7 +281,7 @@ module Cisco
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
     def show(command, type=:ascii)
-      CiscoLogger.debug("Show command sent to device: '#{command}'")
+      Cisco::Logger.debug("Show command sent to device: '#{command}'")
       @client.show(command, type)
     rescue Cisco::Client::RequestFailed => e
       raise Cisco::CliError.new(

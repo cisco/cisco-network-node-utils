@@ -19,9 +19,9 @@
 
 require 'logger'
 
-# Module for logging in CiscoNxapi and CiscoNodeUtils. Will automatically
+# Module for logging in CiscoNodeUtils. Will automatically
 # tie into Puppet or Chef logging modules if available.
-module CiscoLogger
+module Cisco::Logger
   module_function
 
   # Figure out what provider logging utility we

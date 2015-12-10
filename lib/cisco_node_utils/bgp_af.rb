@@ -18,6 +18,7 @@
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'bgp'
+require_relative 'logger'
 
 module Cisco
   # RouterBgpAF - node utility class for BGP address-family config management
@@ -384,10 +385,10 @@ module Cisco
       if damp_array.nil?
         # 'no dampening ...' command - no dampening handles all cases
         state = 'no'
-        CiscoLogger.debug("Dampening 'no dampening'")
+        Cisco::Logger.debug("Dampening 'no dampening'")
       elsif damp_array.empty?
         # 'dampening' command - nothing to do here
-        CiscoLogger.debug("Dampening 'dampening'")
+        Cisco::Logger.debug("Dampening 'dampening'")
       elsif damp_array.size == 4
         # 'dampening dampening_decay dampening_reuse \
         #   dampening_suppress dampening_suppress_max' command
@@ -395,12 +396,12 @@ module Cisco
         reuse =        damp_array[1]
         suppress =     damp_array[2]
         suppress_max = damp_array[3]
-        CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
+        Cisco::Logger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       elsif route_map.is_a? String
         # 'dampening route-map WORD' command
         route_map = "route-map #{damp_array}"
         route_map.strip!
-        CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+        Cisco::Logger.debug("Dampening 'dampening #{route_map}'")
       else
         # Array not in a valid format
         fail ArgumentError
@@ -415,7 +416,7 @@ module Cisco
         suppress:     suppress,
         suppress_max: suppress_max,
       )
-      CiscoLogger.debug("Dampening args=#{@set_args}")
+      Cisco::Logger.debug("Dampening args=#{@set_args}")
       config_set('bgp_af', 'dampening', @set_args)
     end
 
@@ -500,8 +501,8 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should_list, networks)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        Cisco::Logger.debug("networks delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |network, route_map|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
@@ -531,8 +532,8 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, redistribute)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("redistribute delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        Cisco::Logger.debug("redistribute delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |protocol, policy|
           state = (action == :add) ? '' : 'no'
           set_args_keys(state: state, protocol: protocol, policy: policy)
@@ -640,7 +641,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
+        Cisco::Logger.debug("#{prop}" \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |community|
           state = (action == :add) ? '' : 'no'

@@ -23,7 +23,7 @@ require_relative 'ems_services'
 require_relative 'client_errors'
 
 include IOSXRExtensibleManagabilityService
-include CiscoLogger
+include Cisco::Logger
 
 module Cisco::Client::GRPC
   # Client implementation using gRPC API for IOS XR

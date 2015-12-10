@@ -21,7 +21,7 @@ require 'json'
 require 'net/http'
 require_relative 'client_errors'
 
-include CiscoLogger
+include Cisco::Logger
 
 # Namespace for all NXAPI-related functionality and classes.
 module Cisco::Client::NXAPI

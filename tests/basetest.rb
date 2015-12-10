@@ -28,6 +28,7 @@ gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
 require_relative '../lib/cisco_node_utils/client'
+require_relative '../lib/cisco_node_utils/logger'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared
@@ -108,7 +109,7 @@ class TestCase < Minitest::Test
                    )
     end
     @device.cmd('term len 0')
-    CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
+    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have configured 'feature telnet' (NX-OS) or "

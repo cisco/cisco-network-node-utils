@@ -17,9 +17,9 @@
 # limitations under the License.
 
 require_relative 'client_errors'
-require_relative 'cisco_logger'
+require_relative '../../logger'
 
-include CiscoLogger
+include Cisco::Logger
 
 # Add 'APIS' and 'CLIENTS' module constants
 module Cisco::Client
