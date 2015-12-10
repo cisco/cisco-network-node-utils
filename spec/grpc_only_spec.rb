@@ -11,6 +11,6 @@ context 'when only gRPC client is installed' do
 
   it 'should have gRPC client' do
     require 'cisco_node_utils'
-    expect(Cisco::Client::CLIENTS).to eql [Cisco::Client::GRPC::Client]
+    expect(Cisco::Client.clients).to eql [Cisco::Client::GRPC]
   end
 end

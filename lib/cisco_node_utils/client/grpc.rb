@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'core'
+require_relative 'client'
+require_relative 'client_errors'
 
 # Fail gracefully if submodule dependencies are not met
 begin
@@ -24,7 +25,7 @@ rescue LoadError => e
 end
 
 # Namespace for Cisco EMS gRPC-specific code
-module Cisco::Client::GRPC
+class Cisco::Client::GRPC < Cisco::Client
 end
 
 # Auto-load all Ruby files in the subdirectory

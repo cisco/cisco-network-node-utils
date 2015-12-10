@@ -16,10 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative '../core/client_errors'
+require_relative '../client_errors'
 
 # Namespace for all NXAPI-related functionality and classes.
-module Cisco::Client::NXAPI
+class Cisco::Client::NXAPI < Cisco::Client
   # CliError indicates that the node rejected the CLI as invalid.
   class CliError < Cisco::Client::RequestFailed
     attr_reader :clierror, :msg, :code

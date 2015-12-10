@@ -11,6 +11,6 @@ context 'when only NXAPI client is installed' do
 
   it 'should have NXAPI client' do
     require 'cisco_node_utils/client'
-    expect(Cisco::Client::CLIENTS).to eql [Cisco::Client::NXAPI::Client]
+    expect(Cisco::Client.clients).to eql [Cisco::Client::NXAPI]
   end
 end

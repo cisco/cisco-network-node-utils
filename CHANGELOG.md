@@ -15,7 +15,7 @@ Changelog
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
-* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem.
+* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
 
 ### Fixed
 

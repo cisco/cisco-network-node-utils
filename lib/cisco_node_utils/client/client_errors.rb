@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module Cisco::Client
+class Cisco::Client
   # Base class for client errors
   class ClientError < RuntimeError
   end

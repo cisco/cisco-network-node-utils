@@ -1,12 +1,4 @@
 require_relative 'spec_helper.rb'
-
-context 'when loading the core code explicitly' do
-  it 'should not have any clients' do
-    require 'cisco_node_utils/client/core'
-    expect(Cisco::Client::CLIENTS).to eql []
-  end
-end
-
 require 'rspec/core'
 
 context 'when no client implementations are installed' do
@@ -22,12 +14,12 @@ context 'when no client implementations are installed' do
 
   it 'should not have any clients' do
     require 'cisco_node_utils'
-    expect(Cisco::Client::CLIENTS).to eql []
+    expect(Cisco::Client.clients).to eql []
   end
 
   it 'should fail Client.create' do
     require 'cisco_node_utils'
-    expect { Cisco::Client::Client.create('1.1.1.1', 'u', 'p') }.to \
+    expect { Cisco::Client.create('1.1.1.1', 'u', 'p') }.to \
       raise_error(RuntimeError, 'No client implementations available!')
   end
   # TODO

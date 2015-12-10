@@ -18,15 +18,13 @@
 
 require_relative 'basetest'
 
-include Cisco::Client::GRPC
-
 # Test case for Cisco::Client::GRPC::Client class
 class TestGRPC < TestCase
   @@client = nil # rubocop:disable Style/ClassVars
 
   def client
     unless @@client
-      client = Client.new(address, username, password)
+      client = Cisco::Client::GRPC.new(address, username, password)
       client.cache_enable = true
       client.cache_auto = true
       @@client = client # rubocop:disable Style/ClassVars
@@ -36,18 +34,18 @@ class TestGRPC < TestCase
 
   def test_auth_failure
     assert_raises Cisco::Client::AuthenticationFailed do
-      Client.new(address, username, 'wrong password')
+      Cisco::Client::GRPC.new(address, username, 'wrong password')
     end
   end
 
   def test_connection_failure
     # Connecting to a port that's listening, but not gRPC is one failure path
     assert_raises Cisco::Client::ConnectionRefused do
-      Client.new('127.0.0.1:22', 'user', 'pass')
+      Cisco::Client::GRPC.new('127.0.0.1:22', 'user', 'pass')
     end
     # Connecting to a port that's not listening is a different failure path
     assert_raises Cisco::Client::ConnectionRefused do
-      Client.new('127.0.0.1:0', 'user', 'pass')
+      Cisco::Client::GRPC.new('127.0.0.1:0', 'user', 'pass')
     end
   end
 
@@ -64,7 +62,7 @@ class TestGRPC < TestCase
   end
 
   def test_config_invalid
-    e = assert_raises CliError do
+    e = assert_raises Cisco::Client::GRPC::CliError do
       client.config(['int gi0/0/0/0', 'wark', 'bark'])
     end
     # rubocop:disable Style/TrailingWhitespace
@@ -108,7 +106,7 @@ bark
   end
 
   def test_exec_invalid
-    e = assert_raises CliError do
+    e = assert_raises Cisco::Client::GRPC::CliError do
       client.exec('show xyzzy')
     end
     assert_equal("The command 'show xyzzy' was rejected with error:
@@ -128,13 +126,13 @@ show xyzzy
   end
 
   def test_show_ascii_invalid
-    assert_raises CliError do
+    assert_raises Cisco::Client::GRPC::CliError do
       client.show('show fuzz')
     end
   end
 
   def test_show_ascii_incomplete
-    assert_raises CliError do
+    assert_raises Cisco::Client::GRPC::CliError do
       client.show('show ')
     end
   end
@@ -161,8 +159,8 @@ show xyzzy
   # TODO: add structured output test cases (when supported on XR)
 
   def test_smart_create
-    autoclient = Cisco::Client::Client.create(address, username, password)
-    assert_equal(Cisco::Client::GRPC::Client, autoclient.class)
+    autoclient = Cisco::Client.create(address, username, password)
+    assert_equal(Cisco::Client::GRPC, autoclient.class)
     assert(autoclient.supports?(:cli))
     assert_equal(:ios_xr, autoclient.platform)
   end

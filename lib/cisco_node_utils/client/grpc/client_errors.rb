@@ -16,9 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative '../core/client_errors'
+require_relative '../client_errors'
 
-module Cisco::Client::GRPC
+class Cisco::Client::GRPC < Cisco::Client
   class CliError < Cisco::Client::RequestFailed
   end
 end

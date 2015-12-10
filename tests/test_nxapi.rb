@@ -16,15 +16,13 @@
 
 require_relative 'basetest'
 
-include Cisco::Client::NXAPI
-
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
   @@client = nil # rubocop:disable Style/ClassVars
 
   def client
     unless @@client
-      client = Client.new(address, username, password)
+      client = Cisco::Client::NXAPI.new(address, username, password)
       client.cache_enable = true
       client.cache_auto = true
       @@client = client # rubocop:disable Style/ClassVars
@@ -49,7 +47,7 @@ class TestNxapi < TestCase
   end
 
   def test_config_invalid
-    e = assert_raises CliError do
+    e = assert_raises Cisco::Client::NXAPI::CliError do
       client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
     assert_equal("The command 'plover' was rejected with error:
@@ -70,7 +68,7 @@ CLI execution error
   end
 
   def test_exec_invalid
-    e = assert_raises CliError do
+    e = assert_raises Cisco::Client::NXAPI::CliError do
       client.exec('xyzzy')
     end
     # rubocop:disable Style/TrailingWhitespace
@@ -103,13 +101,13 @@ Cmd exec error.
   end
 
   def test_show_ascii_invalid
-    assert_raises CliError do
+    assert_raises Cisco::Client::NXAPI::CliError do
       client.show('show plugh')
     end
   end
 
   def test_element_show_ascii_incomplete
-    assert_raises CliError do
+    assert_raises Cisco::Client::NXAPI::CliError do
       client.show('show ')
     end
   end
@@ -132,7 +130,7 @@ Cmd exec error.
   end
 
   def test_show_structured_invalid
-    assert_raises CliError do
+    assert_raises Cisco::Client::NXAPI::CliError do
       client.show('show frobozz', :structured)
     end
   end
@@ -183,13 +181,13 @@ Cmd exec error.
     end
     client.password = 'wrong_password'
     client.cache_flush
-    assert_raises HTTPUnauthorized do
+    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
       client.show('show version')
     end
-    assert_raises HTTPUnauthorized do
+    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
       client.exec('show version')
     end
-    assert_raises HTTPUnauthorized do
+    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
       client.config('interface Et1/1')
     end
     client.password = password
@@ -207,8 +205,8 @@ Cmd exec error.
   end
 
   def test_smart_create
-    autoclient = Cisco::Client::Client.create(address, username, password)
-    assert_equal(Cisco::Client::NXAPI::Client, autoclient.class)
+    autoclient = Cisco::Client.create(address, username, password)
+    assert_equal(Cisco::Client::NXAPI, autoclient.class)
     assert(autoclient.supports?(:cli))
     assert_equal(:nexus, autoclient.platform)
   end

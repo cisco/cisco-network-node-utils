@@ -28,6 +28,7 @@ gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
 require_relative '../lib/cisco_node_utils/client'
+require_relative '../lib/cisco_node_utils/command_reference'
 require_relative '../lib/cisco_node_utils/logger'
 
 # rubocop:disable Style/ClassVars

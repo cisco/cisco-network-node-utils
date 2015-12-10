@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'client/core'
+# Namespace for Cisco-specific code
+module Cisco
+  # Namespace for Cisco Client shim
+  class Client
+  end
+end
+
+require_relative 'client/client'
+require_relative 'client/client_errors'
 
 # Try to load known extensions
 extensions = ['client/nxapi',
