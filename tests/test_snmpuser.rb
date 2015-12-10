@@ -63,7 +63,6 @@ class TestSnmpUser < CiscoTestCase
 
   ## test cases starts here
 
-=begin
   def test_snmpuser_collection_not_empty
     create_user('tester')
     refute_empty(SnmpUser.users,
@@ -163,7 +162,7 @@ class TestSnmpUser < CiscoTestCase
     end
     snmpuser.destroy
   end
-=end
+
   def test_snmpuser_destroy
     name = 'userv3testdestroy'
     group = 'network-operator'
@@ -182,7 +181,6 @@ class TestSnmpUser < CiscoTestCase
     assert_nil(SnmpUser.users[name])
   end
 
-=begin
   def test_snmpuser_auth_password_equal_invalid_param
     name = 'testV3PwEqualInvalid2'
     auth_pw = 'TeSt297534'
@@ -654,5 +652,4 @@ class TestSnmpUser < CiscoTestCase
                  SnmpUser.default_priv_password,
                  'Error: Wrong default priv password')
   end
-=end
 end
