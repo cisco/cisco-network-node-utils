@@ -109,7 +109,7 @@ distance_local:
 # This is a multi-provider, enable-only feature. Do not disable from provider.
 feature_nv_overlay_evpn:
   kind: boolean
-  config_get: "show running section nv"
+  config_get: "show running | section nv"
   config_get_token: '/^nv overlay evpn$/'
   config_set: "nv overlay evpn"
 
