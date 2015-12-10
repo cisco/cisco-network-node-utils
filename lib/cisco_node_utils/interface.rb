@@ -83,20 +83,23 @@ module Cisco
     end
 
     def channel_group=(val)
-      fail "channel_group is not supported on #{name}" unless @name[/Ethernet/i]
-      if val.to_s.empty?
-        config_set('interface',
-                   'channel_group', @name, 'no', '', '')
+      fail "channel_group is not supported on #{@name}" unless
+        @name[/Ethernet/i]
+      # 'force' is needed by cli_nxos to handle the case where a port-channel
+      # interface is created prior to the channel-group cli; in which case
+      # the properties of the port-channel interface will be different from
+      # the ethernet interface. 'force' is not needed if the port-channel is
+      # created as a result of the channel-group cli but since it does no
+      # harm we will use it every time.
+      if val
+        state = ''
+        force = 'force'
       else
-        # 'force' is needed by cli_nxos to handle the case where a port-channel
-        # interface is created prior to the channel-group cli; in which case
-        # the properties of the port-channel interface will be different from
-        # the ethernet interface. 'force' is not needed if the port-channel is
-        # created as a result of the channel-group cli but since it does no
-        # harm we will use it every time.
-        config_set('interface',
-                   'channel_group', @name, '', val, 'force')
+        state = 'no'
+        val = force = ''
       end
+      config_set('interface',
+                 'channel_group', @name, state, val, force)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end

@@ -4,12 +4,16 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
+* ACL
+  * acl (@saqibraza)
+  * ace (@yjyongz)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
+  * vxlan_vtep_vni (@mikewiebe)
 
 ### Added
 
