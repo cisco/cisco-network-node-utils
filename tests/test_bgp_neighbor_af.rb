@@ -229,25 +229,40 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   #   additional_paths_receive
   #   additional_paths_send
   #   soft_reconfiguration_in
+
+  def n6k_platform?
+    /N6K/ =~ node.product_id
+  end
+
+  def n7k_platform?
+    /N7K/ =~ node.product_id
+  end
+
   def test_tri_states
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
 
-      unless dbg.include?('l2vpn/evpn')
-        %w(additional_paths_receive additional_paths_send).each do |k|
-          [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-           af.send("default_#{k}")
-          ].each do |val|
-            af.send("#{k}=", val)
-            assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
-          end
+      next if dbg.include?('l2vpn/evpn')
+      %w(additional_paths_receive additional_paths_send).each do |k|
+        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
+         af.send("default_#{k}")
+        ].each do |val|
+          af.send("#{k}=", val)
+          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
         end
       end
 
+      # soft-reconfiguration inbound always not supported on N6K and N7K
       %w(soft_reconfiguration_in).each do |k|
-        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
+        if n6k_platform? || n7k_platform?
+          array = [:enable, :inherit, 'enable', 'inherit',
+                   af.send("default_#{k}")]
+        else
+          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
+                   af.send("default_#{k}")]
+        end
+
+        array.each do |val|
           af.send("#{k}=", val)
           assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
         end
