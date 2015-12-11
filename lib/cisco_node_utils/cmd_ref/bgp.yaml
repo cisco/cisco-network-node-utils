@@ -63,6 +63,7 @@ bestpath_med_confed:
   kind: boolean
   default_value: false
   cli_ios_xr:
+    # Note: Only applies to global BGP; not VRF applicable
     config_get_token_append: '/^bgp bestpath med confed$/'
     config_set_append: ' <state> bgp bestpath med confed'
   cli_nexus:
