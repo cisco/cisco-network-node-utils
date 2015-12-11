@@ -10,6 +10,8 @@ Changelog
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+* VDC
+  * vdc (@chrisvanheuveln)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)

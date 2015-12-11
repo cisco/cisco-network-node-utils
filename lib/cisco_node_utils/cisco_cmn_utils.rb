@@ -116,13 +116,16 @@ module Cisco
       1 + depth(a[0])
     end
 
-    def self.delta_add_remove(should, current=[])
+    def self.delta_add_remove(should, current=[], opt=nil)
       # Remove nil entries from array
       should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }
 
+      # Some cli properties cannot be updated, thus must be removed first
+      return delta if opt == :updates_not_allowed
+
       # Delete entries from :remove if f1 is an update to an existing command
-      delta[:add].each do |id, _|
+      delta[:add].each do |id, _id2|
         if depth(should) == 1
           delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
         else

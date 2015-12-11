@@ -1,0 +1,32 @@
+# vdc
+#
+# The current simplified implementation assumes no admin-vdc and that the
+# default vdc name uses id 1. Full multi-vdc support is TBD.
+---
+_exclude: [/N3K/, /N9K/]
+
+_template:
+  config_get: 'show run vdc all'
+  config_get_token: '/^vdc <vdc>/'
+  config_set: 'terminal dont-ask ; vdc <vdc>'
+
+all_vdcs:
+  multiple:
+  config_get: 'show run vdc all'
+  config_get_token: '/^vdc (\S+) id/'
+
+create_destroy:
+  config_set: '<state> vdc <vdc>'
+
+default_vdc_name:
+  # Name of the default vdc. Assumes no admin-vdc.
+  config_get_token: '/^vdc (\S+) id 1$/' # Assumes id 1 for default vdc
+
+limit_resource_module_type_f3:
+  # limit-resource may list several modules but when specifying f3 it's an all
+  # or nothing so we treat this property as a boolean rather than a string, and
+  # just check and set f3 without regard for other module types.
+  kind: boolean
+  config_get_token_append: '/^limit-resource module-type f3/'
+  config_set_append: '<state> limit-resource module-type f3'
+  default_value: false
