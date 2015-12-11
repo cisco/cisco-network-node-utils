@@ -22,7 +22,7 @@ module Cisco
     @communities = nil
 
     def initialize(name, group, instantiate=true)
-      fail TypeError unless name.is_a?(String)
+      fail TypeError unless name.is_a?(String) && group.is_a?(String)
       @name = name
       return unless instantiate
       config_set('snmp_community', 'community', '', name, group)
@@ -41,7 +41,7 @@ module Cisco
 
     def destroy
       # CLI requires specifying a group even for "no" commands
-      config_set('snmp_community', 'community', 'no', @name, '')
+      config_set('snmp_community', 'community', 'no', @name, 'null')
     end
 
     # name is read only
@@ -54,7 +54,7 @@ module Cisco
     end
 
     def group=(group)
-      #fail TypeError unless group.is_a?(String)
+      fail TypeError unless group.is_a?(String)
       config_set('snmp_community', 'group', @name, group)
     end
 
