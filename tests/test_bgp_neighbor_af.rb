@@ -252,7 +252,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
         end
       end
 
-      # soft-reconfiguration inbound always not supported on N6K and N7K
+      # The 'always' keyword is not supported on N6K / N7K
       %w(soft_reconfiguration_in).each do |k|
         if n6k_platform? || n7k_platform?
           array = [:enable, :inherit, 'enable', 'inherit',
