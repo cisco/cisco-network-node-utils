@@ -69,6 +69,7 @@ module Cisco
       state = state ? '' : 'no'
       config_set('vdc', 'limit_resource_module_type_f3',
                  state: state, vdc: @vdc)
+      config_set('vdc', 'allocate_interface_unallocated', vdc: @vdc)
     end
 
     def default_limit_resource_module_type_f3
