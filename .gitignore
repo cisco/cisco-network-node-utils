@@ -2,6 +2,7 @@
 pkg/*
 vendor/*
 coverage
+ext/Rakefile
 Gemfile.lock
 *.gem
 *.swp

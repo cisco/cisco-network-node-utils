@@ -17,6 +17,7 @@
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'bgp_af'
+require_relative 'logger'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -381,9 +382,9 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug('confederation_peers delta ' \
-                          "#{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        Cisco::Logger.debug('confederation_peers delta ' \
+                            "#{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |peer|
           state = (action == :add) ? '' : 'no'
           @set_args[:state] = state

@@ -27,7 +27,9 @@ require 'rubygems'
 gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-require 'cisco_os_shim'
+require_relative '../lib/cisco_node_utils/client'
+require_relative '../lib/cisco_node_utils/command_reference'
+require_relative '../lib/cisco_node_utils/logger'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared
@@ -38,9 +40,9 @@ require 'cisco_os_shim'
 class TestCase < Minitest::Test
   # These variables can be set in one of three ways:
   # 1) ARGV:
-  #   $ ruby basetest.rb -- address username password
+  #   $ ruby basetest.rb -- address[:port] username password
   # 2) NODE environment variable
-  #   $ export NODE="address username password"
+  #   $ export NODE="address[:port] username password"
   #   $ rake test
   # 3) At run time:
   #   $ rake test
@@ -108,10 +110,11 @@ class TestCase < Minitest::Test
                    )
     end
     @device.cmd('term len 0')
-    CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
+    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
-    puts "  and that you have enabled 'feature telnet' on the UUT"
+    puts "  and that you have configured 'feature telnet' (NX-OS) or "
+    puts "  'telnet ipv4 server...' (IOS XR) on the UUT"
     exit
   end
 

@@ -27,7 +27,6 @@ Please note: A virtual Nexus N9000/N3000 may be helpful for development and test
 This development guide uses tools that are packaged as gems that need to be installed on your server.
 
 ```bash
-gem install cisco_os_shim
 gem install rake
 gem install rubocop
 gem install simplecov
@@ -37,7 +36,6 @@ gem install minitest
 **NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
 
 ```bash
-gem install --user-install cisco_os_shim
 gem install --user-install rake
 gem install --user-install rubocop
 gem install --user-install simplecov

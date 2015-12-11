@@ -41,9 +41,9 @@ class CiscoTestCase < TestCase
       # puts "  - image - #{@@node.system}\n\n"
     end
     @@node
-  rescue Cisco::Shim::AuthenticationFailed
+  rescue Cisco::Client::AuthenticationFailed
     abort "Unauthorized to connect as #{username}:#{password}@#{address}"
-  rescue StandardError => e
+  rescue Cisco::Client::ClientError, TypeError, ArgumentError => e
     abort "Error in establishing connection: #{e}"
   end
 

@@ -351,7 +351,7 @@ module Cisco
       exclude = hash.delete('_exclude') || []
       exclude.each do |value|
         if key_match(value, platform, product_id, cli) == true
-          debug 'Exclude this product (#{product_id}, #{value})'
+          debug "Exclude this product (#{product_id}, #{value})"
           return result
         end
       end
@@ -563,7 +563,18 @@ module Cisco
     end
 
     def to_s
-      @hash.each_value { |names| names.each_value(&:to_s) }
+      @num_features ||= @hash.values.length
+      @num_attributes ||= @hash.values.inject(0) do |sum, n|
+        sum + (n.is_a?(Hash) ? n.values.length : 1)
+      end
+      "CommandReference describing #{@num_features} features " \
+        "with #{@num_attributes} attributes in total"
+    end
+
+    def inspect
+      "CommandReference for '#{product_id}' " \
+        "(platform:'#{platform}', CLI:#{cli}) " \
+        "based on #{files.length} files"
     end
   end
 end
