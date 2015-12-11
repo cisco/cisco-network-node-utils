@@ -34,7 +34,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      return hash unless feature_enabled
+      return hash unless feature_nv_overlay_enabled
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -45,23 +45,26 @@ module Cisco
       hash
     end
 
-    def self.feature_enabled
-      config_get('vxlan', 'feature')
+    def self.feature_nv_overlay_enabled
+      config_get('vxlan', 'feature_nv_overlay')
     rescue Cisco::CliError => e
       # cmd will syntax when feature is not enabled.
       raise unless e.clierror =~ /Syntax error/
       return false
     end
 
-    def self.enable(state='')
-      # vdc only supported on n7k currently.
-      vdc_name = config_get('limit_resource', 'vdc')
-      config_set('limit_resource', 'vxlan', vdc_name) unless vdc_name.nil?
-      config_set('vxlan', 'feature', state: state)
+    def self.feature_nv_overlay_enable
+      # vdc platforms restrict this feature to F3 linecards
+      vdc_name = config_get('vdc', 'default_vdc_name')
+      if vdc_name
+        config_set('vdc', 'limit_resource_module_type_f3', vdc: vdc_name)
+      end
+      config_set('vxlan', 'feature_nv_overlay')
     end
 
     def create
-      VxlanVtep.enable unless VxlanVtep.feature_enabled
+      VxlanVtep.feature_nv_overlay_enable unless
+        VxlanVtep.feature_nv_overlay_enabled
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
     end

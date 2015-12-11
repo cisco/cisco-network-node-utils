@@ -1,7 +1,10 @@
 # vxlan
 ---
-feature:
+_exclude: [/N3K/, /N6K/, /N9K/]
+
+feature_nv_overlay:
+  # This is a multi-use feature, thus enable-only
   kind: boolean
   config_get: 'show running nv overlay'
   config_get_token: '/^feature nv overlay$/'
-  config_set: "<state> feature nv overlay"
+  config_set: "feature nv overlay"

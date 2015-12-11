@@ -3,7 +3,7 @@
 # The current simplified implementation assumes no admin-vdc and that the
 # default vdc name uses id 1. Full multi-vdc support is TBD.
 ---
-_exclude: [/N3K/, /N9K/]
+_exclude: [/N3K/, /N6K/, /N9K/]
 
 _template:
   config_get: 'show run vdc all'
