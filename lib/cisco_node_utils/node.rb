@@ -195,7 +195,11 @@ module Cisco
     end
 
     def to_s
-      @client.to_s
+      client.to_s
+    end
+
+    def inspect
+      "Node: client:'#{client.inspect}' cmd_ref:'#{cmd_ref.inspect}'"
     end
 
     # "hidden" API - used for UT but shouldn't be used elsewhere
@@ -319,7 +323,7 @@ module Cisco
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = show('show inventory', :ascii)
-          return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[0]
+          return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[1]
         end
       end
     end

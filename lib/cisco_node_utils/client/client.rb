@@ -73,31 +73,40 @@ class Cisco::Client
     debug "Trying to establish client connection. clients = #{clients}"
     errors = []
     clients.each do |client_class|
-      cls = client_class.class.to_s
       begin
-        debug "Trying to connect to #{address} as #{cls}"
+        debug "Trying to connect to #{address} as #{client_class}"
         client = client_class.new(address, username, password)
-        debug "#{cls} connected successfully"
+        debug "#{client_class} connected successfully"
         return client
       rescue ClientError, TypeError, ArgumentError => e
-        debug "Unable to connect to #{address} as #{cls}: #{e.message}"
+        debug "Unable to connect to #{address} as #{client_class}: #{e.message}"
+        debug e.backtrace.join("\n  ")
         errors << e
       end
     end
+    handle_errors(errors)
+  end
+
+  def self.handle_errors(errors)
     # ClientError means we tried to connect but failed,
     # so it's 'more significant' than input validation errors.
-    if errors.any? { |e| e.kind_of? ClientError }
-      fail ClientError, ("Unable to establish any client connection:\n" +
-                       errors.each(&:message).join("\n"))
+    client_errors = errors.select { |e| e.kind_of? ClientError }
+    if !client_errors.empty?
+      # Reraise the specific error if just one
+      fail client_errors[0] if client_errors.length == 1
+      # Otherwise clump them together into a new error
+      e_cls = client_errors[0].class
+      e_cls = ClientError unless client_errors.all? { |e| e.class == e_cls }
+      fail e_cls, ("Unable to establish any client connection:\n" +
+                   errors.each(&:message).join("\n"))
     elsif errors.any? { |e| e.kind_of? ArgumentError }
       fail ArgumentError, ("Invalid arguments:\n" +
                            errors.each(&:message).join("\n"))
     elsif errors.any? { |e| e.kind_of? TypeError }
       fail TypeError, ("Invalid arguments:\n" +
                        errors.each(&:message).join("\n"))
-    else
-      fail ClientError, 'No client connected, but no errors were reported?'
     end
+    fail ClientError, 'No client connected, but no errors were reported?'
   end
 
   def to_s

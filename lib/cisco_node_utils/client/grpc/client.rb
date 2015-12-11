@@ -120,12 +120,14 @@ class Cisco::Client::GRPC < Cisco::Client
     end
     response = stub.send(type, args, timeout: @timeout)
     output = ''
-    if response.kind_of?(Enumerator)
-      output = response.map { |reply| handle_reply(args, reply) }
-      output = output[0] if output.length == 1
-    else
-      output = handle_reply(args, response)
-    end
+    # gRPC server may split the response into multiples
+    response = response.is_a?(Enumerator) ? response.to_a : [response]
+    debug "Got responses: #{response.map(&:class).join(', ')}"
+    # Check for errors first
+    handle_errors(args, response.select { |r| !r.errors.empty? })
+
+    # If we got here, no errors occurred
+    output = handle_response(args, response)
 
     @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
     return output
@@ -139,39 +141,32 @@ class Cisco::Client::GRPC < Cisco::Client
       raise
     end
   end
-  private :req
 
-  def handle_reply(args, reply)
-    debug "Handling '#{reply.class}' reply:"
-    debug "  output: #{reply.output}" if reply.is_a?(ShowCmdTextReply)
-    debug "  jsonoutput: #{reply.jsonoutput}" if reply.is_a?(ShowCmdJSONReply)
-    if reply.errors.empty?
-      debug "  errors: '#{reply.errors}'"
+  def handle_response(args, replies)
+    klass = replies[0].class
+    unless replies.all? { |r| r.class == klass }
+      fail Cisco::Client::ClientError, 'reply class inconsistent: ' +
+        replies.map(&:class).join(', ')
+    end
+    debug "Handling #{replies.length} '#{klass}' reply(s):"
+    case klass.to_s
+    when /ShowCmdTextReply/
+      replies.each { |r| debug "  output:\n#{r.output}" }
+      output = replies.map(&:output).join('')
+      output = handle_text_output(args, output)
+    when /ShowCmdJSONReply/
+      # TODO: not yet supported by server to test against
+      replies.each { |r| debug "  jsonoutput:\n#{r.jsonoutput}" }
+      output = replies.map(&:jsonoutput).join("\n---\n")
+    when /CliConfigReply/
+      # nothing to process
       output = ''
-      if reply.is_a?(ShowCmdTextReply)
-        output = handle_text_output(args, reply.output)
-      elsif reply.is_a?(ShowCmdJSONReply)
-        output = reply.jsonoutput
-      end
-      debug "Success with output:\n#{output}"
-      return output
-    end
-    debug "Reply includes errors:\n#{reply.errors}"
-    # Conveniently for us, all *Reply protobufs in EMS have an errors field
-    # Less conveniently, some are JSON and some are not.
-    begin
-      msg = JSON.parse(reply.errors)
-      handle_json_error(msg)
-    rescue JSON::ParserError
-      msg = reply.errors
-    end
-    if /^Disallowed commands:/ =~ msg
-      fail Cisco::Client::RequestNotSupported, msg
     else
-      fail CliError.new(msg, args.cli)
+      fail Cisco::Client::ClientError, "unsupported reply class #{klass}"
     end
+    debug "Success with output:\n#{output}"
+    output
   end
-  private :handle_reply
 
   def handle_text_output(args, output)
     # For a successful show command, gRPC presents the output as:
@@ -196,7 +191,30 @@ class Cisco::Client::GRPC < Cisco::Client
     end
     output.join("\n")
   end
-  private :handle_text_output
+
+  def handle_errors(args, error_responses)
+    return if error_responses.empty?
+    debug "#{error_responses.length} response(s) had errors:"
+    error_responses.each { |r| debug "  error:\n#{r.errors}" }
+    first_error = error_responses.first.errors
+    # Conveniently for us, all *Reply protobufs in EMS have an errors field
+    # Less conveniently, some are JSON and some are not.
+    begin
+      msg = JSON.parse(first_error)
+      handle_json_error(msg)
+    rescue JSON::ParserError
+      handle_text_error(args, first_error)
+    end
+  end
+
+  # Generate an error from a failed request
+  def handle_text_error(args, msg)
+    if /^Disallowed commands:/ =~ msg
+      fail Cisco::Client::RequestNotSupported, msg
+    else
+      fail CliError.new(msg, args.cli)
+    end
+  end
 
   # Generate a CliError from a failed CliConfigReply
   def handle_json_error(msg)
@@ -253,5 +271,4 @@ class Cisco::Client::GRPC < Cisco::Client
       end
     end
   end
-  private :handle_json_error
 end

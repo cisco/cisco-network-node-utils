@@ -274,7 +274,7 @@ class Cisco::Client::NXAPI < Cisco::Client
 
     output
   rescue JSON::ParserError
-    raise Cisco::Client::ClientError, "response is not JSON:\n#{body}"
+    raise Cisco::Client::ClientError, "response is not JSON:\n#{response.body}"
   end
   private :parse_response
 
