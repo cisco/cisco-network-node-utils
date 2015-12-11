@@ -16,6 +16,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'pim'
 require_relative 'vrf'
 
 # Add some interface-specific constants to the Cisco namespace
@@ -127,22 +128,6 @@ module Cisco
 
     def default_description
       config_get_default('interface', 'description')
-    end
-
-    def enable_pim_sparse_mode # REMOVE
-      state = config_get('interface', 'pim_sparse_mode', @name)
-      state ? true : false
-    end
-
-    def enable_pim_sparse_mode=(state)
-      no_cmd = (state ? '' : 'no')
-      config_set('interface', 'pim_sparse_mode', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_enable_pim_sparse_mode
-      config_get_default('interface', pim_sparse_mode)
     end
 
     def encapsulation_dot1q
@@ -280,6 +265,23 @@ module Cisco
 
     def default_ipv4_netmask_length
       config_get_default('interface', 'ipv4_netmask_length')
+    end
+
+    def ipv4_pim_sparse_mode
+      config_get('interface', 'ipv4_pim_sparse_mode', @name)
+    end
+
+    def ipv4_pim_sparse_mode=(state)
+      check_switchport_disabled
+      Pim.feature_enable unless Pim.feature_enabled
+      config_set('interface', 'ipv4_pim_sparse_mode', @name,
+                 state ? '' : 'no')
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_ipv4_pim_sparse_mode
+      config_get_default('interface', 'ipv4_pim_sparse_mode')
     end
 
     def ipv4_proxy_arp
