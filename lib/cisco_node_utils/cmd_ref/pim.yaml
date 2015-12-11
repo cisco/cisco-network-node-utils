@@ -1,6 +1,6 @@
 # pim
 ---
 feature:
-  config_get: 'show running section feature'
+  config_get: 'show running | section feature'
   config_get_token: '/^feature pim$/'
   config_set: 'feature pim'

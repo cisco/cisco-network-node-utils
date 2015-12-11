@@ -635,6 +635,7 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    # cli: switchport vlan mapping enable
     def default_switchport_vlan_mapping_enable
       config_get_default('interface', 'switchport_vlan_mapping_enable')
     end

@@ -125,7 +125,7 @@ module Cisco
       return delta if opt == :updates_not_allowed
 
       # Delete entries from :remove if f1 is an update to an existing command
-      delta[:add].each do |id, _id2|
+      delta[:add].each do |id, _|
         if depth(should) == 1
           delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
         else

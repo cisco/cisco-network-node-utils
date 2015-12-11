@@ -19,9 +19,6 @@ allocate_interface_unallocated:
   kind: boolean
   config_set_append: 'allocate interface unallocated-interfaces'
 
-create_destroy:
-  config_set: '<state> vdc <vdc>'
-
 default_vdc_name:
   # Name of the default vdc. Assumes no admin-vdc.
   config_get_token: '/^vdc (\S+) id 1$/' # Assumes id 1 for default vdc
