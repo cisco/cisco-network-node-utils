@@ -1107,4 +1107,102 @@ class TestInterface < CiscoTestCase
     interface.channel_group = interface.default_channel_group
     assert_equal(interface.default_channel_group, interface.channel_group)
   end
+
+  def setup_encapsulation_profile_vni
+    # This property has several dependencies:
+    #  - VDC support
+    #  - Specific linecard (F3)
+    #  - Bridge Domain Configuration
+    #  - Feature vni
+
+    # Check for supported platform
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vdc', 'all_vdcs').config_get_token.nil?
+
+    # This test requires a specific linecard; as such we will hard-code the
+    # module location and skip the test if not found.
+    # Example 'show mod' output to match against:
+    # '9    12     10/40 Gbps Ethernet Module          N7K-F312FQ-25      ok'
+    slot = 9
+    pat = Regexp.new("^#{slot}\s.*N7K-F3")
+    skip("Test requires N7K-F3 linecard in slot #{slot}") unless
+      @device.cmd('sh mod | i N7K-F').match(pat)
+
+    require_relative '../lib/cisco_node_utils/vdc'
+    Cisco::Vdc.new('default').limit_resource_module_type_f3 = true
+
+    # Reset feature to clean up switch
+    config('no feature vni', 'feature vni')
+
+    # Create a global encap config
+    config('encapsulation profile vni vni_500_5000', 'dot1q 500  vni 5000',
+           'encapsulation profile vni vni_600_6000', 'dot1q 600  vni 6000',
+           'encapsulation profile vni vni_700_7000', 'dot1q 700  vni 7000',
+           'encapsulation profile vni vni_800_8000', 'dot1q 800  vni 8000')
+
+    # Test interface name
+    intf = 'Ethernet9/1'
+    config("default int #{intf}")
+    intf
+  end
+
+  def test_encapsulation_profile_vni
+    # This test is going to create and destroy configurations similar to
+    # the following:
+    #
+    #    encapsulation profile vni vni_500_5000
+    #      dot1q 500  vni 5000
+    #    interface Ethernet9/1
+    #      service instance 5 vni
+    #        encapsulation profile vni_500_5000 default
+    #
+    # The getter/setter type is a nested array.
+    #
+    intf = setup_encapsulation_profile_vni
+    i = Interface.new(intf)
+    assert_equal([], i.encapsulation_profile_vni, 'Initial cleanup failed')
+
+    # Initial 'should' state
+    # rubocop:disable Style/WordArray
+    master = [['5', 'vni_500_5000'],
+              ['7', 'vni_700_7000'],
+              ['6', 'vni_600_6000']]
+    # rubocop:enable Style/WordArray
+
+    # Test: Add all profiles when no cmds are present
+    should = master.clone
+    i.encapsulation_profile_vni = should
+    result = i.encapsulation_profile_vni
+    assert_equal(should.sort, result.sort,
+                 'Test 1. From empty, to all profiles')
+
+    # Test: remove half of the profiles
+    should.shift(2)
+    i.encapsulation_profile_vni = should
+    result = i.encapsulation_profile_vni
+    assert_equal(should.sort, result.sort,
+                 'Test 2. Remove half of the profiles')
+
+    # Test: restore the removed profiles
+    should = master.clone
+    i.encapsulation_profile_vni = should
+    result = i.encapsulation_profile_vni
+    assert_equal(should.sort, result.sort,
+                 'Test 3. Restore the removed profiles')
+
+    # Test: Change service instance on existing commands
+    should = should.map do |svc, profile|
+      [svc + '1', profile]
+    end
+    i.encapsulation_profile_vni = should
+    result = i.encapsulation_profile_vni
+    assert_equal(should.sort, result.sort,
+                 'Test 4. Change service instance on existing commands')
+
+    # Test: 'default'
+    should = i.default_encapsulation_profile_vni
+    i.encapsulation_profile_vni = should
+    result = i.encapsulation_profile_vni
+    assert_equal(should.sort, result.sort, "Test 5. 'default'")
+  end
 end

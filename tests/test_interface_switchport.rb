@@ -775,10 +775,11 @@ class TestInterfaceSwitchport < CiscoTestCase
     require_relative '../lib/cisco_node_utils/vdc'
     Cisco::Vdc.new('default').limit_resource_module_type_f3 = true
 
-    Cisco::Vrf.feature_vni_enable
-
     # Configure a bridge-domain
     config('system bridge-domain 100-113', 'bridge-domain 100')
+
+    # Reset feature to clean up switch
+    config('no feature vni')
 
     # Test interface name
     'Ethernet9/1'

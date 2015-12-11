@@ -163,21 +163,50 @@ module Cisco
       config_get_default('interface', 'encapsulation_dot1q')
     end
 
+    # encapsulation_profile_vni
+    #   cli: service instance 1 vni
+    #          encapsulation profile vni_500_5000 default
+    #  type: [['<instance>', '<profile>'], ['1', 'vni_500_5000']]
     def encapsulation_profile_vni
-      val = config_get('interface', 'encapsulation_vni', @name)
-      debug "val from get is #{val}"
-      return '' if val.nil?
-      val.first.strip
+      profiles = []
+      svc_list = config_get('interface', 'all_service_instances', @name)
+      return profiles if svc_list.nil?
+      svc_list.each do |svc|
+        profile = config_get('interface', 'encapsulation_profile_vni',
+                             @name, svc).first
+        profiles << [svc, profile] unless profile.nil?
+      end
+      profiles.sort
     end
 
-    def encapsulation_profile_vni=(val)
-      if val.nil?
-        config_set('interface', 'encapsulation_vni_del', @name, val)
-      else
-        config_set('interface', 'encapsulation_vni_add', @name, val)
+    def encapsulation_profile_vni=(should_list)
+      Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+
+      # Process a hash of encapsulation_profile_vni cmds from delta_add_remove()
+      # Use :updates_not_allowed because the encap cli does not allow commands
+      # to be updated, they must first be removed if an existing encap changes.
+      delta_hash =
+        Utils.delta_add_remove(should_list, encapsulation_profile_vni,
+                               :updates_not_allowed)
+      return if delta_hash.values.flatten.empty?
+
+      # Process :remove first to ensure "update" commands will not fail.
+      # IMPORTANT: Remove the 'encap' cli only. Do not remove the 'service' cli.
+      [:remove, :add].each do |action|
+        CiscoLogger.debug("encapsulation_profile_vni delta #{@get_args}\n"\
+                          "#{action}: #{delta_hash[action]}")
+        delta_hash[action].each do |service, profile|
+          state = (action == :add) ? '' : 'no'
+          config_set('interface', 'encapsulation_profile_vni', @name,
+                     service, state, profile)
+        end
       end
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_encapsulation_profile_vni
+      config_get_default('interface', 'encapsulation_profile_vni')
     end
 
     def fabricpath_feature
