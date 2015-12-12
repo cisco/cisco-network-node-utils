@@ -80,6 +80,7 @@ module Cisco
       users = config_get('snmp_user', 'user')
       return users_hash if users.nil?
       users.each do |user|
+        # n7k has enforcepriv, use-ipv*acl, avoid them
         next if user.include?('enforcePriv')
         next if user.include?('use-ipv4acl')
         next if user.include?('use-ipv6acl')
@@ -302,15 +303,6 @@ module Cisco
 
     private
 
-    def self._get_group_arr(user_var_arr)
-      user_groups = []
-      auth_index = user_var_arr[4]
-      engineid_index = user_var_arr[5]
-      user_groups << user_var_arr[6] unless auth_index == 1 ||
-                                            engineid_index == 1
-      user_groups
-    end
-
     def self._get_snmp_user_parse(user)
       user_var = []
       lparams = user.split(' ')
@@ -318,8 +310,11 @@ module Cisco
       engineid_index = lparams.index('engineID')
       auth_index = lparams.index('auth')
       priv_index = lparams.index('priv')
+      # engineID always comes after engineid_index
       engineid = engineid_index.nil? ? '' : lparams[engineid_index + 1]
+      # authproto always comes after auth_index
       aut = auth_index.nil? ? '' : lparams[auth_index + 1]
+      # privproto always comes after priv_index if priv exists
       pri = priv_index.nil? ? '' : lparams[priv_index + 1]
       # for the empty priv protocol default
       pri = 'des' unless pri.empty? || pri == 'aes-128'
@@ -327,10 +322,22 @@ module Cisco
       priv = _priv_str_to_sym(pri)
       # add the vars to array
       user_var << name << engineid << auth << priv
+      # group may or may not exist but it is always after name
       # lparams[1] can be group, it is not known here,
-      # but will be determined in the get_groups method
+      # but will be determined in the _get_group_arr method
       user_var << auth_index << engineid_index << lparams[1]
       user_var
+    end
+
+    def self._get_group_arr(user_var_arr)
+      user_groups = []
+      auth_index = user_var_arr[4]
+      engineid_index = user_var_arr[5]
+      # after the name it can be group or auth or engineID
+      # so filter it properly
+      user_groups << user_var_arr[6] unless auth_index == 1 ||
+                                            engineid_index == 1
+      user_groups
     end
 
     def _auth_sym_to_str(sym)
