@@ -249,7 +249,11 @@ class TestRouterBgp < CiscoTestCase
     bgp.bestpath_cost_community_ignore = true
     assert(bgp.bestpath_cost_community_ignore,
            'bgp bestpath_cost_community_ignore should be enabled')
-    unless platform == :ios_xr && !@vrf[/default/]
+    if platform == :ios_xr && !@vrf[/default/]
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.bestpath_med_confed = true
+      end
+    else
       bgp.bestpath_med_confed = true
       assert(bgp.bestpath_med_confed,
              'bgp bestpath_med_confed should be enabled')
