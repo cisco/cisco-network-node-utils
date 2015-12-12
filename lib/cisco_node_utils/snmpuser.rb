@@ -95,13 +95,16 @@ module Cisco
         auth = user_var_arr[2]
         priv = user_var_arr[3]
         groups_arr = []
-        # we need to take care of multiple groups here
+        # take care of multiple groups here
+        # if the name already exists in hash
+        # get all the previous properties
         if users_hash.key?(index)
           groups_arr = users_hash[index].groups
           auth = users_hash[index].auth_protocol
           priv = users_hash[index].priv_protocol
         end
 
+        # add the group to the array
         groups_arr << _get_group_arr(user_var_arr)
         users_hash[index] = SnmpUser.new(name, groups_arr.flatten, auth,
                                          '', priv, '', false,
