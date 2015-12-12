@@ -59,9 +59,9 @@ module Cisco
                             privproto.is_a?(Symbol) &&
                             privpass.is_a?(String) &&
                             engineid.is_a?(String)
+      fail ArgumentError if name.empty?
       # empty password but protocol provided = bad
       # non-empty password and no protocol provided = bad
-      fail ArgumentError if name.empty?
       if authpass.empty?
         fail ArgumentError if [:sha, :md5].include?(authproto) && instantiate
       else
