@@ -285,7 +285,7 @@ class TestRouterBgp < CiscoTestCase
     unless platform == :ios_xr && !@vrf[/default/]
       bgp.bestpath_med_confed = false
       refute(bgp.bestpath_med_confed,
-            'bgp bestpath_med_confed should be disabled')
+             'bgp bestpath_med_confed should be disabled')
     end
     bgp.bestpath_med_missing_as_worst = false
     refute(bgp.bestpath_med_missing_as_worst,
