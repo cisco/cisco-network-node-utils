@@ -39,7 +39,6 @@ duplex:
   default_value: "auto"
 
 encapsulation_dot1q:
-  _exclude: [cli_ios_xr]
   kind: int
   default_value: ""
   config_get_token_append: '/^encapsulation dot1q (.*)/'

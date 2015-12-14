@@ -1,5 +1,8 @@
-# Use Docker infrastructure
-sudo: false
+# We'd like to use the Docker infrastructure,
+# but can't install libgrpc-dev at present in that environment. Sigh.
+# sudo: false
+sudo: true
+
 
 language: ruby
 cache: bundler
@@ -7,3 +10,28 @@ rvm:
   - 2.2.2
   - 2.1.6
   - 2.0.0
+
+before_install:
+  # sudo apt-get install libgrpc-dev doesn't work in Travis.
+  # So instead we compile and install from source,
+  # which takes about 10 minutes. Not too painful.
+  - sudo apt-get install build-essential autoconf libtool
+  - git clone https://github.com/grpc/grpc.git
+  - cd grpc
+  - git checkout release-0_12
+  - git submodule update --init
+  - make
+  - sudo make install
+  - cd src/ruby/
+  - gem build grpc.gemspec
+  - gem install --local --force grpc-*.gem
+  - mkdir -p ../../../vendor/cache
+  - gem install --force --local grpc-*.gem
+  - cp grpc-*.gem ../../../vendor/cache
+  - cd ../../..
+  - rm -rf grpc
+  # Also install net_http_unix to keep the nxapi submodule happy
+  - gem install net_http_unix
+
+script:
+ - bundle exec rake

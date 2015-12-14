@@ -20,6 +20,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
+require_relative '../lib/cisco_node_utils/logger'
 
 # TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
 class TestRouterBgpNeighbor < CiscoTestCase
@@ -74,12 +75,12 @@ class TestRouterBgpNeighbor < CiscoTestCase
         next unless vrf_name == vrf
         neighbors.each_value do |neighbor|
           next unless neighbor.nbr == addr
-          CiscoLogger.debug("neighbor '#{addr}' with vrf '#{vrf}' found")
+          Cisco::Logger.debug("neighbor '#{addr}' with vrf '#{vrf}' found")
           return neighbor
         end
       end
     end
-    CiscoLogger.debug("neighbor '#{addr}' with vrf '#{vrf}' not found")
+    Cisco::Logger.debug("neighbor '#{addr}' with vrf '#{vrf}' not found")
     nil
   end
 
@@ -483,10 +484,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
       neighbor = create_neighbor(vrf)
       check = []
       if platform == :ios_xr
-        check = [:active_only, :passive_only, :both,
+        check = [:active_only, :passive_only, :both, :none,
                  neighbor.default_transport_passive_mode]
       else
-        check = [:passive_only, :both, neighbor.default_transport_passive_mode]
+        check = [:passive_only, :none,
+                 neighbor.default_transport_passive_mode]
       end
       check.each do |value|
         neighbor.transport_passive_mode = value

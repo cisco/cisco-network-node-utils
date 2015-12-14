@@ -472,17 +472,11 @@ class TestInterface < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
-    if platform == :ios_xr
-      assert_nil(subif.encapsulation_dot1q)
-      assert_nil(subif.default_encapsulation_dot1q)
-      assert_raises(Cisco::UnsupportedError) { subif.encapsulation_dot1q = 20 }
-    else
-      assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
-      subif.encapsulation_dot1q = 20
-      assert_equal(20, subif.encapsulation_dot1q)
-      subif.encapsulation_dot1q = 25
-      assert_equal(25, subif.encapsulation_dot1q)
-    end
+    assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
+    subif.encapsulation_dot1q = 20
+    assert_equal(20, subif.encapsulation_dot1q)
+    subif.encapsulation_dot1q = 25
+    assert_equal(25, subif.encapsulation_dot1q)
     interface_ethernet_default(interfaces_id[0])
   end
 
