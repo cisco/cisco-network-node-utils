@@ -122,6 +122,8 @@ module Cisco
       when :string
         value = '' if value.nil?
         value = value.to_s.strip
+      when :symbol
+        value = value.to_sym unless value.nil?
       end
       Cisco::Logger.debug "Massaged to '#{value}'"
       value
