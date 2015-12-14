@@ -20,10 +20,13 @@ all_interfaces:
   config_get_token: '/^interface (.*)/'
 
 channel_group:
+  # TODO: XR support
+  _exclude: [cli_ios_xr]
   kind: int
-  config_get_token_append: '/^channel-group (\d+)$/'
-  config_set_append: "<state> channel-group <val> <force>"
   default_value: false
+  cli_nexus:
+    config_get_token_append: '/^channel-group (\d+)$/'
+    config_set_append: "<state> channel-group <val> <force>"
 
 create:
   config_set: "interface <name>"
