@@ -751,7 +751,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def setup_switchport_vlan_mapping
+  def setup_vlan_mapping
     # This property has several dependencies:
     #  - VDC support
     #  - Specific linecard (F3)
@@ -785,15 +785,15 @@ class TestInterfaceSwitchport < CiscoTestCase
     'Ethernet9/1'
   end
 
-  def test_switchport_vlan_mapping
+  def test_vlan_mapping
     # This test covers two properties:
-    #  switchport_vlan_mapping & switchport_vlan_mapping_enabled
+    #  vlan_mapping & vlan_mapping_enabled
 
-    intf = setup_switchport_vlan_mapping
+    intf = setup_vlan_mapping
     i = Interface.new(intf)
     i.switchport_mode = :trunk
-    i.switchport_vlan_mapping = []
-    assert_equal([], i.switchport_vlan_mapping, 'Initial cleanup failed')
+    i.vlan_mapping = []
+    assert_equal([], i.vlan_mapping, 'Initial cleanup failed')
 
     # Initial 'should' state
     # rubocop:disable Style/WordArray
@@ -805,40 +805,40 @@ class TestInterfaceSwitchport < CiscoTestCase
 
     # Test: Add all mappings when no cmds are present
     should = master.clone
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  'Test 1a. From empty, to all mappings')
-    i.switchport_vlan_mapping_enable = false
-    refute(i.switchport_vlan_mapping_enable,
+    i.vlan_mapping_enable = false
+    refute(i.vlan_mapping_enable,
            'Test 1b. Initial test, set to disabled')
 
     # Test: remove half of the mappings
     should.shift(2)
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  'Test 2a. Remove half of the mappings')
-    i.switchport_vlan_mapping_enable = true
-    assert(i.switchport_vlan_mapping_enable,
+    i.vlan_mapping_enable = true
+    assert(i.vlan_mapping_enable,
            'Test 2b. Back to enabled')
 
     # Test: restore the removed mappings
     should = master.clone
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  'Test 3a. Restore the removed mappings')
-    i.switchport_vlan_mapping_enable = false
-    refute(i.switchport_vlan_mapping_enable,
+    i.vlan_mapping_enable = false
+    refute(i.vlan_mapping_enable,
            'Test 3b. Back to disabled')
 
     # Test: Change original-vlan on existing commands
     should = should.map do |original, translated|
       [original + '1', translated]
     end
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  'Test 4. Change original-vlan on existing commands')
 
@@ -846,19 +846,19 @@ class TestInterfaceSwitchport < CiscoTestCase
     should = should.map do |original, translated|
       [original, translated + '1']
     end
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  'Test 5. Change translated-vlan on existing commands')
 
     # Test: 'default'
-    should = i.default_switchport_vlan_mapping
-    i.switchport_vlan_mapping = should
-    result = i.switchport_vlan_mapping
+    should = i.default_vlan_mapping
+    i.vlan_mapping = should
+    result = i.vlan_mapping
     assert_equal(should.sort, result.sort,
                  "Test 6a. 'default'")
-    i.switchport_vlan_mapping_enable = i.default_switchport_vlan_mapping_enable
-    assert(i.switchport_vlan_mapping_enable,
+    i.vlan_mapping_enable = i.default_vlan_mapping_enable
+    assert(i.vlan_mapping_enable,
            "Test 6b. 'default'")
   end
 end

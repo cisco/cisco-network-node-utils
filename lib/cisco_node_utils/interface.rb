@@ -589,7 +589,7 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
-    # switchport_vlan_mapping & switchport_vlan_mapping_enable
+    # vlan_mapping & vlan_mapping_enable
     #  Hardware & Cli Dependencies:
     #   - F3 linecards only
     #   - vdc
@@ -598,36 +598,36 @@ module Cisco
     #   - feature vni
     #   - switchport mode
 
-    # Getter: Builds an array of switchport_vlan_mapping commands currently
+    # Getter: Builds an array of vlan_mapping commands currently
     # on the device.
     #   cli: switchport vlan mapping 2 200
     #        switchport vlan mapping 4 400
     # array: [['2', '200'], ['4', '400']]
     #
-    def default_switchport_vlan_mapping
-      config_get_default('interface', 'switchport_vlan_mapping')
+    def default_vlan_mapping
+      config_get_default('interface', 'vlan_mapping')
     end
 
-    def switchport_vlan_mapping
-      config_get('interface', 'switchport_vlan_mapping', @name).each(&:compact!)
+    def vlan_mapping
+      config_get('interface', 'vlan_mapping', @name).each(&:compact!)
     end
 
-    def switchport_vlan_mapping=(should_list)
+    def vlan_mapping=(should_list)
       Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
 
-      # Process a hash of switchport_vlan_mapping cmds from delta_add_remove().
+      # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must
       # first be removed if there is a change.
-      delta_hash = Utils.delta_add_remove(should_list, switchport_vlan_mapping,
+      delta_hash = Utils.delta_add_remove(should_list, vlan_mapping,
                                           :updates_not_allowed)
       return if delta_hash.values.flatten.empty?
       # Process :remove first to ensure "update" commands will not fail.
       [:remove, :add].each do |action|
-        CiscoLogger.debug("switchport_vlan_mapping delta #{@get_args}\n"\
+        CiscoLogger.debug("vlan_mapping delta #{@get_args}\n"\
                           "#{action}: #{delta_hash[action]}")
         delta_hash[action].each do |original, translated|
           state = (action == :add) ? '' : 'no'
-          config_set('interface', 'switchport_vlan_mapping', @name,
+          config_set('interface', 'vlan_mapping', @name,
                      state, original, translated)
         end
       end
@@ -636,16 +636,16 @@ module Cisco
     end
 
     # cli: switchport vlan mapping enable
-    def default_switchport_vlan_mapping_enable
-      config_get_default('interface', 'switchport_vlan_mapping_enable')
+    def default_vlan_mapping_enable
+      config_get_default('interface', 'vlan_mapping_enable')
     end
 
-    def switchport_vlan_mapping_enable
-      config_get('interface', 'switchport_vlan_mapping_enable', @name)
+    def vlan_mapping_enable
+      config_get('interface', 'vlan_mapping_enable', @name)
     end
 
-    def switchport_vlan_mapping_enable=(state)
-      config_set('interface', 'switchport_vlan_mapping_enable', @name,
+    def vlan_mapping_enable=(state)
+      config_set('interface', 'vlan_mapping_enable', @name,
                  state ? '' : 'no')
     end
 
