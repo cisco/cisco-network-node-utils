@@ -1,44 +1,51 @@
 # bgp_af.yaml
 ---
 _template:
-  config_get: 'show running bgp all'
   config_get_token: '/^router bgp <asnum>$/'
   config_get_token_append:
     - '/^vrf <vrf>$/'
     - '/^address-family <afi> <safi>$/'
   config_set: "router bgp <asnum>"
   config_set_append:
-    - 'vrf <vrf>'
-    - 'address-family <afi> <safi>'
+    - ' vrf <vrf>'
+    - ' address-family <afi> <safi>'
+  cli_nexus:
+    config_get: 'show running bgp all'
+  cli_ios_xr:
+    config_get: 'show running-config router bgp'
 
 additional_paths_install:
   kind: boolean
   config_get_token_append: '/^additional-paths install backup$/'
-  config_set_append: '<state> additional-paths install backup'
+  config_set_append: ' <state> additional-paths install backup'
   default_value: false
 
 additional_paths_receive:
   kind: boolean
   config_get_token_append: '/^additional-paths receive$/'
-  config_set_append: '<state> additional-paths receive'
+  config_set_append: ' <state> additional-paths receive'
   default_value: false
 
 additional_paths_selection:
   kind: string
-  config_get_token_append: '/^additional-paths selection route-map (.*)$/'
-  config_set_append: '<state> additional-paths selection route-map <route_map>'
+  cli_nexus:
+    config_get_token_append: '/^additional-paths selection route-map (.*)$/'
+    config_set_append: ' <state> additional-paths selection route-map <route_map>'
+  cli_ios_xr:
+    config_get_token_append: '/^additional-paths selection route-policy (.*)$/'
+    config_set_append: ' <state> additional-paths selection route-policy <route_policy>'
   default_value: ""
 
 additional_paths_send:
   kind: boolean
   config_get_token_append: '/^additional-paths send$/'
-  config_set_append: '<state> additional-paths send'
+  config_set_append: ' <state> additional-paths send'
   default_value: false
 
 advertise_l2vpn_evpn:
   kind: boolean
   config_get_token_append: '/^advertise l2vpn evpn$/'
-  config_set_append: '<state> advertise l2vpn evpn'
+  config_set_append: ' <state> advertise l2vpn evpn'
   default_value: false
 
 all_afs:
@@ -46,21 +53,31 @@ all_afs:
   config_get_token_append: '/^address-family (\S+) (\S+)$/'
 
 client_to_client:
-  config_get_token_append: '/^client-to-client reflection$/'
-  config_set_append: '<state> client-to-client reflection'
-  default_value: true
+  kind: boolean
+  cli_nexus:
+    config_get_token_append: '/^client-to-client reflection$/'
+    config_set_append: ' <state> client-to-client reflection'
+    default_value: false
+  cli_ios_xr:
+    config_set_append: ' <state> bgp client-to-client reflection disable'
+    config_get_token_append: '/^bgp client-to-client reflection disable$/'
+    default_value: true
 
 dampen_igp_metric:
   auto_default: false
   kind: int
   config_get_token_append: '/^dampen-igp-metric (\d+)$/'
-  config_set_append: '<state> dampen-igp-metric <num>'
+  config_set_append: ' <state> dampen-igp-metric <num>'
   default_value: 600
 
 dampening:
   auto_default: false
-  config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
-  config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
+  cli_nexus:
+    config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
+    config_set_append: ' <state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
+  cli_ios_xr:
+    config_set_append: ' <state> bgp dampening <route_policy> <decay> <reuse> <suppress> <suppress_max>'
+    config_get_token_append: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
   default_value: ""
 
 dampening_half_time:
@@ -75,6 +92,9 @@ dampening_reuse_time:
 dampening_routemap:
   default_value: ""
 
+dampening_routepolicy:
+  default_value: ""
+
 dampening_state:
   default_value: true
 
@@ -83,9 +103,23 @@ dampening_suppress_time:
 
 default_information:
   kind: boolean
-  config_get_token_append: '/^default-information originate$/'
-  config_set_append: '<state> default-information originate'
-  default_value: false
+  cli_nexus:
+    config_get_token_append: '/^default-information originate$/'
+    config_set_append: ' <state> default-information originate'
+    default_value: true
+  cli_ios_xr:
+    # IOS XR does not have default-information under address-family, so we must replace config get/set
+    #   BT: Perhaps better to fix in ruby code?
+    config_set: 'router bgp <asnum>'
+    config_set_append: 
+      - ' vrf <vrf>'
+      - ' <state> default-information originate'
+    config_get: 'show running-config router bgp'
+    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append:
+      - '/^vrf <vrf>$/'
+      - '/^default-information originate$/'
+    default_value: false
 
 # This is a multi-provider, enable-only feature. Do not disable from provider.
 feature_nv_overlay_evpn:
@@ -96,36 +130,58 @@ feature_nv_overlay_evpn:
 
 maximum_paths:
   kind: int
-  config_get_token_append: '/^maximum-paths (\d+)$/'
-  config_set_append: '<state> maximum-paths <num>'
+  cli_nexus:
+    config_get_token_append: '/^maximum-paths (\d+)$/'
+    config_set_append: ' <state> maximum-paths <num>'
+  cli_ios_xr:
+    config_get_token_append: '/^maximum-paths ebgp (\d+)$/'
+    config_set_append: ' <state> maximum-paths ebgp <num>'
   default_value: 1
 
 maximum_paths_ibgp:
   kind: int
   config_get_token_append: '/^maximum-paths ibgp (\d+)$/'
-  config_set_append: '<state> maximum-paths ibgp <num>'
+  config_set_append: ' <state> maximum-paths ibgp <num>'
   default_value: 1
 
 network:
   multiple: true
-  config_get_token_append: '/^network (\S+) ?(?:route-map )?(\S+)?$/'
-  config_set_append: '<state> network <network> <route_map>'
+  cli_nexus:
+    config_get_token_append: '/^network (\S+) ?(?:route-map )?(\S+)?$/'
+    config_set_append: ' <state> network <network> <route_map>'
+  cli_ios_xr:
+    config_get_token_append: '/^network (\S+) ?(?:route-policy )?(\S+)?$/'
+    config_set_append: ' <state> network <network> <route_policy>'
   default_value: []
 
 next_hop_route_map:
   config_get_token_append: '/^nexthop route-map (.*)$/'
-  config_set_append: '<state> nexthop route-map <route_map>'
+  config_set_append: ' <state> nexthop route-map <route_map>'
   default_value: ""
+
+next_hop_route_policy:
+  cli_ios_xr:
+    config_set_append: ' <state> nexthop route-policy <route_policy>'
+#    config_get: 'show running-config router bgp'
+#    config_get_token: '/^router bgp <asnum>$/'
+    config_get_token_append: '/nexthop route-policy (.*)$/'
+    default_value: ""
 
 redistribute:
   multiple: true
-  config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
-  config_set_append: '<state> redistribute <protocol>'
+  config_set_append: ' <state> redistribute <protocol>'
+  cli_nexus:
+    config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
+  cli_ios_xr:
+    config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-policy (\S+))?$/'
   default_value: []
 
 redistribute_policy:
   # route-map/policy is optional on some platforms, required on others
-  config_set_append: '<state> redistribute <protocol> route-map <policy>'
+  cli_nexus:
+    config_set_append: ' <state> redistribute <protocol> route-map <policy>'
+  cli_ios_xr:
+    config_set_append: ' <state> redistribute <protocol> route-policy <policy>'
 
 #config in vrf context
 route_target_both_auto:
