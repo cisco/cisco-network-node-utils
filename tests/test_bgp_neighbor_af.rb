@@ -140,16 +140,16 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
     6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
     # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)], # ADD
+    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
     # 9 => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
-    10 => [1, 'aa', '1.1.1.1', %w(ipv4 unicast)], # ADD
+    10 => [1, 'aa', '1.1.1.1', %w(ipv4 unicast)],
     # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
     # 12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
     # 13 => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
     # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
     # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
     # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
-    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)], # ADD
+    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
   }
 
   # ---------------------------------
