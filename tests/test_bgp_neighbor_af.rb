@@ -236,7 +236,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def props_bool(af, dbg)
     # These properties have simple boolean states. As such we can use a common
     # set of tests to validate each property.
-    # XR the only properties supported (Under all af's) are:
+    # XR the only properties supported (under all af's) are:
     # :as_override,
     # :next_hop_self,
     # Nexus they are all supported, except when a l2vpn, in which case
