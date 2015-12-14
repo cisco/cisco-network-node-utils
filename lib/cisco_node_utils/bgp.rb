@@ -183,6 +183,7 @@ module Cisco
     end
 
     def bestpath_med_confed
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get('bgp', 'bestpath_med_confed', @get_args)
     end
 
@@ -220,6 +221,12 @@ module Cisco
     end
 
     def bestpath_med_confed=(enable)
+      if platform == :ios_xr && @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'bestpath_med_confed', 'set',
+                                         'bestpath_med_confed is not ' \
+                                         'configurable on a per-VRF basis ' \
+                                         'on IOS XR')
+      end
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_med_confed', @set_args)
       set_args_keys_default
@@ -255,6 +262,7 @@ module Cisco
     end
 
     def default_bestpath_med_confed
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'bestpath_med_confed')
     end
 
