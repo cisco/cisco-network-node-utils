@@ -347,6 +347,7 @@ module Cisco
     end
 
     def enforce_first_as=(enable)
+      # TODO: write a helper method for this repeated logic
       # enforce_first_as is on by default (=>true)
       # XR=>true  = enable enforce_first_as  = 'no bgp enforce-first-as disable'
       # XR=>false = disable enforce_first_as = 'bgp enforce-first-as disable'
@@ -369,6 +370,14 @@ module Cisco
     end
 
     def fast_external_fallover=(enable)
+      # TODO: write a helper method for this repeated logic
+      # fast_external_fallover is on by default (=>true)
+      # XR=>true  = 'no bgp fast-external-fallover disable'
+      # XR=>false = 'bgp fast-external-fallover disable'
+      # Nexus nvgens the 'no' command.
+      # Nexus=>true  = 'fast-external-fallover'
+      # Nexus=>false = 'no fast-external-fallover'
+      enable = !enable if platform == :ios_xr
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'fast_external_fallover', @set_args)
       set_args_keys_default

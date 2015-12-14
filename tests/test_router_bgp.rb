@@ -432,8 +432,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_set_get_fast_external_fallover
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
+    bgp = setup_default
     bgp.fast_external_fallover = true
     assert(bgp.fast_external_fallover,
            'bgp fast-external-fallover should be enabled')
@@ -444,28 +443,30 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_default_fast_external_fallover
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
+    bgp = setup_default
     assert(bgp.fast_external_fallover,
            'bgp fast-external-fallover default value should be true')
     bgp.destroy
   end
 
   def test_set_get_flush_routes
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
-    bgp.flush_routes = true
-    assert(bgp.flush_routes,
-           'bgp flush-routes should be enabled')
-    bgp.flush_routes = false
-    refute(bgp.flush_routes,
-           'bgp flush-routes should be disabled')
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.flush_routes)
+      assert_raises(UnsupportedError) { bgp.flush_routes = true }
+    else
+      bgp.flush_routes = true
+      assert(bgp.flush_routes,
+             'bgp flush-routes should be enabled')
+      bgp.flush_routes = false
+      refute(bgp.flush_routes,
+             'bgp flush-routes should be disabled')
+    end
     bgp.destroy
   end
 
   def test_default_flush_routes
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
+    bgp = setup_default
     refute(bgp.flush_routes,
            'bgp flush-routes value default value should be false')
     bgp.destroy
@@ -682,20 +683,24 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_set_get_isolate
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
-    bgp.isolate = true
-    assert(bgp.isolate,
-           'bgp isolate should be enabled')
-    bgp.isolate = false
-    refute(bgp.isolate,
-           'bgp isolate should be disabled')
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.isolate)
+      assert_nil(bgp.default_isolate)
+      assert_raises(UnsupportedError) { bgp.isolate = true }
+    else
+      bgp.isolate = true
+      assert(bgp.isolate,
+             'bgp isolate should be enabled')
+      bgp.isolate = false
+      refute(bgp.isolate,
+             'bgp isolate should be disabled')
+    end
     bgp.destroy
   end
 
   def test_default_isolate
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
+    bgp = setup_default
     refute(bgp.isolate,
            'bgp isolate default value should be false')
     bgp.destroy

@@ -133,9 +133,13 @@ enforce_first_as:
 
 fast_external_fallover:
   kind: boolean
-  config_get_token_append: '/^(no )?fast-external-fallover$/'
-  config_set_append: '<state> fast-external-fallover'
   default_value: true
+  cli_ios_xr:
+    config_get_token_append: '/^bgp fast-external-fallover disable$/'
+    config_set_append: ' <state> bgp fast-external-fallover disable'
+  cli_nexus:
+    config_get_token_append: '/^(no )?fast-external-fallover$/'
+    config_set_append: '<state> fast-external-fallover'
 
 feature:
   kind: boolean
@@ -149,6 +153,7 @@ feature:
     config_set: "<state> feature bgp"
 
 flush_routes:
+  _exclude: [cli_ios_xr]
   kind: boolean
   config_get_token_append: '/^flush-routes$/'
   config_set_append: '<state> flush-routes'
@@ -197,6 +202,7 @@ graceful_restart_timers_stalepath_time:
     config_set_append: '<state> graceful-restart stalepath-time <seconds>'
 
 isolate:
+  _exclude: [cli_ios_xr]
   kind: boolean
   config_get_token_append: '/^isolate$/'
   config_set_append: '<state> isolate'
