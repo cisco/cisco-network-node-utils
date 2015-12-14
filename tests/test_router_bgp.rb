@@ -431,6 +431,46 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.fast_external_fallover = true
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be enabled')
+    bgp.fast_external_fallover = false
+    refute(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_fast_external_fallover
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover default value should be true')
+    bgp.destroy
+  end
+
+  def test_set_get_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.flush_routes = true
+    assert(bgp.flush_routes,
+           'bgp flush-routes should be enabled')
+    bgp.flush_routes = false
+    refute(bgp.flush_routes,
+           'bgp flush-routes should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_flush_routes
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.flush_routes,
+           'bgp flush-routes value default value should be false')
+    bgp.destroy
+  end
+
   def test_graceful_restart_default
     graceful_restart(setup_default)
   end
@@ -641,6 +681,26 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.isolate = true
+    assert(bgp.isolate,
+           'bgp isolate should be enabled')
+    bgp.isolate = false
+    refute(bgp.isolate,
+           'bgp isolate should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_isolate
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.isolate,
+           'bgp isolate default value should be false')
+    bgp.destroy
+  end
+
   def test_log_neighbor_changes_default
     log_neighbor_changes(setup_default)
   end
@@ -722,33 +782,33 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_neighbor_fib_down_accelerate
+  def test_set_get_neighbor_down_fib_accelerate
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
       else
         bgp = setup_vrf
       end
-      bgp.neighbor_fib_down_accelerate = true
-      assert(bgp.neighbor_fib_down_accelerate,
-             "vrf #{@vrf}: bgp neighbor_fib_down_accelerate should be enabled")
-      bgp.neighbor_fib_down_accelerate = false
-      refute(bgp.neighbor_fib_down_accelerate,
-             "vrf #{@vrf}: bgp neighbor_fib_down_accelerate should be disabled")
+      bgp.neighbor_down_fib_accelerate = true
+      assert(bgp.neighbor_down_fib_accelerate,
+             "vrf #{@vrf}: bgp neighbor_down_fib_accelerate should be enabled")
+      bgp.neighbor_down_fib_accelerate = false
+      refute(bgp.neighbor_down_fib_accelerate,
+             "vrf #{@vrf}: bgp neighbor_down_fib_accelerate should be disabled")
       bgp.destroy
     end
   end
 
-  def test_get_neighbor_fib_down_accelerate_not_configured
+  def test_get_neighbor_down_fib_accelerate_not_configured
     bgp = setup_default
-    refute(bgp.neighbor_fib_down_accelerate,
+    refute(bgp.neighbor_down_fib_accelerate,
            'bgp neighbor_fib_down_accelerate should be disabled')
     bgp.destroy
   end
 
-  def test_default_neighbor_fib_down_accelerate
+  def test_default_neighbor_down_fib_accelerate
     bgp = setup_default
-    refute(bgp.default_neighbor_fib_down_accelerate,
+    refute(bgp.default_neighbor_down_fib_accelerate,
            'bgp neighbor_fib_down_accelerate default value should be false')
     bgp.destroy
   end

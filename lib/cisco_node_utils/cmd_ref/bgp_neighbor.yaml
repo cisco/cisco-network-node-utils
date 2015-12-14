@@ -70,7 +70,7 @@ local_as:
   default_value: 0
 
 log_neighbor_changes:
-  _exclude: [cli_ios_xr]
+  _exclude: [cli_ios_xr, /N6K/, /N7K/]
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'

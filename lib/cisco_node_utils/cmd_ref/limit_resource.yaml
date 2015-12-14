@@ -1,0 +1,10 @@
+# limit_resource
+---
+vdc:
+  _exclude: [/N3K/, /N9K/]
+  config_get: "show vdc current-vdc"
+  config_get_token: '/^Current vdc is.*\-\s+(\S+)/'
+
+vxlan:
+  _exclude: [/N3K/, /N9K/]
+  config_set: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3"]

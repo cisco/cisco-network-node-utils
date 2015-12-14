@@ -450,7 +450,7 @@ class TestInterface < CiscoTestCase
     skip('No description length limit on IOS XR') if platform == :ios_xr
     interface = Interface.new(interfaces[0])
     description = 'a' * (IF_DESCRIPTION_SIZE + 1)
-    assert_raises(RuntimeError) { interface.description = description }
+    assert_raises(Cisco::CliError) { interface.description = description }
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -472,7 +472,7 @@ class TestInterface < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
-    assert_raises(RuntimeError) { subif.encapsulation_dot1q = 'hello' }
+    assert_raises(Cisco::CliError) { subif.encapsulation_dot1q = 'hello' }
     subif.encapsulation_dot1q = 20
     assert_equal(20, subif.encapsulation_dot1q)
     subif.encapsulation_dot1q = 25
@@ -491,7 +491,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_invalid
     interface = Interface.new(interfaces[0])
-    assert_raises(RuntimeError) { interface.mtu = 'hello' }
+    assert_raises(Cisco::CliError) { interface.mtu = 'hello' }
   end
 
   def test_interface_mtu_valid
@@ -517,7 +517,7 @@ class TestInterface < CiscoTestCase
       assert_nil(interface.default_speed)
       assert_raises(Cisco::UnsupportedError) { interface.speed = 1000 }
     else
-      assert_raises(RuntimeError) { interface.speed = 'hello' }
+      assert_raises(RuntimeError, Cisco::CliError) { interface.speed = 'hello' }
       begin
         interface.speed = 1000
         assert_equal('1000', interface.speed)
@@ -537,7 +537,9 @@ class TestInterface < CiscoTestCase
       assert_nil(interface.default_duplex)
       assert_raises(Cisco::UnsupportedError) { interface.duplex = 'full' }
     else
-      assert_raises(RuntimeError) { interface.duplex = 'hello' }
+      assert_raises(RuntimeError, Cisco::CliError) do
+        interface.duplex = 'hello'
+      end
       interface.speed = 1000
       begin
         interface.duplex = 'full'
@@ -784,7 +786,7 @@ class TestInterface < CiscoTestCase
   def test_interface_ipv4_addr_mask_set_address_invalid
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('', 14)
     end
     interface_ethernet_default(interfaces_id[0])
@@ -793,7 +795,7 @@ class TestInterface < CiscoTestCase
   def test_interface_ipv4_addr_mask_set_netmask_invalid
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
     interface_ethernet_default(interfaces_id[0])
@@ -1119,7 +1121,7 @@ class TestInterface < CiscoTestCase
   def test_interface_vrf_exceeds_max_length
     interface = Interface.new('loopback1')
     long_string = 'a' * (IF_VRF_MAX_LENGTH + 1)
-    assert_raises(RuntimeError) { interface.vrf = long_string }
+    assert_raises(Cisco::CliError) { interface.vrf = long_string }
   end
 
   def test_interface_vrf_override
@@ -1170,5 +1172,14 @@ class TestInterface < CiscoTestCase
     assert_equal(length, interface.ipv4_netmask_length,
                  'IPv4 mask wrong after changing from vrf test2 => default')
     assert_equal(DEFAULT_IF_VRF, interface.vrf)
+  end
+
+  def test_interface_channel_group_add_delete
+    interface = Interface.new(interfaces[0])
+    pc = 100
+    interface.channel_group = pc
+    assert_equal(pc.to_i, interface.channel_group)
+    interface.channel_group = interface.default_channel_group
+    assert_equal(interface.default_channel_group, interface.channel_group)
   end
 end

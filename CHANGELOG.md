@@ -3,9 +3,26 @@ Changelog
 
 ## [Unreleased]
 
+### New feature support
+* ACL
+  * acl (@saqibraza)
+  * ace (@yjyongz)
+* Fabric Path
+  * fabricpath_global (@dcheriancisco)
+  * fabricpath_topology (@dcheriancisco)
+* VXLAN
+  * vxlan_global (@alok-aggarwal)
+  * vxlan_vtep (@dcheriancisco)
+  * vxlan_vtep_vni (@mikewiebe)
+
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+* Extend bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
+* Extend bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
+* Extend interface with `channel_group` attribute and support for fabric path attributes
+* Extend vrf with `vni` attribute
+* Extend vlan with `mode` attribute
 * Added client support for gRPC on IOS XR 6.0.0.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * XR support for bgp_neighbor
