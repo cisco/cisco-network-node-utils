@@ -35,7 +35,7 @@ module Cisco
       KEYS
     end
 
-    KINDS = %w(boolean int string)
+    KINDS = %w(boolean int string symbol)
 
     # Construct a CmdRef describing the given (feature, name) pair.
     # Param "values" is a hash with keys as described in KEYS.

@@ -18,6 +18,7 @@ _template:
 
 additional_paths_receive:
   _exclude: [cli_ios_xr]
+  kind: symbol
   auto_default: false
   config_get_token_append: '/^capability additional-paths receive(?: disable)?/'
   config_set_append: '<state> capability additional-paths receive <disable>'
@@ -64,7 +65,7 @@ as_override:
 default_originate:
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^default-originate (route-policy .*)$/'
+    config_get_token_append: '/^default-originate(?: route-policy .*)?/'
     config_set_append: ' <state> default-originate <map>'
   cli_nexus:
     config_get_token_append: '/^default-originate(?: route-map .*)?/'

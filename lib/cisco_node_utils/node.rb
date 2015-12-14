@@ -121,6 +121,8 @@ module Cisco
       when :string
         value = '' if value.nil?
         value = value.to_s.strip
+      when :symbol
+        value = value.to_sym unless value.nil?
       end
       CiscoLogger.debug "Massaged to '#{value}'"
       value
@@ -318,6 +320,7 @@ module Cisco
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = show('show inventory', :ascii)
+          puts "RICH: #{output}"
           return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[0]
         end
       end
