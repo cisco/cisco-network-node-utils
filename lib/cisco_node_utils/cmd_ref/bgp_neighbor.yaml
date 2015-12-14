@@ -20,7 +20,8 @@ _template:
       - "neighbor <nbr>"
 
 af:
-  config_set_append: '<state> address-family <afi> <safi>'
+  # Note - XR needs this to be indented under a neighbor
+  config_set_append: ' <state> address-family <afi> <safi>'
 
 all_neighbors:
   multiple: true
