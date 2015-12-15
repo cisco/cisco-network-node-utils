@@ -18,6 +18,7 @@
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'bgp'
+require_relative 'logger'
 
 module Cisco
   # RouterBgpAF - node utility class for BGP address-family config management
@@ -109,8 +110,8 @@ module Cisco
     def fail_vrf_unsupported_xr(reason)
       fail Cisco::UnsupportedError.new(
         'bgp_af', reason, 'set',
-        '#{reason} is not configurable on a \
-         per-VRF basis on IOS XR') if vrf_unsupported_xr?
+        "#{reason} is not configurable on a \
+         per-VRF basis on IOS XR") if vrf_unsupported_xr?
     end
 
     #
@@ -119,8 +120,7 @@ module Cisco
     def client_to_client
       return nil if vrf_unsupported_xr?
       state = config_get('bgp_af', 'client_to_client', @get_args)
-      state = state ? true : false
-      state
+      state ? true : false
     end
 
     def client_to_client=(state)
@@ -330,7 +330,7 @@ module Cisco
     # nil                       Dampening is not configured
     # '' || []                  Dampening is configured with no options
     # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
-    # [nil,nil,nil,'route-map'] Dampening + routemap
+    # [nil,nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
       return nil if vrf_unsupported_xr?
       data = config_get('bgp_af', 'dampening', @get_args)
@@ -434,10 +434,10 @@ module Cisco
       if damp_array.nil?
         # 'no dampening ...' command - no dampening handles all cases
         state = 'no'
-        CiscoLogger.debug("Dampening 'no dampening'")
+        Cisco::Logger.debug("Dampening 'no dampening'")
       elsif damp_array.empty?
         # 'dampening' command - nothing to do here
-        CiscoLogger.debug("Dampening 'dampening'")
+        Cisco::Logger.debug("Dampening 'dampening'")
       elsif damp_array.size == 4
         # 'dampening dampening_decay dampening_reuse \
         #   dampening_suppress dampening_suppress_max' command
@@ -445,17 +445,17 @@ module Cisco
         reuse =        damp_array[1]
         suppress =     damp_array[2]
         suppress_max = damp_array[3]
-        CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
+        Cisco::Logger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       else
         # 'dampening route-map WORD' command
         if platform == :nexus
           route_map = "route-map #{damp_array}"
           route_map.strip!
-          CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+          Cisco::Logger.debug("Dampening 'dampening #{route_map}'")
         elsif ios_xr?
           route_policy = "route-policy #{damp_array}"
           route_policy.strip!
-          CiscoLogger.debug("Dampening 'dampening #{route_policy}'")
+          Cisco::Logger.debug("Dampening 'dampening #{route_policy}'")
         end
       end
 
@@ -469,7 +469,7 @@ module Cisco
         suppress:     suppress,
         suppress_max: suppress_max,
       )
-      CiscoLogger.debug("Dampening args=#{@set_args}")
+      Cisco::Logger.debug("Dampening args=#{@set_args}")
       config_set('bgp_af', 'dampening', @set_args)
     end
 
@@ -555,14 +555,17 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should_list, networks)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
+        Cisco::Logger.debug("networks delta #{@get_args}\n #{action}: " \
                           "#{delta_hash[action]}")
         delta_hash[action].each do |network, route_map_policy|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
-          route_map = "route-map #{route_map_policy}" unless route_map_policy.nil?
-          route_policy = "route-policy #{route_map_policy}" unless route_map_policy.nil?
-          set_args_keys(state: state, network: network, route_map: route_map, route_policy: route_policy)
+          unless route_map_policy.nil?
+            route_map = "route-map #{route_map_policy}"
+            route_policy = "route-policy #{route_map_policy}"
+          end
+          set_args_keys(state: state, network: network, route_map: route_map,
+                        route_policy: route_policy)
           config_set('bgp_af', 'network', @set_args)
         end
       end
@@ -587,7 +590,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, redistribute)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("redistribute delta #{@get_args}\n #{action}: " \
+        Cisco::Logger.debug("redistribute delta #{@get_args}\n #{action}: " \
                           "#{delta_hash[action]}")
         delta_hash[action].each do |protocol, policy|
           state = (action == :add) ? '' : 'no'
@@ -696,7 +699,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
+        Cisco::Logger.debug("#{prop}" \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |community|
           state = (action == :add) ? '' : 'no'

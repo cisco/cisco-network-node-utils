@@ -110,7 +110,7 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-  def config_ios_xr_dependencies(asn)
+  def config_ios_xr_dependencies(asn, vrf='red', casty='unicast')
     # These dependencies are required on ios xr
 
     # router bgp 55
@@ -140,16 +140,15 @@ class TestRouterBgpAF < CiscoTestCase
     config('interface Loopback0', 'ipv4 address 10.1.1.1 255.255.255.255')
     config("router bgp #{asn}",
            'bgp router-id 10.1.1.1',
-           'address-family vpnv4 unicast',
-           'address-family vpnv6 unicast',
-           'vrf red', 'rd auto')
+           "address-family vpnv4 #{casty}",
+           "address-family vpnv6 #{casty}",
+           "vrf #{vrf}", 'rd auto')
   end
 
   ########################################################
   #                      PROPERTIES                      #
   ########################################################
 
-=begin
   ##
   ## default-information originate
   ##
@@ -160,87 +159,10 @@ class TestRouterBgpAF < CiscoTestCase
 
     config_ios_xr_dependencies(asn) if platform == :ios_xr
 
-    #
-    # Set and verify
-    #
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.default_information_originate = true
-    assert(bgp_af.default_information_originate,
-           'Error: default-information originate not set')
-
-    pattern = /^ *default-information originate$/
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              'default-information originate')
-    end
-    assert_match(pattern, af_string,
-                 "Error: 'default_information originate' is not" \
-                   ' configured and should be')
-
-    #
-    # Unset and verify
-    #
-
-    # Do a 'no default-information originate'
-    bgp_af.default_information_originate = false
-
-    pattern = /^ *default-information originate$/
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              'default-information originate')
-    end
-
-    refute_match(pattern, af_string,
-                 "Error: 'default_information originate' " \
-                   'is configured and should not be')
-  end
-=end
-
-
-  def test_client_to_client_BT
-    asn = '55'
-
-    %w(default).each do |vrf|
-
-      # Create Address Family
-      af = %w(ipv4 unicast)
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-      # Check default value
-      initial = bgp_af.client_to_client
-      default = bgp_af.default_client_to_client
-      assert_equal(default, initial)
-
-      # Toggle the state a few times
-      states = [!initial, initial]
-      states.each do |state|
-        bgp_af.client_to_client = state
-        assert_equal(state, bgp_af.client_to_client)
-      end
-
-      bgp_af.destroy
-    end
-  end
-
-  ##
-  ## default-information originate
-  ##
-  def test_default_information_originate_BT
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
-
     # Check default value
     bgp_af = RouterBgpAF.new(asn, vrf, af)
     initial = bgp_af.default_information_originate
     default = bgp_af.default_default_information_originate
-    puts "******** BRTURN ******** i=#{initial} d=#{default}"
     assert_equal(default, initial)
 
     # Toggle the state a few times
@@ -268,101 +190,10 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-=begin
-  ##
-  ## client-to-client reflection
-  ##
-  def test_client_to_client
-    asn = '55'
-    vrf = 'red'
-    if platform == :ios_xr
-      config_ios_xr_dependencies(asn)
-      client_to_client_vrf_xr_neg_test
-      vrf = 'default'
-    end
-    af = %w(ipv4 unicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    if platform == :ios_xr
-      #
-      # Default is:
-      #   client-to-client reflection enabled but doesn't show up in config
-      # router bgp 55
-      #  address-family ipv4 unicast
-      #   bgp client-to-client reflection disable
-      #
-      pattern = /^ *bgp client-to-client reflection disable$/
-      af_string = @device.cmd("show run router bgp #{asn} address-family " \
-                              'ipv4 unicast bgp client-to-client ' \
-                              'reflection disable')
-      refute_match(pattern, af_string,
-                   'bgp client-to-client disable is configured ' \
-                   'but should not be')
-    elsif platform == :nexus
-      pattern = /^ *client-to-client reflection$/
-      #
-      # Default is 'client-to-client' is configured
-      #
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      assert_match(pattern, af_string,
-                   "Error: 'client-to-client reflection' is not configured " \
-                   'and should be')
-
-      assert(bgp_af.client_to_client,
-             "Error: 'client-to-client is not configured but should be")
-    end
-
-    #
-    # Set and verify
-    #
-    bgp_af.client_to_client = true
-    if platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} address-family " \
-                              'ipv4 unicast bgp client-to-client ' \
-                              'reflection disable')
-
-      pattern = /^ *bgp client-to-client reflection disable$/
-      assert_match(pattern, af_string,
-                   'bgp client-to-client disable is configured and should be')
-    elsif platform == :nexus
-      # Do a 'client-to-client reflection'
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *client-to-client reflection$/
-
-      refute_match(pattern, af_string,
-                   "Error: 'no client-to-client' " \
-                   'is configured and should not be')
-    end
-
-    #
-    # Unset and verify
-    #
-    bgp_af.client_to_client = false
-    if platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} address-family " \
-                              'ipv4 unicast bgp client-to-client ' \
-                              'reflection disable')
-      pattern = /^ *bgp client-to-client reflection disable$/
-      refute_match(pattern, af_string,
-                   'bgp client-to-client disable is configured ' \
-                   'but should not be')
-    elsif platform == :nexus
-      # Do a 'no client-to-client reflection'
-      pattern = /^ *no client-to-client reflection$/
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      assert_match(pattern, af_string,
-                   "Error: 'no client-to-client' " \
-                   'is not configured and should be')
-    end
-  end
-=end
-
   ##
   ## client-to-client reflection (BT: trying a different style)
   ##
-  def test_client_to_client_BT
+  def test_client_to_client
     asn = '55'
 
     # Setup XR?
@@ -372,7 +203,6 @@ class TestRouterBgpAF < CiscoTestCase
     end
 
     %w(default).each do |vrf|
-
       # Create Address Family
       af = %w(ipv4 unicast)
       bgp_af = RouterBgpAF.new(asn, vrf, af)
@@ -380,7 +210,6 @@ class TestRouterBgpAF < CiscoTestCase
       # Check default value
       initial = bgp_af.client_to_client
       default = bgp_af.default_client_to_client
-      puts "******** BRTURN ******** i=#{initial} d=#{default}"
       assert_equal(default, initial)
 
       # Toggle the state a few times
@@ -393,7 +222,6 @@ class TestRouterBgpAF < CiscoTestCase
       bgp_af.destroy
     end
   end
-
 
   ##
   ## Negative tests with non-default vrf on ios_xr
@@ -644,30 +472,32 @@ class TestRouterBgpAF < CiscoTestCase
   ## advertise_l2vpn_evpn
   ##
   def advertise_l2vpn_evpn(asn, vrf, af)
+    # Create BGP
+    config_ios_xr_dependencies(asn) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
-    #
-    # Set and verify
-    #
-    val = false
-    bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
-                 'Error: advertise l2vpn evpn value does not match set value')
+    initial = bgp_af.advertise_l2vpn_evpn
 
-    val = true
-    bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
-                 'Error: advertise l2vpn evpn value does not match set value')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.advertise_l2vpn_evpn = !initial
+      end
+    else
+      # Check initial == default value
+      default = bgp_af.default_advertise_l2vpn_evpn
+      assert_equal(default, initial)
 
-    val = bgp_af.default_advertise_l2vpn_evpn
-    bgp_af.advertise_l2vpn_evpn = val
-    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
-                 'Error: advertise l2vpn evpn value does not match default' \
-                 'value')
+      # Toggle the state  few times
+      states = [!initial, initial]
+      states.each do |state|
+        bgp_af.advertise_l2vpn_evpn = state
+        assert_equal(state, bgp_af.advertise_l2vpn_evpn)
+      end
+    end
+    bgp_af.destroy
   end
 
   def test_advertise_l2vpn_evpn
-    skip('L2VPN EVPN is unsupported on IOS XR') if platform == :ios_xr
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
       advertise_l2vpn_evpn(55, 'red', af)
@@ -678,11 +508,11 @@ class TestRouterBgpAF < CiscoTestCase
   ## get_dampen_igp_metric
   ##
   def test_dampen_igp_metric
-    skip('dampen-igp-metric unsupported on IOS XR') if platform == :ios_xr
     asn = '44'
     vrf = 'green'
     af = %w(ipv4 multicast)
 
+    config_ios_xr_dependencies(asn, vrf, 'multicast') if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     #
@@ -692,51 +522,58 @@ class TestRouterBgpAF < CiscoTestCase
                  "Error: Default 'dampen-igp-metric' value should be " \
                    "#{bgp_af.default_dampen_igp_metric}")
 
-    #
-    # Set and verify 'dampen-igp-metric <value>'
-    #
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.dampen_igp_metric = 555
+      end
+    else
 
-    # Do a 'dampen-igp-metric 555'
-    pattern = /^ *dampen-igp-metric 555$/
-    bgp_af.dampen_igp_metric = 555
+      #
+      # Set and verify 'dampen-igp-metric <value>'
+      #
 
-    af_string = get_bgp_af_cfg(asn, vrf, af)
+      # Do a 'dampen-igp-metric 555'
+      pattern = /^ *dampen-igp-metric 555$/
+      bgp_af.dampen_igp_metric = 555
 
-    assert_match(pattern, af_string,
-                 "Error: 'dampen-igp-metric 555' is not configured " \
-                   'and should be')
-    #
-    # Test getter
-    #
-    assert_equal(bgp_af.dampen_igp_metric, 555,
-                 'Error: dampen_igp_metric should be 555')
+      af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    #
-    # Set and verify 'no dampen-igp-metric'
-    #
+      assert_match(pattern, af_string,
+                   "Error: 'dampen-igp-metric 555' is not configured " \
+                     'and should be')
+      #
+      # Test getter
+      #
+      assert_equal(bgp_af.dampen_igp_metric, 555,
+                   'Error: dampen_igp_metric should be 555')
 
-    # Do a 'no dampen-igp-metric'
-    pattern = /no dampen-igp-metric$/
-    bgp_af.dampen_igp_metric = nil
+      #
+      # Set and verify 'no dampen-igp-metric'
+      #
 
-    af_string = get_bgp_af_cfg(asn, vrf, af)
+      # Do a 'no dampen-igp-metric'
+      pattern = /no dampen-igp-metric$/
+      bgp_af.dampen_igp_metric = nil
 
-    assert_match(pattern, af_string,
-                 "Error: 'no dampen-igp-metric' is not configured " \
-                   'and should be')
-    #
-    # Test getter
-    #
-    assert_equal(bgp_af.dampen_igp_metric, nil,
-                 'Error: dampen_igp_metric should be nil')
+      af_string = get_bgp_af_cfg(asn, vrf, af)
 
-    #
-    # Set default value explicitly
-    #
-    bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
-    assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
-                 "Error: Default 'dampen-igp-metric' value should be " \
-                   "#{bgp_af.default_dampen_igp_metric}")
+      assert_match(pattern, af_string,
+                   "Error: 'no dampen-igp-metric' is not configured " \
+                     'and should be')
+      #
+      # Test getter
+      #
+      assert_equal(bgp_af.dampen_igp_metric, nil,
+                   'Error: dampen_igp_metric should be nil')
+
+      #
+      # Set default value explicitly
+      #
+      bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
+      assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
+                   "Error: Default 'dampen-igp-metric' value should be " \
+                     "#{bgp_af.default_dampen_igp_metric}")
+    end
   end
 
   ##
@@ -754,90 +591,26 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-  ##
-  ## dampening
-  ##
-  # rubocop:disable Metrics/MethodLength
   def test_dampening
     asn = '101'
-
-    ############################################
-    # Set and verify 'dampening' with defaults #
-    ############################################
-    vrf = 'orange'
-    if platform == :ios_xr
-      config_ios_xr_dependencies(asn)
-      dampening_vrf_xr_neg_test
-      vrf = 'default'
-    end
+    vrf = 'default'
+    vrf = 'orange' if platform == :nexus
     af = %w(ipv4 unicast)
+    config_ios_xr_dependencies(asn, vrf) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     # Test no dampening configured
     assert_nil(bgp_af.dampening)
 
-    if platform == :nexus
-      pattern = /^ *dampening$/
-    elsif platform == :ios_xr
-      pattern = /^ *bgp dampening$/
-    end
-
+    ############################################
+    # Set and verify 'dampening' with defaults #
+    ############################################
     bgp_af.dampening = []
+    assert_equal(bgp_af.default_dampening,
+                 bgp_af.dampening) if platform == :nexus
+    assert_equal('', bgp_af.dampening) if platform == :ios_xr
 
-    # Check property got set
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              "address-family #{af[0]} #{af[1]} bgp dampening")
-    end
-
-    assert_match(pattern, af_string,
-                 "Error: 'dampening' is not configured and should be")
-
-    if platform == :nexus
-
-      # Check properties got set
-      af_string = get_bgp_af_dampening_params(asn, vrf, af)
-
-      pattern_params1 = 'Half-life time                 : 15 mins'
-      pattern_params2 = 'Suppress penalty               : 2000'
-      pattern_params3 = 'Reuse penalty                  : 750'
-      pattern_params4 = 'Max suppress time              : 45 mins'
-      pattern_params5 = 'Max suppress penalty           : 6000'
-
-      error = ("Error: 'dampening' properties are incorrect")
-
-      assert_match(pattern_params1, af_string, error)
-      assert_match(pattern_params2, af_string, error)
-      assert_match(pattern_params3, af_string, error)
-      assert_match(pattern_params4, af_string, error)
-      assert_match(pattern_params5, af_string, error)
-      # Check getter
-      assert_empty(bgp_af.dampening, 'Error: dampening is configured and ' \
-                   'should not be')
-    end
-    # "show bgp dampening param not supported on IOS XR"
-
-    #
-    # Unset and verify
-    #
     bgp_af.dampening = nil
-
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *dampening$/
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              "address-family #{af[0]} #{af[1]} bgp dampening")
-      pattern = /^ *bgp dampening$/
-    end
-
-    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
-
-    #
-    # Test Getters
-    #
     assert_nil(bgp_af.dampening)
     assert_nil(bgp_af.dampening_half_time)
     assert_nil(bgp_af.dampening_reuse_time)
@@ -845,223 +618,105 @@ class TestRouterBgpAF < CiscoTestCase
     assert_nil(bgp_af.dampening_max_suppress_time)
     assert_nil(bgp_af.dampening_routemap)
 
-    bgp_af.destroy
-
     #############################################
     # Set and verify 'dampening' with overrides #
     #############################################
-    if platform == :nexus
-      vrf = 'green'
-    elsif platform == :ios_xr
-      vrf = 'default'
-    end
-    af = %w(ipv4 multicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
     bgp_af.dampening = %w(1 2 3 4)
 
-    # Check property got set
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *dampening 1 2 3 4$/
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              "address-family #{af[0]} #{af[1]}")
-      pattern = /^ *bgp dampening 1 2 3 4$/
-    end
+    # Check getters
+    assert_equal(bgp_af.dampening, %w(1 2 3 4),
+                 'Error: dampening getter did not match')
+    assert_equal(1, bgp_af.dampening_half_time,
+                 'The wrong dampening half_time value is configured')
+    assert_equal(2, bgp_af.dampening_reuse_time,
+                 'The wrong dampening reuse_time value is configured')
+    assert_equal(3, bgp_af.dampening_suppress_time,
+                 'The wrong dampening suppress_time value is configured')
+    assert_equal(4, bgp_af.dampening_max_suppress_time,
+                 'The wrong dampening max_suppress_time value is configured')
+    assert_empty(bgp_af.dampening_routemap,
+                 'A routemap should not be configured')
 
-    assert_match(pattern, af_string,
-                 "Error: 'dampening' is not configured and should be")
-
-    if platform == :nexus
-      # Check properties got set
-      af_string = get_bgp_af_dampening_params(asn, vrf, af)
-
-      pattern_params1 = 'Half-life time                 : 1 mins'
-      pattern_params2 = 'Suppress penalty               : 3'
-      pattern_params3 = 'Reuse penalty                  : 2'
-      pattern_params4 = 'Max suppress time              : 4 mins'
-      pattern_params5 = 'Max suppress penalty           : 32'
-
-      error = ("Error: 'dampening' properties are incorrect")
-
-      assert_match(pattern_params1, af_string, error)
-      assert_match(pattern_params2, af_string, error)
-      assert_match(pattern_params3, af_string, error)
-      assert_match(pattern_params4, af_string, error)
-      assert_match(pattern_params5, af_string, error)
-
-      # Check getters
-      assert_equal(bgp_af.dampening, %w(1 2 3 4),
-                   'Error: dampening getter did not match')
-      assert_equal(1, bgp_af.dampening_half_time,
-                   'The wrong dampening half_time value is configured')
-      assert_equal(2, bgp_af.dampening_reuse_time,
-                   'The wrong dampening reuse_time value is configured')
-      assert_equal(3, bgp_af.dampening_suppress_time,
-                   'The wrong dampening suppress_time value is configured')
-      assert_equal(4, bgp_af.dampening_max_suppress_time,
-                   'The wrong dampening max_suppress_time value is configured')
-      assert_empty(bgp_af.dampening_routemap,
-                   'A routemap should not be configured')
-    end
-
-    #
-    # Unset and verify
-    #
     bgp_af.dampening = nil
-
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *dampening$/
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              "address-family #{af[0]} #{af[1]} bgp dampening")
-      pattern = /^ *bgp dampening$/
-    end
-
-    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+    assert_nil(bgp_af.dampening)
+    assert_nil(bgp_af.dampening_half_time)
+    assert_nil(bgp_af.dampening_reuse_time)
+    assert_nil(bgp_af.dampening_suppress_time)
+    assert_nil(bgp_af.dampening_max_suppress_time)
+    assert_nil(bgp_af.dampening_routemap)
 
     #############################################
     # Set and verify 'dampening' with route-map #
     #############################################
-    af = %w(ipv6 unicast)
-    if platform == :nexus
-      vrf = 'brown'
-    elsif platform == :ios_xr
-      vrf = 'default'
-      config('route-policy DropAllTraffic', 'end-policy')
-    end
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
 
+    config('route-policy DropAllTraffic', 'end-policy') if platform == :ios_xr
     bgp_af.dampening = 'DropAllTraffic'
 
-    # Check property got set
-    if platform == :nexus
-      pattern = /^ *dampening route-map DropAllTraffic$/
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              'address-family ipv6 unicast bgp dampening')
-      pattern = /^ *bgp dampening route-policy DropAllTraffic$/
-    end
+    # Check getters
+    assert_equal(bgp_af.dampening, 'DropAllTraffic',
+                 'Error: dampening getter did not match')
+    assert_equal(bgp_af.dampening_routemap, 'DropAllTraffic',
+                 'Error: dampening getter did not match')
 
-    assert_match(pattern, af_string,
-                 "Error: 'dampening' is not configured and should be")
-
-    # Check properties got set
-    if platform == :nexus
-      af_string = get_bgp_af_dampening_params(asn, vrf, af)
-      pattern_params = 'Dampening policy configured: DropAllTraffic'
-
-      assert_match(pattern_params, af_string,
-                   'Error: dampening properties DropAllTraffic is not ' \
-                   'configured and should be')
-
-      # Check getters
-      assert_equal(bgp_af.dampening, 'DropAllTraffic',
-                   'Error: dampening getter did not match')
-      assert_equal(bgp_af.dampening_routemap, 'DropAllTraffic',
-                   'Error: dampening getter did not match')
-    end
-
-    #
-    # Unset and verify
-    #
     bgp_af.dampening = nil
+    assert_nil(bgp_af.dampening)
+    assert_nil(bgp_af.dampening_half_time)
+    assert_nil(bgp_af.dampening_reuse_time)
+    assert_nil(bgp_af.dampening_suppress_time)
+    assert_nil(bgp_af.dampening_max_suppress_time)
+    assert_nil(bgp_af.dampening_routemap)
 
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *dampening$/
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} " \
-                              'address-family ipv6 unicast bgp dampening')
-      pattern = /^ *bgp dampening$/
-    end
-
-    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
-
-    config('no route-policy DropAllTraffic') if platform == :ios_xr
-  end
-
-  def test_dampening_with_default
     #############################################
     # Set and verify 'dampening' with default   #
     #############################################
-    if platform == :ios_xr
-      skip('Dampening with default is not supported on IOS XR')
+
+    # IOS XR; we skip this section because we cannot query
+    #    the default parameters
+    if platform == :nexus
+      bgp_af.dampening = bgp_af.default_dampening
+
+      # Check getters
+      assert_empty(bgp_af.dampening, 'Error: dampening not configured ' \
+                   'and should be')
+      assert_equal(bgp_af.default_dampening_half_time,
+                   bgp_af.dampening_half_time,
+                   'Wrong default dampening half_time value configured')
+      assert_equal(bgp_af.default_dampening_reuse_time,
+                   bgp_af.dampening_reuse_time,
+                   'Wrong default dampening reuse_time value configured')
+      assert_equal(bgp_af.default_dampening_suppress_time,
+                   bgp_af.dampening_suppress_time,
+                   'Wrong default dampening suppress_time value configured')
+      assert_equal(bgp_af.default_dampening_max_suppress_time,
+                   bgp_af.dampening_max_suppress_time,
+                   'Wrong default dampening suppress_max_time value configured')
+      assert_equal(bgp_af.default_dampening_routemap,
+                   bgp_af.dampening_routemap,
+                   'The default dampening routemap should configured')
     end
 
-    vrf = 'sangria'
-    af = %w(ipv4 multicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    bgp_af.dampening = bgp_af.default_dampening
-
-    # Check property got set
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-
-    assert_match(pattern, af_string,
-                 "Error: 'dampening' is not configured and should be")
-
-    # Check properties got set
-    af_string = get_bgp_af_dampening_params(asn, vrf, af)
-
-    pattern_params1 = 'Half-life time                 : 15 mins'
-    pattern_params2 = 'Suppress penalty               : 2000'
-    pattern_params3 = 'Reuse penalty                  : 750'
-    pattern_params4 = 'Max suppress time              : 45 mins'
-    pattern_params5 = 'Max suppress penalty           : 6000'
-
-    error = ("Error: 'dampening' properties are incorrect")
-
-    assert_match(pattern_params1, af_string, error)
-    assert_match(pattern_params2, af_string, error)
-    assert_match(pattern_params3, af_string, error)
-    assert_match(pattern_params4, af_string, error)
-    assert_match(pattern_params5, af_string, error)
-
-    # Check getters
-    assert_empty(bgp_af.dampening, 'Error: dampening not configured ' \
-                 'and should be')
-    assert_equal(bgp_af.default_dampening_half_time, bgp_af.dampening_half_time,
-                 'Wrong default dampening half_time value configured')
-    assert_equal(bgp_af.default_dampening_reuse_time,
-                 bgp_af.dampening_reuse_time,
-                 'Wrong default dampening reuse_time value configured')
-    assert_equal(bgp_af.default_dampening_suppress_time,
-                 bgp_af.dampening_suppress_time,
-                 'Wrong default dampening suppress_time value configured')
-    assert_equal(bgp_af.default_dampening_max_suppress_time,
-                 bgp_af.dampening_max_suppress_time,
-                 'Wrong default dampening suppress_max_time value configured')
-    assert_equal(bgp_af.default_dampening_routemap,
-                 bgp_af.dampening_routemap,
-                 'The default dampening routemap should configured')
-
-    #
-    # Unset and verify
-    #
-    bgp_af.dampening = nil
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-
-    refute_match(pattern, af_string, "Error: 'dampening' is still configured")
+    bgp_af.destroy
   end
-  # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
 
   ## feature nv overlay evpn
   def test_feature_nv_overlay_evpn
-    skip('nv overlay evpn unsupported on IOS XR') if platform == :ios_xr
-    config('no nv overlay evpn')
-    RouterBgpAF.feature_nv_overlay_evpn_enable
-    assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
-           'Error:feature nv overlay evpn is not enabled')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        RouterBgpAF.feature_nv_overlay_evpn_enable
+      end
+    else
+      config('no nv overlay evpn')
+      RouterBgpAF.feature_nv_overlay_evpn_enable
+      assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
+             'Error:feature nv overlay evpn is not enabled')
+    end
   end
 
   ##
   ## maximum_paths
   ##
   def maximum_paths(asn, vrf, af)
+    asn = '101'
     config_ios_xr_dependencies(asn) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
