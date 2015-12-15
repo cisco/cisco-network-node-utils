@@ -19,6 +19,15 @@ all_interfaces:
   multiple:
   config_get_token: '/^interface (.*)/'
 
+channel_group:
+  # TODO: XR support
+  _exclude: [cli_ios_xr]
+  kind: int
+  default_value: false
+  cli_nexus:
+    config_get_token_append: '/^channel-group (\d+)$/'
+    config_set_append: "<state> channel-group <val> <force>"
+
 create:
   config_set: "interface <name>"
 
@@ -258,7 +267,7 @@ switchport_trunk_allowed_vlan:
   _exclude: [cli_ios_xr]
   config_get_token_append: '/^switchport trunk allowed vlan (.*)$/'
   config_set_append: "<state> switchport trunk allowed vlan <vlan>"
-  default_value: "all"
+  default_value: "1-4094"
 
 switchport_trunk_native_vlan:
   _exclude: [cli_ios_xr]

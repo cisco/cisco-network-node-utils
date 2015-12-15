@@ -81,5 +81,9 @@ module Cisco
     def platform
       client.platform
     end
+
+    def show(*args)
+      node.show(*args)
+    end
   end
 end

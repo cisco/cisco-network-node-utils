@@ -16,6 +16,7 @@
 
 require_relative 'node_util'
 require_relative 'interface'
+require_relative 'fabricpath_global'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
@@ -58,6 +59,45 @@ module Cisco
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       fail result[2]['body'] unless result[2]['body'].empty?
+    end
+
+    def fabricpath_feature
+      FabricpathGlobal.fabricpath_feature
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
+    end
+
+    def mode
+      result = config_get('vlan', 'mode', @vlan_id)
+      return default_mode if result.nil?
+      case result
+      when /fabricpath/i
+        return 'fabricpath'
+      when /ce/i
+        return 'ce'
+      end
+    end
+
+    def mode=(str)
+      str = str.to_s
+      if str.empty?
+        result = config_set('vlan', 'mode', @vlan_id, 'no', '')
+      else
+        if 'fabricpath' == str
+          fabricpath_feature_set(:enabled) unless
+            :enabled == fabricpath_feature
+        end
+        result = config_set('vlan', 'mode', @vlan_id, '', str)
+      end
+      cli_error_check(result)
+    rescue CliError => e
+      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_mode
+      config_get_default('vlan', 'mode')
     end
 
     def vlan_name
