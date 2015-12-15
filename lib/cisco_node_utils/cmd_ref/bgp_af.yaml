@@ -88,12 +88,15 @@ default_information:
   default_value: false
 
 default_metric:
+  _exclude: [cli_ios_xr]
   kind: int
   config_get_token_append: '/^default-metric (\d+)$/'
   config_set_append: '<state> default-metric <num>'
   default_value: false
 
 distance:
+  # TODO: add support for XR
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^distance (\d+) (\d+) (\d+)$/'
   config_set_append: '<state> distance <ebgp> <ibgp> <local>'
 
@@ -114,6 +117,7 @@ feature_nv_overlay_evpn:
   config_set: "nv overlay evpn"
 
 inject_map:
+  _exclude: [cli_ios_xr]
   multiple: true
   config_get_token_append: '/^inject-map (\S+) exist-map (\S+) *(copy-attributes)?$/'
   config_set_append: '<state> inject-map <inject> exist-map <exist> <copy>'
@@ -196,12 +200,15 @@ route_target_import_evpn:
   default_value: []
 
 suppress_inactive:
+  _exclude: [cli_ios_xr]
   kind: boolean
   config_get_token_append: '/^suppress-inactive$/'
   config_set_append: '<state> suppress-inactive'
   default_value: false
 
 table_map:
+  # TODO: add 'table-policy' support for XR
+  _exclude: [cli_ios_xr]
   kind: string
   config_get_token_append: '/^table-map (\S+)(?: filter)?$/'
   config_set_append: '<state> table-map <map>'

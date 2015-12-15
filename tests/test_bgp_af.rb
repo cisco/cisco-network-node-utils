@@ -719,6 +719,12 @@ class TestRouterBgpAF < CiscoTestCase
   def default_metric(asn, vrf, af)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
+    if platform == :ios_xr
+      assert_nil(bgp_af.default_default_metric)
+      assert_nil(bgp_af.default_metric)
+      assert_raises(UnsupportedError) { bgp_af.default_metric = 50 }
+      return
+    end
     refute(bgp_af.default_default_metric,
            'default value for default default metric should be false')
     #
@@ -753,6 +759,13 @@ class TestRouterBgpAF < CiscoTestCase
               ['nyc', 'sfo', 'copy-attributes'],
               ['sjc', 'nyc', 'copy-attributes']]
     bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    if platform == :ios_xr
+      assert_nil(bgp_af.default_inject_map)
+      assert_nil(bgp_af.inject_map)
+      assert_raises(UnsupportedError) { bgp_af.inject_map = master }
+      return
+    end
 
     # Test1: both/import/export when no commands are present. Each target
     # option will be tested with and without evpn (6 separate types)
@@ -1193,6 +1206,13 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   def suppress_inactive(asn, vrf, af)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    if platform == :ios_xr
+      assert_nil(bgp_af.default_suppress_inactive)
+      assert_nil(bgp_af.suppress_inactive)
+      assert_raises(UnsupportedError) { bgp_af.suppress_inactive = false }
+      return
+    end
 
     #
     # Set and verify
