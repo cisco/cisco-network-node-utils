@@ -4,6 +4,11 @@ all_vnis:
   config_get: "show vni"
   config_get_token: '/^(\d+)\s/'
 
+all_vnis_n9k:
+  multiple: true
+  config_get: "show running vlan"
+  config_get_token: '/vn-segment (\d+)/'
+
 bridge_domain:
   config_get: "show vni"
   config_get_token: [ '/^%d\s+\S+\s+(\d+)/' ]
@@ -41,7 +46,7 @@ feature_nv_overlay:
 mapped_vlan:
   config_get: 'show running vlan'
   config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-  config_set: ['vlan <vlan>', '<state> vn-segment <vni>']
+  config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
   default_value: ""
 
 shutdown:

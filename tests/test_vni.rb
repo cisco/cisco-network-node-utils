@@ -48,7 +48,7 @@ class TestVni < CiscoTestCase
     assert_equal(100, vni.mapped_vlan,
                  'Error: mapped-vlan mismatch')
     # Now clear the vni vlan mapping
-    vni.mapped_vlan = vni.default_vlan
+    vni.mapped_vlan = vni.default_mapped_vlan
     assert_equal(nil, vni.mapped_vlan,
                  'Error: cannot clear vni vlan mapping')
   end
@@ -65,7 +65,7 @@ class TestVni < CiscoTestCase
     # Clear all mappings
     vni_to_vlan_map.each do |vni, _vlan|
       vni_id = Vni.new(vni)
-      vni_id.mapped_vlan = vni_id.default_vlan
+      vni_id.mapped_vlan = vni_id.default_mapped_vlan
       assert_equal(nil, vni_id.mapped_vlan,
                    'Error: cannot clear vni vlan mapping')
     end
