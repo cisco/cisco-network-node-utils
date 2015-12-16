@@ -143,14 +143,12 @@ module Cisco
     def graceful_merge
       graceful_merge_conf = config_get('fabricpath', 'graceful_merge')
       # opposite meaning with the cli
-      if (graceful_merge_conf.nil?)
-        return :enable
-      end
-      graceful_merge_conf ?  :disable : :enable
+      return :enable if graceful_merge_conf.nil?
+      graceful_merge_conf ? :disable : :enable
     end
 
     def graceful_merge=(val)
-      state =  val == :enable ? 'no' : ''
+      state = val == :enable ? 'no' : ''
       config_set('fabricpath', 'graceful_merge', state: state)
     rescue Cisco::CliError => e
       raise "[Setting allocate-delay #{val}] '#{e.command}' : #{e.clierror}"
@@ -228,8 +226,8 @@ module Cisco
       val = my_munge('loadbalance_algorithm', val)
       state = val ? '' : 'no'
       algo = val ? val : ''
-      config_set('fabricpath', 'loadbalance_algorithm', state: state, 
-                 algo: algo)
+      config_set('fabricpath', 'loadbalance_algorithm', state: state,
+                                                        algo:  algo)
     rescue Cisco::CliError => e
       raise "[Setting loadbalance-algo #{val}] #{e.command} : #{e.clierror}"
     end
@@ -294,8 +292,8 @@ module Cisco
     def split_loadbalance_unicast_layer=(val)
       state = val ? '' : 'no'
       pref = val ? val : ''
-      config_set('fabricpath', 'loadbalance_unicast_layer', state: state, 
-                 pref: pref)
+      config_set('fabricpath', 'loadbalance_unicast_layer', state: state,
+                                                            pref:  pref)
     rescue Cisco::CliError => e
       raise "[Setting loadbalance layer #{val} ] '#{e.command}'
             : #{e.clierror}"

@@ -95,9 +95,9 @@ class TestFabricpathGlobal < CiscoTestCase
     @global = FabricpathGlobal.new('default')
     # test default value
     assert_equal(:enable, @global.graceful_merge,
-           'Default graceful_merge not set correctly')
+                 'Default graceful_merge not set correctly')
     @global.graceful_merge = :disable
-    assert_equal(:disable, @global.graceful_merge, 
+    assert_equal(:disable, @global.graceful_merge,
                  'graceful merge not set to disable')
   end
 
