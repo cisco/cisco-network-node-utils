@@ -151,7 +151,7 @@ module Cisco
     end
 
     def default_shutdown
-      config_get_default('vxlan_vtep', 'shtudown')
+      config_get_default('vxlan_vtep', 'shutdown')
     end
   end  # Class
 end    # Module

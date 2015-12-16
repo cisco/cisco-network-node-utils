@@ -138,6 +138,9 @@ class TestVxlanVtep < CiscoTestCase
 
     vtep.shutdown = false
     refute(vtep.shutdown, 'source_interface is shutdown')
+
+    vtep.shutdown = vtep.default_shutdown
+    assert(vtep.shutdown, 'source_interface is not shutdown')
   end
 
   def test_source_interface
