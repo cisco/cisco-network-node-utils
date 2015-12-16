@@ -5,7 +5,7 @@ all_vnis:
   /N7K/:
     config_get: 'show vni'
     config_get_token: '/^(\d+)\s/'
-  else:
+  /N9K/:
     config_get: 'show running vlan'
     config_get_token: '/vn-segment (\d+)/'
 
