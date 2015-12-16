@@ -723,13 +723,6 @@ module Cisco
     def timer_bestpath_limit_set(seconds, always=false)
       if always
         feature = 'timer_bestpath_limit_always'
-        if platform == :ios_xr
-          fail Cisco::UnsupportedError.new('bgp',
-                                           'timer_bestpath_limit_always',
-                                           'set',
-                                           'timer_bestpath_limit_always is ' \
-                                           'not configurable on IOS XR')
-        end
       else
         feature = 'timer_bestpath_limit'
       end
