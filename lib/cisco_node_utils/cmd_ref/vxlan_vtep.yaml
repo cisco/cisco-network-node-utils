@@ -13,6 +13,12 @@ mac_distribution:
   config_get_token_append: '/^host-reachability protocol (\S+)/'
   config_set_append: '<state> host-reachability protocol <proto>'
 
+shutdown:
+  kind: boolean
+  config_get_token_append: '/^no shutdown$/'
+  config_set_append: '<state> shutdown'
+  default_value: true
+
 source_intf:
   config_get_token_append: '/^source\-interface (\S+)$/'
   config_set_append: '<state> source-interface <lpbk_intf>'

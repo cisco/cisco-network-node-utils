@@ -90,8 +90,6 @@ module Cisco
       else
         config_set('interface', 'description', @name, '', desc)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
@@ -120,8 +118,6 @@ module Cisco
                    name: @name, state: '', proto: 'bgp')
         @mac_dist_proto = :evpn
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def source_interface
@@ -139,8 +135,6 @@ module Cisco
         config_set('vxlan_vtep', 'source_intf',
                    name: @name, state: '', lpbk_intf: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_source_interface
@@ -148,19 +142,16 @@ module Cisco
     end
 
     def shutdown
-      state = config_get('interface', 'shutdown', @name)
-      state ? true : false
+      config_get('vxlan_vtep', 'shutdown', name: @name)
     end
 
     def shutdown=(bool)
       state = (bool ? '' : 'no')
-      config_set('interface', 'shutdown', @name, state)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('vxlan_vtep', 'shutdown', name: @name, state: state)
     end
 
     def default_shutdown
-      false
+      config_get_default('vxlan_vtep', 'shtudown')
     end
   end  # Class
 end    # Module
