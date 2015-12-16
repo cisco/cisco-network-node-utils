@@ -40,7 +40,12 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def show_cmd(name)
-    "show run interface #{name} all | no-more"
+    case name
+    when /ort-channel/
+      "show run interface #{name} | no-more"
+    else
+      "show run interface #{name} all | no-more"
+    end
   end
 
   def create_routerospf(ospfname='ospfTest')

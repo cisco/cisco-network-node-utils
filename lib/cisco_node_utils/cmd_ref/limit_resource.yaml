@@ -1,5 +1,9 @@
 # limit_resource
 ---
+fabricpath_transit:
+  _exclude: [/N3K/, /N9K/]
+  config_set: ["terminal dont-ask", "vdc %s", "limit-resource module-type f2e f3", allocate interface unallocated-interfaces]
+
 vdc:
   _exclude: [/N3K/, /N9K/]
   config_get: "show vdc current-vdc"

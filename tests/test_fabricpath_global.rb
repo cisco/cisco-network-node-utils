@@ -37,7 +37,6 @@ class TestFabricpathGlobal < CiscoTestCase
   def no_feature_fabricpath
     # Turn the feature off for a clean test.
     config('no feature-set fabricpath')
-    config('no install feature-set fabricpath')
   end
 
   def n5k_platform?
@@ -95,10 +94,11 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_graceful_merge
     @global = FabricpathGlobal.new('default')
     # test default value
-    assert(@global.graceful_merge,
+    assert_equal(:enable, @global.graceful_merge,
            'Default graceful_merge not set correctly')
-    @global.graceful_merge = false
-    refute(@global.graceful_merge, 'graceful merge not set to false')
+    @global.graceful_merge = :disable
+    assert_equal(:disable, @global.graceful_merge, 
+                 'graceful merge not set to disable')
   end
 
   def test_linkup_delay_all
