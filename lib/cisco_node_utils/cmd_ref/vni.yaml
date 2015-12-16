@@ -1,13 +1,13 @@
 # vni
 ---
 all_vnis:
-  config_get: "show vni"
-  config_get_token: '/^(\d+)\s/'
-
-all_vnis_n9k:
-  multiple: true
-  config_get: "show running vlan"
-  config_get_token: '/vn-segment (\d+)/'
+  /N7K/:
+    config_get: "show vni"
+    config_get_token: '/^(\d+)\s/'
+  else:
+    multiple: true
+    config_get: "show running vlan"
+    config_get_token: '/vn-segment (\d+)/'
 
 bridge_domain:
   config_get: "show vni"
@@ -22,21 +22,21 @@ create:
   config_set: ["vni %s" , "end"]
 
 destroy:
-  config_set: "no vni %s"
+  config_set: "no vni <vni>"
 
 encap_dot1q:
   config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
   default_value: ~
 
 feature:
-  config_get: "show feature"
-  config_get_token: '/^vni\s+\d+\s+(\S+)/'
-  config_set: "%s feature vni"
-
-feature_n9k:
-  config_get: " show running | i ^feature"
-  config_get_token: '/^feature vn-segment-vlan-based$/'
-  config_set: "<state> feature vn-segment-vlan-based"
+  /N7K/:
+    config_get: "show feature"
+    config_get_token: '/^vni\s+\d+\s+(\S+)/'
+    config_set: "<state> feature vni"
+  else:
+    config_get: " show running | i ^feature"
+    config_get_token: '/^feature vn-segment-vlan-based$/'
+    config_set: "<state> feature vn-segment-vlan-based"
 
 feature_nv_overlay:
   config_get: " show running | i ^feature"

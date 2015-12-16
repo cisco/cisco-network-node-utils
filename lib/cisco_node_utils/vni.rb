@@ -32,15 +32,8 @@ module Cisco
 
     def self.vnis
       hash = {}
-      if /N9K/.match(node.product_id)
-        feature = config_get('vni', 'feature_n9k')
-        return hash if feature.nil?
-        vni_list = config_get('vni', 'all_vnis_n9k')
-      else
-        feature = config_get('vni', 'feature')
-        return hash if (:enabled != feature.to_sym)
-        vni_list = config_get('vni', 'all_vnis')
-      end
+      return hash if config_get('vni', 'feature').nil?
+      vni_list = config_get('vni', 'all_vnis')
       return hash if vni_list.nil? || vni_list == {}
 
       vni_list.each do |id|
@@ -50,11 +43,7 @@ module Cisco
     end
 
     def feature
-      if /N9K/.match(node.product_id)
-        vni = config_get('vni', 'feature_n9k')
-      else
-        vni = config_get('vni', 'feature')
-      end
+      vni = config_get('vni', 'feature')
       return :disabled if vni.nil?
       :enabled
     end
@@ -65,11 +54,7 @@ module Cisco
 
       case vni_set
       when :enabled
-        if /N9K/.match(node.product_id)
-          config_set('vni', 'feature_n9k', state: '')
-        else
-          config_set('vni', 'feature', '')
-        end
+        config_set('vni', 'feature', state: '')
       when :disabled
         if /N9K/.match(node.product_id)
           # feature nv overlay is a dependency for disabling
@@ -80,10 +65,8 @@ module Cisco
             # Sleep for the time.
             sleep(8)
           end
-          config_set('vni', 'feature_n9k', state: 'no') if curr == :enabled
-        else
-          config_set('vni', 'feature', 'no') if curr == :enabled
         end
+        config_set('vni', 'feature', state: 'no') if curr == :enabled
         return
       end
     rescue Cisco::CliError => e
@@ -99,10 +82,10 @@ module Cisco
     def destroy
       if /N9K/.match(node.product_id)
         # Just destroy the vni-vlan mapping
-        vlan = mapped_vlan
-        config_set('vni', 'mapped_vlan', vlan: vlan, state: 'no', vni: @vni_id)
+        config_set('vni', 'mapped_vlan', vlan: mapped_vlan,
+                   state: 'no', vni: @vni_id)
       else
-        config_set('vni', 'destroy', @vni_id)
+        config_set('vni', 'destroy', vni: @vni_id)
       end
     end
 
@@ -250,9 +233,8 @@ module Cisco
       else
         state = ''
       end
-      # Nothing to be done if vlan is nil
       result = config_set('vni', 'mapped_vlan', vlan: vlan,
-                 state: state, vni: @vni_id) unless vlan.nil?
+                          state: state, vni: @vni_id)
       cli_error_check(result)
     rescue CliError => e
       raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
