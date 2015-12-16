@@ -55,14 +55,13 @@ all_afs:
 
 client_to_client:
   kind: boolean
+  default_value: true
   cli_nexus:
-    config_get_token_append: '/^client-to-client reflection$/'
+    config_get_token_append: '/^no client-to-client reflection$/'
     config_set_append: ' <state> client-to-client reflection'
-    default_value: false
   cli_ios_xr:
-    config_set_append: ' <state> bgp client-to-client reflection disable'
     config_get_token_append: '/^bgp client-to-client reflection disable$/'
-    default_value: true
+    config_set_append: ' <state> bgp client-to-client reflection disable'
 
 dampen_igp_metric:
   _exclude: [cli_ios_xr]
@@ -78,8 +77,8 @@ dampening:
     config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     config_set_append: ' <state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   cli_ios_xr:
-    config_set_append: ' <state> bgp dampening <route_policy> <decay> <reuse> <suppress> <suppress_max>'
     config_get_token_append: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
+    config_set_append: ' <state> bgp dampening <route_policy> <decay> <reuse> <suppress> <suppress_max>'
   default_value: ""
 
 dampening_half_time:
@@ -108,7 +107,7 @@ default_information:
   cli_nexus:
     config_get_token_append: '/^default-information originate$/'
     config_set_append: ' <state> default-information originate'
-    default_value: true
+    default_value: false
   cli_ios_xr:
     # IOS XR does not have default-information under address-family,
     #   so we must replace config get/set
@@ -138,6 +137,7 @@ maximum_paths:
     config_get_token_append: '/^maximum-paths (\d+)$/'
     config_set_append: ' <state> maximum-paths <num>'
   cli_ios_xr:
+    # BT: Is "maximum-paths" without specialization equal to "maximum-paths ebgp"?
     config_get_token_append: '/^maximum-paths ebgp (\d+)$/'
     config_set_append: ' <state> maximum-paths ebgp <num>'
   default_value: 1
@@ -165,10 +165,8 @@ next_hop_route_map:
 
 next_hop_route_policy:
   cli_ios_xr:
-    config_set_append: ' <state> nexthop route-policy <route_policy>'
-#    config_get: 'show running-config router bgp'
-#    config_get_token: '/^router bgp <asnum>$/'
     config_get_token_append: '/nexthop route-policy (.*)$/'
+    config_set_append: ' <state> nexthop route-policy <route_policy>'
     default_value: ""
 
 redistribute:

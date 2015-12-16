@@ -166,11 +166,11 @@ class TestRouterBgpAF < CiscoTestCase
     assert_equal(default, initial)
 
     # Toggle the state a few times
-    states = [!initial, initial]
-    states.each do |state|
-      bgp_af.default_information_originate = state
-      assert_equal(state, bgp_af.default_information_originate)
-    end
+    bgp_af.default_information_originate = !initial
+    assert_equal(!initial, bgp_af.default_information_originate)
+
+    bgp_af.default_information_originate = initial
+    assert_equal(initial, bgp_af.default_information_originate)
 
     bgp_af.destroy
   end
@@ -195,32 +195,32 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   def test_client_to_client
     asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
 
     # Setup XR?
     if platform == :ios_xr
       config_ios_xr_dependencies(asn)
       client_to_client_vrf_xr_neg_test
+      vrf = 'default'
     end
 
-    %w(default).each do |vrf|
-      # Create Address Family
-      af = %w(ipv4 unicast)
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
+    # Create Address Family
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
 
-      # Check default value
-      initial = bgp_af.client_to_client
-      default = bgp_af.default_client_to_client
-      assert_equal(default, initial)
+    # Check default value
+    initial = bgp_af.client_to_client
+    default = bgp_af.default_client_to_client
+    assert_equal(default, initial)
 
-      # Toggle the state a few times
-      states = [!initial, initial]
-      states.each do |state|
-        bgp_af.client_to_client = state
-        assert_equal(state, bgp_af.client_to_client)
-      end
+    # Toggle the state a few times
+    bgp_af.client_to_client = !initial
+    assert_equal(!initial, bgp_af.client_to_client)
 
-      bgp_af.destroy
-    end
+    bgp_af.client_to_client = initial
+    assert_equal(initial, bgp_af.client_to_client)
+
+    bgp_af.destroy
   end
 
   ##
@@ -245,67 +245,54 @@ class TestRouterBgpAF < CiscoTestCase
   def test_next_hop_route_map_or_policy
     asn = '55'
     vrf = 'red'
-    if platform == :ios_xr
-      config_ios_xr_dependencies(asn)
-      next_hop_route_policy_vrf_xr_neg_test
-      vrf = 'default'
-    end
     af = %w(ipv4 unicast)
 
-    #
-    # Set and verify
-    #
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
     if platform == :nexus
+      # Nexus uses "route-map"
+
+      # Create Address Family
+      bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+      # Check default route-map value
+      initial_map = bgp_af.next_hop_route_map
+      default_map = bgp_af.default_next_hop_route_map
+      assert_equal(default_map, initial_map)
+
+      # Toggle the state a few times
       bgp_af.next_hop_route_map = 'drop_all'
+      assert_equal('drop_all', bgp_af.next_hop_route_map)
+
+      bgp_af.next_hop_route_map = default_map
+      assert_equal(default_map, bgp_af.next_hop_route_map)
+
     elsif platform == :ios_xr
-      config('route-policy drop_all', '#drop all', 'end-policy')
+      # XR uses "route-policy"
+      config_ios_xr_dependencies(asn)
+
+      # XR does not support separate route-policies under a VRF
+      next_hop_route_policy_vrf_xr_neg_test
+      vrf = 'default'
+
+      # Create Address Family
+      bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+      config('route-policy drop_all', '#drop all',
+             'end-policy') if platform == :ios_xr
+
+      # Check default route-policy value
+      initial_policy = bgp_af.next_hop_route_policy
+      default_policy = bgp_af.default_next_hop_route_policy
+      assert_equal(default_policy, initial_policy)
+
+      # Toggle the state a few times
       bgp_af.next_hop_route_policy = 'drop_all'
+      assert_equal('drop_all', bgp_af.next_hop_route_policy)
+
+      bgp_af.next_hop_route_policy = default_policy
+      assert_equal(default_policy, bgp_af.next_hop_route_policy)
     end
 
-    if platform == :nexus
-      assert_match(bgp_af.next_hop_route_map, 'drop_all',
-                   'Error: nexthop route-map not set')
-      pattern = /^ *nexthop route-map drop_all$/
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      assert_match(pattern, af_string,
-                   "Error: 'nexthop route-map drop_all' is " \
-                   'not configured and should be')
-    elsif platform == :ios_xr
-      assert_match(bgp_af.next_hop_route_policy, 'drop_all',
-                   'Error: nexthop route-policy not set')
-      pattern = /^ *nexthop route-policy drop_all$/
-      af_string = @device.cmd("show run router bgp #{asn} address-family " \
-                              'ipv4 unicast nexthop route-policy drop_all')
-
-      assert_match(pattern, af_string,
-                   "Error: 'nexthop route-policy drop_all' is " \
-                   'not configured and should be')
-    end
-
-    #
-    # Unset and verify
-    #
-
-    # Do a 'no nexthop route-map drop_all'
-    if platform == :nexus
-      bgp_af.next_hop_route_map = bgp_af.default_next_hop_route_map
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      refute_match(pattern, af_string,
-                   "Error: 'nexthop route-map drop_all' is " \
-                   'configured and should not be')
-    elsif platform == :ios_xr
-      bgp_af.next_hop_route_policy = bgp_af.default_next_hop_route_policy
-      af_string = @device.cmd("show run router bgp #{asn} address-family " \
-                              'ipv4 unicast nexthop route-policy drop_all')
-
-      refute_match(pattern, af_string,
-                   "Error: 'nexthop route-policy drop_all' is " \
-                   'configured and should not be')
-      config('no route-policy drop_all')
-    end
+    bgp_af.destroy
   end
 
   ##
@@ -315,32 +302,8 @@ class TestRouterBgpAF < CiscoTestCase
     asn = '55'
     vrf = 'red'
     af = %w(ipv4 unicast)
-
     config_ios_xr_dependencies(asn) if platform == :ios_xr
-
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    pattern_send = 'additional-paths send'
-    pattern_receive = 'additional-paths receive'
-    pattern_install = 'additional-paths install backup'
-
-    #
-    # Default is not configured
-    #
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              "address-family #{af[0]} #{af[1]}")
-    end
-
-    patterns = [pattern_send, pattern_receive]
-    patterns.push pattern_install if platform == :nexus
-
-    patterns.each do |pat|
-      refute_match(pat, af_string,
-                   "Error: '#{pat}' is configured but should not be")
-    end
 
     #
     # Test default and getter methods
@@ -359,18 +322,6 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.additional_paths_send = true
     bgp_af.additional_paths_receive = true
     bgp_af.additional_paths_install = true if platform == :nexus
-
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              "address-family #{af[0]} #{af[1]}")
-    end
-
-    patterns.each do |pat|
-      assert_match(pat, af_string,
-                   "Error: '#{pat}' is not configured and should be")
-    end
 
     #
     # Test getter
@@ -391,17 +342,12 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.additional_paths_receive = false
     bgp_af.additional_paths_install = false if platform == :nexus
 
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              "address-family #{af[0]} #{af[1]}")
-    end
-
-    patterns.each do |pat|
-      refute_match(pat, af_string,
-                   "Error: '#{pat}' is configured but should not be")
-    end
+    assert_equal(bgp_af.default_additional_paths_send,
+                 bgp_af.additional_paths_send)
+    assert_equal(bgp_af.default_additional_paths_receive,
+                 bgp_af.additional_paths_receive)
+    assert_equal(bgp_af.default_additional_paths_install,
+                 bgp_af.additional_paths_install)
   end
 
   ##
@@ -420,52 +366,25 @@ class TestRouterBgpAF < CiscoTestCase
       config('route-policy drop_all', '#drop_all', 'end-policy')
     end
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    bgp_af.additional_paths_selection = 'drop_all'
 
-    assert_equal(bgp_af.additional_paths_selection, 'drop_all',
+    # Check default value
+    assert_equal(bgp_af.default_additional_paths_selection,
+                 bgp_af.additional_paths_selection)
+
+    # Set value and verify
+    bgp_af.additional_paths_selection = 'drop_all'
+    assert_equal('drop_all', bgp_af.additional_paths_selection,
                  'Error: additional-paths selection route-map/policy not set')
 
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-      pattern = /^ *additional-paths selection route-map drop_all$/
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              "address-family #{af[0]} #{af[1]}")
-      pattern = /^ *additional-paths selection route-policy drop_all$/
-    end
-
-    assert_match(pattern, af_string,
-                 "Error: 'additional-paths selection route-map/policy " \
-                 "drop_all' is not configured and should be")
-
-    #
-    # Test getter
-    #
-    pattern = /^ *drop_all$/
-    assert_match(pattern, bgp_af.additional_paths_selection,
-                 "Error: 'route-map/policy drop_all' " \
-                 'is not configured and should be')
-
-    #
     # Unset and verify
-    #
-
-    # Do a 'no additional-paths selection route-map drop_all'
     bgp_af.additional_paths_selection =
       bgp_af.default_additional_paths_selection
 
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-    if platform == :nexus
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-    elsif platform == :ios_xr
-      af_string = @device.cmd("show run router bgp #{asn} vrf #{vrf} " \
-                              "address-family #{af[0]} #{af[1]}")
-    end
+    assert_equal(bgp_af.default_additional_paths_selection,
+                 bgp_af.additional_paths_selection)
 
-    refute_match(pattern, af_string,
-                 "Error: 'additional-paths selection route-map drop_all' is " \
-                   'configured and should not be')
     config('no route-policy drop_all') if platform == :ios_xr
+    bgp_af.destroy
   end
 
   ##
@@ -518,7 +437,7 @@ class TestRouterBgpAF < CiscoTestCase
     #
     # Verify default value
     #
-    assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
+    assert_equal(bgp_af.default_dampen_igp_metric, bgp_af.dampen_igp_metric,
                  "Error: Default 'dampen-igp-metric' value should be " \
                    "#{bgp_af.default_dampen_igp_metric}")
 
@@ -527,50 +446,23 @@ class TestRouterBgpAF < CiscoTestCase
         bgp_af.dampen_igp_metric = 555
       end
     else
-
-      #
       # Set and verify 'dampen-igp-metric <value>'
-      #
-
-      # Do a 'dampen-igp-metric 555'
-      pattern = /^ *dampen-igp-metric 555$/
       bgp_af.dampen_igp_metric = 555
 
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      assert_match(pattern, af_string,
-                   "Error: 'dampen-igp-metric 555' is not configured " \
-                     'and should be')
-      #
       # Test getter
-      #
-      assert_equal(bgp_af.dampen_igp_metric, 555,
+      assert_equal(555, bgp_af.dampen_igp_metric,
                    'Error: dampen_igp_metric should be 555')
 
-      #
       # Set and verify 'no dampen-igp-metric'
-      #
-
-      # Do a 'no dampen-igp-metric'
-      pattern = /no dampen-igp-metric$/
       bgp_af.dampen_igp_metric = nil
 
-      af_string = get_bgp_af_cfg(asn, vrf, af)
-
-      assert_match(pattern, af_string,
-                   "Error: 'no dampen-igp-metric' is not configured " \
-                     'and should be')
-      #
       # Test getter
-      #
-      assert_equal(bgp_af.dampen_igp_metric, nil,
+      assert_equal(nil, bgp_af.dampen_igp_metric,
                    'Error: dampen_igp_metric should be nil')
 
-      #
       # Set default value explicitly
-      #
       bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
-      assert_equal(bgp_af.dampen_igp_metric, bgp_af.default_dampen_igp_metric,
+      assert_equal(bgp_af.default_dampen_igp_metric, bgp_af.dampen_igp_metric,
                    "Error: Default 'dampen-igp-metric' value should be " \
                      "#{bgp_af.default_dampen_igp_metric}")
     end
