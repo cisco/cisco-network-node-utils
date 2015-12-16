@@ -802,16 +802,16 @@ class TestRouterBgp < CiscoTestCase
       end
       if platform == :ios_xr
         assert_raises(Cisco::UnsupportedError) do
-          bgp.neighbor_fib_down_accelerate = true
+          bgp.neighbor_down_fib_accelerate = true
         end
       else
-        bgp.neighbor_fib_down_accelerate = true
-        assert(bgp.neighbor_fib_down_accelerate,
-               "vrf #{@vrf}: bgp neighbor_fib_down_accelerate "\
+        bgp.neighbor_down_fib_accelerate = true
+        assert(bgp.neighbor_down_fib_accelerate,
+               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
                'should be enabled')
-        bgp.neighbor_fib_down_accelerate = false
-        refute(bgp.neighbor_fib_down_accelerate,
-               "vrf #{@vrf}: bgp neighbor_fib_down_accelerate "\
+        bgp.neighbor_donw_fib_accelerate = false
+        refute(bgp.neighbor_down_fib_accelerate,
+               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
                'should be disabled')
       end
       bgp.destroy
