@@ -138,7 +138,7 @@ class TestTacacsServerGroup < CiscoTestCase
     aaa_group.servers = [server_name1, server_name2]
 
     # Check collection size
-    servers = aaa_group.servers
+    servers = aaa_group.servers.keys
     assert_equal(2, servers.size,
                  'Error: Collection is not two servers')
     assert(servers.include?('server1'),

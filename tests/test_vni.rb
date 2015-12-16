@@ -21,6 +21,7 @@ include Cisco
 class TestVni < CiscoTestCase
   def setup
     super
+    skip('Only supported on N7K,N9K') unless node.product_id[/N[7|9]K/]
     no_vni
   end
 
@@ -30,32 +31,41 @@ class TestVni < CiscoTestCase
   end
 
   def no_vni
-    config('no feature vn-segment-vlan-based')
+    config('no feature vni') if node.product_id[/N7K/]
+    config('no feature vn-segment-vlan-based') if node.product_id[/N9K/]
   end
 
-  def test_on_off
-    vni = Vni.new(1_000_0, true)
-    assert_equal(:enabled, vni.feature, 'Error: vni feature not enabled')
+  def test_vni_create_destroy
+    skip('Only supported on N7K') unless node.product_id[/N7K/]
+    v1 = Vni.new(10_001)
+    v2 = Vni.new(10_002)
+    v3 = Vni.new(10_003)
+    assert_equal(3, Vni.vnis.keys.count)
 
-    vni.feature_set(:disabled)
-    assert_equal(:disabled, vni.feature, 'Error: vni feature still enabled')
+    v2.destroy
+    assert_equal(2, Vni.vnis.keys.count)
+
+    v1.destroy
+    v3.destroy
+    assert_equal(0, Vni.vnis.keys.count)
   end
 
   def test_mapped_vlan
+    skip('Only supported on N9K') unless node.product_id[/N9K/]
     # Set the vni vlan mapping
-    vni = Vni.new(1_000_0)
+    vni = Vni.new(10_000)
     vni.mapped_vlan = 100
     assert_equal(100, vni.mapped_vlan,
                  'Error: mapped-vlan mismatch')
     # Now clear the vni vlan mapping
     vni.mapped_vlan = vni.default_mapped_vlan
-    assert_equal(nil, vni.mapped_vlan,
-                 'Error: cannot clear vni vlan mapping')
+    assert_nil(vni.mapped_vlan, 'Error: cannot clear vni vlan mapping')
   end
 
   def test_multiple_vnis_vlans
+    skip('Only supported on N9K') unless node.product_id[/N9K/]
     # Set vni to vlan mappings
-    vni_to_vlan_map = { 1_000_0 => 100, 2_000_0 => 200, 3_000_0 => 300 }
+    vni_to_vlan_map = { 10_000 => 100, 20_000 => 200, 30_000 => 300 }
     vni_to_vlan_map.each do |vni, vlan|
       vni_id = Vni.new(vni)
       vni_id.mapped_vlan = vlan
@@ -66,8 +76,23 @@ class TestVni < CiscoTestCase
     vni_to_vlan_map.each do |vni, _vlan|
       vni_id = Vni.new(vni)
       vni_id.mapped_vlan = vni_id.default_mapped_vlan
-      assert_equal(nil, vni_id.mapped_vlan,
-                   'Error: cannot clear vni vlan mapping')
+      assert_nil(vni_id.mapped_vlan, 'Error: cannot clear vni vlan mapping')
     end
+  end
+
+  def test_shutdown
+    skip('Only supported on N7K') unless node.product_id[/N7K/]
+    vni = Vni.new(10_000)
+    vni.shutdown = true
+    assert(vni.shutdown)
+
+    vni.shutdown = false
+    refute(vni.shutdown)
+
+    vni.shutdown = !vni.default_shutdown
+    assert_equal(!vni.default_shutdown, vni.shutdown)
+
+    vni.shutdown = vni.default_shutdown
+    assert_equal(vni.default_shutdown, vni.shutdown)
   end
 end

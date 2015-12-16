@@ -40,12 +40,18 @@ module Cisco
     end
 
     def servers
-      config_get('tacacs_server_group', 'servers', @name)
+      tacservers = config_get('tacacs_server_group', 'servers', @name)
+      servs = {}
+      unless tacservers.nil?
+        tacservers.each { |s| servs[s] = TacacsServerHost.new(s, false) }
+      end
+      servs
     end
 
     def servers=(new_servs)
       fail TypeError unless new_servs.is_a? Array
-      current_servs = servers
+      # just need the names of the current servers for comparison
+      current_servs = servers.keys
       new_servs.each do |s|
         # add any servers not yet configured
         next if current_servs.include? s
