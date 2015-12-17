@@ -7,7 +7,7 @@ Changelog
 * ACL
   * acl (@saqibraza)
   * ace (@yjyongz)
-  * remar ace (@bansalpradeep)
+  * remark ace (@bansalpradeep)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
