@@ -63,6 +63,10 @@ class TestAceV4 < CiscoTestCase
       option_format: '',
     }
 
+    attr_v4_3 = {
+      remark: 'this is ipv4 remark'
+    }
+
     attr_v6_1 = {
       action:        'permit',
       proto:         '6',
@@ -83,9 +87,13 @@ class TestAceV4 < CiscoTestCase
       option_format: '',
     }
 
+    attr_v6_3 = {
+      remark: 'this is ipv6 remark'
+    }
+
     props = {
-      'ipv4' => [attr_v4_1, attr_v4_2],
-      'ipv6' => [attr_v6_1, attr_v6_2],
+      'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3],
+      'ipv6' => [attr_v6_1, attr_v6_2, attr_v6_3],
     }
 
     %w(ipv4 ipv6).each do |afi|
@@ -118,11 +126,11 @@ class TestAceV4 < CiscoTestCase
     assert(found,
            "#{afi_cli} acl #{acl_name} seqno #{@seqno} is not configured")
 
-    assert_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
+    assert_show_match(pattern: /\s+#{@seqno}.*$/,
                       msg:     "failed to create ace seqno #{@seqno}")
     # remove ace
     ace.ace_set({})
-    refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
+    refute_show_match(pattern: /\s+#{@seqno}.*$/,
                       msg:     "failed to remove ace seqno #{@seqno}")
   end
 end
