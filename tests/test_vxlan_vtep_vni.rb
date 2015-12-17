@@ -50,7 +50,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_vnis
     # Test empty case
-    assert_empty(VxlanVtepVni.vnis)
+    assert_empty(VxlanVtepVni.vnis['nve1'])
 
     # Host reachablity must be set to evpn for associate_vrf
     # testing.
