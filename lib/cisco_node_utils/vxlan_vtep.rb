@@ -96,28 +96,23 @@ module Cisco
       config_get_default('interface', 'description')
     end
 
-    def mac_distribution
-      mac_dist = config_get('vxlan_vtep', 'mac_distribution', name: @name)
-      if mac_dist.nil?
-        @mac_dist_proto = :flood
-      else
-        @mac_dist_proto = (mac_dist == 'bgp') ? :evpn : :flood
-      end
-      @mac_dist_proto.to_s
+    def host_reachability
+      hr = config_get('vxlan_vtep', 'host_reachability', name: @name)
+      hr == 'bgp' ? 'evpn' : hr
     end
 
-    def mac_distribution=(val)
-      if val == :flood
-        if @mac_dist_proto == :evpn
-          config_set('vxlan_vtep', 'mac_distribution',
-                     name: @name, state: 'no', proto: 'bgp')
-        end
-        @mac_dist_proto = :flood
-      elsif val == :evpn
-        config_set('vxlan_vtep', 'mac_distribution',
-                   name: @name, state: '', proto: 'bgp')
-        @mac_dist_proto = :evpn
+    def host_reachability=(val)
+      set_args = { name: @name, proto: 'bgp' }
+      if val.to_s == 'flood' && host_reachability == 'evpn'
+        set_args[:state] = 'no'
+      elsif val.to_s == 'evpn'
+        set_args[:state] = ''
       end
+      config_set('vxlan_vtep', 'host_reachability', set_args)
+    end
+
+    def default_host_reachability
+      config_get_default('vxlan_vtep', 'host_reachability')
     end
 
     def source_interface

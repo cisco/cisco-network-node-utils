@@ -110,24 +110,21 @@ class TestVxlanVtep < CiscoTestCase
     assert_equal(vtep.description, desc, "description is not #{desc}")
   end
 
-  def test_mac_distribution
+  def test_host_reachability
     vtep = VxlanVtep.new('nve1')
 
-    val = :flood
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
+    vtep.host_reachability = 'flood'
+    assert_equal(vtep.host_reachability, 'flood',
+                 "host_reachability is not 'flood'")
 
-    val = :evpn
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
+    vtep.host_reachability = 'evpn'
+    assert_equal(vtep.host_reachability, 'evpn',
+                 "host_reachability is not 'evpn'")
 
     # Set value back to flood, currently evpn.
-    val = :flood
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
+    vtep.host_reachability = 'flood'
+    assert_equal(vtep.host_reachability, 'flood',
+                 "host_reachability is not 'flood'")
   end
 
   def test_shutdown
