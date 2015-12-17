@@ -128,8 +128,7 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_loadbalance_algorithm
     @global = FabricpathGlobal.new('default')
     # test default value
-    check_val = @global.my_munge('loadbalance_algorithm', 
-                n5k6k_platforms? ? 'source-destination' : 'symmetric')
+    check_val = n5k6k_platforms? ? 'source-destination' : 'symmetric'
     assert_equal(check_val, @global.loadbalance_algorithm,
                  "default algo should be #{check_val} but is
                   #{@global.loadbalance_algorithm}")
