@@ -57,13 +57,14 @@ module Cisco
       return remark unless remark.nil?
 
       # rubocop:disable Metrics/LineLength
-      regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+|remark\s+ *)'\
+      regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
                  ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)*'\
                  ' *(?<src_port>eq \S+|neq \S+|lt \S+|''gt \S+|range \S+ \S+|portgroup \S+)?'\
                  ' *(?<dst_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)'\
                  ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|portgroup \S+)?'\
                  ' *(?<option_format>[a-zA-Z0-9\-\/ ]*)*')
+      # rubocop:enable Metrics/LineLength
       regexp.match(str)
     end
 

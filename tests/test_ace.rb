@@ -64,7 +64,7 @@ class TestAceV4 < CiscoTestCase
     }
 
     attr_v4_3 = {
-      remark: 'this is ipv4 remark'
+      remark: 'ipv4 remark'
     }
 
     attr_v6_1 = {
@@ -88,7 +88,7 @@ class TestAceV4 < CiscoTestCase
     }
 
     attr_v6_3 = {
-      remark: 'this is ipv6 remark'
+      remark: 'ipv6 remark'
     }
 
     props = {
@@ -126,11 +126,16 @@ class TestAceV4 < CiscoTestCase
     assert(found,
            "#{afi_cli} acl #{acl_name} seqno #{@seqno} is not configured")
 
-    assert_show_match(pattern: /\s+#{@seqno}.*$/,
+    if entry.include?(:action)
+      action = "#{entry[:action]} .*"
+    else
+      action = "remark #{entry[:remark]}"
+    end
+    assert_show_match(pattern: /\s+#{@seqno} #{action}$/,
                       msg:     "failed to create ace seqno #{@seqno}")
     # remove ace
     ace.ace_set({})
-    refute_show_match(pattern: /\s+#{@seqno}.*$/,
+    refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
                       msg:     "failed to remove ace seqno #{@seqno}")
   end
 end

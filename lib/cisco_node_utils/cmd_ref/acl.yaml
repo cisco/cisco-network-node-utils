@@ -16,7 +16,6 @@ ace:
 ace_remark:
   config_set_append: '<state> <seqno> remark <remark>'
 
-
 acl:
   config_get_token: '/^<afi> access-list (\S+)$/'
   config_set: '<state> <afi> access-list <acl_name>'
