@@ -20,13 +20,14 @@ all_interfaces:
   config_get_token: '/^interface (.*)/'
 
 channel_group:
-  # TODO: XR support
-  _exclude: [cli_ios_xr]
   kind: int
   default_value: false
   cli_nexus:
     config_get_token_append: '/^channel-group (\d+)$/'
     config_set_append: "<state> channel-group <val> <force>"
+  cli_ios_xr:
+    config_get_token_append: '/^bundle id (\d+).*$/'
+    config_set_append: "<state> bundle id <val>"
 
 create:
   config_set: "interface <name>"
@@ -54,11 +55,13 @@ encapsulation_dot1q:
   config_set_append: "<state> encapsulation dot1q <vlan>"
 
 feature_lacp:
-  _exclude: [cli_ios_xr]
   kind: boolean
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature lacp$/'
-  config_set: "<state> feature lacp"
+  cli_nexus:
+    config_get: "show running | i ^feature"
+    config_get_token: '/^feature lacp$/'
+    config_set: "<state> feature lacp"
+  cli_ios_xr:
+    default_only: true
 
 feature_vlan:
   _exclude: [cli_ios_xr]
@@ -158,10 +161,12 @@ negotiate_auto_ethernet:
 
 negotiate_auto_other_interfaces:
   kind: boolean
+  _exclude: [cli_ios_xr]
   default_only: false
 
 negotiate_auto_portchannel:
   kind: boolean
+  _exclude: [cli_ios_xr]
   cli_nexus:
     test_config_get_regex: [
     '/^\s+no negotiate auto/',
@@ -173,10 +178,6 @@ negotiate_auto_portchannel:
       config_get_token_append: '/^(no )?negotiate auto$/'
       config_set_append: "<state> negotiate auto"
       default_value: true
-  cli_ios_xr:
-    config_get_token_append: '/^negotiation auto$/'
-    config_set_append: "<state> negotiation auto"
-    default_value: true
 
 shutdown:
   kind: boolean
