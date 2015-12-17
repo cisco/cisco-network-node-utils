@@ -15,8 +15,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-require File.join(File.dirname(__FILE__), 'node_util')
+#
+# ----
+# This provider supports both MT-full (N7K) and MT-lite (N3K/N9K),
+# each of which have their own feature requirements and clis.
+#
+# MT-full cli:                      MT-lite cli:
+#   feature nv overlay              feature nv overlay
+#   feature nvi                     feature vn-segment-vlan-based
+#   system bridge-domain 100-113
+#   bridge-domain 100
+#     member vni 100
+#   vni 10001                       vlan 100
+#     shutdown                        vn-segment 10001
+#
+# mapped_vlan (vn-segment) and mapped_bd (member vni) are mutually exclusive.
+# ----
+#
+require_relative 'node_util'
 
 module Cisco
   # node_utils class for Vni
@@ -32,10 +48,8 @@ module Cisco
 
     def self.vnis
       hash = {}
-      feature = config_get('vni', 'feature')
-      return hash if (:enabled != feature.to_sym)
       vni_list = config_get('vni', 'all_vnis')
-      return hash if vni_list.nil? || vni_list == {}
+      return hash if vni_list.nil?
 
       vni_list.each do |id|
         hash[id] = Vni.new(id, false)
@@ -43,55 +57,53 @@ module Cisco
       hash
     end
 
-    def feature
-      if /N9K/.match(node.product_id)
-        vni = config_get('vni', 'feature_n9k')
-      else
-        vni = config_get('vni', 'feature')
-      end
-      return :disabled if vni.nil?
-      :enabled
+    # feature vni
+    def self.feature_vni_enabled
+      config_get('vni', 'feature')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
     end
 
-    def feature_set(vni_set)
-      curr = feature
-      return if curr == vni_set
+    def self.feature_vni_enable
+      Vni.feature_nv_overlay_enable unless Vni.feature_nv_overlay_enabled
+      config_set('vni', 'feature')
+    end
 
-      case vni_set
-      when :enabled
-        if /N9K/.match(node.product_id)
-          config_set('vni', 'feature_n9k', state: '')
-        else
-          config_set('vni', 'feature', '')
-        end
-      when :disabled
-        if /N9K/.match(node.product_id)
-          # feature nv overlay is a dependency for disabling
-          # feature vn-segment-vlan-based. Disable it first.
-          if config_get('vni', 'feature_nv_overlay')
-            config_set('vni', 'feature_nv_overlay', state: 'no')
-            # Disabling feature nv overlay takes about 7-8 seconds.
-            # Sleep for the time.
-            sleep(8)
-          end
-          config_set('vni', 'feature_n9k', state: 'no') if curr == :enabled
-        else
-          config_set('vni', 'feature', 'no') if curr == :enabled
-        end
-        return
-      end
+    # feature nv overlay
+    def self.feature_nv_overlay_enabled
+      config_get('vni', 'feature_nv_overlay')
     rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.feature_nv_overlay_enable
+      config_set('vni', 'feature_nv_overlay')
     end
 
     def create
-      feature_set(:enabled) unless :enabled == feature
-      return if /N9K/.match(node.product_id)
-      config_set('vni', 'create', @vni_id)
+      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      config_set('vni', 'create', vni: @vni_id) if
+        /N7K/.match(node.product_id)
     end
 
     def destroy
-      config_set('vni', 'destroy', @vni_id)
+      # Platform differences: For vni's mapped under the vlan config just remove
+      # the vni config and not the vlan config; for standalone vni configs
+      # remove the entire vni config. The yaml cmdref will ignore the unneeded
+      # keys for the standalone vni config.
+
+      keys = { vni: @vni_id }
+      # TBD: Hardcoding a platform check for now. Remove during refactor.
+      if /N[39]K/.match(node.product_id)
+        vlan = mapped_vlan
+        return if vlan.nil?
+        keys[:vlan] = vlan
+      end
+      config_set('vni', 'destroy', keys)
     end
 
     def cli_error_check(result)
@@ -99,7 +111,7 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].empty?
+      fail result[2]['body'] if /ERROR:/.match(result[2]['body'].to_s)
     end
 
     # TODO: This method will be refactored as part of US52662
@@ -164,7 +176,7 @@ module Cisco
     #  final_hash
     # end # end of encap_dot1q
 
-    def encap_dot1q=(val, prev_val=nil)
+    def encap_dot1q=(val, prev_val=nil) # TBD REFACTOR
       debug "val is of class #{val.class} and is #{val} prev is #{prev_val}"
       # When prev_val is nil, HashDiff doesn't do a `+' on each element, so this
       if prev_val.nil?
@@ -200,25 +212,20 @@ module Cisco
     end
 
     def bridge_domain
-      bd_arr = config_get('vni', 'bridge_domain', @vni_id)
+      bd_arr = config_get('vni', 'bridge_domain', vni: @vni_id)
       bd_arr.first.to_i
     end
 
-    def bridge_domain=(val)
-      no_cmd = (val) ? '' : 'no'
-      config_set('vni', 'bridge_domain_activate', no_cmd, val)
-      config_set('vni', 'bridge_domain', val, no_cmd, @vni_id)
+    def bridge_domain=(domain)
+      # TBD: ACTIVATE SHOULD BE SEPARATE SETTER AND POSSIBLY RENAMED
+      state = (domain) ? '' : 'no'
+      config_set('vni', 'bridge_domain_activate', state: state, domain: domain)
+      config_set('vni', 'bridge_domain', state: state, domain: domain,
+                 vni: @vni_id)
     end
 
     def default_bridge_domain
       config_get_default('vni', 'bridge_domain')
-    end
-
-    def shutdown
-      result = config_get('vni', 'shutdown', @vni_id)
-      return default_shutdown if result.nil?
-      # valid result is either: "active"(aka no shutdown) or "shutdown"
-      result.first[/shut/] ? true : false
     end
 
     def mapped_vlan
@@ -226,28 +233,38 @@ module Cisco
       return nil if vlans.nil?
       vlans.each do |vlan|
         return vlan.to_i if
-              config_get('vni', 'mapped_vlan', vlan: vlan) == @vni_id
+          config_get('vni', 'mapped_vlan', vlan: vlan) == @vni_id
       end
       nil
     end
 
     def mapped_vlan=(vlan)
-      if vlan == default_vlan
+      # TBD: fail UnsupportedError unless /N9K/.match(node.product_id)
+      if vlan == default_mapped_vlan
         state = 'no'
         vlan = mapped_vlan
       else
         state = ''
       end
-      config_set('vni', 'mapped_vlan', vlan: vlan, state: state, vni: @vni_id)
+      result = config_set('vni', 'mapped_vlan', vlan: vlan,
+                          state: state, vni: @vni_id)
+      cli_error_check(result)
+    rescue CliError => e
+      raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
     end
 
-    def default_vlan
+    def default_mapped_vlan
       config_get_default('vni', 'mapped_vlan')
     end
 
-    def shutdown=(val)
-      no_cmd = (val) ? '' : 'no'
-      result = config_set('vni', 'shutdown', @vni_id, no_cmd)
+    def shutdown
+      config_get('vni', 'shutdown', vni: @vni_id)
+    end
+
+    def shutdown=(state)
+      # TBD: fail UnsupportedError unless /N7K/.match(node.product_id)
+      state = (state) ? '' : 'no'
+      result = config_set('vni', 'shutdown', state: state, vni: @vni_id)
       cli_error_check(result)
     rescue CliError => e
       raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
