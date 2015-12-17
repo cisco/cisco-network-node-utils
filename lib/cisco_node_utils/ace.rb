@@ -29,17 +29,18 @@ module Cisco
       afis = %w(ipv4 ipv6)
       hash = {}
       afis.each do |afi|
+        hash[afi] = {}
         acls = config_get('acl', 'all_acls', afi: Acl.afi_cli(afi))
         next if acls.nil?
 
         acls.each do |acl_name|
-          hash[acl_name] = {}
+          hash[afi][acl_name] = {}
           aces = config_get('acl', 'all_aces',
                             afi: Acl.afi_cli(afi), acl_name: acl_name)
           next if aces.nil?
 
           aces.each do |seqno|
-            hash[acl_name][seqno] = Ace.new(afi, acl_name, seqno)
+            hash[afi][acl_name][seqno] = Ace.new(afi, acl_name, seqno)
           end
         end
       end

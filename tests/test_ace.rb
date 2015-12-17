@@ -16,8 +16,8 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/ace'
 
-# TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
-class TestAceV4 < CiscoTestCase
+# TestAce - Minitest for Ace node utility class
+class TestAce < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
@@ -108,7 +108,7 @@ class TestAceV4 < CiscoTestCase
     afi_cli = Acl.afi_cli(afi)
     all_aces = Ace.aces
     found = false
-    all_aces[acl_name].each do |seqno, _inst|
+    all_aces[afi][acl_name].each do |seqno, _inst|
       next unless seqno.to_i == @seqno.to_i
       found = true
     end
