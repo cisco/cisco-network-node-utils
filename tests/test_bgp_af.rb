@@ -157,22 +157,32 @@ class TestRouterBgpAF < CiscoTestCase
     vrf = 'red'
     af = %w(ipv4 unicast)
 
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
+    if platform == :ios_xr
 
-    # Check default value
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    initial = bgp_af.default_information_originate
-    default = bgp_af.default_default_information_originate
-    assert_equal(default, initial)
+      # XR does not support default-information under address-family
+      config_ios_xr_dependencies(asn)
+      bgp_af = RouterBgpAF.new(asn, vrf, af)
 
-    # Toggle the state a few times
-    bgp_af.default_information_originate = !initial
-    assert_equal(!initial, bgp_af.default_information_originate)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.default_information_originate = true
+      end
+    elsif platform == :nexus
 
-    bgp_af.default_information_originate = initial
-    assert_equal(initial, bgp_af.default_information_originate)
+      # Check default value
+      bgp_af = RouterBgpAF.new(asn, vrf, af)
+      initial = bgp_af.default_information_originate
+      default = bgp_af.default_default_information_originate
+      assert_equal(default, initial)
 
-    bgp_af.destroy
+      # Toggle the state a few times
+      bgp_af.default_information_originate = !initial
+      assert_equal(!initial, bgp_af.default_information_originate)
+
+      bgp_af.default_information_originate = initial
+      assert_equal(initial, bgp_af.default_information_originate)
+
+      bgp_af.destroy
+    end
   end
 
   ##
