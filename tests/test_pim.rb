@@ -39,32 +39,43 @@
 #-------------------------------------------------------------------------------
 
 require_relative 'ciscotest'
-require 'pp'
 require_relative '../lib/cisco_node_utils/pim'
 
 include Cisco
 
 # TestPim - Minitest for Pim Feature
 class TestPim < CiscoTestCase
+
+  # Enables feature pim
+  #---------------------
   def setup
     super
     config('no feature pim')
     config('feature pim')
   end
 
-  def teardown
-#    config('no feature pim')
-#    super
+  # Creates single ssm range under default vrf
+  #-----------------------------------------------
+  def create_single_ssm_range_single_vrf(afi)
+    range = '229.0.0.0/8'
+    p1 = Pim.new(afi)
+    p1.ssm_range=(range)
+    assert_equal(p1.ssm_range, range.split(' ').sort)
   end
 
-  # Tests single ssm range under default vrf
+  # Tests single ssm range none under default vrf
   #-----------------------------------------------
   def test_single_ssm_range_single_vrf
+    %w(ipv4).each do |afi|
+      create_single_ssm_range_single_vrf(afi)
+    end
+  end  
 
-    puts "test_single_ssm_range_single_vrf: "
-    puts "================================"
-    range = '229.0.0.0/8'
-    p1 = Pim.new()
+  # Creates single ssm range none under default vrf
+  #-----------------------------------------------
+  def create_single_ssm_range_none_single_vrf(afi)
+    range = 'none'
+    p1 = Pim.new(afi)
     p1.ssm_range=(range)
     assert_equal(p1.ssm_range, range.split(' ').sort)
   end
@@ -72,29 +83,22 @@ class TestPim < CiscoTestCase
   # Tests single ssm range none under default vrf
   #-----------------------------------------------
   def test_single_ssm_range_none_single_vrf
-
-    puts "test_single_ssm_range_none_single_vrf: "
-    puts "==============================="
-    range = 'none'
-    p1 = Pim.new()
-    p1.ssm_range=(range)
-    assert_equal(p1.ssm_range, range.split(' ').sort)
+    %w(ipv4).each do |afi|
+      create_single_ssm_range_none_single_vrf(afi)
+    end
   end
 
-  # Tests multiple ssm ranges under different vrfs 
+  # Creates multiple ssm ranges under different vrfs 
   #-----------------------------------------------
-  def test_multiple_ssm_range_multiple_vrfs
-
-    puts "test_multiple_ssm_range_multiple_vrfs: "
-    puts "======================================="
+  def create_multiple_ssm_range_multiple_vrfs(afi)
     range = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
     range2 = '230.0.0.0/8 228.0.0.0/8 224.0.0.0/8'
     range3 = 'none'
     vrf = 'red'
     vrf3 ='black'
-    p1 = Pim.new()
-    p2 = Pim.new(vrf)
-    p3 = Pim.new(vrf3)
+    p1 = Pim.new(afi)
+    p2 = Pim.new(afi, vrf)
+    p3 = Pim.new(afi, vrf3)
     p1.ssm_range=(range)
     p2.ssm_range=(range2)
     p3.ssm_range=(range3)
@@ -103,18 +107,23 @@ class TestPim < CiscoTestCase
     assert_equal(p3.ssm_range, range3.split(' ').sort)
   end
   
-  # Tests multiple ssm ranges overwrite under different vrfs 
+  # Tests multiple ssm ranges under different vrfs 
   #-----------------------------------------------
-  def test_multiple_ssm_range_overwrite_multiple_vrfs
+  def test_multiple_ssm_range_multiple_vrfs
+    %w(ipv4).each do |afi|
+      create_multiple_ssm_range_multiple_vrfs(afi)
+    end
+  end  
 
-    puts "test_multiple_ssm_range_overwrite_multiple_vrfs: "
-    puts "======================================="
+  # Creates multiple ssm ranges overwrite under different vrfs 
+  #-----------------------------------------------
+  def create_multiple_ssm_range_overwrite_multiple_vrfs(afi)
     range = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
     range2 = '230.0.0.0/8 228.0.0.0/8 224.0.0.0/8'
     range3 = 'none'
     vrf = 'red'
-    p1 = Pim.new()
-    p2 = Pim.new(vrf)
+    p1 = Pim.new(afi)
+    p2 = Pim.new(afi, vrf)
     p1.ssm_range=(range)
     p2.ssm_range=(range2)
     assert_equal(p1.ssm_range, range.split(' ').sort)
@@ -123,16 +132,29 @@ class TestPim < CiscoTestCase
     assert_equal(p2.ssm_range, range3.split(' ').sort)
   end
   
-  # Tests single invalid ssm range under vrf default
-  #---------------------------------------------------
-  def test_single_invalid_ssm_range_single_vrf
+  # Tests multiple ssm ranges overwrite under different vrfs 
+  #-----------------------------------------------
+  def test_multiple_ssm_range_overwrite_multiple_vrfs
+    %w(ipv4).each do |afi|
+      create_multiple_ssm_range_overwrite_multiple_vrfs(afi)
+    end
+  end  
 
-    puts "test_single_invalid_ssm_range_single_vrf: "
-    puts "=========================================="
+  # Creates single invalid ssm range under vrf default
+  #---------------------------------------------------
+  def create_single_invalid_ssm_range_single_vrf(afi)
     range = '1.1.1.1/8'
-    p1 = Pim.new()
+    p1 = Pim.new(afi)
     assert_raises(CliError ) do
       p1.ssm_range=(range)
     end
   end
+  
+  # Tests single invalid ssm range under vrf default
+  #---------------------------------------------------
+  def test_single_invalid_ssm_range_single_vrf
+    %w(ipv4).each do |afi|
+      create_single_invalid_ssm_range_single_vrf(afi)
+    end
+  end  
 end
