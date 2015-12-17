@@ -809,7 +809,7 @@ class TestRouterBgp < CiscoTestCase
         assert(bgp.neighbor_down_fib_accelerate,
                "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
                'should be enabled')
-        bgp.neighbor_donw_fib_accelerate = false
+        bgp.neighbor_down_fib_accelerate = false
         refute(bgp.neighbor_down_fib_accelerate,
                "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
                'should be disabled')
