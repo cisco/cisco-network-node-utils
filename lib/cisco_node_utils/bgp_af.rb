@@ -103,11 +103,16 @@ module Cisco
       platform == :ios_xr
     end
 
+    # Nexus?
+    def nexus?
+      platform == :nexus
+    end
+
     def vrf_unsupported_xr?
       ios_xr? && @vrf != 'default'
     end
 
-    def fail_vrf_unsupported_xr(reason)
+    def fail_if_vrf_unsupported_xr(reason)
       fail Cisco::UnsupportedError.new(
         'bgp_af', reason, 'set',
         "#{reason} is not configurable on a \
@@ -124,7 +129,10 @@ module Cisco
     end
 
     def client_to_client=(state)
-      fail_vrf_unsupported_xr('client-to-client')
+      fail_if_vrf_unsupported_xr('client-to-client')
+      # IOS XR uses "client-to-client reflection disable",
+      #     so turning it "on" means disabling it.
+      # Thus we invert the desired state before telling the CLI what to do:
       state = !state if ios_xr?
       state = (state ? '' : 'no')
       set_args_keys(state: state)
@@ -162,7 +170,7 @@ module Cisco
     end
 
     def next_hop_route_map=(route_map)
-      route_map.strip!
+      #      route_map.strip!
       if route_map.empty?
         state = 'no'
         # Dummy routemap required if not configured.
@@ -186,8 +194,8 @@ module Cisco
     end
 
     def next_hop_route_policy=(route_policy)
-      fail_vrf_unsupported_xr('nexthop route-policy')
-      route_policy.strip!
+      fail_if_vrf_unsupported_xr('nexthop route-policy')
+      #      route_policy.strip!
       if route_policy.empty?
         state = 'no'
         # Dummy route policy required if not configured.
@@ -417,7 +425,7 @@ module Cisco
     end
 
     def dampening=(damp_array)
-      fail_vrf_unsupported_xr('dampening')
+      fail_if_vrf_unsupported_xr('dampening')
       fail ArgumentError if damp_array.kind_of?(Array) &&
                             !(damp_array.length == 4 ||
                               damp_array.length == 0)
@@ -448,13 +456,13 @@ module Cisco
         Cisco::Logger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       else
         # 'dampening route-map WORD' command
-        if platform == :nexus
+        if nexus?
           route_map = "route-map #{damp_array}"
           route_map.strip!
           Cisco::Logger.debug("Dampening 'dampening #{route_map}'")
         elsif ios_xr?
           route_policy = "route-policy #{damp_array}"
-          route_policy.strip!
+          #          route_policy.strip!
           Cisco::Logger.debug("Dampening 'dampening #{route_policy}'")
         end
       end
@@ -556,7 +564,7 @@ module Cisco
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         Cisco::Logger.debug("networks delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |network, route_map_policy|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
@@ -591,7 +599,7 @@ module Cisco
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         Cisco::Logger.debug("redistribute delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |protocol, policy|
           state = (action == :add) ? '' : 'no'
           set_args_keys(state: state, protocol: protocol, policy: policy)

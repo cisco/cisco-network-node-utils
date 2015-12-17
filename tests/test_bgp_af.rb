@@ -235,7 +235,7 @@ class TestRouterBgpAF < CiscoTestCase
                'next_hop_route_policy should return ' \
                'nil on XR with non-default vrf')
     assert_raises(Cisco::UnsupportedError) do
-      bgp_af.next_hop_route_policy = 'drop_all'
+      bgp_af.next_hop_route_policy = '  drop_all  '
     end
   end
 
@@ -259,7 +259,7 @@ class TestRouterBgpAF < CiscoTestCase
       assert_equal(default_map, initial_map)
 
       # Toggle the state a few times
-      bgp_af.next_hop_route_map = 'drop_all'
+      bgp_af.next_hop_route_map = '  drop_all  '
       assert_equal('drop_all', bgp_af.next_hop_route_map)
 
       bgp_af.next_hop_route_map = default_map
@@ -285,7 +285,7 @@ class TestRouterBgpAF < CiscoTestCase
       assert_equal(default_policy, initial_policy)
 
       # Toggle the state a few times
-      bgp_af.next_hop_route_policy = 'drop_all'
+      bgp_af.next_hop_route_policy = '  drop_all  '
       assert_equal('drop_all', bgp_af.next_hop_route_policy)
 
       bgp_af.next_hop_route_policy = default_policy
