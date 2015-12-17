@@ -39,7 +39,7 @@ class TestFabricpathGlobal < CiscoTestCase
     config('no feature-set fabricpath')
   end
 
-  def n5k_platform?
+  def n5k6k_platforms?
     /N[56]K/ =~ node.product_id
   end
 
@@ -70,7 +70,7 @@ class TestFabricpathGlobal < CiscoTestCase
   end
 
   def test_aggregate_multicast_routes
-    return if n5k_platform?
+    return if n5k6k_platforms?
     @global = FabricpathGlobal.new('default')
     @global.aggregate_multicast_routes = true
     assert(@global.aggregate_multicast_routes,
@@ -111,7 +111,7 @@ class TestFabricpathGlobal < CiscoTestCase
     assert_equal(25, @global.linkup_delay,
                  'linkup_delay not set to 25')
 
-    return if n5k_platform?
+    return if n5k6k_platforms?
 
     refute(@global.linkup_delay_always,
            'linkup_delay_always should not be set by default')
@@ -128,17 +128,18 @@ class TestFabricpathGlobal < CiscoTestCase
   def test_loadbalance_algorithm
     @global = FabricpathGlobal.new('default')
     # test default value
-    check_val = @global.my_munge('loadbalance_algorithm', 'symmetric')
+    check_val = @global.my_munge('loadbalance_algorithm', 
+                n5k6k_platforms? ? 'source-destination' : 'symmetric')
     assert_equal(check_val, @global.loadbalance_algorithm,
                  "default algo should be #{check_val} but is
                   #{@global.loadbalance_algorithm}")
-    @global.loadbalance_algorithm = 'source-destination'
-    assert_equal('source-destination', @global.loadbalance_algorithm,
+    @global.loadbalance_algorithm = 'source'
+    assert_equal('source', @global.loadbalance_algorithm,
                  'algo not getting set to source-destination')
   end
 
   def test_loadbalance_multicast
-    return if n5k_platform?
+    return if n5k6k_platforms?
     @global = FabricpathGlobal.new('default')
     # test default values first
     assert_equal(@global.default_loadbalance_multicast_rotate,
@@ -168,7 +169,7 @@ class TestFabricpathGlobal < CiscoTestCase
                  @global.loadbalance_unicast_rotate,
                  "default unicast rotate not set correctly
                   but is set to #{@global.loadbalance_unicast_rotate}") unless
-                 n5k_platform?
+                 n5k6k_platforms?
     assert(@global.loadbalance_unicast_has_vlan,
            "default unicast include-vlan should be true
            but is #{@global.loadbalance_unicast_has_vlan}")
@@ -179,7 +180,7 @@ class TestFabricpathGlobal < CiscoTestCase
     assert_equal(3, @global.loadbalance_unicast_rotate,
                  "unicast rotate should now be 3
                   but is #{@global.loadbalance_unicast_rotate}") unless
-                 n5k_platform?
+                 n5k6k_platforms?
     refute(@global.loadbalance_unicast_has_vlan,
            "unicast include-vlan should now be false
            but is #{@global.loadbalance_unicast_has_vlan}")
@@ -218,7 +219,7 @@ class TestFabricpathGlobal < CiscoTestCase
   end
 
   def test_ttl_multicast
-    return if n5k_platform?
+    return if n5k6k_platforms?
     @global = FabricpathGlobal.new('default')
     # test default value
     assert_equal(@global.default_ttl_multicast,
@@ -230,7 +231,7 @@ class TestFabricpathGlobal < CiscoTestCase
   end
 
   def test_ttl_unicast
-    return if n5k_platform?
+    return if n5k6k_platforms?
     @global = FabricpathGlobal.new('default')
     # test default value
     assert_equal(@global.default_ttl_unicast,
