@@ -14,6 +14,8 @@ Changelog
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
+* EVPN
+  * evpn_vni (@andish)
 
 ### Added
 

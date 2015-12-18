@@ -553,7 +553,7 @@ module Cisco
         RouterBgpAF.feature_nv_overlay_evpn_enabled
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
-        @set_args[:rd] = route_distinguisher
+        @set_args[:rd] = '' 
       else
         @set_args[:state] = ''
         @set_args[:rd] = rd
