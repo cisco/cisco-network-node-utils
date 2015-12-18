@@ -11,6 +11,9 @@ Changelog
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+* Interface
+  * interface_service (@chrisvanheuveln)
+    * `encapsulation_profile_vni`
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
@@ -34,8 +37,7 @@ Changelog
   * `table_map`
 * Extend interface with attributes:
   * `channel_group`
-  * `encapsulation_profile_vni`
-  * `switchport_vlan_mapping`
+  * `vlan_mapping`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
   * `vni`
