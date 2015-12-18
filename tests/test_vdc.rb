@@ -57,14 +57,18 @@ class TestVdc < CiscoTestCase
       @device.cmd('sh mod | i N7K-F').match(pat)
 
     v = Vdc.new('default')
-    v.limit_resource_module_type_f3 = false
-    refute(v.limit_resource_module_type_f3)
+    # Set limit-resource module-type to default (this is variable for each
+    # device, so the default is for this device only)
+    v.limit_resource_module_type = ''
+    default = v.limit_resource_module_type
 
-    v.limit_resource_module_type_f3 = true
-    assert(v.limit_resource_module_type_f3)
+    # Limit to F3 cards only
+    type = 'f3'
+    v.limit_resource_module_type = type
+    assert_equal(type, v.limit_resource_module_type)
 
-    v.limit_resource_module_type_f3 = v.default_limit_resource_module_type_f3
-    assert_equal(v.default_limit_resource_module_type_f3,
-                 v.limit_resource_module_type_f3)
+    # Reset to device-default
+    v.limit_resource_module_type = ''
+    assert_equal(default, v.limit_resource_module_type)
   end
 end
