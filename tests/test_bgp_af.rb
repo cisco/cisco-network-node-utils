@@ -286,8 +286,7 @@ class TestRouterBgpAF < CiscoTestCase
       # Create Address Family
       bgp_af = RouterBgpAF.new(asn, vrf, af)
 
-      config('route-policy drop_all', '#drop all',
-             'end-policy') if platform == :ios_xr
+      config('route-policy drop_all', 'end-policy') if platform == :ios_xr
 
       # Check default route-policy value
       initial_policy = bgp_af.next_hop_route_policy
@@ -373,7 +372,7 @@ class TestRouterBgpAF < CiscoTestCase
     #
     if platform == :ios_xr
       config_ios_xr_dependencies(asn)
-      config('route-policy drop_all', '#drop_all', 'end-policy')
+      config('route-policy drop_all', 'end-policy')
     end
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 

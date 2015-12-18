@@ -115,8 +115,8 @@ module Cisco
     def fail_if_vrf_unsupported_xr(reason)
       fail Cisco::UnsupportedError.new(
         'bgp_af', reason, 'set',
-        "#{reason} is not configurable on a \
-         per-VRF basis on IOS XR") if vrf_unsupported_xr?
+        "#{reason} is not configurable on a " \
+        'per-VRF basis on IOS XR') if vrf_unsupported_xr?
     end
 
     #
