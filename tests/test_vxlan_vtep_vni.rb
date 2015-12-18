@@ -166,9 +166,15 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Check suppress_arp is not configured.
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
 
-    # Test: Enable suppress_arp
-    vni.suppress_arp = true
-    assert(vni.suppress_arp, 'suppress_arp should be enabled')
+    begin
+      # Test: Enable suppress_arp
+      vni.suppress_arp = true
+      assert(vni.suppress_arp, 'suppress_arp should be enabled')
+    rescue CliError => e
+      msg = 'TCAM reconfiguration required followed by reload' \
+        " Skipping test case.\n#{e}"
+      skip(msg) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
 
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
