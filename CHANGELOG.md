@@ -8,6 +8,8 @@ Changelog
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
+* EVPN
+  * evpn_vni (@andish)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
