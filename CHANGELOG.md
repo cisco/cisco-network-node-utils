@@ -7,6 +7,7 @@ Changelog
 * ACL
   * acl (@saqibraza)
   * ace (@yjyongz)
+  * remark ace (@bansalpradeep)
 * EVPN
   * evpn_vni (@andish)
 * Fabric Path

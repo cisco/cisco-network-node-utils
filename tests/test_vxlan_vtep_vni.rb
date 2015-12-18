@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/vxlan_vtep'
 require_relative '../lib/cisco_node_utils/vxlan_vtep_vni'
 
 include Cisco
@@ -23,6 +24,7 @@ class TestVxlanVtepVni < CiscoTestCase
     super
     config('no feature nv overlay')
     config('feature nv overlay')
+    config('interface nve1')
   end
 
   def teardown
@@ -30,14 +32,36 @@ class TestVxlanVtepVni < CiscoTestCase
     super
   end
 
+  def test_create_with_existing
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+    associate_vrf = true
+    member = '5000'
+
+    VxlanVtepVni.new('nve1', member)
+    assert_includes(VxlanVtepVni.vnis['nve1'], member)
+
+    VxlanVtepVni.new('nve1', member, associate_vrf)
+    assert_includes(VxlanVtepVni.vnis['nve1'], member)
+    assert(VxlanVtepVni.vnis['nve1'], associate_vrf)
+
+    VxlanVtepVni.new('nve1', member)
+    assert_includes(VxlanVtepVni.vnis['nve1'], member)
+  end
+
   def test_vnis
     # Test empty case
-    assert_empty(VxlanVtepVni.vnis)
+    assert_empty(VxlanVtepVni.vnis['nve1'])
+
+    # Host reachablity must be set to evpn for associate_vrf
+    # testing.
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+    associate_vrf = true
 
     # Create one
     member1 = '5000'
-    vni1 = VxlanVtepVni.new('nve1', member1)
+    vni1 = VxlanVtepVni.new('nve1', member1, associate_vrf)
     assert_includes(VxlanVtepVni.vnis['nve1'], member1)
+    assert(VxlanVtepVni.vnis['nve1'], associate_vrf)
     assert_equal(VxlanVtepVni.vnis['nve1'][member1], vni1)
 
     # Create several
@@ -142,9 +166,15 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Check suppress_arp is not configured.
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
 
-    # Test: Enable suppress_arp
-    vni.suppress_arp = true
-    assert(vni.suppress_arp, 'suppress_arp should be enabled')
+    begin
+      # Test: Enable suppress_arp
+      vni.suppress_arp = true
+      assert(vni.suppress_arp, 'suppress_arp should be enabled')
+    rescue CliError => e
+      msg = 'TCAM reconfiguration required followed by reload' \
+        " Skipping test case.\n#{e}"
+      skip(msg) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
 
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
