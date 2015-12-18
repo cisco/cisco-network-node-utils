@@ -692,7 +692,13 @@ class TestInterface < CiscoTestCase
 
     # Create interface member of this group (required for XR)
     member = Interface.new(interfaces[0])
-    member.channel_group = 10
+    begin
+      member.channel_group = 10
+    rescue Cisco::UnsupportedError
+      # Some XR platform/version combinations don't support port-channel intfs
+      skip('bundle id config not supported on this node') if platform == :ios_xr
+      raise
+    end
 
     inf_name = "#{@port_channel}10"
     interface = Interface.new(inf_name)
@@ -1078,7 +1084,13 @@ class TestInterface < CiscoTestCase
       @switchport_shutdown_hash['shutdown_ethernet_noswitchport_shutdown'])
 
     # pre-configure
-    Interface.new(interfaces[1]).channel_group = 48
+    begin
+      Interface.new(interfaces[1]).channel_group = 48
+    rescue Cisco::UnsupportedError
+      raise unless platform == :ios_xr
+      # Some XR platform/version combos don't support port-channels
+      inttype_h.delete("#{@port_channel}48")
+    end
 
     inttype_h = config_from_hash(inttype_h)
 

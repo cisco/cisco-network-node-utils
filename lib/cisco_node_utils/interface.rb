@@ -65,6 +65,12 @@ module Cisco
     def create
       feature_vlan_set(true) if @name[/vlan/i]
       config_set('interface', 'create', name: @name)
+    rescue Cisco::CliError
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless PORTCHANNEL =~ @name && platform == :ios_xr
+      raise Cisco::UnsupportedError.new('interface', @name, 'create')
     end
 
     def destroy
@@ -111,6 +117,12 @@ module Cisco
       config_set('interface',
                  'channel_group',
                  name: @name, state: state, val: val, force: force)
+    rescue Cisco::CliError => e
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless e.message[/the entered commands do not exist/]
+      raise Cisco::UnsupportedError.new('interface', 'channel_group')
     end
 
     def default_channel_group
