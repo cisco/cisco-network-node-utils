@@ -52,6 +52,11 @@ module Cisco
       str = config_get('acl', 'ace', @get_args)
       return nil if str.nil?
 
+      # remark is a description field, needs a separate regex
+      # Example: <MatchData "20 remark foo bar" seqno:"20" remark:"foo bar">
+      remark = str.match(/(?<seqno>\d+) remark (?<remark>.*)/)
+      return remark unless remark.nil?
+
       # rubocop:disable Metrics/LineLength
       regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
@@ -69,7 +74,8 @@ module Cisco
     def ace_set(attrs)
       @set_args[:state] = attrs.empty? ? 'no ' : ''
       @set_args.merge!(attrs) unless attrs.empty?
-      config_set('acl', 'ace', @set_args)
+      cmd = @set_args[:remark] ? 'ace_remark' : 'ace'
+      config_set('acl', cmd, @set_args)
     end
 
     # PROPERTIES
@@ -82,6 +88,16 @@ module Cisco
 
     def action=(action)
       @set_args[:action] = action
+    end
+
+    def remark
+      match = ace_get
+      return nil if match.nil?
+      match[:remark]
+    end
+
+    def remark=(remark)
+      @set_args[:remark] = remark
     end
 
     def proto

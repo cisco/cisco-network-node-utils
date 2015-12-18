@@ -25,10 +25,8 @@ module Cisco
     attr_reader :name
 
     def initialize(name, instantiate=true)
-      fail TypeError unless name.is_a?(String)
-      fail ArgumentError unless name == 'default'
+      fail ArgumentError unless name.to_s == 'default'
       @name = name.downcase
-      @set_params = {}
 
       create if instantiate
     end
@@ -67,8 +65,6 @@ module Cisco
         config_set('fabricpath', 'feature', state: 'no') if curr == :enabled
         config_set('fabricpath', 'feature_install', state: 'no')
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def create
@@ -111,11 +107,8 @@ module Cisco
     end
 
     def aggregate_multicast_routes=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      config_set('fabricpath', 'aggregate_multicast_routes', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting agg-routes #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      config_set('fabricpath', 'aggregate_multicast_routes', state: state)
     end
 
     def default_aggregate_multicast_routes
@@ -127,12 +120,9 @@ module Cisco
     end
 
     def allocate_delay=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:delay] = val ? val : ''
-      config_set('fabricpath', 'allocate_delay', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting allocate-delay #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      delay = val ? val : ''
+      config_set('fabricpath', 'allocate_delay', state: state, delay: delay)
     end
 
     def default_allocate_delay
@@ -146,24 +136,18 @@ module Cisco
     def graceful_merge
       graceful_merge_conf = config_get('fabricpath', 'graceful_merge')
       # opposite meaning with the cli
-      return true if graceful_merge_conf.nil?
-      graceful_merge_conf ? false : true
+      return :enable if graceful_merge_conf.nil?
+      graceful_merge_conf ? :disable : :enable
     end
 
     def graceful_merge=(val)
-      @set_params = {}
-      if val == '' || val == true
-        @set_params[:state] = 'no'
-      else
-        @set_params[:state] = ''
-      end
-      config_set('fabricpath', 'graceful_merge', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting allocate-delay #{val}] '#{e.command}' : #{e.clierror}"
+      state = val == :enable ? 'no' : ''
+      config_set('fabricpath', 'graceful_merge', state: state)
     end
 
     def default_graceful_merge
-      config_get_default('fabricpath', 'graceful_merge')
+      graceful_merge = config_get_default('fabricpath', 'graceful_merge')
+      graceful_merge.to_sym
     end
 
     def linkup_delay
@@ -171,12 +155,9 @@ module Cisco
     end
 
     def linkup_delay=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:delay] = val ? val : ''
-      config_set('fabricpath', 'linkup_delay', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting linkup-delay #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      delay = val ? val : ''
+      config_set('fabricpath', 'linkup_delay', state: state, delay: delay)
     end
 
     def default_linkup_delay
@@ -188,16 +169,12 @@ module Cisco
     end
 
     def linkup_delay_always=(val)
-      @set_params = {}
       if val == '' || val == true
-        @set_params[:state] = ''
+        state = ''
       else
-        @set_params[:state] = 'no'
+        state = 'no'
       end
-      config_set('fabricpath', 'linkup_delay_always', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting linkup-delay-always #{val}] '#{e.command}'
-            : #{e.clierror}"
+      config_set('fabricpath', 'linkup_delay_always', state: state)
     end
 
     def default_linkup_delay_always
@@ -211,16 +188,12 @@ module Cisco
     end
 
     def linkup_delay_enable=(val)
-      @set_params = {}
       if val == '' || val == true
-        @set_params[:state] = ''
+        state = ''
       else
-        @set_params[:state] = 'no'
+        state = 'no'
       end
-      config_set('fabricpath', 'linkup_delay_enable', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting linkup-delay-enable #{val}] '#{e.command}'
-            : #{e.clierror}"
+      config_set('fabricpath', 'linkup_delay_enable', state: state)
     end
 
     def default_linkup_delay_enable
@@ -233,13 +206,11 @@ module Cisco
     end
 
     def loadbalance_algorithm=(val)
-      @set_params = {}
       val = my_munge('loadbalance_algorithm', val)
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:algo] = val ? val : ''
-      config_set('fabricpath', 'loadbalance_algorithm', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance-algo #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      algo = val ? val : ''
+      config_set('fabricpath', 'loadbalance_algorithm', state: state,
+                                                        algo:  algo)
     end
 
     def default_loadbalance_algorithm
@@ -251,7 +222,8 @@ module Cisco
     end
 
     def loadbalance_multicast_has_vlan
-      config_get('fabricpath', 'loadbalance_multicast_has_vlan')
+      val = config_get('fabricpath', 'loadbalance_multicast_has_vlan')
+      val.nil? ? false : val
     end
 
     def loadbalance_multicast=(rotate, has_vlan)
@@ -263,9 +235,6 @@ module Cisco
         config_set('fabricpath', 'loadbalance_multicast_set',
                    rotate_amt: rotate, inc_vlan: has_vlan)
       end
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance #{rotate} #{has_vlan}] '#{e.command}'
-             : #{e.clierror}"
     end
 
     def default_loadbalance_multicast_rotate
@@ -294,30 +263,24 @@ module Cisco
     end
 
     def loadbalance_unicast_has_vlan
-      config_get('fabricpath', 'loadbalance_unicast_has_vlan')
+      val = config_get('fabricpath', 'loadbalance_unicast_has_vlan')
+      val.nil? ? false : val
     end
 
     def split_loadbalance_unicast_layer=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:pref] = val ? val : ''
-      config_set('fabricpath', 'loadbalance_unicast_layer', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance layer #{val} ] '#{e.command}'
-            : #{e.clierror}"
+      state = val ? '' : 'no'
+      pref = val ? val : ''
+      config_set('fabricpath', 'loadbalance_unicast_layer', state: state,
+                                                            pref:  pref)
     end
 
     def split_loadbalance_unicast_has_vlan=(val)
-      @set_params = {}
       if val == '' || val == false
-        @set_params[:state] = 'no'
+        state = 'no'
       else
-        @set_params[:state] = ''
+        state = ''
       end
-      config_set('fabricpath', 'loadbalance_unicast_has_vlan', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance has_vlan #{val} ] '#{e.command}'
-            : #{e.clierror}"
+      config_set('fabricpath', 'loadbalance_unicast_has_vlan', state: state)
     end
 
     def loadbalance_unicast=(layer, rotate, has_vlan)
@@ -335,9 +298,6 @@ module Cisco
         self.split_loadbalance_unicast_layer = layer
         self.split_loadbalance_unicast_has_vlan = has_vlan
       end
-    rescue Cisco::CliError => e
-      raise "[Setting loadbalance #{layer} #{rotate} #{has_vlan}] '#{e.command}'
-            : #{e.clierror}"
     end
 
     def default_loadbalance_unicast_layer
@@ -357,15 +317,15 @@ module Cisco
     end
 
     def mode=(val)
-      @set_params = {}
       if val == '' || val == 'normal'
-        @set_params[:state] = 'no'
+        state = 'no'
       else
-        @set_params[:state] = ''
+        state = ''
+        vdc = config_get('limit_resource', 'vdc')
+        # for vdc unsupported platforms, this will be nil
+        config_set('limit_resource', 'fabricpath_transit', vdc) unless vdc.nil?
       end
-      config_set('fabricpath', 'mode', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting mode #{val}] '#{e.command}' : #{e.clierror}"
+      config_set('fabricpath', 'mode', state: state)
     end
 
     def default_mode
@@ -381,8 +341,6 @@ module Cisco
     def switch_id=(val)
       # There is no no-form for this command
       config_set('fabricpath', 'switch_id', swid: val.to_s)
-    rescue Cisco::CliError => e
-      raise "[Setting switch-id #{val}] '#{e.command}' : #{e.clierror}"
     end
 
     def transition_delay
@@ -390,12 +348,9 @@ module Cisco
     end
 
     def transition_delay=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:delay] = val ? val : ''
-      config_set('fabricpath', 'transition_delay', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting transition_delay #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      delay = val ? val : ''
+      config_set('fabricpath', 'transition_delay', state: state, delay: delay)
     end
 
     def default_transition_delay
@@ -407,12 +362,9 @@ module Cisco
     end
 
     def ttl_multicast=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:ttl] = val ? val : ''
-      config_set('fabricpath', 'ttl_multicast', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting ttl_multicast #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      ttl = val ? val : ''
+      config_set('fabricpath', 'ttl_multicast', state: state, ttl: ttl)
     end
 
     def default_ttl_multicast
@@ -424,12 +376,9 @@ module Cisco
     end
 
     def ttl_unicast=(val)
-      @set_params = {}
-      @set_params[:state] = val ? '' : 'no'
-      @set_params[:ttl] = val ? val : ''
-      config_set('fabricpath', 'ttl_unicast', @set_params)
-    rescue Cisco::CliError => e
-      raise "[Setting ttl_unicast #{val}] '#{e.command}' : #{e.clierror}"
+      state = val ? '' : 'no'
+      ttl = val ? val : ''
+      config_set('fabricpath', 'ttl_unicast', state: state, ttl: ttl)
     end
 
     def default_ttl_unicast
