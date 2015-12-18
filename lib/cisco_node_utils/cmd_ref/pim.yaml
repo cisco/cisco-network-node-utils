@@ -5,7 +5,7 @@ _template:
   config_get_token :
     - '/^vrf context <vrf>$/'
   config_set :
-    - "vrf context <vrf>"
+    - 'vrf context <vrf>'
 
 all_ssm_ranges:
   multiple:

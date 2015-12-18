@@ -49,7 +49,7 @@ module Cisco
       # Add ipv6 support later
       fail ArgumentError, "Argument afi must be 'ipv4'" unless
         afi[/(ipv4)/]
-      afi[/ipv4/] ? 'ip' : ''
+      afi[/ipv4/] ? 'ip' : afi
     end
 
     # set_args_keys_default
@@ -95,7 +95,7 @@ module Cisco
     # ssm_range : setter
     # -------------------
     def ssm_range=(range)
-      set_args_keys(ssm_range: range)
+      set_args_keys(state: '', ssm_range: range)
       config_set('pim', 'ssm_range', @set_args)
     end
   end
