@@ -116,12 +116,10 @@ module Cisco
     end
 
     def source_interface
-      src_intf = config_get('vxlan_vtep', 'source_intf', name: @name)
-      return default_source_interface if src_intf.nil?
-      src_intf
+      config_get('vxlan_vtep', 'source_intf', name: @name)
     end
 
-    def source_interface=(val)
+    def source_interface_set(val)
       fail TypeError unless val.is_a?(String)
       if val.empty?
         config_set('vxlan_vtep', 'source_intf',
@@ -130,6 +128,16 @@ module Cisco
         config_set('vxlan_vtep', 'source_intf',
                    name: @name, state: '', lpbk_intf: val)
       end
+    end
+
+    def source_interface=(val)
+      # The source interface can only be changed if the nve
+      # interface is in a shutdown state.
+      noshut = { name: @name, state: 'no' }
+      shut = { name: @name, state: '' }
+      config_set('vxlan_vtep', 'shutdown', shut) unless shutdown
+      source_interface_set(val)
+      config_set('vxlan_vtep', 'shutdown', noshut) if shutdown
     end
 
     def default_source_interface

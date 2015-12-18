@@ -148,6 +148,14 @@ class TestVxlanVtep < CiscoTestCase
     vtep.source_interface = val
     assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
 
+    # Change source_interface when nve interface is in a 'no shutdown' state
+    vtep.shutdown = false
+    val = 'loopback77'
+    vtep.source_interface = val
+    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    # source_interface should 'no shutdown' after the change.
+    refute(vtep.shutdown, 'source_interface is shutdown')
+
     # Set source_interface to default value
     val = vtep.default_source_interface
     vtep.source_interface = val
