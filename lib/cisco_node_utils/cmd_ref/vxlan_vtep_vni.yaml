@@ -7,7 +7,7 @@ _template:
     - '/^member vni <vni> ?(associate-vrf)?$/'
   config_set: 'interface <name>'
   config_set_append:
-    - 'member vni <vni> <vrf>'
+    - 'member vni <vni> <assoc_vrf>'
 
 all_vnis:
   multiple:

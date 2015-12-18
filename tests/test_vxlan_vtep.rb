@@ -102,29 +102,26 @@ class TestVxlanVtep < CiscoTestCase
     # Set description to non-default value and verify
     desc = 'vxlan interface'
     vtep.description = desc
-    assert_equal(vtep.description, desc, "description is not #{desc}")
+    assert_equal(vtep.description, desc)
 
     # Set description to default value and verify
     desc = vtep.default_description
     vtep.description = desc
-    assert_equal(vtep.description, desc, "description is not #{desc}")
+    assert_equal(vtep.description, desc)
   end
 
   def test_host_reachability
     vtep = VxlanVtep.new('nve1')
 
     vtep.host_reachability = 'flood'
-    assert_equal(vtep.host_reachability, 'flood',
-                 "host_reachability is not 'flood'")
+    assert_equal(vtep.host_reachability, 'flood')
 
     vtep.host_reachability = 'evpn'
-    assert_equal(vtep.host_reachability, 'evpn',
-                 "host_reachability is not 'evpn'")
+    assert_equal(vtep.host_reachability, 'evpn')
 
     # Set value back to flood, currently evpn.
     vtep.host_reachability = 'flood'
-    assert_equal(vtep.host_reachability, 'flood',
-                 "host_reachability is not 'flood'")
+    assert_equal(vtep.host_reachability, 'flood')
   end
 
   def test_shutdown
@@ -146,19 +143,19 @@ class TestVxlanVtep < CiscoTestCase
     # Set source_interface to non-default value
     val = 'loopback55'
     vtep.source_interface = val
-    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    assert_equal(vtep.source_interface, val)
 
     # Change source_interface when nve interface is in a 'no shutdown' state
     vtep.shutdown = false
     val = 'loopback77'
     vtep.source_interface = val
-    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    assert_equal(vtep.source_interface, val)
     # source_interface should 'no shutdown' after the change.
     refute(vtep.shutdown, 'source_interface is shutdown')
 
     # Set source_interface to default value
     val = vtep.default_source_interface
     vtep.source_interface = val
-    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    assert_equal(vtep.source_interface, val)
   end
 end

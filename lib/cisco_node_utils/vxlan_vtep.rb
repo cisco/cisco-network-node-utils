@@ -121,7 +121,7 @@ module Cisco
 
     def source_interface_set(val)
       set_args = { name: @name, lpbk_intf: val }
-      val.empty? ? set_args[:state] = 'no' : set_args[:state] = ''
+      set_args[:state] = val.empty? ? 'no' : ''
       config_set('vxlan_vtep', 'source_intf', set_args)
     end
 

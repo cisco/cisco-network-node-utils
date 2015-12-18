@@ -24,19 +24,19 @@ require_relative 'vxlan_vtep'
 module Cisco
   # VxlanVtepVni - node utility for vxlan vtep vni members.
   class VxlanVtepVni < NodeUtil
-    attr_reader :name, :vni, :vrf
+    attr_reader :name, :vni, :assoc_vrf
 
-    def initialize(name, vni, vrf=false, instantiate=true)
+    def initialize(name, vni, assoc_vrf=false, instantiate=true)
       @name = name
       @vni = vni
-      @vrf = vrf
+      @assoc_vrf = assoc_vrf
 
       create if instantiate
       # NOTE: This can be removed after the puppet type/provider are coded
       # but a few design notes so we don't forget!.
       # 1) The title pattern should be cisco_vxlan_vtep_vni { 'name', 'vni' :
-      # 2) vrf will be a property but will also be a namevar.
-      # 3) The type must check that vrf is always set to either true or false.
+      # 2) assoc_vrf will be a property but will also be a namevar.
+      # 3) Type must check that assoc_vrf is always set to either true or false.
     end
 
     def self.vnis
@@ -46,21 +46,22 @@ module Cisco
         get_args = { name: name }
         vni_list = config_get('vxlan_vtep_vni', 'all_vnis', get_args)
         next if vni_list.nil?
-        vni_list.each do |vni, vrf|
-          vrf.nil? ? vrf = false : vrf = true
-          hash[name][vni] = VxlanVtepVni.new(name, vni, vrf, false)
+        vni_list.each do |vni, assoc_vrf|
+          assoc_vrf = assoc_vrf.nil? ? false : true
+          hash[name][vni] = VxlanVtepVni.new(name, vni, assoc_vrf, false)
         end
       end
       hash
     end
 
     def ==(other)
-      (name == other.name) && (vni == other.vni) && (vrf == other.vrf)
+      (name == other.name) && (vni == other.vni) &&
+        (assoc_vrf == other.assoc_vrf)
     end
 
     def set_args_keys_default
       keys = { name: @name, vni: @vni }
-      @vrf ? keys[:vrf] = 'associate-vrf' : keys[:vrf] = ''
+      keys[:assoc_vrf] = @assoc_vrf ? 'associate-vrf' : ''
       @get_args = @set_args = keys
     end
 
@@ -72,19 +73,15 @@ module Cisco
     # rubocop:enable Style/AccessorMethodNamefor
 
     def create_with_associate_vrf?
-      !@set_args[:vrf].eql?('')
+      !@set_args[:assoc_vrf].eql?('')
     end
 
     def destroy_existing(key)
       getargs = { name: @name, vni: @vni, state: '' }
-      # rubocop:disable Style/GuardClause
-      if config_get('vxlan_vtep', key, getargs)
-        key.eql?('vni_with_vrf') ? vrf = 'associate-vrf' : vrf = ''
-        getargs[:vrf] = vrf
-        getargs[:state] = 'no'
-        config_set('vxlan_vtep', 'vni', getargs)
-      end
-      # rubocop:enable Style/GuardClause
+      return unless config_get('vxlan_vtep', key, getargs)
+      getargs[:assoc_vrf] = key.eql?('vni_with_vrf') ? 'associate-vrf' : ''
+      getargs[:state] = 'no'
+      config_set('vxlan_vtep', 'vni', getargs)
     end
 
     def create

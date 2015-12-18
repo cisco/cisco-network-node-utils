@@ -26,7 +26,7 @@ source_intf:
   default_value: ''
 
 vni:
-  config_set_append: '<state> member vni <vni> <vrf>'
+  config_set_append: '<state> member vni <vni> <assoc_vrf>'
 
 vni_with_vrf:
   kind: boolean
