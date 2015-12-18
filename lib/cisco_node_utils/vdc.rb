@@ -61,19 +61,24 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    def limit_resource_module_type_f3
-      config_get('vdc', 'limit_resource_module_type_f3', vdc: @vdc)
+    def limit_resource_module_type
+      str = config_get('vdc', 'limit_resource_module_type', vdc: @vdc)
+      str.strip! unless str.nil?
     end
 
-    def limit_resource_module_type_f3=(state)
-      state = state ? '' : 'no'
-      config_set('vdc', 'limit_resource_module_type_f3',
-                 state: state, vdc: @vdc)
+    def limit_resource_module_type=(mods)
+      state = mods.empty? ? 'no' : ''
+      config_set('vdc', 'limit_resource_module_type',
+                 state: state, vdc: @vdc, mods: mods)
+
+      # TBD: No interfaces are allocated after changing the module-type
+      # so 'allocate' is needed to make this useful. Consider moving
+      # this into it's own property.
       config_set('vdc', 'allocate_interface_unallocated', vdc: @vdc)
     end
 
-    def default_limit_resource_module_type_f3
-      config_get_default('vdc', 'limit_resource_module_type_f3')
+    def default_limit_resource_module_type
+      config_get_default('vdc', 'limit_resource_module_type')
     end
   end  # Class
 end    # Module

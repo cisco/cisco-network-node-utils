@@ -1,6 +1,6 @@
 # vxlan
 ---
-_exclude: [/N3K/, /N5K, /N6K/, /N9K/]
+_exclude: [/N(3|5|6|9)K/]
 
 feature_nv_overlay:
   # This is a multi-use feature, thus enable-only
