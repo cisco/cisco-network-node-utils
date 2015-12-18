@@ -24,13 +24,19 @@ require_relative 'vxlan_vtep'
 module Cisco
   # VxlanVtepVni - node utility for vxlan vtep vni members.
   class VxlanVtepVni < NodeUtil
-    attr_reader :name, :vni
+    attr_reader :name, :vni, :assoc_vrf
 
-    def initialize(name, vni, instantiate=true)
+    def initialize(name, vni, assoc_vrf=false, instantiate=true)
       @name = name
       @vni = vni
+      @assoc_vrf = assoc_vrf
 
       create if instantiate
+      # NOTE: This can be removed after the puppet type/provider are coded
+      # but a few design notes so we don't forget!.
+      # 1) The title pattern should be cisco_vxlan_vtep_vni { 'name', 'vni' :
+      # 2) assoc_vrf will be a property but will also be a namevar.
+      # 3) Type must check that assoc_vrf is always set to either true or false.
     end
 
     def self.vnis
@@ -40,19 +46,22 @@ module Cisco
         get_args = { name: name }
         vni_list = config_get('vxlan_vtep_vni', 'all_vnis', get_args)
         next if vni_list.nil?
-        vni_list.each do |vni|
-          hash[name][vni] = VxlanVtepVni.new(name, vni, false)
+        vni_list.each do |vni, assoc_vrf|
+          assoc_vrf = assoc_vrf.nil? ? false : true
+          hash[name][vni] = VxlanVtepVni.new(name, vni, assoc_vrf, false)
         end
       end
       hash
     end
 
     def ==(other)
-      (name == other.name) && (vni == other.vni)
+      (name == other.name) && (vni == other.vni) &&
+        (assoc_vrf == other.assoc_vrf)
     end
 
     def set_args_keys_default
       keys = { name: @name, vni: @vni }
+      keys[:assoc_vrf] = @assoc_vrf ? 'associate-vrf' : ''
       @get_args = @set_args = keys
     end
 
@@ -63,8 +72,30 @@ module Cisco
     end
     # rubocop:enable Style/AccessorMethodNamefor
 
+    def create_with_associate_vrf?
+      !@set_args[:assoc_vrf].eql?('')
+    end
+
+    def destroy_existing(key)
+      getargs = { name: @name, vni: @vni, state: '' }
+      return unless config_get('vxlan_vtep', key, getargs)
+      getargs[:assoc_vrf] = key.eql?('vni_with_vrf') ? 'associate-vrf' : ''
+      getargs[:state] = 'no'
+      config_set('vxlan_vtep', 'vni', getargs)
+    end
+
     def create
+      # The configuration for this resource can be either of the following:
+      # - member nve 5000
+      # - member nve 5000 associate-vrf
+      # They are mutually exclusive and one must be removed before the other
+      # can be configured.
       set_args_keys(state: '')
+      if create_with_associate_vrf?
+        destroy_existing('vni_without_vrf')
+      else
+        destroy_existing('vni_with_vrf')
+      end
       config_set('vxlan_vtep', 'vni', @set_args)
     end
 
@@ -164,8 +195,8 @@ module Cisco
     end
 
     def suppress_arp=(state)
-      # Mac distribution must be enabled for this property
-      VxlanVtep.new(@name).mac_distribution = :evpn
+      # Host reachability must be enabled for this property
+      VxlanVtep.new(@name).host_reachability = 'evpn'
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
     end
