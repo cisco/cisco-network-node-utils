@@ -73,7 +73,7 @@ class TestPim < CiscoTestCase
   #-----------------------------------------------
 <<<<<<< HEAD
   def test_single_ssm_range_single_vrf
-    %w(ipv4).each do |afi|      
+    %w(ipv4).each do |afi|
       create_single_ssm_range_single_vrf(afi)
     end
   end  

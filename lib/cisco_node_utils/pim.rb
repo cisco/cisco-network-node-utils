@@ -39,7 +39,6 @@ module Cisco
       else
         @get_args = @set_args = { state: '', vrf: @vrf }
       end
-<<<<<<< HEAD
       enable if instantiate
     end
 
@@ -50,9 +49,6 @@ module Cisco
       fail ArgumentError, "Argument afi must be 'ipv4'" unless
         afi[/(ipv4)/]
       afi[/ipv4/] ? 'ip' : afi
-=======
-      enable if instantiate && !Pim.enabled
->>>>>>> parent of e4346a1... NXAPI Implementation & Mini Tests for Pim
     end
 
     # set_args_keys_default
@@ -98,11 +94,7 @@ module Cisco
     # ssm_range : setter
     # -------------------
     def ssm_range=(range)
-<<<<<<< HEAD
       set_args_keys(state: '', ssm_range: range)
-=======
-      @set_args[:ssm_range] = range
->>>>>>> parent of e4346a1... NXAPI Implementation & Mini Tests for Pim
       config_set('pim', 'ssm_range', @set_args)
     end
   end
