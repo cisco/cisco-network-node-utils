@@ -120,24 +120,18 @@ module Cisco
     end
 
     def source_interface_set(val)
-      fail TypeError unless val.is_a?(String)
-      if val.empty?
-        config_set('vxlan_vtep', 'source_intf',
-                   name: @name, state: 'no', lpbk_intf: val)
-      else
-        config_set('vxlan_vtep', 'source_intf',
-                   name: @name, state: '', lpbk_intf: val)
-      end
+      set_args = { name: @name, lpbk_intf: val }
+      val.empty? ? set_args[:state] = 'no' : set_args[:state] = ''
+      config_set('vxlan_vtep', 'source_intf', set_args)
     end
 
     def source_interface=(val)
       # The source interface can only be changed if the nve
       # interface is in a shutdown state.
-      noshut = { name: @name, state: 'no' }
-      shut = { name: @name, state: '' }
-      config_set('vxlan_vtep', 'shutdown', shut) unless shutdown
+      current_state = shutdown
+      self.shutdown = true unless shutdown
       source_interface_set(val)
-      config_set('vxlan_vtep', 'shutdown', noshut) if shutdown
+      self.shutdown = current_state
     end
 
     def default_source_interface
