@@ -13,7 +13,6 @@ Changelog
   * fabricpath_topology (@dcheriancisco)
 * Interface
   * interface_service (@chrisvanheuveln)
-    * `encapsulation_profile_vni`
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
