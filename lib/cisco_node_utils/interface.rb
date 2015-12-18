@@ -38,7 +38,7 @@ module Cisco
     #                                     MgmtEth
     ETHERNET = Regexp.new('(Ethernet|GigE|MgmtEth)', Regexp::IGNORECASE)
     # Regexp to match various link bundle interface variants
-    PORTCHANNEL = Regexp.new('(port-channel|bundle-Ether)', Regexp::IGNORECASE)
+    PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
 
     attr_reader :name
 
@@ -65,6 +65,12 @@ module Cisco
     def create
       feature_vlan_set(true) if @name[/vlan/i]
       config_set('interface', 'create', name: @name)
+    rescue Cisco::CliError
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless PORTCHANNEL =~ @name && platform == :ios_xr
+      raise Cisco::UnsupportedError.new('interface', @name, 'create')
     end
 
     def destroy
@@ -94,12 +100,13 @@ module Cisco
     def channel_group=(val)
       fail "channel_group is not supported on #{@name}" unless
         @name[/Ethernet/i]
-      # 'force' is needed by cli_nxos to handle the case where a port-channel
+      # 'force' is needed by cli_nexus to handle the case where a port-channel
       # interface is created prior to the channel-group cli; in which case
       # the properties of the port-channel interface will be different from
       # the ethernet interface. 'force' is not needed if the port-channel is
       # created as a result of the channel-group cli but since it does no
       # harm we will use it every time.
+      # cli_ios_xr simply ignores 'force'.
       if val
         state = ''
         force = 'force'
@@ -110,6 +117,12 @@ module Cisco
       config_set('interface',
                  'channel_group',
                  name: @name, state: state, val: val, force: force)
+    rescue Cisco::CliError => e
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless e.message[/the entered commands do not exist/]
+      raise Cisco::UnsupportedError.new('interface', 'channel_group')
     end
 
     def default_channel_group

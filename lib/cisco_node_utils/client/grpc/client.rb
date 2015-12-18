@@ -261,7 +261,7 @@ class Cisco::Client::GRPC < Cisco::Client
         #
         match = /\n\n(.*)\n\n\Z/m.match(message)
         if match.nil?
-          rejected = '(see message)'
+          rejected = '(unknown, see error message)'
         else
           rejected = match[1].split("\n")
         end

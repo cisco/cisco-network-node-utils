@@ -38,6 +38,10 @@ class Cisco::Client
   attr_reader :platform
 
   def initialize(address=nil, username=nil, password=nil)
+    if self.class == Cisco::Client
+      fail NotImplementedError, 'Cisco::Client is an abstract class. ' \
+        "Instantiate one of #{@@clients} or use Cisco::Client.create() instead"
+    end
     validate_args(address, username, password)
     @address = address
     @username = username

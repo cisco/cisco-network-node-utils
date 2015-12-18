@@ -477,6 +477,7 @@ class TestInterface < CiscoTestCase
     assert_equal(20, subif.encapsulation_dot1q)
     subif.encapsulation_dot1q = 25
     assert_equal(25, subif.encapsulation_dot1q)
+    subif.destroy
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -685,29 +686,43 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_portchannel
-    # TODO: get Bundle-Ether working for XR/gRPC
-    if platform == :ios_xr
-      skip 'No support yet for configuration of Bundle-Ether interfaces'
-    end
     ref = cmd_ref.lookup('interface',
                          'negotiate_auto_portchannel')
     assert(ref, 'Error, reference not found')
 
+    # Create interface member of this group (required for XR)
+    member = Interface.new(interfaces[0])
+    begin
+      member.channel_group = 10
+    rescue Cisco::UnsupportedError
+      # Some XR platform/version combinations don't support port-channel intfs
+      skip('bundle id config not supported on this node') if platform == :ios_xr
+      raise
+    end
+
     inf_name = "#{@port_channel}10"
-    config("interface #{@port_channel} 10")
     interface = Interface.new(inf_name)
-    default = ref.default_value
-    @default_show_command = show_cmd(inf_name)
+    if platform == :ios_xr
+      assert_nil(interface.negotiate_auto)
+      assert_nil(interface.default_negotiate_auto)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.negotiate_auto = false
+      end
+    else
+      default = ref.default_value
+      @default_show_command = show_cmd(inf_name)
 
-    # Test with switchport
-    negotiate_auto_helper(interface, default, ref)
+      # Test with switchport
+      negotiate_auto_helper(interface, default, ref)
 
-    # Test with no switchport
-    config("interface #{@port_channel} 10", 'no switchport')
-    negotiate_auto_helper(interface, default, ref)
+      # Test with no switchport
+      config("interface #{@port_channel} 10", 'no switchport')
+      negotiate_auto_helper(interface, default, ref)
+    end
 
     # Cleanup
     config("no interface #{@port_channel} 10")
+    member.channel_group = false # rubocop:disable Lint/UselessSetterCall
   end
 
   def test_negotiate_auto_ethernet
@@ -1027,26 +1042,24 @@ class TestInterface < CiscoTestCase
         vrf_new:             'test2',
         default_vrf:         DEFAULT_IF_VRF,
       }
-      # TODO: Bundle-Ether should be supported on XR,
-      # but we're not there yet with it.
-      inttype_h["#{@port_channel}48"] = {
-        address_len:         '10.7.1.1/15',
-        proxy_arp:           false,
-        redirects:           false,
-        description:         'Company B',
-        description_new:     'Dr. Bond',
-        default_description: DEFAULT_IF_DESCRIPTION,
-        shutdown:            false,
-        change_shutdown:     true,
-        default_shutdown:    false,
-        switchport:          :disabled,
-        default_switchport:  :disabled,
-        access_vlan:         DEFAULT_IF_ACCESS_VLAN,
-        default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
-        vrf_new:             'test2',
-        default_vrf:         DEFAULT_IF_VRF,
-      }
     end
+    inttype_h["#{@port_channel}48"] = {
+      address_len:         '10.7.1.1/15',
+      proxy_arp:           false,
+      redirects:           false,
+      description:         'Company B',
+      description_new:     'Dr. Bond',
+      default_description: DEFAULT_IF_DESCRIPTION,
+      shutdown:            false,
+      change_shutdown:     true,
+      default_shutdown:    false,
+      switchport:          platform == :ios_xr ? nil : :disabled,
+      default_switchport:  platform == :ios_xr ? nil : :disabled,
+      access_vlan:         DEFAULT_IF_ACCESS_VLAN,
+      default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
+      vrf_new:             'test2',
+      default_vrf:         DEFAULT_IF_VRF,
+    }
     inttype_h['loopback0'] = {
       address_len:         '11.7.1.1/15',
       redirects:           false, # (not supported on loopback)
@@ -1071,6 +1084,14 @@ class TestInterface < CiscoTestCase
       @switchport_shutdown_hash['shutdown_ethernet_noswitchport_shutdown'])
 
     # pre-configure
+    begin
+      Interface.new(interfaces[1]).channel_group = 48
+    rescue Cisco::UnsupportedError
+      raise unless platform == :ios_xr
+      # Some XR platform/version combos don't support port-channels
+      inttype_h.delete("#{@port_channel}48")
+    end
+
     inttype_h = config_from_hash(inttype_h)
 
     # Steps to cleanup the preload configuration
@@ -1095,6 +1116,7 @@ class TestInterface < CiscoTestCase
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)
+      Interface.new(interfaces[1]).channel_group = false
       raise
     end
   end
