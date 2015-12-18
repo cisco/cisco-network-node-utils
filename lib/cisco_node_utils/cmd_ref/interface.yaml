@@ -78,6 +78,13 @@ ipv4_address:
 ipv4_netmask_length:
   default_value: ~
 
+ipv4_pim_sparse_mode:
+  kind: boolean
+  default_value: false
+  cli_nexus:
+    config_get_token_append: '/^ip pim sparse-mode$/'
+    config_set_append: "%s ip pim sparse-mode"
+
 ipv4_proxy_arp:
   kind: boolean
   default_value: false
@@ -250,6 +257,20 @@ system_default_switchport_shutdown:
   config_get: "show running all | include 'system default'"
   config_get_token: ['/^system default switchport shutdown$/']
   # default_value: n/a. This is a user-configurable system default.
+
+vlan_mapping:
+  _exclude: [/N(3|5|6|9)K/]
+  multiple:
+  config_get_token_append: '/^switchport vlan mapping (\d+) (\d+)/'
+  config_set_append: '%s switchport vlan mapping %s %s'
+  default_value: []
+
+vlan_mapping_enable:
+  _exclude: [/N(3|5|6|9)K/]
+  kind: boolean
+  config_get_token_append: '/^(no )?switchport vlan mapping enable/'
+  config_set_append: '%s switchport vlan mapping enable'
+  default_value: true
 
 vrf:
   default_value: ""

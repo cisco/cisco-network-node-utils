@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'pim'
+require_relative 'vrf'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -127,22 +130,6 @@ module Cisco
       config_get_default('interface', 'description')
     end
 
-    def enable_pim_sparse_mode
-      state = config_get('interface', 'pim_sparse_mode', @name)
-      state ? true : false
-    end
-
-    def enable_pim_sparse_mode=(state)
-      no_cmd = (state ? '' : 'no')
-      config_set('interface', 'pim_sparse_mode', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_enable_pim_sparse_mode
-      config_get_default('interface', pim_sparse_mode)
-    end
-
     def encapsulation_dot1q
       config_get('interface', 'encapsulation_dot1q', @name)
     end
@@ -159,23 +146,6 @@ module Cisco
 
     def default_encapsulation_dot1q
       config_get_default('interface', 'encapsulation_dot1q')
-    end
-
-    def encapsulation_profile_vni
-      val = config_get('interface', 'encapsulation_vni', @name)
-      debug "val from get is #{val}"
-      return '' if val.nil?
-      val.first.strip
-    end
-
-    def encapsulation_profile_vni=(val)
-      if val.nil?
-        config_set('interface', 'encapsulation_vni_del', @name, val)
-      else
-        config_set('interface', 'encapsulation_vni_add', @name, val)
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def fabricpath_feature
@@ -249,6 +219,23 @@ module Cisco
 
     def default_ipv4_netmask_length
       config_get_default('interface', 'ipv4_netmask_length')
+    end
+
+    def ipv4_pim_sparse_mode
+      config_get('interface', 'ipv4_pim_sparse_mode', @name)
+    end
+
+    def ipv4_pim_sparse_mode=(state)
+      check_switchport_disabled
+      Pim.feature_enable unless Pim.feature_enabled
+      config_set('interface', 'ipv4_pim_sparse_mode', @name,
+                 state ? '' : 'no')
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_ipv4_pim_sparse_mode
+      config_get_default('interface', 'ipv4_pim_sparse_mode')
     end
 
     def ipv4_proxy_arp
@@ -554,6 +541,66 @@ module Cisco
       end
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    # vlan_mapping & vlan_mapping_enable
+    #  Hardware & Cli Dependencies:
+    #   - F3 linecards only
+    #   - vdc
+    #   - limit-resource
+    #   - bridge-domain
+    #   - feature vni
+    #   - switchport mode
+
+    # Getter: Builds an array of vlan_mapping commands currently
+    # on the device.
+    #   cli: switchport vlan mapping 2 200
+    #        switchport vlan mapping 4 400
+    # array: [['2', '200'], ['4', '400']]
+    #
+    def default_vlan_mapping
+      config_get_default('interface', 'vlan_mapping')
+    end
+
+    def vlan_mapping
+      config_get('interface', 'vlan_mapping', @name).each(&:compact!)
+    end
+
+    def vlan_mapping=(should_list)
+      Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+
+      # Process a hash of vlan_mapping cmds from delta_add_remove().
+      # The vlan_mapping cli does not allow commands to be updated, they must
+      # first be removed if there is a change.
+      delta_hash = Utils.delta_add_remove(should_list, vlan_mapping,
+                                          :updates_not_allowed)
+      return if delta_hash.values.flatten.empty?
+      # Process :remove first to ensure "update" commands will not fail.
+      [:remove, :add].each do |action|
+        CiscoLogger.debug("vlan_mapping delta #{@get_args}\n"\
+                          "#{action}: #{delta_hash[action]}")
+        delta_hash[action].each do |original, translated|
+          state = (action == :add) ? '' : 'no'
+          config_set('interface', 'vlan_mapping', @name,
+                     state, original, translated)
+        end
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    # cli: switchport vlan mapping enable
+    def default_vlan_mapping_enable
+      config_get_default('interface', 'vlan_mapping_enable')
+    end
+
+    def vlan_mapping_enable
+      config_get('interface', 'vlan_mapping_enable', @name)
+    end
+
+    def vlan_mapping_enable=(state)
+      config_set('interface', 'vlan_mapping_enable', @name,
+                 state ? '' : 'no')
     end
 
     def default_switchport_trunk_native_vlan

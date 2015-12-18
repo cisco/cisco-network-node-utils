@@ -87,7 +87,7 @@ module Cisco
     def create
       Vni.feature_vni_enable unless Vni.feature_vni_enabled
       config_set('vni', 'create', vni: @vni_id) if
-        /N7K/.match(node.product_id)
+        /N7/.match(node.product_id)
     end
 
     def destroy
@@ -262,7 +262,7 @@ module Cisco
     end
 
     def shutdown=(state)
-      # TBD: fail UnsupportedError unless /N7K/.match(node.product_id)
+      # TBD: fail UnsupportedError unless /N7/.match(node.product_id)
       state = (state) ? '' : 'no'
       result = config_set('vni', 'shutdown', state: state, vni: @vni_id)
       cli_error_check(result)

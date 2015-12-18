@@ -21,6 +21,14 @@ include Cisco
 class TestVxlanVtep < CiscoTestCase
   def setup
     super
+    # Check for supported platform
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vdc', 'all_vdcs').config_get_token.nil?
+
+    # Check for F3 module, since feature nve requires F3 cards.
+    skip('Test requires N7K-F3 linecard') unless
+      @device.cmd('sh mod | i N7K-F').match(/N7K-F3/)
+
     no_vxlan_global
   end
 
