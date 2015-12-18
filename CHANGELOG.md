@@ -24,6 +24,7 @@ Changelog
 * Extend interface with `channel_group` attribute and support for fabric path attributes
 * Extend vrf with `vni` attribute
 * Extend vlan with `mode` attribute
+# Extended vxlan_vtep_vni with `associate-vrf` support
 
 ### Changed
 
