@@ -16,8 +16,8 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/ace'
 
-# TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
-class TestAceV4 < CiscoTestCase
+# TestAce - Minitest for Ace node utility class
+class TestAce < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
@@ -63,6 +63,10 @@ class TestAceV4 < CiscoTestCase
       option_format: '',
     }
 
+    attr_v4_3 = {
+      remark: 'ipv4 remark'
+    }
+
     attr_v6_1 = {
       action:        'permit',
       proto:         '6',
@@ -83,9 +87,13 @@ class TestAceV4 < CiscoTestCase
       option_format: '',
     }
 
+    attr_v6_3 = {
+      remark: 'ipv6 remark'
+    }
+
     props = {
-      'ipv4' => [attr_v4_1, attr_v4_2],
-      'ipv6' => [attr_v6_1, attr_v6_2],
+      'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3],
+      'ipv6' => [attr_v6_1, attr_v6_2, attr_v6_3],
     }
 
     %w(ipv4 ipv6).each do |afi|
@@ -108,7 +116,7 @@ class TestAceV4 < CiscoTestCase
     afi_cli = Acl.afi_cli(afi)
     all_aces = Ace.aces
     found = false
-    all_aces[acl_name].each do |seqno, _inst|
+    all_aces[afi][acl_name].each do |seqno, _inst|
       next unless seqno.to_i == @seqno.to_i
       found = true
     end
@@ -118,7 +126,12 @@ class TestAceV4 < CiscoTestCase
     assert(found,
            "#{afi_cli} acl #{acl_name} seqno #{@seqno} is not configured")
 
-    assert_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
+    if entry.include?(:action)
+      action = "#{entry[:action]} .*"
+    else
+      action = "remark #{entry[:remark]}"
+    end
+    assert_show_match(pattern: /\s+#{@seqno} #{action}$/,
                       msg:     "failed to create ace seqno #{@seqno}")
     # remove ace
     ace.ace_set({})
