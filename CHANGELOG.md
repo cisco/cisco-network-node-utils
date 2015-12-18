@@ -7,6 +7,8 @@ Changelog
 * ACL
   * acl (@saqibraza)
   * ace (@yjyongz)
+* EVPN
+  * evpn_vni (@andish)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
@@ -14,8 +16,6 @@ Changelog
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
-* EVPN
-  * evpn_vni (@andish)
 
 ### Added
 

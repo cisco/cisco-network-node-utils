@@ -30,7 +30,7 @@ class TestEvpnVni < CiscoTestCase
     config('no evpn')
   end
 
-  def test_evpn_vni_create_and_destroy
+  def test_create_and_destroy
     vni = EvpnVni.new(4096)
     vni_list = EvpnVni.vnis
     assert(vni_list.key?('4096'), 'Error: failed to create evpn vni 4096')
@@ -40,7 +40,14 @@ class TestEvpnVni < CiscoTestCase
     refute(vni_list.key?('4096'), 'Error: failed to destroy evpn vni 4096')
   end
 
-  def test_evpn_vni_set_get_route_distinguisher
+  def test_vni_collection
+    # enable feature to test vni empty
+    EvpnVni.enable
+    vni_list = EvpnVni.vnis
+    assert_equal(true, vni_list.empty?, 'VLAN collection is empty')
+  end
+
+  def test_set_get_route_distinguisher
     vni = EvpnVni.new(4096)
     vni.route_distinguisher = 'auto'
     assert_equal('auto', vni.route_distinguisher,
@@ -55,7 +62,7 @@ class TestEvpnVni < CiscoTestCase
   end
 
   # test route_target
-  def test_evpn_vni_route_target
+  def test_route_target
     vni = EvpnVni.new(4096)
 
     # test route target both auto and route target both auto evpn
