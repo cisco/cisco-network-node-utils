@@ -58,7 +58,9 @@ module Cisco
     #
     # @raise [IndexError] if the given (feature, name) pair is not in the
     #        CommandReference data or if the data doesn't have values defined
-    #        for the 'config_get' and (optional) 'config_get_token' fields.
+    #        for the 'get_command' and (optional) 'get_value' fields.
+    # @raise [Cisco::UnsupportedError] if the (feature, name) pair is flagged
+    #        in the YAML as unsupported on this device.
     # @raise [Cisco::CliError] if the given command is rejected by the device.
     #
     # @param feature [String]
@@ -73,23 +75,18 @@ module Cisco
 
       return ref.default_value if ref.default_only?
 
-      begin
-        token = ref.config_get_token(*args)
-      rescue IndexError
-        # IndexError: no entry for config_get_token
-        token = nil
-      end
+      token = ref.getter? ? ref.getter(*args) : nil
 
       if token.nil?
         # Just get the whole output
-        return massage(show(ref.config_get, :structured), ref)
+        return massage(show(ref.get_command, :structured), ref)
       elsif token[0].kind_of?(Regexp)
-        return massage(Cisco.find_ascii(show(ref.config_get, :ascii),
+        return massage(Cisco.find_ascii(show(ref.get_command, :ascii),
                                         token[-1], *token[0..-2]), ref)
       else
         return massage(
           config_get_handle_structured(token,
-                                       show(ref.config_get, :structured)),
+                                       show(ref.get_command, :structured)),
           ref)
       end
     end
@@ -139,6 +136,7 @@ module Cisco
     # @param feature [String]
     # @param name [String]
     # @return [String]
+    # @return [nil] if this feature/name pair is marked as unsupported
     # @example config_get_default("vtp", "file")
     def config_get_default(feature, name)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
@@ -151,6 +149,7 @@ module Cisco
     #
     # @raise [IndexError] if no relevant cmd_ref config_set exists
     # @raise [ArgumentError] if too many or too few args are provided.
+    # @raise [Cisco::UnsupportedError] if this feature/name is unsupported
     # @raise [Cisco::CliError] if any command is rejected by the device.
     #
     # @param feature [String]
@@ -163,7 +162,7 @@ module Cisco
     def config_set(feature, name, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, name)
-      config(ref.config_set(*args))
+      config(ref.setter(*args))
     end
 
     # Clear the cache of CLI output results.

@@ -1,137 +1,131 @@
 # bgp_neighbor.yaml
 ---
 _template:
-  config_get_token: '/^router bgp <asnum>$/'
-  config_get_token_append:
+  cli_ios_xr:
+    get_command: "show running router bgp"
+  cli_nexus:
+    get_command: "show running bgp all"
+  get_context:
+    - '/^router bgp <asnum>$/'
     - '/^vrf <vrf>$/'
     - '/^neighbor <nbr>$/'
-  config_set: "router bgp <asnum>"
-  cli_ios_xr:
-    config_get: "show running router bgp"
-    # Note the space before 'vrf' - seems like grpc
-    # is currently indentation sensitive.
-    config_set_append:
-      - " vrf <vrf>"
-      - " neighbor <nbr>"
-  cli_nexus:
-    config_get: "show running bgp all"
-    config_set_append:
-      - "vrf <vrf>"
-      - "neighbor <nbr>"
+  set_context:
+    - "router bgp <asnum>"
+    - "vrf <vrf>"
+    - "neighbor <nbr>"
 
 af:
-  # Note - XR needs this to be indented under a neighbor
-  config_set_append: ' <state> address-family <afi> <safi>'
+  set_value: '<state> address-family <afi> <safi>'
 
 all_neighbors:
   multiple: true
-  config_get_token_append: '/^neighbor (\S+)$/'
+  get_value: '/^neighbor (\S+)$/'
 
 capability_negotiation:
   _exclude: [cli_ios_xr]
   auto_default: false
   kind: boolean
-  config_get_token_append: '/^dont-capability-negotiate$/'
-  config_set_append: '<state> dont-capability-negotiate'
+  get_value: '/^dont-capability-negotiate$/'
+  set_value: '<state> dont-capability-negotiate'
   default_value: true
 
 connected_check:
   auto_default: false
   kind: boolean
   cli_ios_xr:
-    config_get_token_append: '/^ignore-connected-check$/'
-    config_set_append: ' <state> ignore-connected-check'
+    get_value: '/^ignore-connected-check$/'
+    set_value: '<state> ignore-connected-check'
   cli_nexus:
-    config_get_token_append: '/^disable-connected-check$/'
-    config_set_append: ' <state> disable-connected-check'
+    get_value: '/^disable-connected-check$/'
+    set_value: '<state> disable-connected-check'
   default_value: true
 
 description:
   kind: string
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: ' <state> description <desc>'
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <desc>'
   default_value: ""
 
 dynamic_capability:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^(no )?dynamic-capability$/'
-  config_set_append: '<state> dynamic-capability'
+  get_value: '/^(no )?dynamic-capability$/'
+  set_value: '<state> dynamic-capability'
   default_value: true
 
 ebgp_multihop:
   auto_default: false
-  config_get_token_append: '/^ebgp-multihop (\d+)$/'
-  config_set_append: ' <state> ebgp-multihop <ttl>'
+  get_value: '/^ebgp-multihop (\d+)$/'
+  set_value: '<state> ebgp-multihop <ttl>'
   default_value: false
 
 local_as:
-  config_get_token_append: '/^local-as (\d*?.?\d+?)$/'
-  config_set_append: ' <state> local-as <local_as>'
+  get_value: '/^local-as (\d*?.?\d+?)$/'
+  set_value: '<state> local-as <local_as>'
   default_value: 0
 
 log_neighbor_changes:
   _exclude: [cli_ios_xr, /N6K/, /N7K/]
   multiple: true # not actually, but we get an array of matches
   auto_default: false
-  config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
-  config_set_append: '<state> log-neighbor-changes <disable>'
+  get_value: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
+  set_value: '<state> log-neighbor-changes <disable>'
   default_value: "inherit"
 
 low_memory_exempt:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^low-memory exempt$/'
-  config_set_append: '<state> low-memory exempt'
+  get_value: '/^low-memory exempt$/'
+  set_value: '<state> low-memory exempt'
   default_value: false
 
 maximum_peers:
   _exclude: [cli_ios_xr]
   kind: int
-  config_get_token_append: '/^maximum-peers (\d+)$/'
-  config_set_append: '<state> maximum-peers <num>'
+  get_value: '/^maximum-peers (\d+)$/'
+  set_value: '<state> maximum-peers <num>'
   default_value: 0
 
 password:
   cli_ios_xr:
-    config_get_token_append: '/^password [a-z]+ (\S+)$/'
+    get_value: '/^password [a-z]+ (\S+)$/'
   cli_nexus:
-    config_get_token_append: '/^password \d+ (\S+)$/'
-  config_set_append: ' <state> password <type> <passwd>'
+    get_value: '/^password \d+ (\S+)$/'
+  set_value: '<state> password <type> <passwd>'
   default_value: ""
 
 password_type:
   kind: string
   cli_ios_xr:
-    config_get_token_append: '/^password ([a-z]+)/'
+    get_value: '/^password ([a-z]+)/'
     default_value: "clear"
   cli_nexus:
-    config_get_token_append: '/^password (\d+)/'
+    get_value: '/^password (\d+)/'
     default_value: 0
 
 remote_as:
-  config_get_token_append: '/^remote-as (\d*?.?\d+?)$/'
-  config_set_append: ' <state> remote-as <remote_as>'
+  get_value: '/^remote-as (\d*?.?\d+?)$/'
+  set_value: '<state> remote-as <remote_as>'
   default_value: 0
 
 remove_private_as:
   _exclude: [cli_ios_xr]
   multiple: true # not actually, but we get an array of matches
   auto_default: false
-  config_get_token_append: '/^remove-private-as\s+??(\S+)?\s+??$/'
-  config_set_append: '<state> remove-private-as <option>'
+  get_value: '/^remove-private-as\s+??(\S+)?\s+??$/'
+  set_value: '<state> remove-private-as <option>'
   default_value: "disable"
 
 shutdown:
   kind: boolean
-  config_get_token_append: '/^shutdown$/'
-  config_set_append: ' <state> shutdown'
+  get_value: '/^shutdown$/'
+  set_value: '<state> shutdown'
   default_value: false
 
 suppress_4_byte_as:
   kind: boolean
-  config_get_token_append: '/^capability suppress 4-byte-as$/'
-  config_set_append: ' <state> capability suppress 4-byte-as'
+  get_value: '/^capability suppress 4-byte-as$/'
+  set_value: '<state> capability suppress 4-byte-as'
   default_value: false
 
 timers_holdtime:
@@ -141,22 +135,22 @@ timers_keepalive:
   default_value: 60
 
 timers_keepalive_hold:
-  config_get_token_append: '/^timers (\d+) (\d+)$/'
-  config_set_append: ' <state> timers <keepalive> <hold>'
+  get_value: '/^timers (\d+) (\d+)$/'
+  set_value: '<state> timers <keepalive> <hold>'
 
 transport_passive_mode:
   cli_ios_xr:
     kind: string
-    config_get_token_append: '/^session-open-mode ([a-z-]+)$/'
-    config_set_append: ' <state> session-open-mode <mode>'
+    get_value: '/^session-open-mode ([a-z-]+)$/'
+    set_value: '<state> session-open-mode <mode>'
     default_value: ''
   cli_nexus:
     kind: boolean
-    config_get_token_append: '/^transport connection-mode passive$/'
-    config_set_append: ' <state> transport connection-mode passive'
+    get_value: '/^transport connection-mode passive$/'
+    set_value: '<state> transport connection-mode passive'
     default_value: false
 
 update_source:
-  config_get_token_append: '/^update-source (\S+)$/'
-  config_set_append: ' <state> update-source <interface>'
+  get_value: '/^update-source (\S+)$/'
+  set_value: '<state> update-source <interface>'
   default_value: ""

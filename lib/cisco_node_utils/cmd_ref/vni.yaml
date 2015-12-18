@@ -1,51 +1,51 @@
 # vni
 ---
 all_vnis:
-  config_get: "show vni"
-  config_get_token: '/^(\d+)\s/'
+  get_command: "show vni"
+  get_value: '/^(\d+)\s/'
 
 bridge_domain:
-  config_get: "show vni"
-  config_get_token: [ '/^%d\s+\S+\s+(\d+)/' ]
-  config_set: ["bridge-domain %d", "%s member vni %d", "end"]
+  get_command: "show vni"
+  get_value: [ '/^%d\s+\S+\s+(\d+)/' ]
+  set_value: ["bridge-domain %d", "%s member vni %d", "end"]
   default_value: ~
 
 bridge_domain_activate:
-  config_set: ["%s system bridge-domain add %d", "end"]
+  set_value: ["%s system bridge-domain add %d", "end"]
 
 create:
-  config_set: ["vni %s" , "end"]
+  set_value: ["vni %s" , "end"]
 
 destroy:
-  config_set: "no vni %s"
+  set_value: "no vni %s"
 
 encap_dot1q:
-  config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
+  set_value: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
   default_value: ~
 
 feature:
-  config_get: "show feature"
-  config_get_token: '/^vni\s+\d+\s+(\S+)/'
-  config_set: "%s feature vni"
+  get_command: "show feature"
+  get_value: '/^vni\s+\d+\s+(\S+)/'
+  set_value: "%s feature vni"
 
 feature_n9k:
-  config_get: " show running | i ^feature"
-  config_get_token: '/^feature vn-segment-vlan-based$/'
-  config_set: "<state> feature vn-segment-vlan-based"
+  get_command: " show running | i ^feature"
+  get_value: '/^feature vn-segment-vlan-based$/'
+  set_value: "<state> feature vn-segment-vlan-based"
 
 feature_nv_overlay:
-  config_get: " show running | i ^feature"
-  config_get_token: '/^feature nv overlay$/'
-  config_set: "<state> feature nv overlay"
+  get_command: " show running | i ^feature"
+  get_value: '/^feature nv overlay$/'
+  set_value: "<state> feature nv overlay"
 
 mapped_vlan:
-  config_get: 'show running vlan'
-  config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-  config_set: ['vlan <vlan>', '<state> vn-segment <vni>']
+  get_command: 'show running vlan'
+  get_value: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
+  set_value: ['vlan <vlan>', '<state> vn-segment <vni>']
   default_value: ""
 
 shutdown:
-  config_get: "show vni"
-  config_get_token: '/^%d\s+(\S+)/'
-  config_set: ["vni %d", "%s shutdown", "end"]
+  get_command: "show vni"
+  get_value: '/^%d\s+(\S+)/'
+  set_value: ["vni %d", "%s shutdown", "end"]
   default_value: false

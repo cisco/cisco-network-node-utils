@@ -2,6 +2,6 @@
 ---
 packages:
   multiple: true
-  config_get: 'show install patches'
+  get_command: 'show install patches'
   # Package state should always be some variant of Active or Inactive
-  config_get_token: '/^(\S+)\s+(\S*[aA]ctive.*)\s*$/'
+  get_value: '/^(\S+)\s+(\S*[aA]ctive.*)\s*$/'

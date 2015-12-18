@@ -2,29 +2,31 @@
 ---
 all_vlans:
   multiple: true
-  config_get: "show vlan brief"
-  config_get_token: '/^(\d+)\s/'
+  get_command: "show vlan brief"
+  get_value: '/^(\d+)\s/'
 
 create:
-  config_set: ["vlan %s" , "end"]
+  set_value: ["vlan %s" , "end"]
 
 destroy:
-  config_set: "no vlan %s"
+  set_value: "no vlan %s"
 
 mode:
   _exclude:
     - /N9K/
     - /N3/
   kind: string
-  config_get: "show vlan"
-  config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
-  config_set: ["vlan %d" , "%s mode %s", "end"]
+  get_command: "show vlan"
+  get_value: '/^%d+\s+enet\s+(\S+)\s/'
+  set_context: "vlan %d"
+  set_value: "%s mode %s"
   default_value: "ce"
   
 name:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s name %s", "end"]
+  get_command: "show vlan brief"
+  get_value: '/^%d+\s+(\S+)\s/'
+  set_context: "vlan %d"
+  set_value: "%s name %s"
   /N9K/:
     test_config_result:
       32: "Long VLAN name knob is not enabled"
@@ -33,13 +35,15 @@ name:
       32: "String exceeded max length of (32)"
 
 shutdown:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s shutdown", "end"]
+  get_command: "show vlan brief"
+  get_value: '/^%d+\s+\S+\s+(\S+)\s/'
+  set_context: "vlan %d"
+  set_value: "%s shutdown"
   default_value: false
 
 state:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s state %s", "end"]
+  get_command: "show vlan brief"
+  get_value: '/^%d+\s+\S+\s+(\S+)\s/'
+  set_context: "vlan %d"
+  set_value: "%s state %s"
   default_value: "active"

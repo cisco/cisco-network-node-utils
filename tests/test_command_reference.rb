@@ -99,7 +99,7 @@ name:
 name:
   default_value: false
 name:
-  config_get: 'show feature'")
+  get_command: 'show feature'")
     assert_raises(RuntimeError) { load_file }
   end
 
@@ -114,7 +114,7 @@ name:
   def test_load_unsupported_key
     write("
 name:
-  config_get: 'show feature'
+  get_command: 'show feature'
   what_is_this: \"I don't even\"")
     assert_raises(RuntimeError) { load_file }
   end
@@ -136,10 +136,14 @@ name_a:
     write(%q(
 name:
   default_value: true
-  config_get: show hello
-  config_get_token: '/hello world/'
-  config_set: [ \"hello\", \"world\" ]
-  test_config_get_regex: '/hello world/'
+  get_command: show hello
+  get_context: '/hello/i'
+  get_value: '/world/'
+  set_context: [ \"hello\", \"world\" ]
+  set_value:
+    - \"hello\"
+    - \"world\"
+  test_get_value: '/hello world/'
   test_config_result:
     false: RuntimeError
     32: "Long VLAN name knob is not enabled"
@@ -148,20 +152,29 @@ name:
     reference = load_file
     ref = reference.lookup('test', 'name')
     type_check(ref.default_value, TrueClass)
-    type_check(ref.config_get, String)
-    type_check(ref.config_get_token, Array)
-    type_check(ref.config_get_token[0], Regexp)
-    type_check(ref.config_set, Array)
-    type_check(ref.test_config_get_regex, Regexp)
-    assert_raises(IndexError) { ref.test_config_get }
+    type_check(ref.get_command, String)
+    type_check(ref.get_context, Array)
+    type_check(ref.get_context[0], Regexp)
+    type_check(ref.get_value, Array)
+    type_check(ref.get_value[0], Regexp)
+    type_check(ref.set_context, Array)
+    type_check(ref.set_context[0], String)
+    type_check(ref.set_value, Array)
+    type_check(ref.set_value[0], String)
+    type_check(ref.test_get_value, Regexp)
+    assert_raises(IndexError) { ref.test_get_command }
     type_check(ref.test_config_result(false), RuntimeError.class)
     type_check(ref.test_config_result(32), String)
     type_check(ref.test_config_result('nil'), NilClass)
 
     assert(ref.default_value?)
-    assert(ref.config_get?)
-    assert(ref.config_get_token?)
-    assert(ref.config_set?)
+    assert(ref.get_command?)
+    assert(ref.get_context?)
+    assert(ref.get_value?)
+    assert(ref.getter?)
+    assert(ref.set_context?)
+    assert(ref.set_value?)
+    assert(ref.setter?)
   end
 
   def write_variants
@@ -243,16 +256,20 @@ rank:
     # default_value is nil for an unsupported property
     assert(ref.default_value?, 'default_value? returned false')
     assert_nil(ref.default_value)
-    refute(ref.config_get?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+    refute(ref.getter?)
+    assert_raises(Cisco::UnsupportedError) { ref.getter }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
 
     # Because the whole file is excluded, we don't know which
     # attributes are 'valid' - so any attribute name is permitted:
     ref = reference.lookup('test', 'foobar')
     assert(ref.default_value?)
     assert_nil(ref.default_value)
-    refute(ref.config_get?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+    refute(ref.getter?)
+    assert_raises(Cisco::UnsupportedError) { ref.getter }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
   end
 
   def test_exclude_whole_item
@@ -263,8 +280,10 @@ rank:
     ref = reference.lookup('test', 'name')
     assert(ref.default_value?)
     assert_nil(ref.default_value)
-    refute(ref.config_get?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_get }
+    refute(ref.getter?)
+    assert_raises(Cisco::UnsupportedError) { ref.getter }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
   end
 
   def test_exclude_no_exclusion
@@ -296,27 +315,31 @@ name:
     assert(ref.default_only?)
     assert(ref.default_value?)
     assert_equal('x', ref.default_value)
-    refute(ref.config_set?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+    refute(ref.getter?)
+    assert_raises(Cisco::UnsupportedError) { ref.getter }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
   end
 
   def test_default_only_cleanup
     write("
 name:
   default_only: 'x'
-  config_set: 'foo'
+  set_value: 'foo'
 ")
     reference = load_file
     ref = reference.lookup('test', 'name')
     assert(ref.default_only?)
     assert(ref.default_value?)
     assert_equal('x', ref.default_value)
-    refute(ref.config_set?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+    refute(ref.set_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.set_value }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
 
     write("
 name2:
-  config_set: 'foo'
+  set_value: 'foo'
   default_only: 'x'
 ")
     reference = load_file
@@ -324,8 +347,10 @@ name2:
     assert(ref.default_only?)
     assert(ref.default_value?)
     assert_equal('x', ref.default_value)
-    refute(ref.config_set?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+    refute(ref.set_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.set_value }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
   end
 
   def test_default_only_default_value
@@ -334,7 +359,7 @@ name:
   kind: int
   cli_nexus:
     default_value: 10
-    config_set: 'hello'
+    set_value: 'hello'
   default_only: 0
 ")
     reference = load_file
@@ -342,49 +367,53 @@ name:
     assert(ref.default_only?)
     assert(ref.default_value?)
     assert_equal(0, ref.default_value)
-    refute(ref.config_set?)
-    assert_raises(Cisco::UnsupportedError) { ref.config_set }
+    refute(ref.set_value?)
+    assert_raises(Cisco::UnsupportedError) { ref.set_value }
+    refute(ref.setter?)
+    assert_raises(Cisco::UnsupportedError) { ref.setter }
 
     reference = load_file(cli: true, platform: 'nexus')
     ref = reference.lookup('test', 'name')
     refute(ref.default_only?)
     assert(ref.default_value?)
     assert_equal(10, ref.default_value)
-    assert(ref.config_set?)
-    assert_raises(IndexError) { ref.config_get }
+    assert(ref.set_value?)
+    assert(ref.setter?)
+    assert_raises(IndexError) { ref.get_value }
   end
 
-  def test_config_get_token_hash_substitution
+  def test_getter_hash_substitution
     write(%q(
 name:
-  config_get_token:
+  get_context:
     ['/^router ospf <name>$/',
-     '/^vrf <vrf>$/',
-     '/^router-id (\S+)$/']
+     '/^vrf <vrf>$/']
+  get_value: '/^router-id (\S+)$/'
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
-    token = ref.config_get_token(name: 'red')
+    token = ref.getter(name: 'red')
     assert_equal([/^router ospf red$/, /^router-id (\S+)$/],
                  token)
-    token = ref.config_get_token(name: 'blue', vrf: 'green')
+    token = ref.getter(name: 'blue', vrf: 'green')
     assert_equal([/^router ospf blue$/, /^vrf green$/, /^router-id (\S+)$/],
                  token)
     # TODO: add negative tests?
   end
 
-  def test_config_get_token_printf_substitution
+  def test_getter_printf_substitution
     write("
 name:
-  config_get_token: ['/^interface %s$/i', '/^description (.*)/']
+  get_context: '/^interface %s$/i'
+  get_value: '/^description (.*)/'
 ")
     reference = load_file
     ref = reference.lookup('test', 'name')
-    token = ref.config_get_token('Ethernet1/1')
+    token = ref.getter('Ethernet1/1')
     assert_equal([%r{^interface Ethernet1/1$}i, /^description (.*)/],
                  token)
     # Negative tests - wrong # of args
-    assert_raises(ArgumentError) { ref.config_get_token }
-    assert_raises(ArgumentError) { ref.config_get_token('eth1/1', 'foo') }
+    assert_raises(ArgumentError) { ref.getter }
+    assert_raises(ArgumentError) { ref.getter('eth1/1', 'foo') }
   end
 end

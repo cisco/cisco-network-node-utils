@@ -1,53 +1,58 @@
 # inventory
 ---
 _template:
-  config_get: 'show inventory'
+  get_command: 'show inventory'
   cli_ios_xr:
-    test_config_get: 'show inventory'
+    test_get_command: 'show inventory'
   cli_nexus:
-    test_config_get: 'show inventory | no-more'
+    test_get_command: 'show inventory | no-more'
 
 all:
   multiple: true
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv"]
+    get_context: ["TABLE_inv"]
+    get_value: "ROW_inv"
 
 chassis:
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv", {'name': '"Chassis"'}]
+    get_context: ["TABLE_inv", "ROW_inv"]
+    get_value: {'name': '"Chassis"'}
 
 inventory:
   # TODO: clean this up
   /N7K/:
-    test_config_get_regex: [
+    test_get_value: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
     '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
     ]
   /N9K/:
-    test_config_get_regex: [
+    test_get_value: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
     '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
     ]
   else:
-    test_config_get_regex: [
+    test_get_value: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/',
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/'
     ]
 
 productid:
   cli_ios_xr:
-    config_get_token: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
+    get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
+    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_value: "productid"
 
 serialnum:
   cli_ios_xr:
-    config_get_token: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
+    get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
+    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_value: "serialnum"
 
 versionid:
   cli_ios_xr:
-    config_get_token: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
+    get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
+    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_value: "vendorid"

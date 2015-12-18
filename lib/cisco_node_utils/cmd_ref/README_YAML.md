@@ -19,17 +19,17 @@ This document describes the structure and semantics of these files.
   * [`_exclude`](#_exclude)
   * [Combinations of these](#combinations-of-these)
 * [Attribute properties](#attribute-properties)
-  * [`config_get`](#config_get)
-  * [`config_get_token`](#config_get_token)
-  * [`config_get_token_append`](#config_get_token_append)
-  * [`config_set`](#config_set)
-  * [`config_set_append`](#config_set_append)
+  * [`get_command`](#get_command)
+  * [`get_context`](#get_context)
+  * [`get_value`](#get_value)
+  * [`set_context`](#set_context)
+  * [`set_value`](#set_value)
   * [`default_value`](#default_value)
   * [`default_only`](#default_only)
   * [`kind`](#kind)
   * [`multiple`](#multiple)
   * [`auto_default`](#auto_default)
-  * [`test_config_get` and `test_config_get_regex`](#test_config_get-and-test_config_get_regex)
+  * [`test_get_command` and `test_get_value`](#test_get_command-and-test_get_value)
   * [`test_config_result`](#test_config_result)
 * [Style Guide](#style-guide)
 
@@ -59,14 +59,14 @@ An example:
 ```yaml
 # vtp.yaml
 domain:
-  config_get: "show vtp status"
-  config_get_token: "domain_name"
-  config_set: "vtp domain <domain>"
+  get_command: "show vtp status"
+  get_value: "domain_name"
+  set_value: "vtp domain <domain>"
 
 filename:
-  config_get: "show running vtp"
-  config_get_token: '/vtp file (\S+)/'
-  config_set: "<state> vtp file <filename>"
+  get_command: "show running vtp"
+  get_value: '/vtp file (\S+)/'
+  set_value: "<state> vtp file <filename>"
   default_value: ""
 ```
 
@@ -79,16 +79,14 @@ needed. In the above, example 'domain' does not have a value defined for
 
 ### Wildcard substitution
 
-The `config_get_token` and `config_set` properties (and their associated
-`_append` variants) all support two forms of wildcarding - printf-style and
-key-value. Key-value is generally preferred, as described below.
+The `(get|set)_(context|value)` properties all support two forms of wildcarding - printf-style and key-value. Key-value is generally preferred, as described below.
 
 #### Printf-style wildcards
 
 ```yaml
 # tacacs_server_host.yaml
 encryption:
-  config_set: '%s tacacs-server host %s key %s %s'
+  set_value: '%s tacacs-server host %s key %s %s'
 ```
 
 This permits parameter values to be passed as a simple sequence to generate the resulting string or regexp:
@@ -108,7 +106,8 @@ the Ruby code.
 ```yaml
 # ospf.yaml
 auto_cost:
-  config_set: ['router ospf <name>', 'auto-cost reference-bandwidth <cost> <type>']
+  set_context: 'router ospf <name>'
+  set_value: 'auto-cost reference-bandwidth <cost> <type>'
 ```
 
 This requires parameter values to be passed as a hash:
@@ -134,17 +133,17 @@ with the `interface <name>` configuration command. Thus, you might have:
 ```yaml
 # interface.yaml
 _template:
-  config_get: 'show running-config interface all'
-  config_get_token: '/^interface <name>$/'
-  config_set: 'interface <name>'
+  get_command: 'show running-config interface all'
+  get_context: '/^interface <name>$/'
+  set_context: 'interface <name>'
 
 access_vlan:
-  config_get_token_append: '/^switchport access vlan (.*)$/'
-  config_set_append: 'switchport access vlan <number>'
+  get_value: '/^switchport access vlan (.*)$/'
+  set_value: 'switchport access vlan <number>'
 
 description:
-  config_get_token_append: '/^description (.*)$/'
-  config_set_append: 'description <desc>'
+  get_value: '/^description (.*)$/'
+  set_value: 'description <desc>'
 
 ...
 ```
@@ -154,14 +153,18 @@ instead of the more repetitive (but equally valid):
 ```yaml
 # interface.yaml
 access_vlan:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^switchport access vlan (.*)$/']
-  config_set: ['interface <name>', 'switchport access vlan <number>']
+  get_command: 'show running interface all'
+  get_context: '/^interface <name>$/i'
+  get_value: '/^switchport access vlan (.*)$/'
+  set_context: 'interface <name>'
+  set_value: 'switchport access vlan <number>'
 
 description:
-  config_get: 'show running-config interface all'
-  config_get_token: ['/^interface <name>$/i', '/^description (.*)$/']
-  config_set: ['interface <name>', 'description <desc>']
+  get_command: 'show running-config interface all'
+  get_context: '/^interface <name>$/i'
+  get_value: '/^description (.*)$/'
+  set_context: 'interface <name>'
+  set_value: 'description <desc>'
 
 ...
 ```
@@ -178,11 +181,11 @@ combination of API type and platform type as a key. For example, interface VRF m
 vrf:
   default_value: ""
   cli_nexus:
-    config_get_token_append: '/^vrf member (.*)/'
-    config_set_append: "<state> vrf member <vrf>"
+    get_value: '/^vrf member (.*)/'
+    set_value: "<state> vrf member <vrf>"
   cli_ios_xr:
-    config_get_token_append: '/^vrf (.*)/'
-    config_set_append: "<state> vrf <vrf>"
+    get_value: '/^vrf (.*)/'
+    set_value: "<state> vrf <vrf>"
 ```
 
 ### Product variants
@@ -196,11 +199,11 @@ for all products that do not match any of the given regexps:
 # show_version.yaml
 system_image:
   /N9K/:
-    config_get_token: "kick_file_name"
-    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+    get_value: "kick_file_name"
+    test_get_value: '/.*NXOS image file is: (.*)$.*/'
   else:
-    config_get_token: "isan_file_name"
-    test_config_get_regex: '/.*system image file is:    (.*)$.*/'
+    get_value: "isan_file_name"
+    test_get_value: '/.*system image file is:    (.*)$.*/'
 ```
 
 ### `_exclude`
@@ -223,8 +226,8 @@ attribute:
   _exclude:
     - /N7K/
   default_value: true
-  config_get: 'show attribute'
-  config_set: 'attribute'
+  get_command: 'show attribute'
+  set_value: 'attribute'
 ```
 
 When a feature or attribute is excluded in this way, attempting to call `config_get` or `config_set` on an excluded node will result in a `Cisco::UnsupportedError` being raised. Calling `config_get_default` on such a node will always return `nil`.
@@ -240,17 +243,18 @@ Using `_template` in combination with API variants:
 # inventory.yaml
 _template:
   cli_ios_xr:
-    config_get: 'show inventory | begin "Rack 0"'
-    test_config_get: 'show inventory'
+    get_command: 'show inventory | begin "Rack 0"'
+    test_get_command: 'show inventory'
   cli_nexus:
-    config_get: 'show inventory'
-    test_config_get: 'show inventory | no-more'
+    get_command: 'show inventory'
+    test_get_command: 'show inventory | no-more'
 
 productid:
   cli_ios_xr:
-    config_get_token: '/PID: ([^ ,]+)/'
+    get_value: '/PID: ([^ ,]+)/'
   cli_nexus:
-    config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
+    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_value: "productid"
 ```
 
 Using platform variants and product variants together:
@@ -258,39 +262,39 @@ Using platform variants and product variants together:
 ```yaml
 # inventory.yaml
 description:
-  config_get_token: "chassis_id"
+  get_value: "chassis_id"
   cli_nexus:
     /N7K/:
-      test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+      test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
-      test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+      test_get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
   cli_ios_xr:
-    config_get: 'show inventory | inc "Rack 0"'
-    config_get_token: '/DESCR: "(.*)"/'
-    test_config_get: 'show inventory | inc "Rack 0"'
-    test_config_get_regex: '/DESCR: "(.*)"/'
+    get_command: 'show inventory | inc "Rack 0"'
+    get_value: '/DESCR: "(.*)"/'
+    test_get_command: 'show inventory | inc "Rack 0"'
+    test_get_value: '/DESCR: "(.*)"/'
 ```
 
 ## Attribute properties
 
-### `config_get`
+### `get_command`
 
-`config_get` must be a single string representing the CLI command (usually a
+`get_command` must be a single string representing the CLI command (usually a
 `show` command) to be used to display the information needed to get the
 current value of this attribute.
 
 ```yaml
 # interface_ospf.yaml
 area:
-  config_get: 'show running interface all'
+  get_command: 'show running interface all'
 ```
 
-### `config_get_token`
+### `get_context`
 
-`config_get_token` can be a single string, a single regex, an array of strings,
+`get_context` can be a single string, a single regex, an array of strings,
 or an array of regexs.
 
-If this value is a string or array of strings, then the `config_get` command
+If this value is a string or array of strings, then the `get_command` command
 will be executed to produce _structured_ output and the string(s) will be
 used as lookup keys.
 
@@ -299,16 +303,17 @@ used as lookup keys.
 ```yaml
 # show_version.yaml
 cpu:
-  config_get: 'show version'
-  config_get_token: 'cpu_name'
+  get_command: 'show version'
+  get_value: 'cpu_name'
   # config_get('show_version', 'cpu') returns structured_output['cpu_name']
 ```
 
 ```yaml
 # inventory.yaml
 productid:
-  config_get: 'show inventory'
-  config_get_token: ['TABLE_inv', 'ROW_inv', 0, 'productid']
+  get_command: 'show inventory'
+  get_context: ['TABLE_inv', 'ROW_inv', 0]
+  get_value: 'productid'
   # config_get('inventory', 'productid') returns
   # structured_output['TABLE_inv']['ROW_inv'][0]['productid']
 ```
@@ -321,8 +326,8 @@ For a single regexp, it will be used to match against the plaintext.
 ```yaml
 # memory.yaml
 total:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) total/'
+  get_command: 'show system resources'
+  get_value: '/Memory.* (\S+) total/'
   # config_get('memory', 'total') returns
   # plaintext_output.scan(/Memory.* (\S+) total/)
 ```
@@ -334,28 +339,29 @@ through the hierarchy.
 ```yaml
 # interface.yaml
 description:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^description (.*)/']
+  get_command: 'show running interface all'
+  get_context: '/^interface <name>$/i'
+  get_value: '/^description (.*)/'
   # config_get('interface', 'description', name: 'Ethernet1/1') gets the
   # plaintext output, finds the subsection under /^interface Ethernet1/1$/i,
   # then finds the line matching /^description (.*)$/ in that subsection
 ```
 
-### `config_get_token_append`
+### `get_value`
 
 When using a `_template` section, an attribute can use
-`config_get_token_append` to extend the `config_get_token` value provided by
+`get_value` to extend the `get_context` value provided by
 the template instead of replacing it:
 
 ```yaml
 # interface.yaml
 _template:
-  config_get: 'show running-config interface all'
-  config_get_token: '/^interface <name>$/i'
+  get_command: 'show running-config interface all'
+  get_context: '/^interface <name>$/i'
 
 description:
-  config_get_token_append: '/^description (.*)$/'
-  # config_get_token value for 'description' is now:
+  get_value: '/^description (.*)$/'
+  # get_value for 'description' is now:
   # ['/^interface <name>$/i', '/^description (.*)$/']
 ```
 
@@ -365,68 +371,68 @@ used depending on the set of parameters passed into `config_get()`:
 ```yaml
 # ospf.yaml
 _template:
-  config_get: 'show running ospf all'
-  config_get_token: '/^router ospf <name>$/'
-  config_get_token_append:
+  get_command: 'show running ospf all'
+  get_context:
+    - '/^router ospf <name>$/'
     - '/^vrf <vrf>$/'
 
 router_id:
-  config_get_token_append: '/^router-id (\S+)$/'
+  get_value: '/^router-id (\S+)$/'
 ```
 
 In this example, the `vrf` parameter is optional and a different
-`config_get_token` value will be generated depending on its presence or absence:
+`getter` value will be generated depending on its presence or absence:
 
 ```ruby
 irb(main):008:0> ref = cr.lookup('ospf', 'router_id')
-irb(main):012:0> ref.config_get_token(name: 'red')
+irb(main):012:0> ref.getter(name: 'red')
 => [/^router ospf red$/, /^router-id (\S+)?$/]
-irb(main):013:0> ref.config_get_token(name: 'red', vrf: 'blue')
+irb(main):013:0> ref.getter(name: 'red', vrf: 'blue')
 => [/^router ospf red$/, /^vrf blue$/, /^router-id (\S+)?$/]
 ```
 
-### `config_set`
+### `set_context`
 
-The `config_set` parameter is a string or array of strings representing the
+The `set_context` parameter is a string or array of strings representing the
 configuration CLI command(s) used to set the value of the attribute.
 
 ```yaml
 # interface.yaml
-create:
-  config_set: 'interface <name>'
-
 description:
-  config_set: ['interface <name>', 'description <desc>']
+  set_context: 'interface <name>'
+  set_value: 'description <desc>'
 ```
 
-### `config_set_append`
+TODO: add example with array context
 
-When using a `_template` section, an attribute can use `config_set_append` to
-extend the `config_set` value provided by the template instead of replacing it:
+### `set_value`
+
+When using a `_template` section, an attribute can use `set_value` to
+extend the `set_context` value provided by the template instead of replacing it:
 
 ```yaml
 # interface.yaml
 _template:
-  config_set: 'interface <name>'
+  set_context: 'interface <name>'
 
 access_vlan:
-  config_set_append: 'switchport access vlan <number>'
+  set_value: 'switchport access vlan <number>'
   # config_set value for 'access_vlan' is now:
   # ['interface <name>', 'switchport access vlan <number>']
 ```
 
-Much like `config_get_token_append`, this can also be used to specify optional
+Much like `get_value`, this can also be used to specify optional
 commands that can be included or omitted as needed:
 
 ```yaml
 # ospf.yaml
 _template:
-  config_set: 'router ospf <name>'
-  config_set_append:
+  set_context:
+    - 'router ospf <name>'
     - 'vrf <vrf>'
 
 router_id:
-  config_set_append: 'router-id <router_id>'
+  set_value: 'router-id <router_id>'
 ```
 
 ```ruby
@@ -459,11 +465,11 @@ ipv4_address:
 
 By convention, a `default_value` of `''` (empty string) represents a configurable property that defaults to absent, while a default of `nil` (Ruby) or `~` (YAML) represents a property that has no meaningful default at all.
 
-`config_get()` will return the defined `default_value` if the defined `config_get_token` does not match anything on the node. Normally this is desirable behavior, but you can use [`auto_default`](#auto_default) to change this behavior if needed.
+`config_get()` will return the defined `default_value` if the defined `get_value` does not match anything on the node. Normally this is desirable behavior, but you can use [`auto_default`](#auto_default) to change this behavior if needed.
 
 ### `default_only`
 
-Some attributes may be hard-coded in such a way that they have a meaningful default value but no relevant `config_get_token` or `config_set` behavior. For such attributes, the key `default_only` should be used as an alternative to `default_value`. The benefit of using this key is that it causes the `config_get()` API to always return the default value and `config_set()` to raise a `Cisco::UnsupportedError`.
+Some attributes may be hard-coded in such a way that they have a meaningful default value but no relevant `get_value` or `set_value` behavior. For such attributes, the key `default_only` should be used as an alternative to `default_value`. The benefit of using this key is that it causes the `config_get()` API to always return the default value and `config_set()` to raise a `Cisco::UnsupportedError`.
 
 ```yaml
 negotiate_auto_ethernet:
@@ -473,8 +479,8 @@ negotiate_auto_ethernet:
       # this feature is always off on these platforms and cannot be changed
       default_only: false
     else:
-      config_get_token_append: '/^(no )?negotiate auto$/'
-      config_set_append: "%s negotiate auto"
+      get_value: '/^(no )?negotiate auto$/'
+      set_value: "%s negotiate auto"
       default_value: true
 ```
 
@@ -490,39 +496,39 @@ The `kind` attribute is used to specify the type of value that is returned by `c
 # interface.yaml
 ---
 access_vlan:
-  config_get_token_append: '/^switchport access vlan (.*)$/'
-  config_set_append: "switchport access vlan %s"
+  get_value: '/^switchport access vlan (.*)$/'
+  set_value: "switchport access vlan %s"
   kind: int
   default_value: 1
 
 description:
   kind: string
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: "%s description %s"
+  get_value: '/^description (.*)/'
+  set_value: "%s description %s"
   default_value: ""
 
 feature_lacp:
   kind: boolean
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature lacp$/'
-  config_set: "%s feature lacp"
+  get_command: "show running | i ^feature"
+  get_value: '/^feature lacp$/'
+  set_value: "%s feature lacp"
 ```
 
 ### `multiple`
 
-By default, `config_get_token` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specify the key `multiple:`. When this key is present, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
+By default, `get_value` should uniquely identify a single configuration entry, and `config_get()` will raise an error if more than one match is found. For a small number of attributes, it may be desirable to permit multiple matches (in particular, '`all_*`' attributes that are used up to look up all interfaces, all VRFs, etc.). For such attributes, you must specify the key `multiple:`. When this key is present, `config_get()` will permit multiple matches and will return an array of matches (even if there is only a single match).
 
 ```yaml
 # interface.yaml
 ---
 all_interfaces:
   multiple:
-  config_get_token: '/^interface (.*)/'
+  get_value: '/^interface (.*)/'
 ```
 
 ### `auto_default`
 
-Normally, if `config_get_token` produces no match, `config_get()` will return the defined `default_value` for this attribute. For some attributes, this may not be desirable. Setting `auto_default: false` will force `config_get()` to return `nil` in the non-matching case instead.
+Normally, if `get_value` produces no match, `config_get()` will return the defined `default_value` for this attribute. For some attributes, this may not be desirable. Setting `auto_default: false` will force `config_get()` to return `nil` in the non-matching case instead.
 
 ```yaml
 # bgp_af.yaml
@@ -534,13 +540,13 @@ dampen_igp_metric:
   default_value: 600
   auto_default: false
   kind: int
-  config_get_token_append: '/^dampen-igp-metric (\d+)$/'
-  config_set_append: '<state> dampen-igp-metric <num>'
+  get_value: '/^dampen-igp-metric (\d+)$/'
+  set_value: '<state> dampen-igp-metric <num>'
 ```
 
-### `test_config_get` and `test_config_get_regex`
+### `test_get_command` and `test_get_value`
 
-Test-only equivalents to `config_get` and `config_get_token` - a show command
+Test-only equivalents to `get_command` and `get_value` - a show command
 to be executed over telnet by the minitest unit test scripts, and a regex
 (or array thereof) to match in the resulting plaintext output.
 Should only be referenced by test scripts, never by a feature provider itself.
@@ -548,8 +554,8 @@ Should only be referenced by test scripts, never by a feature provider itself.
 ```yaml
 # show_version.yaml
 boot_image:
-  test_config_get: 'show version | no-more'
-  test_config_get_regex: '/NXOS image file is: (.*)$/'
+  test_get_command: 'show version | no-more'
+  test_get_value: '/NXOS image file is: (.*)$/'
 ```
 
 ### `test_config_result`

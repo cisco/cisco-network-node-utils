@@ -2,6 +2,6 @@
 ---
 feature:
   kind: boolean
-  config_get: 'show running nv overlay'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: "<state> feature nv overlay"
+  get_command: 'show running nv overlay'
+  get_value: '/^feature nv overlay$/'
+  set_value: "<state> feature nv overlay"

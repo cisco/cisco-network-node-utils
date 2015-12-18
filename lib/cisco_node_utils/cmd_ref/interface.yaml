@@ -1,65 +1,70 @@
 # interface
 ---
 _template:
-  config_set: ["interface <name>"]
-  config_get_token: '/^interface <name>$/i'
+  set_context: ["interface <name>"]
+  get_context: '/^interface <name>$/i'
   cli_ios_xr:
-    config_get: "show running interface"
+    get_command: "show running interface"
   cli_nexus:
-    config_get: "show running interface all"
+    get_command: "show running interface all"
 
 access_vlan:
   _exclude: [cli_ios_xr]
   kind: int
-  config_get_token_append: '/^switchport access vlan (.*)$/'
-  config_set_append: "switchport access vlan <vlan>"
+  get_value: '/^switchport access vlan (.*)$/'
+  set_value: "switchport access vlan <vlan>"
   default_value: 1
 
 all_interfaces:
   multiple:
-  config_get_token: '/^interface (.*)/'
+  get_context: ~
+  get_value: '/^interface (.*)/'
 
 channel_group:
   kind: int
   default_value: false
   cli_nexus:
-    config_get_token_append: '/^channel-group (\d+)$/'
-    config_set_append: "<state> channel-group <val> <force>"
+    get_value: '/^channel-group (\d+)$/'
+    set_value: "<state> channel-group <val> <force>"
   cli_ios_xr:
-    config_get_token_append: '/^bundle id (\d+).*$/'
-    config_set_append: "<state> bundle id <val>"
+    get_value: '/^bundle id (\d+).*$/'
+    set_value: "<state> bundle id <val>"
 
 create:
-  config_set: "interface <name>"
+  set_context: ~
+  set_value: "interface <name>"
 
 description:
   kind: string
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: "<state> description <desc>"
+  get_value: '/^description (.*)/'
+  set_value: "<state> description <desc>"
   default_value: ""
 
 destroy:
-  config_set: "no interface <name>"
+  set_context: ~
+  set_value: "no interface <name>"
 
 duplex:
   _exclude: [cli_ios_xr]
   kind: string
-  config_get_token_append: '/^duplex (.*)$/'
-  config_set_append: "duplex <duplex>"
+  get_value: '/^duplex (.*)$/'
+  set_value: "duplex <duplex>"
   default_value: "auto"
 
 encapsulation_dot1q:
   kind: int
   default_value: ""
-  config_get_token_append: '/^encapsulation dot1q (.*)/'
-  config_set_append: "<state> encapsulation dot1q <vlan>"
+  get_value: '/^encapsulation dot1q (.*)/'
+  set_value: "<state> encapsulation dot1q <vlan>"
 
 feature_lacp:
   kind: boolean
   cli_nexus:
-    config_get: "show running | i ^feature"
-    config_get_token: '/^feature lacp$/'
-    config_set: "<state> feature lacp"
+    get_command: "show running | i ^feature"
+    get_context: ~
+    get_value: '/^feature lacp$/'
+    set_context: ~
+    set_value: "%s feature lacp"
   cli_ios_xr:
     default_only: true
 
@@ -67,19 +72,21 @@ feature_vlan:
   _exclude: [cli_ios_xr]
   cli_nexus:
     kind: boolean
-    config_get: "show running | i ^feature"
-    config_get_token: '/^feature interface-vlan$/'
-    config_set: "<state> feature interface-vlan"
+    get_command: "show running | i ^feature"
+    get_context: ~
+    get_value: '/^feature interface-vlan$/'
+    set_context: ~
+    set_value: "%s feature interface-vlan"
 
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
   multiple:
   cli_nexus:
-    config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
-    config_set_append: "<state> ip address <addr>"
+    get_value: '/^ip address ([0-9\.]+)[\s\/](.*)/'
+    set_value: "<state> ip address <addr>"
   cli_ios_xr:
-    config_get_token_append: '/^ipv4 address ([0-9\.]+) (.*)/'
-    config_set_append: '<state> ipv4 address <addr>'
+    get_value: '/^ipv4 address ([0-9\.]+) (.*)/'
+    set_value: '<state> ipv4 address <addr>'
 
 ipv4_address:
   default_value: ~
@@ -91,21 +98,21 @@ ipv4_proxy_arp:
   kind: boolean
   default_value: false
   cli_nexus:
-    config_get_token_append: '/^ip proxy-arp$/'
-    config_set_append: "<state> ip proxy-arp"
+    get_value: '/^ip proxy-arp$/'
+    set_value: "<state> ip proxy-arp"
   cli_ios_xr:
-    config_get_token_append: '/^proxy-arp$/'
-    config_set_append: "<state> proxy-arp"
+    get_value: '/^proxy-arp$/'
+    set_value: "<state> proxy-arp"
 
 ipv4_redirects_loopback:
   kind: boolean
   cli_nexus:
     default_only: false
   cli_ios_xr:
-    config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
-    config_set_append: "<state> ipv4 redirects"
+    get_value: '/^((?:no )?ipv4 redirects)$/'
+    set_value: "<state> ipv4 redirects"
     default_value: false
-    test_config_get_regex: [
+    test_get_value: [
     '/^\s+ipv4 redirects/',
     '/^\s+no ipv4 redirects/'
     ]
@@ -116,18 +123,18 @@ ipv4_redirects_other_interfaces:
     false: false
     true: true
   cli_nexus:
-    config_get_token_append: '/^((?:no )?ip redirects)$/'
-    config_set_append: "<state> ip redirects"
+    get_value: '/^((?:no )?ip redirects)$/'
+    set_value: "<state> ip redirects"
     default_value: true
-    test_config_get_regex: [
+    test_get_value: [
     '/^\s+ip redirects/',
     '/^\s+no ip redirects/'
     ]
   cli_ios_xr:
-    config_get_token_append: '/^((?:no )?ipv4 redirects)$/'
-    config_set_append: "<state> ipv4 redirects"
+    get_value: '/^((?:no )?ipv4 redirects)$/'
+    set_value: "<state> ipv4 redirects"
     default_value: false
-    test_config_get_regex: [
+    test_get_value: [
     '/^\s+ipv4 redirects/',
     '/^\s+no ipv4 redirects/'
     ]
@@ -138,8 +145,8 @@ mtu_loopback:
 
 mtu_other_interfaces:
   kind: int
-  config_get_token_append: '/^mtu (.*)$/'
-  config_set_append: "<state> mtu <mtu>"
+  get_value: '/^mtu (.*)$/'
+  set_value: "<state> mtu <mtu>"
   cli_nexus:
     default_value: 1500
   cli_ios_xr:
@@ -148,15 +155,15 @@ mtu_other_interfaces:
 negotiate_auto_ethernet:
   kind: boolean
   _exclude: [cli_ios_xr]
-  test_config_get_regex: [
+  test_get_value: [
   '/^\s+no negotiate auto/',
   '/^\s+negotiate auto/'
   ]
   /(N7K|C3064)/:
     default_only: false
   else:
-    config_get_token_append: '/^(no )?negotiate auto$/'
-    config_set_append: "<state> negotiate auto"
+    get_value: '/^(no )?negotiate auto$/'
+    set_value: "<state> negotiate auto"
     default_value: true
 
 negotiate_auto_other_interfaces:
@@ -168,21 +175,21 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [cli_ios_xr]
   cli_nexus:
-    test_config_get_regex: [
+    test_get_value: [
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
     ]
     /N7K/:
       default_only: false
     else:
-      config_get_token_append: '/^(no )?negotiate auto$/'
-      config_set_append: "<state> negotiate auto"
+      get_value: '/^(no )?negotiate auto$/'
+      set_value: "<state> negotiate auto"
       default_value: true
 
 shutdown:
   kind: boolean
-  config_get_token_append: '/^shutdown$/'
-  config_set_append: "<state> shutdown"
+  get_value: '/^shutdown$/'
+  set_value: "<state> shutdown"
 
 shutdown_ether_channel:
   default_value: false
@@ -211,36 +218,36 @@ shutdown_vlan:
 
 speed:
   _exclude: [cli_ios_xr]
-  config_get_token_append: '/^speed (.*)$/'
-  config_set_append: "speed <speed>"
+  get_value: '/^speed (.*)$/'
+  set_value: "speed <speed>"
   default_value: "auto"
 
 svi_autostate:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^(?:no )?autostate$/'
-  config_set_append: "<state> autostate"
+  get_value: '/^(?:no )?autostate$/'
+  set_value: "<state> autostate"
   default_value: true
 
 svi_management:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^management$/'
-  config_set_append: "<state> management"
+  get_value: '/^management$/'
+  set_value: "<state> management"
   default_value: false
 
 switchport:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^switchport$/'
-  config_set_append: "<state> switchport"
+  get_value: '/^switchport$/'
+  set_value: "<state> switchport"
   # default_value: n/a. This is derived from system_default_switchport
 
 switchport_autostate_exclude:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/(^switchport autostate exclude)/'
-  config_set_append: "<state> switchport autostate exclude"
+  get_value: '/(^switchport autostate exclude)/'
+  set_value: "<state> switchport autostate exclude"
   default_value: false
 
 switchport_mode_dot1q_tunnel:
@@ -250,8 +257,8 @@ switchport_mode_dot1q_tunnel:
 switchport_mode_ethernet:
   _exclude: [cli_ios_xr]
   auto_default: false
-  config_get_token_append: '/^(?:no )?switchport mode ?(.*)$/'
-  config_set_append: "<state> switchport mode <mode>"
+  get_value: '/^(?:no )?switchport mode ?(.*)$/'
+  set_value: "<state> switchport mode <mode>"
   default_value: "access"
 
 switchport_mode_other_interfaces:
@@ -260,28 +267,29 @@ switchport_mode_other_interfaces:
 
 switchport_mode_port_channel:
   _exclude: [cli_ios_xr]
-  config_get_token_append: '/^switchport mode (.*)$/'
-  config_set_append: "<state> switchport mode <mode>"
+  get_value: '/^switchport mode (.*)$/'
+  set_value: "<state> switchport mode <mode>"
   default_value: ""
 
 switchport_trunk_allowed_vlan:
   _exclude: [cli_ios_xr]
-  config_get_token_append: '/^switchport trunk allowed vlan (.*)$/'
-  config_set_append: "<state> switchport trunk allowed vlan <vlan>"
+  get_value: '/^switchport trunk allowed vlan (.*)$/'
+  set_value: "<state> switchport trunk allowed vlan <vlan>"
   default_value: "1-4094"
 
 switchport_trunk_native_vlan:
   _exclude: [cli_ios_xr]
   kind: int
-  config_get_token_append: '/^switchport trunk native vlan (.*)$/'
-  config_set_append: "<state> switchport trunk native vlan <vlan>"
+  get_value: '/^switchport trunk native vlan (.*)$/'
+  set_value: "<state> switchport trunk native vlan <vlan>"
   default_value: 1
 
 system_default_svi_autostate:
   kind: boolean
   cli_nexus:
-    config_get: "show running all | include 'system default'"
-    config_get_token: ['/^system default interface-vlan autostate$/']
+    get_command: "show running all | include 'system default'"
+    get_context: ~
+    get_value: ['/^system default interface-vlan autostate$/']
     # default_value: n/a. This is a user-configurable system default.
   cli_ios_xr:
     default_only: false
@@ -289,8 +297,9 @@ system_default_svi_autostate:
 system_default_switchport:
   kind: boolean
   cli_nexus:
-    config_get: "show running all | include 'system default'"
-    config_get_token: ['/^no system default switchport$/']
+    get_command: "show running all | include 'system default'"
+    get_context: ~
+    get_value: ['/^no system default switchport$/']
     default_value: true
   cli_ios_xr:
     default_only: false
@@ -298,8 +307,9 @@ system_default_switchport:
 system_default_switchport_shutdown:
   kind: boolean
   cli_nexus:
-    config_get: "show running all | include 'system default'"
-    config_get_token: ['/^system default switchport shutdown$/']
+    get_command: "show running all | include 'system default'"
+    get_context: ~
+    get_value: ['/^system default switchport shutdown$/']
     # default_value: n/a. This is a user-configurable system default.
   cli_ios_xr:
     default_only: true
@@ -307,15 +317,15 @@ system_default_switchport_shutdown:
 vrf:
   default_value: ""
   cli_nexus:
-    config_get_token_append: '/^vrf member (.*)/'
-    config_set_append: "<state> vrf member <vrf>"
+    get_value: '/^vrf member (.*)/'
+    set_value: "<state> vrf member <vrf>"
   cli_ios_xr:
-    config_get_token_append: '/^vrf (.*)/'
-    config_set_append: "<state> vrf <vrf>"
+    get_value: '/^vrf (.*)/'
+    set_value: "<state> vrf <vrf>"
 
 vtp:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^vtp *$/'
-  config_set_append: "<state> vtp"
+  get_value: '/^vtp *$/'
+  set_value: "<state> vtp"
   default_value: false

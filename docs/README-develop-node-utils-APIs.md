@@ -137,15 +137,15 @@ YAML files in the `/cmd_ref/` subdirectory are automatically discovered at runti
 
 The following basic command_reference parameters will be defined for each resource property:
 
- 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
- 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
- 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
+ 1. `get_command:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
+ 2. `get_value:` A regexp pattern for extracting state values from the get_command output.
+ 3. `set_value:` The configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
  5. `kind:` The data type of this property. If omitted, the property will be a string by default. Commonly used values for this property are `int` and `boolean`.
- 6. `multiple:` By default a property is assumed to be found once or not at all by the `config_get`/`config_get_token` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
+ 6. `multiple:` By default a property is assumed to be found once or not at all by the `get_command`/`get_value` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
 
 There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md) document for more information on the structure and semantics of these files.
-The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
+The properties in this example require additional context for their `get_value` values because they need to differentiate between different eigrp instances. This is done with the `get_context` parameter. Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
 
@@ -161,31 +161,35 @@ The properties in this example require additional context for their config_get_t
 feature:
   # feature eigrp must be enabled before configuring router eigrp
   kind: boolean
-  config_get: 'show running eigrp all'
-  config_get_token: '/^feature eigrp$/'
-  config_set: '<state> feature eigrp'
+  get_command: 'show running eigrp all'
+  get_value: '/^feature eigrp$/'
+  set_value: '<state> feature eigrp'
 
 maximum_paths:
   # This is an integer property
   kind: int
-  config_get: 'show running eigrp all'
-  config_get_token: ['/^router eigrp <name>$/', '/^maximum-paths (\d+)/']
-  config_set: ['router eigrp <name>', 'maximum-paths <val>']
+  get_command: 'show running eigrp all'
+  get_context: '/^router eigrp <name>$/'
+  get_value: '/^maximum-paths (\d+)/'
+  set_context: 'router eigrp <name>'
+  set_value: 'maximum-paths <val>'
   default_value: 8
 
 router:
   # There can be multiple eigrp instances
   multiple: true
-  config_get: 'show running eigrp all'         # all eigrp-related configs
-  config_get_token: '/^router eigrp (\S+)$/'   # Match instance name
-  config_set: '<state> router eigrp <name>'    # config to add or remove
+  get_command: 'show running eigrp all'         # all eigrp-related configs
+  get_value: '/^router eigrp (\S+)$/'   # Match instance name
+  set_value: '<state> router eigrp <name>'    # config to add or remove
 
 shutdown:
   # This is a boolean property
   kind: boolean
-  config_get: 'show running eigrp all'
-  config_get_token: ['/^router eigrp <name>$/', '/^shutdown$/']
-  config_set: ['router eigrp <name>', '<state> shutdown']
+  get_command: 'show running eigrp all'
+  get_context: '/^router eigrp <name>$/'
+  get_value: '/^shutdown$/'
+  set_context: 'router eigrp <name>'
+  set_value: '<state> shutdown'
   default_value: false
 ```
 

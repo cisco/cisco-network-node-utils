@@ -2,9 +2,9 @@
 ---
 vdc:
   _exclude: [/N3K/, /N9K/]
-  config_get: "show vdc current-vdc"
-  config_get_token: '/^Current vdc is.*\-\s+(\S+)/'
+  get_command: "show vdc current-vdc"
+  get_value: '/^Current vdc is.*\-\s+(\S+)/'
 
 vxlan:
   _exclude: [/N3K/, /N9K/]
-  config_set: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3"]
+  set_value: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3"]

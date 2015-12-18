@@ -14,13 +14,13 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 
 * [Y1](#yaml1): One feature per YAML file
 * [Y2](#yaml2): All attribute entries must be kept in alphabetical order.
-* [Y3](#yaml3): Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
+* [Y3](#yaml3): Use *regexp* anchors where needed for `get_command`, `get_context`, and `get_value` entries.
 * [Y4](#yaml4): Avoid nested optional matches.
 * [Y5](#yaml5): Use the `_template` feature when getting/setting the same property value at multiple levels.
 * [Y6](#yaml6): When possible include a `default_value` that represents the system default value.
-* [Y7](#yaml7): When possible, use the same `config_get` show command for all properties and document any anomalies.
+* [Y7](#yaml7): When possible, use the same `get_command` for all properties and document any anomalies.
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
-* [Y9](#yaml9): Selection of `show` commands for `config_get`.
+* [Y9](#yaml9): Selection of `show` commands for `get_command`.
 * [Y10](#yaml10): Use `true` and `false` for boolean values.
 * [Y11](#yaml11): Use `_exclude` to return `nil` for unsupported properties.
 
@@ -55,16 +55,18 @@ All attribute entries in a given YAML file must be kept in alphabetical order. A
 
 This rule is enforced by the `Cisco::CommandReference` class itself - it will raise an exception if it detects any out-of-order entries.
 
-### <a name="yaml3">Y3: Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
+### <a name="yaml3">Y3: Use *regexp* anchors where needed for `get_command`, `get_context`, and `get_value` entries.
 
 Please use *regexp* anchors `^$` to ensure you match the correct feature information in the `show` output.
+
+TODO
 
 ```yaml
 # syslog_settings.yaml
 timestamp:
-  config_get: "show running-config all | include '^logging timestamp'"
-  config_get_token: '/^logging timestamp (.*)$/'
-  config_set: '<state> logging timestamp <units>'
+  get_command: "show running-config all | include '^logging timestamp'"
+  get_value: '/^logging timestamp (.*)$/'
+  set_value: '<state> logging timestamp <units>'
   default_value: 'seconds'
 ```
 
@@ -77,18 +79,20 @@ One case where this may crop up is in trying to match both affirmative and
 negative variants of a config command:
 
 ```yaml
-config_get_token: ['/^interface <name>$/i', '/^((no )?switchport)$/']
+get_context: '/^interface <name>$/i'
+get_value: '/^((no )?switchport)$/'
 
-config_get_token: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
+get_value: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
 ```
 
 Instead, match the affirmative form of a command and treat its absence as
 confirmation of the negative form:
 
 ```yaml
-config_get_token: ['/^interface <name>$/i', '/^switchport$/']
+get_context: '/^interface <name>$/i'
+get_value: '/^switchport$/'
 
-config_get_token: '/^tacacs-server source-interface (\S+)$/'
+get_value: '/^tacacs-server source-interface (\S+)$/'
 ```
 
 ### <a name="yaml5">Y5: Use the `_template` feature when getting/setting the same property value at multiple levels.
@@ -98,22 +102,22 @@ Using the template below, `auto_cost` and `default_metric` can be set under `rou
 ```yaml
 # ospf.yaml
 _template:
-  config_get: "show running ospf all"
-  config_get_token: '/^router ospf <name>$/'
-  config_get_token_append:
+  get_command: "show running ospf all"
+  get_context:
+    - '/^router ospf <name>$/'
     - '/^vrf <vrf>$/'
-  config_set: "router ospf <name>"
-  config_set_append:
+  set_context:
+    - "router ospf <name>"
     - "vrf <vrf>"
 
 auto_cost:
-  config_get_token_append: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
-  config_set_append: "auto-cost reference-bandwidth <cost> <type>"
+  get_value: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
+  set_value: "auto-cost reference-bandwidth <cost> <type>"
   default_value: [40, "Gbps"]
 
 default_metric:
-  config_get_token_append: '/^default-metric (\d+)?$/'
-  config_set_append: "<state> default-metric <metric>"
+  get_value: '/^default-metric (\d+)?$/'
+  set_value: "<state> default-metric <metric>"
   default_value: 0
 ```
 
@@ -126,8 +130,9 @@ Default value for `message_digest_alg_type` is `md5`
 
 ```yaml
 message_digest_alg_type:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  get_command: 'show running interface all'
+  get_context: '/^interface <name>$/i'
+  get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   default_value: 'md5'
 ```
 
@@ -137,8 +142,9 @@ If the `default_value` differs between cisco platforms, use per-API or per-platf
 
 ```yaml
 message_digest_alg_type:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  get_command: 'show running interface all'
+  get_context: '/^interface <name>$/i'
+  get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   /N9K/:
     default_value: 'sha2'
   else:
@@ -147,33 +153,33 @@ message_digest_alg_type:
 
 See [README_YAML](../lib/cisco_node_utils/cmd_ref/README_YAML.md) for more details about this advanced feature.
 
-### <a name="yaml7">Y7: When possible, use the same `config_get` show command for all properties and document any anomalies.
+### <a name="yaml7">Y7: When possible, use the same `get_command` for all properties and document any anomalies.
 
 All properties below use the `show run tacacs all` command except `directed_request` which is documented.
 
 ```yaml
 # tacacs_server.yaml
+_template:
+  get_command: "show run tacacs all"
+
 deadtime:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
-  config_set: "<state> tacacs-server deadtime <time>"
+  get_value: '/^tacacs-server deadtime\s+(\d+)/'
+  set_value: "<state> tacacs-server deadtime <time>"
   default_value: 0
 
 directed_request:
   # oddly, directed request must be retrieved from aaa output
-  config_get: "show running aaa all"
-  config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
-  config_set: "<state> tacacs-server directed-request"
+  get_command: "show running aaa all"
+  get_value: '/(?:no)?\s*tacacs-server directed-request/'
+  set_value: "<state> tacacs-server directed-request"
   default_value: false
 
 encryption_type:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: 0
 
 encryption_password:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: ""
 ```
 
@@ -184,7 +190,7 @@ Key-value wildcards are moderately more complex to implement than Printf-style w
 **Key-value wildcards**
 
 ```yaml
-config_set_append: "<state> log-adjacency-changes <type>"
+get_value: "<state> log-adjacency-changes <type>"
 ```
 
 This following approach is quick to implement and concise, but less flexible - in particular it cannot handle a case where different platforms take parameters in a different order - and less readable in the ruby code.
@@ -192,10 +198,10 @@ This following approach is quick to implement and concise, but less flexible - i
 **Printf-style wildcards**
 
 ```yaml
-config_set_append: "%s log-adjacency-changes %s"
+get_value: "%s log-adjacency-changes %s"
 ```
 
-### <a name="yaml9">Y9: Selection of `show` commands for `config_get`.
+### <a name="yaml9">Y9: Selection of `show` commands for `get_command`.
 
 The following commands should be preferred over `show [feature]` commands since not all `show [feature]` commands behave in the same manner across cisco platforms.
 

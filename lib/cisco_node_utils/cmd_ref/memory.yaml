@@ -1,13 +1,13 @@
 # memory
 ---
 free:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) free/'
+  get_command: 'show system resources'
+  get_value: '/Memory.* (\S+) free/'
 
 total:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) total/'
+  get_command: 'show system resources'
+  get_value: '/Memory.* (\S+) total/'
 
 used:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) used/'
+  get_command: 'show system resources'
+  get_value: '/Memory.* (\S+) used/'

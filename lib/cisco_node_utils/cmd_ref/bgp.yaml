@@ -1,162 +1,164 @@
 # bgp.yaml
 ---
 _template:
-  config_get_token: '/^router bgp <asnum>$/'
-  config_get_token_append:
-    - '/^vrf <vrf>$/'
-  config_set: "router bgp <asnum>"
   cli_ios_xr:
-    config_get: "show running-config router bgp"
-    # Note the space before 'vrf' - seems like cli_ios_xr
-    # is currently indentation sensitive.
-    config_set_append:
-      - " vrf <vrf>"
+    get_command: "show running-config router bgp"
   cli_nexus:
-    config_get: "show running bgp all"
-    config_set_append:
-      - "vrf <vrf>"
+    get_command: "show running bgp all"
+  get_context:
+    - '/^router bgp <asnum>$/'
+    - '/^vrf <vrf>$/'
+  set_context:
+    - "router bgp <asnum>"
+    - "vrf <vrf>"
 
 address_family:
-  config_set_append: '<state> address-family <afi> <safi>'
+  set_value: '<state> address-family <afi> <safi>'
 
 bestpath_always_compare_med:
   kind: boolean
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^bgp bestpath med always$/'
-    config_set_append: ' <state> bgp bestpath med always'
+    get_value: '/^bgp bestpath med always$/'
+    set_value: '<state> bgp bestpath med always'
   cli_nexus:
-    config_get_token_append: '/^bestpath always-compare-med$/'
-    config_set_append: '<state> bestpath always-compare-med'
+    get_value: '/^bestpath always-compare-med$/'
+    set_value: '<state> bestpath always-compare-med'
 
 bestpath_aspath_multipath_relax:
   kind: boolean
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^bgp bestpath as-path multipath-relax$/'
-    config_set_append: ' <state> bgp bestpath as-path multipath-relax'
+    get_value: '/^bgp bestpath as-path multipath-relax$/'
+    set_value: '<state> bgp bestpath as-path multipath-relax'
   cli_nexus:
-    config_get_token_append: '/^bestpath as-path multipath-relax$/'
-    config_set_append: '<state> bestpath as-path multipath-relax'
+    get_value: '/^bestpath as-path multipath-relax$/'
+    set_value: '<state> bestpath as-path multipath-relax'
 
 bestpath_compare_routerid:
   kind: boolean
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^bgp bestpath compare-routerid$/'
-    config_set_append: ' <state> bgp bestpath compare-routerid'
+    get_value: '/^bgp bestpath compare-routerid$/'
+    set_value: '<state> bgp bestpath compare-routerid'
   cli_nexus:
-    config_get_token_append: '/^bestpath compare-routerid$/'
-    config_set_append: '<state> bestpath compare-routerid'
+    get_value: '/^bestpath compare-routerid$/'
+    set_value: '<state> bestpath compare-routerid'
 
 bestpath_cost_community_ignore:
   kind: boolean
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^bgp bestpath cost-community ignore$/'
-    config_set_append: ' <state> bgp bestpath cost-community ignore'
+    get_value: '/^bgp bestpath cost-community ignore$/'
+    set_value: '<state> bgp bestpath cost-community ignore'
   cli_nexus:
-    config_get_token_append: '/^bestpath cost-community ignore$/'
-    config_set_append: '<state> bestpath cost-community ignore'
+    get_value: '/^bestpath cost-community ignore$/'
+    set_value: '<state> bestpath cost-community ignore'
 
 bestpath_med_confed:
   kind: boolean
   default_value: false
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
-    config_get_token_append: '/^bgp bestpath med confed$/'
-    config_set_append: ' <state> bgp bestpath med confed'
+    get_value: '/^bgp bestpath med confed$/'
+    set_value: '<state> bgp bestpath med confed'
   cli_nexus:
-    config_get_token_append: '/^bestpath med confed$/'
-    config_set_append: '<state> bestpath med confed'
+    get_value: '/^bestpath med confed$/'
+    set_value: '<state> bestpath med confed'
 
 bestpath_med_missing_as_worst:
   kind: boolean
   default_value: false
   cli_ios_xr:
-    config_get_token_append: '/^bgp bestpath med missing-as-worst$/'
-    config_set_append: ' <state> bgp bestpath med missing-as-worst'
+    get_value: '/^bgp bestpath med missing-as-worst$/'
+    set_value: '<state> bgp bestpath med missing-as-worst'
   cli_nexus:
-    config_get_token_append: '/^bestpath med missing-as-worst$/'
-    config_set_append: '<state> bestpath med missing-as-worst'
+    get_value: '/^bestpath med missing-as-worst$/'
+    set_value: '<state> bestpath med missing-as-worst'
 
 bestpath_med_non_deterministic:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: boolean
-    config_get_token_append: '/^bestpath med non-deterministic$/'
-    config_set_append: '<state> bestpath med non-deterministic'
+    get_value: '/^bestpath med non-deterministic$/'
+    set_value: '<state> bestpath med non-deterministic'
     default_value: false
 
 cluster_id:
   default_value: ""
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
-    config_get_token_append: '/^bgp cluster-id (\S+)$/'
-    config_set_append: ' <state> bgp cluster-id <id>'
+    get_value: '/^bgp cluster-id (\S+)$/'
+    set_value: ' <state> bgp cluster-id <id>'
   cli_nexus:
-    config_get_token_append: '/^cluster-id (\S+)$/'
-    config_set_append: '<state> cluster-id <id>'
+    get_value: '/^cluster-id (\S+)$/'
+    set_value: '<state> cluster-id <id>'
 
 confederation_id:
   default_value: ""
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
-    config_get_token_append: '/^bgp confederation identifier (\d+|\d+.\d+)$/'
-    config_set_append: ' <state> bgp confederation identifier <id>'
+    get_value: '/^bgp confederation identifier (\d+|\d+.\d+)$/'
+    set_value: '<state> bgp confederation identifier <id>'
   cli_nexus:
-    config_get_token_append: '/^confederation identifier (\d+|\d+.\d+)$/'
-    config_set_append: '<state> confederation identifier <id>'
+    get_value: '/^confederation identifier (\d+|\d+.\d+)$/'
+    set_value: '<state> confederation identifier <id>'
 
 confederation_peers:
   default_value: []
   cli_ios_xr:
     multiple: true
-    config_get_token_append: ['/^bgp confederation peers$/', '/(\S+)/']
-    config_set_append: ' <state> bgp confederation peers <peer>'
+    get_context:
+      - '/^router bgp <asnum>$/'
+      - '/^vrf <vrf>$/'
+      - '/^bgp confederation peers$/'
+    get_value: '/(\S+)/'
+    set_value: '<state> bgp confederation peers <peer>'
   cli_nexus:
-    config_get_token_append: '/^confederation peers (.*)$/'
-    config_set_append: '<state> confederation peers <peer>'
+    get_value: '/^confederation peers (.*)$/'
+    set_value: '<state> confederation peers <peer>'
 
 create_destroy_neighbor:
-  config_set_append: ' <state> neighbor <nbr>'
+  set_value: '<state> neighbor <nbr>'
 
 enforce_first_as:
   kind: boolean
   default_value: true
   cli_ios_xr:
-    config_get_token_append: '/^bgp enforce-first-as disable$/'
-    config_set_append: ' <state> bgp enforce-first-as disable'
+    get_value: '/^bgp enforce-first-as disable$/'
+    set_value: '<state> bgp enforce-first-as disable'
   cli_nexus:
-    config_get_token_append: '/^(no )?enforce-first-as$/'
-    config_set_append: '<state> enforce-first-as'
+    get_value: '/^(no )?enforce-first-as$/'
+    set_value: '<state> enforce-first-as'
 
 fast_external_fallover:
   kind: boolean
   default_value: true
   cli_ios_xr:
-    config_get_token_append: '/^bgp fast-external-fallover disable$/'
-    config_set_append: ' <state> bgp fast-external-fallover disable'
+    get_value: '/^bgp fast-external-fallover disable$/'
+    set_value: '<state> bgp fast-external-fallover disable'
   cli_nexus:
-    config_get_token_append: '/^(no )?fast-external-fallover$/'
-    config_set_append: '<state> fast-external-fallover'
+    get_value: '/^(no )?fast-external-fallover$/'
+    set_value: '<state> fast-external-fallover'
 
 feature:
   kind: boolean
+  get_context: ~
+  set_context: ~
   cli_ios_xr:
-    config_get: "show running-config router bgp"
-    config_get_token: '/^router bgp$/'
-    config_set: "<state> router bgp"
+    get_command: "show running-config router bgp"
+    get_value: '/^router bgp$/'
+    set_value: "<state> router bgp"
   cli_nexus:
-    config_get: "show running bgp all"
-    config_get_token: '/^feature bgp$/'
-    config_set: "<state> feature bgp"
+    get_command: "show running bgp all"
+    get_value: '/^feature bgp$/'
+    set_value: "<state> feature bgp"
 
 flush_routes:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^flush-routes$/'
-  config_set_append: '<state> flush-routes'
+  get_value: '/^flush-routes$/'
+  set_value: '<state> flush-routes'
   default_value: false
 
 graceful_restart:
@@ -165,18 +167,18 @@ graceful_restart:
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     auto_default: false
-    config_get_token_append: '/^bgp graceful-restart$/'
-    config_set_append: ' <state> bgp graceful-restart'
+    get_value: '/^bgp graceful-restart$/'
+    set_value: '<state> bgp graceful-restart'
   cli_nexus:
-    config_get_token_append: '/^(no )?graceful-restart$/'
-    config_set_append: '<state> graceful-restart'
+    get_value: '/^(no )?graceful-restart$/'
+    set_value: '<state> graceful-restart'
 
 graceful_restart_helper:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: boolean
-    config_get_token_append: '/^graceful-restart-helper$/'
-    config_set_append: '<state> graceful-restart-helper'
+    get_value: '/^graceful-restart-helper$/'
+    set_value: '<state> graceful-restart-helper'
     default_value: false
 
 graceful_restart_timers_restart:
@@ -184,47 +186,47 @@ graceful_restart_timers_restart:
   default_value: 120
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
-    config_get_token_append: '/^bgp graceful-restart restart-time (\d+)$/'
-    config_set_append: ' <state> bgp graceful-restart restart-time <seconds>'
+    get_value: '/^bgp graceful-restart restart-time (\d+)$/'
+    set_value: '<state> bgp graceful-restart restart-time <seconds>'
   cli_nexus:
-    config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
-    config_set_append: '<state> graceful-restart restart-time <seconds>'
+    get_value: '/^graceful-restart restart-time (\d+)$/'
+    set_value: '<state> graceful-restart restart-time <seconds>'
 
 graceful_restart_timers_stalepath_time:
   kind: int
   default_value: 300
   cli_ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
-    config_get_token_append: '/^bgp graceful-restart stalepath-time (\d+)$/'
-    config_set_append: ' <state> bgp graceful-restart stalepath-time <seconds>'
+    get_value: '/^bgp graceful-restart stalepath-time (\d+)$/'
+    set_value: '<state> bgp graceful-restart stalepath-time <seconds>'
   cli_nexus:
-    config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
-    config_set_append: '<state> graceful-restart stalepath-time <seconds>'
+    get_value: '/^graceful-restart stalepath-time (\d+)$/'
+    set_value: '<state> graceful-restart stalepath-time <seconds>'
 
 isolate:
   _exclude: [cli_ios_xr]
   kind: boolean
-  config_get_token_append: '/^isolate$/'
-  config_set_append: '<state> isolate'
+  get_value: '/^isolate$/'
+  set_value: '<state> isolate'
   default_value: false
 
 log_neighbor_changes:
   kind: boolean
   cli_ios_xr:
     default_value: true
-    config_get_token_append: '/^bgp log neighbor changes disable$/'
-    config_set_append: ' <state> bgp log neighbor changes disable'
+    get_value: '/^bgp log neighbor changes disable$/'
+    set_value: '<state> bgp log neighbor changes disable'
   cli_nexus:
     default_value: false
-    config_get_token_append: '/^log-neighbor-changes$/'
-    config_set_append: '<state> log-neighbor-changes'
+    get_value: '/^log-neighbor-changes$/'
+    set_value: '<state> log-neighbor-changes'
 
 maxas_limit:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: int
-    config_get_token_append: '/^maxas-limit (\d+)$/'
-    config_set_append: '<state> maxas-limit <limit>'
+    get_value: '/^maxas-limit (\d+)$/'
+    set_value: '<state> maxas-limit <limit>'
     default_value: false
 
 neighbor_down_fib_accelerate:
@@ -232,8 +234,8 @@ neighbor_down_fib_accelerate:
   cli_nexus:
     _exclude: [/N6K/, /N7K/]
     kind: boolean
-    config_get_token_append: '/^neighbor-down fib-accelerate$/'
-    config_set_append: '<state> neighbor-down fib-accelerate'
+    get_value: '/^neighbor-down fib-accelerate$/'
+    set_value: '<state> neighbor-down fib-accelerate'
     default_value: false
 
 reconnect_interval:
@@ -241,67 +243,78 @@ reconnect_interval:
   cli_nexus:
     _exclude: [/N6K/, /N7K/]
     kind: int
-    config_get_token_append: '/^reconnect-interval (\d+)$/'
-    config_set_append: '<state> reconnect-interval <seconds>'
+    get_value: '/^reconnect-interval (\d+)$/'
+    set_value: '<state> reconnect-interval <seconds>'
     default_value: 60
 
 route_distinguisher:
   default_value: ""
   cli_ios_xr:
-    config_get_token_append: '/^rd (\S+)$/'
-    config_set_append: ' <state> rd <rd>'
+    get_value: '/^rd (\S+)$/'
+    set_value: ' <state> rd <rd>'
   cli_nexus:
-    config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
-    config_set: ["vrf context <vrf>", "<state> rd <rd>"]
+    get_context:
+      - '/^vrf context <vrf>$/i'
+    get_value: '/^rd (\S+)$/'
+    set_context:
+      - "vrf context <vrf>"
+    set_value: "<state> rd <rd>"
 
 router:
-  config_get_token: '/^router bgp (\d+)$/'
-  config_set: "<state> router bgp <asnum>"
   cli_ios_xr:
-    config_get: "show running router bgp"
+    get_command: "show running router bgp"
   cli_nexus:
-    config_get: "show running bgp"
+    get_command: "show running bgp"
+  get_context: ~
+  get_value: '/^router bgp (\d+)$/'
+  set_context: ~
+  set_value: "<state> router bgp <asnum>"
 
 router_id:
   default_value: ""
   cli_ios_xr:
-    config_get_token_append: '/^bgp router-id (\S+)$/'
-    config_set_append: ' <state> bgp router-id <id>'
+    get_value: '/^bgp router-id (\S+)$/'
+    set_value: '<state> bgp router-id <id>'
   cli_nexus:
-    config_get_token_append: '/^router-id (\S+)$/'
-    config_set_append: '<state> router-id <id>'
+    get_value: '/^router-id (\S+)$/'
+    set_value: '<state> router-id <id>'
 
 shutdown:
   # Note: Does not exist in IOS XR
   cli_nexus:
+    # Shutdown only applies to global bgp
     kind: boolean
-    config_get: "show running bgp"
-    config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
-    config_set: ["router bgp <asnum>", "<state> shutdown"]
+    get_command: "show running bgp"
+    get_context:
+      - '/^router bgp %s$/i'
+    get_value: '/^shutdown$/'
+    set_context:
+      - "router bgp <asnum>"
+    set_value: "<state> shutdown"
     default_value: false
 
 suppress_fib_pending:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: boolean
-    config_get_token_append: '/^suppress-fib-pending$/'
-    config_set_append: '<state> suppress-fib-pending'
+    get_value: '/^suppress-fib-pending$/'
+    set_value: '<state> suppress-fib-pending'
     default_value: false
 
 timer_bestpath_limit:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: int
-    config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
-    config_set_append: '<state> timers bestpath-limit <seconds>'
+    get_value: '/^timers bestpath-limit (\d+)(?: always)?$/'
+    set_value: '<state> timers bestpath-limit <seconds>'
     default_value: 300
 
 timer_bestpath_limit_always:
   # Note: Does not exist in IOS XR
   cli_nexus:
     kind: boolean
-    config_get_token_append: '/^timers bestpath-limit \d+ always$/'
-    config_set_append: '<state> timers bestpath-limit <seconds> always'
+    get_value: '/^timers bestpath-limit \d+ always$/'
+    set_value: '<state> timers bestpath-limit <seconds> always'
     default_value: false
 
 timer_bgp_hold:
@@ -311,13 +324,12 @@ timer_bgp_keepalive:
   default_value: 60
 
 timer_bgp_keepalive_hold:
-  config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
-  cli_ios_xr:
-    config_set_append: ' <state> timers bgp <keepalive> <hold>'
-  cli_nexus:
-    config_set_append: '<state> timers bgp <keepalive> <hold>'
+  get_value: '/^timers bgp (\d+) (\d+)$/'
+  set_value: '<state> timers bgp <keepalive> <hold>'
 
 vrf:
   multiple: true
-  config_get_token_append: '/^vrf\s+(\S+)$/'
-  config_set: ["router bgp <asnum>", "<state> vrf <vrf>"]
+  get_value: '/^vrf\s+(\S+)$/'
+  set_context:
+   - "router bgp <asnum>"
+  set_value: "<state> vrf <vrf>"

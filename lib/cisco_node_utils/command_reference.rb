@@ -26,10 +26,10 @@ module Cisco
     alias_method :multiple?, :multiple
 
     KEYS = %w(default_value default_only
-              config_set config_set_append
-              config_get config_get_token config_get_token_append
+              set_context set_value
+              get_command get_context get_value
               auto_default multiple kind
-              test_config_get test_config_get_regex test_config_result)
+              test_get_command test_get_value test_config_result)
 
     def self.keys
       KEYS
@@ -55,36 +55,33 @@ module Cisco
         unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
-        if key == 'config_get_token' || key == 'config_set'
+        case key
+        when 'get_context', 'get_value', 'set_context', 'set_value'
           # For simplicity, these are ALWAYS arrays
           value = [value] unless value.is_a?(Array)
-          define_getter(key, value)
-          # We intentionally do this *after* the define_getter() call
-          @hash[key] = preprocess_value(value)
-        elsif key == 'auto_default'
+          @hash[key] = value
+        when 'auto_default'
           @auto_default = value ? true : false
-        elsif key == 'default_only'
+        when 'default_only'
           @default_only = true
           # default_value overrides default_only
-          @hash['default_value'] ||= preprocess_value(value)
-        elsif key == 'multiple'
+          @hash['default_value'] ||= value
+        when 'multiple'
           @multiple = boolean_default_true(value)
-        elsif key == 'kind'
+        when 'kind'
           fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
           @kind = value.to_sym
         else
           # default_value overrides default_only
           @default_only = false if key == 'default_value'
-          @hash[key] = preprocess_value(value)
+          @hash[key] = value
         end
       end
 
-      if @default_only # rubocop:disable Style/GuardClause
-        %w(config_get_token config_set).each do |key|
-          instance_eval "undef #{key}" if @hash.key?(key)
-        end
-        @hash.delete_if { |key, _| key != 'default_value' }
-      end
+      @hash.delete_if { |key, _| key != 'default_value' } if @default_only
+      define_helper('getter', @hash['get_context'], @hash['get_value'])
+      define_helper('setter', @hash['set_context'], @hash['set_value'])
+      @hash.each { |key, value| @hash[key] = preprocess_value(value) }
     end
 
     # Property with an implicit value of 'true' if no value is given
@@ -92,41 +89,80 @@ module Cisco
       value.nil? || value
     end
 
-    # Create a getter method for the given key.
-    # This getter method will automatically handle wildcard arguments.
-    def define_getter(key, value)
-      return unless value.is_a?(Array)
-      if value.any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
-        # Key-value substitution
-        define_singleton_method key.to_sym do |**args|
-          result = []
-          value.each do |line|
-            replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
-            replace.each do |item|
-              line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
-            end
-            result.push(line) unless /<\S+>/.match(line)
-          end
-          preprocess_value(result)
-        end
-      elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
-        # printf-style substitution
-        arg_count = value.join.scan(/%/).length
-        define_singleton_method key.to_sym do |*args|
-          unless args.length == arg_count
-            fail ArgumentError, "Given #{args.length} args, but " \
-              "#{key} requires #{arg_count}"
-          end
-          # Fill in the parameters
-          result = value.map do |line|
-            sprintf(line, *args.shift(line.scan(/%/).length))
-          end
-          preprocess_value(result)
-        end
+    # Create a helper method for generating the getter/setter values.
+    # This method will automatically handle wildcard arguments.
+    def define_helper(method_name, context, value)
+      # Create 'method_name?' helper too
+      if value.nil?
+        define_singleton_method "#{method_name}?".to_sym, -> { false }
+        define_singleton_method method_name.to_sym, lambda {
+          fail UnsupportedError.new(@feature, @name, method_name)
+        }
       else
-        # simple static token(s)
-        value = preprocess_value(value)
-        define_singleton_method key.to_sym, -> { value }
+        define_singleton_method "#{method_name}?".to_sym, -> { true }
+
+        context = [] if context.nil?
+        combined = context + value
+        key_value = combined.any? { |i| i.is_a?(String) && /<\S+>/ =~ i }
+        printf = combined.any? { |i| i.is_a?(String) && /%/ =~ i }
+
+        if key_value && printf
+          fail 'Invalid mixture of key-value and printf wildcards ' \
+               "in #{method_name}: #{combined}"
+        elsif key_value
+          define_key_value_helper(method_name, context, value)
+        elsif printf
+          define_printf_helper(method_name, combined)
+        else
+          # simple static token(s)
+          combined = preprocess_value(combined)
+          define_singleton_method method_name.to_sym, -> { combined }
+        end
+      end
+    end
+
+    def define_key_value_helper(method_name, context, value)
+      # Key-value substitution
+      define_singleton_method method_name.to_sym do |**args|
+        result = []
+        context.each do |line|
+          # Find the keys
+          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
+          # Replace the keys with the provided args values if present
+          replace.each do |item|
+            line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
+          end
+          # Only store the line if it's fully substituted
+          result.push(line) unless /<\S+>/.match(line)
+        end
+        value.each do |line|
+          # Find the keys
+          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
+          # Replace the keys with the provided args values if present
+          replace.each do |item|
+            fail ArgumentError, "Missing mandatory parameter #{item}" \
+              unless args.key?(item)
+            line = line.sub("<#{item}>", args[item].to_s)
+          end
+          # Value lines *must* be fully substituted
+          result.push(line)
+        end
+        preprocess_value(result)
+      end
+    end
+
+    def define_printf_helper(method_name, value)
+      arg_count = value.join.scan(/%/).length
+      define_singleton_method method_name.to_sym do |*args|
+        unless args.length == arg_count
+          fail ArgumentError, "Given #{args.length} args, but " \
+            "#{method_name} requires #{arg_count}"
+        end
+        # Fill in the parameters
+        result = value.map do |line|
+          sprintf(line, *args.shift(line.scan(/%/).length))
+        end
+        preprocess_value(result)
       end
     end
 
@@ -407,8 +443,6 @@ module Cisco
     # Given a suitably filtered Hash of command reference data, does:
     # - Inherit data from the given base_hash (if any) and extend/override it
     #   with the given input data.
-    # - Append 'config_set_append' data to any existing 'config_set' data
-    # - Append 'config_get_token_append' data to 'config_get_token', ditto
     def self.hash_merge(input_hash, base_hash=nil)
       return base_hash if input_hash.nil?
       result = base_hash
@@ -418,14 +452,7 @@ module Cisco
 
       input_hash.each do |key, value|
         if CmdRef.keys.include?(key)
-          if key == 'config_set_append'
-            result['config_set'] = value_append(result['config_set'], value)
-          elsif key == 'config_get_token_append'
-            result['config_get_token'] = value_append(
-              result['config_get_token'], value)
-          else
-            result[key] = value
-          end
+          result[key] = value
         elsif value.is_a?(Hash)
           to_inspect << value
         else

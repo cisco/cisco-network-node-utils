@@ -2,21 +2,23 @@
 ---
 all_vrfs:
   multiple: true
-  config_get: "show running | section 'vrf context'"
-  config_get_token: '/^vrf context (.*)/'
+  get_command: "show running | section 'vrf context'"
+  get_value: '/^vrf context (.*)/'
 
 create:
-  config_set:  "vrf context <vrf>"
+  set_value:  "vrf context <vrf>"
 
 description:
   kind: string
-  config_get: "show running | section 'vrf context'"
-  config_get_token: ['/^vrf context <vrf>$/i', '/^description (.*)/']
-  config_set: ["vrf context <vrf>", "<state> description <desc>"]
+  get_command: "show running | section 'vrf context'"
+  get_context: '/^vrf context <vrf>$/i'
+  get_value: '/^description (.*)/'
+  set_context: "vrf context <vrf>"
+  set_value: "<state> description <desc>"
   default_value: ""
 
 destroy:
-  config_set: "no vrf context <vrf>"
+  set_value: "no vrf context <vrf>"
 
 feature_vn_segment_vlan_based:
   _exclude:
@@ -24,31 +26,33 @@ feature_vn_segment_vlan_based:
   kind: boolean
   default_value: false
   cli_nexus:
-    config_get: 'show running section feature'
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
+    get_command: 'show running section feature'
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
 
 feature_vni:
   _exclude: [/N3K/, /N9K/]   # Support for multi-tenancy lite only
   kind: boolean
   default_value: false
   cli_nexus:
-    config_get: 'show running section feature'
-    config_get_token: '/^feature vni$/'
-    config_set: 'feature vni'
+    get_command: 'show running section feature'
+    get_value: '/^feature vni$/'
+    set_value: 'feature vni'
 
 shutdown:
   kind: boolean
-  config_get: "show running | section 'vrf context'"
-  config_get_token: ['/^vrf context <vrf>$/i', '/^shutdown$/']
-  config_set: ["vrf context <vrf>", "<state> shutdown"]
+  get_command: "show running | section 'vrf context'"
+  get_context: '/^vrf context <vrf>$/i'
+  get_value: '/^shutdown$/'
+  set_context: "vrf context <vrf>"
+  set_value: "<state> shutdown"
   default_value: false
 
 vni:
   _exclude:
     - [/N3/]   # N3: Support Unknown
   kind: int
-  config_get: "show running | section 'vrf context'"
-  config_get_token: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']
-  config_set: ["vrf context <vrf>", "<state> vni <id>"]
+  get_command: "show running | section 'vrf context'"
+  get_value: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']
+  set_value: ["vrf context <vrf>", "<state> vni <id>"]
   default_value: false

@@ -2,11 +2,11 @@
 ---
 resources:
   cli_nexus:
-    config_get: "show system resources"
-    test_config_get: "show system resources | no-more"
-    test_config_get_regex: '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'
+    get_command: "show system resources"
+    test_get_command: "show system resources | no-more"
+    test_get_value: '/.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/'
   cli_ios_xr:
     # grpc doesn't allow this command
-    # config_get: 'monitor threads iteration 1'
-    test_config_get: "monitor threads iteration 1"
-    test_config_get_regex: '/Cpu(s): *([0-9.]+)%us, *([0-9.]+)%sy/'
+    # get_command: 'monitor threads iteration 1'
+    test_get_command: "monitor threads iteration 1"
+    test_get_value: '/Cpu(s): *([0-9.]+)%us, *([0-9.]+)%sy/'
