@@ -20,7 +20,7 @@ usage() {
     echo "Options:"
     echo "  --dry-run       Do not make any updates"
     echo "  -v  --verbose   Verbose output, including diffs of updated files"
-    echo "  --help          Display this help text"
+    echo "  -h  --help      Display this help text"
 }
 
 # Flags that can be set from the command line, with default values
@@ -30,7 +30,7 @@ verbose=0
 # parse command line options
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        (--help)
+        (-h|--help)
             usage
             exit 0
             ;;
