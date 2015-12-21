@@ -42,6 +42,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         (*)
             echo "Unrecognized option: $1"
+            usage
             exit 1
             ;;
     esac
