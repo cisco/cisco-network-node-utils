@@ -65,8 +65,7 @@ class TestPim < CiscoTestCase
   # Tests single ssm range none under default vrf
   #-----------------------------------------------
   def test_single_ssm_range_single_vrf
-    afi_list = ['ipv4']
-    afi_list.each do |afi|
+    %w(ipv4).each do |afi|
       create_single_ssm_range_single_vrf(afi)
     end
   end
