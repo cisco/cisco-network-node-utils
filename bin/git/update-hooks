@@ -20,12 +20,14 @@ usage() {
     echo "Options:"
     echo "  --dry-run       Do not make any updates"
     echo "  -v  --verbose   Verbose output, including diffs of updated files"
+    echo "  --[no-]pager    Explicity request or suppress pagination in git diff"
     echo "  -h  --help      Display this help text"
 }
 
 # Flags that can be set from the command line, with default values
 make_updates=1  # the inverse of --dry-run
 verbose=0
+pager= # default to whatever defaults git has configured
 
 # parse command line options
 while [ "$#" -gt 0 ]; do
@@ -36,6 +38,12 @@ while [ "$#" -gt 0 ]; do
             ;;
         (-v|--verbose)
             verbose=1
+            ;;
+        (--pager)
+            pager=--paginate
+            ;;
+        (--no-pager)
+            pager=--no-pager
             ;;
         (--dry-run)
             make_updates=0
@@ -75,7 +83,7 @@ check_update() {
     if [ ! -e "$dest" ] ; then
         step_name "Creating new file at '$dest':"
         if [ $verbose == 1 ]; then
-            git diff --color --no-index /dev/null $src
+            git ${pager} diff --color --no-index /dev/null $src
         fi
         if [ $make_updates == 1 ]; then
             cp $src $dest
@@ -85,7 +93,7 @@ check_update() {
         if [ $? -ne 0 ] ; then
             step_name "File '$dest' will be updated: "
             if [ $verbose == 1 ]; then
-                git diff --color --no-index $dest $src
+                git ${pager} diff --color --no-index $dest $src
             fi
             if [ $make_updates == 1 ]; then
                 cp -f $src $dest
