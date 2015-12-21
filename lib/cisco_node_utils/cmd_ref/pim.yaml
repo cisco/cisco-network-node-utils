@@ -5,16 +5,37 @@ _template:
   config_get_token :
     - '/^vrf context <vrf>$/'
   config_set :
-    - 'vrf context <vrf>'
+    - "vrf context <vrf>"
+
+all_group_lists:
+  multiple:
+  config_get_token_append : '/^<afi> pim rp-address ([0-9\.]+) group-list (\S+)/'
+
+all_rp_addresses:
+  multiple:
+  config_get_token_append: '/^<afi> pim rp-address (.*)$/'
 
 all_ssm_ranges:
   multiple:
-  config_get_token_append : '/^\s*ip pim ssm range (.*)$/'
+  config_get_token_append : '/^<afi> pim ssm range (.*)$/'
 
 feature:
   config_get_token_append: '/^feature pim$/'
   config_set: "feature pim"
 
+group_list:
+  default_value: ~
+  config_get_token_append: '/^<afi> pim rp-address (\S+) group-list (\S+)/'
+  config_set_append: "<state> <afi> pim rp-address <addr> group-list <group>"
+
+rp_address:
+  multiple:
+  config_get_token_append: '/^<afi> pim rp-address (\S+)/'
+  config_set_append: "<state> <afi> pim rp-address <addr>"
+  default_value: ~
+
 ssm_range:
-  config_get_token_append: '/^ip pim ssm range (.*)/'
-  config_set_append: "<state> ip pim ssm range <ssm_range>"
+  config_get_token_append: '/^<afi> pim ssm range (.*)/'
+  config_set_append: "<state> <afi> pim ssm range <ssm_range>"
+
+

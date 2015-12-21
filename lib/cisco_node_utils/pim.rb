@@ -1,4 +1,4 @@
-# PIM feature
+# NXAPI implementation of the Pim class
 # Provides configuration of PIM and its various properties
 # like ssm-range, etc
 #
@@ -26,20 +26,20 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for Pim
   class Pim < NodeUtil
-    attr_reader :vrf
+    attr_reader :vrf, :afi
 
     # Constructor with vrf
     # ---------------------
-    def initialize(vrf='default', instantiate=true)
+    def initialize(afi, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
       @vrf = vrf
+      @afi = Pim.afi_cli(afi)
       if @vrf == 'default'
-        @get_args = @set_args = { state: '' }
+        @get_args = @set_args = { state: '', afi: @afi }
       else
-        @get_args = @set_args = { state: '', vrf: @vrf }
+        @get_args = @set_args = { state: '', vrf: @vrf, afi: @afi }
       end
-<<<<<<< HEAD
       enable if instantiate
     end
 
@@ -50,15 +50,13 @@ module Cisco
       fail ArgumentError, "Argument afi must be 'ipv4'" unless
         afi[/(ipv4)/]
       afi[/ipv4/] ? 'ip' : afi
-=======
-      enable if instantiate && !Pim.enabled
->>>>>>> parent of e4346a1... NXAPI Implementation & Mini Tests for Pim
     end
 
     # set_args_keys_default
     # ----------------------
     def set_args_keys_default
-      keys = { vrf: @vrf }
+      keys = { afi: @afi }
+      keys[:vrf] = @vrf unless @vrf == 'default'
       @get_args = @set_args = keys
     end
 
@@ -78,8 +76,7 @@ module Cisco
     # Check Feature pim state
     # --------------------------
     def self.enabled
-      feature_state = config_get('pim', 'feature')
-      return !(feature_state.nil? || feature_state.empty?)
+      config_get('pim', 'feature')
     rescue Cisco::CliError => e
       return false if e.clierror =~ /Syntax error/
       raise
@@ -92,17 +89,13 @@ module Cisco
     # -------------------
     def ssm_range
       ranges = config_get('pim', 'ssm_range', @get_args)
-      ranges.split(' ').sort
+      ranges.split.sort
     end
 
     # ssm_range : setter
     # -------------------
     def ssm_range=(range)
-<<<<<<< HEAD
       set_args_keys(state: '', ssm_range: range)
-=======
-      @set_args[:ssm_range] = range
->>>>>>> parent of e4346a1... NXAPI Implementation & Mini Tests for Pim
       config_set('pim', 'ssm_range', @set_args)
     end
   end

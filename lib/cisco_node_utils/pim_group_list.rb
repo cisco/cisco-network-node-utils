@@ -16,76 +16,80 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#-------------------------------------------------------------------------------
-# CLI: ip pim rp-address <rp-address> group-list <group> (under different VRFs)
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------
+# CLI: <afi> pim rp-address <rp-address> group-list <group>
+#      (under different VRFs)
+#-----------------------------------------------------------
 
 require_relative 'node_util'
-require 'pp'
+require_relative 'pim'
 
 module Cisco
   # node_utils class for pim grouplist
   class PimGroupList < NodeUtil
-    attr_reader :rp_addr, :vrf, :group
+    attr_reader :afi, :rp_addr, :group, :vrf
 
     # Constructor with grouplist and vrf
     # ----------------------------------
-    def initialize(rp_addr, group, vrf='default', instantiate=true)
+    def initialize(afi, rp_addr, group, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
+      @afi = Pim.afi_cli(afi)
       @rp_addr = rp_addr
       @group = group
       @vrf = vrf
       if @vrf == 'default'
-        @get_args = @set_args = { state: '', addr: @rp_addr, group: @group }
+        @get_args = @set_args =
+                    { state: '', afi: @afi, addr: @rp_addr, group: @group }
       else
-        @get_args = @set_args = { state: '', addr: @rp_addr,
-                                  vrf: @vrf, group: @group }
+        @get_args = @set_args =
+                    { state: '', afi: @afi, addr: @rp_addr, vrf: @vrf,
+                      group: @group }
       end
       create if instantiate
     end
 
-    # Create a hash of [rp-addr,grouplist]=>vrf mappings
+    # Create a hash of [afi,rp-addr,grouplist]=>vrf mappings
     # --------------------------------------------------
     def self.group_lists
+      afis = %w(ipv4) # Add ipv6 later
       hash_final = {}
-      rp_addrs = config_get('pim_rp_address', 'all_group_lists')
-      return hash_final if rp_addrs.nil?
-      rp_addrs.each do |addr_and_group|
-        # Get the RPs under default VRF
-        addr = addr_and_group[0]
-        group = addr_and_group[1]
-        hash_final[addr_and_group] = {}
-        hash_final[addr_and_group]['default'] = PimGroupList.new(addr, group,
-                                                                 'default',
-                                                                 false)
-      end
-      # Getting all custom vrfs rp_Addrs
-      vrf_ids = config_get('vrf', 'all_vrfs')
-      vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
-      vrf_ids.each do |vrf|
-        get_args = { rp_addr: @rp_addr, vrf: @vrf, group: @group }
-        get_args[:vrf] = vrf
-        rpaddrs = config_get('pim_rp_address', 'all_group_lists', get_args)
-        next if rpaddrs.nil?
-        rpaddrs.each do |addr_and_group|
-          addr = addr_and_group[0]
-          group = addr_and_group[1]
-          hash_final[addr_and_group] ||= {}
-          hash_final[addr_and_group][vrf] = PimGroupList.new(addr, group,
-                                                             vrf, false)
+      afis.each do |afi|
+        hash_final[afi] = {}
+        default_vrf = 'default'
+        rp_addrs = config_get('pim', 'all_group_lists', afi: Pim.afi_cli(afi))
+        unless rp_addrs.nil?
+          rp_addrs.each do |addr_and_group|
+            # Get the RPs under default VRF
+            addr, group = addr_and_group
+            hash_final[afi][addr_and_group] = {}
+            hash_final[afi][addr_and_group][default_vrf] =
+                      PimGroupList.new(afi, addr, group, default_vrf, false)
+          end
+        end
+        # Getting all custom vrfs rp_Addrs
+        vrf_ids = config_get('vrf', 'all_vrfs')
+        vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
+        vrf_ids.each do |vrf|
+          @get_args = { vrf: vrf, afi: Pim.afi_cli(afi) }
+          rpaddrs = config_get('pim', 'all_group_lists', @get_args)
+          next if rpaddrs.nil?
+          rpaddrs.each do |addr_and_group|
+            addr, group = addr_and_group
+            hash_final[afi][addr_and_group] ||= {}
+            hash_final[afi][addr_and_group][vrf] =
+                      PimGroupList.new(afi, addr, group, vrf, false)
+          end
         end
       end
-      puts 'FINAL HASH is: '
-      pp '-------------'
-      # pp hash_final
       hash_final
     end
 
     # set_args_keys_default
     # ---------------------
     def set_args_keys_default
-      keys = { addr: @rp_addr, vrf: @vrf, group: @group }
+      keys = { afi: @afi, addr: @rp_addr, group: @group }
+      keys[:vrf] = @vrf unless @vrf == 'default'
       @get_args = @set_args = keys
     end
 
@@ -96,37 +100,18 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # Enable Feature pim
-    # -------------------
-    def enable
-      config_set('pim_rp_address', 'feature')
-    end
-
-    # Check if feature pim is enabled
-    # -------------------------------
-    def self.enabled
-      feature_state = config_get('pim_rp_address', 'feature')
-      return !(feature_state.nil? || feature_state.empty?)
-    rescue Cisco::CliError => e
-      return false if e.clierror =~ /Syntax error/
-      raise
-    end
-
     # Create pim grouplist instance
     # ---------------------------------
     def create
-      PimGroupList.enable unless PimGroupList.enabled
-      config_set('pim_rp_address', 'group_list', @set_args)
+      Pim.enable unless Pim.enabled
+      config_set('pim', 'group_list', @set_args)
     end
 
     # Destroy pim grouplist instance
     # ----------------------------------
     def destroy
       set_args_keys(state: 'no')
-      if @set_args.include?(:vrf) && @set_args[:vrf] == 'default'
-        @set_args.delete(:vrf)
-      end
-      config_set('pim_rp_address', 'group_list', @set_args)
+      config_set('pim', 'group_list', @set_args)
     end
   end
 end
