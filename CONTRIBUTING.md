@@ -9,7 +9,7 @@ Cisco Network Elements support a rich set of features to make networks robust, e
 ## Making Changes
 
 * Fork and clone the repository
-  * Run the `bin/git/update-hooks` script to install our recommended Git hooks into your local repository.
+  * Run the `bin/git/update-hooks` script to install our recommended Git hooks into your local repository.  (Note: some of the hooks require additional tools, such as the `rubocop` ruby gem, be installed and available in your `$PATH`.)
   * Pull a branch under the "develop" branch for your changes.
   * Follow all guidelines documented in [README-develop-node_utils-APIs](docs/README-develop-node-utils-APIs.md)
   * Make changes in your branch.
