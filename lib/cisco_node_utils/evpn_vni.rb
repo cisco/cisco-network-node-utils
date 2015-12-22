@@ -37,6 +37,7 @@ module Cisco
     # Creat a hash of all vni instance
     def self.vnis
       hash = {}
+      return hash unless RouterBgp.enabled
       vni_list = config_get('evpn_vni', 'vni')
       return hash if vni_list.nil?
 
