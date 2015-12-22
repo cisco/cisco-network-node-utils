@@ -19,6 +19,9 @@ Changelog
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_port_channel (@saichint)
+  * portchannel_global (@saichint)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
