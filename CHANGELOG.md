@@ -15,6 +15,10 @@ Changelog
   * fabricpath_topology (@dcheriancisco)
 * Interface
   * interface_service (@chrisvanheuveln)
+* PIM
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
