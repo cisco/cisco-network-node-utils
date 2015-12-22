@@ -91,7 +91,7 @@ bin/git/update-hooks
 
 ## <a name="complex">Example: router eigrp</a>
 
-As a best practice, create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+As a best practice, create a topic branch (also sometimes called a feature branch) for your feature work using the `git branch feature/<feature_name>` command.
 
 ```bash
 git branch feature/eigrp
@@ -100,7 +100,7 @@ git branch
   feature/eigrp
 ```
 
-Before you start working on the eigrp feature, checkout the feature branch.
+Before you start working on the eigrp feature, checkout its topic branch, `feature/eigrp`.
 
 ```bash
 git checkout feature/eigrp
