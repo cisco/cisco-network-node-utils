@@ -45,7 +45,7 @@ gem install simplecov
 gem install minitest
 ```
 
-**NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems 
+**NOTE:** If you are working from a server where you don't have admin/root privileges, use the following commands to install the gems 
 
 ```bash
 gem install --user-install rake
