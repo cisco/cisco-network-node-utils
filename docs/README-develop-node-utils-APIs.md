@@ -22,9 +22,21 @@ There are multiple components involved when creating new resources. This documen
 
 ## <a name="prerequisites">Before You Begin</a>
 
-Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+### <a name="prereq_git">Git Configuration</a>
 
-This development guide uses tools that are packaged as gems that need to be installed on your server.
+Any code commits must be associated with your github account and email address.  If you intend to commit code to this repository then you must configure `git` with your identity.  If you have not already done so, use the following commands to configure the default identity that `git` will use for all projects on your system:
+
+```bash
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
+If you do not wish to change the global configuration on your system, you can set your identity for a single local repository by using the above commands without the ``--global`` flag.
+
+### <a name="prereq_ruby">Ruby Prerequisites</a>
+
+This project requires Ruby 2.0 or later.
+
+This development guide uses tools that are packaged as gems that need to be installed in your development environment.
 
 ```bash
 gem install rake
@@ -33,7 +45,7 @@ gem install simplecov
 gem install minitest
 ```
 
-**NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
+**NOTE:** If you are working from a server where you don't have admin/root privileges, use the following commands to install the gems 
 
 ```bash
 gem install --user-install rake
@@ -41,26 +53,45 @@ gem install --user-install rubocop
 gem install --user-install simplecov
 gem install --user-install minitest
 ```
+or add `--user-install` to your `.gemrc` to make this the default behavior:
+
+```bash
+echo 'gem: --user-install' >> ~/.gemrc
+```
+and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`.  For example, you could add this to your `.bashrc` or `.profile`:
+
+```bash
+if which ruby >/dev/null && which gem >/dev/null; then
+    PATH="$(ruby -rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+```
+
+### <a name="prereq_vm">Nexus VM (optional)</a>
+
+A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+
 
 ## <a name="clone">Start here: Fork and Clone the Repo</a>
 
-First [fork](https://help.github.com/articles/fork-a-repo) the [cisco-network-node-utils](https://github.com/cisco/cisco-network-node-utils) git repository 
+First [fork](https://help.github.com/articles/fork-a-repo) the [cisco-network-node-utils](https://github.com/cisco/cisco-network-node-utils) repository on GitHub.
 
-Next install the code base. Clone the cisco-network-node-utils repo from your fork into a workspace:
+Next create your local repository. Clone the cisco-network-node-utils repo from your fork into a workspace:
 
 ```bash
 git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
 ```
 
-Please note that any code commits must be associated with your github account and email address. If you intend to commit code to this repository then use the following commands to update your workspace with your credentials:
+If you intend to contribute your code back to the project then you should install the git hooks that are checked in with the project source code.  These hooks check your commits for conformance with various style guidelines.  To install them in your local repository (or to update them to match the files currently in the repository, in case they are out of sync), simply run the `update-hooks` script:
 
 ```bash
-git config --global user.name "John Doe"
-git config --global user.email johndoe@example.com
+bin/git/update-hooks
 ```
 
-As a best practice create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+
+## <a name="complex">Example: router eigrp</a>
+
+As a best practice, create a topic branch (also sometimes called a feature branch) for your feature work using the `git branch feature/<feature_name>` command.
 
 ```bash
 git branch feature/eigrp
@@ -69,10 +100,7 @@ git branch
   feature/eigrp
 ```
 
-
-## <a name="complex">Example: router eigrp</a>
-
-Before you start working on the eigrp feature, checkout the feature branch you created earlier.
+Before you start working on the eigrp feature, checkout its topic branch, `feature/eigrp`.
 
 ```bash
 git checkout feature/eigrp
