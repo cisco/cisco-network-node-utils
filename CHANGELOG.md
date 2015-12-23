@@ -22,6 +22,8 @@ Changelog
 * Port Channel
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
+* SNMP
+  * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
