@@ -20,7 +20,7 @@ Changelog
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
 * Port Channel
-  * interface_port_channel (@saichint)
+  * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
 * VDC
   * vdc (@chrisvanheuveln)
