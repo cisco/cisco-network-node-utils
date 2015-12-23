@@ -131,6 +131,16 @@ enforce_first_as:
     config_get_token_append: '/^(no )?enforce-first-as$/'
     config_set_append: '<state> enforce-first-as'
 
+fast_external_fallover:
+  kind: boolean
+  default_value: true
+  cli_ios_xr:
+    config_get_token_append: '/^bgp fast-external-fallover disable$/'
+    config_set_append: ' <state> bgp fast-external-fallover disable'
+  cli_nexus:
+    config_get_token_append: '/^(no )?fast-external-fallover$/'
+    config_set_append: '<state> fast-external-fallover'
+
 feature:
   kind: boolean
   cli_ios_xr:
@@ -141,6 +151,13 @@ feature:
     config_get: "show running bgp all"
     config_get_token: '/^feature bgp$/'
     config_set: "<state> feature bgp"
+
+flush_routes:
+  _exclude: [cli_ios_xr]
+  kind: boolean
+  config_get_token_append: '/^flush-routes$/'
+  config_set_append: '<state> flush-routes'
+  default_value: false
 
 graceful_restart:
   kind: boolean
@@ -184,6 +201,13 @@ graceful_restart_timers_stalepath_time:
     config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
     config_set_append: '<state> graceful-restart stalepath-time <seconds>'
 
+isolate:
+  _exclude: [cli_ios_xr]
+  kind: boolean
+  config_get_token_append: '/^isolate$/'
+  config_set_append: '<state> isolate'
+  default_value: false
+
 log_neighbor_changes:
   kind: boolean
   cli_ios_xr:
@@ -203,9 +227,10 @@ maxas_limit:
     config_set_append: '<state> maxas-limit <limit>'
     default_value: false
 
-neighbor_fib_down_accelerate:
+neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
   cli_nexus:
+    _exclude: [/N6K/, /N7K/]
     kind: boolean
     config_get_token_append: '/^neighbor-down fib-accelerate$/'
     config_set_append: '<state> neighbor-down fib-accelerate'
@@ -214,6 +239,7 @@ neighbor_fib_down_accelerate:
 reconnect_interval:
   # Note: Does not exist in IOS XR
   cli_nexus:
+    _exclude: [/N6K/, /N7K/]
     kind: int
     config_get_token_append: '/^reconnect-interval (\d+)$/'
     config_set_append: '<state> reconnect-interval <seconds>'

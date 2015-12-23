@@ -187,9 +187,16 @@ send_community:
 
 soft_reconfiguration_in:
   auto_default: false
-  config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
-  config_set_append: ' <state> soft-reconfiguration inbound <always>'
   default_value: 'inherit'
+  cli_ios_xr:
+    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
+    config_set_append: ' <state> soft-reconfiguration inbound <always>'
+  /N9K/:
+    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
+    config_set_append: '<state> soft-reconfiguration inbound <always>'
+  else:
+    config_get_token_append: '/^soft-reconfiguration inbound/'
+    config_set_append: '<state> soft-reconfiguration inbound'
 
 soo:
   _exclude: [cli_ios_xr]

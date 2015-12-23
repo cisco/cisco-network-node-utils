@@ -482,6 +482,105 @@ module Cisco
     end
 
     #
+    # Distance (Getter/Setter/Default)
+    #
+    def distance_set(ebgp, ibgp, local)
+      set_args_keys(state: '', ebgp: ebgp, ibgp: ibgp, local: local)
+      config_set('bgp_af', 'distance', @set_args)
+    end
+
+    def distance_ebgp
+      ebgp, _ibgp, _local = distance
+      return default_distance_ebgp if ebgp.nil?
+      ebgp.to_i
+    end
+
+    def distance_ibgp
+      _ebgp, ibgp, _local = distance
+      return default_distance_ibgp if ibgp.nil?
+      ibgp.to_i
+    end
+
+    def distance_local
+      _ebgp, _ibgp, local = distance
+      return default_distance_local if local.nil?
+      local.to_i
+    end
+
+    def distance
+      match = config_get('bgp_af', 'distance', @get_args)
+      match.nil? ? default_distance : match
+    end
+
+    def default_distance_ebgp
+      config_get_default('bgp_af', 'distance_ebgp')
+    end
+
+    def default_distance_ibgp
+      config_get_default('bgp_af', 'distance_ibgp')
+    end
+
+    def default_distance_local
+      config_get_default('bgp_af', 'distance_local')
+    end
+
+    def default_distance
+      ["#{default_distance_ebgp}", "#{default_distance_ibgp}",
+       "#{default_distance_local}"]
+    end
+
+    #
+    # default_metric (Getter/Setter/Default)
+    #
+
+    # default_metric
+    def default_metric
+      config_get('bgp_af', 'default_metric', @get_args)
+    end
+
+    def default_metric=(val)
+      # To remove the default_metric you can not use 'no default_metric'
+      # dummy metric to work around this
+      dummy_metric = 1
+      set_args_keys(state: (val == default_default_metric) ? 'no' : '',
+                    num:   (val == default_default_metric) ? dummy_metric : val)
+      config_set('bgp_af', 'default_metric', @set_args)
+    end
+
+    def default_default_metric
+      config_get_default('bgp_af', 'default_metric')
+    end
+
+    #
+    # inject_map (Getter/Setter/Default)
+    #
+
+    def inject_map
+      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
+      cmds.sort
+    end
+
+    def inject_map=(should_list)
+      delta_hash = Utils.delta_add_remove(should_list, inject_map)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        Cisco::Logger.debug("inject_map delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
+        delta_hash[action].each do |inject, exist, copy|
+          # inject & exist are mandatory, copy is optional
+          state = (action == :add) ? '' : 'no'
+          copy = 'copy-attributes' unless copy.nil?
+          set_args_keys(state: state, inject: inject, exist: exist, copy: copy)
+          config_set('bgp_af', 'inject_map', @set_args)
+        end
+      end
+    end
+
+    def default_inject_map
+      config_get_default('bgp_af', 'inject_map')
+    end
+
+    #
     # maximum_paths (Getter/Setter/Default)
     #
 
@@ -687,6 +786,62 @@ module Cisco
           config_set('bgp_af', prop, @set_args)
         end
       end
+    end
+
+    #
+    # Suppress Inactive (Getter/Setter/Default)
+    #
+    def suppress_inactive
+      config_get('bgp_af', 'suppress_inactive', @get_args)
+    end
+
+    def suppress_inactive=(state)
+      set_args_keys(state: state ? '' : 'no')
+      config_set('bgp_af', 'suppress_inactive', @set_args)
+    end
+
+    def default_suppress_inactive
+      config_get_default('bgp_af', 'suppress_inactive')
+    end
+
+    #
+    # Table Map (Getter/Setter/Default)
+    #
+
+    def table_map
+      config_get('bgp_af', 'table_map', @get_args)
+    end
+
+    def table_map_filter
+      config_get('bgp_af', 'table_map_filter', @get_args)
+    end
+
+    def table_map_set(map, filter=false)
+      # To remove table map we can not use 'no table-map'
+      # Dummy-map specified to work around this
+      if filter
+        attr = 'table_map_filter'
+      else
+        attr = 'table_map'
+      end
+      dummy_map = 'dummy'
+      if map == default_table_map
+        @set_args[:state] = 'no'
+        @set_args[:map] = dummy_map
+      else
+        @set_args[:state] = ''
+        @set_args[:map] = map
+      end
+      config_set('bgp_af', attr, @set_args)
+      set_args_keys_default
+    end
+
+    def default_table_map
+      config_get_default('bgp_af', 'table_map')
+    end
+
+    def default_table_map_filter
+      config_get_default('bgp_af', 'table_map_filter')
     end
   end
 end

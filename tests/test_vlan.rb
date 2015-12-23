@@ -148,6 +148,30 @@ class TestVlan < CiscoTestCase
     v2.destroy
   end
 
+  def test_vlan_mode
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
+    v = Vlan.new(2000)
+    assert_equal('ce', v.mode,
+                 'Mode should have been default to ce')
+    v.mode = 'fabricpath'
+    assert_equal(:enabled, v.fabricpath_feature,
+                 'Fabricpath feature should have been enabled')
+    assert_equal('fabricpath', v.mode,
+                 'Mode should have been set to fabricpath')
+  end
+
+  def test_vlan_mode_invalid
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
+    v = Vlan.new(100)
+    assert_equal('ce', v.mode,
+                 'Mode should have been default to ce')
+
+    e = assert_raises(CliError) { v.mode = 'junk' }
+    assert_match(/Invalid parameter detected/, e.message)
+  end
+
   def test_vlan_state_extended
     v = Vlan.new(2000)
     v.state = 'suspend'
@@ -229,7 +253,7 @@ class TestVlan < CiscoTestCase
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.add_interface(interface) }
+    assert_raises(Cisco::CliError) { v.add_interface(interface) }
     v.destroy
     interface_ethernet_default(interfaces_id[0])
   end
@@ -240,7 +264,7 @@ class TestVlan < CiscoTestCase
     interface.switchport_mode = :access
     v.add_interface(interface)
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.remove_interface(interface) }
+    assert_raises(Cisco::CliError) { v.remove_interface(interface) }
 
     v.destroy
     interface_ethernet_default(interfaces_id[0])

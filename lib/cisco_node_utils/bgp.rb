@@ -347,6 +347,7 @@ module Cisco
     end
 
     def enforce_first_as=(enable)
+      # TODO: write a helper method for this repeated logic
       # enforce_first_as is on by default (=>true)
       # XR=>true  = enable enforce_first_as  = 'no bgp enforce-first-as disable'
       # XR=>false = disable enforce_first_as = 'bgp enforce-first-as disable'
@@ -361,6 +362,44 @@ module Cisco
 
     def default_enforce_first_as
       config_get_default('bgp', 'enforce_first_as')
+    end
+
+    # Fast External fallover (Getter/Setter/Default)
+    def fast_external_fallover
+      config_get('bgp', 'fast_external_fallover', @get_args)
+    end
+
+    def fast_external_fallover=(enable)
+      # TODO: write a helper method for this repeated logic
+      # fast_external_fallover is on by default (=>true)
+      # XR=>true  = 'no bgp fast-external-fallover disable'
+      # XR=>false = 'bgp fast-external-fallover disable'
+      # Nexus nvgens the 'no' command.
+      # Nexus=>true  = 'fast-external-fallover'
+      # Nexus=>false = 'no fast-external-fallover'
+      enable = !enable if platform == :ios_xr
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'fast_external_fallover', @set_args)
+      set_args_keys_default
+    end
+
+    def default_fast_external_fallover
+      config_get_default('bgp', 'fast_external_fallover')
+    end
+
+    # Flush Routes (Getter/Setter/Default)
+    def flush_routes
+      config_get('bgp', 'flush_routes', @get_args)
+    end
+
+    def flush_routes=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'flush_routes', @set_args)
+      set_args_keys_default
+    end
+
+    def default_flush_routes
+      config_get_default('bgp', 'flush_routes')
     end
 
     # Confederation Peers (Getter/Setter/Default)
@@ -516,6 +555,21 @@ module Cisco
       config_get_default('bgp', 'graceful_restart_helper')
     end
 
+    # Isolate (Getter/Setter/Default)
+    def isolate
+      config_get('bgp', 'isolate', @get_args)
+    end
+
+    def isolate=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'isolate', @set_args)
+      set_args_keys_default
+    end
+
+    def default_isolate
+      config_get_default('bgp', 'isolate')
+    end
+
     # MaxAs Limit (Getter/Setter/Default)
     def maxas_limit
       config_get('bgp', 'maxas_limit', @get_args)
@@ -559,19 +613,19 @@ module Cisco
       config_get_default('bgp', 'log_neighbor_changes')
     end
 
-    # Neighbor fib down accelerate (Getter/Setter/Default)
-    def neighbor_fib_down_accelerate
-      config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
+    # Neighbor down fib accelerate (Getter/Setter/Default)
+    def neighbor_down_fib_accelerate
+      config_get('bgp', 'neighbor_down_fib_accelerate', @get_args)
     end
 
-    def neighbor_fib_down_accelerate=(enable)
+    def neighbor_down_fib_accelerate=(enable)
       @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp', 'neighbor_fib_down_accelerate', @set_args)
+      config_set('bgp', 'neighbor_down_fib_accelerate', @set_args)
       set_args_keys_default
     end
 
-    def default_neighbor_fib_down_accelerate
-      config_get_default('bgp', 'neighbor_fib_down_accelerate')
+    def default_neighbor_down_fib_accelerate
+      config_get_default('bgp', 'neighbor_down_fib_accelerate')
     end
 
     # Reconnect Interval (Getter/Setter/Default)
@@ -723,13 +777,6 @@ module Cisco
     def timer_bestpath_limit_set(seconds, always=false)
       if always
         feature = 'timer_bestpath_limit_always'
-        if platform == :ios_xr
-          fail Cisco::UnsupportedError.new('bgp',
-                                           'timer_bestpath_limit_always',
-                                           'set',
-                                           'timer_bestpath_limit_always is ' \
-                                           'not configurable on IOS XR')
-        end
       else
         feature = 'timer_bestpath_limit'
       end

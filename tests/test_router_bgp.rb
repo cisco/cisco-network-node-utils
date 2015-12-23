@@ -431,6 +431,47 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_fast_external_fallover
+    bgp = setup_default
+    bgp.fast_external_fallover = true
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be enabled')
+    bgp.fast_external_fallover = false
+    refute(bgp.fast_external_fallover,
+           'bgp fast-external-fallover should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_fast_external_fallover
+    bgp = setup_default
+    assert(bgp.fast_external_fallover,
+           'bgp fast-external-fallover default value should be true')
+    bgp.destroy
+  end
+
+  def test_set_get_flush_routes
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.flush_routes)
+      assert_raises(UnsupportedError) { bgp.flush_routes = true }
+    else
+      bgp.flush_routes = true
+      assert(bgp.flush_routes,
+             'bgp flush-routes should be enabled')
+      bgp.flush_routes = false
+      refute(bgp.flush_routes,
+             'bgp flush-routes should be disabled')
+    end
+    bgp.destroy
+  end
+
+  def test_default_flush_routes
+    bgp = setup_default
+    refute(bgp.flush_routes,
+           'bgp flush-routes value default value should be false')
+    bgp.destroy
+  end
+
   def test_graceful_restart_default
     graceful_restart(setup_default)
   end
@@ -641,6 +682,30 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_isolate
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.isolate)
+      assert_nil(bgp.default_isolate)
+      assert_raises(UnsupportedError) { bgp.isolate = true }
+    else
+      bgp.isolate = true
+      assert(bgp.isolate,
+             'bgp isolate should be enabled')
+      bgp.isolate = false
+      refute(bgp.isolate,
+             'bgp isolate should be disabled')
+    end
+    bgp.destroy
+  end
+
+  def test_default_isolate
+    bgp = setup_default
+    refute(bgp.isolate,
+           'bgp isolate default value should be false')
+    bgp.destroy
+  end
+
   def test_log_neighbor_changes_default
     log_neighbor_changes(setup_default)
   end
@@ -706,12 +771,18 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def maxas_limit(bgp)
-    bgp.maxas_limit = 50
-    assert_equal(50, bgp.maxas_limit,
-                 "bgp maxas-limit should be set to '50'")
-    bgp.maxas_limit = bgp.default_maxas_limit
-    assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
-                 'bgp maxas-limit should be set to default value')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.maxas_limit = 50
+      end
+    else
+      bgp.maxas_limit = 50
+      assert_equal(50, bgp.maxas_limit,
+                   "bgp maxas-limit should be set to '50'")
+      bgp.maxas_limit = bgp.default_maxas_limit
+      assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
+                   'bgp maxas-limit should be set to default value')
+    end
     bgp.destroy
   end
 
@@ -722,33 +793,41 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_set_get_neighbor_fib_down_accelerate
+  def test_set_get_neighbor_down_fib_accelerate
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
       else
         bgp = setup_vrf
       end
-      bgp.neighbor_fib_down_accelerate = true
-      assert(bgp.neighbor_fib_down_accelerate,
-             "vrf #{@vrf}: bgp neighbor_fib_down_accelerate should be enabled")
-      bgp.neighbor_fib_down_accelerate = false
-      refute(bgp.neighbor_fib_down_accelerate,
-             "vrf #{@vrf}: bgp neighbor_fib_down_accelerate should be disabled")
+      if platform == :ios_xr
+        assert_raises(Cisco::UnsupportedError) do
+          bgp.neighbor_down_fib_accelerate = true
+        end
+      else
+        bgp.neighbor_down_fib_accelerate = true
+        assert(bgp.neighbor_down_fib_accelerate,
+               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
+               'should be enabled')
+        bgp.neighbor_down_fib_accelerate = false
+        refute(bgp.neighbor_down_fib_accelerate,
+               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
+               'should be disabled')
+      end
       bgp.destroy
     end
   end
 
-  def test_get_neighbor_fib_down_accelerate_not_configured
+  def test_get_neighbor_down_fib_accelerate_not_configured
     bgp = setup_default
-    refute(bgp.neighbor_fib_down_accelerate,
+    refute(bgp.neighbor_down_fib_accelerate,
            'bgp neighbor_fib_down_accelerate should be disabled')
     bgp.destroy
   end
 
-  def test_default_neighbor_fib_down_accelerate
+  def test_default_neighbor_down_fib_accelerate
     bgp = setup_default
-    refute(bgp.default_neighbor_fib_down_accelerate,
+    refute(bgp.default_neighbor_down_fib_accelerate,
            'bgp neighbor_fib_down_accelerate default value should be false')
     bgp.destroy
   end
@@ -760,12 +839,18 @@ class TestRouterBgp < CiscoTestCase
       else
         bgp = setup_vrf
       end
-      bgp.reconnect_interval = 34
-      assert_equal(34, bgp.reconnect_interval,
-                   "vrf #{@vrf}: bgp reconnect_interval should be set to '34'")
-      bgp.reconnect_interval = 60
-      assert_equal(60, bgp.reconnect_interval,
-                   "vrf #{@vrf}: bgp reconnect_interval should be set to '60'")
+      if platform == :ios_xr
+        assert_raises(Cisco::UnsupportedError) do
+          bgp.reconnect_interval = 34
+        end
+      else
+        bgp.reconnect_interval = 34
+        assert_equal(34, bgp.reconnect_interval,
+                     "vrf #{@vrf}: bgp reconnect_interval should be set to 34")
+        bgp.reconnect_interval = 60
+        assert_equal(60, bgp.reconnect_interval,
+                     "vrf #{@vrf}: bgp reconnect_interval should be set to 60")
+      end
       bgp.destroy
     end
   end
@@ -836,10 +921,16 @@ class TestRouterBgp < CiscoTestCase
 
   def test_set_get_shutdown
     bgp = setup_default
-    bgp.shutdown = true
-    assert(bgp.shutdown, 'bgp should be shutdown')
-    bgp.shutdown = false
-    refute(bgp.shutdown, "bgp should in 'no shutdown' state")
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.shutdown = true
+      end
+    else
+      bgp.shutdown = true
+      assert(bgp.shutdown, 'bgp should be shutdown')
+      bgp.shutdown = false
+      refute(bgp.shutdown, "bgp should in 'no shutdown' state")
+    end
     bgp.destroy
   end
 
@@ -864,12 +955,18 @@ class TestRouterBgp < CiscoTestCase
       else
         bgp = setup_vrf
       end
-      bgp.suppress_fib_pending = true
-      assert(bgp.suppress_fib_pending,
-             "vrf #{@vrf}: bgp suppress_fib_pending should be enabled")
-      bgp.suppress_fib_pending = false
-      refute(bgp.suppress_fib_pending,
-             "vrf #{@vrf}: bgp suppress_fib_pending should be disabled")
+      if platform == :ios_xr
+        assert_raises(Cisco::UnsupportedError) do
+          bgp.suppress_fib_pending = true
+        end
+      else
+        bgp.suppress_fib_pending = true
+        assert(bgp.suppress_fib_pending,
+               "vrf #{@vrf}: bgp suppress_fib_pending should be enabled")
+        bgp.suppress_fib_pending = false
+        refute(bgp.suppress_fib_pending,
+               "vrf #{@vrf}: bgp suppress_fib_pending should be disabled")
+      end
       bgp.destroy
     end
   end
@@ -895,12 +992,18 @@ class TestRouterBgp < CiscoTestCase
       else
         bgp = setup_vrf
       end
-      bgp.timer_bestpath_limit_set(34)
-      assert_equal(34, bgp.timer_bestpath_limit, "vrf #{@vrf}: " \
-                   "bgp timer_bestpath_limit should be set to '34'")
-      bgp.timer_bestpath_limit_set(300)
-      assert_equal(300, bgp.timer_bestpath_limit, "vrf #{@vrf}: " \
-                   "bgp timer_bestpath_limit should be set to '300'")
+      if platform == :ios_xr
+        assert_raises(Cisco::UnsupportedError) do
+          bgp.timer_bestpath_limit_set(34)
+        end
+      else
+        bgp.timer_bestpath_limit_set(34)
+        assert_equal(34, bgp.timer_bestpath_limit, "vrf #{@vrf}: " \
+                     "bgp timer_bestpath_limit should be set to '34'")
+        bgp.timer_bestpath_limit_set(300)
+        assert_equal(300, bgp.timer_bestpath_limit, "vrf #{@vrf}: " \
+                     "bgp timer_bestpath_limit should be set to '300'")
+      end
       bgp.destroy
     end
   end
@@ -926,12 +1029,18 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def timer_bestpath_limit_always(bgp)
-    bgp.timer_bestpath_limit_set(34, true)
-    assert(bgp.timer_bestpath_limit_always,
-           "vrf #{@vrf}: bgp timer_bestpath_limit_always should be enabled")
-    bgp.timer_bestpath_limit_set(34, false)
-    refute(bgp.timer_bestpath_limit_always,
-           "vrf #{@vrf}: bgp timer_bestpath_limit_always should be disabled")
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.timer_bestpath_limit_set(34, true)
+      end
+    else
+      bgp.timer_bestpath_limit_set(34, true)
+      assert(bgp.timer_bestpath_limit_always,
+             "vrf #{@vrf}: bgp timer_bestpath_limit_always should be enabled")
+      bgp.timer_bestpath_limit_set(34, false)
+      refute(bgp.timer_bestpath_limit_always,
+             "vrf #{@vrf}: bgp timer_bestpath_limit_always should be disabled")
+    end
     bgp.destroy
   end
 
