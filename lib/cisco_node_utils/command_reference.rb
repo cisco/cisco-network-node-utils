@@ -107,6 +107,9 @@ module Cisco
             end
             result.push(line) unless /<\S+>/.match(line)
           end
+          if result.empty?
+            fail ArgumentError, "Arguments given to #{key} yield empty result"
+          end
           preprocess_value(result)
         end
       elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
