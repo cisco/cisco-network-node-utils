@@ -32,16 +32,8 @@ class TestInterfacePortChannel < CiscoTestCase
     super
   end
 
-  def n7k_platform?
-    /N7K/ =~ node.product_id
-  end
-
-  def n9k_platform?
-    /N3K/ =~ node.product_id || /N9K/ =~ node.product_id
-  end
-
   def n6k_platform?
-    /N5K/ =~ node.product_id || /N6K/ =~ node.product_id
+    /N(5|6)/ =~ node.product_id
   end
 
   def create_port_channel(ifname=DEFAULT_NAME)
