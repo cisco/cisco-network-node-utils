@@ -1,0 +1,30 @@
+# vdc
+#
+# The current simplified implementation assumes no admin-vdc and that the
+# default vdc name uses id 1. Full multi-vdc support is TBD.
+---
+_exclude: [/N(3|5|6|9)/]
+
+_template:
+  config_get: 'show run vdc all'
+  config_get_token: '/^vdc <vdc>/'
+  config_set: 'terminal dont-ask ; vdc <vdc>'
+
+all_vdcs:
+  multiple:
+  config_get: 'show run vdc all'
+  config_get_token: '/^vdc (\S+) id/'
+
+allocate_interface_unallocated:
+  kind: boolean
+  config_set_append: 'allocate interface unallocated-interfaces'
+
+default_vdc_name:
+  # Name of the default vdc. Assumes no admin-vdc.
+  config_get_token: '/^vdc (\S+) id 1$/' # Assumes id 1 for default vdc
+
+limit_resource_module_type:
+  # No default_value. This can differ on every device so a default
+  # check is meaningless and idempotence is not possible for 'default'.
+  config_get_token_append: '/^limit-resource module-type (.*)/'
+  config_set_append: '<state> limit-resource module-type <mods>'

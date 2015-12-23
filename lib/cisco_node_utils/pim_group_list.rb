@@ -1,5 +1,4 @@
-# PIM feature
-# Provides configuration of PIM configuration of rp-addresses with group-lists
+# NXAPI implementation of the PimGroupList class
 #
 # Smitha Gopalan, November 2015
 #
@@ -16,10 +15,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#-----------------------------------------------------------
-# CLI: <afi> pim rp-address <rp-address> group-list <group>
-#      (under different VRFs)
-#-----------------------------------------------------------
 
 require_relative 'node_util'
 require_relative 'pim'
@@ -31,58 +26,49 @@ module Cisco
 
     # Constructor with grouplist and vrf
     # ----------------------------------
-    def initialize(afi, rp_addr, group, vrf='default', instantiate=true)
-      fail ArgumentError unless vrf.is_a? String
-      fail ArgumentError unless vrf.length > 0
+    def initialize(afi, vrf, rp_addr, group, instantiate=true)
+      fail ArgumentError unless vrf.is_a?(String) || vrf.length > 0
       @afi = Pim.afi_cli(afi)
       @rp_addr = rp_addr
       @group = group
       @vrf = vrf
-      if @vrf == 'default'
-        @get_args = @set_args =
-                    { state: '', afi: @afi, addr: @rp_addr, group: @group }
-      else
-        @get_args = @set_args =
-                    { state: '', afi: @afi, addr: @rp_addr, vrf: @vrf,
-                      group: @group }
-      end
+      set_args_keys_default
+
       create if instantiate
     end
 
-    # Create a hash of [afi,rp-addr,grouplist]=>vrf mappings
+    # Create a hash of [afi][vrf][rp-addr,grouplist]
     # --------------------------------------------------
     def self.group_lists
-      afis = %w(ipv4) # Add ipv6 later
-      hash_final = {}
+      afis = %w(ipv4) # TBD ipv6
+      hash = {}
       afis.each do |afi|
-        hash_final[afi] = {}
+        hash[afi] = {}
         default_vrf = 'default'
-        rp_addrs = config_get('pim', 'all_group_lists', afi: Pim.afi_cli(afi))
+        get_args = { afi: Pim.afi_cli(afi) }
+        rp_addrs = config_get('pim', 'all_group_lists', get_args)
         unless rp_addrs.nil?
           rp_addrs.each do |addr_and_group|
-            # Get the RPs under default VRF
             addr, group = addr_and_group
-            hash_final[afi][addr_and_group] = {}
-            hash_final[afi][addr_and_group][default_vrf] =
-                      PimGroupList.new(afi, addr, group, default_vrf, false)
+            hash[afi][default_vrf] ||= {}
+            hash[afi][default_vrf][addr_and_group] =
+              PimGroupList.new(afi, default_vrf, addr, group, false)
           end
         end
-        # Getting all custom vrfs rp_Addrs
         vrf_ids = config_get('vrf', 'all_vrfs')
-        vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
         vrf_ids.each do |vrf|
-          @get_args = { vrf: vrf, afi: Pim.afi_cli(afi) }
-          rpaddrs = config_get('pim', 'all_group_lists', @get_args)
-          next if rpaddrs.nil?
-          rpaddrs.each do |addr_and_group|
+          get_args = { vrf: vrf, afi: Pim.afi_cli(afi) }
+          rp_addrs = config_get('pim', 'all_group_lists', get_args)
+          next if rp_addrs.nil?
+          rp_addrs.each do |addr_and_group|
+            hash[afi][vrf] ||= {}
             addr, group = addr_and_group
-            hash_final[afi][addr_and_group] ||= {}
-            hash_final[afi][addr_and_group][vrf] =
-                      PimGroupList.new(afi, addr, group, vrf, false)
+            hash[afi][vrf][addr_and_group] =
+              PimGroupList.new(afi, vrf, addr, group, false)
           end
         end
       end
-      hash_final
+      hash
     end
 
     # set_args_keys_default
@@ -103,7 +89,8 @@ module Cisco
     # Create pim grouplist instance
     # ---------------------------------
     def create
-      Pim.enable unless Pim.enabled
+      Pim.feature_enable unless Pim.feature_enabled
+      set_args_keys(state: '')
       config_set('pim', 'group_list', @set_args)
     end
 

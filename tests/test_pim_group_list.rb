@@ -19,34 +19,9 @@
 #-----------------------------------------------------------
 # Testcases: All Tests create and destroy all instances within a test
 #
-# 1. test_single_grouplist_single_vrf:
-#         vrf default, ip pim rp-address 11.11.11.11 group-list 227.0.0.0/8
-#         vrf default, ip pim rp-address 22.22.22.22 group-list 228.0.0.0/8
-#         vrf default, ip pim rp-address 23.23.23.23 group-list 228.0.0.0/8
+# 1. test_all_group_lists
 #
-# 2. test_multiple_rpaddrs_multiple_vrfs:
-#         vrf default, ip pim rp-address 11.11.11.11 group-list 227.0.0.0/8
-#         vrf default, ip pim rp-address 12.12.12.12 group-list 228.0.0.0/8
-#         vrf red, ip pim rp-address 22.22.22.22 group-list 227.0.0.0/8
-#         vrf red, ip pim rp-address 23.23.23.23 group-list 228.0.0.0/8
-#         vrf blue, ip pim rp-address 33.33.33.33 group-list 227.0.0.0/8
-#         vrf blue, ip pim rp-address 34.34.34.34 group-list 228.0.0.0/8
-#
-# 3. test_same_rpaddr_same_grouplist_multiple_vrfs:
-#         vrf default, ip pim rp-address 1.1.1.1 group-list 224.0.0.0/8
-#         vrf default, ip pim rp-address 2.2.2.2 group-list 226.0.0.0/8
-#         vrf default, ip pim rp-address 22.22.22.22 group-list 226.0.0.0/8
-#         vrf red, ip pim rp-address 1.1.1.1 group-list 224.0.0.0/8
-#         vrf red, ip pim rp-address 2.2.2.2 group-list 226.0.0.0/8
-#         vrf red, ip pim rp-address 22.22.22.22 group-list 226.0.0.0/8
-#         vrf black, ip pim rp-address 1.1.1.1 group-list 224.0.0.0/8
-#         vrf black, ip pim rp-address 2.2.2.2 group-list 226.0.0.0/8
-#         vrf black, ip pim rp-address 22.22.22.22 group-list 226.0.0.0/8
-#
-# 4. test_single_invalid_rpaddr_single_grouplist_single_vrf:
-#         vrf default, ip pim rp-address 256.256.256.256 group-list 224.0.0.0/8
-#
-# 5. test_single_rpaddr_single_invalid_grouplist_single_vrf:
+# 2. test_single_rpaddr_single_invalid_grouplist_single_vrf:
 #         vrf default, ip pim rp-address 25.25.25.25 group-list 25.0.0.0/8
 #-------------------------------------------------------------------------------
 
@@ -62,156 +37,109 @@ class TestPimGroupList < CiscoTestCase
   def setup
     super
     config('no feature pim')
-    config('feature pim')
   end
 
-  # Creates single group list under vrf default
+  # Test Pim.group_lists
+  # - multiple vrfs, groups, rp_addrs
+  # - same rp_addr, different group
+  # - same rp_addr, different vrf
+  # - same group, different rp_addr
+  # - same group, different vrf
   #--------------------------------------------
-  def create_single_grouplist_single_vrf(afi)
-    rp_addr_d1 = '11.11.11.11'
-    rp_addr_d2 = '22.22.22.22'
-    rp_addr_d3 = '23.23.23.23'
-    vrf = 'default'
-    grouplist1 = '227.0.0.0/8'
-    grouplist2 = '228.0.0.0/8'
-    pd1 = PimGroupList.new(afi, rp_addr_d1, grouplist1)
-    pd2 = PimGroupList.new(afi, rp_addr_d2, grouplist2)
-    pd3 = PimGroupList.new(afi, rp_addr_d3, grouplist2)
-
-    result = PimGroupList.group_lists
-
-    rp_addr_d1_def_grouplist1 = [rp_addr_d1, grouplist1]
-    rp_addr_d2_def_grouplist2 = [rp_addr_d2, grouplist2]
-    rp_addr_d3_def_grouplist2 = [rp_addr_d3, grouplist2]
-
-    assert_includes(result[afi][rp_addr_d1_def_grouplist1], vrf)
-    assert_includes(result[afi][rp_addr_d2_def_grouplist2], vrf)
-    assert_includes(result[afi][rp_addr_d3_def_grouplist2], vrf)
-
-    pd1.destroy
-    pd2.destroy
-    pd3.destroy
-  end
-
-  # Tests single group list under vrf default
-  #------------------------------------------
-  def test_single_grouplist_single_vrf
-    %w(ipv4).each do |afi|
-      create_single_grouplist_single_vrf(afi)
-    end
-  end
-
-  # Creates multiple rp addresses under different vrfs
-  #--------------------------------------------------
-  def create_multiple_rpaddrs_multiple_vrfs(afi)
+  def all_group_lists(afi)
     rp_addr1 = '11.11.11.11'
-    rp_addr12 = '12.12.12.12'
-    vrf1 = 'default'
     rp_addr2 = '22.22.22.22'
-    rp_addr23 = '23.23.23.23'
-    vrf2 = 'red'
-    rp_addr3 = '33.33.33.33'
-    rp_addr34 = '34.34.34.34'
-    vrf3 = 'blue'
     grouplist1 = '227.0.0.0/8'
     grouplist2 = '228.0.0.0/8'
-    p1 = PimGroupList.new(afi, rp_addr1, grouplist1)
-    p12 = PimGroupList.new(afi, rp_addr12, grouplist2)
-    p2 = PimGroupList.new(afi, rp_addr2, grouplist1, vrf2)
-    p23 = PimGroupList.new(afi, rp_addr23, grouplist2, vrf2)
-    p3 = PimGroupList.new(afi, rp_addr3, grouplist1, vrf3)
-    p34 = PimGroupList.new(afi, rp_addr34, grouplist2, vrf3)
 
-    result = PimGroupList.group_lists
-
-    rp_addr1_def_grouplist1 = [rp_addr1, grouplist1]
-    rp_addr12_def_grouplist2 = [rp_addr12, grouplist2]
-    rp_addr2_def_grouplist1 = [rp_addr2, grouplist1]
-    rp_addr23_def_grouplist2 = [rp_addr23, grouplist2]
-    rp_addr3_def_grouplist1 = [rp_addr3, grouplist1]
-    rp_addr34_def_grouplist2 = [rp_addr34, grouplist2]
-
-    assert_includes(result[afi][rp_addr1_def_grouplist1], vrf1)
-    assert_includes(result[afi][rp_addr12_def_grouplist2], vrf1)
-    assert_includes(result[afi][rp_addr2_def_grouplist1], vrf2)
-    assert_includes(result[afi][rp_addr23_def_grouplist2], vrf2)
-    assert_includes(result[afi][rp_addr3_def_grouplist1], vrf3)
-    assert_includes(result[afi][rp_addr34_def_grouplist2], vrf3)
-    p1.destroy
-    p12.destroy
-    p2.destroy
-    p23.destroy
-    p3.destroy
-    p34.destroy
-  end
-
-  # Tests multiple rp addresses under different vrfs
-  #--------------------------------------------------
-  def test_multiple_rpaddrs_multiple_vrfs
-    %w(ipv4).each do |afi|
-      create_multiple_rpaddrs_multiple_vrfs(afi)
-    end
-  end
-
-  # Creates same rp address and same grouplists under multiple vrfs
-  #--------------------------------------------------------------
-  def create_same_rpaddr_same_grouplist_multiple_vrfs(afi)
-    rp_addr_d1 = '1.1.1.1'
-    rp_addr_d2 = '2.2.2.2'
-    rp_addr_d3 = '22.22.22.22'
+    # Basic setup
     vrf = 'default'
-    vrf2 = 'red'
-    vrf3 = 'black'
-    grouplist1 = '224.0.0.0/8'
-    grouplist2 = '226.0.0.0/8'
-    pd1 = PimGroupList.new(afi, rp_addr_d1, grouplist1)
-    pd2 = PimGroupList.new(afi, rp_addr_d2, grouplist2)
-    pd3 = PimGroupList.new(afi, rp_addr_d3, grouplist2)
+    pd1 = PimGroupList.new(afi, vrf, rp_addr1, grouplist1)
+    pd2 = PimGroupList.new(afi, vrf, rp_addr2, grouplist2)
+    hash = PimGroupList.group_lists
+    assert(hash.key?(afi))
+    assert(hash[afi].key?(vrf))
+    assert_equal(2, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 2 group lists")
+    assert(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr1}, #{grouplist1}]")
+    assert(hash[afi][vrf].key?([rp_addr2, grouplist2]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr2}, #{grouplist2}]")
 
-    p1_red = PimGroupList.new(afi, rp_addr_d1, grouplist1, vrf2)
-    p2_red = PimGroupList.new(afi, rp_addr_d2, grouplist2, vrf2)
-    p3_red = PimGroupList.new(afi, rp_addr_d3, grouplist2, vrf2)
+    # vrf with same rp_addrs/groups as in default
+    vrf = 'red'
+    pd3 = PimGroupList.new(afi, vrf, rp_addr1, grouplist1)
+    pd4 = PimGroupList.new(afi, vrf, rp_addr2, grouplist2)
+    hash = PimGroupList.group_lists
+    assert_equal(2, hash[afi].keys.count,
+                 "hash[#{afi}] does not have 2 vrfs")
+    assert(hash[afi].key?(vrf))
+    assert_equal(2, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 2 group lists")
+    assert(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr1}, #{grouplist1}]")
+    assert(hash[afi][vrf].key?([rp_addr2, grouplist2]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr2}, #{grouplist2}]")
 
-    p1_black = PimGroupList.new(afi, rp_addr_d1, grouplist1, vrf3)
-    p2_black = PimGroupList.new(afi, rp_addr_d2, grouplist2, vrf3)
-    p3_black = PimGroupList.new(afi, rp_addr_d3, grouplist2, vrf3)
+    # different vrf, same rps / diff groups, etc.
+    vrf = 'black'
+    rp_addr7 = '7.7.7.7'
+    pd5 = PimGroupList.new(afi, vrf, rp_addr1, grouplist1)
+    pd6 = PimGroupList.new(afi, vrf, rp_addr1, grouplist2)
+    pd7 = PimGroupList.new(afi, vrf, rp_addr7, grouplist2)
+    hash = PimGroupList.group_lists
+    assert_equal(3, hash[afi].keys.count,
+                 "hash[#{afi}] does not have 3 vrfs")
+    assert(hash[afi].key?(vrf))
+    assert_equal(3, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 3 group lists")
+    assert(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr1}, #{grouplist2}]")
+    assert(hash[afi][vrf].key?([rp_addr1, grouplist2]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr1}, #{grouplist2}]")
+    assert(hash[afi][vrf].key?([rp_addr7, grouplist2]),
+           "hash[#{afi}][#{vrf}] does not contain [#{rp_addr7}, #{grouplist2}]")
 
-    result = PimGroupList.group_lists
-
-    rp_addr_d1_def_grouplist1 = [rp_addr_d1, grouplist1]
-    rp_addr_d2_def_grouplist2 = [rp_addr_d2, grouplist2]
-    rp_addr_d3_def_grouplist2 = [rp_addr_d3, grouplist2]
-
-    assert_includes(result[afi][rp_addr_d1_def_grouplist1], vrf)
-    assert_includes(result[afi][rp_addr_d2_def_grouplist2], vrf)
-    assert_includes(result[afi][rp_addr_d3_def_grouplist2], vrf)
-
-    assert_includes(result[afi][rp_addr_d1_def_grouplist1], vrf2)
-    assert_includes(result[afi][rp_addr_d2_def_grouplist2], vrf2)
-    assert_includes(result[afi][rp_addr_d3_def_grouplist2], vrf2)
-
-    assert_includes(result[afi][rp_addr_d1_def_grouplist1], vrf3)
-    assert_includes(result[afi][rp_addr_d2_def_grouplist2], vrf3)
-    assert_includes(result[afi][rp_addr_d3_def_grouplist2], vrf3)
-
+    # Test removal
+    vrf = 'default'
     pd1.destroy
-    pd2.destroy
+    hash = PimGroupList.group_lists
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 group lists")
+    refute(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] should not contain "\
+           "[#{rp_addr1}, #{grouplist1}]")
+
+    vrf = 'red'
     pd3.destroy
+    hash = PimGroupList.group_lists
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 group lists")
+    refute(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] should not contain "\
+           "[#{rp_addr1}, #{grouplist1}]")
 
-    p1_red.destroy
-    p2_red.destroy
-    p3_red.destroy
-
-    p1_black.destroy
-    p2_black.destroy
-    p3_black.destroy
+    vrf = 'black'
+    pd5.destroy
+    pd7.destroy
+    hash = PimGroupList.group_lists
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 group lists")
+    refute(hash[afi][vrf].key?([rp_addr1, grouplist1]),
+           "hash[#{afi}][#{vrf}] should not contain "\
+           "[#{rp_addr1}, #{grouplist1}]")
+    pd2.destroy
+    pd4.destroy
+    pd6.destroy
+    hash = PimGroupList.group_lists
+    assert_empty(hash[afi], 'hash[#{afi}] is not empty')
   end
 
-  # Tests same rp address and same grouplists under multiple vrfs
-  #--------------------------------------------------------------
-  def test_same_rpaddr_same_grouplist_multiple_vrfs
+  # Tests Pim.group_lists
+  #------------------------------------------
+  def test_all_group_lists
     %w(ipv4).each do |afi|
-      create_same_rpaddr_same_grouplist_multiple_vrfs(afi)
+      all_group_lists(afi)
     end
   end
 
@@ -221,7 +149,7 @@ class TestPimGroupList < CiscoTestCase
     rp_addr = '256.256.256.256'
     grouplist = '224.0.0.0/8'
     assert_raises(CliError) do
-      PimGroupList.new(afi, rp_addr, grouplist)
+      PimGroupList.new(afi, 'default', rp_addr, grouplist)
     end
   end
 
@@ -238,9 +166,8 @@ class TestPimGroupList < CiscoTestCase
   def create_single_rpaddr_single_invalid_grouplist_single_vrf(afi)
     rp_addr = '25.25.25.25'
     grouplist = '25.0.0.0/8'
-    vrf = 'red'
     assert_raises(CliError) do
-      PimGroupList.new(afi, rp_addr, grouplist, vrf)
+      PimGroupList.new(afi, 'red', rp_addr, grouplist)
     end
   end
 

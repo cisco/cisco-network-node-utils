@@ -1107,4 +1107,22 @@ class TestInterface < CiscoTestCase
     interface.channel_group = interface.default_channel_group
     assert_equal(interface.default_channel_group, interface.channel_group)
   end
+
+  def test_ipv4_pim_sparse_mode
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ip pim sparse-mode
+    #
+    config('no feature pim')
+    i = Interface.new(interfaces[0])
+    i.ipv4_pim_sparse_mode = false
+    refute(i.ipv4_pim_sparse_mode)
+
+    i.ipv4_pim_sparse_mode = true
+    assert(i.ipv4_pim_sparse_mode)
+
+    i.ipv4_pim_sparse_mode = i.default_ipv4_pim_sparse_mode
+    assert_equal(i.default_ipv4_pim_sparse_mode, i.ipv4_pim_sparse_mode)
+  end
 end

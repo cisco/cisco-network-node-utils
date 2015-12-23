@@ -18,23 +18,9 @@
 # ---------------------------------------------------------------------
 # Testcases: All Tests create and destroy all instances within a test
 #
-# 1. test_single_rpaddr_single_vrf :
-#         vrf default, ip pim rp-address 1.1.1.1
+# 1. test_all_rp_addrs
 #
-# 2. test_multiple_rpaddrs_multiple_vrfs:
-#         vrf default, ip pim rp-address 11.11.11.11
-#         vrf default, ip pim rp-address 12.12.12.12
-#         vrf red, ip pim rp-address 22.22.22.22
-#         vrf red, ip pim rp-address 23.23.23.23
-#         vrf blue, ip pim rp-address 33.33.33.33
-#         vrf blue, ip pim rp-address 34.34.34.34
-#
-# 3. test_same_rpaddr_multiple_vrfs:
-#         vrf default, ip pim rp-address 66.66.66.66
-#         vrf red, ip pim rp-address 66.66.66.66
-#         vrf blue, ip pim rp-address 66.66.66.66
-#
-# 4. test_single_invalid_rpaddr_single_vrf:
+# 2. test_single_invalid_rpaddr_single_vrf:
 #         vrf default, ip pim rp-address 256.256.256.256
 # ---------------------------------------------------------------------
 
@@ -50,95 +36,101 @@ class TestPimRpAddress < CiscoTestCase
   def setup
     super
     config('no feature pim')
-    config('feature pim')
   end
 
-  # Creates single rp address under vrf default
-  #------------------------------------------
-  def create_single_rpaddr_single_vrf(afi)
-    rp_addr = '1.1.1.1'
+  # Test PimRpAddress.rp_addresses
+  # - multiple vrfs, rp_addrs
+  # - same rp_addr, different vrf
+  #--------------------------------------------
+  def all_rp_addrs(afi)
+    rp_addr1 = '11.11.11.11'
+    rp_addr2 = '22.22.22.22'
+
+    # Basic setup
     vrf = 'default'
-    p1 = PimRpAddress.new(afi, rp_addr)
-    result = PimRpAddress.rp_addresses
-    assert_includes(result[afi][rp_addr], vrf)
-    p1.destroy
+    pd1 = PimRpAddress.new(afi, vrf, rp_addr1)
+    pd2 = PimRpAddress.new(afi, vrf, rp_addr2)
+    hash = PimRpAddress.rp_addresses
+    assert(hash.key?(afi))
+    assert(hash[afi].key?(vrf))
+    assert_equal(2, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 2 rp-address")
+    assert(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr1}")
+    assert(hash[afi][vrf].key?(rp_addr2),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr2}")
+
+    # vrf with same rp_addrs as in default
+    vrf = 'red'
+    pd3 = PimRpAddress.new(afi, vrf, rp_addr1)
+    pd4 = PimRpAddress.new(afi, vrf, rp_addr2)
+    hash = PimRpAddress.rp_addresses
+    assert_equal(2, hash[afi].keys.count,
+                 "hash[#{afi}] does not have 2 vrfs")
+    assert(hash[afi].key?(vrf))
+    assert_equal(2, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 2 rp-address")
+    assert(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr1}")
+    assert(hash[afi][vrf].key?(rp_addr2),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr2}")
+
+    # different vrf, same/diff rps
+    vrf = 'black'
+    rp_addr7 = '7.7.7.7'
+    pd5 = PimRpAddress.new(afi, vrf, rp_addr1)
+    pd6 = PimRpAddress.new(afi, vrf, rp_addr2)
+    pd7 = PimRpAddress.new(afi, vrf, rp_addr7)
+    hash = PimRpAddress.rp_addresses
+    assert_equal(3, hash[afi].keys.count,
+                 "hash[#{afi}] does not have 3 vrfs")
+    assert(hash[afi].key?(vrf))
+    assert_equal(3, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 3 rp-address")
+    assert(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr1}")
+    assert(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr2}")
+    assert(hash[afi][vrf].key?(rp_addr7),
+           "hash[#{afi}][#{vrf}] does not contain #{rp_addr7}")
+
+    # Test removal
+    vrf = 'default'
+    pd1.destroy
+    hash = PimRpAddress.rp_addresses
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 rp-address")
+    refute(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] should not contain #{rp_addr1}")
+
+    vrf = 'red'
+    pd3.destroy
+    hash = PimRpAddress.rp_addresses
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 rp-address")
+    refute(hash[afi][vrf].key?(rp_addr1),
+           "hash[#{afi}][#{vrf}] should not contain #{rp_addr1}")
+
+    vrf = 'black'
+    pd5.destroy
+    pd7.destroy
+    hash = PimRpAddress.rp_addresses
+    assert_equal(1, hash[afi][vrf].keys.count,
+                 "hash[#{afi}][#{vrf}] should have 1 rp-address")
+    refute(hash[afi][vrf].key?([rp_addr1]),
+           "hash[#{afi}][#{vrf}] should not contain [#{rp_addr1}]")
+    pd2.destroy
+    pd4.destroy
+    pd6.destroy
+    hash = PimRpAddress.rp_addresses
+    assert_empty(hash[afi], 'hash[#{afi}] is not empty')
   end
 
-  # Tests single rp address under vrf default
+  # Tests PimRpAddress.rp_addresses
   #------------------------------------------
-  def test_single_rpaddr_single_vrf
+  def test_all_rp_addrs
     %w(ipv4).each do |afi|
-      create_single_rpaddr_single_vrf(afi)
-    end
-  end
-
-  # Creates multiple rp addresses under different vrfs
-  #--------------------------------------------------
-  def create_multiple_rpaddrs_multiple_vrfs(afi)
-    rp_addr11 = '11.11.11.11'
-    rp_addr12 = '12.12.12.12'
-    vrf1 = 'default'
-    rp_addr22 = '22.22.22.22'
-    rp_addr23 = '23.23.23.23'
-    vrf2 = 'red'
-    rp_addr33 = '33.33.33.33'
-    rp_addr34 = '34.34.34.34'
-    vrf3 = 'blue'
-    p11 = PimRpAddress.new(afi, rp_addr11)
-    p12 = PimRpAddress.new(afi, rp_addr12)
-    p22 = PimRpAddress.new(afi, rp_addr22, vrf2)
-    p23 = PimRpAddress.new(afi, rp_addr23, vrf2)
-    p33 = PimRpAddress.new(afi, rp_addr33, vrf3)
-    p34 = PimRpAddress.new(afi, rp_addr34, vrf3)
-
-    result = PimRpAddress.rp_addresses
-    assert_includes(result[afi][rp_addr11], vrf1)
-    assert_includes(result[afi][rp_addr12], vrf1)
-    assert_includes(result[afi][rp_addr22], vrf2)
-    assert_includes(result[afi][rp_addr23], vrf2)
-    assert_includes(result[afi][rp_addr33], vrf3)
-    assert_includes(result[afi][rp_addr34], vrf3)
-    p11.destroy
-    p12.destroy
-    p22.destroy
-    p23.destroy
-    p33.destroy
-    p34.destroy
-  end
-
-  # Tests multiple rp addresses under different vrfs
-  #------------------------------------------
-  def test_multiple_rpaddrs_multiple_vrfs
-    %w(ipv4).each do |afi|
-      create_multiple_rpaddrs_multiple_vrfs(afi)
-    end
-  end
-
-  # Creates same rp address under multiple vrfs
-  #-------------------------------------------
-  def create_same_rpaddr_multiple_vrfs(afi)
-    rp_addr = '66.66.66.66'
-    vrf1 = 'default'
-    vrf2 = 'red'
-    vrf3 = 'blue'
-    p1 = PimRpAddress.new(afi, rp_addr)
-    p2 = PimRpAddress.new(afi, rp_addr, vrf2)
-    p3 = PimRpAddress.new(afi, rp_addr, vrf3)
-
-    result = PimRpAddress.rp_addresses
-    assert_includes(result[afi][rp_addr], vrf1)
-    assert_includes(result[afi][rp_addr], vrf2)
-    assert_includes(result[afi][rp_addr], vrf3)
-    p1.destroy
-    p2.destroy
-    p3.destroy
-  end
-
-  # Tests same rp address under multiple vrfs
-  #-------------------------------------------
-  def test_same_rpaddr_multiple_vrfs
-    %w(ipv4).each do |afi|
-      create_same_rpaddr_multiple_vrfs(afi)
+      all_rp_addrs(afi)
     end
   end
 
@@ -147,7 +139,7 @@ class TestPimRpAddress < CiscoTestCase
   def create_single_invalid_rpaddr_single_vrf(afi)
     rp_addr = '256.256.256.256'
     assert_raises(CliError) do
-      PimRpAddress.new(afi, rp_addr)
+      PimRpAddress.new(afi, 'default', rp_addr)
     end
   end
 

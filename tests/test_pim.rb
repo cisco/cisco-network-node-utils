@@ -50,16 +50,15 @@ class TestPim < CiscoTestCase
   def setup
     super
     config('no feature pim')
-    config('feature pim')
   end
 
   # Creates single ssm range under default vrf
   #-----------------------------------------------
   def create_single_ssm_range_single_vrf(afi)
     range = '229.0.0.0/8'
-    p1 = Pim.new(afi)
+    p1 = Pim.new(afi, 'default')
     p1.ssm_range = (range)
-    assert_equal(p1.ssm_range, range.split(' ').sort)
+    assert_equal(p1.ssm_range, range.split.sort)
   end
 
   # Tests single ssm range none under default vrf
@@ -74,9 +73,9 @@ class TestPim < CiscoTestCase
   #-----------------------------------------------
   def create_single_ssm_range_none_single_vrf(afi)
     range = 'none'
-    p1 = Pim.new(afi)
+    p1 = Pim.new(afi, 'default')
     p1.ssm_range = (range)
-    assert_equal(p1.ssm_range, range.split(' ').sort)
+    assert_equal(p1.ssm_range, range.split.sort)
   end
 
   # Tests single ssm range none under default vrf
@@ -90,20 +89,18 @@ class TestPim < CiscoTestCase
   # Creates multiple ssm ranges under different vrfs
   #-----------------------------------------------
   def create_multiple_ssm_range_multiple_vrfs(afi)
-    range = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
+    range1 = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
     range2 = '230.0.0.0/8 228.0.0.0/8 224.0.0.0/8'
     range3 = 'none'
-    vrf = 'red'
-    vrf3 = 'black'
-    p1 = Pim.new(afi)
-    p2 = Pim.new(afi, vrf)
-    p3 = Pim.new(afi, vrf3)
-    p1.ssm_range = (range)
+    p1 = Pim.new(afi, 'default')
+    p2 = Pim.new(afi, 'red')
+    p3 = Pim.new(afi, 'black')
+    p1.ssm_range = (range1)
     p2.ssm_range = (range2)
     p3.ssm_range = (range3)
-    assert_equal(p1.ssm_range, range.split(' ').sort)
-    assert_equal(p2.ssm_range, range2.split(' ').sort)
-    assert_equal(p3.ssm_range, range3.split(' ').sort)
+    assert_equal(p1.ssm_range, range1.split.sort)
+    assert_equal(p2.ssm_range, range2.split.sort)
+    assert_equal(p3.ssm_range, range3.split.sort)
   end
 
   # Tests multiple ssm ranges under different vrfs
@@ -117,18 +114,17 @@ class TestPim < CiscoTestCase
   # Creates multiple ssm ranges overwrite under different vrfs
   #-----------------------------------------------
   def create_multiple_ssm_range_overwrite_multiple_vrfs(afi)
-    range = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
+    range1 = '229.0.0.0/8 225.0.0.0/8 224.0.0.0/8'
     range2 = '230.0.0.0/8 228.0.0.0/8 224.0.0.0/8'
     range3 = 'none'
-    vrf = 'red'
-    p1 = Pim.new(afi)
-    p2 = Pim.new(afi, vrf)
-    p1.ssm_range = (range)
+    p1 = Pim.new(afi, 'default')
+    p2 = Pim.new(afi, 'red')
+    p1.ssm_range = (range1)
     p2.ssm_range = (range2)
-    assert_equal(p1.ssm_range, range.split(' ').sort)
-    assert_equal(p2.ssm_range, range2.split(' ').sort)
+    assert_equal(p1.ssm_range, range1.split.sort)
+    assert_equal(p2.ssm_range, range2.split.sort)
     p2.ssm_range = (range3)
-    assert_equal(p2.ssm_range, range3.split(' ').sort)
+    assert_equal(p2.ssm_range, range3.split.sort)
   end
 
   # Tests multiple ssm ranges overwrite under different vrfs
@@ -143,7 +139,7 @@ class TestPim < CiscoTestCase
   #---------------------------------------------------
   def create_single_invalid_ssm_range_single_vrf(afi)
     range = '1.1.1.1/8'
-    p1 = Pim.new(afi)
+    p1 = Pim.new(afi, 'default')
     assert_raises(CliError) do
       p1.ssm_range = (range)
     end

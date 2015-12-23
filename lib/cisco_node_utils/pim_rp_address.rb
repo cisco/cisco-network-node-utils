@@ -15,9 +15,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------
-# CLI: <afi> pim rp-address <rp-address> (under different VRFs)
-#------------------------------------------------------------
 
 require_relative 'node_util'
 require_relative 'pim'
@@ -29,54 +26,43 @@ module Cisco
 
     # Constructor with afi, rp_address and vrf
     # -----------------------------------------
-    def initialize(afi, rp_addr, vrf='default', instantiate=true)
-      fail ArgumentError unless vrf.is_a? String
-      fail ArgumentError unless vrf.length > 0
+    def initialize(afi, vrf, rp_addr, instantiate=true)
+      fail ArgumentError unless vrf.is_a?(String) || vrf.length > 0
       @afi = Pim.afi_cli(afi)
       @rp_addr = rp_addr
       @vrf = vrf
-      if @vrf == 'default'
-        @get_args = @set_args = { state: '', afi: @afi, addr: @rp_addr }
-      else
-        @get_args = @set_args =
-                    { state: '', afi: @afi, addr: @rp_addr, vrf: @vrf }
-      end
       create if instantiate
     end
 
-    # Create a hash of [afi,rp_address]=>vrf mappings
+    # Create a hash of [afi][vrf][rp_address]
     # ------------------------------------------------
     def self.rp_addresses
-      afis = %w(ipv4) # Add ipv6 later
-      hash_final = {}
+      afis = %w(ipv4) # TBD ipv6
+      hash = {}
       afis.each do |afi|
-        hash_final[afi] = {}
+        hash[afi] = {}
         default_vrf = 'default'
-        rp_addrs = config_get('pim', 'all_rp_addresses', afi: Pim.afi_cli(afi))
+        get_args = { afi: Pim.afi_cli(afi) }
+        rp_addrs = config_get('pim', 'all_rp_addresses', get_args)
         unless rp_addrs.nil?
           rp_addrs.each do |addr|
-            # Get the RPs under default VRF
-            hash_final[afi][addr] = {}
-            hash_final[afi][addr][default_vrf] =
-                      PimRpAddress.new(afi, default_vrf, addr, false)
+            hash[afi][default_vrf] ||= {}
+            hash[afi][default_vrf][addr] =
+              PimRpAddress.new(afi, default_vrf, addr, false)
           end
         end
-        # Getting all custom vrfs rp_Addrs"
         vrf_ids = config_get('vrf', 'all_vrfs')
-        vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
         vrf_ids.each do |vrf|
-          get_args = { rp_addr: @rp_addr, vrf: @vrf, afi: Pim.afi_cli(afi) }
-          get_args[:vrf] = vrf
+          get_args = { afi: Pim.afi_cli(afi), vrf: vrf }
           rp_addrs = config_get('pim', 'all_rp_addresses', get_args)
           next if rp_addrs.nil?
           rp_addrs.each do |addr|
-            hash_final[afi][addr] ||= {}
-            hash_final[afi][addr][vrf] =
-                      PimRpAddress.new(afi, vrf, addr, false)
+            hash[afi][vrf] ||= {}
+            hash[afi][vrf][addr] = PimRpAddress.new(afi, vrf, addr, false)
           end
         end
       end
-      hash_final
+      hash
     end
 
     # set_args_keys_default
@@ -97,7 +83,8 @@ module Cisco
     # Create pim rp_addr instance
     # ------------------------------
     def create
-      Pim.enable unless Pim.enabled
+      Pim.feature_enable unless Pim.feature_enabled
+      set_args_keys(state: '')
       config_set('pim', 'rp_address', @set_args)
     end
 

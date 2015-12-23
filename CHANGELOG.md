@@ -8,9 +8,24 @@ Changelog
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
+* EVPN
+  * evpn_vni (@andish)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+* Interface
+  * interface_service (@chrisvanheuveln)
+* PIM
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
+* SNMP
+  * snmpnotification (@tphoney)
+* VDC
+  * vdc (@chrisvanheuveln)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
@@ -19,11 +34,25 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
-* Extend bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
-* Extend bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
-* Extend interface with `channel_group` attribute and support for fabric path attributes
-* Extend vrf with `vni` attribute
-* Extend vlan with `mode` attribute
+* Extend bgp with attributes:
+  * `fast_external_fallover`
+  * `flush_routes`
+  * `isolate`
+  * `neighbor_down_fib_accelerate`
+* Extend bgp_af with attributes:
+  * `default_metric`
+  * `distance_ebgp`, `distance_ibgp`, `distance_local`
+  * `inject_map`
+  * `suppress_inactive`
+  * `table_map`
+* Extend interface with attributes:
+  * `channel_group`
+  * `vlan_mapping`
+  * switchport mode `fabricpath`
+* Extend vrf with attributes:
+  * `vni`
+* Extend vlan with attribute:
+  * `mode`
 
 ### Changed
 
