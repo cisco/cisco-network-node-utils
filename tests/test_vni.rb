@@ -56,9 +56,8 @@ class TestVni < CiscoTestCase
 
   def mt_lite_env_setup
     skip('Platform does not support MT-lite') unless Vni.mt_lite_support
-    config('no feature vni')
-    config('no feature nv overlay')
     config('no feature vn-segment-vlan-based')
+    config('no feature nv overlay')
   end
 
   def test_mt_full_vni_create_destroy
