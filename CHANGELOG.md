@@ -8,11 +8,22 @@ Changelog
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
+* EVPN
+  * evpn_vni (@andish)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Interface
   * interface_service (@chrisvanheuveln)
+* PIM
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
+* SNMP
+  * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN

@@ -1,7 +1,7 @@
 #
 # NXAPI implementation of PIM class
 #
-# December 2015, Deepak Cherian, Smitha Gopalan
+# Smitha Gopalan, November 2015
 #
 # Copyright (c) 2015 Cisco and/or its affiliates.
 #
@@ -22,6 +22,19 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for Pim
   class Pim < NodeUtil
+    attr_reader :vrf, :afi
+
+    # Constructor with vrf
+    # ---------------------
+    def initialize(afi, vrf, instantiate=true)
+      fail ArgumentError unless vrf.is_a?(String) || vrf.length > 0
+      @vrf = vrf
+      @afi = Pim.afi_cli(afi)
+      set_args_keys_default
+
+      Pim.feature_enable if instantiate
+    end
+
     def self.feature_enabled
       config_get('pim', 'feature')
     rescue Cisco::CliError => e
@@ -31,8 +44,39 @@ module Cisco
     end
 
     def self.feature_enable
-      # This is a multi-use feature; thus enable only
       config_set('pim', 'feature')
+    end
+
+    def self.afi_cli(afi)
+      # Add ipv6 support later
+      fail ArgumentError, "Argument afi must be 'ipv4'" unless
+        afi[/(ipv4)/]
+      afi[/ipv4/] ? 'ip' : afi
+    end
+
+    def set_args_keys_default
+      keys = { afi: @afi }
+      keys[:vrf] = @vrf unless @vrf == 'default'
+      @get_args = @set_args = keys
+    end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
+    #-----------
+    # Properties
+    #-----------
+
+    def ssm_range
+      ranges = config_get('pim', 'ssm_range', @get_args)
+      ranges.split.sort
+    end
+
+    def ssm_range=(range)
+      set_args_keys(state: range ? '' : 'no', ssm_range: range)
+      config_set('pim', 'ssm_range', @set_args)
     end
   end  # Class
 end    # Module
