@@ -31,7 +31,7 @@ module Cisco
       hash = {}
       # if the key already exists, no need create instance
       hash['default'] =
-          PortChannelGlobal.new('default', false)
+          PortChannelGlobal.new('default')
       hash
     end
 
