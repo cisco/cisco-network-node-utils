@@ -36,15 +36,15 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def n7k_platform?
-    /N7K/ =~ node.product_id
+    /N7/ =~ node.product_id
   end
 
   def n9k_platform?
-    /N3K/ =~ node.product_id || /N9K/ =~ node.product_id
+    /N(3|9)/ =~ node.product_id
   end
 
   def n6k_platform?
-    /N5K/ =~ node.product_id || /N6K/ =~ node.product_id
+    /N(5|6)/ =~ node.product_id
   end
 
   def create_portchannel_global(name=DEFAULT_NAME)
@@ -52,7 +52,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_hash_distribution
-    return if n9k_platform? || n6k_platform?
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_portchannel_global
     @global.hash_distribution = 'fixed'
     assert_equal('fixed', @global.hash_distribution)
@@ -63,7 +64,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_load_defer
-    return if n9k_platform? || n6k_platform?
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_portchannel_global
     @global.load_defer = 1000
     assert_equal(1000, @global.load_defer)
@@ -74,7 +76,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_resilient
-    return if n7k_platform? || n6k_platform?
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n7k_platform?
     @global = create_portchannel_global
     @global.resilient = true
     assert_equal(true, @global.resilient)
@@ -83,7 +86,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_port_channel_load_balance_sym_concat_rot
-    return if n7k_platform? || n6k_platform?
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n7k_platform?
     @global = create_portchannel_global
     @global.send(:port_channel_load_balance=,
                  'src-dst', 'ip-l4port', nil, nil, true, true, 4)
@@ -120,7 +124,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_port_channel_load_balance_hash_poly
-    return if n7k_platform? || n9k_platform?
+    skip('Platform does not support this property') if n7k_platform? ||
+                                                       n9k_platform?
     @global = create_portchannel_global
     @global.send(:port_channel_load_balance=,
                  'src-dst', 'ip-only', 'CRC10c', nil, nil, nil, nil)
@@ -153,7 +158,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_port_channel_load_balance_asym_rot
-    return if n9k_platform? || n6k_platform?
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_portchannel_global
     @global.send(:port_channel_load_balance=,
                  'src-dst', 'ip-vlan', nil, true, nil, nil, 4)

@@ -21,30 +21,18 @@ module Cisco
   class PortChannelGlobal < NodeUtil
     attr_reader :name
 
-    def initialize(name, instantiate=true)
+    def initialize(name)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name == 'default'
       @name = name.downcase
-
-      create if instantiate
     end
 
     def self.globals
       hash = {}
       # if the key already exists, no need create instance
       hash['default'] =
-          PortChannelGlobal.new('default', false) unless hash.key?('default')
+          PortChannelGlobal.new('default', false)
       hash
-    end
-
-    # create and destroy are not needed for this as
-    # portchannel global commands do not have any
-    # pre-requisites
-    def create
-    end
-
-    def destroy
-      @name = nil
     end
 
     ########################################################
@@ -111,41 +99,29 @@ module Cisco
     # line of config first and after that get index of each property
     # and get the property value because some properties may or
     # may not be present always.
-    # This method returns a list
-    # 1st item is bundle_select
-    # 2nd item is bundle_hash
-    # 3rd item is hash_poly
-    # 4th item is asymmetric
-    # 5th item is symmetry
-    # 6th item is rotate
-    # 7th item is concatenation
+    # This method returns a hash
     def port_channel_load_balance
       lb = config_get('portchannel_global',
                       'port_channel_load_balance')
-      list = []
+      hash = {}
       lb.each do |line|
-        next if line.include? 'internal'
-        next if line.include? 'resilient'
-        next if line.include? 'module'
-        next if line.include? 'fex'
-        next if line.include? 'hash'
-        params = line.split(' ')
+        next if line[/(internal|resilient|module|fex|hash)/]
+        params = line.split
         lb_type = config_get('portchannel_global', 'load_balance_type')
         case lb_type.to_sym
         when :ethernet # n6k
-          _parse_ethernet_params(list, params)
+          _parse_ethernet_params(hash, params)
         when :asymmetric # n7k
-          _parse_asymmetric_params(list, params, line)
+          _parse_asymmetric_params(hash, params, line)
         when :symmetry # n9k
-          _parse_symmetry_params(list, params, line)
+          _parse_symmetry_params(hash, params, line)
         end
       end
-      list
+      hash
     end
 
     def asymmetric
-      array = port_channel_load_balance
-      array[3]
+      port_channel_load_balance[:asymmetric]
     end
 
     def default_asymmetric
@@ -154,8 +130,7 @@ module Cisco
     end
 
     def bundle_hash
-      array = port_channel_load_balance
-      array[1]
+      port_channel_load_balance[:bundle_hash]
     end
 
     def default_bundle_hash
@@ -164,8 +139,7 @@ module Cisco
     end
 
     def bundle_select
-      array = port_channel_load_balance
-      array[0]
+      port_channel_load_balance[:bundle_select]
     end
 
     def default_bundle_select
@@ -174,8 +148,7 @@ module Cisco
     end
 
     def concatenation
-      array = port_channel_load_balance
-      array[6]
+      port_channel_load_balance[:concatenation]
     end
 
     def default_concatenation
@@ -184,8 +157,7 @@ module Cisco
     end
 
     def hash_poly
-      array = port_channel_load_balance
-      array[2]
+      port_channel_load_balance[:hash_poly]
     end
 
     def default_hash_poly
@@ -194,8 +166,7 @@ module Cisco
     end
 
     def rotate
-      array = port_channel_load_balance
-      array[5]
+      port_channel_load_balance[:rotate]
     end
 
     def default_rotate
@@ -204,8 +175,7 @@ module Cisco
     end
 
     def symmetry
-      array = port_channel_load_balance
-      array[4]
+      port_channel_load_balance[:symmetry]
     end
 
     def default_symmetry
@@ -229,11 +199,7 @@ module Cisco
         config_set('portchannel_global', 'port_channel_load_balance',
                    'ethernet', sel_hash, hpoly, '', '', '')
       when :asymmetric # n7k
-        if asy == true
-          asym = 'asymmetric'
-        else
-          asym = ''
-        end
+        asym = (asy == true) ? 'asymmetric' : ''
         # port-channel load-balance dst ip-l4port rotate 4 asymmetric
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, 'rotate', rot.to_s, asym, '')
@@ -254,7 +220,7 @@ module Cisco
     # merged into one and so we need to break them apart,
     # also they are called source and destination instead of
     # src and dst as in other devices, so we convert them
-    def _parse_ethernet_params(list, params)
+    def _parse_ethernet_params(hash, params)
       hash_poly = params[2]
       # hash_poly is not shown on the running config
       # if it is default under some circumstatnces
@@ -276,20 +242,27 @@ module Cisco
           bhash = lparams[1]
         end
       end
-      list << bselect << bhash << hash_poly << nil << nil << nil << nil
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
+      hash[:hash_poly] = hash_poly
+      hash
     end
 
-    def _parse_asymmetric_params(list, params, line)
+    def _parse_asymmetric_params(hash, params, line)
       bselect = params[0]
       bhash = params[1]
       # asymmetric keyword does not show up if it is false
       asym = (line.include? 'asymmetric') ? true : false
       ri = params.index('rotate')
       rotate = params[ri + 1].to_i
-      list << bselect << bhash << nil << asym << nil << rotate << nil
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
+      hash[:asymmetric] = asym
+      hash[:rotate] = rotate
+      hash
     end
 
-    def _parse_symmetry_params(list, params, line)
+    def _parse_symmetry_params(hash, params, line)
       bselect = params[0]
       bhash = params[1]
       ri = params.index('rotate')
@@ -297,7 +270,12 @@ module Cisco
       # concatenation and symmetry keywords do not show up if false
       concat = (line.include? 'concatenation') ? true : false
       sym = (line.include? 'symmetric') ? true : false
-      list << bselect << bhash << nil << nil << sym << rotate << concat
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
+      hash[:symmetry] = sym
+      hash[:rotate] = rotate
+      hash[:concatenation] = concat
+      hash
     end
   end # class
 end # module

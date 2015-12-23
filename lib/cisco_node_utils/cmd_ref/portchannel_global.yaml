@@ -4,53 +4,43 @@ _template:
   config_get: "show running all"
 
 asymmetric:
-  _exclude: [/N6K/, /N5K/, /N3K/, /N9K/]
+  _exclude: [/N6/, /N5/, /N3/, /N9/]
   default_value: false
 
 bundle_hash:
-  /N5K/:
+  /N(5|6|7)/:
     default_value: 'ip'
-  /N6K/:
-    default_value: 'ip'
-  /N7/:
-    default_value: 'ip'
-  /N3K/:
-    default_value: 'ip-l4port'
-  /N9K/:
+  /N(3|9)/:
     default_value: 'ip-l4port'
 
 bundle_select:
   default_value: 'src-dst'
 
 concatenation:
-  _exclude: [/N7/, /N5K/, /N6K/]
+  _exclude: [/N7/, /N5/, /N6/]
   default_value: false
 
 hash_distribution:
-  _exclude: [/N6K/, /N5K/, /N3K/, /N9K/]
+  _exclude: [/N6/, /N5/, /N3/, /N9/]
   config_get_token: ['/^port.channel hash.distribution ?(.*)$/']
   config_set: ["terminal dont-ask", "port-channel hash-distribution %s", "end"]
   default_value: 'adaptive'
 
 hash_poly:
-  _exclude: [/N7/, /N3K/, /N9K/]
+  _exclude: [/N7/, /N3/, /N9/]
   default_value: 'CRC10b'
 
 load_balance_type:
   kind: string
-  /N5K/:
-    default_only: "ethernet"
-  /N6K/:
+  /N(5|6)/:
     default_only: "ethernet"
   /N7/:
     default_only: "asymmetric"
-  /N3K/:
-    default_only: "symmetry"
-  /N9K/:
+  /N(3|9)/:
     default_only: "symmetry"
 
 load_defer:
-  _exclude: [/N6K/, /N5K/, /N3K/, /N9K/]
+  _exclude: [/N6/, /N5/, /N3/, /N9/]
   kind: int
   config_get_token: ['/^port.channel load.defer (\d+)$/']
   config_set: ["port-channel load-defer %s"]
@@ -62,7 +52,7 @@ port_channel_load_balance:
   config_set: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
-  _exclude: [/N6K/, /N5K/, /N7/]
+  _exclude: [/N6/, /N5/, /N7/]
   kind: boolean
   config_get: "show running-config all"
   config_get_token: '/^port-channel load-balance resilient$/'
@@ -70,10 +60,10 @@ resilient:
   default_value: false
 
 rotate:
-  _exclude: [/N5K/, /N6K/]
+  _exclude: [/N5/, /N6/]
   kind: int
   default_value: 0
 
 symmetry:
-  _exclude: [/N7/, /N3K/, /N5K/, /N6K/]
+  _exclude: [/N7/, /N3/, /N5/, /N6/]
   default_value: false
