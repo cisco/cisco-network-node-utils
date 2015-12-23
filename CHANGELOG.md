@@ -60,6 +60,7 @@ Changelog
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied). 
 
 ## [v1.1.0]
 
