@@ -37,6 +37,7 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   # rubocop:disable Style/WordArray
+  # rubocop:disable Style/ClassVars
   # rubocop:disable Metrics/LineLength
 
   # BT: Regarding the Rubocop disables:
@@ -44,7 +45,7 @@ class TestRouterBgpAF < CiscoTestCase
   #     I've written it in a style that makes sense for the matrix layout.
 
   # Address Families to test:
-  @tafs = [
+  @@tafs = [
     #   afi  safi
     %w(ipv4 unicast),
     %w(ipv6 unicast),
@@ -83,13 +84,13 @@ class TestRouterBgpAF < CiscoTestCase
 
   # ASs to test:
   # BT: Do we ever need to test more than one AS?
-  @tasns = ['55']
+  @@tasns = ['55']
 
   # VRFs to test:
-  @tvrfs = ['default', 'red']
+  @@tvrfs = ['default', 'red']
 
   # Value-based properties
-  @tvalues = [
+  @@tvalues = [
     [:default_information_originate,  [:toggle]],
     [:client_to_client,               [:toggle]],
     [:additional_paths_send,          [:toggle]],
@@ -123,7 +124,7 @@ class TestRouterBgpAF < CiscoTestCase
   #   - Repeat until test passes.
   #   - Condense entries using :any where possible.
   #
-  @test_exceptions = [
+  @@test_exceptions = [
     #  Test                           OS      VRF        AF                    Expected result
 
     # Tests that are successful even though a rule below says otherwise
@@ -179,7 +180,7 @@ class TestRouterBgpAF < CiscoTestCase
   def check_test_exceptions(test_, os_, vrf_, af_)
     ret = nil
     amb = nil
-    @test_exceptions.each do |test, os, vrf, af, expect|
+    @@test_exceptions.each do |test, os, vrf, af, expect|
       next unless (test_ == test || test == :any) &&
                   (os_   == os   || os   == :any) &&
                   (vrf_  == vrf  || vrf  == :any) &&
@@ -198,13 +199,13 @@ class TestRouterBgpAF < CiscoTestCase
   # rubocop:enable Style/SpaceAroundOperators
 
   def test_properties_matrix
-    @tasns.each do |asn|
+    @@tasns.each do |asn|
       config_ios_xr_dependencies(asn) if platform == :ios_xr
 
-      @tvrfs.each do |vrf|
-        @tafs.each do |af|
+      @@tvrfs.each do |vrf|
+        @@tafs.each do |af|
           puts '**************************************'
-          @tvalues.each do |test, test_values|
+          @@tvalues.each do |test, test_values|
             puts "******** #{test}, #{asn}, #{vrf}, #{af}"
 
             # Override expectation for some specific cases..
@@ -272,6 +273,7 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   # rubocop:enable Metrics/LineLength
+  # rubocop:enable Style/ClassVars
   # rubocop:enable Style/WordArray
 
   ##
