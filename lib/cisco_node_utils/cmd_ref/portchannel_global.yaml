@@ -22,7 +22,7 @@ concatenation:
 
 hash_distribution:
   _exclude: [/N6/, /N5/, /N3/, /N9/]
-  config_get_token: ['/^port.channel hash.distribution ?(.*)$/']
+  config_get_token: ['/^port.channel hash.distribution (.*)$/']
   config_set: ["terminal dont-ask", "port-channel hash-distribution %s", "end"]
   default_value: 'adaptive'
 
