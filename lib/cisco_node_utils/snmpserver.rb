@@ -110,7 +110,6 @@ module Cisco
     end
 
     def protocol=(enable)
-      fail TypeError unless enable == true || enable == false
       no_cmd = (enable ? '' : 'no')
       config_set('snmp_server', 'protocol', no_cmd)
     rescue Cisco::CliError => e
@@ -126,7 +125,6 @@ module Cisco
     end
 
     def tcp_session_auth=(enable)
-      fail TypeError unless enable == true || enable == false
       if enable
         config_set('snmp_server', 'tcp_session_auth', '', 'auth')
       else

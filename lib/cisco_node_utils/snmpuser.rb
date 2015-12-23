@@ -81,19 +81,17 @@ module Cisco
       return users_hash if users.nil?
       users.each do |user|
         # n7k has enforcepriv, use-ipv*acl, avoid them
-        next if user.include?('enforcePriv')
-        next if user.include?('use-ipv4acl')
-        next if user.include?('use-ipv6acl')
-        user_var_arr = _get_snmp_user_parse(user)
-        name = user_var_arr[0]
-        engineid = user_var_arr[1]
+        next if user[/(enforcePriv|use-ipv4acl|use-ipv6acl)/]
+        user_var_hash = _get_snmp_user_parse(user)
+        name = user_var_hash[:name]
+        engineid = user_var_hash[:engineid]
         if engineid.empty?
           index = name
         else
           index = name + ' ' + engineid
         end
-        auth = user_var_arr[2]
-        priv = user_var_arr[3]
+        auth = user_var_hash[:auth]
+        priv = user_var_hash[:priv]
         groups_arr = []
         # take care of multiple groups here
         # if the name already exists in hash
@@ -105,7 +103,7 @@ module Cisco
         end
 
         # add the group to the array
-        groups_arr << _get_group_arr(user_var_arr)
+        groups_arr << _get_group_arr(user_var_hash)
         users_hash[index] = SnmpUser.new(name, groups_arr.flatten, auth,
                                          '', priv, '', false,
                                          engineid,
@@ -307,8 +305,8 @@ module Cisco
     private
 
     def self._get_snmp_user_parse(user)
-      user_var = []
-      lparams = user.split(' ')
+      user_var = {}
+      lparams = user.split
       name = lparams[0]
       engineid_index = lparams.index('engineID')
       auth_index = lparams.index('auth')
@@ -323,23 +321,27 @@ module Cisco
       pri = 'des' unless pri.empty? || pri == 'aes-128'
       auth = _auth_str_to_sym(aut)
       priv = _priv_str_to_sym(pri)
-      # add the vars to array
-      user_var << name << engineid << auth << priv
+      user_var[:name] = name
+      user_var[:engineid] = engineid
+      user_var[:auth] = auth
+      user_var[:priv] = priv
+      user_var[:auth_index] = auth_index
+      user_var[:engineid_index] = engineid_index
       # group may or may not exist but it is always after name
       # lparams[1] can be group, it is not known here,
       # but will be determined in the _get_group_arr method
-      user_var << auth_index << engineid_index << lparams[1]
+      user_var[:group] = lparams[1]
       user_var
     end
 
-    def self._get_group_arr(user_var_arr)
+    def self._get_group_arr(user_var_hash)
       user_groups = []
-      auth_index = user_var_arr[4]
-      engineid_index = user_var_arr[5]
+      auth_index = user_var_hash[:auth_index]
+      engineid_index = user_var_hash[:engineid_index]
       # after the name it can be group or auth or engineID
       # so filter it properly
-      user_groups << user_var_arr[6] unless auth_index == 1 ||
-                                            engineid_index == 1
+      user_groups << user_var_hash[:group] unless auth_index == 1 ||
+                                                  engineid_index == 1
       user_groups
     end
 
