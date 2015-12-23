@@ -32,30 +32,247 @@ class TestRouterBgpAF < CiscoTestCase
       config('no feature bgp', 'feature bgp')
     elsif platform == :ios_xr
       config('no router bgp')
+      config('no route-policy drop_all')
     end
   end
 
-  def get_bgp_af_cfg(asn, vrf, af)
-    afi, safi = af
-    string =
-      @device.cmd("show run bgp all | sec 'bgp #{asn}' |  sec 'vrf #{vrf}' | " \
-                  "sec 'address-family #{afi} #{safi}' | no-more")
-    string
+  # rubocop:disable Style/WordArray
+  # rubocop:disable Metrics/LineLength
+
+  # BT: Regarding the Rubocop disables:
+  #     May need some style/refactor discussion for the code below.
+  #     I've written it in a style that makes sense for the matrix layout.
+
+  # Address Families to test:
+  @tafs = [
+    #   afi  safi
+    %w(ipv4 unicast),
+    %w(ipv6 unicast),
+    %w(ipv4 multicast),
+    %w(ipv6 multicast),
+    %w(l2vpn evpn),
+
+    # BT: These are additional address families/modifiers reported by XR, should they be tested also?
+    #     Looks like most of them are not supported on Nexus...
+    #
+
+    #     %w(ipv4 mvpn),
+    #     %w(ipv6 mvpn),
+
+    # Not on Nexus:
+    #     %w(link-state link-state),
+    #
+    #     %w(l2vpn mspw),
+    #     %w(l2vpn vpls-vpws),
+    #
+    #     %w(ipv4 flowspec),
+    #     %w(ipv4 mdt),
+    #     %w(ipv4 rt-filter),
+    #     %w(ipv4 tunnel),
+    #
+    #     %w(ipv6 flowspec),
+    #
+    #     %w(vpnv4 unicast),
+    #     %w(vpnv4 multicast),
+    #     %w(vpnv4 flowspec),
+    #
+    #     %w(vpnv6 unicast),
+    #     %w(vpnv6 multicast),
+    #     %w(vpnv6 flowspec),
+  ]
+
+  # ASs to test:
+  # BT: Do we ever need to test more than one AS?
+  @tasns = ['55']
+
+  # VRFs to test:
+  @tvrfs = ['default', 'red']
+
+  # Value-based properties
+  @tvalues = [
+    [:default_information_originate,  [:toggle]],
+    [:client_to_client,               [:toggle]],
+    [:additional_paths_send,          [:toggle]],
+    [:additional_paths_receive,       [:toggle]],
+    [:additional_paths_install,       [:toggle]],
+    [:advertise_l2vpn_evpn,           [:toggle]],
+
+    # TODO: To be added in next iteration
+    #    [:route_target_both_auto,         [:toggle]],
+    #    [:route_target_both_auto_evpn,    [:toggle]],
+
+    [:next_hop_route_map,             ['drop_all']],
+    [:additional_paths_selection,     ['drop_all']],
+    [:maximum_paths,                  [7, 9]],
+    [:maximum_paths_ibgp,             [7, 9]],
+    [:dampen_igp_metric,              [555, nil]],
+
+    # TODO: To be added in next iteration
+    #    [:route_target_import,            [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
+    #    [:route_target_import_evpn,       [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
+    #    [:route_target_export,            [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
+    #    [:route_target_export_evpn,       [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
+  ]
+
+  # Given the cartesian product of the above parameters, not all tests are supported.
+  # Here we record which tests are expected to fail, and what kind of failure is expected.
+  # This supports a very simple workflow for adding features:
+  #   - Add new entry into test tables above.
+  #   - Run tests.
+  #   - When test fails, add a new 'exception' entry.
+  #   - Repeat until test passes.
+  #   - Condense entries using :any where possible.
+  #
+  @test_exceptions = [
+    #  Test                           OS      VRF        AF                    Expected result
+
+    # Tests that are successful even though a rule below says otherwise
+    [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
+
+    # BT: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
+    #     This causes the getter and setter to be out of sync, thus failing the test(s)
+    [:any,                           :any,    'red',     %w(l2vpn evpn),       :skip],
+
+    # XR Unsupported
+    [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
+    [:client_to_client,              :ios_xr, 'red',     :any,                 :unsupported],
+    [:additional_paths_install,      :ios_xr, :any,      :any,                 :unsupported],
+    [:advertise_l2vpn_evpn,          :ios_xr, :any,      :any,                 :unsupported],
+    [:maximum_paths,                 :ios_xr, :any,      %w(vpnv4 multicast),  :unsupported],
+    [:maximum_paths,                 :ios_xr, :any,      %w(vpnv6 multicast),  :unsupported],
+
+    [:maximum_paths_ibgp,            :ios_xr, :any,      %w(vpnv4 multicast),  :unsupported],
+    [:maximum_paths_ibgp,            :ios_xr, :any,      %w(vpnv6 multicast),  :unsupported],
+    [:dampen_igp_metric,             :ios_xr, :any,      :any,                 :unsupported],
+
+    # XR CLI Errors
+    [:additional_paths_send,         :ios_xr, :any,      %w(ipv4 multicast),   :CliError],
+    [:additional_paths_send,         :ios_xr, :any,      %w(ipv6 multicast),   :CliError],
+    [:additional_paths_receive,      :ios_xr, :any,      %w(ipv4 multicast),   :CliError],
+    [:additional_paths_receive,      :ios_xr, :any,      %w(ipv6 multicast),   :CliError],
+    [:next_hop_route_map,            :ios_xr, 'red',     %w(ipv4 unicast),     :CliError],
+    [:next_hop_route_map,            :ios_xr, 'red',     %w(ipv6 unicast),     :CliError],
+    [:next_hop_route_map,            :ios_xr, 'red',     %w(ipv4 multicast),   :CliError],
+    [:next_hop_route_map,            :ios_xr, 'red',     %w(ipv6 multicast),   :CliError],
+    [:maximum_paths,                 :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
+    [:maximum_paths_ibgp,            :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
+    [:additional_paths_selection,    :ios_xr, :any,      %w(ipv4 multicast),   :CliError],
+    [:additional_paths_selection,    :ios_xr, :any,      %w(ipv6 multicast),   :CliError],
+
+    # Nexus Unsupported
+    [:any,                           :nexus,  :any,      %w(vpnv4 multicast),  :unsupported],
+    [:any,                           :nexus,  :any,      %w(vpnv6 multicast),  :unsupported],
+
+    # Nexus CLI Errors
+    [:any,                           :nexus,  'default', %w(l2vpn evpn),       :CliError],
+    [:additional_paths_install,      :nexus,  :any,      %w(ipv6 unicast),     :CliError],
+    [:additional_paths_install,      :nexus,  :any,      %w(ipv6 multicast),   :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'default', %w(ipv4 unicast),     :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'default', %w(ipv6 unicast),     :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'default', %w(ipv4 multicast),   :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'default', %w(ipv6 multicast),   :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'red',     %w(ipv4 multicast),   :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  'red',     %w(ipv6 multicast),   :CliError],
+  ]
+
+  # rubocop:disable Style/SpaceAroundOperators
+  def check_test_exceptions(test_, os_, vrf_, af_)
+    ret = nil
+    amb = nil
+    @test_exceptions.each do |test, os, vrf, af, expect|
+      next unless (test_ == test || test == :any) &&
+                  (os_   == os   || os   == :any) &&
+                  (vrf_  == vrf  || vrf  == :any) &&
+                  (af_   == af   || af   == :any)
+      return expect if expect == :success || expect == :skip
+
+      # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
+      assert_nil(ret, 'TEST ERROR: Exceptions matrix has ambiguous entries! ' \
+                      "#{amb} and [#{test}, #{os}, #{vrf}, #{af}]")
+      ret = expect
+      amb = [test, os, vrf, af, expect]
+    end
+    # Return the expected test result
+    ret.nil? ? :success : ret
+  end
+  # rubocop:enable Style/SpaceAroundOperators
+
+  def test_properties_matrix
+    @tasns.each do |asn|
+      config_ios_xr_dependencies(asn) if platform == :ios_xr
+
+      @tvrfs.each do |vrf|
+        @tafs.each do |af|
+          puts '**************************************'
+          @tvalues.each do |test, test_values|
+            puts "******** #{test}, #{asn}, #{vrf}, #{af}"
+
+            # Override expectation for some specific cases..
+            expect = check_test_exceptions(test, platform, vrf, af)
+
+            # Setup
+            bgp_af = RouterBgpAF.new(asn, vrf, af)
+            initial = bgp_af.send(test)
+            default = bgp_af.send("default_#{test}")
+
+            if expect == :skip
+              # Do nothing..
+              puts '         skip'
+
+            elsif expect == :CliError
+              puts '         CliError'
+
+              # This set of parameters produces a CLI error
+              assert_raises(Cisco::CliError,
+                            "Assert 'cli error' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
+                bgp_af.send("#{test}=", 'foo') # *** BT: Don't like this ***
+              end
+
+            elsif expect == :unsupported
+              puts '         Unsupported'
+
+              # Getter should return nil when unsupported?
+              # BT: does not seem to work in general ..?
+              #            assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
+
+              # Setter should raise error when unsupported
+              assert_raises(Cisco::UnsupportedError,
+                            "Assert 'unsupported' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
+                bgp_af.send("#{test}=", 'foo') # *** BT: Don't like this ***
+              end
+
+            else
+
+              # Check initial value == default value
+              assert_equal(default, initial,
+                           "Initial value failed for: #{test}, #{asn}, #{vrf}, #{af}")
+
+              # Try all the test values in order
+              test_values.each do |test_value|
+                test_value = (test_value == :toggle) ? !default : test_value
+
+                # Try the test value
+                bgp_af.send("#{test}=", test_value)
+                assert_equal(test_value, bgp_af.send(test),
+                             "Test value failed for: #{test}, #{asn}, #{vrf}, #{af}")
+              end # test_values
+
+              # Set it back to the default
+              bgp_af.send("#{test}=", default)
+              assert_equal(default, bgp_af.send(test),
+                           "Default assignment failed for: #{test}, #{asn}, #{vrf}, #{af}")
+            end
+
+            # Cleanup
+            bgp_af.destroy
+          end # tests
+        end # afs
+      end # vrfs
+    end # asns
   end
 
-  # show bgp ipv4 unicast dampening parameters
-  # Route Flap Dampening Parameters for VRF default Address family IPv4 Unicast:
-  # Default values in use:
-  # Half-life time                 : 15 mins
-  # Suppress penalty               : 2000
-  # Reuse penalty                  : 750
-  # Max suppress time              : 45 mins
-  # Max suppress penalty           : 6000
-  def get_bgp_af_dampening_params(_asn, vrf, af)
-    afi = af.first
-    safi = af.last
-    @device.cmd("show bgp vrf #{vrf} #{afi} #{safi} dampening parameters")
-  end
+  # rubocop:enable Metrics/LineLength
+  # rubocop:enable Style/WordArray
 
   ##
   ## BGP Address Family
@@ -110,387 +327,34 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-  def config_ios_xr_dependencies(asn, vrf='red', casty='unicast')
+  def config_ios_xr_dependencies(asn, vrf='red')
     # These dependencies are required on ios xr
 
-    # router bgp 55
-    #  vrf red
-    #   address-family ipv4 unicast
-    # !!% 'BGP' detected the 'warning' condition 'The RD for the VRF must
-    #    be present before an address family is activated'
+    # "rd auto" required, otherwise XR reports:
+    #   'The RD for the VRF must be present before an
+    #        address family is activated'
 
-    # router bgp 55
-    #  vrf red
-    #   rd auto
-    # !!% 'BGP' detected the 'warning' condition 'BGP router ID must be
-    #     configured.'
-    # Configure loopback0 with ip 10.1.1.1 and
-    # router bgp 55
-    #  bgp router-id 10.1.1.1
+    # "bgp router-id" requred, otherwise XR reports:
+    #   'BGP router ID must be configured.'
 
-    # router bgp 55
-    #  vrf red
-    #   address-family ipv4 unicast
-    # !!% 'BGP' detected the 'warning' condition 'The parent address family
-    #     has not been initialized'
-    # Configure
-    # router bgp 55
-    #  address-family vpnv4 unicast
+    # "address-family vpnv4 unicast" required, otherwise XR reports:
+    #   'The parent address family has not been initialized'
 
-    config('interface Loopback0', 'ipv4 address 10.1.1.1 255.255.255.255')
     config("router bgp #{asn}",
            'bgp router-id 10.1.1.1',
-           "address-family vpnv4 #{casty}",
-           "address-family vpnv6 #{casty}",
+           'address-family vpnv4 unicast',
+           'address-family vpnv6 unicast',
+           'address-family vpnv4 multicast',
+           'address-family vpnv6 multicast',
            "vrf #{vrf}", 'rd auto')
+
+    # Needed for testing route-policy commands
+    config('route-policy drop_all', 'end-policy')
   end
 
   ########################################################
   #                      PROPERTIES                      #
   ########################################################
-
-  ##
-  ## default-information originate
-  ##
-  def test_default_information_originate
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-
-    if platform == :ios_xr
-
-      # XR does not support default-information under address-family
-      config_ios_xr_dependencies(asn)
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-      assert_raises(Cisco::UnsupportedError) do
-        bgp_af.default_information_originate = true
-      end
-    elsif platform == :nexus
-
-      # Check default value
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-      initial = bgp_af.default_information_originate
-      default = bgp_af.default_default_information_originate
-      assert_equal(default, initial)
-
-      # Toggle the state a few times
-      bgp_af.default_information_originate = !initial
-      assert_equal(!initial, bgp_af.default_information_originate)
-
-      bgp_af.default_information_originate = initial
-      assert_equal(initial, bgp_af.default_information_originate)
-
-      bgp_af.destroy
-    end
-  end
-
-  ##
-  ## Negative tests with non-default vrf on ios_xr
-  ##
-  def client_to_client_vrf_xr_neg_test
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    assert_nil(bgp_af.client_to_client,
-               'client_to_client should return nil on XR with non-default vrf')
-    assert_raises(Cisco::UnsupportedError) do
-      bgp_af.client_to_client = true
-    end
-  end
-
-  ##
-  ## client-to-client reflection (BT: trying a different style)
-  ##
-  def test_client_to_client
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-
-    # Setup XR?
-    if platform == :ios_xr
-      config_ios_xr_dependencies(asn)
-      client_to_client_vrf_xr_neg_test
-      vrf = 'default'
-    end
-
-    # Create Address Family
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    # Check default value
-    initial = bgp_af.client_to_client
-    default = bgp_af.default_client_to_client
-    assert_equal(default, initial)
-
-    # Toggle the state a few times
-    bgp_af.client_to_client = !initial
-    assert_equal(!initial, bgp_af.client_to_client)
-
-    bgp_af.client_to_client = initial
-    assert_equal(initial, bgp_af.client_to_client)
-
-    bgp_af.destroy
-  end
-
-  ##
-  ## Negative tests with non-default vrf on ios_xr
-  ##
-  def next_hop_route_policy_vrf_xr_neg_test
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    assert_nil(bgp_af.next_hop_route_policy,
-               'next_hop_route_policy should return ' \
-               'nil on XR with non-default vrf')
-    assert_raises(Cisco::UnsupportedError) do
-      bgp_af.next_hop_route_policy = '  drop_all  '
-    end
-  end
-
-  ##
-  ## next_hop route-map or route-policy
-  ##
-  def test_next_hop_route_map_or_policy
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-
-    if platform == :nexus
-      # Nexus uses "route-map"
-
-      # Create Address Family
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-      # Check default route-map value
-      initial_map = bgp_af.next_hop_route_map
-      default_map = bgp_af.default_next_hop_route_map
-      assert_equal(default_map, initial_map)
-
-      # Toggle the state a few times
-      bgp_af.next_hop_route_map = '  drop_all  '
-      assert_equal('drop_all', bgp_af.next_hop_route_map)
-
-      bgp_af.next_hop_route_map = default_map
-      assert_equal(default_map, bgp_af.next_hop_route_map)
-
-    elsif platform == :ios_xr
-      # XR uses "route-policy"
-      config_ios_xr_dependencies(asn)
-
-      # XR does not support separate route-policies under a VRF
-      next_hop_route_policy_vrf_xr_neg_test
-      vrf = 'default'
-
-      # Create Address Family
-      bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-      config('route-policy drop_all', 'end-policy') if platform == :ios_xr
-
-      # Check default route-policy value
-      initial_policy = bgp_af.next_hop_route_policy
-      default_policy = bgp_af.default_next_hop_route_policy
-      assert_equal(default_policy, initial_policy)
-
-      # Toggle the state a few times
-      bgp_af.next_hop_route_policy = '  drop_all  '
-      assert_equal('drop_all', bgp_af.next_hop_route_policy)
-
-      bgp_af.next_hop_route_policy = default_policy
-      assert_equal(default_policy, bgp_af.next_hop_route_policy)
-    end
-
-    bgp_af.destroy
-  end
-
-  ##
-  ## additional_paths
-  ##
-  def test_additional_paths
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    #
-    # Test default and getter methods
-    #
-    assert_equal(bgp_af.default_additional_paths_send,
-                 bgp_af.additional_paths_send)
-    assert_equal(bgp_af.default_additional_paths_receive,
-                 bgp_af.additional_paths_receive)
-    assert_equal(bgp_af.default_additional_paths_install,
-                 bgp_af.additional_paths_install)
-    #
-    # Set and verify
-    #
-
-    # Do a 'additional-paths send, receive, install'
-    bgp_af.additional_paths_send = true
-    bgp_af.additional_paths_receive = true
-    bgp_af.additional_paths_install = true if platform == :nexus
-
-    #
-    # Test getter
-    #
-
-    assert(bgp_af.additional_paths_send,
-           'No additional-paths send configured')
-    assert(bgp_af.additional_paths_receive,
-           'No additional-paths receive configured')
-    assert(bgp_af.additional_paths_install) if platform == :nexus
-
-    #
-    # Unset and verify
-    #
-
-    # Do a 'no additional-paths send, receive, install'
-    bgp_af.additional_paths_send = false
-    bgp_af.additional_paths_receive = false
-    bgp_af.additional_paths_install = false if platform == :nexus
-
-    assert_equal(bgp_af.default_additional_paths_send,
-                 bgp_af.additional_paths_send)
-    assert_equal(bgp_af.default_additional_paths_receive,
-                 bgp_af.additional_paths_receive)
-    assert_equal(bgp_af.default_additional_paths_install,
-                 bgp_af.additional_paths_install)
-  end
-
-  ##
-  ## additional_paths_selection route-map
-  ##
-  def test_additional_paths_selection
-    asn = '55'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-
-    #
-    # Set and verify
-    #
-    if platform == :ios_xr
-      config_ios_xr_dependencies(asn)
-      config('route-policy drop_all', 'end-policy')
-    end
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    # Check default value
-    assert_equal(bgp_af.default_additional_paths_selection,
-                 bgp_af.additional_paths_selection)
-
-    # Set value and verify
-    bgp_af.additional_paths_selection = 'drop_all'
-    assert_equal('drop_all', bgp_af.additional_paths_selection,
-                 'Error: additional-paths selection route-map/policy not set')
-
-    # Unset and verify
-    bgp_af.additional_paths_selection =
-      bgp_af.default_additional_paths_selection
-
-    assert_equal(bgp_af.default_additional_paths_selection,
-                 bgp_af.additional_paths_selection)
-
-    config('no route-policy drop_all') if platform == :ios_xr
-    bgp_af.destroy
-  end
-
-  ##
-  ## advertise_l2vpn_evpn
-  ##
-  def advertise_l2vpn_evpn(asn, vrf, af)
-    # Create BGP
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    initial = bgp_af.advertise_l2vpn_evpn
-
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        bgp_af.advertise_l2vpn_evpn = !initial
-      end
-    else
-      # Check initial == default value
-      default = bgp_af.default_advertise_l2vpn_evpn
-      assert_equal(default, initial)
-
-      # Toggle the state  few times
-      states = [!initial, initial]
-      states.each do |state|
-        bgp_af.advertise_l2vpn_evpn = state
-        assert_equal(state, bgp_af.advertise_l2vpn_evpn)
-      end
-    end
-    bgp_af.destroy
-  end
-
-  def test_advertise_l2vpn_evpn
-    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
-    afs.each do |af|
-      advertise_l2vpn_evpn(55, 'red', af)
-    end
-  end
-
-  ##
-  ## get_dampen_igp_metric
-  ##
-  def test_dampen_igp_metric
-    asn = '44'
-    vrf = 'green'
-    af = %w(ipv4 multicast)
-
-    config_ios_xr_dependencies(asn, vrf, 'multicast') if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    #
-    # Verify default value
-    #
-    assert_equal(bgp_af.default_dampen_igp_metric, bgp_af.dampen_igp_metric,
-                 "Error: Default 'dampen-igp-metric' value should be " \
-                   "#{bgp_af.default_dampen_igp_metric}")
-
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        bgp_af.dampen_igp_metric = 555
-      end
-    else
-      # Set and verify 'dampen-igp-metric <value>'
-      bgp_af.dampen_igp_metric = 555
-
-      # Test getter
-      assert_equal(555, bgp_af.dampen_igp_metric,
-                   'Error: dampen_igp_metric should be 555')
-
-      # Set and verify 'no dampen-igp-metric'
-      bgp_af.dampen_igp_metric = nil
-
-      # Test getter
-      assert_equal(nil, bgp_af.dampen_igp_metric,
-                   'Error: dampen_igp_metric should be nil')
-
-      # Set default value explicitly
-      bgp_af.dampen_igp_metric = bgp_af.default_dampen_igp_metric
-      assert_equal(bgp_af.default_dampen_igp_metric, bgp_af.dampen_igp_metric,
-                   "Error: Default 'dampen-igp-metric' value should be " \
-                     "#{bgp_af.default_dampen_igp_metric}")
-    end
-  end
-
-  ##
-  ## Negative tests with non-default vrf on ios_xr
-  ##
-  def dampening_vrf_xr_neg_test
-    asn = '101'
-    vrf = 'red'
-    af = %w(ipv4 unicast)
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-    assert_nil(bgp_af.dampening,
-               'dampening should return nil on XR with non-default vrf')
-    assert_raises(Cisco::UnsupportedError) do
-      bgp_af.dampening = %w(one two)
-    end
-  end
 
   def test_dampening
     asn = '101'
@@ -614,92 +478,6 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   ##
-  ## maximum_paths
-  ##
-  def maximum_paths(asn, vrf, af)
-    asn = '101'
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    #
-    # Set and verify
-    #
-    val = 7
-    bgp_af.maximum_paths = val
-    assert_equal(bgp_af.maximum_paths, val,
-                 'Error: maximum paths value not match to set value')
-
-    val = 9
-    bgp_af.maximum_paths = val
-    assert_equal(bgp_af.maximum_paths, val,
-                 'Error: maximum paths value not match to set value')
-
-    val = bgp_af.default_maximum_paths
-    bgp_af.maximum_paths = val
-    assert_equal(bgp_af.maximum_paths, val,
-                 'Error: maximum paths value not match to default value')
-  end
-
-  def test_maximum_paths
-    vrfs = %w(default red)
-    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
-    vrfs.each do |vrf|
-      afs.each do |af|
-        maximum_paths(55, vrf, af)
-      end
-    end
-  end
-
-  ##
-  ## maximum_paths_ibgp
-  ##
-  def maximum_paths_ibgp(asn, vrf, af)
-    /ipv4/.match(af) ? af = %w(ipv4 unicast) : af = %w(ipv6 unicast)
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    #
-    # Set and verify
-    #
-    val = 7
-    bgp_af.maximum_paths_ibgp = val
-    assert_equal(bgp_af.maximum_paths_ibgp, val,
-                 'Error: maximum paths ibgp value not match to set value')
-
-    val = 9
-    bgp_af.maximum_paths_ibgp = val
-    assert_equal(bgp_af.maximum_paths_ibgp, val,
-                 'Error: maximum paths ibgp value not match to set value')
-
-    val = bgp_af.default_maximum_paths_ibgp
-    bgp_af.maximum_paths = val
-    assert_equal(bgp_af.default_maximum_paths_ibgp, val,
-                 'Error: maximum paths ibgp value not match to default value')
-  end
-
-  def test_maximum_paths_ibgp
-    asn = '55'
-    vrf = 'default'
-    af = 'ipv4 unicast'
-    maximum_paths_ibgp(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'red'
-    af = 'ipv4 unicast'
-    maximum_paths_ibgp(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'default'
-    af = 'ipv6 unicast'
-    maximum_paths_ibgp(asn, vrf, af)
-
-    asn = '55'
-    vrf = 'red'
-    af = 'ipv6 unicast'
-    maximum_paths_ibgp(asn, vrf, af)
-  end
-
-  ##
   ## network
   ##
 
@@ -712,6 +490,8 @@ class TestRouterBgpAF < CiscoTestCase
         config_ios_xr_dependencies(1)
         af_obj = RouterBgpAF.new(1, vrf, af)
         network_cmd(af_obj, dbg)
+
+        af_obj.destroy
       end
     end
   end
@@ -808,6 +588,7 @@ class TestRouterBgpAF < CiscoTestCase
         config_ios_xr_dependencies(1) if platform == :ios_xr
         af = RouterBgpAF.new(1, vrf, af)
         redistribute_cmd(af, dbg)
+        af.destroy
       end
     end
   end
@@ -1027,6 +808,8 @@ class TestRouterBgpAF < CiscoTestCase
     # Test 4: 'default'
     should = bgp_af.default_route_target_import
     route_target_tester(bgp_af, af, opts, should, 'Test 4')
+
+    bgp_af.destroy
   end
 
   def route_target_tester(bgp_af, af, opts, should, test_id)

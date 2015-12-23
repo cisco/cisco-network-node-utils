@@ -170,7 +170,6 @@ module Cisco
     end
 
     def next_hop_route_map=(route_map)
-      #      route_map.strip!
       if route_map.empty?
         state = 'no'
         # Dummy routemap required if not configured.
@@ -186,32 +185,6 @@ module Cisco
 
     def default_next_hop_route_map
       config_get_default('bgp_af', 'next_hop_route_map')
-    end
-
-    def next_hop_route_policy
-      return nil if vrf_unsupported_xr?
-      config_get('bgp_af', 'next_hop_route_policy', @get_args)
-    end
-
-    def next_hop_route_policy=(route_policy)
-      fail_if_vrf_unsupported_xr('nexthop route-policy')
-      #      route_policy.strip!
-      if route_policy.empty?
-        state = 'no'
-        # Dummy route policy required if not configured.
-        if next_hop_route_policy.empty?
-          route_policy = 'dummy_routepolicy'
-        else
-          route_policy = next_hop_route_policy
-        end
-      end
-      set_args_keys(state: state, route_policy: route_policy)
-      config_set('bgp_af', 'next_hop_route_policy', @set_args)
-    end
-
-    def default_next_hop_route_policy
-      return nil if vrf_unsupported_xr?
-      config_get_default('bgp_af', 'next_hop_route_policy')
     end
 
     #
@@ -272,7 +245,6 @@ module Cisco
     end
 
     def additional_paths_selection=(route_map)
-      route_map.strip!
       if route_map.empty?
         state = 'no'
         # Dummy routemap required if not configured.
@@ -462,7 +434,6 @@ module Cisco
           Cisco::Logger.debug("Dampening 'dampening #{route_map}'")
         elsif ios_xr?
           route_policy = "route-policy #{damp_array}"
-          #          route_policy.strip!
           Cisco::Logger.debug("Dampening 'dampening #{route_policy}'")
         end
       end
