@@ -36,7 +36,7 @@ shutdown:
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
   # MT-lite only
-  /N(3|9)/:
+  /N9/:
     kind: int
     config_get: "show running | section 'vrf context'"
     config_get_token: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']

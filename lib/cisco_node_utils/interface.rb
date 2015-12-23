@@ -18,6 +18,7 @@ require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'pim'
 require_relative 'vrf'
+require_relative 'vni'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -567,7 +568,7 @@ module Cisco
     end
 
     def vlan_mapping=(should_list)
-      Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+      Vni.feature_vni_enable unless Vni.feature_vni_enabled
 
       # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must

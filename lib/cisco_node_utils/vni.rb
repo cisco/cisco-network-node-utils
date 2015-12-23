@@ -84,10 +84,17 @@ module Cisco
       config_set('vni', 'feature_nv_overlay')
     end
 
+    def self.mt_full_support
+      config_get('vni', 'mt_full_support')
+    end
+
+    def self.mt_lite_support
+      config_get('vni', 'mt_lite_support')
+    end
+
     def create
       Vni.feature_vni_enable unless Vni.feature_vni_enabled
-      config_set('vni', 'create', vni: @vni_id) if
-        /N7/.match(node.product_id)
+      config_set('vni', 'create', vni: @vni_id) if Vni.mt_full_support
     end
 
     def destroy
@@ -97,8 +104,7 @@ module Cisco
       # keys for the standalone vni config.
 
       keys = { vni: @vni_id }
-      # TBD: Hardcoding a platform check for now. Remove during refactor.
-      if /N[39]K/.match(node.product_id)
+      if Vni.mt_lite_support
         vlan = mapped_vlan
         return if vlan.nil?
         keys[:vlan] = vlan
@@ -262,7 +268,6 @@ module Cisco
     end
 
     def shutdown=(state)
-      # TBD: fail UnsupportedError unless /N7/.match(node.product_id)
       state = (state) ? '' : 'no'
       result = config_set('vni', 'shutdown', state: state, vni: @vni_id)
       cli_error_check(result)
