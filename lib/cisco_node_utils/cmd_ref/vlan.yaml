@@ -13,8 +13,7 @@ destroy:
 
 mode:
   _exclude:
-    - /N9K/
-    - /N3/
+    - /N(3|9)/
   kind: string
   config_get: "show vlan"
   config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
