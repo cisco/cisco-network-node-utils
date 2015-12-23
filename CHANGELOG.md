@@ -19,6 +19,9 @@ Changelog
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
 * SNMP
   * snmpnotification (@tphoney)
 * VDC
