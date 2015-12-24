@@ -596,7 +596,7 @@ class TestRouterBgpAF < CiscoTestCase
   def test_inject_map
     # Not sure why it's broken; to be fixed in next iteration
     skip('Currently broken on IOS XR') if platform == :ios_xr
-    
+
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
       config_ios_xr_dependencies('55') if platform == :ios_xr
