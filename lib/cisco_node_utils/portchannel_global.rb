@@ -28,7 +28,7 @@ module Cisco
     end
 
     def self.globals
-      { default: PortChannelGlobal.new('default') }
+      { 'default' => PortChannelGlobal.new('default') }
     end
 
     ########################################################
