@@ -28,11 +28,7 @@ module Cisco
     end
 
     def self.globals
-      hash = {}
-      # if the key already exists, no need create instance
-      hash['default'] =
-          PortChannelGlobal.new('default')
-      hash
+      { default: PortChannelGlobal.new('default') }
     end
 
     ########################################################
