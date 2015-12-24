@@ -27,6 +27,7 @@ class TestVni < CiscoTestCase
   end
 
   def teardown
+    return unless Vdc.vdc_support
     # Reset the vdc module type back to default
     v = Vdc.new('default')
     v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
