@@ -335,6 +335,49 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_event_history
+    bgp = RouterBgp.new(55)
+
+    opts = [:cli, :detail, :events, :periodic]
+    opts.each do |opt|
+      # Test basic true
+      bgp.send("event_history_#{opt}_set", true)
+      result = bgp.send("event_history_#{opt}")
+      assert(result, 'Failed to set state to True')
+
+      # Test true with size
+      bgp.send("event_history_#{opt}_set", true, 'large')
+      result = bgp.send("event_history_#{opt}_size")
+      assert_equal('large', result,
+                   'Failed to set True with Size')
+
+      # Test false with size
+      bgp.send("event_history_#{opt}_set", false)
+      result = bgp.send("event_history_#{opt}")
+      refute(result, 'Failed to set state to False')
+
+      # Test true with size, from false
+      bgp.send("event_history_#{opt}_set", true, 'large')
+      result = bgp.send("event_history_#{opt}_size")
+      assert_equal('large', result,
+                   'Failed to set True with Size from false state')
+
+      # Test default size, from true
+      set = bgp.send("default_event_history_#{opt}_size")
+      bgp.send("event_history_#{opt}_set", true, set)
+      result = bgp.send("event_history_#{opt}_size")
+      assert_equal(set, result,
+                   'Failed to set default size from existing')
+
+      # Test default_state
+      set = bgp.send("default_event_history_#{opt}")
+      bgp.send("event_history_#{opt}_set", set)
+      result = bgp.send("event_history_#{opt}")
+      assert_equal(set, result,
+                   'Failed to set state to default')
+    end
+  end
+
   def test_routerbgp_set_get_fast_external_fallover
     asnum = 55
     bgp = RouterBgp.new(asnum)
