@@ -40,6 +40,10 @@ module Cisco
       hash
     end
 
+    def self.vdc_support
+      config_get('vdc', 'vdc_support')
+    end
+
     def self.default_vdc_name
       vdc = config_get('vdc', 'default_vdc_name')
       fail RuntimeError if vdc.nil?

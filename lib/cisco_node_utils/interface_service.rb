@@ -86,7 +86,7 @@ module Cisco
     end
 
     def encapsulation_profile_vni=(profile)
-      Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+      Vni.feature_vni_enable unless Vni.feature_vni_enabled
       state = profile.empty? ? 'no' : ''
       current = encapsulation_profile_vni
 

@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_service'
+require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
@@ -32,29 +33,40 @@ include Cisco
 #      encapsulation profile vni_600_6000 default
 #
 class TestInterfaceService < CiscoTestCase
-  def setup_encapsulation_profile_vni
-    # This property has several dependencies:
-    #  - VDC support
-    #  - Specific linecard (F3 or newer)
-    #  - Bridge Domain Configuration
-    #  - Feature vni
+  def setup
+    super
+  end
 
-    # Check for supported platform
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vdc', 'all_vdcs').config_get_token.nil?
+  def teardown
+    # Reset the vdc module type back to default
+    v = Vdc.new('default')
+    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
+  end
 
-    # This test requires specific linecards; as such we will hard-code the
-    # module location and skip the test if not found.
+  def compatible_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
     # Example 'show mod' output to match against:
-    # '9    12     10/40 Gbps Ethernet Module          N7K-F312FQ-25      ok'
-    slot = 9
-    pat = Regexp.new("^#{slot}\s.*N7K-F3")
-    skip("Test requires N7K-F3 linecard in slot #{slot}") unless
-      @device.cmd('sh mod | i N7K-F').match(pat)
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
 
-    require_relative '../lib/cisco_node_utils/vdc'
-    Cisco::Vdc.new('default').limit_resource_module_type = 'f3'
+    "ethernet#{slot}/1"
+  end
 
+  def mt_full_env_setup
+    skip('Platform does not support MT-full') unless Vni.mt_full_support
+    intf = compatible_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
+    config("default int #{intf}")
+    intf
+  end
+
+  def global_setup
     # Reset feature to clean up switch
     config('no feature vni', 'feature vni')
 
@@ -64,14 +76,19 @@ class TestInterfaceService < CiscoTestCase
            'encapsulation profile vni vni_700_7000', 'dot1q 700  vni 7000',
            'encapsulation profile vni vni_800_8000', 'dot1q 800  vni 8000')
 
-    # Test interface name
-    intf = 'ethernet9/1'
-    config("default int #{intf}")
-    intf
+    # Configure a bridge-domain
+    config('system bridge-domain 100-113', 'bridge-domain 100')
   end
 
   def test_create_destroy
-    intf = setup_encapsulation_profile_vni
+    # This property has several dependencies:
+    #  - VDC support
+    #  - Specific linecard (F3 or newer)
+    #  - Bridge Domain Configuration
+    #  - Feature vni
+
+    intf = mt_full_env_setup
+    global_setup
 
     # TEST Create / Destroy and svc_vni_ids hash builder
     i5 = InterfaceService.new(intf, 5)
@@ -86,7 +103,8 @@ class TestInterfaceService < CiscoTestCase
   end
 
   def test_shutdown
-    intf = setup_encapsulation_profile_vni
+    intf = mt_full_env_setup
+    global_setup
 
     i5 = InterfaceService.new(intf, 5)
     # Test shutdown
@@ -101,7 +119,8 @@ class TestInterfaceService < CiscoTestCase
   end
 
   def test_encapsulation_profile_vni
-    intf = setup_encapsulation_profile_vni
+    intf = mt_full_env_setup
+    global_setup
 
     i5 = InterfaceService.new(intf, 5)
 
@@ -127,44 +146,18 @@ class TestInterfaceService < CiscoTestCase
   # interface vlan_mapping is not technically part of the interface service
   # but it shares most of the same dependencies so it is tested here instead
   # of test_interface.rb
-  def setup_vlan_mapping
+  def test_vlan_mapping
+    # This test covers two properties:
+    #  vlan_mapping & vlan_mapping_enabled
+    #
     # This property has several dependencies:
     #  - VDC support
     #  - Specific linecard (F3)
     #  - Bridge Domain Configuration
     #  - Feature vni
+    intf = mt_full_env_setup
+    global_setup
 
-    # Check for supported platform
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vdc', 'all_vdcs').config_get_token.nil?
-
-    # This test requires a specific linecard; as such we will hard-code the
-    # module location and skip the test if not found.
-    # Example 'show mod' output to match against:
-    # '9    12     10/40 Gbps Ethernet Module          N7K-F312FQ-25      ok'
-    slot = 9
-    pat = Regexp.new("^#{slot}\s.*N7K-F3")
-    skip("Test requires N7K-F3 linecard in slot #{slot}") unless
-      @device.cmd('sh mod | i N7K-F').match(pat)
-
-    require_relative '../lib/cisco_node_utils/vdc'
-    Cisco::Vdc.new('default').limit_resource_module_type = 'f3'
-
-    # Configure a bridge-domain
-    config('system bridge-domain 100-113', 'bridge-domain 100')
-
-    # Reset feature to clean up switch
-    config('no feature vni')
-
-    # Test interface name
-    'Ethernet9/1'
-  end
-
-  def test_vlan_mapping
-    # This test covers two properties:
-    #  vlan_mapping & vlan_mapping_enabled
-
-    intf = setup_vlan_mapping
     i = Interface.new(intf)
     i.switchport_mode = :trunk
     i.vlan_mapping = []
