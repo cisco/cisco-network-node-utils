@@ -78,6 +78,42 @@ enforce_first_as:
   config_set_append: '<state> enforce-first-as'
   default_value: true
 
+event_history_cli:
+  config_get_token_append: '/^event-history cli(?: size .*)?/'
+  config_set_append: '<state> event-history cli <size>'
+  auto_default: false
+  default_value: true
+
+event_history_cli_size:
+  default_value: 'small'
+
+event_history_detail:
+  config_get_token_append: '/^event-history detail(?: size .*)?/'
+  config_set_append: '<state> event-history detail <size>'
+  auto_default: false
+  default_value: false
+
+event_history_detail_size:
+  default_value: ~
+
+event_history_events:
+  config_get_token_append: '/^event-history events(?: size .*)?/'
+  config_set_append: '<state> event-history events <size>'
+  auto_default: false
+  default_value: true
+
+event_history_events_size:
+  default_value: 'small'
+
+event_history_periodic:
+  config_get_token_append: '/^event-history periodic(?: size .*)?/'
+  config_set_append: '<state> event-history periodic <size>'
+  auto_default: false
+  default_value: true
+
+event_history_periodic_size:
+  default_value: 'small'
+
 fast_external_fallover:
   kind: boolean
   config_get_token_append: '/^(no )?fast-external-fallover$/'
