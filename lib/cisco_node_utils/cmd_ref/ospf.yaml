@@ -2,10 +2,7 @@
 ---
 _template:
   get_command: "show running ospf all"
-  get_context:
-    - '/^router ospf <name>$/'
-    - '/^vrf <vrf>$/'
-  set_context:
+  context:
     - "router ospf <name>"
     - "vrf <vrf>"
 
@@ -22,9 +19,8 @@ default_metric:
 
 feature:
   get_command: "show running ospf"
-  get_context: ~
+  context: ~
   get_value: '/^feature ospf$/'
-  set_context: ~
   set_value: "%s feature ospf"
 
 log_adjacency:
@@ -36,9 +32,8 @@ log_adjacency:
 router:
   multiple: true
   get_command: "show running ospf"
-  get_context: ~
+  context: ~
   get_value: '/^router ospf (\S+)$/'
-  set_context: ~
   set_value: "%s router ospf %s"
 
 router_id:
@@ -74,7 +69,6 @@ timer_throttle_spf_start:
 
 vrf:
   multiple: true
-  get_context: '/^router ospf <name>$/i'
+  context: "router ospf <name>"
   get_value: '/^vrf\s+(\S+)$/'
-  set_context: "router ospf <name>"
   set_value: "<state> vrf <vrf>"

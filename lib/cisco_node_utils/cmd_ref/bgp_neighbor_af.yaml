@@ -5,12 +5,7 @@ _template:
     get_command: 'show running bgp all'
   cli_ios_xr:
     get_command: 'show run router bgp'
-  get_context:
-    - '/^router bgp <asnum>$/'
-    - '/^vrf <vrf>$/'
-    - '/^neighbor <nbr>$/'
-    - '/^address-family <afi> <safi>$/'
-  set_context:
+  context:
     - 'router bgp <asnum>'
     - 'vrf <vrf>'
     - 'neighbor <nbr>'

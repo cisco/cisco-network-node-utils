@@ -5,11 +5,7 @@ _template:
     get_command: "show running router bgp"
   cli_nexus:
     get_command: "show running bgp all"
-  get_context:
-    - '/^router bgp <asnum>$/'
-    - '/^vrf <vrf>$/'
-    - '/^neighbor <nbr>$/'
-  set_context:
+  context:
     - "router bgp <asnum>"
     - "vrf <vrf>"
     - "neighbor <nbr>"

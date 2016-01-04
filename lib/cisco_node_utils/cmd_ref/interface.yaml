@@ -1,8 +1,7 @@
 # interface
 ---
 _template:
-  set_context: ["interface <name>"]
-  get_context: '/^interface <name>$/i'
+  context: ["interface <name>"]
   cli_ios_xr:
     get_command: "show running interface"
   cli_nexus:
@@ -61,9 +60,8 @@ feature_lacp:
   kind: boolean
   cli_nexus:
     get_command: "show running | i ^feature"
-    get_context: ~
+    context: ~
     get_value: '/^feature lacp$/'
-    set_context: ~
     set_value: "%s feature lacp"
   cli_ios_xr:
     default_only: true
@@ -73,9 +71,8 @@ feature_vlan:
   cli_nexus:
     kind: boolean
     get_command: "show running | i ^feature"
-    get_context: ~
+    context: ~
     get_value: '/^feature interface-vlan$/'
-    set_context: ~
     set_value: "%s feature interface-vlan"
 
 ipv4_addr_mask:

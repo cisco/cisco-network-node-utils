@@ -5,10 +5,7 @@ _template:
     get_command: "show running-config router bgp"
   cli_nexus:
     get_command: "show running bgp all"
-  get_context:
-    - '/^router bgp <asnum>$/'
-    - '/^vrf <vrf>$/'
-  set_context:
+  context:
     - "router bgp <asnum>"
     - "vrf <vrf>"
 
@@ -143,8 +140,7 @@ fast_external_fallover:
 
 feature:
   kind: boolean
-  get_context: ~
-  set_context: ~
+  context: ~
   cli_ios_xr:
     get_command: "show running-config router bgp"
     get_value: '/^router bgp$/'
@@ -253,11 +249,9 @@ route_distinguisher:
     get_value: '/^rd (\S+)$/'
     set_value: ' <state> rd <rd>'
   cli_nexus:
-    get_context:
-      - '/^vrf context <vrf>$/i'
-    get_value: '/^rd (\S+)$/'
-    set_context:
+    context:
       - "vrf context <vrf>"
+    get_value: '/^rd (\S+)$/'
     set_value: "<state> rd <rd>"
 
 router:
@@ -265,9 +259,8 @@ router:
     get_command: "show running router bgp"
   cli_nexus:
     get_command: "show running bgp"
-  get_context: ~
+  context: ~
   get_value: '/^router bgp (\d+)$/'
-  set_context: ~
   set_value: "<state> router bgp <asnum>"
 
 router_id:

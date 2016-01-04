@@ -1,14 +1,10 @@
 # bgp_af.yaml
 ---
 _template:
-  get_context:
-    - '/^router bgp <asnum>$/'
-    - '/^vrf <vrf>$/'
-    - '/^address-family <afi> <safi>$/'
-  set_context:
+  context:
     - "router bgp <asnum>"
-    - ' vrf <vrf>'
-    - ' address-family <afi> <safi>'
+    - 'vrf <vrf>'
+    - 'address-family <afi> <safi>'
   cli_nexus:
     get_command: 'show running bgp all'
   cli_ios_xr:
@@ -145,9 +141,8 @@ feature_nv_overlay_evpn:
   _exclude: [cli_ios_xr]
   kind: boolean
   get_command: "show running | section nv"
-  get_context: ~
+  context: ~
   get_value: '/^nv overlay evpn$/'
-  set_context: ~
   set_value: "nv overlay evpn"
 
 inject_map:
@@ -211,78 +206,60 @@ redistribute_policy:
 #config in vrf context
 route_target_both_auto:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target both auto$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target both auto$/'
   set_value: "<state> route-target both auto"
   kind: boolean
   default_value: false
 
 route_target_both_auto_evpn:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target both auto evpn$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target both auto evpn$/'
   set_value: "<state> route-target both auto evpn"
   kind: boolean
   default_value: false
 
 route_target_export:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target export (\S+)$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target export (\S+)$/'
   set_value: "<state> route-target export <community>"
   multiple: true
   default_value: []
 
 route_target_export_evpn:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target export (\S+) evpn$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target export (\S+) evpn$/'
   set_value: "<state> route-target export <community> evpn"
   multiple: true
   default_value: []
 
 route_target_import:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target import (\S+)$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target import (\S+)$/'
   set_value: "<state> route-target import <community>"
   multiple: true
   default_value: []
 
 route_target_import_evpn:
   get_command: 'sh run | section vrf'
-  get_context:
-    - '/^vrf context <vrf>$/i'
-    - '/^address-family <afi> <safi>$/i'
-  get_value: '/^route-target import (\S+) evpn$/'
-  set_context:
+  context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
+  get_value: '/^route-target import (\S+) evpn$/'
   set_value: "<state> route-target import <community> evpn"
   multiple: true
   default_value: []

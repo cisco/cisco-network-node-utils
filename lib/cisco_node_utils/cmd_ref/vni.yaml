@@ -40,8 +40,9 @@ feature_nv_overlay:
 
 mapped_vlan:
   get_command: 'show running vlan'
-  get_value: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-  set_value: ['vlan <vlan>', '<state> vn-segment <vni>']
+  context: 'vlan <vlan>'
+  get_value: '/^vn-segment (\d+)$/'
+  set_value:  '<state> vn-segment <vni>'
   default_value: ""
 
 shutdown:

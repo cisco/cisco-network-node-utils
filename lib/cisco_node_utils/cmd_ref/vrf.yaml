@@ -11,9 +11,8 @@ create:
 description:
   kind: string
   get_command: "show running | section 'vrf context'"
-  get_context: '/^vrf context <vrf>$/i'
+  context: "vrf context <vrf>"
   get_value: '/^description (.*)/'
-  set_context: "vrf context <vrf>"
   set_value: "<state> description <desc>"
   default_value: ""
 
@@ -42,9 +41,8 @@ feature_vni:
 shutdown:
   kind: boolean
   get_command: "show running | section 'vrf context'"
-  get_context: '/^vrf context <vrf>$/i'
+  context: "vrf context <vrf>"
   get_value: '/^shutdown$/'
-  set_context: "vrf context <vrf>"
   set_value: "<state> shutdown"
   default_value: false
 
@@ -53,6 +51,7 @@ vni:
     - [/N3/]   # N3: Support Unknown
   kind: int
   get_command: "show running | section 'vrf context'"
-  get_value: ['/^vrf context <vrf>$/i', '/^vni (\d+)$/']
-  set_value: ["vrf context <vrf>", "<state> vni <id>"]
+  context: "vrf context <vrf>"
+  get_value: '/^vni (\d+)$/'
+  set_value: "<state> vni <id>"
   default_value: false

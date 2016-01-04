@@ -26,6 +26,7 @@ module Cisco
     alias_method :multiple?, :multiple
 
     KEYS = %w(default_value default_only
+              context
               set_context set_value
               get_command get_context get_value
               auto_default multiple kind
@@ -58,8 +59,16 @@ module Cisco
         case key
         when 'get_context', 'get_value', 'set_context', 'set_value'
           # For simplicity, these are ALWAYS arrays
-          value = [value] unless value.is_a?(Array)
+          value = [value] unless value.is_a?(Array) || value.nil?
           @hash[key] = value
+        when 'context'
+          if value.nil?
+            @hash['get_context'] = value
+          else
+            value = [value] unless value.is_a?(Array)
+            @hash['get_context'] = value.map { |entry| "/^#{entry}$/i" }
+          end
+          @hash['set_context'] = value
         when 'auto_default'
           @auto_default = value ? true : false
         when 'default_only'
