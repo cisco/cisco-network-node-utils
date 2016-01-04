@@ -134,7 +134,7 @@ module Cisco
     def printf_substitutor(config_key, value)
       arg_c = value.join.scan(/%/).length
       lambda do |*args|
-        unless args.length == arg_count
+        unless args.length == arg_c
           fail ArgumentError,
                "Given #{args.length} args, but #{config_key} requires #{arg_c}"
         end
