@@ -59,12 +59,12 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
     def auto_recovery
-      config_get('vpc', 'auto_recovery')
+      val = config_get('vpc', 'auto_recovery')
+      val.nil? ? false : val
     end
 
     def auto_recovery=(val)
-      state = val ? '' : 'no'
-      config_get('vpc', 'auto_recovery', state: state)
+      config_get('vpc', 'auto_recovery', state: val ? '' : 'no')
     end
 
     def default_auto_recovery
@@ -95,28 +95,67 @@ module Cisco
       config_get_default('vpc', 'delay_restore')
     end
 
-    def delay_restore_exclude_interface_bridge_domain
-      config_get('vpc', 'delay_restore_exclude_interface_bridge_domain')
-    end
-
-    def delay_restore_exclude_interface_bridge_domain=(bdi)
-      config_set('vpc', 'delay_restore_interface_vlan', bdi: bdi)
-    end
-
-    def default_delay_restore_exclude_interface_bridge_domain
-      config_get_default('vpc', 'delay_restore_exclude_interface_bridge_domain')
-    end
-
     def delay_restore_interface_vlan
       config_get('vpc', 'delay_restore_interface_vlan')
     end
 
-    def delay_restore_interface_vlan=(svi)
-      config_set('vpc', 'delay_restore_interface_vlan', svi: svi)
+    def delay_restore_interface_vlan=(delay)
+      config_set('vpc', 'delay_restore_interface_vlan', delay: delay)
     end
 
     def default_delay_restore_interface_vlan
       config_get_default('vpc', 'delay_restore_interface_vlan')
+    end
+
+    def dual_active_exclude_interface_vlan_bridge_domain
+      config_get('vpc', 'dual_active_exclude_interface_vlan_bridge_domain')
+    end
+
+    def dual_active_exclude_interface_vlan_bridge_domain=(val)
+      config_set('vpc', 'dual_active_exclude_interface_vlan_bridge_domain',
+                 state: val ? '' : 'no', range: val)
+    end
+
+    def default_dual_active_exclude_interface_vlan_bridge_domain
+      config_get_default('vpc',
+                         'dual_active_exclude_interface_vlan_bridge_domain')
+    end
+
+    def layer3_peer_routing
+      config_get('vpc', 'layer3_peer_routing')
+    end
+
+    def layer3_peer_routing=(val)
+      config_set('vpc', 'layer3_peer_routing', state:  val ? '' : 'no')
+    end
+
+    def default_layer3_peer_routing
+      config_get_default('vpc', 'layer3_peer_routing')
+    end
+
+    def peer_gateway
+      config_get('vpc', 'peer_gateway')
+    end
+
+    def peer_gateway=(val)
+      config_set('vpc', 'peer_gateway', state: val ? '' : 'no')
+    end
+
+    def default_peer_gateway
+      config_get_default('vpc', 'peer_gateway')
+    end
+
+    def peer_gateway_exclude_vlan
+      config_get('vpc', 'peer_gateway_exclude_vlan')
+    end
+
+    def peer_gateway_exclude_vlan=(val)
+      config_set('vpc', 'peer_gateway_exclude_vlan', state: val ? '' : 'no',
+                                                     range: val)
+    end
+
+    def default_peer_gateway_exclude_vlan
+      config_get_default('vpc', 'peer_gateway_exclude_vlan')
     end
   end # class Vpc
 end # module Cisco
