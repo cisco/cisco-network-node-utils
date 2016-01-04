@@ -35,11 +35,11 @@ Changelog
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend bgp with attributes:
+  * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
   * `fast_external_fallover`
   * `flush_routes`
   * `isolate`
   * `neighbor_down_fib_accelerate`
-  * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
 * Extend bgp_af with attributes:
   * `default_metric`
   * `distance_ebgp`, `distance_ibgp`, `distance_local`
