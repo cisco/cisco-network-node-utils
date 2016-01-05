@@ -58,6 +58,7 @@ module Cisco
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
+
     def auto_recovery
       val = config_get('vpc', 'auto_recovery')
       val.nil? ? false : val

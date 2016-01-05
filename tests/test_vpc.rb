@@ -32,9 +32,13 @@ class TestVpc < CiscoTestCase
     config('terminal dont-ask ; no feature vpc')
   end
 
-  #def n5k6k_platforms?
-  #  /N[56]K/ =~ node.product_id
-  #end
+  def n5k6k_platforms?
+    /N[56]K/ =~ node.product_id
+  end
+
+  def n3k9k_platforms?
+    /N[39]K/ =~ node.product_id
+  end
 
   # TESTS
 
@@ -53,12 +57,26 @@ class TestVpc < CiscoTestCase
            'Domain collection should not be empty after create')
   end
 
+  def test_vpc_create_negative
+    e = assert_raises(CliError) { Vpc.new(1001) }
+    assert_match(/Invalid number.*range/, e.message)
+  end
+
   def test_vpc_destroy
     # create and test again
     test_vpc_create
     @vpc.destroy
     # now it should be wiped out
     test_vpc_collection_empty
+  end
+
+  def test_auto_recovery
+    @vpc = Vpc.new(100)
+    assert(@vpc.auto_recovery, 'Auto recovery should be enabled by default')
+    @vpc.auto_recovery = ''
+    refute(@vpc.auto_recovery, 'Auto recovery not getting disabled')
+    @vpc.auto_recovery = true
+    assert(@vpc.auto_recovery, 'Auto recovery not getting set')
   end
 
 end

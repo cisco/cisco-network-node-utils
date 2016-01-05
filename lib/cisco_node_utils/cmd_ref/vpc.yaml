@@ -25,10 +25,10 @@ delay_restore:
   default_value: 30
 
 delay_restore_interface_vlan: 
-  kind: integer
+  kind: int
   config_get_token_append: 'delay restore interface\-vlan/'
   config_set_append: "delay restore inerface-vlan <delay>"
-  default value: 10
+  default_value: 10
 
 domain: 
   kind: int
@@ -94,17 +94,17 @@ peer_gateway:
   config_set_append: ["terminal dont-ask", "<state> peer-gateway"]
   default_value: false
 
-peer_gateway_exclude_vlan: 
-  kind: string
-  config_get_token_append: '/^peer\-gateway exclude vlan\s(\S+)/'
-  config_set_append: ["terminal dont-ask", "peer-gateway exclude-vlan <range>"]
-  default_value: ''
-
 peer_gateway_exclude_bridge_domain: 
   kind: string
   _exclude: [/N5K/, /N6K/, /N9K/]
   config_get_token_append: '/^peer\-gateway exclude bridge\-domain\s+(\S+)/'
   config_set_append: ["terminal dont-ask", "peer-gateway exclude-bridge-domain <range>"]
+  default_value: ''
+
+peer_gateway_exclude_vlan: 
+  kind: string
+  config_get_token_append: '/^peer\-gateway exclude vlan\s(\S+)/'
+  config_set_append: ["terminal dont-ask", "peer-gateway exclude-vlan <range>"]
   default_value: ''
 
 #Peer-keep-alive
@@ -130,7 +130,7 @@ pka_upd_port:
 port_channel_limit: 
   _exclude: [/N5K/, /N6K/, /N9K/]
   kind: boolean    
-  config_get_token_append: '/^port\-channel limit'
+  config_get_token_append: '/^port\-channel limit/'
   config_set_append: "<state> port-channel limit"
 
 role_priority: 
@@ -142,20 +142,20 @@ role_priority:
 self_isolation: 
   kind: boolean
   _exclude: [/N5K/, /N6K/, /N9K/]
-  config_get_token_append: '/^self\-isolation'
+  config_get_token_append: '/^self\-isolation/'
   config_set_append: "<state> self-isolation"
   default_value: false
 
 shutdown: 
   kind: boolean
   _exclude: [/N5K/, /N6K/, /N9K/]
-  config_get_token_append: '/^shutdown'
+  config_get_token_append: '/^shutdown/'
   config_set_append: "<state> shutdown"
   default_value: false
 
 system_mac:
   kind: string
-  config_get_token_append: '/^system\-mac (\S+)$/
+  config_get_token_append: '/^system\-mac (\S+)$/'
   config_set_append: "<state> system-mac <mac>"
   default_value: ''
 
