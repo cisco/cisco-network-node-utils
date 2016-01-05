@@ -3,7 +3,7 @@
 _template: 
   config_get:  'show running-config vpc all'
   config_get_token:  '/^vpc domain\s*(\d+)$/'
-  config_set:  "vpc domain <vpc-domain>"
+  config_set:  "vpc domain <domain>"
 
 auto_recovery: 
   kind: boolean

@@ -55,6 +55,19 @@ module Cisco
       config_set('vpc', 'feature', state: '')
     end
 
+    def set_args_keys_default
+      keys = { domain: @domain }
+      @get_args = @set_args = keys
+    end
+
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+    # rubocop:enable Style/AccessorMethodNamefor
+
+
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
@@ -65,7 +78,8 @@ module Cisco
     end
 
     def auto_recovery=(val)
-      config_get('vpc', 'auto_recovery', state: val ? '' : 'no')
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'auto_recovery', @set_args)
     end
 
     def default_auto_recovery
@@ -77,7 +91,8 @@ module Cisco
     end
 
     def auto_recovery_reload_delay=(val)
-      config_get('vpc', 'auto_recovery_reload_delay', delay: val)
+      set_args_keys(delay: val)
+      config_set('vpc', 'auto_recovery_reload_delay', @set_args)
     end
 
     def default_auto_recovery_reload_delay
@@ -89,7 +104,8 @@ module Cisco
     end
 
     def delay_restore=(delay)
-      config_set('vpc', 'delay_restore', delay: delay)
+      set_args_keys(delay: delay)
+      config_set('vpc', 'delay_restore', @set_args)
     end
 
     def default_delay_restore
@@ -101,7 +117,8 @@ module Cisco
     end
 
     def delay_restore_interface_vlan=(delay)
-      config_set('vpc', 'delay_restore_interface_vlan', delay: delay)
+      set_args_keys(delay: delay)
+      config_set('vpc', 'delay_restore_interface_vlan', @set_args)
     end
 
     def default_delay_restore_interface_vlan
@@ -113,8 +130,9 @@ module Cisco
     end
 
     def dual_active_exclude_interface_vlan_bridge_domain=(val)
+      set_args_keys(state: val ? '' : 'no', range: val)
       config_set('vpc', 'dual_active_exclude_interface_vlan_bridge_domain',
-                 state: val ? '' : 'no', range: val)
+                 @set_args)
     end
 
     def default_dual_active_exclude_interface_vlan_bridge_domain
@@ -127,7 +145,8 @@ module Cisco
     end
 
     def layer3_peer_routing=(val)
-      config_set('vpc', 'layer3_peer_routing', state:  val ? '' : 'no')
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'layer3_peer_routing', @set_args)
     end
 
     def default_layer3_peer_routing
@@ -139,7 +158,8 @@ module Cisco
     end
 
     def peer_gateway=(val)
-      config_set('vpc', 'peer_gateway', state: val ? '' : 'no')
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'peer_gateway', @set_args)
     end
 
     def default_peer_gateway
@@ -151,8 +171,8 @@ module Cisco
     end
 
     def peer_gateway_exclude_vlan=(val)
-      config_set('vpc', 'peer_gateway_exclude_vlan', state: val ? '' : 'no',
-                                                     range: val)
+      set_args_keys(state: val ? '' : 'no', range: val)
+      config_set('vpc', 'peer_gateway_exclude_vlan', @set_args)
     end
 
     def default_peer_gateway_exclude_vlan

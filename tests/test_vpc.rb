@@ -73,10 +73,32 @@ class TestVpc < CiscoTestCase
   def test_auto_recovery
     @vpc = Vpc.new(100)
     assert(@vpc.auto_recovery, 'Auto recovery should be enabled by default')
-    @vpc.auto_recovery = ''
+    @vpc.auto_recovery = false
     refute(@vpc.auto_recovery, 'Auto recovery not getting disabled')
     @vpc.auto_recovery = true
     assert(@vpc.auto_recovery, 'Auto recovery not getting set')
   end
+
+  def test_auto_recovery_delay
+    @vpc = Vpc.new(100)
+    default_value = @vpc.default_auto_recovery
+    assert_equal(default_value, @vpc.auto_recovery,
+                 "Auto recovery delay should be #{default_value}")
+    @vpc.auto_recovery_reload_delay = 200
+    assert_equal(200, @vpc.auto_recovery_reload_delay,
+                 "Auto recovery delay should be 200")
+  end
+
+  def test_auto_recovery_delay
+    @vpc = Vpc.new(100)
+    default_value = @vpc.default_auto_recovery
+    assert_equal(default_value, @vpc.auto_recovery,
+                 "Auto recovery delay should be #{default_value}")
+    @vpc.auto_recovery_reload_delay = 200
+    assert_equal(200, @vpc.auto_recovery_reload_delay,
+                 "Auto recovery delay should be 200")
+  end
+
+
 
 end
