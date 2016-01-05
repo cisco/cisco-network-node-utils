@@ -8,7 +8,7 @@ _template:
 auto_recovery: 
   kind: boolean
   auto_default: false
-  config_get_token_append: '/^auto\-recovery'
+  config_get_token_append: '/^auto\-recovery/'
   config_set_append: "<state> auto-recovery"
   default_value: true
 
@@ -77,20 +77,20 @@ feature:
 graceful_consistency_check: 
   auto_default: false
   kind: boolean
-  config_get_token_append: '/^graceful consistency\-check'
+  config_get_token_append: '/^graceful consistency\-check/'
   config_set_append: "<state> graceful consistency-check"
   default_value: true
 
 layer3_peer_routing: 
   kind: boolean
   _exclude: [/N3K/, /N5K/, /N6K/, /N9K/]
-  config_get_token_append: '/^layer3 peer-router'
+  config_get_token_append: '/^layer3 peer-router/'
   config_set_append: "<state> layer3 peer-router"
   default_value: false
 
 peer_gateway: 
   kind: boolean
-  config_get_token_append: '/^peer\-gateway'
+  config_get_token_append: '/^peer\-gateway/'
   config_set_append: ["terminal dont-ask", "<state> peer-gateway"]
   default_value: false
 
