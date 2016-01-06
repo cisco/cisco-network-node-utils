@@ -350,7 +350,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.default_disable_policy_batching_ipv4,
-                 'bgp disable_policy_batching_ipv4 default value should be empty')
+                 'disable_policy_batching_ipv4 default value should be empty')
     bgp.destroy
   end
 
@@ -369,7 +369,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_empty(bgp.default_disable_policy_batching_ipv6,
-                 'bgp disable_policy_batching_ipv6 default value should be empty')
+                 'disable_policy_batching_ipv6 default value should be empty')
     bgp.destroy
   end
 
