@@ -67,7 +67,6 @@ module Cisco
     end
     # rubocop:enable Style/AccessorMethodNamefor
 
-
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
@@ -140,6 +139,20 @@ module Cisco
                          'dual_active_exclude_interface_vlan_bridge_domain')
     end
 
+    def graceful_consistency_check
+      val = config_get('vpc', 'graceful_consistency_check')
+      val.nil? ? false : val
+    end
+
+    def graceful_consistency_check=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'graceful_consistency_check', @set_args)
+    end
+
+    def default_graceful_consistency_check
+      config_get_default('vpc', 'graceful_consistency_check')
+    end
+
     def layer3_peer_routing
       config_get('vpc', 'layer3_peer_routing')
     end
@@ -166,16 +179,16 @@ module Cisco
       config_get_default('vpc', 'peer_gateway')
     end
 
-    def peer_gateway_exclude_vlan
+    def peer_gateway_exclude_vlan_bridge_domain
       config_get('vpc', 'peer_gateway_exclude_vlan')
     end
 
-    def peer_gateway_exclude_vlan=(val)
+    def peer_gateway_exclude_vlan_bridge_domain=(val)
       set_args_keys(state: val ? '' : 'no', range: val)
       config_set('vpc', 'peer_gateway_exclude_vlan', @set_args)
     end
 
-    def default_peer_gateway_exclude_vlan
+    def default_peer_gateway_exclude_vlan_bridge_domain
       config_get_default('vpc', 'peer_gateway_exclude_vlan')
     end
   end # class Vpc

@@ -6,11 +6,15 @@ _template:
   config_set:  "vpc domain <domain>"
 
 auto_recovery: 
+  _exclude: [/N5K/, /N6K/]
   kind: boolean
   auto_default: false
   config_get_token_append: '/^auto\-recovery/'
   config_set_append: "<state> auto-recovery"
-  default_value: true
+  /(N3K|N9K)/:
+    default_value: false
+  else:
+    default_value: true
 
 auto_recovery_reload_delay: 
   kind: int
@@ -20,14 +24,14 @@ auto_recovery_reload_delay:
 
 delay_restore: 
   kind: int
-  config_get_token_append: '/^delay restore \s+(\d+)/'
+  config_get_token_append: '/^delay restore\s+(\d+)/'
   config_set_append: "delay restore <delay>"
   default_value: 30
 
 delay_restore_interface_vlan: 
   kind: int
-  config_get_token_append: 'delay restore interface\-vlan/'
-  config_set_append: "delay restore inerface-vlan <delay>"
+  config_get_token_append: '/^delay restore interface\-vlan\s+(\d+)/'
+  config_set_append: "delay restore interface-vlan <delay>"
   default_value: 10
 
 domain: 
@@ -38,19 +42,15 @@ domain:
   config_set: "<state> vpc domain <domain>"
   default_value: ''
 
-dual_active_exclude_interface_vlan: 
-  kind: string
-  _exclude: [/N7/]
-  config_get_token_append: '/^dual\-active exclude interface\-vlan\s(\S+)/'
-  config_set_append: "<state> dual-active exclude interface-vlan <svi>"
-  default_value: false
-
 dual_active_exclude_interface_vlan_bridge_domain: 
   kind: string
-  _exclude: [/N5K/, /N6K/, /N9K/]
-  config_get_token_append: '/^dual\-active exclude interface\-vlan\-bridge\-domain\s(\S+)/'
-  config_set_append: "<state> dual-active exclude interface-vlan-bridge-domain <range>"
-  default_value: false
+  /N7/:
+    config_get_token_append: '/^dual\-active exclude interface\-vlan\-bridge\-domain\s+(\S+)/'
+    config_set_append: "<state> dual-active exclude interface-vlan-bridge-domain <range>"
+  else:
+    config_get_token_append: '/^dual\-active exclude interface\-vlan\s+(\S+)/'
+    config_set_append: "<state> dual-active exclude interface-vlan <range>"
+  default_value: 'none'
 
 #vPC+ CLIs
 fabricpath_multicast_load_balance: 
@@ -84,7 +84,7 @@ graceful_consistency_check:
 layer3_peer_routing: 
   kind: boolean
   _exclude: [/N3K/, /N5K/, /N6K/, /N9K/]
-  config_get_token_append: '/^layer3 peer-router/'
+  config_get_token_append: '/^layer3 peer-router$/'
   config_set_append: "<state> layer3 peer-router"
   default_value: false
 
@@ -96,14 +96,15 @@ peer_gateway:
 
 peer_gateway_exclude_bridge_domain: 
   kind: string
-  _exclude: [/N5K/, /N6K/, /N9K/]
+  _exclude: [/N3K/, /N5K/, /N6K/, /N9K/]
   config_get_token_append: '/^peer\-gateway exclude bridge\-domain\s+(\S+)/'
   config_set_append: ["terminal dont-ask", "peer-gateway exclude-bridge-domain <range>"]
   default_value: ''
 
 peer_gateway_exclude_vlan: 
+  _exclude: [/N3K/, /N9K/]
   kind: string
-  config_get_token_append: '/^peer\-gateway exclude vlan\s(\S+)/'
+  config_get_token_append: '/^peer\-gateway exclude-vlan\s(\S+)/'
   config_set_append: ["terminal dont-ask", "peer-gateway exclude-vlan <range>"]
   default_value: ''
 
