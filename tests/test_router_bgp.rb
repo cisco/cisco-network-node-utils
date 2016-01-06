@@ -342,7 +342,7 @@ class TestRouterBgp < CiscoTestCase
                  "bgp disable_policy_batching_ipv4 should be set to 'xx'")
     bgp.disable_policy_batching_ipv4 = bgp.default_route_distinguisher
     assert_empty(bgp.disable_policy_batching_ipv4,
-                 'bgp disable_policy_batching_ipv4 should *NOT* be configured')
+                 'bgp disable_policy_batching_ipv4 should be empty')
     bgp.destroy
   end
 
@@ -361,7 +361,7 @@ class TestRouterBgp < CiscoTestCase
                  "bgp disable_policy_batching_ipv6 should be set to 'xx'")
     bgp.disable_policy_batching_ipv6 = bgp.default_route_distinguisher
     assert_empty(bgp.disable_policy_batching_ipv6,
-                 'bgp disable_policy_batching_ipv6 should *NOT* be configured')
+                 'bgp disable_policy_batching_ipv6 should be empty')
     bgp.destroy
   end
 
