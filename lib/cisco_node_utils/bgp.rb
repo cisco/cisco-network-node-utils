@@ -330,7 +330,7 @@ module Cisco
       config_get_default('bgp', 'disable_policy_batching')
     end
 
-    # disable-policy-batching ipv4
+    #
     # disable-policy-batching ipv4 prefix-list <prefix_list>
     #
     def disable_policy_batching_ipv4
@@ -354,7 +354,7 @@ module Cisco
       config_get_default('bgp', 'disable_policy_batching_ipv4')
     end
 
-    # disable-policy-batching ipv6
+    #
     # disable-policy-batching ipv6 prefix-list <prefix_list>
     #
     def disable_policy_batching_ipv6
