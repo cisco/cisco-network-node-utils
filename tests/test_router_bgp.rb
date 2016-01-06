@@ -331,7 +331,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     refute(bgp.disable_policy_batching,
-          'bgp disable-policy-batching value should be false')
+           'bgp disable-policy-batching value should be false')
     bgp.destroy
   end
 

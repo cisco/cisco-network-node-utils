@@ -339,11 +339,12 @@ module Cisco
     end
 
     def disable_policy_batching_prefix=(should_list)
-      delta_hash = Utils.delta_add_remove(should_list, disable_policy_batching_prefix)
+      delta_hash = Utils.delta_add_remove(should_list,
+                                          disable_policy_batching_prefix)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("disable_policy_batching_prefix delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        CiscoLogger.debug("disable_policy_batching_prefix delta #{@get_args}" \
+                          " #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |afi, prefix_list|
           # inject & exist are mandatory, copy is optional
           state = (action == :add) ? '' : 'no'
