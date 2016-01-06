@@ -35,6 +35,7 @@ Changelog
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend bgp with attributes:
+  * `disable_policy_batching`, `disable_policy_batching_prefix`
   * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
   * `fast_external_fallover`
   * `flush_routes`

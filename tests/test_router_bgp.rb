@@ -315,6 +315,59 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.disable_policy_batching = true
+    assert(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be enabled')
+    bgp.disable_policy_batching = false
+    refute(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.disable_policy_batching,
+          'bgp disable-policy-batching value should be false')
+    bgp.destroy
+  end
+
+  def test_disable_policy_batching_prefix
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+
+    # rubocop:disable Style/WordArray
+    master = [['ipv4', 'xx'],
+              ['ipv6', 'yy']]
+
+    # Test 1: from empty to should
+    should = master.clone
+    disable_policy_batching_tester(bgp, should, 'Test 1')
+
+    # Test 2: remove half of the entries
+    should = [['ipv4', 'xx']]
+    # rubocop:enable Style/WordArray
+    disable_policy_batching_tester(bgp, should, 'Test 2')
+
+    # Test 3: restore the removed entries
+    should = master.clone
+    disable_policy_batching_tester(bgp, should, 'Test 3')
+
+    # Test 4: 'default'
+    should = bgp.default_disable_policy_batching
+    disable_policy_batching_tester(bgp, should, 'Test 4')
+  end
+
+  def disable_policy_batching_tester(bgp, should, test_id)
+    bgp.send('disable_policy_batching_prefix=', should)
+    result = bgp.send('disable_policy_batching_prefix')
+    assert_equal(should, result,
+                 "#{test_id} : disable_policy_batching_prefix")
+  end
+
   def test_routerbgp_set_get_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)

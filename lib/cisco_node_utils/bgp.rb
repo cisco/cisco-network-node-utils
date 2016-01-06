@@ -313,6 +313,53 @@ module Cisco
       config_get_default('bgp', 'confederation_id')
     end
 
+    #
+    # disable-policy-batching (Getter/Setter/Default)
+    #
+    def disable_policy_batching
+      config_get('bgp', 'disable_policy_batching', @get_args)
+    end
+
+    def disable_policy_batching=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'disable_policy_batching', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching
+      config_get_default('bgp', 'disable_policy_batching')
+    end
+
+    # disable-policy-batching
+    # disable-policy-batching <afi> prefix-list <prefix_list>
+    #
+    def disable_policy_batching_prefix
+      cmds = config_get('bgp', 'disable_policy_batching_prefix', @get_args)
+      cmds.sort
+    end
+
+    def disable_policy_batching_prefix=(should_list)
+      delta_hash = Utils.delta_add_remove(should_list, disable_policy_batching_prefix)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("disable_policy_batching_prefix delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |afi, prefix_list|
+          # inject & exist are mandatory, copy is optional
+          state = (action == :add) ? '' : 'no'
+          @set_args[:state] = state
+          @set_args[:afi] = afi
+          @set_args[:prefix_list] = prefix_list
+          config_set('bgp', 'disable_policy_batching_prefix', @set_args)
+          set_args_keys_default
+        end
+      end
+    end
+
+    def default_disable_policy_batching_prefix
+      config_get_default('bgp', 'disable_policy_batching_prefix')
+    end
+
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
       config_get('bgp', 'enforce_first_as', @get_args)
