@@ -335,37 +335,42 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_disable_policy_batching_prefix
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
-
-    # rubocop:disable Style/WordArray
-    master = [['ipv4', 'xx'],
-              ['ipv6', 'yy']]
-
-    # Test 1: from empty to should
-    should = master.clone
-    disable_policy_batching_tester(bgp, should, 'Test 1')
-
-    # Test 2: remove half of the entries
-    should = [['ipv4', 'xx']]
-    # rubocop:enable Style/WordArray
-    disable_policy_batching_tester(bgp, should, 'Test 2')
-
-    # Test 3: restore the removed entries
-    should = master.clone
-    disable_policy_batching_tester(bgp, should, 'Test 3')
-
-    # Test 4: 'default'
-    should = bgp.default_disable_policy_batching
-    disable_policy_batching_tester(bgp, should, 'Test 4')
+  def test_set_get_disable_policy_batching_ipv4
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv4 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv4,
+                 "bgp disable_policy_batching_ipv4 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv4 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 should *NOT* be configured')
+    bgp.destroy
   end
 
-  def disable_policy_batching_tester(bgp, should, test_id)
-    bgp.send('disable_policy_batching_prefix=', should)
-    result = bgp.send('disable_policy_batching_prefix')
-    assert_equal(should, result,
-                 "#{test_id} : disable_policy_batching_prefix")
+  def test_default_disable_policy_batching_ipv4
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 default value should be empty')
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv6
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv6 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv6,
+                 "bgp disable_policy_batching_ipv6 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv6 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 should *NOT* be configured')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv6
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 default value should be empty')
+    bgp.destroy
   end
 
   def test_routerbgp_set_get_enforce_first_as

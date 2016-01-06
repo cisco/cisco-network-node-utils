@@ -330,35 +330,52 @@ module Cisco
       config_get_default('bgp', 'disable_policy_batching')
     end
 
-    # disable-policy-batching
-    # disable-policy-batching <afi> prefix-list <prefix_list>
+    # disable-policy-batching ipv4
+    # disable-policy-batching ipv4 prefix-list <prefix_list>
     #
-    def disable_policy_batching_prefix
-      cmds = config_get('bgp', 'disable_policy_batching_prefix', @get_args)
-      cmds.sort
+    def disable_policy_batching_ipv4
+      config_get('bgp', 'disable_policy_batching_ipv4', @get_args)
     end
 
-    def disable_policy_batching_prefix=(should_list)
-      delta_hash = Utils.delta_add_remove(should_list,
-                                          disable_policy_batching_prefix)
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug("disable_policy_batching_prefix delta #{@get_args}" \
-                          " #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |afi, prefix_list|
-          # inject & exist are mandatory, copy is optional
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:afi] = afi
-          @set_args[:prefix_list] = prefix_list
-          config_set('bgp', 'disable_policy_batching_prefix', @set_args)
-          set_args_keys_default
-        end
+    def disable_policy_batching_ipv4=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv4
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
       end
+      config_set('bgp', 'disable_policy_batching_ipv4', @set_args)
+      set_args_keys_default
     end
 
-    def default_disable_policy_batching_prefix
-      config_get_default('bgp', 'disable_policy_batching_prefix')
+    def default_disable_policy_batching_ipv4
+      config_get_default('bgp', 'disable_policy_batching_ipv4')
+    end
+
+    # disable-policy-batching ipv6
+    # disable-policy-batching ipv6 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv6
+      config_get('bgp', 'disable_policy_batching_ipv6', @get_args)
+    end
+
+    def disable_policy_batching_ipv6=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv6
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv6', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv6
+      config_get_default('bgp', 'disable_policy_batching_ipv6')
     end
 
     # Enforce First As (Getter/Setter/Default)
