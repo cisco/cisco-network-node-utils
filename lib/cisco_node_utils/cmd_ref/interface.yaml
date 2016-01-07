@@ -12,6 +12,13 @@ access_vlan:
   kind: int
   default_value: 1
 
+acl_ipv4:
+  config_get_token_append: '/^ip access-group (.*)/'
+  config_set_append: "ip access-group %s %s"
+acl_ipv6:
+  config_get_token_append: '/^ipv6 traffic-filter (.*)/'
+  config_set_append: "ipv6 traffic-filter %s %s"
+
 admin_state_ethernet_noswitchport_shutdown:
   # TODO: is this actually used?
   cli_nexus:

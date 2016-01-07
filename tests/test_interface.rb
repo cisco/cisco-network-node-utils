@@ -361,6 +361,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
+  # def validate_acl(inttype_h)
   def test_interface_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
@@ -778,6 +779,29 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_create_acl
+    attr_acl_ipv4 = {
+      afi:      'ip',
+      acl_name: 'foo4',
+      dir:      'in',
+    }
+    attr_acl_ipv6 = {
+      afi:      'ipv6',
+      acl_name: 'foo6',
+      dir:      'in',
+    }
+
+    interface = create_interface
+    interface.acl_apply(attr_acl_ipv4)
+    pattern = (/^\s+ip access-group (.*)/)
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ipv4 acl not applied on the interface')
+    interface.acl_apply(attr_acl_ipv6)
+    pattern = (/^\s+ipv6 traffic-filter (.*)/)
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ipv6 acl not applied on the interface')
+  end
+
   def test_interface_ipv4_address
     interface = create_interface
     interface.switchport_mode = :disabled
@@ -1030,6 +1054,7 @@ class TestInterface < CiscoTestCase
     # pre-configure
     inttype_h = config_from_hash(inttype_h)
 
+    print inttype_h
     # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
@@ -1048,6 +1073,7 @@ class TestInterface < CiscoTestCase
       validate_ipv4_redirects(inttype_h)
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
+      # validate_acl(inttype_h)
       config(*cfg)
     rescue Minitest::Assertion
       # clean up before failing
