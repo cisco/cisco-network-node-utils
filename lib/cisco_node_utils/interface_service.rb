@@ -80,7 +80,7 @@ module Cisco
     #
     #   cli: service instance 1 vni
     #          encapsulation profile vni_500_5000 default
-    #  type: [['<instance>', '<profile>'], ['1', 'vni_500_5000']]
+    #  type: 'vni_500_5000'
     def encapsulation_profile_vni
       config_get('interface_service', 'encapsulation_profile_vni', @get_args)
     end
