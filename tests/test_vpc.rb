@@ -189,4 +189,69 @@ class TestVpc < CiscoTestCase
     end
     assert_match(/Invalid value.*range/, e.message)
   end
+
+  def test_role_priority
+    @vpc = Vpc.new(100)
+    default_value = @vpc.default_role_priority
+    assert_equal(default_value, @vpc.role_priority,
+                 "Role priority should be #{default_value}")
+    @vpc.role_priority = 200
+    assert_equal(200, @vpc.role_priority,
+                 'Role priority should be 200')
+  end
+
+  def test_self_isolation
+    skip('Only supported on N7K') unless node.product_id[/N7K/]
+
+    @vpc = Vpc.new(100)
+    @vpc.self_isolation = true
+    assert_equal(true, @vpc.self_isolation,
+                 'Self isolation should have been configured')
+  end
+
+  def test_shutdown
+    skip('Only supported on N6K,N7K') unless node.product_id[/N[67]K/]
+    @vpc = Vpc.new(100)
+
+    @vpc.shutdown = true
+    assert(@vpc.shutdown, 'Vpc is not shutdown')
+
+    @vpc.shutdown = false
+    refute(@vpc.shutdown, 'Vpc is shutdown')
+
+    @vpc.shutdown = @vpc.default_shutdown
+    assert(@vpc.shutdown, 'vpc is not shutdown')
+  end
+
+  def test_system_mac
+    @vpc = Vpc.new(100)
+    default_value = @vpc.default_system_mac
+    assert_equal(default_value, @vpc.system_mac,
+                 "Default system_mac should be #{default_value}")
+
+    @vpc.system_mac = '1.1.1'
+    assert_equal('00:01:00:01:00:01', @vpc.system_mac,
+                 'Error: system_mac mismatch')
+  end
+
+  def test_system_priority
+    @vpc = Vpc.new(100)
+    default_value = @vpc.default_system_priority
+    assert_equal(default_value, @vpc.system_priority,
+                 "System priority should be #{default_value}")
+    @vpc.system_priority = 200
+    assert_equal(200, @vpc.system_priority,
+                 'System priority should be 200')
+  end
+
+  def test_track
+    @vpc = Vpc.new(100)
+
+    default_value = @vpc.default_track
+    assert_equal(default_value, @vpc.track,
+                 'default track should be 0')
+
+    @vpc.track = 44
+    assert_equal(44, @vpc.track, 'track should be 44')
+  end
 end

@@ -191,5 +191,91 @@ module Cisco
     def default_peer_gateway_exclude_vlan_bridge_domain
       config_get_default('vpc', 'peer_gateway_exclude_vlan')
     end
+
+    def role_priority
+      config_get('vpc', 'role_priority')
+    end
+
+    def role_priority=(priority)
+      set_args_keys(priority: priority)
+      config_set('vpc', 'role_priority', @set_args)
+    end
+
+    def default_role_priority
+      config_get_default('vpc', 'role_priority')
+    end
+
+    def self_isolation
+      val = config_get('vpc', 'self_isolation')
+      val.nil? ? false : val
+    end
+
+    def self_isolation=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'self_isolation', @set_args)
+    end
+
+    def default_self_isolation
+      config_get_default('vpc', 'self_isolation')
+    end
+
+    def shutdown
+      val = config_get('vpc', 'shutdown')
+      val.nil? ? false : val
+    end
+
+    def shutdown=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'shutdown', @set_args)
+    end
+
+    def default_shutdown
+      config_get_default('vpc', 'shutdown')
+    end
+
+    def system_mac
+      config_get('vpc', 'system_mac')
+    end
+
+    def system_mac=(mac_addr)
+      set_args_keys(state: mac_addr.empty? ? 'no' : '',  mac_addr: mac_addr)
+      config_set('vpc', 'system_mac', @set_args)
+    end
+
+    def default_system_mac
+      config_get_default('vpc', 'system_mac')
+    end
+
+    def system_priority
+      config_get('vpc', 'system_priority')
+    end
+
+    def system_priority=(priority)
+      set_args_keys(priority: priority)
+      config_set('vpc', 'system_priority', @set_args)
+    end
+
+    def default_system_priority
+      config_get_default('vpc', 'system_priority')
+    end
+
+    def track
+      config_get('vpc', 'track')
+    end
+
+    def track=(val)
+      unless val.nil?
+        fail ArgumentError, 'retransmit_count must be an Integer' \
+          unless val.is_a?(Integer)
+      end
+
+      set_args_keys(state: (val == track) ? 'no' : '', val: val)
+      config_set('vpc', 'track', @set_args)
+    end
+
+    def default_track
+      config_get_default('vpc', 'track')
+    end
+
   end # class Vpc
 end # module Cisco

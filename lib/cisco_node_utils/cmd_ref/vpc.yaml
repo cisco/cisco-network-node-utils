@@ -136,8 +136,8 @@ port_channel_limit:
 
 role_priority: 
   kind: int
-  config_get_token_append: '/^role  priority\s+(\d+)/'
-  config_set_append: "role priority <role-priority>"
+  config_get_token_append: '/^role priority\s+(\d+)/'
+  config_set_append: "role priority <priority>"
   default_value: 32667
 
 self_isolation: 
@@ -157,12 +157,18 @@ shutdown:
 system_mac:
   kind: string
   config_get_token_append: '/^system\-mac (\S+)$/'
-  config_set_append: "<state> system-mac <mac>"
+  config_set_append: "<state> system-mac <mac_addr>"
   default_value: ''
 
 system_priority: 
   kind: int
-  config_get_token_append: '/^system priority\s+(\d+)/'
-  config_set_append: "system priority <system-priority>"
+  config_get_token_append: '/^system\-priority\s+(\d+)/'
+  config_set_append: "system-priority <priority>"
   default_value: 32667
+
+track: 
+  kind: int
+  config_get_token_append: '/^track\s+(\d+)/'
+  config_set_append: "<state> track <val>"
+  default_value: 0
 
