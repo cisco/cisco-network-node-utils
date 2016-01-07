@@ -78,6 +78,20 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def acl
+      config_get('interface', 'acl', @name)
+    end
+
+    def acl_apply(attrs)
+      if attrs[:afi] == 'ip'
+        config_set('interface', 'acl_ipv4',
+                   @name, attrs[:acl_name], attrs[:dir])
+      else
+        config_set('interface', 'acl_ipv6',
+                   @name, attrs[:acl_name], attrs[:dir])
+      end
+    end
+
     def default_access_vlan
       config_get_default('interface', 'access_vlan')
     end
@@ -173,7 +187,8 @@ module Cisco
         config_set('fex', 'feature', '')
       when :disabled
         config_set('fex', 'feature', 'no') if curr == :enabled
-        return
+        return/
+
       when :installed
         config_set('fex', 'feature_install', '') if curr == :uninstalled
       when :uninstalled
