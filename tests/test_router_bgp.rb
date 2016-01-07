@@ -315,6 +315,64 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.disable_policy_batching = true
+    assert(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be enabled')
+    bgp.disable_policy_batching = false
+    refute(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.disable_policy_batching,
+           'bgp disable-policy-batching value should be false')
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv4
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv4 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv4,
+                 "bgp disable_policy_batching_ipv4 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv4 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 should be empty')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv4
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv4,
+                 'disable_policy_batching_ipv4 default value should be empty')
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv6
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv6 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv6,
+                 "bgp disable_policy_batching_ipv6 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv6 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 should be empty')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv6
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv6,
+                 'disable_policy_batching_ipv6 default value should be empty')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)

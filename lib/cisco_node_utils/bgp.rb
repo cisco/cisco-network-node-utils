@@ -313,6 +313,71 @@ module Cisco
       config_get_default('bgp', 'confederation_id')
     end
 
+    #
+    # disable-policy-batching (Getter/Setter/Default)
+    #
+    def disable_policy_batching
+      config_get('bgp', 'disable_policy_batching', @get_args)
+    end
+
+    def disable_policy_batching=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'disable_policy_batching', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching
+      config_get_default('bgp', 'disable_policy_batching')
+    end
+
+    #
+    # disable-policy-batching ipv4 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv4
+      config_get('bgp', 'disable_policy_batching_ipv4', @get_args)
+    end
+
+    def disable_policy_batching_ipv4=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv4
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv4', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv4
+      config_get_default('bgp', 'disable_policy_batching_ipv4')
+    end
+
+    #
+    # disable-policy-batching ipv6 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv6
+      config_get('bgp', 'disable_policy_batching_ipv6', @get_args)
+    end
+
+    def disable_policy_batching_ipv6=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv6
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv6', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv6
+      config_get_default('bgp', 'disable_policy_batching_ipv6')
+    end
+
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
       config_get('bgp', 'enforce_first_as', @get_args)
