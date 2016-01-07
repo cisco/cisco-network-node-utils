@@ -11,6 +11,7 @@ board:
   config_get_token: 'proc_board_id'
 
 boot_image:
+  _exclude: [cli_ios_xr]
   config_get_token: "kick_file_name"
   test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
 
@@ -42,7 +43,10 @@ full:
   config_get: "sh version"
 
 header:
-  config_get_token: "header_str"
+  cli_nexus:
+    config_get_token: "header_str"
+  cli_ios_xr:
+    config_get_token: '/Cisco.*Software/'
 
 host_name:
   cli_nexus:
@@ -54,23 +58,25 @@ host_name:
     default_value: 'ios'
 
 last_reset_reason:
+  _exclude: [cli_ios_xr]
   config_get_token: "rr_reason"
   test_config_get_regex: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
 
 last_reset_time:
+  _exclude: [cli_ios_xr]
   kind: string
   default_value: ''
   config_get_token: "rr_ctime"
   test_config_get_regex: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
 
 system_image:
-  cli_nexus:
-    /N7K/:
-      config_get_token: "isan_file_name"
-      test_config_get_regex: '/.*system image file is:    (.*)$.*/'
-    else:
-      config_get_token: "kick_file_name"
-      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+  _exclude: [cli_ios_xr]
+  /N7K/:
+    config_get_token: "isan_file_name"
+    test_config_get_regex: '/.*system image file is:    (.*)$.*/'
+  else:
+    config_get_token: "kick_file_name"
+    test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
 
 uptime:
   config_get_token: '/uptime is (.*)/'

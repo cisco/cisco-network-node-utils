@@ -1,5 +1,8 @@
 # show_system
 ---
 uptime:
-  config_get: 'show system uptime'
-  config_get_token: '/.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/'
+  cli_nexus:
+    config_get: 'show system uptime'
+  cli_ios_xr:
+    config_get: 'show version'
+  config_get_token: '/.*System uptime.*(?:(\d+) days, )?(?:(\d+) hours, )?(?:(\d+) minutes, )?(?:(\d+) seconds)?/'

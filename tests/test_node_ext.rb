@@ -89,7 +89,7 @@ vrf blue",
     node.client.config(['interface loopback0', 'shutdown'])
     node.client.config(['interface loopback1', 'no shutdown'])
 
-    result = node.config_get('interface', 'shutdown', 'loopback1')
+    result = node.config_get('interface', 'shutdown', name: 'loopback1')
     refute(result)
   end
 
@@ -103,9 +103,8 @@ vrf blue",
   end
 
   def test_node_config_get_default
-    skip 'TODO: needs rework' if platform == :ios_xr
-    result = node.config_get_default('snmp_server', 'aaa_user_cache_timeout')
-    assert_equal(result, 3600)
+    result = node.config_get_default('bgp', 'graceful_restart_timers_restart')
+    assert_equal(120, result)
   end
 
   def test_node_config_get_default_invalid
@@ -121,30 +120,33 @@ vrf blue",
   end
 
   def test_node_config_set
-    skip 'TODO: needs rework' if platform == :ios_xr
-    node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
-    run = node.client.show('show run all | inc snmp')
-    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal(['100'], val)
+    node.config_set('interface', 'create', name: 'loopback122')
+    run = node.client.show('show run | inc interface')
+    val = find_ascii(run, /interface loopback122/i)
+    assert_match(/interface loopback122/i, val[0])
 
-    node.config_set('snmp_server', 'aaa_user_cache_timeout', 'no', 100)
-    run = node.client.show('show run all | inc snmp')
-    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal(['3600'], val)
+    node.config_set('interface', 'destroy', name: 'loopback122')
+    run = node.client.show('show run | inc interface')
+    val = find_ascii(run, /interface loopback122/i)
+    assert_nil(val)
   end
 
   def test_node_config_set_invalid
     assert_raises IndexError do
       node.config_set('feature', 'name')
     end
-    assert_raises IndexError do # feature exists but no config_set
+    assert_raises(IndexError, Cisco::UnsupportedError) do
+      # feature exists but no config_set
       node.config_set('show_version', 'system_image')
     end
-    assert_raises ArgumentError do # not enough args
-      node.config_set('vtp', 'domain')
-    end
-    assert_raises ArgumentError do # too many args
-      node.config_set('vtp', 'domain', 'example.com', 'baz')
+    # TODO: none of the supported classes on IOS XR use printf-style args
+    if platform == :nexus # rubocop:disable Style/GuardClause
+      assert_raises ArgumentError do # not enough args
+        node.config_set('vtp', 'domain')
+      end
+      assert_raises ArgumentError do # too many args
+        node.config_set('vtp', 'domain', 'example.com', 'baz')
+      end
     end
   end
 
@@ -197,7 +199,7 @@ vrf blue",
   def test_node_get_product_serial_number
     ref = cmd_ref.lookup('inventory', 'serialnum')
     assert_output_check(command: ref.test_config_get,
-                        pattern: /NAME: \"#{@chassis}\".*\n.*SN: (\w+)/,
+                        pattern: /NAME: \"#{@chassis}\".*\n.*SN: ([-\w]+)/,
                         check:   node.product_serial_number,
                         msg:     'Error, Serial number does not match')
   end
@@ -205,7 +207,7 @@ vrf blue",
   def test_node_get_os
     ref = cmd_ref.lookup('show_version', 'version')
     assert_output_check(command: ref.test_config_get,
-                        pattern: /\n(Cisco.*)\n/,
+                        pattern: /\n(Cisco.*Software)/,
                         check:   node.os,
                         msg:     'Error, OS version does not match')
   end
@@ -339,14 +341,21 @@ vrf blue",
   end
 
   def test_node_get_system_uptime
-    skip 'not yet supported' if platform == :ios_xr
     node.cache_flush
-    # rubocop:disable Metrics/LineLength
-    pattern = /.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/
-    # rubocop:enable Metrics/LineLength
+    pattern = /
+      .*System\suptime.*
+      (?:(\d+)\sdays,?\s?)?
+      (?:(\d+)\shours,?\s?)?
+      (?:(\d+)\sminutes,?\s?)?
+      (?:(\d+)\sseconds)?
+    /x
+    if platform == :ios_xr
+      cmd = 'show version'
+    elsif platform == :nexus
+      cmd = 'show system uptime | no-more'
+    end
 
-    md = assert_show_match(command: 'show system uptime | no-more',
-                           pattern: pattern)
+    md = assert_show_match(command: cmd, pattern: pattern)
     node_uptime = node.system_uptime
 
     observed_system_uptime = (
@@ -361,7 +370,10 @@ vrf blue",
   end
 
   def test_node_get_last_reset_time
-    skip 'not yet supported' if platform == :ios_xr
+    if platform == :ios_xr
+      assert_nil(node.last_reset_time)
+      return
+    end
     last_reset_time = node.last_reset_time
     ref = cmd_ref.lookup('show_version', 'last_reset_time')
     assert(ref, 'Error, reference not found')
@@ -379,7 +391,10 @@ vrf blue",
   end
 
   def test_node_get_last_reset_reason
-    skip 'not yet supported' if platform == :ios_xr
+    if platform == :ios_xr
+      assert_nil(node.last_reset_reason)
+      return
+    end
     ref = cmd_ref.lookup('show_version', 'last_reset_reason')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -389,7 +404,10 @@ vrf blue",
   end
 
   def test_node_get_system_cpu_utilization
-    skip 'not yet supported' if platform == :ios_xr
+    if platform == :ios_xr
+      assert_nil(node.last_reset_reason)
+      return
+    end
     cpu_utilization = node.system_cpu_utilization
     ref = cmd_ref.lookup('system', 'resources')
     assert(ref, 'Error, reference not found')
@@ -402,7 +420,10 @@ vrf blue",
   end
 
   def test_node_get_boot
-    skip 'not yet supported' if platform == :ios_xr
+    if platform == :ios_xr
+      assert_nil(node.boot)
+      return
+    end
     ref = cmd_ref.lookup('show_version', 'boot_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,
@@ -412,7 +433,10 @@ vrf blue",
   end
 
   def test_node_get_system
-    skip 'not yet supported' if platform == :ios_xr
+    if platform == :ios_xr
+      assert_nil(node.system)
+      return
+    end
     ref = cmd_ref.lookup('show_version', 'system_image')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_config_get,

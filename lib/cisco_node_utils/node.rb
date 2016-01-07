@@ -419,8 +419,7 @@ module Cisco
     else
       # find matches and return as array of String if it only does one
       # match in the regex. Otherwise return array of array
-      match = body.split("\n").map { |s| s.scan(regex_query) }
-      match = match.flatten(1)
+      match = body.scan(regex_query)
       return nil if match.empty?
       match = match.flatten if match[0].is_a?(Array) && match[0].length == 1
       return match

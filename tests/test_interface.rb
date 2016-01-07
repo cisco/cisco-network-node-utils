@@ -1203,5 +1203,8 @@ class TestInterface < CiscoTestCase
     assert_equal(pc.to_i, interface.channel_group)
     interface.channel_group = interface.default_channel_group
     assert_equal(interface.default_channel_group, interface.channel_group)
+  rescue Cisco::UnsupportedError => e
+    # Some platforms only support channel-group with certain software versions
+    skip(e.to_s)
   end
 end
