@@ -341,37 +341,33 @@ class TestRouterBgp < CiscoTestCase
     opts = [:cli, :detail, :events, :periodic]
     opts.each do |opt|
       # Test basic true
-      bgp.send("event_history_#{opt}_set", true)
+      bgp.send("event_history_#{opt}=", 'true')
+      set = bgp.send("default_event_history_#{opt}")
       result = bgp.send("event_history_#{opt}")
-      assert(result, 'Failed to set state to True')
+      assert_equal(set, result,
+                   'Failed to set True with Size')
 
       # Test true with size
-      bgp.send("event_history_#{opt}_set", true, 'large')
-      result = bgp.send("event_history_#{opt}_size")
-      assert_equal('large', result,
+      bgp.send("event_history_#{opt}=", 'size_large')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_large', result,
                    'Failed to set True with Size')
 
       # Test false with size
-      bgp.send("event_history_#{opt}_set", false)
+      bgp.send("event_history_#{opt}=", 'false')
       result = bgp.send("event_history_#{opt}")
-      refute(result, 'Failed to set state to False')
+      assert_equal('false', result,
+                   'Failed to set state to False')
 
       # Test true with size, from false
-      bgp.send("event_history_#{opt}_set", true, 'large')
-      result = bgp.send("event_history_#{opt}_size")
-      assert_equal('large', result,
+      bgp.send("event_history_#{opt}=", 'size_small')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_small', result,
                    'Failed to set True with Size from false state')
-
-      # Test default size, from true
-      set = bgp.send("default_event_history_#{opt}_size")
-      bgp.send("event_history_#{opt}_set", true, set)
-      result = bgp.send("event_history_#{opt}_size")
-      assert_equal(set, result,
-                   'Failed to set default size from existing')
 
       # Test default_state
       set = bgp.send("default_event_history_#{opt}")
-      bgp.send("event_history_#{opt}_set", set)
+      bgp.send("event_history_#{opt}=", set)
       result = bgp.send("event_history_#{opt}")
       assert_equal(set, result,
                    'Failed to set state to default')
