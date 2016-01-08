@@ -396,26 +396,17 @@ module Cisco
     # event-history
     # event-history cli [ size <size> ]
     # Nvgen as True With optional 'size <size>
-    def event_history_cli_get
-      val = config_get('bgp', 'event_history_cli', @get_args)
-      return nil unless val
-      (val[/size/]) ? val.split.last : true
-    end
-
     def event_history_cli
-      event_history_cli_get.nil? ? false : true
+      match = config_get('bgp', 'event_history_cli', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_cli
     end
 
-    def event_history_cli_size
-      val = event_history_cli_get
-      return nil if val.nil?
-      val.is_a?(String) ? val : default_event_history_cli_size
-    end
-
-    def event_history_cli_set(state, size=nil)
-      size = "size #{size}" unless size.nil?
-      @set_args[:state] = (state ? '' : 'no')
-      @set_args[:size] = size
+    def event_history_cli=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_cli', @set_args)
       set_args_keys_default
     end
@@ -424,32 +415,19 @@ module Cisco
       config_get_default('bgp', 'event_history_cli')
     end
 
-    def default_event_history_cli_size
-      config_get_default('bgp', 'event_history_cli_size')
-    end
-
     # event-history detail [ size <size> ]
     # Nvgen as True With optional 'size <size>
-    def event_history_detail_get
-      val = config_get('bgp', 'event_history_detail', @get_args)
-      return nil unless val
-      (val[/size/]) ? val.split.last : true
-    end
-
     def event_history_detail
-      event_history_detail_get.nil? ? false : true
+      match = config_get('bgp', 'event_history_detail', @get_args)
+      return 'false' if match.nil?
+      return 'size_' + match[1] if match[1]
+      default_event_history_detail
     end
 
-    def event_history_detail_size
-      val = event_history_detail_get
-      return nil if val.nil?
-      val.is_a?(String) ? val : default_event_history_detail_size
-    end
-
-    def event_history_detail_set(state, size=nil)
-      size = "size #{size}" unless size.nil?
-      @set_args[:state] = (state ? '' : 'no')
-      @set_args[:size] = size
+    def event_history_detail=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_detail', @set_args)
       set_args_keys_default
     end
@@ -458,32 +436,19 @@ module Cisco
       config_get_default('bgp', 'event_history_detail')
     end
 
-    def default_event_history_detail_size
-      config_get_default('bgp', 'event_history_detail_size')
-    end
-
-    # event-history event [ size <size> ]
+    # event-history events [ size <size> ]
     # Nvgen as True With optional 'size <size>
-    def event_history_events_get
-      val = config_get('bgp', 'event_history_events', @get_args)
-      return nil unless val
-      (val[/size/]) ? val.split.last : true
-    end
-
     def event_history_events
-      event_history_events_get.nil? ? false : true
+      match = config_get('bgp', 'event_history_events', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_events
     end
 
-    def event_history_events_size
-      val = event_history_events_get
-      return nil if val.nil?
-      val.is_a?(String) ? val : default_event_history_events_size
-    end
-
-    def event_history_events_set(state, size=nil)
-      size = "size #{size}" unless size.nil?
-      @set_args[:state] = (state ? '' : 'no')
-      @set_args[:size] = size
+    def event_history_events=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_events', @set_args)
       set_args_keys_default
     end
@@ -492,42 +457,25 @@ module Cisco
       config_get_default('bgp', 'event_history_events')
     end
 
-    def default_event_history_events_size
-      config_get_default('bgp', 'event_history_events_size')
-    end
-
     # event-history periodic [ size <size> ]
     # Nvgen as True With optional 'size <size>
-    def event_history_periodic_get
-      val = config_get('bgp', 'event_history_periodic', @get_args)
-      return nil unless val
-      (val[/size/]) ? val.split.last : true
-    end
-
     def event_history_periodic
-      event_history_periodic_get.nil? ? false : true
+      match = config_get('bgp', 'event_history_periodic', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_periodic
     end
 
-    def event_history_periodic_size
-      val = event_history_periodic_get
-      return nil if val.nil?
-      val.is_a?(String) ? val : default_event_history_periodic_size
-    end
-
-    def event_history_periodic_set(state, size=nil)
-      size = "size #{size}" unless size.nil?
-      @set_args[:state] = (state ? '' : 'no')
-      @set_args[:size] = size
+    def event_history_periodic=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_periodic', @set_args)
       set_args_keys_default
     end
 
     def default_event_history_periodic
       config_get_default('bgp', 'event_history_periodic')
-    end
-
-    def default_event_history_periodic_size
-      config_get_default('bgp', 'event_history_periodic_size')
     end
 
     # Fast External fallover (Getter/Setter/Default)
