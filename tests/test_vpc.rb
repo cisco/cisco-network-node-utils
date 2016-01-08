@@ -187,7 +187,7 @@ class TestVpc < CiscoTestCase
     e = assert_raises(CliError) do
       @vpc.peer_gateway_exclude_vlan_bridge_domain = '64535'
     end
-    assert_match(/Invalid value.*range/, e.message)
+    assert_match(/Invalid/i, e.message)
   end
 
   def test_role_priority
