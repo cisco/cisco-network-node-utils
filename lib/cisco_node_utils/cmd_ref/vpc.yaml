@@ -71,7 +71,7 @@ feature:
   kind: boolean
   config_get: "show feature | section vpc"
   config_get_token: '/^vpc\s+\d+\s+enabled\s*$/'
-  config_set: "<state> feature vpc"
+  config_set: ["terminal dont-ask", "<state> feature vpc"]
   default_value: false
 
 graceful_consistency_check: 
