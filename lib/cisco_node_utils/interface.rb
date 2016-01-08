@@ -74,18 +74,60 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
-    def acl
-      config_get('interface', 'acl', @name)
+    def ipv4_acl_in
+      config_get('interface', 'ipv4_acl_in', @name)
     end
 
-    def acl_apply(attrs)
-      if attrs[:afi] == 'ip'
-        config_set('interface', 'acl_ipv4',
-                   @name, attrs[:acl_name], attrs[:dir])
+    def ipv4_acl_in=(val)
+      if val
+        state = ''
       else
-        config_set('interface', 'acl_ipv6',
-                   @name, attrs[:acl_name], attrs[:dir])
+        state = 'no'
+        val = ipv4_acl_in
       end
+      config_set('interface', 'ipv4_acl_in', @name, state, val)
+    end
+
+    def ipv4_acl_out
+      config_get('interface', 'ipv4_acl_out', @name)
+    end
+
+    def ipv4_acl_out=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_out
+      end
+      config_set('interface', 'ipv4_acl_out', @name, state, val)
+    end
+
+    def ipv6_acl_in
+      config_get('interface', 'ipv6_acl_in', @name)
+    end
+
+    def ipv6_acl_in=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_in
+      end
+      config_set('interface', 'ipv6_acl_in', @name, state, val)
+    end
+
+    def ipv6_acl_out
+      config_get('interface', 'ipv6_acl_out', @name)
+    end
+
+    def ipv6_acl_out=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_out
+      end
+      config_set('interface', 'ipv6_acl_out', @name, state, val)
     end
 
     def default_access_vlan
@@ -216,8 +258,7 @@ module Cisco
         config_set('fex', 'feature', '')
       when :disabled
         config_set('fex', 'feature', 'no') if curr == :enabled
-        return/
-
+        return
       when :installed
         config_set('fex', 'feature_install', '') if curr == :uninstalled
       when :uninstalled

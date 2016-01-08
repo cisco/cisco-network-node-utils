@@ -12,13 +12,6 @@ access_vlan:
   kind: int
   default_value: 1
 
-acl_ipv4:
-  config_get_token_append: '/^ip access-group (.*)/'
-  config_set_append: "ip access-group %s %s"
-acl_ipv6:
-  config_get_token_append: '/^ipv6 traffic-filter (.*)/'
-  config_set_append: "ipv6 traffic-filter %s %s"
-
 admin_state_ethernet_noswitchport_shutdown:
   # TODO: is this actually used?
   cli_nexus:
@@ -72,6 +65,14 @@ feature_vlan:
     config_get_token: '/^feature interface-vlan$/'
     config_set: "%s feature interface-vlan"
 
+ipv4_acl_in:
+  config_get_token_append: '/^ip access-group (\S+) in/'
+  config_set_append: "%s ip access-group %s in"
+
+ipv4_acl_out:
+  config_get_token_append: '/^ip access-group (\S+) out/'
+  config_set_append: "%s ip access-group %s out"
+
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
   multiple:
@@ -110,6 +111,14 @@ ipv4_redirects_other_interfaces:
     '/^\s+ip redirects/',
     '/^\s+no ip redirects/'
     ]
+
+ipv6_acl_in:
+  config_get_token_append: '/^ipv6 traffic-filter (\S+) in/'
+  config_set_append: "%s ipv6 traffic-filter %s in"
+
+ipv6_acl_out:
+  config_get_token_append: '/^ipv6 traffic-filter (\S+) out/'
+  config_set_append: "%s ipv6 traffic-filter %s out"
 
 mtu:
   kind: int

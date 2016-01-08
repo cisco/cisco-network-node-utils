@@ -361,7 +361,6 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  # def validate_acl(inttype_h)
   def test_interface_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
@@ -779,27 +778,46 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_create_acl
-    attr_acl_ipv4 = {
-      afi:      'ip',
-      acl_name: 'foo4',
-      dir:      'in',
-    }
-    attr_acl_ipv6 = {
-      afi:      'ipv6',
-      acl_name: 'foo6',
-      dir:      'in',
-    }
+  def test_ipv4_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ip access-group v4acl1 in
+    #     ip access-group v4acl2 out
+    #
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
 
-    interface = create_interface
-    interface.acl_apply(attr_acl_ipv4)
-    pattern = (/^\s+ip access-group (.*)/)
-    assert_show_match(pattern: pattern,
-                      msg:     'Error: ipv4 acl not applied on the interface')
-    interface.acl_apply(attr_acl_ipv6)
-    pattern = (/^\s+ipv6 traffic-filter (.*)/)
-    assert_show_match(pattern: pattern,
-                      msg:     'Error: ipv6 acl not applied on the interface')
+    intf.ipv4_acl_in = 'v4acl1'
+    assert_equal('v4acl1', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl2'
+    assert_equal('v4acl2', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = 'v4acl3'
+    assert_equal('v4acl3', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl4'
+    assert_equal('v4acl4', intf.ipv4_acl_out)
+  end
+
+  def test_ipv6_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ipv6 traffic-filter v6acl1 in
+    #     ipv6 traffic-filter v6acl2 out
+    #
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
+
+    intf.ipv6_acl_in = 'v6acl1'
+    assert_equal('v6acl1', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl2'
+    assert_equal('v6acl2', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = 'v6acl3'
+    assert_equal('v6acl3', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl4'
+    assert_equal('v6acl4', intf.ipv6_acl_out)
   end
 
   def test_interface_ipv4_address
@@ -1054,7 +1072,6 @@ class TestInterface < CiscoTestCase
     # pre-configure
     inttype_h = config_from_hash(inttype_h)
 
-    print inttype_h
     # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
@@ -1073,7 +1090,6 @@ class TestInterface < CiscoTestCase
       validate_ipv4_redirects(inttype_h)
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
-      # validate_acl(inttype_h)
       config(*cfg)
     rescue Minitest::Assertion
       # clean up before failing
