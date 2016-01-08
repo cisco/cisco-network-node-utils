@@ -617,7 +617,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_weight
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
-      weight(af, dbg) unless dbg.include?('l2vpn/evpn') # && platform == :nexus
+      weight(af, dbg) unless dbg.include?('l2vpn/evpn')
     end
   end
 
