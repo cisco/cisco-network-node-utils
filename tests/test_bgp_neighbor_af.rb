@@ -612,4 +612,25 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     assert_empty(af.soo,
                  "Test 4. #{dbg} Failed to set default '#{val}'")
   end
+
+  # --------------------------------
+  def test_weight
+    @@matrix.values.each do |af_args|
+      af, dbg = clean_af(af_args)
+      weight(af, dbg) unless dbg.include?('l2vpn/evpn')
+    end
+  end
+
+  def weight(af, dbg)
+    # check the default value before set
+    assert_equal(af.default_weight, af.weight,
+                 "Test 1. #{dbg} Error: should be default value")
+
+    af.weight = 22
+    assert_equal(22, af.weight, "Test 2. #{dbg} Failed to set weight")
+
+    af.weight = af.default_weight
+    assert_equal(af.default_weight, af.weight,
+                 "Test 3. #{dbg} Failed to remove weight")
+  end
 end
