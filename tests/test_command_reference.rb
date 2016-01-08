@@ -34,17 +34,6 @@ class TestCmdRef < Minitest::Test
     @input_file.close!
   end
 
-  # Extend standard Minitest error handling to report UnsupportedError as skip
-  def capture_exceptions
-    super do
-      begin
-        yield
-      rescue Cisco::UnsupportedError => e
-        skip(e.to_s)
-      end
-    end
-  end
-
   def load_file(**args)
     CommandReference.new(**args, :files => [@input_file.path])
   end

@@ -1,13 +1,10 @@
 # inventory
 ---
 _template:
+  config_get: 'show inventory'
   cli_ios_xr:
-    # TODO: this doesn't work quite right,
-    # as it seems that 'head' ignores 'begin'... :-(
-    config_get: 'show inventory | begin "Rack 0" | utility head count 2'
     test_config_get: 'show inventory'
   cli_nexus:
-    config_get: 'show inventory'
     test_config_get: 'show inventory | no-more'
 
 all:
@@ -39,18 +36,18 @@ inventory:
 
 productid:
   cli_ios_xr:
-    config_get_token: '/PID: ([^ ,]+)/'
+    config_get_token: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
 
 serialnum:
   cli_ios_xr:
-    config_get_token: '/SN: ([^ ,]+)/'
+    config_get_token: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
 
 versionid:
   cli_ios_xr:
-    config_get_token: '/VID: ([^ ,]+)/'
+    config_get_token: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   cli_nexus:
     config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]
