@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
-require_relative '../lib/cisco_node_utils/interface_service'
+require_relative '../lib/cisco_node_utils/interface_service_vni'
 require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
-# TestInterfaceService - Minitest for the InterfaceService class.
+# TestInterfaceServiceVni - Minitest for the InterfaceServiceVni class.
 #
 # Example cli tested by this minitest:
 #
@@ -32,7 +32,7 @@ include Cisco
 #    service instance 6 vni
 #      encapsulation profile vni_600_6000 default
 #
-class TestInterfaceService < CiscoTestCase
+class TestInterfaceServiceVni < CiscoTestCase
   def setup
     super
   end
@@ -91,13 +91,13 @@ class TestInterfaceService < CiscoTestCase
     global_setup
 
     # TEST Create / Destroy and svc_vni_ids hash builder
-    i5 = InterfaceService.new(intf, 5)
-    assert_equal(1, InterfaceService.svc_vni_ids[intf].count)
-    i6 = InterfaceService.new(intf, 6)
-    i7 = InterfaceService.new(intf, 7)
-    assert_equal(3, InterfaceService.svc_vni_ids[intf].count)
+    i5 = InterfaceServiceVni.new(intf, 5)
+    assert_equal(1, InterfaceServiceVni.svc_vni_ids[intf].count)
+    i6 = InterfaceServiceVni.new(intf, 6)
+    i7 = InterfaceServiceVni.new(intf, 7)
+    assert_equal(3, InterfaceServiceVni.svc_vni_ids[intf].count)
     i6.destroy
-    assert_equal(2, InterfaceService.svc_vni_ids[intf].count)
+    assert_equal(2, InterfaceServiceVni.svc_vni_ids[intf].count)
     i5.destroy
     i7.destroy
   end
@@ -106,7 +106,7 @@ class TestInterfaceService < CiscoTestCase
     intf = mt_full_env_setup
     global_setup
 
-    i5 = InterfaceService.new(intf, 5)
+    i5 = InterfaceServiceVni.new(intf, 5)
     # Test shutdown
     i5.shutdown = false
     refute(i5.shutdown)
@@ -122,7 +122,7 @@ class TestInterfaceService < CiscoTestCase
     intf = mt_full_env_setup
     global_setup
 
-    i5 = InterfaceService.new(intf, 5)
+    i5 = InterfaceServiceVni.new(intf, 5)
 
     # Test removal when profile not present
     i5.encapsulation_profile_vni = ''

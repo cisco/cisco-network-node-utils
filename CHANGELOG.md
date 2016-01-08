@@ -14,7 +14,7 @@ Changelog
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Interface
-  * interface_service (@chrisvanheuveln)
+  * interface_service_vni (@chrisvanheuveln)
 * PIM
   * pim (@smigopal)
   * pim_group_list (@smigopal)

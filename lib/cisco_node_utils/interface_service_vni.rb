@@ -1,6 +1,6 @@
 # December 2015, Chris Van Heuveln
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ require_relative 'node_util'
 require_relative 'vni'
 
 module Cisco
-  # InterfaceService - node utility class for Service Instance commands
-  class InterfaceService < NodeUtil
+  # InterfaceServiceVni - node utility class for Service VNI Instance commands
+  class InterfaceServiceVni < NodeUtil
     attr_reader :name
 
     def initialize(intf, sid, instantiate=true)
@@ -37,12 +37,12 @@ module Cisco
 
       intf_list.each do |intf|
         intf.downcase!
-        svc_ids = config_get('interface_service', 'all_service_vni_ids',
+        svc_ids = config_get('interface_service_vni', 'all_service_vni_ids',
                              name: intf)
         next if svc_ids.nil?
         hash[intf] = {}
         svc_ids.each do |sid|
-          hash[intf][sid] = InterfaceService.new(intf, sid, false)
+          hash[intf][sid] = InterfaceServiceVni.new(intf, sid, false)
         end
       end
       hash
@@ -51,12 +51,12 @@ module Cisco
     def create
       Vni.feature_vni_enable unless Vni.feature_vni_enabled
       @set_args[:state] = ''
-      config_set('interface_service', 'create_destroy', @set_args)
+      config_set('interface_service_vni', 'create_destroy', @set_args)
     end
 
     def destroy
       @set_args[:state] = 'no'
-      config_set('interface_service', 'create_destroy', @set_args)
+      config_set('interface_service_vni', 'create_destroy', @set_args)
     end
 
     def set_args_keys_default
@@ -82,7 +82,8 @@ module Cisco
     #          encapsulation profile vni_500_5000 default
     #  type: 'vni_500_5000'
     def encapsulation_profile_vni
-      config_get('interface_service', 'encapsulation_profile_vni', @get_args)
+      config_get('interface_service_vni', 'encapsulation_profile_vni',
+                 @get_args)
     end
 
     def encapsulation_profile_vni=(profile)
@@ -91,15 +92,15 @@ module Cisco
       current = encapsulation_profile_vni
 
       if state[/no/]
-        config_set('interface_service', 'encapsulation_profile_vni',
+        config_set('interface_service_vni', 'encapsulation_profile_vni',
                    set_args_keys(state: state, profile: current)) unless
           current.empty?
       else
         # Remove current profile before adding a new one
-        config_set('interface_service', 'encapsulation_profile_vni',
+        config_set('interface_service_vni', 'encapsulation_profile_vni',
                    set_args_keys(state: 'no', profile: current)) unless
           current.empty?
-        config_set('interface_service', 'encapsulation_profile_vni',
+        config_set('interface_service_vni', 'encapsulation_profile_vni',
                    set_args_keys(state: state, profile: profile))
       end
     rescue Cisco::CliError => e
@@ -107,25 +108,25 @@ module Cisco
     end
 
     def default_encapsulation_profile_vni
-      config_get_default('interface_service', 'encapsulation_profile_vni')
+      config_get_default('interface_service_vni', 'encapsulation_profile_vni')
     end
 
     #
     # shutdown
     #
     def shutdown
-      config_get('interface_service', 'shutdown', @get_args)
+      config_get('interface_service_vni', 'shutdown', @get_args)
     end
 
     def shutdown=(state)
-      config_set('interface_service', 'shutdown',
+      config_set('interface_service_vni', 'shutdown',
                  set_args_keys(state: state ? '' : 'no'))
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
-      config_get_default('interface_service', 'shutdown')
+      config_get_default('interface_service_vni', 'shutdown')
     end
   end  # Class
 end    # Module
