@@ -779,7 +779,7 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_acl
+  def test_ipv4_acl
     # Sample cli:
     #
     #   interface Ethernet1/1
