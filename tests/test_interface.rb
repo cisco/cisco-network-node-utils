@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
@@ -778,13 +779,18 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
-  def test_ipv4_acl
+  def test_acl
     # Sample cli:
     #
     #   interface Ethernet1/1
     #     ip access-group v4acl1 in
     #     ip access-group v4acl2 out
     #
+
+    # create acls first
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      Acl.new('ipv4', acl_name)
+    end
     interface_ethernet_default(interfaces[0])
     intf = Interface.new(interfaces[0])
 
@@ -797,6 +803,16 @@ class TestInterface < CiscoTestCase
     assert_equal('v4acl3', intf.ipv4_acl_in)
     intf.ipv4_acl_out = 'v4acl4'
     assert_equal('v4acl4', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = intf.default_ipv4_acl_in
+    assert_equal(nil, intf.ipv4_acl_in)
+    intf.ipv4_acl_out = intf.default_ipv4_acl_out
+    assert_equal(nil, intf.ipv4_acl_out)
+
+    # delete acls
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      config('no ip access-list ' + acl_name)
+    end
   end
 
   def test_ipv6_acl
@@ -809,6 +825,11 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces[0])
     intf = Interface.new(interfaces[0])
 
+    # create acls first
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      Acl.new('ipv6', acl_name)
+    end
+
     intf.ipv6_acl_in = 'v6acl1'
     assert_equal('v6acl1', intf.ipv6_acl_in)
     intf.ipv6_acl_out = 'v6acl2'
@@ -818,6 +839,16 @@ class TestInterface < CiscoTestCase
     assert_equal('v6acl3', intf.ipv6_acl_in)
     intf.ipv6_acl_out = 'v6acl4'
     assert_equal('v6acl4', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = intf.default_ipv6_acl_in
+    assert_equal(nil, intf.ipv6_acl_in)
+    intf.ipv6_acl_out = intf.default_ipv6_acl_out
+    assert_equal(nil, intf.ipv6_acl_out)
+
+    # delete acls
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      config('no ipv6 access-list ' + acl_name)
+    end
   end
 
   def test_interface_ipv4_address

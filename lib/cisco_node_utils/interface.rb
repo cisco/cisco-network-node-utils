@@ -88,6 +88,10 @@ module Cisco
       config_set('interface', 'ipv4_acl_in', @name, state, val)
     end
 
+    def default_ipv4_acl_in
+      config_get_default('interface', 'ipv4_acl_in')
+    end
+
     def ipv4_acl_out
       config_get('interface', 'ipv4_acl_out', @name)
     end
@@ -100,6 +104,10 @@ module Cisco
         val = ipv4_acl_out
       end
       config_set('interface', 'ipv4_acl_out', @name, state, val)
+    end
+
+    def default_ipv4_acl_out
+      config_get_default('interface', 'ipv4_acl_out')
     end
 
     def ipv6_acl_in
@@ -116,6 +124,10 @@ module Cisco
       config_set('interface', 'ipv6_acl_in', @name, state, val)
     end
 
+    def default_ipv6_acl_in
+      config_get_default('interface', 'ipv6_acl_in')
+    end
+
     def ipv6_acl_out
       config_get('interface', 'ipv6_acl_out', @name)
     end
@@ -128,6 +140,10 @@ module Cisco
         val = ipv6_acl_out
       end
       config_set('interface', 'ipv6_acl_out', @name, state, val)
+    end
+
+    def default_ipv6_acl_out
+      config_get_default('interface', 'ipv6_acl_out')
     end
 
     def default_access_vlan

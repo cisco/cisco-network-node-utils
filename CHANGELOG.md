@@ -21,10 +21,10 @@ Changelog
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
 * Extend bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
+* Extend interface with attributes: `channel_group`, `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`. Also add support for fabric path attributes
 * Extend interface with `channel_group` attribute and support for fabric path attributes
 * Extend vrf with `vni` attribute
 * Extend vlan with `mode` attribute
-* Extend interface with access lists attributes (@bansalpradeep)
 
 ### Changed
 
