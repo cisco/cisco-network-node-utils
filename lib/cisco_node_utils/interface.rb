@@ -78,6 +78,78 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def ipv4_acl_in
+      config_get('interface', 'ipv4_acl_in', @name)
+    end
+
+    def ipv4_acl_in=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_in
+      end
+      config_set('interface', 'ipv4_acl_in', @name, state, val)
+    end
+
+    def default_ipv4_acl_in
+      config_get_default('interface', 'ipv4_acl_in')
+    end
+
+    def ipv4_acl_out
+      config_get('interface', 'ipv4_acl_out', @name)
+    end
+
+    def ipv4_acl_out=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_out
+      end
+      config_set('interface', 'ipv4_acl_out', @name, state, val)
+    end
+
+    def default_ipv4_acl_out
+      config_get_default('interface', 'ipv4_acl_out')
+    end
+
+    def ipv6_acl_in
+      config_get('interface', 'ipv6_acl_in', @name)
+    end
+
+    def ipv6_acl_in=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_in
+      end
+      config_set('interface', 'ipv6_acl_in', @name, state, val)
+    end
+
+    def default_ipv6_acl_in
+      config_get_default('interface', 'ipv6_acl_in')
+    end
+
+    def ipv6_acl_out
+      config_get('interface', 'ipv6_acl_out', @name)
+    end
+
+    def ipv6_acl_out=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_out
+      end
+      config_set('interface', 'ipv6_acl_out', @name, state, val)
+    end
+
+    def default_ipv6_acl_out
+      config_get_default('interface', 'ipv6_acl_out')
+    end
+
     def default_access_vlan
       config_get_default('interface', 'access_vlan')
     end

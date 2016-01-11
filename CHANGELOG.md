@@ -49,6 +49,7 @@ Changelog
   * `table_map`
 * Extend interface with attributes:
   * `channel_group`
+  * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `vlan_mapping`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
