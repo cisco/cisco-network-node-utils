@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
@@ -776,6 +777,78 @@ class TestInterface < CiscoTestCase
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
     interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_ipv4_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ip access-group v4acl1 in
+    #     ip access-group v4acl2 out
+    #
+
+    # create acls first
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      Acl.new('ipv4', acl_name)
+    end
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
+
+    intf.ipv4_acl_in = 'v4acl1'
+    assert_equal('v4acl1', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl2'
+    assert_equal('v4acl2', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = 'v4acl3'
+    assert_equal('v4acl3', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl4'
+    assert_equal('v4acl4', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = intf.default_ipv4_acl_in
+    assert_equal(nil, intf.ipv4_acl_in)
+    intf.ipv4_acl_out = intf.default_ipv4_acl_out
+    assert_equal(nil, intf.ipv4_acl_out)
+
+    # delete acls
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      config('no ip access-list ' + acl_name)
+    end
+  end
+
+  def test_ipv6_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ipv6 traffic-filter v6acl1 in
+    #     ipv6 traffic-filter v6acl2 out
+    #
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
+
+    # create acls first
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      Acl.new('ipv6', acl_name)
+    end
+
+    intf.ipv6_acl_in = 'v6acl1'
+    assert_equal('v6acl1', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl2'
+    assert_equal('v6acl2', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = 'v6acl3'
+    assert_equal('v6acl3', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl4'
+    assert_equal('v6acl4', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = intf.default_ipv6_acl_in
+    assert_equal(nil, intf.ipv6_acl_in)
+    intf.ipv6_acl_out = intf.default_ipv6_acl_out
+    assert_equal(nil, intf.ipv6_acl_out)
+
+    # delete acls
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      config('no ipv6 access-list ' + acl_name)
+    end
   end
 
   def test_interface_ipv4_address
