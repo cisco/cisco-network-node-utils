@@ -181,13 +181,13 @@ name:
     write("
 name:
   default_value: 'generic'
-  cli_nexus:
+  nexus:
     default_value: 'NXAPI base'
     /N7K/:
       default_value: ~
     /N9K/:
       default_value: 'NXAPI N9K'
-  cli_ios_xr:
+  ios_xr:
     /XRV9000/:
       default_value: ~
     else:
@@ -294,9 +294,10 @@ rank:
   end
 
   def test_exclude_implicit
+    # TODO: something is hinky with this test.
     write("
 name:
-  cli_nexus:
+  cli:
     default_value: 1
 ")
     reference = load_file(platform: 'nexus', cli: false)
@@ -357,7 +358,7 @@ name2:
     write("
 name:
   kind: int
-  cli_nexus:
+  nexus:
     default_value: 10
     set_value: 'hello'
   default_only: 0

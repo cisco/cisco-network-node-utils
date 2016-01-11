@@ -1,9 +1,9 @@
 # bgp_neighbor.yaml
 ---
 _template:
-  cli_ios_xr:
+  ios_xr:
     get_command: "show running router bgp"
-  cli_nexus:
+  nexus:
     get_command: "show running bgp all"
   context:
     - "router bgp <asnum>"
@@ -18,7 +18,7 @@ all_neighbors:
   get_value: '/^neighbor (\S+)$/'
 
 capability_negotiation:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   auto_default: false
   kind: boolean
   get_value: '/^dont-capability-negotiate$/'
@@ -28,10 +28,10 @@ capability_negotiation:
 connected_check:
   auto_default: false
   kind: boolean
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^ignore-connected-check$/'
     set_value: '<state> ignore-connected-check'
-  cli_nexus:
+  nexus:
     get_value: '/^disable-connected-check$/'
     set_value: '<state> disable-connected-check'
   default_value: true
@@ -43,7 +43,7 @@ description:
   default_value: ""
 
 dynamic_capability:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^(no )?dynamic-capability$/'
   set_value: '<state> dynamic-capability'
@@ -61,7 +61,7 @@ local_as:
   default_value: 0
 
 log_neighbor_changes:
-  _exclude: [cli_ios_xr, /N6K/, /N7K/]
+  _exclude: [ios_xr, /N6K/, /N7K/]
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   get_value: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
@@ -69,33 +69,33 @@ log_neighbor_changes:
   default_value: "inherit"
 
 low_memory_exempt:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^low-memory exempt$/'
   set_value: '<state> low-memory exempt'
   default_value: false
 
 maximum_peers:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: int
   get_value: '/^maximum-peers (\d+)$/'
   set_value: '<state> maximum-peers <num>'
   default_value: 0
 
 password:
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^password [a-z]+ (\S+)$/'
-  cli_nexus:
+  nexus:
     get_value: '/^password \d+ (\S+)$/'
   set_value: '<state> password <type> <passwd>'
   default_value: ""
 
 password_type:
   kind: string
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^password ([a-z]+)/'
     default_value: "clear"
-  cli_nexus:
+  nexus:
     get_value: '/^password (\d+)/'
     default_value: 0
 
@@ -105,7 +105,7 @@ remote_as:
   default_value: 0
 
 remove_private_as:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   get_value: '/^remove-private-as\s+??(\S+)?\s+??$/'
@@ -135,12 +135,12 @@ timers_keepalive_hold:
   set_value: '<state> timers <keepalive> <hold>'
 
 transport_passive_mode:
-  cli_ios_xr:
+  ios_xr:
     kind: string
     get_value: '/^session-open-mode ([a-z-]+)$/'
     set_value: '<state> session-open-mode <mode>'
     default_value: ''
-  cli_nexus:
+  nexus:
     kind: boolean
     get_value: '/^transport connection-mode passive$/'
     set_value: '<state> transport connection-mode passive'

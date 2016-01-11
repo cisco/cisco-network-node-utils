@@ -1,8 +1,8 @@
 # show_system
 ---
 uptime:
-  cli_nexus:
+  nexus:
     get_command: 'show system uptime'
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show version'
   get_value: '/.*System uptime.*(?:(\d+) days, )?(?:(\d+) hours, )?(?:(\d+) minutes, )?(?:(\d+) seconds)?/'

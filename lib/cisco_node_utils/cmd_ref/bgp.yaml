@@ -1,9 +1,9 @@
 # bgp.yaml
 ---
 _template:
-  cli_ios_xr:
+  ios_xr:
     get_command: "show running-config router bgp"
-  cli_nexus:
+  nexus:
     get_command: "show running bgp all"
   context:
     - "router bgp <asnum>"
@@ -15,67 +15,67 @@ address_family:
 bestpath_always_compare_med:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp bestpath med always$/'
     set_value: '<state> bgp bestpath med always'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath always-compare-med$/'
     set_value: '<state> bestpath always-compare-med'
 
 bestpath_aspath_multipath_relax:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp bestpath as-path multipath-relax$/'
     set_value: '<state> bgp bestpath as-path multipath-relax'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath as-path multipath-relax$/'
     set_value: '<state> bestpath as-path multipath-relax'
 
 bestpath_compare_routerid:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp bestpath compare-routerid$/'
     set_value: '<state> bgp bestpath compare-routerid'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath compare-routerid$/'
     set_value: '<state> bestpath compare-routerid'
 
 bestpath_cost_community_ignore:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp bestpath cost-community ignore$/'
     set_value: '<state> bgp bestpath cost-community ignore'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath cost-community ignore$/'
     set_value: '<state> bestpath cost-community ignore'
 
 bestpath_med_confed:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: '/^bgp bestpath med confed$/'
     set_value: '<state> bgp bestpath med confed'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath med confed$/'
     set_value: '<state> bestpath med confed'
 
 bestpath_med_missing_as_worst:
   kind: boolean
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp bestpath med missing-as-worst$/'
     set_value: '<state> bgp bestpath med missing-as-worst'
-  cli_nexus:
+  nexus:
     get_value: '/^bestpath med missing-as-worst$/'
     set_value: '<state> bestpath med missing-as-worst'
 
 bestpath_med_non_deterministic:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: boolean
     get_value: '/^bestpath med non-deterministic$/'
     set_value: '<state> bestpath med non-deterministic'
@@ -83,27 +83,27 @@ bestpath_med_non_deterministic:
 
 cluster_id:
   default_value: ""
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: '/^bgp cluster-id (\S+)$/'
     set_value: ' <state> bgp cluster-id <id>'
-  cli_nexus:
+  nexus:
     get_value: '/^cluster-id (\S+)$/'
     set_value: '<state> cluster-id <id>'
 
 confederation_id:
   default_value: ""
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: '/^bgp confederation identifier (\d+|\d+.\d+)$/'
     set_value: '<state> bgp confederation identifier <id>'
-  cli_nexus:
+  nexus:
     get_value: '/^confederation identifier (\d+|\d+.\d+)$/'
     set_value: '<state> confederation identifier <id>'
 
 confederation_peers:
   default_value: []
-  cli_ios_xr:
+  ios_xr:
     multiple: true
     get_context:
       - '/^router bgp <asnum>$/'
@@ -111,7 +111,7 @@ confederation_peers:
       - '/^bgp confederation peers$/'
     get_value: '/(\S+)/'
     set_value: '<state> bgp confederation peers <peer>'
-  cli_nexus:
+  nexus:
     get_value: '/^confederation peers (.*)$/'
     set_value: '<state> confederation peers <peer>'
 
@@ -121,37 +121,37 @@ create_destroy_neighbor:
 enforce_first_as:
   kind: boolean
   default_value: true
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp enforce-first-as disable$/'
     set_value: '<state> bgp enforce-first-as disable'
-  cli_nexus:
+  nexus:
     get_value: '/^(no )?enforce-first-as$/'
     set_value: '<state> enforce-first-as'
 
 fast_external_fallover:
   kind: boolean
   default_value: true
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp fast-external-fallover disable$/'
     set_value: '<state> bgp fast-external-fallover disable'
-  cli_nexus:
+  nexus:
     get_value: '/^(no )?fast-external-fallover$/'
     set_value: '<state> fast-external-fallover'
 
 feature:
   kind: boolean
   context: ~
-  cli_ios_xr:
+  ios_xr:
     get_command: "show running-config router bgp"
     get_value: '/^router bgp$/'
     set_value: "<state> router bgp"
-  cli_nexus:
+  nexus:
     get_command: "show running bgp all"
     get_value: '/^feature bgp$/'
     set_value: "<state> feature bgp"
 
 flush_routes:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^flush-routes$/'
   set_value: '<state> flush-routes'
@@ -160,18 +160,18 @@ flush_routes:
 graceful_restart:
   kind: boolean
   default_value: true
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     auto_default: false
     get_value: '/^bgp graceful-restart$/'
     set_value: '<state> bgp graceful-restart'
-  cli_nexus:
+  nexus:
     get_value: '/^(no )?graceful-restart$/'
     set_value: '<state> graceful-restart'
 
 graceful_restart_helper:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: boolean
     get_value: '/^graceful-restart-helper$/'
     set_value: '<state> graceful-restart-helper'
@@ -180,27 +180,27 @@ graceful_restart_helper:
 graceful_restart_timers_restart:
   kind: int
   default_value: 120
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: '/^bgp graceful-restart restart-time (\d+)$/'
     set_value: '<state> bgp graceful-restart restart-time <seconds>'
-  cli_nexus:
+  nexus:
     get_value: '/^graceful-restart restart-time (\d+)$/'
     set_value: '<state> graceful-restart restart-time <seconds>'
 
 graceful_restart_timers_stalepath_time:
   kind: int
   default_value: 300
-  cli_ios_xr:
+  ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: '/^bgp graceful-restart stalepath-time (\d+)$/'
     set_value: '<state> bgp graceful-restart stalepath-time <seconds>'
-  cli_nexus:
+  nexus:
     get_value: '/^graceful-restart stalepath-time (\d+)$/'
     set_value: '<state> graceful-restart stalepath-time <seconds>'
 
 isolate:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^isolate$/'
   set_value: '<state> isolate'
@@ -208,18 +208,18 @@ isolate:
 
 log_neighbor_changes:
   kind: boolean
-  cli_ios_xr:
+  ios_xr:
     default_value: true
     get_value: '/^bgp log neighbor changes disable$/'
     set_value: '<state> bgp log neighbor changes disable'
-  cli_nexus:
+  nexus:
     default_value: false
     get_value: '/^log-neighbor-changes$/'
     set_value: '<state> log-neighbor-changes'
 
 maxas_limit:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: int
     get_value: '/^maxas-limit (\d+)$/'
     set_value: '<state> maxas-limit <limit>'
@@ -227,7 +227,7 @@ maxas_limit:
 
 neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     _exclude: [/N6K/, /N7K/]
     kind: boolean
     get_value: '/^neighbor-down fib-accelerate$/'
@@ -236,7 +236,7 @@ neighbor_down_fib_accelerate:
 
 reconnect_interval:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     _exclude: [/N6K/, /N7K/]
     kind: int
     get_value: '/^reconnect-interval (\d+)$/'
@@ -245,19 +245,19 @@ reconnect_interval:
 
 route_distinguisher:
   default_value: ""
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^rd (\S+)$/'
     set_value: ' <state> rd <rd>'
-  cli_nexus:
+  nexus:
     context:
       - "vrf context <vrf>"
     get_value: '/^rd (\S+)$/'
     set_value: "<state> rd <rd>"
 
 router:
-  cli_ios_xr:
+  ios_xr:
     get_command: "show running router bgp"
-  cli_nexus:
+  nexus:
     get_command: "show running bgp"
   context: ~
   get_value: '/^router bgp (\d+)$/'
@@ -265,16 +265,16 @@ router:
 
 router_id:
   default_value: ""
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp router-id (\S+)$/'
     set_value: '<state> bgp router-id <id>'
-  cli_nexus:
+  nexus:
     get_value: '/^router-id (\S+)$/'
     set_value: '<state> router-id <id>'
 
 shutdown:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     # Shutdown only applies to global bgp
     kind: boolean
     get_command: "show running bgp"
@@ -288,7 +288,7 @@ shutdown:
 
 suppress_fib_pending:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: boolean
     get_value: '/^suppress-fib-pending$/'
     set_value: '<state> suppress-fib-pending'
@@ -296,7 +296,7 @@ suppress_fib_pending:
 
 timer_bestpath_limit:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: int
     get_value: '/^timers bestpath-limit (\d+)(?: always)?$/'
     set_value: '<state> timers bestpath-limit <seconds>'
@@ -304,7 +304,7 @@ timer_bestpath_limit:
 
 timer_bestpath_limit_always:
   # Note: Does not exist in IOS XR
-  cli_nexus:
+  nexus:
     kind: boolean
     get_value: '/^timers bestpath-limit \d+ always$/'
     set_value: '<state> timers bestpath-limit <seconds> always'

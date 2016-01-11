@@ -6,9 +6,12 @@ mapping:
     sequence:
       - type: str
         enum: &filters # Things we can filter by
+          # Data format classes
+          - 'cli'
+          - 'nxapi_structured'
           # Platform classes
-          - 'cli_ios_xr'
-          - 'cli_nexus'
+          - 'ios_xr'
+          - 'nexus'
           # Product IDs
           - '/C3064/'
           - '/N3/'
@@ -22,9 +25,12 @@ mapping:
     type: map
     mapping:
       _exclude: *exclude
+      # Data model filters
+      cli: *base
+      nxapi_structured: *base
       # Platform and product filters
-      cli_ios_xr: *base
-      cli_nexus: *base
+      ios_xr: *base
+      nexus: *base
       '/C3064/': *base
       '/N3K/': *base
       '/N5K/': *base

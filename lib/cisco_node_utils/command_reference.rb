@@ -367,15 +367,16 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_FILTERS = %w(cli_nexus cli_ios_xr)
+    KNOWN_FILTERS = %w(nexus ios_xr cli nxapi_structured)
 
     def self.key_match(key, platform, product_id, cli)
       if key[0] == '/' && key[-1] == '/'
         # It's a product-id regexp. Does it match our given product_id?
         return Regexp.new(key[1..-2]) =~ product_id ? true : false
       elsif KNOWN_FILTERS.include?(key)
-        return false if key.match(/cli/) && !cli
-        return Regexp.new(platform.to_s) =~ key ? true : false
+        return false if key == 'cli' && !cli
+        return true if key == platform.to_s
+        return false
       else
         return :unknown
       end

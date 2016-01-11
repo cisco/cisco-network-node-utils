@@ -1,7 +1,7 @@
 # snmp_server
 ---
 aaa_user_cache_timeout:
-  cli_nexus:
+  nexus:
     kind: int
     get_command: "show snmp internal globals"
     get_value: '/AAA Cache Timeout :(\d+)/'

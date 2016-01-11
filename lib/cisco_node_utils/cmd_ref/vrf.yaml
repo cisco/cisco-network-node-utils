@@ -25,7 +25,7 @@ feature_vn_segment_vlan_based:
     - /N7K/  # Support for multi-tenancy full only
   kind: boolean
   default_value: false
-  cli_nexus:
+  nexus:
     get_command: 'show running section feature'
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
@@ -34,7 +34,7 @@ feature_vni:
   _exclude: [/N3K/, /N9K/]   # Support for multi-tenancy lite only
   kind: boolean
   default_value: false
-  cli_nexus:
+  nexus:
     get_command: 'show running section feature'
     get_value: '/^feature vni$/'
     set_value: 'feature vni'

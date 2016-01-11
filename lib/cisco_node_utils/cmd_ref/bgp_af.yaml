@@ -5,13 +5,13 @@ _template:
     - "router bgp <asnum>"
     - 'vrf <vrf>'
     - 'address-family <afi> <safi>'
-  cli_nexus:
+  nexus:
     get_command: 'show running bgp all'
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show running-config router bgp'
 
 additional_paths_install:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^additional-paths install backup$/'
   set_value: '<state> additional-paths install backup'
@@ -25,10 +25,10 @@ additional_paths_receive:
 
 additional_paths_selection:
   kind: string
-  cli_nexus:
+  nexus:
     get_value: '/^additional-paths selection route-map (.*)$/'
     set_value: '<state> additional-paths selection route-map <route_map>'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^additional-paths selection route-policy (.*)$/'
     set_value: ' <state> additional-paths selection route-policy <route_policy>'
   default_value: ""
@@ -40,7 +40,7 @@ additional_paths_send:
   default_value: false
 
 advertise_l2vpn_evpn:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^advertise l2vpn evpn$/'
   set_value: '<state> advertise l2vpn evpn'
@@ -53,15 +53,15 @@ all_afs:
 client_to_client:
   kind: boolean
   default_value: true
-  cli_nexus:
+  nexus:
     get_value: '/^no client-to-client reflection$/'
     set_value: '<state> client-to-client reflection'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp client-to-client reflection disable$/'
     set_value: ' <state> bgp client-to-client reflection disable'
 
 dampen_igp_metric:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   auto_default: false
   kind: int
   get_value: '/^dampen-igp-metric (\d+)$/'
@@ -70,10 +70,10 @@ dampen_igp_metric:
 
 dampening:
   auto_default: false
-  cli_nexus:
+  nexus:
     get_value: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     set_value: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
     set_value: ' <state> bgp dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   default_value: ""
@@ -105,14 +105,14 @@ dampening_suppress_time:
   default_value: 2000
 
 default_information_originate:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   default_value: false
   get_value: '/^default-information originate$/'
   set_value: '<state> default-information originate'
 
 default_metric:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: int
   get_value: '/^default-metric (\d+)$/'
   set_value: '<state> default-metric <num>'
@@ -120,7 +120,7 @@ default_metric:
 
 distance:
   # TODO: add support for XR
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   get_value: '/^distance (\d+) (\d+) (\d+)$/'
   set_value: '<state> distance <ebgp> <ibgp> <local>'
 
@@ -138,7 +138,7 @@ distance_local:
 
 # This is a multi-provider, enable-only feature. Do not disable from provider.
 feature_nv_overlay_evpn:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_command: "show running | section nv"
   context: ~
@@ -146,7 +146,7 @@ feature_nv_overlay_evpn:
   set_value: "nv overlay evpn"
 
 inject_map:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   multiple: true
   get_value: '/^inject-map (\S+) exist-map (\S+) *(copy-attributes)?$/'
   set_value: '<state> inject-map <inject> exist-map <exist> <copy>'
@@ -154,10 +154,10 @@ inject_map:
 
 maximum_paths:
   kind: int
-  cli_nexus:
+  nexus:
     get_value: '/^maximum-paths (\d+)$/'
     set_value: '<state> maximum-paths <num>'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^maximum-paths ebgp (\d+)$/'
     set_value: ' <state> maximum-paths ebgp <num>'
   default_value: 1
@@ -170,10 +170,10 @@ maximum_paths_ibgp:
 
 networks:
   multiple: true
-  cli_nexus:
+  nexus:
     get_value: '/^network (\S+) ?(?:route-map )?(\S+)?$/'
     set_value: '<state> network <network> <route_map>'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^network (\S+) ?(?:route-policy )?(\S+)?$/'
     set_value: ' <state> network <network> <route_policy>'
   default_value: []
@@ -181,26 +181,26 @@ networks:
 next_hop_route_map:
   kind: string
   default_value: ""
-  cli_nexus:
+  nexus:
     get_value: '/^nexthop route-map (.*)$/'
     set_value: ' <state> nexthop route-map <route_map>'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/nexthop route-policy (.*)$/'
     set_value: ' <state> nexthop route-policy <route_map>'
 
 redistribute:
   multiple: true
   set_value: ' <state> redistribute <protocol>'
-  cli_nexus:
+  nexus:
     get_value: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^redistribute (\S+ ?\S+?) ?(?:route-policy (\S+))?$/'
   default_value: []
 
 redistribute_policy:
-  cli_nexus:
+  nexus:
     set_value: '<state> redistribute <protocol> route-map <policy>'
-  cli_ios_xr:
+  ios_xr:
     set_value: ' <state> redistribute <protocol> route-policy <policy>'
 
 #config in vrf context
@@ -265,7 +265,7 @@ route_target_import_evpn:
   default_value: []
 
 suppress_inactive:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^suppress-inactive$/'
   set_value: '<state> suppress-inactive'
@@ -273,7 +273,7 @@ suppress_inactive:
 
 table_map:
   # TODO: add 'table-policy' support for XR
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^table-map (\S+)(?: filter)?$/'
   set_value: '<state> table-map <map>'

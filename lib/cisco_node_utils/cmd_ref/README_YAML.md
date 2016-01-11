@@ -180,10 +180,10 @@ combination of API type and platform type as a key. For example, interface VRF m
 # interface.yaml
 vrf:
   default_value: ""
-  cli_nexus:
+  nexus:
     get_value: '/^vrf member (.*)/'
     set_value: "<state> vrf member <vrf>"
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^vrf (.*)/'
     set_value: "<state> vrf <vrf>"
 ```
@@ -242,17 +242,17 @@ Using `_template` in combination with API variants:
 ```yaml
 # inventory.yaml
 _template:
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show inventory | begin "Rack 0"'
     test_get_command: 'show inventory'
-  cli_nexus:
+  nexus:
     get_command: 'show inventory'
     test_get_command: 'show inventory | no-more'
 
 productid:
-  cli_ios_xr:
+  ios_xr:
     get_value: '/PID: ([^ ,]+)/'
-  cli_nexus:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv", 0]
     get_value: "productid"
 ```
@@ -263,12 +263,12 @@ Using platform variants and product variants together:
 # inventory.yaml
 description:
   get_value: "chassis_id"
-  cli_nexus:
+  nexus:
     /N7K/:
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       test_get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show inventory | inc "Rack 0"'
     get_value: '/DESCR: "(.*)"/'
     test_get_command: 'show inventory | inc "Rack 0"'
@@ -474,7 +474,7 @@ Some attributes may be hard-coded in such a way that they have a meaningful defa
 ```yaml
 negotiate_auto_ethernet:
   kind: boolean
-  cli_nexus:
+  nexus:
     /(N7K|C3064)/:
       # this feature is always off on these platforms and cannot be changed
       default_only: false

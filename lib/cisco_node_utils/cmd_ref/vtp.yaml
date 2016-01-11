@@ -1,6 +1,6 @@
 # vtp
 ---
-_exclude: [cli_ios_xr]
+_exclude: [ios_xr]
 
 domain:
   get_command: "show vtp status"

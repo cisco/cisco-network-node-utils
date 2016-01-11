@@ -18,10 +18,10 @@ domain_list_vrf:
 
 domain_name:
   default_value: ''
-  cli_nexus:
+  nexus:
     set_value: '<state> ip domain-name <name>'
     get_value: '/^ip domain-name (\S+)$/'
-  cli_ios_xr:
+  ios_xr:
     set_value: '<state> domain name <name>'
     get_value: '/^domain name (\S+)$/'
 

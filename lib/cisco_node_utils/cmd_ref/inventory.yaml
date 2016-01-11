@@ -1,19 +1,21 @@
 # inventory
 ---
 _template:
-  get_command: 'show inventory'
-  cli_ios_xr:
+  ios_xr:
+    get_command: 'show inventory'
     test_get_command: 'show inventory'
-  cli_nexus:
+  nexus:
+    nxapi_structured:
+      get_command: 'show inventory'
     test_get_command: 'show inventory | no-more'
 
 all:
   multiple: true
-  cli_nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv"]
 
 chassis:
-  cli_nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv"]
     # TODO: get_context?
     # get_value: {'name': '"Chassis"'}
@@ -37,22 +39,22 @@ inventory:
     ]
 
 productid:
-  cli_ios_xr:
+  ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
-  cli_nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "productid"
 
 serialnum:
-  cli_ios_xr:
+  ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
-  cli_nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "serialnum"
 
 versionid:
-  cli_ios_xr:
+  ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
-  cli_nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "vendorid"

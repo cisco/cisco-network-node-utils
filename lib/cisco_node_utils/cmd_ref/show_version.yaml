@@ -1,26 +1,33 @@
 # show_version
 ---
 _template:
-  get_command: 'sh version'
-  cli_nexus:
+  nxapi_structured:
+    get_command: 'sh version'
+  nexus:
     test_get_command: "sh version | no-more"
-  cli_ios_xr:
+  ios_xr:
+    cli:
+      get_command: 'sh version'
     test_get_command: "sh version"
 
 board:
-  get_value: 'proc_board_id'
+  nxapi_structured:
+    get_value: 'proc_board_id'
 
 boot_image:
-  _exclude: [cli_ios_xr]
-  get_value: "kick_file_name"
+  _exclude: [ios_xr]
+  nxapi_structured:
+    get_value: "kick_file_name"
   test_get_value: '/.*NXOS image file is: (.*)$.*/'
 
 cpu:
-  get_value: 'cpu_name'
+  nxapi_structured:
+    get_value: 'cpu_name'
 
 description:
-  get_value: "chassis_id"
-  cli_nexus:
+  nxapi_structured:
+    get_value: "chassis_id"
+  nexus:
     '/N7K/':
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
@@ -33,7 +40,7 @@ description:
       #   cisco Nexus3000 C3132Q Chassis
       #   cisco N3K-C3048TP-1GE
       test_get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show inventory | inc "Rack 0"'
     get_value: '/DESCR: "(.*)"/'
     test_get_command: 'show inventory | inc "Rack 0"'
@@ -43,51 +50,57 @@ full:
   get_command: "sh version"
 
 header:
-  cli_nexus:
+  nxapi_structured:
     get_value: "header_str"
-  cli_ios_xr:
+  ios_xr:
     get_value: '/Cisco.*Software/'
 
 host_name:
-  cli_nexus:
+  nxapi_structured:
     get_value: "host_name"
-  cli_ios_xr:
+  ios_xr:
     # not displayed in 'show version' on IOS XR
     get_command: "show running | i hostname"
     get_value: '/^hostname (.*)$/'
     default_value: 'ios'
 
 last_reset_reason:
-  _exclude: [cli_ios_xr]
-  get_value: "rr_reason"
+  _exclude: [ios_xr]
+  nxapi_structured:
+    get_value: "rr_reason"
   test_get_value: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
 
 last_reset_time:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   default_value: ''
-  get_value: "rr_ctime"
+  nxapi_structured:
+    get_value: "rr_ctime"
   test_get_value: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
 
 system_image:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   '/N7K/':
-    get_value: "isan_file_name"
+    nxapi_structured:
+      get_value: "isan_file_name"
     test_get_value: '/.*system image file is:    (.*)$.*/'
   else:
-    get_value: "kick_file_name"
+    nxapi_structured:
+      get_value: "kick_file_name"
     test_get_value: '/.*NXOS image file is: (.*)$.*/'
 
 uptime:
-  get_value: '/uptime is (.*)/'
+  nxapi_structured:
+    get_value: '/uptime is (.*)/'
 
 version:
-  cli_nexus:
+  nxapi_structured:
     get_value: "kickstart_ver_str"
+  nexus:
     test_get_value:
       - '/\nkickstart_ver_str\s+(.+)\n/'
       - '/.*NXOS:\s+version (.*)\n/'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/IOS XR.*Version (.*)$/'
     test_get_value: [
     ~,

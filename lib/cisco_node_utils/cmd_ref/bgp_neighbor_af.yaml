@@ -1,9 +1,9 @@
 # bgp_neighbor_af.yaml
 ---
 _template:
-  cli_nexus:
+  nexus:
     get_command: 'show running bgp all'
-  cli_ios_xr:
+  ios_xr:
     get_command: 'show run router bgp'
   context:
     - 'router bgp <asnum>'
@@ -12,7 +12,7 @@ _template:
     - 'address-family <afi> <safi>'
 
 additional_paths_receive:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: symbol
   auto_default: false
   get_value: '/^capability additional-paths receive(?: disable)?/'
@@ -20,20 +20,20 @@ additional_paths_receive:
   default_value: 'inherit'
 
 additional_paths_send:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   auto_default: false
   get_value: '/^capability additional-paths send(?: disable)?/'
   set_value: '<state> capability additional-paths send <disable>'
   default_value: 'inherit'
 
 advertise_map_exist:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   get_value: '/^advertise-map (\S+) exist-map (\S+)$/'
   set_value: '<state> advertise-map <map1> exist-map <map2>'
   default_value: ''
 
 advertise_map_non_exist:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   get_value: '/^advertise-map (\S+) non-exist-map (\S+)$/'
   set_value: '<state> advertise-map <map1> non-exist-map <map2>'
   default_value: ''
@@ -59,33 +59,33 @@ as_override:
 
 default_originate:
   default_value: false
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^default-originate(?: route-policy .*)?/'
     set_value: ' <state> default-originate <map>'
-  cli_nexus:
+  nexus:
     get_value: '/^default-originate(?: route-map .*)?/'
     set_value: '<state> default-originate <map>'
 
 default_originate_route_map:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   default_value: ~
 
 disable_peer_as_check:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^disable-peer-as-check$/'
   set_value: '<state> disable-peer-as-check'
   default_value: false
 
 filter_list_in:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^filter-list (\S+) in$/'
   set_value: '<state> filter-list <str> in'
   default_value: ''
 
 filter_list_out:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^filter-list (\S+) out$/'
   set_value: '<state> filter-list <str> out'
@@ -102,9 +102,9 @@ max_prefix_limit:
   default_value: ~
 
 max_prefix_threshold:
-  cli_ios_xr:
+  ios_xr:
     default_value: 75
-  cli_nexus:
+  nexus:
     default_value: ~
 
 max_prefix_warning:
@@ -117,21 +117,21 @@ next_hop_self:
   default_value: false
 
 next_hop_third_party:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^(no ?)next-hop-third-party$/'
   set_value: '<state> next-hop-third-party'
   default_value: true
 
 prefix_list_in:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^prefix-list (\S+) in$/'
   set_value: '<state> prefix-list <str> in'
   default_value: ''
 
 prefix_list_out:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^prefix-list (\S+) out$/'
   set_value: '<state> prefix-list <str> out'
@@ -140,20 +140,20 @@ prefix_list_out:
 route_map_in:
   kind: string
   default_value: ''
-  cli_nexus:
+  nexus:
     get_value: '/^route-map (\S+) in$/'
     set_value: '<state> route-map <str> in'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^route-policy (\S+) in$/'
     set_value: ' <state> route-policy <str> in'
 
 route_map_out:
   kind: string
   default_value: ''
-  cli_nexus:
+  nexus:
     get_value: '/^route-map (\S+) out$/'
     set_value: '<state> route-map <str> out'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^route-policy (\S+) out$/'
     set_value: ' <state> route-policy <str> out'
 
@@ -166,10 +166,10 @@ route_reflector_client:
 send_community:
   auto_default: false
   default_value: 'none'
-  cli_nexus:
+  nexus:
     get_value: '/^send-community(?: .*)?/'
     set_value: '<state> send-community <attr>'
-  cli_ios_xr:
+  ios_xr:
     multiple:
     # XR three seperate commands: send-community-ebgp  send-community-gshut-ebgp
     # and send-extended-community-ebgp
@@ -181,7 +181,7 @@ send_community:
 soft_reconfiguration_in:
   auto_default: false
   default_value: 'inherit'
-  cli_ios_xr:
+  ios_xr:
     get_value: '/^soft-reconfiguration inbound(?: always)?/'
     set_value: '<state> soft-reconfiguration inbound <always>'
   '/N9K/':
@@ -192,21 +192,21 @@ soft_reconfiguration_in:
     set_value: '<state> soft-reconfiguration inbound'
 
 soo:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^soo (.*)$/'
   set_value: '<state> soo <str>'
   default_value: ''
 
 suppress_inactive:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^suppress-inactive$/'
   set_value: '<state> suppress-inactive'
   default_value: false
 
 unsuppress_map:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: string
   get_value: '/^unsuppress-map (.*)$/'
   set_value: '<state> unsuppress-map <str>'
