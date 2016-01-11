@@ -46,14 +46,28 @@ class TestCmdRef < Minitest::Test
   def test_data_sanity
     # Make sure the actual YAML in our library loads for various platforms
     CommandReference.new
-    CommandReference.new(platform: :nexus, cli: true)
-    CommandReference.new(platform: :nexus, product: 'N9K-C9396PX', cli: true)
-    CommandReference.new(platform: :nexus, product: 'N7K-C7010', cli: true)
-    CommandReference.new(platform: :nexus, product: 'N3K-C3064PQ-10GE',
-                         cli: true)
-    CommandReference.new(platform: :ios_xr, cli: true)
-    CommandReference.new(platform: :ios_xr, product: 'R-IOSXRV9000-CH',
-                         cli: true)
+
+    CommandReference.new(platform:     :nexus,
+                         data_formats: [:nxapi_structured, :cli])
+
+    CommandReference.new(platform:     :nexus,
+                         product:      'N9K-C9396PX',
+                         data_formats: [:nxapi_structured, :cli])
+
+    CommandReference.new(platform:     :nexus,
+                         product:      'N7K-C7010',
+                         data_formats: [:nxapi_structured, :cli])
+
+    CommandReference.new(platform:     :nexus,
+                         product:      'N3K-C3064PQ-10GE',
+                         data_formats: [:nxapi_structured, :cli])
+
+    CommandReference.new(platform:     :ios_xr,
+                         data_formats: [:cli])
+
+    CommandReference.new(platform:     :ios_xr,
+                         product:      'R-IOSXRV9000-CH',
+                         data_formats: [:cli])
   end
 
   def test_load_empty_file
@@ -204,33 +218,40 @@ name:
 
   def test_load_n9k
     write_variants
-    reference = load_file(platform: :nexus, product: 'N9K-C9396PX', cli: true)
+    reference = load_file(platform:     :nexus,
+                          product:      'N9K-C9396PX',
+                          data_formats: [:nxapi_structured, :cli])
     assert_equal('NXAPI N9K', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n7k
     write_variants
-    reference = load_file(platform: :nexus, product: 'N7K-C7010', cli: true)
+    reference = load_file(platform:     :nexus,
+                          product:      'N7K-C7010',
+                          data_formats: [:nxapi_structured, :cli])
     assert_equal(nil, reference.lookup('test', 'name').default_value)
   end
 
   def test_load_n3k_3064
     write_variants
-    reference = load_file(platform: :nexus, product: 'N3K-C3064PQ-10GE',
-                          cli: true)
+    reference = load_file(platform:     :nexus,
+                          product:      'N3K-C3064PQ-10GE',
+                          data_formats: [:nxapi_structured, :cli])
     assert_equal('NXAPI base', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_ios_xr_xrv9k
     write_variants
-    reference = load_file(platform: :ios_xr, product: 'R-IOSXRV9000-CH',
-                          cli: true)
+    reference = load_file(platform:     :ios_xr,
+                          product:      'R-IOSXRV9000-CH',
+                          data_formats: [:cli])
     assert_nil(reference.lookup('test', 'name').default_value)
   end
 
   def test_load_ios_xr_generic
     write_variants
-    reference = load_file(platform: :ios_xr, cli: true)
+    reference = load_file(platform:     :ios_xr,
+                          data_formats: [:cli])
     assert_equal('gRPC base', reference.lookup('test', 'name').default_value)
   end
 
@@ -300,7 +321,7 @@ name:
   cli:
     default_value: 1
 ")
-    reference = load_file(platform: 'nexus', cli: false)
+    reference = load_file(platform: 'nexus', data_formats: [])
     ref = reference.lookup('test', 'name')
     assert(ref.default_value?)
     assert_nil(ref.default_value)
@@ -373,7 +394,8 @@ name:
     refute(ref.setter?)
     assert_raises(Cisco::UnsupportedError) { ref.setter }
 
-    reference = load_file(cli: true, platform: 'nexus')
+    reference = load_file(data_formats: [:nxapi_structured, :cli],
+                          platform:     'nexus')
     ref = reference.lookup('test', 'name')
     refute(ref.default_only?)
     assert(ref.default_value?)

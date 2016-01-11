@@ -208,6 +208,7 @@ Cmd exec error.
     autoclient = Cisco::Client.create(address, username, password)
     assert_equal(Cisco::Client::NXAPI, autoclient.class)
     assert(autoclient.supports?(:cli))
+    assert(autoclient.supports?(:nxapi_structured))
     assert_equal(:nexus, autoclient.platform)
   end
 end

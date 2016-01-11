@@ -38,7 +38,11 @@ class Cisco::Client::GRPC < Cisco::Client
       username ||= ENV['NODE'].split(' ')[1]
       password ||= ENV['NODE'].split(' ')[2]
     end
-    super(address, username, password)
+    super(address:      address,
+          username:     username,
+          password:     password,
+          data_formats: [:cli],
+          platform:     :ios_xr)
     @update_metadata = proc do |md|
       md[:username] = username
       md[:password] = password
@@ -48,7 +52,6 @@ class Cisco::Client::GRPC < Cisco::Client
                                        update_metadata: @update_metadata)
     @exec = GRPCExec::Stub.new(address,
                                update_metadata: @update_metadata)
-    @platform = :ios_xr
 
     # Make sure we can actually connect
     @timeout = 5
@@ -72,10 +75,6 @@ class Cisco::Client::GRPC < Cisco::Client
     # Connection to remote system - username and password are required
     fail TypeError, 'username must be specified' if username.nil?
     fail TypeError, 'password must be specified' if password.nil?
-  end
-
-  def supports?(api)
-    (api == :cli)
   end
 
   def cache_flush

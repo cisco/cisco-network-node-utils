@@ -40,7 +40,11 @@ class Cisco::Client::NXAPI < Cisco::Client
   # unix domain socket. If you need to connect to a remote device,
   # you must provide the address/username/password parameters.
   def initialize(address=nil, username=nil, password=nil)
-    super
+    super(address:      address,
+          username:     username,
+          password:     password,
+          data_formats: [:nxapi_structured, :cli],
+          platform:     :nexus)
     # Default: connect to unix domain socket on localhost, if available
     if address.nil?
       unless File.socket?(NXAPI_UDS)
@@ -63,7 +67,6 @@ class Cisco::Client::NXAPI < Cisco::Client
     # also used as the default config by firefox.
     @http.read_timeout = 300
     @address = @http.address
-    @platform = :nexus
 
     # Make sure we can actually connect to the socket
     show('show hostname')
@@ -80,10 +83,6 @@ class Cisco::Client::NXAPI < Cisco::Client
       fail TypeError, 'username is required' if username.nil?
       fail TypeError, 'password is required' if password.nil?
     end
-  end
-
-  def supports?(api)
-    (api == :cli)
   end
 
   def reload

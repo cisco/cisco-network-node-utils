@@ -17,13 +17,13 @@
 # limitations under the License.
 
 require_relative 'client_errors'
+require_relative '../constants'
 require_relative '../logger'
 
 include Cisco::Logger
 
 # Base class for clients of various RPC formats
 class Cisco::Client
-  APIS = [:cli, :yang]
   @@clients = [] # rubocop:disable Style/ClassVars
 
   def self.clients
@@ -35,9 +35,13 @@ class Cisco::Client
     @@clients << client
   end
 
-  attr_reader :platform
+  attr_reader :data_formats, :platform
 
-  def initialize(address=nil, username=nil, password=nil)
+  def initialize(address:      nil,
+                 username:     nil,
+                 password:     nil,
+                 data_formats: [],
+                 platform:     nil)
     if self.class == Cisco::Client
       fail NotImplementedError, 'Cisco::Client is an abstract class. ' \
         "Instantiate one of #{@@clients} or use Cisco::Client.create() instead"
@@ -46,9 +50,10 @@ class Cisco::Client
     @address = address
     @username = username
     @password = password
+    self.data_formats = data_formats
+    self.platform = platform
     @cache_enable = true
     @cache_auto = true
-    @platform = nil # to be overridden by subclasses
     cache_flush
   end
 
@@ -67,8 +72,8 @@ class Cisco::Client
     end
   end
 
-  def supports?(api) # rubocop:disable Lint/UnusedMethodArgument
-    false # to be overridden by subclasses
+  def supports?(data_format)
+    data_formats.include?(data_format)
   end
 
   # Try to create an instance of an appropriate subclass
@@ -189,5 +194,23 @@ class Cisco::Client
   # @return [Hash{String=>String}] key-value pairs, if type == :structured
   def show(command, type=:ascii)
     # to be implemented by subclasses
+  end
+
+  private
+
+  # List of data formats supported by this client.
+  # If the client supports multiple formats, and a given feature or property
+  # can be managed by multiple formats, the list order indicates preference.
+  def data_formats=(data_formats)
+    data_formats = [data_formats] unless data_formats.is_a?(Array)
+    unknown = data_formats - Cisco::DATA_FORMATS
+    fail ArgumentError, "unknown data formats: #{unknown}" unless unknown.empty?
+    @data_formats = data_formats
+  end
+
+  def platform=(platform)
+    fail ArgumentError, "unknown platform #{platform}" \
+      unless Cisco::PLATFORMS.include?(platform)
+    @platform = platform
   end
 end

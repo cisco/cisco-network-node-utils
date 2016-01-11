@@ -14,7 +14,8 @@ This document describes the structure and semantics of these files.
     * [Key-value wildcards](#key-value-wildcards)
 * [Advanced attribute definition](#advanced-attribute-definition)
   * [`_template`](#_template)
-  * [Platform and API variants](#platform-and-api-variants)
+  * [Data format variants](#data-format-variants)
+  * [Platform variants](#platform-variants)
   * [Product variants](#product-variants)
   * [`_exclude`](#_exclude)
   * [Combinations of these](#combinations-of-these)
@@ -169,12 +170,27 @@ description:
 ...
 ```
 
-### Platform and API variants
+### Data format variants
 
-Clients for different Cisco platforms may use different APIs. Currently these include NXAPI (CLI-based API used for Cisco Nexus platforms) and gRPC (CLI-based API used for Cisco platforms running IOS XR). Often the CLI or other input/output formats needed will vary between APIs, so the YAML must be able to accomodate this.
+Clients for different Cisco platforms may use different data formats. NXAPI (used for Cisco Nexus platforms) supports a CLI-based data format (essentially a wrapper for the Nexus CLI) as well as a NXAPI-specific structured format for some 'show' commands. Currently the gRPC client provided here (used for Cisco IOS XR platforms) supports a CLI-based format. Other platforms may have other formats such as YANG. As different formats have different requirements, the YAML must be able to accommodate this.
 
-Any of the attribute properties can be subdivided by platform and API type by using the
-combination of API type and platform type as a key. For example, interface VRF membership defaults to "" (no VRF) on both Nexus and IOS XR platforms, but the CLI is 'vrf member <vrf>' for Nexus and 'vrf <vrf>' for IOS XR. Thus, the YAML could be written as:
+CLI is the lowest common denominator, so YAML entries not otherwise flagged as applicable to a specific API type will be assumed to reference CLI. Other API types can be indicated by using the API type as a key (`cli`, `nxapi_structured`, `yang`, etc.). For example, some Nexus platforms support a structured form of 'show version', while other clients might use the same command but will need to parse CLI output with a regular expression:
+
+```yaml
+# show_version.yaml
+description:
+  get_command: 'show version'
+  nxapi_structured:
+    get_value: 'chassis_id'
+  cli:
+    get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+```
+
+### Platform variants
+
+Even for clients using the same data format (e.g., CLI), there may be differences between classes of Cisco platform.  Any of the attribute properties can be subdivided by platform type by using the platform type as a key. For example, interface VRF membership defaults to "" (no VRF) on both Nexus and IOS XR platforms, but the CLI is 'vrf member <vrf>' for Nexus and 'vrf <vrf>' for IOS XR. Thus, the YAML could be written as:
+
+
 
 ```yaml
 # interface.yaml
@@ -190,7 +206,7 @@ vrf:
 
 ### Product variants
 
-Any of the attribute properties can be subdivided by platform product ID string
+If there are differences between individual products within a platform group, any of the attribute properties can be subdivided by platform product ID string
 using a regexp against the product ID as a key. When one or more regexp keys
 are defined thus, you can also use the special key `else` to provide values
 for all products that do not match any of the given regexps:
@@ -237,7 +253,7 @@ When a feature or attribute is excluded in this way, attempting to call `config_
 In many cases, supporting multiple platforms and multiple products will require
 using several or all of the above options.
 
-Using `_template` in combination with API variants:
+Using `_template` in combination with platform and data format variants:
 
 ```yaml
 # inventory.yaml
@@ -252,7 +268,7 @@ _template:
 productid:
   ios_xr:
     get_value: '/PID: ([^ ,]+)/'
-  nexus:
+  nxapi_structured:
     get_context: ["TABLE_inv", "ROW_inv", 0]
     get_value: "productid"
 ```
@@ -262,7 +278,8 @@ Using platform variants and product variants together:
 ```yaml
 # inventory.yaml
 description:
-  get_value: "chassis_id"
+  nxapi_structured:
+    get_value: "chassis_id"
   nexus:
     /N7K/:
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'

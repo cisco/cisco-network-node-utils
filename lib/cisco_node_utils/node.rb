@@ -207,9 +207,9 @@ module Cisco
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
       @client = Cisco::Client.create(*args)
-      @cmd_ref = CommandReference.new(product:  product_id,
-                                      platform: @client.platform,
-                                      cli:      @client.supports?(:cli))
+      @cmd_ref = CommandReference.new(product:      product_id,
+                                      platform:     @client.platform,
+                                      data_formats: @client.data_formats)
       cache_flush
     end
 

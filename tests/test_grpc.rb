@@ -162,6 +162,7 @@ show xyzzy
     autoclient = Cisco::Client.create(address, username, password)
     assert_equal(Cisco::Client::GRPC, autoclient.class)
     assert(autoclient.supports?(:cli))
+    refute(autoclient.supports?(:nxapi_structured))
     assert_equal(:ios_xr, autoclient.platform)
   end
 end

@@ -286,21 +286,21 @@ module Cisco
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
-    attr_reader :cli, :files, :platform, :product_id
+    attr_reader :data_formats, :files, :platform, :product_id
 
     # Constructor.
-    # Normal usage is to pass product, platform, cli, in which case usual YAML
-    # files will be located then the list will be filtered down to only those
-    # matching the given settings.
+    # Normal usage is to pass product, platform, data_formats,
+    # in which case usual YAML files will be located then the list
+    # will be filtered down to only those matching the given settings.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
-    def initialize(product:  nil,
-                   platform: nil,
-                   cli:      false,
-                   files:    nil)
+    def initialize(product:      nil,
+                   platform:     nil,
+                   data_formats: [],
+                   files:        nil)
       @product_id = product
       @platform = platform
-      @cli = cli
+      @data_formats = data_formats
       @hash = {}
       if files
         @files = files
@@ -369,12 +369,12 @@ module Cisco
 
     KNOWN_FILTERS = %w(nexus ios_xr cli nxapi_structured)
 
-    def self.key_match(key, platform, product_id, cli)
+    def self.key_match(key, platform, product_id, data_formats)
       if key[0] == '/' && key[-1] == '/'
         # It's a product-id regexp. Does it match our given product_id?
         return Regexp.new(key[1..-2]) =~ product_id ? true : false
       elsif KNOWN_FILTERS.include?(key)
-        return false if key == 'cli' && !cli
+        return true if data_formats.include?(key)
         return true if key == platform.to_s
         return false
       else
@@ -390,13 +390,13 @@ module Cisco
     def self.filter_hash(hash,
                          platform:           nil,
                          product_id:         nil,
-                         cli:                false,
+                         data_formats:       nil,
                          allow_unknown_keys: true)
       result = {}
 
       exclude = hash.delete('_exclude') || []
       exclude.each do |value|
-        if key_match(value, platform, product_id, cli) == true
+        if key_match(value, platform, product_id, data_formats) == true
           debug "Exclude this product (#{product_id}, #{value})"
           return result
         end
@@ -411,7 +411,7 @@ module Cisco
         if CmdRef.keys.include?(key)
           result[key] = value
         elsif key != 'else'
-          match = key_match(key, platform, product_id, cli)
+          match = key_match(key, platform, product_id, data_formats)
           next if match == false
           if match == :unknown
             fail "Unrecognized key '#{key}'" unless allow_unknown_keys
@@ -433,7 +433,7 @@ module Cisco
           result[key] = filter_hash(hash[key],
                                     platform:           platform,
                                     product_id:         product_id,
-                                    cli:                cli,
+                                    data_formats:       data_formats,
                                     allow_unknown_keys: false)
         rescue RuntimeError => e
           raise "[#{key}]: #{e}"
@@ -444,9 +444,9 @@ module Cisco
 
     def filter_hash(input_hash)
       CommandReference.filter_hash(input_hash,
-                                   platform:   platform,
-                                   product_id: product_id,
-                                   cli:        cli)
+                                   platform:     platform,
+                                   product_id:   product_id,
+                                   data_formats: data_formats)
     end
 
     # Helper method
@@ -610,7 +610,7 @@ module Cisco
 
     def inspect
       "CommandReference for '#{product_id}' " \
-        "(platform:'#{platform}', CLI:#{cli}) " \
+        "(platform:'#{platform}', data formats:#{data_formats}) " \
         "based on #{files.length} files"
     end
   end
