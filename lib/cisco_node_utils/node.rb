@@ -79,6 +79,7 @@ module Cisco
         # IndexError: no entry for config_get_token
         token = nil
       end
+
       if token.nil?
         # Just get the whole output
         return massage(show(ref.config_get, :structured), ref)

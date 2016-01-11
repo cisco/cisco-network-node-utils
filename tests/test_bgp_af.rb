@@ -36,16 +36,11 @@ class TestRouterBgpAF < CiscoTestCase
     end
   end
 
-  # rubocop:disable Style/WordArray
-  # rubocop:disable Style/ClassVars
+  # Disabling line length to support wide-format test matrix definition
   # rubocop:disable Metrics/LineLength
 
-  # BT: Regarding the Rubocop disables:
-  #     May need some style/refactor discussion for the code below.
-  #     I've written it in a style that makes sense for the matrix layout.
-
   # Address Families to test:
-  @@tafs = [
+  T_AFS = [
     #   afi  safi
     %w(ipv4 unicast),
     %w(ipv6 unicast),
@@ -53,8 +48,8 @@ class TestRouterBgpAF < CiscoTestCase
     %w(ipv6 multicast),
     %w(l2vpn evpn),
 
-    # BT: These are additional address families/modifiers reported by XR, should they be tested also?
-    #     Looks like most of them are not supported on Nexus...
+    # TODO: These are additional address families/modifiers reported by XR, should they be tested also?
+    #       Looks like most of them are not supported on Nexus...
     #
 
     #     %w(ipv4 mvpn),
@@ -83,14 +78,14 @@ class TestRouterBgpAF < CiscoTestCase
   ]
 
   # ASs to test:
-  # BT: Do we ever need to test more than one AS?
-  @@tasns = ['55']
+  # TODO: Do we ever need to test more than one AS?
+  T_ASNS = ['55']
 
   # VRFs to test:
-  @@tvrfs = ['default', 'red']
+  T_VRFS = %w(default red)
 
   # Value-based properties
-  @@tvalues = [
+  T_VALUES = [
     [:default_information_originate,  [:toggle]],
     [:client_to_client,               [:toggle]],
     [:additional_paths_send,          [:toggle]],
@@ -98,7 +93,7 @@ class TestRouterBgpAF < CiscoTestCase
     [:additional_paths_install,       [:toggle]],
     [:advertise_l2vpn_evpn,           [:toggle]],
 
-    # TODO: To be added in next iteration
+    # TODO: To be added in future
     #    [:route_target_both_auto,         [:toggle]],
     #    [:route_target_both_auto_evpn,    [:toggle]],
 
@@ -108,7 +103,7 @@ class TestRouterBgpAF < CiscoTestCase
     [:maximum_paths_ibgp,             [7, 9]],
     [:dampen_igp_metric,              [555, nil]],
 
-    # TODO: To be added in next iteration
+    # TODO: To be added in future
     #    [:route_target_import,            [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
     #    [:route_target_import_evpn,       [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
     #    [:route_target_export,            [['1:1', '2:2', '3:3', '4:5'],['1:1', '4:4']]],
@@ -117,21 +112,22 @@ class TestRouterBgpAF < CiscoTestCase
 
   # Given the cartesian product of the above parameters, not all tests are supported.
   # Here we record which tests are expected to fail, and what kind of failure is expected.
-  # This supports a very simple workflow for adding features:
+  # This supports a very simple workflow for adding new tests:
   #   - Add new entry into test tables above.
   #   - Run tests.
   #   - When test fails, add a new 'exception' entry.
   #   - Repeat until test passes.
   #   - Condense entries using :any where possible.
   #
-  @@test_exceptions = [
+  TEST_EXCEPTIONS = [
     #  Test                           OS      VRF        AF                    Expected result
 
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
 
-    # BT: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
-    #     This causes the getter and setter to be out of sync, thus failing the test(s)
+    # TODO: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
+    #       This causes the getter and setter to be out of sync, thus failing the test(s)
+    #       Should be able to remove this skip after fixing the CLI command generator
     [:any,                           :any,    'red',     %w(l2vpn evpn),       :skip],
 
     # XR Unsupported
@@ -180,7 +176,7 @@ class TestRouterBgpAF < CiscoTestCase
   def check_test_exceptions(test_, os_, vrf_, af_)
     ret = nil
     amb = nil
-    @@test_exceptions.each do |test, os, vrf, af, expect|
+    TEST_EXCEPTIONS.each do |test, os, vrf, af, expect|
       next unless (test_ == test || test == :any) &&
                   (os_   == os   || os   == :any) &&
                   (vrf_  == vrf  || vrf  == :any) &&
@@ -199,22 +195,24 @@ class TestRouterBgpAF < CiscoTestCase
   # rubocop:enable Style/SpaceAroundOperators
 
   def test_properties_matrix
-    @@tasns.each do |asn|
+    T_ASNS.each do |asn|
       config_ios_xr_dependencies(asn) if platform == :ios_xr
 
-      @@tvrfs.each do |vrf|
-        @@tafs.each do |af|
+      T_VRFS.each do |vrf|
+        T_AFS.each do |af|
           puts '**************************************'
-          @@tvalues.each do |test, test_values|
+          bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+          T_VALUES.each do |test, test_values|
             puts "******** #{test}, #{asn}, #{vrf}, #{af}"
 
             # Override expectation for some specific cases..
             expect = check_test_exceptions(test, platform, vrf, af)
 
-            # Setup
-            bgp_af = RouterBgpAF.new(asn, vrf, af)
+            # Gather initial and default values
             initial = bgp_af.send(test)
-            default = bgp_af.send("default_#{test}")
+            default = initial.nil? ? nil : bgp_af.send("default_#{test}")
+            first_value = (test_values[0] == :toggle) ? !default : test_values[0]
 
             if expect == :skip
               # Do nothing..
@@ -226,27 +224,30 @@ class TestRouterBgpAF < CiscoTestCase
               # This set of parameters produces a CLI error
               assert_raises(Cisco::CliError,
                             "Assert 'cli error' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
-                bgp_af.send("#{test}=", 'foo') # *** BT: Don't like this ***
+                bgp_af.send("#{test}=", first_value)
               end
 
             elsif expect == :unsupported
               puts '         Unsupported'
 
-              # Getter should return nil when unsupported?
-              # BT: does not seem to work in general ..?
-              #            assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
+              # Getter should return nil when unsupported?  Does not seem to work:
+              #    Assert 'nil' inital value failed for: default_information_originate 55 default ["ipv4", "unicast"].
+              #    Expected false to be nil.
+              # assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
 
               # Setter should raise error when unsupported
               assert_raises(Cisco::UnsupportedError,
                             "Assert 'unsupported' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
-                bgp_af.send("#{test}=", 'foo') # *** BT: Don't like this ***
+                bgp_af.send("#{test}=", first_value)
               end
 
             else
 
               # Check initial value == default value
+              #   Skip this assertion for properties that use auto_default: false
               assert_equal(default, initial,
-                           "Initial value failed for: #{test}, #{asn}, #{vrf}, #{af}")
+                           "Initial value failed for: #{test}, #{asn}, #{vrf}, #{af}"
+                          ) unless  initial.nil?
 
               # Try all the test values in order
               test_values.each do |test_value|
@@ -259,9 +260,11 @@ class TestRouterBgpAF < CiscoTestCase
               end # test_values
 
               # Set it back to the default
-              bgp_af.send("#{test}=", default)
-              assert_equal(default, bgp_af.send(test),
-                           "Default assignment failed for: #{test}, #{asn}, #{vrf}, #{af}")
+              unless default.nil?
+                bgp_af.send("#{test}=", default)
+                assert_equal(default, bgp_af.send(test),
+                             "Default assignment failed for: #{test}, #{asn}, #{vrf}, #{af}")
+              end
             end
 
             # Cleanup
@@ -273,8 +276,6 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   # rubocop:enable Metrics/LineLength
-  # rubocop:enable Style/ClassVars
-  # rubocop:enable Style/WordArray
 
   ##
   ## BGP Address Family
@@ -360,10 +361,13 @@ class TestRouterBgpAF < CiscoTestCase
 
   def test_dampening
     asn = '101'
-    vrf = 'default'
-    vrf = 'orange' if platform == :nexus
     af = %w(ipv4 unicast)
-    config_ios_xr_dependencies(asn, vrf) if platform == :ios_xr
+    if platform == :nexus
+      vrf = 'orange'
+    elsif platform == :ios_xr
+      vrf = 'default'
+      config_ios_xr_dependencies(asn, vrf)
+    end
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     # Test no dampening configured
@@ -372,6 +376,7 @@ class TestRouterBgpAF < CiscoTestCase
     ############################################
     # Set and verify 'dampening' with defaults #
     ############################################
+
     bgp_af.dampening = []
     assert_equal(bgp_af.default_dampening,
                  bgp_af.dampening) if platform == :nexus
@@ -388,6 +393,7 @@ class TestRouterBgpAF < CiscoTestCase
     #############################################
     # Set and verify 'dampening' with overrides #
     #############################################
+
     bgp_af.dampening = %w(1 2 3 4)
 
     # Check getters
@@ -553,11 +559,10 @@ class TestRouterBgpAF < CiscoTestCase
   ## inject_map
   ##
   def inject_map(asn, vrf, af)
-    # rubocop:disable Style/WordArray
-    master = [['lax', 'sfo'],
-              ['lax', 'sjc'],
-              ['nyc', 'sfo', 'copy-attributes'],
-              ['sjc', 'nyc', 'copy-attributes']]
+    master = [%w(lax sfo),
+              %w(lax sjc),
+              %w(nyc sfo copy-attributes),
+              %w(sjc nyc copy-attributes)]
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     if platform == :ios_xr
@@ -573,8 +578,7 @@ class TestRouterBgpAF < CiscoTestCase
     inject_map_tester(bgp_af, should, 'Test 1')
 
     # Test 2: remove half of the entries
-    should = [['lax', 'sfo'], ['nyc', 'sfo', 'copy-attributes']]
-    # rubocop:enable Style/WordArray
+    should = [%w(lax sfo), %w(nyc sfo copy-attributes)]
     inject_map_tester(bgp_af, should, 'Test 2')
 
     # Test 3: restore the removed entries
@@ -594,7 +598,7 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   def test_inject_map
-    # Not sure why it's broken; to be fixed in next iteration
+    # TODO: Fix it so we don't have to skip
     skip('Currently broken on IOS XR') if platform == :ios_xr
 
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
@@ -879,6 +883,8 @@ class TestRouterBgpAF < CiscoTestCase
 
   # test route_target
   def test_route_target
+    # TODO: Fix this so we don't have to skip
+    # - Needs YAML differentiation for IOL vs. Nexus
     skip('Currently broken on IOS XR: US59615') if platform == :ios_xr
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
@@ -889,6 +895,7 @@ class TestRouterBgpAF < CiscoTestCase
   def route_target(asn, vrf, af)
     # Common test for route-target providers. Tests evpn and non-evpn.
 
+    config_ios_xr_dependencies(asn, vrf) if platform == :ios_xr
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
     # test route target both auto and route target both auto evpn
