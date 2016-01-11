@@ -93,12 +93,6 @@ class Cisco::Client::GRPC < Cisco::Client
     req(@config, 'cli_config', args)
   end
 
-  def exec(command)
-    super
-    args = ShowCmdArgs.new(cli: command)
-    req(@exec, 'show_cmd_text_output', args)
-  end
-
   def show(command, type=:ascii)
     super
     args = ShowCmdArgs.new(cli: command)

@@ -62,38 +62,6 @@ CLI execution error
     assert_equal('400', e.code)
   end
 
-  def test_exec
-    result = client.exec('echo hello')
-    assert_equal(result.strip, 'hello')
-  end
-
-  def test_exec_invalid
-    e = assert_raises Cisco::Client::NXAPI::CliError do
-      client.exec('xyzzy')
-    end
-    # rubocop:disable Style/TrailingWhitespace
-    assert_equal("The command 'xyzzy' was rejected with error:
-Input CLI command error
-Syntax error while parsing  xyzzy 
-
-
-Cmd exec error.
-", e.message)
-    # rubocop:enable Style/TrailingWhitespace
-    assert_equal('xyzzy', e.rejected_input)
-    assert_empty(e.successful_input)
-
-    assert_match(/Syntax error/, e.clierror)
-    assert_equal('Input CLI command error', e.msg)
-    assert_equal('400', e.code)
-  end
-
-  def test_exec_too_long
-    assert_raises Cisco::Client::RequestNotSupported do
-      client.exec('0' * 500_000)
-    end
-  end
-
   def test_show_ascii_default
     result = client.show('show hostname')
     s = @device.cmd('show hostname')
@@ -152,9 +120,6 @@ Cmd exec error.
       client.show('show version')
     end
     assert_raises Cisco::Client::ConnectionRefused do
-      client.exec('show version')
-    end
-    assert_raises Cisco::Client::ConnectionRefused do
       client.config('interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
@@ -162,9 +127,6 @@ Cmd exec error.
     @@client = nil # rubocop:disable Style/ClassVars
     assert_raises Cisco::Client::ConnectionRefused do
       client.show('show version')
-    end
-    assert_raises Cisco::Client::ConnectionRefused do
-      client.exec('show version')
     end
     assert_raises Cisco::Client::ConnectionRefused do
       client.config('interface Et1/1')
@@ -183,9 +145,6 @@ Cmd exec error.
     client.cache_flush
     assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
       client.show('show version')
-    end
-    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
-      client.exec('show version')
     end
     assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
       client.config('interface Et1/1')

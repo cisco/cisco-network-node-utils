@@ -92,7 +92,7 @@ class Cisco::Client::NXAPI < Cisco::Client
   # Clear the cache of CLI output results.
   #
   # If cache_auto is true (default) then this will be performed automatically
-  # whenever a config() or exec() is called, but providers may also call this
+  # whenever a config() is called, but providers may also call this
   # to explicitly force the cache to be cleared.
   def cache_flush
     @cache_hash = {
@@ -119,24 +119,10 @@ class Cisco::Client::NXAPI < Cisco::Client
     req('cli_conf', commands)
   end
 
-  # Executes a command in exec mode on the device.
-  #
-  # If cache_auto? (on by default) is set then the CLI cache will be flushed.
-  #
-  # For "show" commands please use show() instead of exec().
-  #
-  # @param command [String] the exec command to execute
-  # @return [String, nil] the body of the output of the exec command
-  #   (if any)
-  def exec(command)
-    super
-    req('cli_show_ascii', command)
-  end
-
   # Executes a "show" command on the device, returning either ASCII or
   # structured output.
   #
-  # Unlike config() and exec() this will not clear the CLI cache;
+  # Unlike config() this will not clear the CLI cache;
   # multiple calls to the same "show" command may return cached data
   # rather than querying the device repeatedly.
   #

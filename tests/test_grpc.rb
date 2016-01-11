@@ -89,34 +89,6 @@ bark
     assert_equal(%w(wark bark), e.rejected_input)
   end
 
-  def test_exec
-    # gRPC only allows 'show' commands:
-    result = client.exec('show inventory')
-    s = @device.cmd('show inventory')
-    # Strip the leading timestamp and trailing prompt from the telnet output
-    s = s.split("\n")[2..-2].join("\n")
-    assert_equal(s.rstrip, result)
-  end
-
-  def test_exec_disallowed
-    e = assert_raises Cisco::Client::RequestNotSupported do
-      client.exec('run echo hello')
-    end
-    assert_match(/Disallowed.*run echo hello/, e.message)
-  end
-
-  def test_exec_invalid
-    e = assert_raises Cisco::Client::GRPC::CliError do
-      client.exec('show xyzzy')
-    end
-    assert_equal("The command 'show xyzzy' was rejected with error:
-show xyzzy
-      ^
-% Invalid input detected at '^' marker.", e.message)
-    assert_empty(e.successful_input)
-    assert_equal('show xyzzy', e.rejected_input)
-  end
-
   def test_show_ascii_default
     result = client.show('show debug')
     s = @device.cmd('show debug')
