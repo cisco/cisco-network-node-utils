@@ -2,7 +2,8 @@
 ---
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
-  context: 'interface <name>'
+  context:
+    - 'interface <name>'
 
 all_interfaces:
   multiple:

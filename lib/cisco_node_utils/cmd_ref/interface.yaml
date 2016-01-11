@@ -156,7 +156,7 @@ negotiate_auto_ethernet:
   '/^\s+no negotiate auto/',
   '/^\s+negotiate auto/'
   ]
-  /(N7K|C3064)/:
+  '/(N7K|C3064)/':
     default_only: false
   else:
     get_value: '/^(no )?negotiate auto$/'
@@ -176,7 +176,7 @@ negotiate_auto_portchannel:
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
     ]
-    /N7K/:
+    '/N7K/':
       default_only: false
     else:
       get_value: '/^(no )?negotiate auto$/'
@@ -286,7 +286,7 @@ system_default_svi_autostate:
   cli_nexus:
     get_command: "show running all | include 'system default'"
     get_context: ~
-    get_value: ['/^system default interface-vlan autostate$/']
+    get_value: '/^system default interface-vlan autostate$/'
     # default_value: n/a. This is a user-configurable system default.
   cli_ios_xr:
     default_only: false
@@ -296,7 +296,7 @@ system_default_switchport:
   cli_nexus:
     get_command: "show running all | include 'system default'"
     get_context: ~
-    get_value: ['/^no system default switchport$/']
+    get_value: '/^no system default switchport$/'
     default_value: true
   cli_ios_xr:
     default_only: false
@@ -306,7 +306,7 @@ system_default_switchport_shutdown:
   cli_nexus:
     get_command: "show running all | include 'system default'"
     get_context: ~
-    get_value: ['/^system default switchport shutdown$/']
+    get_value: '/^system default switchport shutdown$/'
     # default_value: n/a. This is a user-configurable system default.
   cli_ios_xr:
     default_only: true

@@ -32,7 +32,7 @@ version:
   get_value: '/VTP\s+version\s+running\s+:\s+(\d+)/'
   set_value: "vtp version %s"
   default_value: 1
-  /N7K/:
+  '/N7K/':
     test_config_result:
       3: 3
   else:

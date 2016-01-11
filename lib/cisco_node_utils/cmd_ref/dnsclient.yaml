@@ -12,8 +12,8 @@ domain_list:
 domain_list_vrf:
   multiple: true
   context: ['vrf context <vrf>']
-  get_value: ['/ip domain-list (\S+)/']
-  set_value: ['<state> ip domain-list <name>']
+  get_value: '/ip domain-list (\S+)/'
+  set_value: '<state> ip domain-list <name>'
   default_value: []
 
 domain_name:
@@ -27,8 +27,8 @@ domain_name:
 
 domain_name_vrf:
   context: ['vrf context <vrf>']
-  get_value: ['/ip domain-name (\S+)/']
-  set_value: ['<state> ip domain-name <name>']
+  get_value: '/ip domain-name (\S+)/'
+  set_value: '<state> ip domain-name <name>'
   default_value: ''
 
 name_server:

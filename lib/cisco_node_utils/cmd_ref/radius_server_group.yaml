@@ -10,7 +10,7 @@ group:
   set_value: '<state> aaa group server radius <name>'
 
 servers:
-  get_context: '/^aaa group server radius %s $/i'
+  get_context: ['/^aaa group server radius %s $/i']
   get_value: '/server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/'
-  set_context: 'aaa group server radius <group>'
+  set_context: ['aaa group server radius <group>']
   set_value: '<state> server <ip>'

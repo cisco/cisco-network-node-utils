@@ -29,6 +29,7 @@ Currently supports NX-OS and IOS XR nodes.
   spec.required_rubygems_version = '>= 2.1.0'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
+  spec.add_development_dependency 'kwalify', '~> 0.7.2'
   spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'

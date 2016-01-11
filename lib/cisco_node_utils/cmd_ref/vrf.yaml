@@ -11,7 +11,8 @@ create:
 description:
   kind: string
   get_command: "show running | section 'vrf context'"
-  context: "vrf context <vrf>"
+  context:
+    - "vrf context <vrf>"
   get_value: '/^description (.*)/'
   set_value: "<state> description <desc>"
   default_value: ""
@@ -21,7 +22,7 @@ destroy:
 
 feature_vn_segment_vlan_based:
   _exclude:
-    - [/N7K/]  # Support for multi-tenancy full only
+    - /N7K/  # Support for multi-tenancy full only
   kind: boolean
   default_value: false
   cli_nexus:
@@ -41,17 +42,17 @@ feature_vni:
 shutdown:
   kind: boolean
   get_command: "show running | section 'vrf context'"
-  context: "vrf context <vrf>"
+  context: ["vrf context <vrf>"]
   get_value: '/^shutdown$/'
   set_value: "<state> shutdown"
   default_value: false
 
 vni:
   _exclude:
-    - [/N3/]   # N3: Support Unknown
+    - /N3/   # N3: Support Unknown
   kind: int
   get_command: "show running | section 'vrf context'"
-  context: "vrf context <vrf>"
+  context: ["vrf context <vrf>"]
   get_value: '/^vni (\d+)$/'
   set_value: "<state> vni <id>"
   default_value: false

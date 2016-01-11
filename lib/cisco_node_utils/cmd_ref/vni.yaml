@@ -6,21 +6,25 @@ all_vnis:
 
 bridge_domain:
   get_command: "show vni"
-  get_value: [ '/^%d\s+\S+\s+(\d+)/' ]
-  set_value: ["bridge-domain %d", "%s member vni %d", "end"]
+  get_value: '/^%d\s+\S+\s+(\d+)/'
+  set_context:
+    - "bridge-domain %d"
+  set_value: "%s member vni %d"
   default_value: ~
 
 bridge_domain_activate:
-  set_value: ["%s system bridge-domain add %d", "end"]
+  set_value: "%s system bridge-domain add %d"
 
 create:
-  set_value: ["vni %s" , "end"]
+  set_value: "vni %s"
 
 destroy:
   set_value: "no vni %s"
 
 encap_dot1q:
-  set_value: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
+  set_context:
+    - "encapsulation profile vni %s"
+  set_value: "%s dot1q %s vni %s"
   default_value: ~
 
 feature:
@@ -40,7 +44,7 @@ feature_nv_overlay:
 
 mapped_vlan:
   get_command: 'show running vlan'
-  context: 'vlan <vlan>'
+  context: ['vlan <vlan>']
   get_value: '/^vn-segment (\d+)$/'
   set_value:  '<state> vn-segment <vni>'
   default_value: ""
@@ -48,5 +52,6 @@ mapped_vlan:
 shutdown:
   get_command: "show vni"
   get_value: '/^%d\s+(\S+)/'
-  set_value: ["vni %d", "%s shutdown", "end"]
+  set_context: ["vni %d"]
+  set_value: "%s shutdown"
   default_value: false

@@ -69,6 +69,6 @@ timer_throttle_spf_start:
 
 vrf:
   multiple: true
-  context: "router ospf <name>"
+  context: ["router ospf <name>"]
   get_value: '/^vrf\s+(\S+)$/'
   set_value: "<state> vrf <vrf>"

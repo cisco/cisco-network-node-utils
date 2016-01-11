@@ -71,7 +71,7 @@ loadbalance_algorithm:
   get_command: "show fabricpath load-balance | begin ECMP next 4"
   get_value: '/^Hash Control: (\S+)/'
   set_value: "<state> fabricpath load-balance <algo>"
-  /N5K/:
+  '/N5K/':
     default_value: "source-destination"
   else:
     default_value: "symmetric"
@@ -132,7 +132,7 @@ loadbalance_unicast_set:
 
 loadbalance_unicast_support:
   kind: string
-  /N5K/:
+  '/N5K/':
     default_only: "split"
   else:
     default_only: "combined"

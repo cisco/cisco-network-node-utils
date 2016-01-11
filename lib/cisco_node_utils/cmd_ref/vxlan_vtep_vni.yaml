@@ -26,8 +26,16 @@ multicast_group:
 
 peer_list:
   multiple:
-  get_value: ['/^ingress-replication protocol static$/', '/^peer-ip (\S+)$/']
-  set_value: ['ingress-replication protocol static', '<state> peer-ip <peer>']
+  get_context:
+    - '/^interface <name>$/i'
+    - '/^member vni <vni>?$/'
+    - '/^ingress-replication protocol static$/'
+  set_context:
+    - 'interface <name>'
+    - 'member vni <vni>'
+    - 'ingress-replication protocol static'
+  get_value: '/^peer-ip (\S+)$/'
+  set_value: '<state> peer-ip <peer>'
   default_value: []
 
 suppress_arp:

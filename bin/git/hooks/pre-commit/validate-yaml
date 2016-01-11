@@ -1,0 +1,12 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+# Run the Kwalify YAML schema validation
+
+step_name "Validating YAML files"
+rake spec_yaml
+check_rc "Please fix YAML schema validation failures before committing"
+
+exit 0

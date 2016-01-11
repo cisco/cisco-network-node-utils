@@ -16,7 +16,7 @@ auth_password_with_engine_id:
 
 auth_protocol:
   default_value: "md5"
-  /N9K/:
+  '/N9K/':
     # TODO: is this really N9K-specific?
     get_value: "auth"
 
@@ -25,7 +25,7 @@ engine_id:
 
 group:
   default_value: "network-operator"
-  /N9K/:
+  '/N9K/':
     # TODO: is this really N9K-specific?
     get_value: "group"
 
@@ -42,7 +42,7 @@ priv_password_with_engine_id:
 
 priv_protocol:
   default_value: "des"
-  /N9K/:
+  '/N9K/':
     # TODO: is this really N9K-specific?
     get_value: "priv"
 
@@ -51,6 +51,5 @@ priv_protocol:
 #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
 user:
   get_command: "show snmp user"
-  get_context: "TABLE_snmp_users"
-  get_value: "ROW_snmp_users"
+  get_context: ["TABLE_snmp_users", "ROW_snmp_users"]
   set_value: "%s snmp-server user %s %s %s %s %s %s"

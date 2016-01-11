@@ -7,4 +7,5 @@ vdc:
 
 vxlan:
   _exclude: [/N3K/, /N9K/]
-  set_value: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3"]
+  # TODO: set_values
+  # set_value: ["terminal dont-ask", "vdc %s", "limit-resource module-type f3"]

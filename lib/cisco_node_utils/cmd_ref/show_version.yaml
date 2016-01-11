@@ -21,7 +21,7 @@ cpu:
 description:
   get_value: "chassis_id"
   cli_nexus:
-    /N7K/:
+    '/N7K/':
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       # Hardware
@@ -71,7 +71,7 @@ last_reset_time:
 
 system_image:
   _exclude: [cli_ios_xr]
-  /N7K/:
+  '/N7K/':
     get_value: "isan_file_name"
     test_get_value: '/.*system image file is:    (.*)$.*/'
   else:
@@ -84,10 +84,9 @@ uptime:
 version:
   cli_nexus:
     get_value: "kickstart_ver_str"
-    test_get_value: [
-    /\nkickstart_ver_str\s+(.+)\n/,
-    '/.*NXOS:\s+version (.*)\n/'
-    ]
+    test_get_value:
+      - '/\nkickstart_ver_str\s+(.+)\n/'
+      - '/.*NXOS:\s+version (.*)\n/'
   cli_ios_xr:
     get_value: '/IOS XR.*Version (.*)$/'
     test_get_value: [

@@ -10,22 +10,22 @@ _template:
 all:
   multiple: true
   cli_nexus:
-    get_context: ["TABLE_inv"]
-    get_value: "ROW_inv"
+    get_context: ["TABLE_inv", "ROW_inv"]
 
 chassis:
   cli_nexus:
     get_context: ["TABLE_inv", "ROW_inv"]
-    get_value: {'name': '"Chassis"'}
+    # TODO: get_context?
+    # get_value: {'name': '"Chassis"'}
 
 inventory:
   # TODO: clean this up
-  /N7K/:
+  '/N7K/':
     test_get_value: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
     '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
     ]
-  /N9K/:
+  '/N9K/':
     test_get_value: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
     '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
@@ -40,19 +40,19 @@ productid:
   cli_ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   cli_nexus:
-    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "productid"
 
 serialnum:
   cli_ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   cli_nexus:
-    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "serialnum"
 
 versionid:
   cli_ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   cli_nexus:
-    get_context: ["TABLE_inv", "ROW_inv", 0]
+    get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "vendorid"

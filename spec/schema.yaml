@@ -1,0 +1,72 @@
+type: map
+mapping:
+  # List of cases to specifically exclude
+  _exclude: &exclude
+    type: seq
+    sequence:
+      - type: str
+        enum: &filters # Things we can filter by
+          # Platform classes
+          - 'cli_ios_xr'
+          - 'cli_nexus'
+          # Product IDs
+          - '/C3064/'
+          - '/N3/'
+          - '/N3K/'
+          - '/N5K/'
+          - '/N6K/'
+          - '/N7K/'
+          - '/N9K/'
+        
+  =: &base # default rule - apply to all properties
+    type: map
+    mapping:
+      _exclude: *exclude
+      # Platform and product filters
+      cli_ios_xr: *base
+      cli_nexus: *base
+      '/C3064/': *base
+      '/N3K/': *base
+      '/N5K/': *base
+      '/N6K/': *base
+      '/N7K/': *base
+      '/(N7K|C3064)/': *base # TODO
+      '/N9K/': *base
+      # 'else' case if not matching any filter above
+      else: *base
+      # Property attributes
+      auto_default:
+        type: bool
+      context:
+        type: seq
+        sequence:
+          - type: str
+      default_only:
+        type: any
+      default_value:
+        type: any
+      get_command:
+        type: str
+      get_context:
+        type: seq
+        sequence:
+          - type: str
+      get_value:
+        type: str
+      kind:
+        type: str
+        enum: [boolean, int, string, symbol]
+      multiple:
+        type: bool
+      set_context:
+        type: seq
+        sequence:
+          - type: str
+      set_value:
+        type: str
+      test_config_result:
+        type: any # TODO
+      test_get_command:
+        type: str
+      test_get_value:
+        type: any
