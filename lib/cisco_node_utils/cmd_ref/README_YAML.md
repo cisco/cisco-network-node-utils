@@ -119,6 +119,15 @@ irb(main):016:0> ref.config_set(name: 'red', cost: '40', type: 'Gbps')
 => ["router ospf red", "auto-cost reference-bandwidth 40 Gbps"]
 ```
 
+Array elements that contain a parameter that is *not* included in the argument hash are not included in the result:
+
+```ruby
+irb(main):017:0> ref.config_set(name: 'red', cost: '40')
+=> ["router ospf red"]
+```
+
+If this process results in an empty array, then an `ArgumentError` is raised to indicate that not enough parameters were supplied.
+
 Key-value wildcards are moderately more complex to implement than Printf-style wildcards but they are more readable in the Ruby code and are flexible enough to handle significant platform differences in CLI. Key-value wildcards are therefore the recommended approach for new development.
 
 ## Advanced attribute definition

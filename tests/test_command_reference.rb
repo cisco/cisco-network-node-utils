@@ -350,6 +350,10 @@ name:
     ['/^router ospf <name>$/',
      '/^vrf <vrf>$/',
      '/^router-id (\S+)$/']
+test2:
+  config_get_token:
+    ['abc <val1> def',
+     'xyz <val2>']
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
@@ -359,7 +363,15 @@ name:
     token = ref.config_get_token(name: 'blue', vrf: 'green')
     assert_equal([/^router ospf blue$/, /^vrf green$/, /^router-id (\S+)$/],
                  token)
-    # TODO: add negative tests?
+    ref = reference.lookup('test', 'test2')
+    token = ref.config_get_token(val1: '1', val2: '2')
+    assert_equal(['abc 1 def', 'xyz 2'], token)
+    token = ref.config_get_token(val1: '1', extra_val: 'asdf')
+    assert_equal(['abc 1 def'], token)
+    token = ref.config_get_token(val2: '2')
+    assert_equal(['xyz 2'], token)
+    assert_raises(ArgumentError) { token = ref.config_get_token }
+    assert_raises(ArgumentError) { token = ref.config_get_token(extra: 'x') }
   end
 
   def test_config_get_token_printf_substitution
