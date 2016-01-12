@@ -68,8 +68,7 @@ module Cisco
     end
 
     def self.feature_vni_enable
-      Feaure.feature_nv_overlay_enable unless
-        Feature.feature_nv_overlay_enabled?
+      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
       config_set('vni', 'feature')
     end
 

@@ -35,7 +35,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      return hash unless Feature.feature_nv_overlay_enabled?
+      return hash unless Feature.nv_overlay_enabled?
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -55,8 +55,7 @@ module Cisco
     end
 
     def create
-      Feature.feature_nv_overlay_enable unless
-        Feature.feature_nv_overlay_enabled?
+      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
       if VxlanVtep.mt_lite_support
         Vrf.feature_vn_segment_vlan_based_enable unless
           Vrf.feature_vn_segment_vlan_based_enabled
