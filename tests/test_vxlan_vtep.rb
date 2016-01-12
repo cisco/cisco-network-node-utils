@@ -25,8 +25,8 @@ class TestVxlanVtep < CiscoTestCase
     super
     skip('Platform does not support MT-full or MT-lite') unless
       VxlanVtep.mt_full_support || VxlanVtep.mt_lite_support
-    skip('Platform does not support nv overlay feature') unless
-      node.product_id !~ /N3/ || Feature.nv_overlay_supported?
+    skip('Platform does not support nv overlay feature') if
+      node.product_id =~ /N3/ && !Feature.nv_overlay_supported?
   end
 
   def teardown
