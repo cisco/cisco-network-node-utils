@@ -35,7 +35,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      return hash unless feature_nv_overlay_enabled?
+      return hash unless Feature.feature_nv_overlay_enabled?
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -44,26 +44,6 @@ module Cisco
         hash[id] = VxlanVtep.new(id, false)
       end
       hash
-    end
-
-    def self.feature_nv_overlay_enabled?
-      config_get('feature', 'nv_overlay')
-    rescue Cisco::CliError => e
-      # cmd will syntax when feature is not enabled.
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_nv_overlay_enable
-      # Note: vdc platforms restrict this feature to F3 or newer linecards
-      config_set('feature', 'nv_overlay')
-    end
-
-    def self.feature_nv_overlay_supported?
-      config_set('feature', 'nv_overlay')
-    rescue Cisco::CliError => e
-      raise unless e.clierror =~ /not capable of supporting nv overlay feature/
-      false
     end
 
     def self.mt_full_support
@@ -75,8 +55,8 @@ module Cisco
     end
 
     def create
-      VxlanVtep.feature_nv_overlay_enable unless
-        VxlanVtep.feature_nv_overlay_enabled?
+      Feature.feature_nv_overlay_enable unless
+        Feature.feature_nv_overlay_enabled?
       if VxlanVtep.mt_lite_support
         Vrf.feature_vn_segment_vlan_based_enable unless
           Vrf.feature_vn_segment_vlan_based_enabled
