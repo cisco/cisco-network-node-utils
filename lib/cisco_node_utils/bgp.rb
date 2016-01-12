@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp_af'
 
 module Cisco
@@ -73,18 +74,6 @@ module Cisco
       return {}
     end
 
-    def self.enabled
-      config_get('bgp', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.enable(state='')
-      config_set('bgp', 'feature', state: state)
-    end
-
     # Convert BGP ASN ASDOT+ to ASPLAIN
     def self.dot_to_big(dot_str)
       fail ArgumentError unless dot_str.is_a? String
@@ -99,17 +88,7 @@ module Cisco
       high_bits + low_bits
     end
 
-    def router_bgp(asnum, vrf, state='')
-      # Only one bgp autonomous system number is allowed
-      # Raise an error if one is already configured that
-      # differs from the one being created.
-      configured = config_get('bgp', 'router')
-      if !configured.nil? && configured.to_s != asnum.to_s
-        fail %(
-          Changing the BGP Autonomous System Number is not allowed.
-          Current BGP asn: #{configured}
-          Attempted change to asn: #{asnum})
-      end
+    def router_bgp(state='')
       @set_args[:state] = state
       if vrf == 'default'
         config_set('bgp', 'router', @set_args)
@@ -119,32 +98,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def enable_create_router_bgp(asnum, vrf)
-      RouterBgp.enable
-      router_bgp(asnum, vrf)
-    end
-
     # Create one router bgp instance
     def create
-      if RouterBgp.enabled
-        router_bgp(@asnum, @vrf)
-      else
-        enable_create_router_bgp(@asnum, @vrf)
-      end
+      Feature.bgp_enable unless Feature.bgp_enabled?
+      router_bgp
     end
 
     # Destroy router bgp instance
     def destroy
-      vrf_ids = config_get('bgp', 'vrf', asnum: @asnum)
-      vrf_ids = ['default'] if vrf_ids.nil?
-      if vrf_ids.size == 1 || @vrf == 'default'
-        RouterBgp.enable('no')
-      else
-        router_bgp(asnum, @vrf, 'no')
-      end
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      router_bgp('no')
     end
 
     # Helper method to delete @set_args hash keys
@@ -269,7 +231,7 @@ module Cisco
       # 'no bgp cluster-id'.  IMO this should be possible because you
       # can only configure a single bgp cluster-id.
       #
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_cluster_id
         @set_args[:state] = 'no'
@@ -296,7 +258,7 @@ module Cisco
       # 'no bgp confederation id'.  IMO this should be possible
       # because you can only configure a single bgp confed id.
       #
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_confederation_id
         @set_args[:state] = 'no'
@@ -691,16 +653,13 @@ module Cisco
       config_get_default('bgp', 'reconnect_interval')
     end
 
-    # Route Distinguisher (Getter/Setter/Default)
-    # Configure in vrf context
+    # route_distinguisher
+    # Note that this property is supported by both bgp and vrf providers.
     def route_distinguisher
-      return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       config_get('bgp', 'route_distinguisher', @get_args)
     end
 
     def route_distinguisher=(rd)
-      RouterBgpAF.feature_nv_overlay_evpn_enable unless
-        RouterBgpAF.feature_nv_overlay_evpn_enabled
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
         @set_args[:rd] = ''
@@ -814,9 +773,9 @@ module Cisco
 
     def timer_bestpath_limit_set(seconds, always=false)
       if always
-        feature = 'timer_bestpath_limit_always'
+        opt = 'timer_bestpath_limit_always'
       else
-        feature = 'timer_bestpath_limit'
+        opt = 'timer_bestpath_limit'
       end
       if seconds == default_timer_bestpath_limit
         @set_args[:state] = 'no'
@@ -825,7 +784,7 @@ module Cisco
         @set_args[:state] = ''
         @set_args[:seconds] = seconds
       end
-      config_set('bgp', feature, @set_args)
+      config_set('bgp', opt, @set_args)
       set_args_keys_default
     end
 

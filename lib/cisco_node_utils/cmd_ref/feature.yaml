@@ -1,8 +1,31 @@
 # feature
 ---
+bgp:
+  kind: boolean
+  config_get: "show running | i feature"
+  config_get_token: '/^feature bgp$/'
+  config_set: "<state> feature bgp"
+
 nv_overlay:
   _exclude: [/N(5|6)/]
   kind: boolean
   config_get: 'show running nv overlay'
   config_get_token: '/^feature nv overlay$/'
   config_set: "feature nv overlay"
+
+nv_overlay_evpn:
+  # TBD: Not a feature but a dependency for several properties
+  kind: boolean
+  config_get: "show running | section nv"
+  config_get_token: '/^nv overlay evpn$/'
+  config_set: "nv overlay evpn"
+
+vn_segment_vlan_based:
+  # MT-lite only
+  /N(3|9)/:
+    kind: boolean
+    default_value: false
+    cli_nexus:
+      config_get: 'show running section feature'
+      config_get_token: '/^feature vn-segment-vlan-based$/'
+      config_set: 'feature vn-segment-vlan-based'

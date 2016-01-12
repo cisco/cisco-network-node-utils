@@ -107,19 +107,20 @@ class TestRouterBgp < CiscoTestCase
   def test_routerbgp_create_valid_asn
     [1, 4_294_967_295, '55', '1.0', '1.65535',
      '65535.0', '65535.65535'].each do |test|
-      bgp = RouterBgp.new(test)
+      rtr_bgp = RouterBgp.new(test)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test)
       refute_nil(line, "Error: 'router bgp #{test}' not configured")
-      bgp.destroy
+      rtr_bgp.destroy
 
       vrf = 'Duke'
-      bgp = RouterBgp.new(test, vrf)
+      bgp_vrf = RouterBgp.new(test, vrf)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
       refute_nil(line,
                  "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
-      bgp.destroy
+      bgp_vrf.destroy
+      rtr_bgp.destroy
     end
   end
 
@@ -142,7 +143,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end
@@ -340,7 +341,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.disable_policy_batching_ipv4 = 'xx'
     assert_equal('xx', bgp.disable_policy_batching_ipv4,
                  "bgp disable_policy_batching_ipv4 should be set to 'xx'")
-    bgp.disable_policy_batching_ipv4 = bgp.default_route_distinguisher
+    bgp.disable_policy_batching_ipv4 = bgp.default_disable_policy_batching_ipv4
     assert_empty(bgp.disable_policy_batching_ipv4,
                  'bgp disable_policy_batching_ipv4 should be empty')
     bgp.destroy
@@ -359,7 +360,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.disable_policy_batching_ipv6 = 'xx'
     assert_equal('xx', bgp.disable_policy_batching_ipv6,
                  "bgp disable_policy_batching_ipv6 should be set to 'xx'")
-    bgp.disable_policy_batching_ipv6 = bgp.default_route_distinguisher
+    bgp.disable_policy_batching_ipv6 = bgp.default_disable_policy_batching_ipv6
     assert_empty(bgp.disable_policy_batching_ipv6,
                  'bgp disable_policy_batching_ipv6 should be empty')
     bgp.destroy
@@ -781,26 +782,24 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_route_distinguisher
+  def test_route_distinguisher
+    if node.product_id[/N3/]
+      skip('Platform does not support nv overlay feature') unless
+        Feature.nv_overlay_supported?
+    end
     bgp = RouterBgp.new(55, 'blue')
     bgp.route_distinguisher = 'auto'
-    assert_equal('auto', bgp.route_distinguisher,
-                 "bgp route_distinguisher should be set to 'auto'")
+    assert_equal('auto', bgp.route_distinguisher)
+
     bgp.route_distinguisher = '1:1'
-    assert_equal('1:1', bgp.route_distinguisher,
-                 "bgp route_distinguisher should be set to '1:1'")
+    assert_equal('1:1', bgp.route_distinguisher)
+
+    bgp.route_distinguisher = '2:3'
+    assert_equal('2:3', bgp.route_distinguisher)
+
     bgp.route_distinguisher = bgp.default_route_distinguisher
     assert_empty(bgp.route_distinguisher,
                  'bgp route_distinguisher should *NOT* be configured')
-    bgp.destroy
-  end
-
-  def test_routerbgp_default_route_distinguisher
-    asnum = 55
-    vrf = 'blue'
-    bgp = RouterBgp.new(asnum, vrf)
-    assert_empty(bgp.default_route_distinguisher,
-                 'bgp route_distinguisher default value should be empty')
     bgp.destroy
   end
 
