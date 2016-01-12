@@ -675,6 +675,8 @@ class TestRouterBgpAF < CiscoTestCase
 
   ## feature nv overlay evpn
   def test_feature_nv_overlay_evpn
+    skip('Platform does not support nv overlay feature') unless
+      RouterBgpAF.feature_nv_overlay_supported?
     config('no nv overlay evpn')
     RouterBgpAF.feature_nv_overlay_evpn_enable
     assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,

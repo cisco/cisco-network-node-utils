@@ -57,6 +57,7 @@ module Cisco
     end
 
     def create
+      feature_nv_overlay_enable unless feature_nv_overlay_enabled?
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
@@ -64,6 +65,26 @@ module Cisco
     def destroy
       set_args_keys(state: 'no')
       config_set('bgp', 'address_family', @set_args)
+    end
+
+    def feature_nv_overlay_enabled?
+      config_get('feature', 'nv_overlay')
+    rescue Cisco::CliError => e
+      # cmd will syntax when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def feature_nv_overlay_enable
+      # Note: vdc platforms restrict this feature to F3 or newer linecards
+      config_set('feature', 'nv_overlay')
+    end
+
+    def self.feature_nv_overlay_supported?
+      config_set('feature', 'nv_overlay')
+    rescue Cisco::CliError => e
+      raise unless e.clierror =~ /not capable of supporting nv overlay feature/
+      false
     end
 
     # This is an enable-only method for enabling the 'nv overlay evpn' feature

@@ -67,13 +67,20 @@ module Cisco
     end
 
     def self.feature_vni_enable
-      Vni.feature_nv_overlay_enable unless Vni.feature_nv_overlay_enabled
+      feature_nv_overlay_enable unless feature_nv_overlay_enabled?
       config_set('vni', 'feature')
     end
 
+    def self.feature_nv_overlay_supported?
+      config_set('feature', 'nv_overlay')
+    rescue Cisco::CliError => e
+      raise unless e.clierror =~ /not capable of supporting nv overlay feature/
+      false
+    end
+
     # feature nv overlay
-    def self.feature_nv_overlay_enabled
-      config_get('vni', 'feature_nv_overlay')
+    def self.feature_nv_overlay_enabled?
+      config_get('feature', 'nv_overlay')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -81,7 +88,7 @@ module Cisco
     end
 
     def self.feature_nv_overlay_enable
-      config_set('vni', 'feature_nv_overlay')
+      config_set('feature', 'nv_overlay')
     end
 
     def self.mt_full_support
