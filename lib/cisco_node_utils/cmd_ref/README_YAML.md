@@ -31,7 +31,6 @@ This document describes the structure and semantics of these files.
   * [`multiple`](#multiple)
   * [`auto_default`](#auto_default)
   * [`test_get_command` and `test_get_value`](#test_get_command-and-test_get_value)
-  * [`test_config_result`](#test_config_result)
 * [Style Guide](#style-guide)
 
 ## Introduction
@@ -573,22 +572,6 @@ Should only be referenced by test scripts, never by a feature provider itself.
 boot_image:
   test_get_command: 'show version | no-more'
   test_get_value: '/NXOS image file is: (.*)$/'
-```
-
-### `test_config_result`
-
-Test-only container for input-result pairs that might differ by platform.
-Should only be referenced by test scripts, never by a feature provider itself.
-
-```yaml
-# vtp.yaml
-version:
-  /N7K/:
-    test_config_result:
-      3: 3
-  else:
-    test_config_result:
-      3: 'Cisco::CliError'
 ```
 
 ## Style Guide

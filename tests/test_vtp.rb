@@ -263,9 +263,12 @@ class TestVtp < CiscoTestCase
     ref = cmd_ref.lookup('vtp', 'version')
     assert(ref, 'Error, reference not found for vtp version3')
 
-    assert_result(ref.test_config_result(3), 'Error: vtp version3 error') do
+    case node.product_id
+    when /N7K/
       vtp.version = 3
-      vtp.version
+      assert_equal(vtp.version, 3)
+    else
+      assert_raises(Cisco::CliError) { vtp.version = 3 }
     end
   end
 

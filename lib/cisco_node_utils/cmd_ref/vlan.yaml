@@ -27,12 +27,6 @@ name:
   get_value: '/^%d+\s+(\S+)\s/'
   set_context: ["vlan %d"]
   set_value: "%s name %s"
-  '/N9K/':
-    test_config_result:
-      32: "Long VLAN name knob is not enabled"
-  else:
-    test_config_result:
-      32: "String exceeded max length of (32)"
 
 shutdown:
   get_command: "show vlan brief"

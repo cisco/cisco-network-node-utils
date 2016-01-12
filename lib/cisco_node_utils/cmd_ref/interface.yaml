@@ -116,9 +116,6 @@ ipv4_redirects_loopback:
 
 ipv4_redirects_other_interfaces:
   kind: boolean
-  test_config_result:
-    false: false
-    true: true
   nexus:
     get_value: '/^((?:no )?ip redirects)$/'
     set_value: "<state> ip redirects"

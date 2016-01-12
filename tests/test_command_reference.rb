@@ -158,10 +158,6 @@ name:
     - \"hello\"
     - \"world\"
   test_get_value: '/hello world/'
-  test_config_result:
-    false: RuntimeError
-    32: "Long VLAN name knob is not enabled"
-    nil: ~
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
@@ -177,9 +173,6 @@ name:
     type_check(ref.set_value[0], String)
     type_check(ref.test_get_value, Regexp)
     assert_raises(IndexError) { ref.test_get_command }
-    type_check(ref.test_config_result(false), RuntimeError.class)
-    type_check(ref.test_config_result(32), String)
-    type_check(ref.test_config_result('nil'), NilClass)
 
     assert(ref.default_value?)
     assert(ref.get_command?)

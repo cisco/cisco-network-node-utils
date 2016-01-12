@@ -19,7 +19,6 @@ dead_interval:
   get_value: '/^\s*ip ospf dead-interval (\d+)/'
   set_value: "%s ip ospf dead-interval %s"
   default_value: 40
-  test_config_result: [262141]
 
 hello_interval:
   kind: int

@@ -70,8 +70,6 @@ mapping:
           - type: str
       set_value:
         type: str
-      test_config_result:
-        type: any # TODO
       test_get_command:
         type: str
       test_get_value:

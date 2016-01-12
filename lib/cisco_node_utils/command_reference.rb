@@ -30,7 +30,7 @@ module Cisco
               set_context set_value
               get_command get_context get_value
               auto_default multiple kind
-              test_get_command test_get_value test_config_result)
+              test_get_command test_get_value)
 
     def self.keys
       KEYS
@@ -214,11 +214,6 @@ module Cisco
         end
       end
       value
-    end
-
-    def test_config_result(value)
-      result = @hash['test_config_result'][value]
-      convert_to_constant(result)
     end
 
     def method_missing(method_name, *args, &block)
