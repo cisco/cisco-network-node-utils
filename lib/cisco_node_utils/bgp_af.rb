@@ -57,7 +57,6 @@ module Cisco
     end
 
     def create
-      feature_nv_overlay_enable unless feature_nv_overlay_enabled?
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
@@ -258,6 +257,7 @@ module Cisco
 
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
+      feature_nv_overlay_enable unless feature_nv_overlay_enabled?
       return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
     end
