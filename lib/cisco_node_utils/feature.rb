@@ -19,7 +19,7 @@ require_relative 'node_util'
 module Cisco
   # Feature - node util class for managing common features
   class Feature < NodeUtil
-    def self.feature_nv_overlay_enabled?
+    def self.nv_overlay_enabled?
       config_get('feature', 'nv_overlay')
     rescue Cisco::CliError => e
       # cmd will syntax when feature is not enabled.
@@ -27,12 +27,12 @@ module Cisco
       return false
     end
 
-    def self.feature_nv_overlay_enable
+    def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       config_set('feature', 'nv_overlay')
     end
 
-    def self.feature_nv_overlay_supported?
+    def self.nv_overlay_supported?
       config_set('feature', 'nv_overlay')
     rescue Cisco::CliError => e
       raise unless e.clierror =~ /not capable of supporting nv overlay feature/
