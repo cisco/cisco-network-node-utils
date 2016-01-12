@@ -48,11 +48,6 @@ feature:
     config_get_token: '/^feature vn-segment-vlan-based$/'
     config_set: 'feature vn-segment-vlan-based'
 
-feature_nv_overlay:
-  config_get: 'show running | i ^feature'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: 'feature nv overlay'
-
 mapped_vlan:
   # MT-lite only
   /N(3|9)/:

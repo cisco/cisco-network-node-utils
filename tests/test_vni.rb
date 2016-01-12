@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vni'
 require_relative '../lib/cisco_node_utils/vdc'
 
@@ -24,6 +25,8 @@ class TestVni < CiscoTestCase
     super
     skip('Platform does not support MT-full or MT-lite') unless
       Vni.mt_full_support || Vni.mt_lite_support
+    skip('Platform does not support nv overlay feature') unless
+      Feature.nv_overlay_supported?
   end
 
   def teardown

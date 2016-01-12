@@ -33,6 +33,7 @@
 # ----
 #
 require_relative 'node_util'
+require_relative 'feature'
 
 module Cisco
   # node_utils class for Vni
@@ -67,21 +68,8 @@ module Cisco
     end
 
     def self.feature_vni_enable
-      Vni.feature_nv_overlay_enable unless Vni.feature_nv_overlay_enabled
+      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
       config_set('vni', 'feature')
-    end
-
-    # feature nv overlay
-    def self.feature_nv_overlay_enabled
-      config_get('vni', 'feature_nv_overlay')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_nv_overlay_enable
-      config_set('vni', 'feature_nv_overlay')
     end
 
     def self.mt_full_support
