@@ -24,7 +24,6 @@ module Cisco
     attr_reader :domain
     # Constructor for Vpc
     def initialize(domain_id, instantiate=true)
-      fail TypeError unless domain_id.is_a?(Integer)
       @domain = domain_id
       @set_params = {}
 
