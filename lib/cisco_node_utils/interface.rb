@@ -642,7 +642,9 @@ module Cisco
     end
 
     def vlan_mapping
-      config_get('interface', 'vlan_mapping', @name).each(&:compact!)
+      match = config_get('interface', 'vlan_mapping', @name)
+      match.each(&:compact!) unless match.nil?
+      match
     end
 
     def vlan_mapping=(should_list)
