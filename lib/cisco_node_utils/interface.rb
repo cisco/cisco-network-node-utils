@@ -83,12 +83,14 @@ module Cisco
     end
 
     def ipv4_acl_in=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv4_acl_in
       end
+
+      return unless val && val != ''
       config_set('interface', 'ipv4_acl_in', @name, state, val)
     end
 
@@ -101,12 +103,14 @@ module Cisco
     end
 
     def ipv4_acl_out=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv4_acl_out
       end
+
+      return unless val && val != ''
       config_set('interface', 'ipv4_acl_out', @name, state, val)
     end
 
@@ -119,12 +123,13 @@ module Cisco
     end
 
     def ipv6_acl_in=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv6_acl_in
       end
+      return unless val && val != ''
       config_set('interface', 'ipv6_acl_in', @name, state, val)
     end
 
@@ -137,12 +142,13 @@ module Cisco
     end
 
     def ipv6_acl_out=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv6_acl_out
       end
+      return unless val && val != ''
       config_set('interface', 'ipv6_acl_out', @name, state, val)
     end
 
@@ -636,7 +642,9 @@ module Cisco
     end
 
     def vlan_mapping
-      config_get('interface', 'vlan_mapping', @name).each(&:compact!)
+      match = config_get('interface', 'vlan_mapping', @name)
+      match.each(&:compact!) unless match.nil?
+      match
     end
 
     def vlan_mapping=(should_list)

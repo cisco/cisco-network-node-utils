@@ -68,12 +68,12 @@ feature_vlan:
 ipv4_acl_in:
   config_get_token_append: '/^ip access-group (\S+) in/'
   config_set_append: "%s ip access-group %s in"
-  default_value: ~
+  default_value: "" 
 
 ipv4_acl_out:
   config_get_token_append: '/^ip access-group (\S+) out/'
   config_set_append: "%s ip access-group %s out"
-  default_value: ~
+  default_value: "" 
 
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
@@ -124,12 +124,12 @@ ipv4_redirects_other_interfaces:
 ipv6_acl_in:
   config_get_token_append: '/^ipv6 traffic-filter (\S+) in/'
   config_set_append: "%s ipv6 traffic-filter %s in"
-  default_value: ~
+  default_value: "" 
 
 ipv6_acl_out:
   config_get_token_append: '/^ipv6 traffic-filter (\S+) out/'
   config_set_append: "%s ipv6 traffic-filter %s out"
-  default_value: ~
+  default_value: "" 
 mtu:
   kind: int
   config_get_token_append: '/^mtu (.*)$/'
