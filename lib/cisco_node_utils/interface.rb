@@ -83,12 +83,14 @@ module Cisco
     end
 
     def ipv4_acl_in=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv4_acl_in
       end
+
+      return unless val && val != ''
       config_set('interface', 'ipv4_acl_in', @name, state, val)
     end
 
@@ -101,12 +103,14 @@ module Cisco
     end
 
     def ipv4_acl_out=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv4_acl_out
       end
+
+      return unless val && val != ''
       config_set('interface', 'ipv4_acl_out', @name, state, val)
     end
 
@@ -119,12 +123,13 @@ module Cisco
     end
 
     def ipv6_acl_in=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv6_acl_in
       end
+      return unless val && val != ''
       config_set('interface', 'ipv6_acl_in', @name, state, val)
     end
 
@@ -137,12 +142,13 @@ module Cisco
     end
 
     def ipv6_acl_out=(val)
-      if val
+      if val != ''
         state = ''
       else
         state = 'no'
         val = ipv6_acl_out
       end
+      return unless val && val != ''
       config_set('interface', 'ipv6_acl_out', @name, state, val)
     end
 
