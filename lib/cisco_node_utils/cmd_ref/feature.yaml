@@ -1,6 +1,7 @@
 # feature
 ---
 fabric:
+  _exclude: [/N3/]
   config_get: "show feature-set"
   config_get_token: '/^fabric[\s\d]+(\w+)/'
   config_set: "<state> feature-set fabric"
@@ -9,7 +10,7 @@ fabric_forwarding:
   _exclude: [/N3/]
   config_get: "show running | i ^feature"
   config_get_token: '/^feature fabric forwarding$/'
-  config_set: "<state> feature fabric forwarding"
+  config_set: "feature fabric forwarding"
 
 nv_overlay:
   _exclude: [/N(5|6)/]

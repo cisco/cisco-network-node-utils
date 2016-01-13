@@ -21,8 +21,9 @@ module Cisco
   class Feature < NodeUtil
     def self.fabric_enable
       # install feature-set and enable it
+      return if fabric_enabled?
       config_set('feature', 'fabric', state: 'install') unless fabric_installed?
-      config_set('feature', 'fabric', state: '') unless fabric_enabled?
+      config_set('feature', 'fabric', state: '')
     end
 
     def self.fabric_enabled?
@@ -31,6 +32,16 @@ module Cisco
 
     def self.fabric_installed?
       config_get('feature', 'fabric') !~ /^uninstalled/
+    end
+
+    def self.fabric_forwarding_enable
+      return if fabric_forwarding_enabled?
+      Feature.fabric_enable unless node.product_id =~ /N9/
+      config_set('feature', 'fabric_forwarding')
+    end
+
+    def self.fabric_forwarding_enabled?
+      config_get('feature', 'fabric_forwarding')
     end
 
     def self.nv_overlay_enabled?

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vxlan_global'
 
 include Cisco
@@ -33,13 +34,9 @@ class TestVxlanGlobal < CiscoTestCase
     config('no feature fabric forwarding')
   end
 
-  def test_on_off
+  def test_feature_on
     feat = VxlanGlobal.new
-    feat.enable
-    assert(VxlanGlobal.enabled)
-
-    feat.disable
-    refute(VxlanGlobal.enabled)
+    assert(Feature.fabric_forwarding_enabled?)
   end
 
   def test_dup_host_ip_addr_detection_set

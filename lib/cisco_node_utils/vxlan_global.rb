@@ -26,29 +26,11 @@ module Cisco
   class VxlanGlobal < NodeUtil
     # Constructor for vxlan_global
     def initialize(instantiate=true)
-      enable if instantiate && !VxlanGlobal.enabled
-    end
-
-    def enable
-      Feature.fabric_enable unless Feature.fabric_enabled?
-      config_set('feature', 'fabric_forwarding', state: '')
+      Feature.fabric_forwarding_enable if instantiate
     end
 
     def disable
-      config_set('feature', 'fabric_forwarding', state: 'no') if
-        Feature.fabric_enabled?
       dup_host_mac_detection_default
-    end
-
-    # Check current state of the configuration
-    def self.enabled
-      feat = config_get('feature', 'fabric_forwarding')
-      return !(feat.nil? || feat.empty?)
-    rescue Cisco::CliError => e
-      # This cmd will syntax reject if feature is not
-      # enabled. Just catch the reject and return false.
-      return false if e.clierror =~ /Syntax error/
-      raise
     end
 
     # ----------
