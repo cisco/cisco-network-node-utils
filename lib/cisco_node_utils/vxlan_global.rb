@@ -18,6 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'feature'
 require_relative 'node_util'
 
 module Cisco
@@ -29,11 +30,13 @@ module Cisco
     end
 
     def enable
+      Feature.fabric_enable unless Feature.fabric_enabled?
       config_set('feature', 'fabric_forwarding', state: '')
     end
 
     def disable
-      config_set('feature', 'fabric_forwarding', state: 'no')
+      config_set('feature', 'fabric_forwarding', state: 'no') if
+        Feature.fabric_enabled?
       dup_host_mac_detection_default
     end
 

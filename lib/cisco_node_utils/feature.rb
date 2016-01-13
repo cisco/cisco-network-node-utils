@@ -19,6 +19,20 @@ require_relative 'node_util'
 module Cisco
   # Feature - node util class for managing common features
   class Feature < NodeUtil
+    def self.fabric_enable
+      # install feature-set and enable it
+      config_set('feature', 'fabric', state: 'install') unless fabric_installed?
+      config_set('feature', 'fabric', state: '') unless fabric_enabled?
+    end
+
+    def self.fabric_enabled?
+      config_get('feature', 'fabric') =~ /^enabled/
+    end
+
+    def self.fabric_installed?
+      config_get('feature', 'fabric') !~ /^uninstalled/
+    end
+
     def self.nv_overlay_enabled?
       config_get('feature', 'nv_overlay')
     rescue Cisco::CliError => e
