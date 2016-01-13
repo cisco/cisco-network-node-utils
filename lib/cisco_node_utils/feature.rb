@@ -24,20 +24,18 @@ module Cisco
     # feature disablement for cleanup purposes.
     # ---------------------------
     def self.bgp_enable(state='')
+      return if bgp_enabled?
       config_set('feature', 'bgp', state: state)
     end
 
     def self.bgp_enabled?
       config_get('feature', 'bgp')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
     end
 
     # ---------------------------
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
+      return if nv_overlay_enabled?
       config_set('feature', 'nv_overlay')
     end
 
@@ -49,37 +47,24 @@ module Cisco
       return false
     end
 
-    def self.nv_overlay_supported?
-      config_set('feature', 'nv_overlay')
-    rescue Cisco::CliError => e
-      raise unless e.clierror =~ /not capable of supporting nv overlay feature/
-      false
-    end
-
     # ---------------------------
     def self.nv_overlay_evpn_enable
+      return if nv_overlay_evpn_enabled?
       config_set('feature', 'nv_overlay_evpn')
     end
 
     def self.nv_overlay_evpn_enabled?
       config_get('feature', 'nv_overlay_evpn')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
     end
 
     # ---------------------------
     def self.vn_segment_vlan_based_enable
+      return if vn_segment_vlan_based_enabled?
       config_set('feature', 'vn_segment_vlan_based')
     end
 
     def self.vn_segment_vlan_based_enabled?
       config_get('feature', 'vn_segment_vlan_based')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
     end
 
     # ---------------------------

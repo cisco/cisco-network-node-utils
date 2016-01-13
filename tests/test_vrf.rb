@@ -114,10 +114,6 @@ class TestVrf < CiscoTestCase
   end
 
   def test_route_distinguisher
-    if node.product_id[/N3/]
-      skip('Platform does not support nv overlay feature') unless
-        Feature.nv_overlay_supported?
-    end
     v = Vrf.new('blue')
     v.route_distinguisher = 'auto'
     assert_equal('auto', v.route_distinguisher)

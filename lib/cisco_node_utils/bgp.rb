@@ -100,7 +100,7 @@ module Cisco
 
     # Create one router bgp instance
     def create
-      Feature.bgp_enable unless Feature.bgp_enabled?
+      Feature.bgp_enable
       router_bgp
     end
 
@@ -660,6 +660,8 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
         @set_args[:rd] = ''

@@ -86,8 +86,9 @@ module Cisco
 
     def route_distinguisher=(rd)
       # feature bgp and nv overlay required for rd cli in NXOS
-      Feature.bgp_enable unless Feature.bgp_enabled?
-      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
+      Feature.bgp_enable
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         state = 'no'
         rd = ''
@@ -107,8 +108,7 @@ module Cisco
     end
 
     def vni=(id)
-      Feature.vn_segment_vlan_based_enable unless
-        Feature.vn_segment_vlan_based_enabled?
+      Feature.vn_segment_vlan_based_enable
       no_cmd = (id) ? '' : 'no'
       id = (id) ? id : vni
       config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)

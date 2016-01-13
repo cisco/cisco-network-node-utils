@@ -783,10 +783,6 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_route_distinguisher
-    if node.product_id[/N3/]
-      skip('Platform does not support nv overlay feature') unless
-        Feature.nv_overlay_supported?
-    end
     bgp = RouterBgp.new(55, 'blue')
     bgp.route_distinguisher = 'auto'
     assert_equal('auto', bgp.route_distinguisher)

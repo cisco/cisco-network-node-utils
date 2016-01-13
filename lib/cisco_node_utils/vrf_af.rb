@@ -18,6 +18,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 
 module Cisco
   # VrfAF - node utility class for VRF Address-Family configuration
@@ -72,6 +73,12 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
+    def route_target_feature_enable
+      Feature.bgp_enable
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
+    end
+
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
@@ -81,6 +88,7 @@ module Cisco
     end
 
     def route_target_both_auto=(state)
+      route_target_feature_enable
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vrf', 'route_target_both_auto', @set_args)
     end
@@ -95,6 +103,7 @@ module Cisco
     end
 
     def route_target_both_auto_evpn=(state)
+      route_target_feature_enable
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vrf', 'route_target_both_auto_evpn', @set_args)
     end
@@ -165,6 +174,7 @@ module Cisco
     # route_target_delta is a common helper function for the route_target
     # properties. It walks the delta hash and adds/removes each target cli.
     def route_target_delta(should, is, prop)
+      route_target_feature_enable
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|

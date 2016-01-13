@@ -228,9 +228,8 @@ module Cisco
     end
 
     def advertise_l2vpn_evpn=(state)
-      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
-      Feature.nv_overlay_evpn_enable if
-        state && !Feature.nv_overlay_evpn_enabled?
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
     end

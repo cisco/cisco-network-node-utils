@@ -46,10 +46,6 @@ class TestEvpnVni < CiscoTestCase
   end
 
   def test_route_distinguisher
-    if node.product_id[/N3/]
-      skip('Platform does not support nv overlay feature') unless
-        Feature.nv_overlay_supported?
-    end
     vni = EvpnVni.new(4096)
     vni.route_distinguisher = 'auto'
     assert_equal('auto', vni.route_distinguisher,
