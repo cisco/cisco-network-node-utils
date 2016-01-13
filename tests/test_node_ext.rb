@@ -27,67 +27,15 @@ class TestNodeExt < CiscoTestCase
     assert_equal(md[1], check, msg)
   end
 
-  def show_run_ospf
-    "\
-router ospf foo
- vrf red
-  log-adjacency-changes
-router ospf bar
- log-adjacency-changes
- vrf red
-  log-adjacency-changes detail
- vrf blue
-!
-router ospf baz
- log-adjacency-changes detail"
-  end
-
-  def test_node_find_subconfig
-    result = find_subconfig(show_run_ospf, /router ospf bar/)
-    assert_equal("\
-log-adjacency-changes
-vrf red
- log-adjacency-changes detail
-vrf blue",
-                 result)
-
-    assert_nil(find_subconfig(result, /vrf blue/))
-
-    assert_equal('log-adjacency-changes detail',
-                 find_subconfig(result, /vrf red/))
-
-    assert_nil(find_subconfig(result, /vrf green/))
-  end
-
-  def test_node_find_ascii
-    # Find an entry in the parent submode, ignoring nested submodes
-    assert_equal(['log-adjacency-changes'],
-                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                            /router ospf bar/))
-    # Find an entry in a nested submode
-    assert_equal(['log-adjacency-changes detail'],
-                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                            /router ospf bar/, /vrf red/))
-    # Submode exists but does not have a match
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf bar/, /vrf blue/))
-    # Submode does not exist
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf bar/, /vrf green/))
-
-    # Entry exists in submode only
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf foo/))
-  end
-
   def test_node_config_get
     result = node.config_get('show_version', 'system_image')
     assert_equal(result, node.system)
   end
 
   def test_node_config_get_regexp_tokens
-    node.client.config(['interface loopback0', 'shutdown'])
-    node.client.config(['interface loopback1', 'no shutdown'])
+    node.client.set(context: ['interface loopback0'], values: ['shutdown'])
+    # TODO: smarter handling of 'no' on XR
+    node.client.set(values: ['interface loopback1', 'no shutdown'])
 
     result = node.config_get('interface', 'shutdown', name: 'loopback1')
     refute(result)
@@ -121,13 +69,13 @@ vrf blue",
 
   def test_node_config_set
     node.config_set('interface', 'create', name: 'loopback122')
-    run = node.client.show('show run | inc interface')
-    val = find_ascii(run, /interface loopback122/i)
+    run = node.client.get(command: 'show run | inc interface')
+    val = Client.filter_cli(cli_output: run, value: /interface loopback122/i)
     assert_match(/interface loopback122/i, val[0])
 
     node.config_set('interface', 'destroy', name: 'loopback122')
-    run = node.client.show('show run | inc interface')
-    val = find_ascii(run, /interface loopback122/i)
+    run = node.client.get(command: 'show run | inc interface')
+    val = Client.filter_cli(cli_output: run, value: /interface loopback122/i)
     assert_nil(val)
   end
 

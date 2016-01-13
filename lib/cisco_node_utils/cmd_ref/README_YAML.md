@@ -397,14 +397,14 @@ router_id:
 ```
 
 In this example, the `vrf` parameter is optional and a different
-`getter` value will be generated depending on its presence or absence:
+`getter[:context]` value will be generated depending on its presence or absence:
 
 ```ruby
 irb(main):008:0> ref = cr.lookup('ospf', 'router_id')
 irb(main):012:0> ref.getter(name: 'red')
-=> [/^router ospf red$/, /^router-id (\S+)?$/]
+=> {:data_format=>:cli, :context=>[/^router ospf red$/i], :values=>[/^router-id (\S+)?$/]}
 irb(main):013:0> ref.getter(name: 'red', vrf: 'blue')
-=> [/^router ospf red$/, /^vrf blue$/, /^router-id (\S+)?$/]
+=> {:data_format=>:cli, :context=>[/^router ospf red$/i, /^vrf blue$/i], :values=>[/^router-id (\S+)?$/]}
 ```
 
 ### `set_context`

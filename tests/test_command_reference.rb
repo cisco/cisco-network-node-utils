@@ -143,7 +143,7 @@ name_a:
   end
 
   def type_check(obj, cls)
-    assert(obj.is_a?(cls), "#{obj} should be #{cls} but is #{obj.class}")
+    assert(obj.is_a?(cls), "'#{obj}' type should be #{cls} but is #{obj.class}")
   end
 
   def test_load_types
@@ -151,7 +151,7 @@ name_a:
 name:
   default_value: true
   get_command: show hello
-  get_context: '/hello/i'
+  get_context: ['/hello/i']
   get_value: '/world/'
   set_context: [ \"hello\", \"world\" ]
   set_value:
@@ -165,8 +165,7 @@ name:
     type_check(ref.get_command, String)
     type_check(ref.get_context, Array)
     type_check(ref.get_context[0], Regexp)
-    type_check(ref.get_value, Array)
-    type_check(ref.get_value[0], Regexp)
+    type_check(ref.get_value, Regexp)
     type_check(ref.set_context, Array)
     type_check(ref.set_context[0], String)
     type_check(ref.set_value, Array)
@@ -405,31 +404,222 @@ name:
     ['/^router ospf <name>$/',
      '/^vrf <vrf>$/']
   get_value: '/^router-id (\S+)$/'
+test2:
+  get_context: ['abc <val1> def']
+  get_value: 'xyz <val2>'
+test3:
+  get_context: ['foo']
+  # no get_value
+test4:
+  get_value: 'xyz <val1> <val2>'
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
-    token = ref.getter(name: 'red')
-    assert_equal([/^router ospf red$/, /^router-id (\S+)$/],
-                 token)
-    token = ref.getter(name: 'blue', vrf: 'green')
-    assert_equal([/^router ospf blue$/, /^vrf green$/, /^router-id (\S+)$/],
-                 token)
-    # TODO: add negative tests?
+    getter = ref.getter(name: 'red')
+    assert_equal({
+                   command:     nil,
+                   context:     [/^router ospf red$/],
+                   value:       /^router-id (\S+)$/,
+                   data_format: :cli,
+                 }, getter)
+
+    getter = ref.getter(name: 'blue', vrf: 'green')
+    assert_equal({
+                   command:     nil,
+                   context:     [/^router ospf blue$/, /^vrf green$/],
+                   value:       /^router-id (\S+)$/,
+                   data_format: :cli,
+                 }, getter)
+
+    ref = reference.lookup('test', 'test2')
+    getter = ref.getter(val1: '1', val2: '2')
+    assert_equal({
+                   command:     nil,
+                   context:     ['abc 1 def'],
+                   value:       'xyz 2',
+                   data_format: :cli,
+                 }, getter)
+
+    # value params are mandatory
+    assert_raises(ArgumentError) { ref.getter(val1: '1', extra_val: 'asdf') }
+
+    # context params are optional - TODO, only if flagged!
+    getter = ref.getter(val2: '2')
+    assert_equal({
+                   command:     nil,
+                   context:     [],
+                   value:       'xyz 2',
+                   data_format: :cli,
+                 }, getter)
+
+    e = assert_raises(ArgumentError) { ref.getter }
+    assert_equal("No value specified for 'val2' in 'xyz <val2>'", e.message)
+
+    e = assert_raises(ArgumentError) { ref.getter(extra: 'x') }
+    assert_equal("No value specified for 'val2' in 'xyz <val2>'", e.message)
+
+    e = assert_raises(ArgumentError) { ref.getter('x') }
+    assert_match(/requires keyword args/, e.message)
+
+    # TODO: No get_value means no getter?
+    ref = reference.lookup('test', 'test3')
+    refute(ref.getter?)
+    assert_raises(UnsupportedError) { ref.getter }
+    assert_raises(UnsupportedError) { ref.getter(val1: '1') }
+    assert_raises(UnsupportedError) { ref.getter('x') }
+
+    # Multiple keys in a single parameter
+    ref = reference.lookup('test', 'test4')
+    getter = ref.getter(val1: 1, val2: 2.2)
+    assert_equal({
+                   command:     nil,
+                   context:     [],
+                   value:       'xyz 1 2.2',
+                   data_format: :cli,
+                 }, getter)
+
+    e = assert_raises(ArgumentError) { ref.getter }
+    assert_match(/No value specified for 'val1'/, e.message)
+    e = assert_raises(ArgumentError) { ref.getter(val1: 1) }
+    assert_equal("No value specified for 'val2' in 'xyz 1 <val2>'", e.message)
+    e = assert_raises(ArgumentError) { ref.getter(val2: 2.2) }
+    assert_equal("No value specified for 'val1' in 'xyz <val1> 2.2'", e.message)
   end
 
   def test_getter_printf_substitution
     write("
 name:
-  get_context: '/^interface %s$/i'
+  get_context: ['/^interface %s$/i']
   get_value: '/^description (.*)/'
+test3:
+  get_context: ['/^foo %s$/']
+  # no get_value
 ")
     reference = load_file
     ref = reference.lookup('test', 'name')
-    token = ref.getter('Ethernet1/1')
-    assert_equal([%r{^interface Ethernet1/1$}i, /^description (.*)/],
-                 token)
+    getter = ref.getter('Ethernet1/1')
+    assert_equal({
+                   command:     nil,
+                   context:     [%r{^interface Ethernet1/1$}i],
+                   value:       /^description (.*)/,
+                   data_format: :cli,
+                 }, getter)
     # Negative tests - wrong # of args
-    assert_raises(ArgumentError) { ref.getter }
-    assert_raises(ArgumentError) { ref.getter('eth1/1', 'foo') }
+    e = assert_raises(ArgumentError) { ref.getter }
+    assert_equal('wrong number of arguments (0 for 1)', e.message)
+
+    e = assert_raises(ArgumentError) { ref.getter('eth1/1', 'foo') }
+    assert_equal('wrong number of arguments (2 for 1)', e.message)
+
+    # Wrong kind of args
+    e = assert_raises(ArgumentError) { ref.getter(name: 'eth1/1', val: 'foo') }
+    assert_match(/requires positional args/, e.message)
+
+    ref = reference.lookup('test', 'test3')
+    refute(ref.getter?)
+    assert_raises(UnsupportedError) { ref.getter }
+    assert_raises(UnsupportedError) { ref.getter('1') }
+    assert_raises(UnsupportedError) { ref.getter(foo: '1') }
+  end
+
+  RAW_1 = {
+    'name' => {
+      'default_value' => 'generic',
+      'nexus'         => {
+        'default_value' => 'NXAPI base',
+        '/N7K/'         => { 'default_value' => nil },
+        '/N9K/'         => { 'default_value' => 'NXAPI N9K' },
+      },
+      'ios_xr'        => {
+        '/XRV9000/' => { 'default_value' => nil },
+        'else'      => { 'default_value' => 'gRPC base' },
+      },
+    }
+  }
+
+  FILTERED_1_NEXUS = {
+    'name' => {
+      'default_value' => 'generic',
+      'nexus'         => { 'default_value' => 'NXAPI base' },
+    }
+  }
+
+  FILTERED_1_NEXUS_N7K = {
+    'name' => {
+      'default_value' => 'generic',
+      'nexus'         => {
+        'default_value' => 'NXAPI base',
+        '/N7K/'         => { 'default_value' => nil },
+      },
+    }
+  }
+
+  RAW_2 = {
+    '_template' => {
+      'ios_xr' => {
+        'cli'              => { 'get_command' => 'show inventory' },
+        'test_get_command' => 'show inventory',
+      },
+      'nexus'  => {
+        'nxapi_structured' => { get_command: 'show inventory' },
+        'test_get_command' => 'show inventory | no-more',
+      },
+    }
+  }
+
+  FILTERED_2_IOS_XR = {
+    '_template' => {
+      'ios_xr' => {
+        'test_get_command' => 'show inventory'
+      }
+    }
+  }
+
+  FILTERED_2_IOS_XR_CLI = {
+    '_template' => {
+      'ios_xr' => {
+        'cli'              => { 'get_command' => 'show inventory' },
+        'test_get_command' => 'show inventory',
+      }
+    }
+  }
+
+  def test_filter_hash
+    filtered = CommandReference.filter_hash(RAW_1)
+    assert_equal({ 'name' => { 'default_value' => 'generic' } }, filtered)
+    filtered = CommandReference.filter_hash(RAW_1,
+                                            platform: :nexus)
+    assert_equal(FILTERED_1_NEXUS, filtered)
+    filtered = CommandReference.filter_hash(RAW_1,
+                                            platform:   :nexus,
+                                            product_id: 'N7K-C7010')
+    assert_equal(FILTERED_1_NEXUS_N7K, filtered)
+
+    filtered = CommandReference.filter_hash(RAW_2)
+    assert_equal({ '_template' => {} }, filtered)
+
+    filtered = CommandReference.filter_hash(RAW_2,
+                                            platform: :ios_xr)
+    assert_equal(FILTERED_2_IOS_XR, filtered)
+
+    filtered = CommandReference.filter_hash(RAW_2,
+                                            platform:     :ios_xr,
+                                            data_formats: [:cli])
+    assert_equal(FILTERED_2_IOS_XR_CLI, filtered)
+  end
+
+  def test_hash_merge_no_template
+    merged = CommandReference.hash_merge(FILTERED_1_NEXUS)
+    assert_equal({ 'default_value' => 'NXAPI base' }, merged)
+
+    merged = CommandReference.hash_merge(FILTERED_1_NEXUS_N7K)
+    assert_equal({ 'default_value' => nil }, merged)
+
+    merged = CommandReference.hash_merge(FILTERED_2_IOS_XR)
+    assert_equal({ 'test_get_command' => 'show inventory' }, merged)
+
+    merged = CommandReference.hash_merge(FILTERED_2_IOS_XR_CLI)
+    assert_equal({ 'test_get_command' => 'show inventory',
+                   'get_command'      => 'show inventory' }, merged)
   end
 end

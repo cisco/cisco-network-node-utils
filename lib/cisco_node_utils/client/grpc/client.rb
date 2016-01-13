@@ -56,7 +56,7 @@ class Cisco::Client::GRPC < Cisco::Client
     # Make sure we can actually connect
     @timeout = 5
     begin
-      show('show clock')
+      get(command: 'show clock')
     rescue ::GRPC::BadStatus => e
       if e.code == ::GRPC::Core::StatusCodes::DEADLINE_EXCEEDED
         raise Cisco::Client::ConnectionRefused, e.details
@@ -85,21 +85,41 @@ class Cisco::Client::GRPC < Cisco::Client
     }
   end
 
-  # Configure the given command(s) on the device.
-  def config(commands)
+  # Configure the given CLI command(s) on the device.
+  #
+  # @raise [RequestNotSupported] if this client doesn't support CLI config
+  #
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
+  # @param context [Array<String>] Zero or more configuration commands used
+  #                to enter the desired CLI sub-mode
+  # @param values [Array<String>] One or more commands to enter within the
+  #   CLI sub-mode.
+  def set(data_format: :cli,
+          context:     nil,
+          values:      nil)
+    context = munge_to_array(context)
+    values = munge_to_array(values)
     super
-    commands = commands.join("\n") if commands.is_a?(Array)
-    args = CliConfigArgs.new(cli: commands)
+    # IOS XR lets us concatenate submode commands together.
+    # This makes it possible to guarantee we are in the correct context:
+    #   context: ['foo', 'bar'], values: ['baz', 'bat']
+    #   ---> values: ['foo bar baz', 'foo bar bat']
+    context = context.join(' ')
+    values.map! { |cmd| context + ' ' + cmd } unless context.empty?
+    # CliConfigArgs wants a newline-separated string of commands
+    args = CliConfigArgs.new(cli: values.join("\n"))
     req(@config, 'cli_config', args)
   end
 
-  def show(command, type=:ascii)
+  def get(data_format: :cli,
+          command:     nil,
+          context:     nil,
+          value:       nil)
     super
+    fail ArgumentError if command.nil?
     args = ShowCmdArgs.new(cli: command)
-    fail TypeError unless type == :ascii || type == :structured
-    req(@exec,
-        type == :ascii ? 'show_cmd_text_output' : 'show_cmd_json_output',
-        args)
+    output = req(@exec, 'show_cmd_text_output', args)
+    self.class.filter_cli(cli_output: output, context: context, value: value)
   end
 
   def req(stub, type, args)

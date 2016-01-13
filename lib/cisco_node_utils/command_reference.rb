@@ -57,18 +57,6 @@ module Cisco
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         case key
-        when 'get_context', 'get_value', 'set_context', 'set_value'
-          # For simplicity, these are ALWAYS arrays
-          value = [value] unless value.is_a?(Array) || value.nil?
-          @hash[key] = value
-        when 'context'
-          if value.nil?
-            @hash['get_context'] = value
-          else
-            value = [value] unless value.is_a?(Array)
-            @hash['get_context'] = value.map { |entry| "/^#{entry}$/i" }
-          end
-          @hash['set_context'] = value
         when 'auto_default'
           @auto_default = value ? true : false
         when 'default_only'
@@ -88,9 +76,61 @@ module Cisco
       end
 
       @hash.delete_if { |key, _| key != 'default_value' } if @default_only
-      define_helper('getter', @hash['get_context'], @hash['get_value'])
-      define_helper('setter', @hash['set_context'], @hash['set_value'])
+      if @hash['get_value']
+        define_helper('getter',
+                      data_format: :cli, # TODO
+                      command:     @hash['get_command'],
+                      context:     @hash['get_context'] || [],
+                      value:       @hash['get_value'])
+      end
+      if @hash['set_value']
+        define_helper('setter',
+                      data_format: :cli, # TODO
+                      context:     @hash['set_context'] || [],
+                      values:      @hash['set_value'])
+      end
       @hash.each { |key, value| @hash[key] = preprocess_value(value) }
+    end
+
+    # Does this instance have a valid getter() function?
+    # Will be overridden at initialization if so.
+    def getter?
+      !@hash['getter'].nil?
+    end
+
+    # Does this instance have a valid setter() function?
+    # Will be overridden at initialization if so.
+    def setter?
+      !@hash['setter'].nil?
+    end
+
+    # Default getter method.
+    # Will be overridden at initialization if the relevant parameters are set.
+    #
+    # A non-trivial implementation of this method will take args *or* kwargs,
+    # and will return a hash of the form:
+    # {
+    #   data_format: :cli,
+    #   command:     string or nil,
+    #   context:     array<string> or array<regexp>, perhaps empty
+    #   value:       string or regexp,
+    # }
+    def getter(*args, **kwargs) # rubocop:disable Lint/UnusedMethodArgument
+      fail UnsupportedError.new(@feature, @name, 'getter')
+    end
+
+    # Default setter method.
+    # Will be overridden at initialization if the relevant parameters are set.
+    #
+    # A non-trivial implementation of this method will take args *or* kwargs,
+    # and will return a hash of the form:
+    # {
+    #   data_format: :cli,
+    #   context:     array<string>, perhaps empty
+    #   values:      array<string>,
+    # }
+    def setter(*args, **kwargs) # rubocop:disable Lint/UnusedMethodArgument
+      fail UnsupportedError.new(@feature, @name, 'setter')
     end
 
     # Property with an implicit value of 'true' if no value is given
@@ -98,81 +138,116 @@ module Cisco
       value.nil? || value
     end
 
+    def key_substitutor(item, kwargs)
+      result = item
+      kwargs.each do |key, value|
+        result = result.sub("<#{key}>", value.to_s)
+      end
+      unsub = result[/<(\S+)>/, 1]
+      fail ArgumentError, \
+           "No value specified for '#{unsub}' in '#{result}'" if unsub
+      result
+    end
+
+    def printf_substitutor(item, args)
+      item = sprintf(item, *args.shift(item.scan(/%/).length))
+      [item, args]
+    end
+
     # Create a helper method for generating the getter/setter values.
     # This method will automatically handle wildcard arguments.
-    def define_helper(method_name, context, value)
-      # Create 'method_name?' helper too
-      if value.nil?
-        define_singleton_method "#{method_name}?".to_sym, -> { false }
-        define_singleton_method method_name.to_sym, lambda {
-          fail UnsupportedError.new(@feature, @name, method_name)
-        }
+    def define_helper(method_name, base_hash)
+      # Which kind of wildcards (if any) do we need to support?
+      combined = []
+      base_hash.each_value do |v|
+        combined += v if v.is_a?(Array)
+        combined << v if v.is_a?(String)
+      end
+      key_value = combined.any? { |i| i.is_a?(String) && /<\S+>/ =~ i }
+      printf = combined.any? { |i| i.is_a?(String) && /%/ =~ i }
+
+      if key_value && printf
+        fail 'Invalid mixture of key-value and printf wildcards ' \
+             "in #{method_name}: #{combined}"
+      elsif key_value
+        define_key_value_helper(method_name, base_hash)
+      elsif printf
+        arg_count = combined.join.scan(/%/).length
+        define_printf_helper(method_name, base_hash, arg_count)
       else
-        define_singleton_method "#{method_name}?".to_sym, -> { true }
-
-        context = [] if context.nil?
-        combined = context + value
-        key_value = combined.any? { |i| i.is_a?(String) && /<\S+>/ =~ i }
-        printf = combined.any? { |i| i.is_a?(String) && /%/ =~ i }
-
-        if key_value && printf
-          fail 'Invalid mixture of key-value and printf wildcards ' \
-               "in #{method_name}: #{combined}"
-        elsif key_value
-          define_key_value_helper(method_name, context, value)
-        elsif printf
-          define_printf_helper(method_name, combined)
-        else
-          # simple static token(s)
-          combined = preprocess_value(combined)
-          define_singleton_method method_name.to_sym, -> { combined }
-        end
+        # simple static token(s)
+        define_static_helper(method_name, base_hash)
       end
+      @hash[method_name] = true
     end
 
-    def define_key_value_helper(method_name, context, value)
+    def define_key_value_helper(method_name, base_hash)
       # Key-value substitution
-      define_singleton_method method_name.to_sym do |**args|
-        result = []
-        context.each do |line|
-          # Find the keys
-          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
-          # Replace the keys with the provided args values if present
-          replace.each do |item|
-            line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
-          end
-          # Only store the line if it's fully substituted
-          result.push(line) unless /<\S+>/.match(line)
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        unless args.empty?
+          fail ArgumentError, "#{method_name} requires keyword args, not "\
+            'positional args'
         end
-        value.each do |line|
-          # Find the keys
-          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
-          # Replace the keys with the provided args values if present
-          replace.each do |item|
-            fail ArgumentError, "Missing mandatory parameter #{item}" \
-              unless args.key?(item)
-            line = line.sub("<#{item}>", args[item].to_s)
+        result = {}
+        base_hash.each do |k, v|
+          if v.is_a?(String)
+            v = key_substitutor(v, kwargs)
+          elsif v.is_a?(Array)
+            output = []
+            v.each do |line|
+              begin
+                line = key_substitutor(line, kwargs)
+              rescue ArgumentError # Unsubstituted key - TODO
+                next
+              end
+              output.push(line)
+            end
+            v = output
           end
-          # Value lines *must* be fully substituted
-          result.push(line)
+          result[k] = preprocess_value(v)
         end
-        preprocess_value(result)
+        result
       end
     end
 
-    def define_printf_helper(method_name, value)
-      arg_count = value.join.scan(/%/).length
-      define_singleton_method method_name.to_sym do |*args|
+    def define_printf_helper(method_name, base_hash, arg_count)
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        unless kwargs.empty?
+          fail ArgumentError, "#{method_name} requires positional args, not " \
+            'keyword args'
+        end
         unless args.length == arg_count
-          fail ArgumentError, "Given #{args.length} args, but " \
-            "#{method_name} requires #{arg_count}"
+          fail ArgumentError, 'wrong number of arguments ' \
+            "(#{args.length} for #{arg_count})"
         end
-        # Fill in the parameters
-        result = value.map do |line|
-          sprintf(line, *args.shift(line.scan(/%/).length))
+
+        result = {}
+        base_hash.each do |k, v|
+          if v.is_a?(String)
+            v, args = printf_substitutor(v, args)
+          elsif v.is_a?(Array)
+            output = []
+            v.each do |line|
+              line, args = printf_substitutor(line, args)
+              output.push(line)
+            end
+            v = output
+          end
+          result[k] = preprocess_value(v)
         end
-        preprocess_value(result)
+        result
       end
+    end
+
+    def define_static_helper(method_name, base_hash)
+      base_hash.each do |k, v|
+        base_hash[k] = preprocess_value(v)
+      end
+      # rubocop:disable Lint/UnusedBlockArgument
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        base_hash
+      end
+      # rubocop:enable Lint/UnusedBlockArgument
     end
 
     # Helper method.
@@ -320,7 +395,11 @@ module Cisco
           debug "Feature #{feature} is empty"
           next
         end
-        feature_hash = filter_hash(feature_hash)
+        begin
+          feature_hash = filter_hash(feature_hash)
+        rescue RuntimeError => e
+          raise "#{file}: #{e}"
+        end
         if feature_hash.empty?
           debug "Feature #{feature} is excluded"
           @hash[feature] = UnsupportedCmdRef.new(feature, nil, file)
@@ -369,7 +448,7 @@ module Cisco
         # It's a product-id regexp. Does it match our given product_id?
         return Regexp.new(key[1..-2]) =~ product_id ? true : false
       elsif KNOWN_FILTERS.include?(key)
-        return true if data_formats.include?(key)
+        return true if data_formats && data_formats.include?(key.to_sym)
         return true if key == platform.to_s
         return false
       else
@@ -431,6 +510,7 @@ module Cisco
                                     data_formats:       data_formats,
                                     allow_unknown_keys: false)
         rescue RuntimeError => e
+          # Recursively wrap the error as needed to provide context
           raise "[#{key}]: #{e}"
         end
       end

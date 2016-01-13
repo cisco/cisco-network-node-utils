@@ -32,23 +32,23 @@ class TestNxapi < TestCase
 
   # Test cases for new NXAPI client APIs
 
-  def test_config_string
-    client.config("int et1/1\ndescr panda\n")
-    run = client.show('show run int et1/1')
+  def test_cli_set_string
+    client.set(context: 'int et1/1', values: 'descr panda')
+    run = client.get(command: 'show run int et1/1')
     desc = run.match(/description (.*)/)[1]
     assert_equal(desc, 'panda')
   end
 
-  def test_config_array
-    client.config(['int et1/1', 'descr elephant'])
-    run = client.show('show run int et1/1')
+  def test_cli_set_array
+    client.set(context: ['int et1/1'], values: ['descr elephant'])
+    run = client.get(command: 'show run int et1/1')
     desc = run.match(/description (.*)/)[1]
     assert_equal(desc, 'elephant')
   end
 
-  def test_config_invalid
+  def test_cli_set_invalid
     e = assert_raises Cisco::Client::NXAPI::CliError do
-      client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
+      client.set(values: ['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
     assert_equal("The command 'plover' was rejected with error:
 CLI execution error
@@ -62,52 +62,55 @@ CLI execution error
     assert_equal('400', e.code)
   end
 
-  def test_show_ascii_default
-    result = client.show('show hostname')
+  def test_get_cli_default
+    result = client.get(command: 'show hostname')
     s = @device.cmd('show hostname')
     assert_equal(result.strip, s.split("\n")[1].strip)
   end
 
-  def test_show_ascii_invalid
+  def test_get_cli_invalid
     assert_raises Cisco::Client::NXAPI::CliError do
-      client.show('show plugh')
+      client.get(command: 'show plugh')
     end
   end
 
-  def test_element_show_ascii_incomplete
+  def test_element_get_cli_incomplete
     assert_raises Cisco::Client::NXAPI::CliError do
-      client.show('show ')
+      client.get(command: 'show ')
     end
   end
 
-  def test_show_ascii_explicit
-    result = client.show('show hostname', :ascii)
+  def test_get_cli_explicit
+    result = client.get(command: 'show hostname', data_format: :cli)
     s = @device.cmd('show hostname')
     assert_equal(result.strip, s.split("\n")[1].strip)
   end
 
-  def test_show_ascii_empty
-    result = client.show('show hostname | include foo | exclude foo', :ascii)
+  def test_get_cli_empty
+    result = client.get(command:     'show hostname | incl foo | excl foo',
+                        data_format: :cli)
     assert_equal('', result)
   end
 
-  def test_show_structured
-    result = client.show('show hostname', :structured)
+  def test_get_nxapi_structured
+    result = client.get(command:     'show hostname',
+                        data_format: :nxapi_structured)
     s = @device.cmd('show hostname')
     assert_equal(result['hostname'], s.split("\n")[1].strip)
   end
 
-  def test_show_structured_invalid
+  def test_get_nxapi_structured_invalid
     assert_raises Cisco::Client::NXAPI::CliError do
-      client.show('show frobozz', :structured)
+      client.get(command: 'show frobozz', data_format: :nxapi_structured)
     end
   end
 
-  def test_show_structured_unsupported
+  def test_get_nxapi_structured_unsupported
     # TBD: n3k DOES support structured for this command,
     #  n9k DOES NOT support structured for this command
     assert_raises Cisco::Client::RequestNotSupported do
-      client.show('show snmp internal globals', :structured)
+      client.get(command:     'show snmp internal globals',
+                 data_format: :nxapi_structured)
     end
   end
 
@@ -117,19 +120,19 @@ CLI execution error
     @device.cmd('end')
     client.cache_flush
     assert_raises Cisco::Client::ConnectionRefused do
-      client.show('show version')
+      client.get(command: 'show version')
     end
     assert_raises Cisco::Client::ConnectionRefused do
-      client.config('interface Et1/1')
+      client.set(values: 'interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
     @@client = nil # rubocop:disable Style/ClassVars
     assert_raises Cisco::Client::ConnectionRefused do
-      client.show('show version')
+      client.get(command: 'show version')
     end
     assert_raises Cisco::Client::ConnectionRefused do
-      client.config('interface Et1/1')
+      client.set(values: 'interface Et1/1')
     end
 
     @device.cmd('configure terminal')
@@ -144,10 +147,10 @@ CLI execution error
     client.password = 'wrong_password'
     client.cache_flush
     assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
-      client.show('show version')
+      client.get(command: 'show version')
     end
     assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
-      client.config('interface Et1/1')
+      client.set(values: 'interface Et1/1')
     end
     client.password = password
   end
