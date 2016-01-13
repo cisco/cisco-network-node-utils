@@ -35,7 +35,7 @@ class TestVxlanGlobal < CiscoTestCase
   end
 
   def test_feature_on
-    feat = VxlanGlobal.new
+    VxlanGlobal.new
     assert(Feature.fabric_forwarding_enabled?)
   end
 
