@@ -4,7 +4,7 @@ bgp:
   kind: boolean
   config_get: "show running | i feature"
   config_get_token: '/^feature bgp$/'
-  config_set: "<state> feature bgp"
+  config_set: "feature bgp"
 
 nv_overlay:
   _exclude: [/N(3|5|6)/]
@@ -25,8 +25,7 @@ vn_segment_vlan_based:
   # MT-lite only
   /N(3|9)/:
     kind: boolean
+    config_get: 'show running section feature'
+    config_get_token: '/^feature vn-segment-vlan-based$/'
+    config_set: 'feature vn-segment-vlan-based'
     default_value: false
-    cli_nexus:
-      config_get: 'show running section feature'
-      config_get_token: '/^feature vn-segment-vlan-based$/'
-      config_set: 'feature vn-segment-vlan-based'

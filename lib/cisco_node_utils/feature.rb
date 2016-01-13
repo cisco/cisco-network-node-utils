@@ -23,9 +23,9 @@ module Cisco
     # however, for test purposes it is sometimes convenient to support
     # feature disablement for cleanup purposes.
     # ---------------------------
-    def self.bgp_enable(state='')
+    def self.bgp_enable
       return if bgp_enabled?
-      config_set('feature', 'bgp', state: state)
+      config_set('feature', 'bgp')
     end
 
     def self.bgp_enabled?
