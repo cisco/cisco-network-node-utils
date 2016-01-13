@@ -1,0 +1,56 @@
+# stp_global
+---
+_template:
+  config_get: "show running-config spanning-tree all"
+
+bpdufilter:
+  kind: boolean
+  config_get_token: '/^spanning-tree port type edge bpdufilter default$/'
+  config_set: "%s spanning-tree port type edge bpdufilter default"
+  default_value: false
+
+bpduguard:
+  kind: boolean
+  config_get_token: '/^spanning-tree port type edge bpduguard default$/'
+  config_set: "%s spanning-tree port type edge bpduguard default"
+  default_value: false
+
+bridge_assurance:
+  kind: boolean
+  auto_default: false
+  config_get_token: '/^spanning-tree bridge assurance$/'
+  config_set: "%s spanning-tree bridge assurance"
+  default_value: true
+
+domain:
+  _exclude: [/N3/, /N9/]
+  kind: int
+  config_get_token: '/^spanning-tree domain (\d+)$/'
+  config_set: "%s spanning-tree domain %s"
+  default_value: false
+
+fcoe:
+  kind: boolean
+  _exclude: [/N5/, /N6/, /N7/]
+  auto_default: false
+  config_get_token: '/^spanning-tree fcoe$/'
+  config_set: "%s spanning-tree fcoe"
+  default_value: true
+
+loopguard:
+  kind: boolean
+  config_get_token: '/^spanning-tree loopguard default$/'
+  config_set: "%s spanning-tree loopguard default"
+  default_value: false
+
+mode:
+  kind: string
+  config_get_token: '/^spanning-tree mode (.*)$/'
+  config_set: "%s spanning-tree mode %s"
+  default_value: "rapid-pvst"
+
+pathcost:
+  kind: string
+  config_get_token: '/^spanning-tree pathcost method (.*)$/'
+  config_set: "%s spanning-tree pathcost method %s"
+  default_value: "short"
