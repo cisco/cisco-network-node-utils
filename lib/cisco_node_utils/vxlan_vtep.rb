@@ -55,11 +55,8 @@ module Cisco
     end
 
     def create
-      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
-      if VxlanVtep.mt_lite_support
-        Vrf.feature_vn_segment_vlan_based_enable unless
-          Vrf.feature_vn_segment_vlan_based_enabled
-      end
+      Feature.nv_overlay_enable
+      Feature.vn_segment_vlan_based_enable if VxlanVtep.mt_lite_support
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
     end

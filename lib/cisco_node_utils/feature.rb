@@ -19,24 +19,54 @@ require_relative 'node_util'
 module Cisco
   # Feature - node util class for managing common features
   class Feature < NodeUtil
+    # Note that in most cases the enable methods should only enable;
+    # however, for test purposes it is sometimes convenient to support
+    # feature disablement for cleanup purposes.
+    # ---------------------------
+    def self.bgp_enable(state='')
+      return if bgp_enabled?
+      config_set('feature', 'bgp', state: state)
+    end
+
+    def self.bgp_enabled?
+      config_get('feature', 'bgp')
+    end
+
+    # ---------------------------
+    def self.nv_overlay_enable
+      # Note: vdc platforms restrict this feature to F3 or newer linecards
+      return if nv_overlay_enabled?
+      config_set('feature', 'nv_overlay')
+    end
+
     def self.nv_overlay_enabled?
       config_get('feature', 'nv_overlay')
     rescue Cisco::CliError => e
-      # cmd will syntax when feature is not enabled.
+      # cmd will syntax reject when feature is not enabled.
       raise unless e.clierror =~ /Syntax error/
       return false
     end
 
-    def self.nv_overlay_enable
-      # Note: vdc platforms restrict this feature to F3 or newer linecards
-      config_set('feature', 'nv_overlay')
+    # ---------------------------
+    def self.nv_overlay_evpn_enable
+      return if nv_overlay_evpn_enabled?
+      config_set('feature', 'nv_overlay_evpn')
     end
 
-    def self.nv_overlay_supported?
-      config_set('feature', 'nv_overlay')
-    rescue Cisco::CliError => e
-      raise unless e.clierror =~ /not capable of supporting nv overlay feature/
-      false
+    def self.nv_overlay_evpn_enabled?
+      config_get('feature', 'nv_overlay_evpn')
     end
+
+    # ---------------------------
+    def self.vn_segment_vlan_based_enable
+      return if vn_segment_vlan_based_enabled?
+      config_set('feature', 'vn_segment_vlan_based')
+    end
+
+    def self.vn_segment_vlan_based_enabled?
+      config_get('feature', 'vn_segment_vlan_based')
+    end
+
+    # ---------------------------
   end
 end
