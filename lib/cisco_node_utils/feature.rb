@@ -34,9 +34,13 @@ module Cisco
       config_get('feature', 'fabric') !~ /^uninstalled/
     end
 
+    def self.fabric_supported?
+      config_get('feature', 'fabric')
+    end
+
     def self.fabric_forwarding_enable
       return if fabric_forwarding_enabled?
-      Feature.fabric_enable unless node.product_id =~ /N9/
+      Feature.fabric_enable if Feature.fabric_supported?
       config_set('feature', 'fabric_forwarding')
     end
 
