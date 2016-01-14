@@ -805,9 +805,9 @@ class TestInterface < CiscoTestCase
     assert_equal('v4acl4', intf.ipv4_acl_out)
 
     intf.ipv4_acl_in = intf.default_ipv4_acl_in
-    assert_equal(nil, intf.ipv4_acl_in)
+    assert_equal('', intf.ipv4_acl_in)
     intf.ipv4_acl_out = intf.default_ipv4_acl_out
-    assert_equal(nil, intf.ipv4_acl_out)
+    assert_equal('', intf.ipv4_acl_out)
 
     # delete acls
     %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
@@ -841,9 +841,9 @@ class TestInterface < CiscoTestCase
     assert_equal('v6acl4', intf.ipv6_acl_out)
 
     intf.ipv6_acl_in = intf.default_ipv6_acl_in
-    assert_equal(nil, intf.ipv6_acl_in)
+    assert_equal('', intf.ipv6_acl_in)
     intf.ipv6_acl_out = intf.default_ipv6_acl_out
-    assert_equal(nil, intf.ipv6_acl_out)
+    assert_equal('', intf.ipv6_acl_out)
 
     # delete acls
     %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|

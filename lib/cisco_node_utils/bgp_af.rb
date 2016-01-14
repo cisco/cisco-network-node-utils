@@ -66,19 +66,6 @@ module Cisco
       config_set('bgp', 'address_family', @set_args)
     end
 
-    # This is an enable-only method for enabling the 'nv overlay evpn' feature
-    def self.feature_nv_overlay_evpn_enable
-      config_set('bgp_af', 'feature_nv_overlay_evpn')
-    end
-
-    def self.feature_nv_overlay_evpn_enabled
-      config_get('bgp_af', 'feature_nv_overlay_evpn')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
     #
     # Helper methods to delete @set_args hash keys
     #
@@ -237,14 +224,12 @@ module Cisco
 
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
-      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
-      return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
     end
 
     def advertise_l2vpn_evpn=(state)
-      RouterBgpAF.feature_nv_overlay_evpn_enable if
-        state && !RouterBgpAF.feature_nv_overlay_evpn_enabled
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
     end
@@ -646,109 +631,6 @@ module Cisco
 
     def default_redistribute
       config_get_default('bgp_af', 'redistribute')
-    end
-
-    # route target both auto(Getter/Setter/Default)
-    def route_target_both_auto
-      config_get('bgp_af', 'route_target_both_auto', @get_args)
-    end
-
-    def route_target_both_auto=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp_af', 'route_target_both_auto', @set_args)
-      set_args_keys_default
-    end
-
-    def default_route_target_both_auto
-      config_get_default('bgp_af', 'route_target_both_auto')
-    end
-
-    # route target both auto evpn(Getter/Setter/Default)
-    def route_target_both_auto_evpn
-      config_get('bgp_af', 'route_target_both_auto_evpn', @get_args)
-    end
-
-    def route_target_both_auto_evpn=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp_af', 'route_target_both_auto_evpn', @set_args)
-      set_args_keys_default
-    end
-
-    def default_route_target_both_auto_evpn
-      config_get_default('bgp_af', 'route_target_both_auto_evpn')
-    end
-
-    # route target export
-    def route_target_export
-      cmds = config_get('bgp_af', 'route_target_export', @get_args)
-      cmds.sort
-    end
-
-    def route_target_export=(should)
-      route_target_delta(should, route_target_export, 'route_target_export')
-    end
-
-    def default_route_target_export
-      config_get_default('bgp_af', 'route_target_export')
-    end
-
-    # route target export_evpn
-    def route_target_export_evpn
-      cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
-      cmds.sort
-    end
-
-    def route_target_export_evpn=(should)
-      route_target_delta(should, route_target_export_evpn,
-                         'route_target_export_evpn')
-    end
-
-    def default_route_target_export_evpn
-      config_get_default('bgp_af', 'route_target_export_evpn')
-    end
-
-    # route target import
-    def route_target_import
-      cmds = config_get('bgp_af', 'route_target_import', @get_args)
-      cmds.sort
-    end
-
-    def route_target_import=(should)
-      route_target_delta(should, route_target_import, 'route_target_import')
-    end
-
-    def default_route_target_import
-      config_get_default('bgp_af', 'route_target_import')
-    end
-
-    # route target import_evpn
-    def route_target_import_evpn
-      cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
-      cmds.sort
-    end
-
-    def route_target_import_evpn=(should)
-      route_target_delta(should, route_target_import_evpn,
-                         'route_target_import_evpn')
-    end
-
-    def default_route_target_import_evpn
-      config_get_default('bgp_af', 'route_target_import_evpn')
-    end
-
-    def route_target_delta(should, is, prop)
-      delta_hash = Utils.delta_add_remove(should, is)
-      return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
-          "#{@get_args}\n #{action}: #{delta_hash[action]}")
-        delta_hash[action].each do |community|
-          state = (action == :add) ? '' : 'no'
-          @set_args[:state] = state
-          @set_args[:community] = community
-          config_set('bgp_af', prop, @set_args)
-        end
-      end
     end
 
     #
