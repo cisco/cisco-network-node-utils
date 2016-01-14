@@ -159,7 +159,7 @@ module Cisco
     def layer3_peer_routing=(val)
       set_args_keys(state: val ? '' : 'no')
       # This requires peer_gateway to be set first
-      self.peer_gateway = true unless self.peer_gateway
+      self.peer_gateway = true unless peer_gateway
       config_set('vpc', 'layer3_peer_routing', @set_args)
     end
 
@@ -251,7 +251,7 @@ module Cisco
     end
 
     def system_mac=(mac_addr)
-      set_args_keys(state: mac_addr.empty? ? 'no' : '',  mac_addr: mac_addr)
+      set_args_keys(state: mac_addr.empty? ? 'no' : '', mac_addr: mac_addr)
       config_set('vpc', 'system_mac', @set_args)
     end
 
@@ -278,7 +278,7 @@ module Cisco
 
     def track=(val)
       unless val.nil?
-        fail ArgumentError, 'retransmit_count must be an Integer' unless 
+        fail ArgumentError, 'retransmit_count must be an Integer' unless
           val.is_a?(Integer)
       end
 
@@ -289,6 +289,5 @@ module Cisco
     def default_track
       config_get_default('vpc', 'track')
     end
-
   end # class Vpc
 end # module Cisco

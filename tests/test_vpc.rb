@@ -173,7 +173,8 @@ class TestVpc < CiscoTestCase
 
   def test_peer_gateway_exclude_bridge_domain
     skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'peer_gateway_exclude_bridge_domain').default_value.nil?
+      cmd_ref.lookup('vpc', 'peer_gateway_exclude_bridge_domain').default_value
+      .nil?
     @vpc = Vpc.new(100)
     default_val = @vpc.default_peer_gateway_exclude_bridge_domain
     assert_equal(default_val, @vpc.peer_gateway_exclude_bridge_domain,
@@ -204,7 +205,6 @@ class TestVpc < CiscoTestCase
     end
     assert_match(/Invalid/i, e.message)
   end
-
 
   def test_role_priority
     @vpc = Vpc.new(100)
