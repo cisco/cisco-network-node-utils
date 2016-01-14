@@ -151,8 +151,6 @@ class TestVpc < CiscoTestCase
     skip("Test not supported on #{node.product_id}") if
       cmd_ref.lookup('vpc', 'layer3_peer_routing').default_value.nil?
     @vpc = Vpc.new(100)
-    # peer gateway must be turned on for this feature
-    @vpc.peer_gateway = true
     default_val = @vpc.default_layer3_peer_routing
     assert_equal(default_val, @vpc.layer3_peer_routing,
                  "layer3_peer_routing should be #{default_val} by default")
@@ -173,22 +171,40 @@ class TestVpc < CiscoTestCase
     refute(@vpc.peer_gateway, 'peer_gateway not getting disabled')
   end
 
-  def test_peer_gateway_exclude_vlan_bridge_domain
+  def test_peer_gateway_exclude_bridge_domain
     skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'peer_gateway_exclude_vlan').default_value.nil?
+      cmd_ref.lookup('vpc', 'peer_gateway_exclude_bridge_domain').default_value.nil?
     @vpc = Vpc.new(100)
-    default_val = @vpc.default_peer_gateway_exclude_vlan_bridge_domain
-    assert_equal(default_val, @vpc.peer_gateway_exclude_vlan_bridge_domain,
-                 "peer_gateway exclude vlan should be #{default_val} default")
-    @vpc.peer_gateway_exclude_vlan_bridge_domain = '10-20,400'
-    assert_equal('10-20,400', @vpc.peer_gateway_exclude_vlan_bridge_domain,
+    default_val = @vpc.default_peer_gateway_exclude_bridge_domain
+    assert_equal(default_val, @vpc.peer_gateway_exclude_bridge_domain,
+                 "peer_gateway exclude BD should be #{default_val} default")
+    @vpc.peer_gateway_exclude_bridge_domain = '10-20,400'
+    assert_equal('10-20,400', @vpc.peer_gateway_exclude_bridge_domain,
                  'peer_gateway exclude list not getting set')
     # negative high range
     e = assert_raises(CliError) do
-      @vpc.peer_gateway_exclude_vlan_bridge_domain = '64535'
+      @vpc.peer_gateway_exclude_bridge_domain = '64535'
     end
     assert_match(/Invalid/i, e.message)
   end
+
+  def test_peer_gateway_exclude_vlan
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'peer_gateway_exclude_vlan').default_value.nil?
+    @vpc = Vpc.new(100)
+    default_val = @vpc.default_peer_gateway_exclude_vlan
+    assert_equal(default_val, @vpc.peer_gateway_exclude_vlan,
+                 "peer_gateway exclude vlan should be #{default_val} default")
+    @vpc.peer_gateway_exclude_vlan = '10-20,400'
+    assert_equal('10-20,400', @vpc.peer_gateway_exclude_vlan,
+                 'peer_gateway exclude list not getting set')
+    # negative high range
+    e = assert_raises(CliError) do
+      @vpc.peer_gateway_exclude_vlan = '4096'
+    end
+    assert_match(/Invalid/i, e.message)
+  end
+
 
   def test_role_priority
     @vpc = Vpc.new(100)
@@ -201,7 +217,7 @@ class TestVpc < CiscoTestCase
   end
 
   def test_self_isolation
-    skip('Only supported on N7K') unless node.product_id[/N7K/]
+    skip('Only supported on N7K') unless node.product_id[/N7/]
 
     @vpc = Vpc.new(100)
     @vpc.self_isolation = true
@@ -210,17 +226,17 @@ class TestVpc < CiscoTestCase
   end
 
   def test_shutdown
-    skip('Only supported on N6K,N7K') unless node.product_id[/N[67]K/]
+    skip('Only supported on N6K,N7K') unless node.product_id[/N[67]/]
     @vpc = Vpc.new(100)
 
+    @vpc.shutdown = @vpc.default_shutdown
+    refute(@vpc.shutdown, 'Vpc domain should not be shutdown')
+
     @vpc.shutdown = true
-    assert(@vpc.shutdown, 'Vpc is not shutdown')
+    assert(@vpc.shutdown, 'Vpc domain should be shutdown')
 
     @vpc.shutdown = false
-    refute(@vpc.shutdown, 'Vpc is shutdown')
-
-    @vpc.shutdown = @vpc.default_shutdown
-    assert(@vpc.shutdown, 'vpc is not shutdown')
+    refute(@vpc.shutdown, 'Vpc domain should not be shutdown')
   end
 
   def test_system_mac
@@ -245,6 +261,8 @@ class TestVpc < CiscoTestCase
   end
 
   def test_track
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'track').default_value.nil?
     @vpc = Vpc.new(100)
 
     default_value = @vpc.default_track

@@ -158,6 +158,8 @@ module Cisco
 
     def layer3_peer_routing=(val)
       set_args_keys(state: val ? '' : 'no')
+      # This requires peer_gateway to be set first
+      self.peer_gateway = true unless self.peer_gateway
       config_set('vpc', 'layer3_peer_routing', @set_args)
     end
 
@@ -178,16 +180,29 @@ module Cisco
       config_get_default('vpc', 'peer_gateway')
     end
 
-    def peer_gateway_exclude_vlan_bridge_domain
+    def peer_gateway_exclude_bridge_domain
+      config_get('vpc', 'peer_gateway_exclude_bridge_domain')
+    end
+
+    def peer_gateway_exclude_bridge_domain=(val)
+      set_args_keys(state: val ? '' : 'no', range: val)
+      config_set('vpc', 'peer_gateway_exclude_bridge_domain', @set_args)
+    end
+
+    def default_peer_gateway_exclude_bridge_domain
+      config_get_default('vpc', 'peer_gateway_exclude_bridge_domain')
+    end
+
+    def peer_gateway_exclude_vlan
       config_get('vpc', 'peer_gateway_exclude_vlan')
     end
 
-    def peer_gateway_exclude_vlan_bridge_domain=(val)
+    def peer_gateway_exclude_vlan=(val)
       set_args_keys(state: val ? '' : 'no', range: val)
       config_set('vpc', 'peer_gateway_exclude_vlan', @set_args)
     end
 
-    def default_peer_gateway_exclude_vlan_bridge_domain
+    def default_peer_gateway_exclude_vlan
       config_get_default('vpc', 'peer_gateway_exclude_vlan')
     end
 
@@ -219,8 +234,7 @@ module Cisco
     end
 
     def shutdown
-      val = config_get('vpc', 'shutdown')
-      val.nil? ? false : val
+      config_get('vpc', 'shutdown')
     end
 
     def shutdown=(val)
@@ -264,8 +278,8 @@ module Cisco
 
     def track=(val)
       unless val.nil?
-        fail ArgumentError, 'retransmit_count must be an Integer' \
-          unless val.is_a?(Integer)
+        fail ArgumentError, 'retransmit_count must be an Integer' unless 
+          val.is_a?(Integer)
       end
 
       set_args_keys(state: (val == track) ? 'no' : '', val: val)
