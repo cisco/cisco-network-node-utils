@@ -41,8 +41,6 @@ class TestEvpnVni < CiscoTestCase
   end
 
   def test_vni_collection
-    # enable feature to test vni empty
-    EvpnVni.enable
     vni_list = EvpnVni.vnis
     assert_equal(true, vni_list.empty?, 'VLAN collection is empty')
   end

@@ -14,7 +14,16 @@ Changelog
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Interface
-  * interface_service (@chrisvanheuveln)
+  * interface_service_vni (@chrisvanheuveln)
+* PIM
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
+* SNMP
+  * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
 * VXLAN
@@ -26,6 +35,8 @@ Changelog
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
 * Extend bgp with attributes:
+  * `disable_policy_batching`, `disable_policy_batching_ipv4`, `disable_policy_batching_ipv6`
+  * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
   * `fast_external_fallover`
   * `flush_routes`
   * `isolate`
@@ -38,6 +49,7 @@ Changelog
   * `table_map`
 * Extend interface with attributes:
   * `channel_group`
+  * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `vlan_mapping`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
@@ -50,6 +62,7 @@ Changelog
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied). 
 
 ## [v1.1.0]
 
@@ -65,6 +78,8 @@ Changelog
 * RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
+* SNMP
+  * snmp_notification_receiver (@jonnytpuppet)
 * SYSLOG
   * syslog_server (@jonnytpuppet)
   * syslog_setting (@jonnytpuppet)

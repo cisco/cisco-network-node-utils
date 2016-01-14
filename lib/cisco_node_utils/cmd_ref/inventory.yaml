@@ -16,7 +16,7 @@ chassis:
 
 inventory:
   # TODO: clean this up
-  /N7K/:
+  /N7/:
     test_config_get_regex: [
     '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
     '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'

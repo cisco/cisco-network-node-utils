@@ -315,6 +315,64 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    bgp.disable_policy_batching = true
+    assert(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be enabled')
+    bgp.disable_policy_batching = false
+    refute(bgp.disable_policy_batching,
+           'bgp disable-policy-batching should be disabled')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    refute(bgp.disable_policy_batching,
+           'bgp disable-policy-batching value should be false')
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv4
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv4 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv4,
+                 "bgp disable_policy_batching_ipv4 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv4 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 should be empty')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv4
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv4,
+                 'disable_policy_batching_ipv4 default value should be empty')
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv6
+    bgp = RouterBgp.new(55)
+    bgp.disable_policy_batching_ipv6 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv6,
+                 "bgp disable_policy_batching_ipv6 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv6 = bgp.default_route_distinguisher
+    assert_empty(bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 should be empty')
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv6
+    asnum = 55
+    bgp = RouterBgp.new(asnum)
+    assert_empty(bgp.default_disable_policy_batching_ipv6,
+                 'disable_policy_batching_ipv6 default value should be empty')
+    bgp.destroy
+  end
+
   def test_routerbgp_set_get_enforce_first_as
     asnum = 55
     bgp = RouterBgp.new(asnum)
@@ -333,6 +391,45 @@ class TestRouterBgp < CiscoTestCase
     assert(bgp.enforce_first_as,
            'bgp enforce-first-as value should be enabled = true')
     bgp.destroy
+  end
+
+  def test_event_history
+    bgp = RouterBgp.new(55)
+
+    opts = [:cli, :detail, :events, :periodic]
+    opts.each do |opt|
+      # Test basic true
+      bgp.send("event_history_#{opt}=", 'true')
+      set = bgp.send("default_event_history_#{opt}")
+      result = bgp.send("event_history_#{opt}")
+      assert_equal(set, result,
+                   'Failed to set True with Size')
+
+      # Test true with size
+      bgp.send("event_history_#{opt}=", 'size_large')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_large', result,
+                   'Failed to set True with Size')
+
+      # Test false with size
+      bgp.send("event_history_#{opt}=", 'false')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('false', result,
+                   'Failed to set state to False')
+
+      # Test true with size, from false
+      bgp.send("event_history_#{opt}=", 'size_small')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_small', result,
+                   'Failed to set True with Size from false state')
+
+      # Test default_state
+      set = bgp.send("default_event_history_#{opt}")
+      bgp.send("event_history_#{opt}=", set)
+      result = bgp.send("event_history_#{opt}")
+      assert_equal(set, result,
+                   'Failed to set state to default')
+    end
   end
 
   def test_routerbgp_set_get_fast_external_fallover

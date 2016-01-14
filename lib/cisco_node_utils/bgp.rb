@@ -313,6 +313,71 @@ module Cisco
       config_get_default('bgp', 'confederation_id')
     end
 
+    #
+    # disable-policy-batching (Getter/Setter/Default)
+    #
+    def disable_policy_batching
+      config_get('bgp', 'disable_policy_batching', @get_args)
+    end
+
+    def disable_policy_batching=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'disable_policy_batching', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching
+      config_get_default('bgp', 'disable_policy_batching')
+    end
+
+    #
+    # disable-policy-batching ipv4 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv4
+      config_get('bgp', 'disable_policy_batching_ipv4', @get_args)
+    end
+
+    def disable_policy_batching_ipv4=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv4
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv4', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv4
+      config_get_default('bgp', 'disable_policy_batching_ipv4')
+    end
+
+    #
+    # disable-policy-batching ipv6 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv6
+      config_get('bgp', 'disable_policy_batching_ipv6', @get_args)
+    end
+
+    def disable_policy_batching_ipv6=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv6
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv6', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv6
+      config_get_default('bgp', 'disable_policy_batching_ipv6')
+    end
+
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
       config_get('bgp', 'enforce_first_as', @get_args)
@@ -326,6 +391,91 @@ module Cisco
 
     def default_enforce_first_as
       config_get_default('bgp', 'enforce_first_as')
+    end
+
+    # event-history
+    # event-history cli [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_cli
+      match = config_get('bgp', 'event_history_cli', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_cli
+    end
+
+    def event_history_cli=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_cli', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_cli
+      config_get_default('bgp', 'event_history_cli')
+    end
+
+    # event-history detail [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_detail
+      match = config_get('bgp', 'event_history_detail', @get_args)
+      return 'false' if match.nil?
+      return 'size_' + match[1] if match[1]
+      default_event_history_detail
+    end
+
+    def event_history_detail=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_detail', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_detail
+      config_get_default('bgp', 'event_history_detail')
+    end
+
+    # event-history events [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_events
+      match = config_get('bgp', 'event_history_events', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_events
+    end
+
+    def event_history_events=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_events', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_events
+      config_get_default('bgp', 'event_history_events')
+    end
+
+    # event-history periodic [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_periodic
+      match = config_get('bgp', 'event_history_periodic', @get_args)
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_periodic
+    end
+
+    def event_history_periodic=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_periodic', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_periodic
+      config_get_default('bgp', 'event_history_periodic')
     end
 
     # Fast External fallover (Getter/Setter/Default)

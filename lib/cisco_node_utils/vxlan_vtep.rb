@@ -18,6 +18,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'vrf'
 
 module Cisco
   # node_utils class for vxlan_vtep
@@ -34,7 +35,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      return hash unless feature_nv_overlay_enabled
+      return hash unless Feature.nv_overlay_enabled?
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -45,26 +46,20 @@ module Cisco
       hash
     end
 
-    def self.feature_nv_overlay_enabled
-      config_get('vxlan', 'feature_nv_overlay')
-    rescue Cisco::CliError => e
-      # cmd will syntax when feature is not enabled.
-      raise unless e.clierror =~ /Syntax error/
-      return false
+    def self.mt_full_support
+      config_get('vxlan_vtep', 'mt_full_support')
     end
 
-    def self.feature_nv_overlay_enable
-      # vdc platforms restrict this feature to F3 linecards
-      vdc_name = config_get('vdc', 'default_vdc_name')
-      if vdc_name
-        config_set('vdc', 'limit_resource_module_type_f3', vdc: vdc_name)
-      end
-      config_set('vxlan', 'feature_nv_overlay')
+    def self.mt_lite_support
+      config_get('vxlan_vtep', 'mt_lite_support')
     end
 
     def create
-      VxlanVtep.feature_nv_overlay_enable unless
-        VxlanVtep.feature_nv_overlay_enabled
+      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
+      if VxlanVtep.mt_lite_support
+        Vrf.feature_vn_segment_vlan_based_enable unless
+          Vrf.feature_vn_segment_vlan_based_enabled
+      end
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
     end
@@ -110,6 +105,8 @@ module Cisco
         set_args[:state] = 'no'
       elsif val.to_s == 'evpn'
         set_args[:state] = ''
+      else
+        return
       end
       config_set('vxlan_vtep', 'host_reachability', set_args)
     end

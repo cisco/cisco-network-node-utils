@@ -1,9 +1,7 @@
-# vxlan
+# feature
 ---
-_exclude: [/N(3|5|6|9)/]
-
-feature_nv_overlay:
-  # This is a multi-use feature, thus enable-only
+nv_overlay:
+  _exclude: [/N(5|6)/]
   kind: boolean
   config_get: 'show running nv overlay'
   config_get_token: '/^feature nv overlay$/'

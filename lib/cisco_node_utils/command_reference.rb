@@ -98,35 +98,51 @@ module Cisco
       return unless value.is_a?(Array)
       if value.any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
         # Key-value substitution
-        define_singleton_method key.to_sym do |**args|
-          result = []
-          value.each do |line|
-            replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
-            replace.each do |item|
-              line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
-            end
-            result.push(line) unless /<\S+>/.match(line)
-          end
-          preprocess_value(result)
-        end
+        define_singleton_method(key.to_sym, key_substitutor(key, value))
       elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
         # printf-style substitution
-        arg_count = value.join.scan(/%/).length
-        define_singleton_method key.to_sym do |*args|
-          unless args.length == arg_count
-            fail ArgumentError, "Given #{args.length} args, but " \
-              "#{key} requires #{arg_count}"
-          end
-          # Fill in the parameters
-          result = value.map do |line|
-            sprintf(line, *args.shift(line.scan(/%/).length))
-          end
-          preprocess_value(result)
-        end
+        define_singleton_method(key.to_sym, printf_substitutor(key, value))
       else
         # simple static token(s)
         value = preprocess_value(value)
         define_singleton_method key.to_sym, -> { value }
+      end
+    end
+
+    # curried function to define a getter method body that performs key-value
+    # substitution
+    def key_substitutor(config_key, value)
+      lambda do |**args|
+        result = []
+        value.each do |line|
+          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
+          replace.each do |item|
+            line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
+          end
+          result.push(line) unless /<\S+>/.match(line)
+        end
+        if result.empty?
+          fail ArgumentError,
+               "Arguments given to #{config_key} yield empty result"
+        end
+        preprocess_value(result)
+      end
+    end
+
+    # curried function to define a getter method body that performs
+    # printf-style substitution
+    def printf_substitutor(config_key, value)
+      arg_c = value.join.scan(/%/).length
+      lambda do |*args|
+        unless args.length == arg_c
+          fail ArgumentError,
+               "Given #{args.length} args, but #{config_key} requires #{arg_c}"
+        end
+        # Fill in the parameters
+        result = value.map do |line|
+          sprintf(line, *args.shift(line.scan(/%/).length))
+        end
+        preprocess_value(result)
       end
     end
 

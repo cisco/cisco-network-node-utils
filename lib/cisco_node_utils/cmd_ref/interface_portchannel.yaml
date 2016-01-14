@@ -1,0 +1,54 @@
+# interface_portchannel
+---
+_template:
+  config_set: ["interface %s"]
+  config_get_token: '/^interface %s$/i'
+  config_get: "show running interface all"
+
+create:
+  config_set: "interface %s"
+
+destroy:
+  config_set: "no interface %s"
+
+lacp_graceful_convergence:
+  kind: boolean
+  auto_default: false
+  config_get_token_append: ['/^lacp graceful.convergence$/']
+  config_set_append: ["%s lacp graceful-convergence"]
+  default_value: true
+
+lacp_max_bundle:
+  kind: int
+  config_get_token_append: ['/^lacp max.bundle (\d+)$/']
+  config_set_append: ["lacp max-bundle %s"]
+  /N(3|9)/:
+    default_value: 32
+  else:
+    default_value: 16
+
+lacp_min_links:
+  kind: int
+  config_get_token_append: ['/^lacp min.links (\d+)$/']
+  config_set_append: ["lacp min-links %s"]
+  default_value: 1
+
+lacp_suspend_individual:
+  kind: boolean
+  auto_default: false
+  config_get_token_append: ['/^lacp suspend.individual$/']
+  config_set_append: ["%s lacp suspend-individual"]
+  default_value: true
+
+port_hash_distribution:
+  _exclude: [/N6/, /N5/]
+  config_get_token_append: ['/^port-channel port hash.distribution (.*)$/']
+  config_set: ["terminal dont-ask", "interface %s", "%s port-channel port hash-distribution %s", "end"]
+  default_value: false
+
+port_load_defer:
+  _exclude: [/N6/, /N5/]
+  kind: boolean
+  config_get_token_append: ['/^port-channel port load.defer$/']
+  config_set_append: ["%s port-channel port load-defer"]
+  default_value: false

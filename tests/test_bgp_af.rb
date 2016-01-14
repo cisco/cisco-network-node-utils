@@ -21,6 +21,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
+require_relative '../lib/cisco_node_utils/feature'
 
 # TestRouterBgpAF - Minitest for RouterBgpAF class
 class TestRouterBgpAF < CiscoTestCase
@@ -675,6 +676,8 @@ class TestRouterBgpAF < CiscoTestCase
 
   ## feature nv overlay evpn
   def test_feature_nv_overlay_evpn
+    skip('Platform does not support nv overlay feature') unless
+      Feature.nv_overlay_supported?
     config('no nv overlay evpn')
     RouterBgpAF.feature_nv_overlay_evpn_enable
     assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,

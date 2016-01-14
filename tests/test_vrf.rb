@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vrf'
+require_relative '../lib/cisco_node_utils/vni'
 
 include Cisco
 
@@ -91,6 +92,7 @@ class TestVrf < CiscoTestCase
   end
 
   def test_vrf_vni
+    skip('Platform does not support MT-lite') unless Vni.mt_lite_support
     vrf = Vrf.new('test_vrf_vni')
     vrf.vni = 4096
     assert_equal(4096, vrf.vni,

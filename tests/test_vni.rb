@@ -13,7 +13,9 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vni'
+require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
@@ -21,22 +23,50 @@ include Cisco
 class TestVni < CiscoTestCase
   def setup
     super
-    skip('Only supported on N3K,N7K,N9K') unless node.product_id[/N[379]K/]
-    no_vni
+    skip('Platform does not support MT-full or MT-lite') unless
+      Vni.mt_full_support || Vni.mt_lite_support
+    skip('Platform does not support nv overlay feature') unless
+      Feature.nv_overlay_supported?
   end
 
   def teardown
-    no_vni
-    super
+    return unless Vdc.vdc_support
+    # Reset the vdc module type back to default
+    v = Vdc.new('default')
+    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
   end
 
-  def no_vni
-    config('no feature vni') if node.product_id[/N7K/]
-    config('no feature vn-segment-vlan-based') if node.product_id[/N(3|9)K/]
+  def compatible_interface?
+    # This test requires specific linecards; find a compatible linecard
+    # and create an appropriate interface name from it.
+    # Example 'show mod' output to match against:
+    # '9    12     10/40 Gbps Ethernet Module          N7K-F312FQ-25      ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
+  end
+
+  def mt_full_env_setup
+    skip('Platform does not support MT-full') unless Vni.mt_full_support
+    compatible_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
+    config('no feature vni')
+    config('no feature nv overlay')
+  end
+
+  def mt_lite_env_setup
+    skip('Platform does not support MT-lite') unless Vni.mt_lite_support
+    config('no feature vn-segment-vlan-based')
+    config('no feature nv overlay')
   end
 
   def test_mt_full_vni_create_destroy
-    skip('Only supported on N7K') unless node.product_id[/N7K/]
+    mt_full_env_setup
+
     v1 = Vni.new(10_001)
     v2 = Vni.new(10_002)
     v3 = Vni.new(10_003)
@@ -52,14 +82,16 @@ class TestVni < CiscoTestCase
 
   # def test_mt_full_encapsulation_dot1q
   # TBD
+  #  mt_full_env_setup
   # end
 
   # def test_mt_full_mapped_bd
   # TBD
+  #  mt_full_env_setup
   # end
 
   def test_mt_full_shutdown
-    skip('Only supported on N7K') unless node.product_id[/N7K/]
+    mt_full_env_setup
     vni = Vni.new(10_000)
     vni.shutdown = true
     assert(vni.shutdown)
@@ -75,7 +107,7 @@ class TestVni < CiscoTestCase
   end
 
   def test_mt_lite_mapped_vlan
-    skip('Only supported on N3K,N9K') unless node.product_id[/N[39]K/]
+    mt_lite_env_setup
     # Set the vni vlan mapping
     v = Vni.new(10_000)
     v.mapped_vlan = 100

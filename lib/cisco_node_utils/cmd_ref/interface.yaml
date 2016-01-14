@@ -15,7 +15,7 @@ access_vlan:
 admin_state_ethernet_noswitchport_shutdown:
   # TODO: is this actually used?
   cli_nexus:
-    /N7K/:
+    /N7/:
       default_value: "shutdown"
 
 all_interfaces:
@@ -65,6 +65,16 @@ feature_vlan:
     config_get_token: '/^feature interface-vlan$/'
     config_set: "%s feature interface-vlan"
 
+ipv4_acl_in:
+  config_get_token_append: '/^ip access-group (\S+) in/'
+  config_set_append: "%s ip access-group %s in"
+  default_value: "" 
+
+ipv4_acl_out:
+  config_get_token_append: '/^ip access-group (\S+) out/'
+  config_set_append: "%s ip access-group %s out"
+  default_value: "" 
+
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
   multiple:
@@ -111,6 +121,15 @@ ipv4_redirects_other_interfaces:
     '/^\s+no ip redirects/'
     ]
 
+ipv6_acl_in:
+  config_get_token_append: '/^ipv6 traffic-filter (\S+) in/'
+  config_set_append: "%s ipv6 traffic-filter %s in"
+  default_value: "" 
+
+ipv6_acl_out:
+  config_get_token_append: '/^ipv6 traffic-filter (\S+) out/'
+  config_set_append: "%s ipv6 traffic-filter %s out"
+  default_value: "" 
 mtu:
   kind: int
   config_get_token_append: '/^mtu (.*)$/'
@@ -124,7 +143,7 @@ negotiate_auto_ethernet:
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
     ]
-    /(N7K|C3064)/:
+    /(N7|C3064)/:
       default_only: false
     else:
       config_get_token_append: '/^(no )?negotiate auto$/'
@@ -142,7 +161,7 @@ negotiate_auto_portchannel:
     '/^\s+no negotiate auto/',
     '/^\s+negotiate auto/'
     ]
-    /N7K/:
+    /N7/:
       default_only: false
     else:
       config_get_token_append: '/^(no )?negotiate auto$/'
@@ -259,14 +278,14 @@ system_default_switchport_shutdown:
   # default_value: n/a. This is a user-configurable system default.
 
 vlan_mapping:
-  _exclude: [/N(3|5|6|9)K/]
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token_append: '/^switchport vlan mapping (\d+) (\d+)/'
   config_set_append: '%s switchport vlan mapping %s %s'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [/N(3|5|6|9)K/]
+  _exclude: [/N(3|5|6|9)/]
   kind: boolean
   config_get_token_append: '/^(no )?switchport vlan mapping enable/'
   config_set_append: '%s switchport vlan mapping enable'

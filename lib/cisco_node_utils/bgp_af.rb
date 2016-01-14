@@ -237,6 +237,7 @@ module Cisco
 
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
+      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
       return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
       config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
     end

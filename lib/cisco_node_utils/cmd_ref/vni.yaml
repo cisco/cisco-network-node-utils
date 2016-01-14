@@ -1,6 +1,6 @@
 # vni
 ---
-_exclude: [/N5K/, /N6K/]
+_exclude: [/N(5|6)/]
 all_vnis:
   multiple:
   /N7/:
@@ -48,11 +48,6 @@ feature:
     config_get_token: '/^feature vn-segment-vlan-based$/'
     config_set: 'feature vn-segment-vlan-based'
 
-feature_nv_overlay:
-  config_get: 'show running | i ^feature'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: 'feature nv overlay'
-
 mapped_vlan:
   # MT-lite only
   /N(3|9)/:
@@ -60,6 +55,24 @@ mapped_vlan:
     config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
     config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
     default_value: ''
+
+mt_full_support:
+  # This is only used for determining support for Multi-Tenancy Full
+  kind: boolean
+  /N7/:
+    default_only: true
+  else:
+    # this feature is always off on these platforms and cannot be changed
+    default_only: false
+
+mt_lite_support:
+  # This is only used for determining support for Multi-Tenancy Lite
+  kind: boolean
+  /N(3|9)/:
+    default_only: true
+  else:
+    # this feature is always off on these platforms and cannot be changed
+    default_only: false
 
 shutdown:
   # MT-Full only

@@ -119,6 +119,15 @@ irb(main):016:0> ref.config_set(name: 'red', cost: '40', type: 'Gbps')
 => ["router ospf red", "auto-cost reference-bandwidth 40 Gbps"]
 ```
 
+Array elements that contain a parameter that is *not* included in the argument hash are not included in the result:
+
+```ruby
+irb(main):017:0> ref.config_set(name: 'red', cost: '40')
+=> ["router ospf red"]
+```
+
+If this process results in an empty array, then an `ArgumentError` is raised to indicate that not enough parameters were supplied.
+
 Key-value wildcards are moderately more complex to implement than Printf-style wildcards but they are more readable in the Ruby code and are flexible enough to handle significant platform differences in CLI. Key-value wildcards are therefore the recommended approach for new development.
 
 ## Advanced attribute definition
@@ -206,7 +215,7 @@ for all products that do not match any of the given regexps:
 ```yaml
 # show_version.yaml
 system_image:
-  /N9K/:
+  /N9/:
     config_get_token: "kick_file_name"
     test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
   else:
@@ -221,7 +230,7 @@ Related to product variants, an `_exclude` entry can be used to mark an entire f
 ```yaml
 # fabricpath.yaml
 ---
-_exclude: [/N3K/, /N9K/]
+_exclude: [/N3/, /N9/]
 
 _template:
 ...
@@ -232,7 +241,7 @@ Individual feature attributes can also be excluded in this way:
 ```yaml
 attribute:
   _exclude:
-    - /N7K/
+    - /N7/
   default_value: true
   config_get: 'show attribute'
   config_set: 'attribute'
@@ -271,7 +280,7 @@ Using platform variants and product variants together:
 description:
   config_get_token: "chassis_id"
   cli_nexus:
-    /N7K/:
+    /N7/:
       test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
@@ -480,7 +489,7 @@ Some attributes may be hard-coded in such a way that they have a meaningful defa
 negotiate_auto_ethernet:
   kind: boolean
   cli_nexus:
-    /(N7K|C3064)/:
+    /(N7|C3064)/:
       # this feature is always off on these platforms and cannot be changed
       default_only: false
     else:
@@ -571,7 +580,7 @@ Should only be referenced by test scripts, never by a feature provider itself.
 ```yaml
 # vtp.yaml
 version:
-  /N7K/:
+  /N7/:
     test_config_result:
       3: 3
   else:

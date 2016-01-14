@@ -1,0 +1,50 @@
+# snmp_notification_receiver
+---
+port:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.*version.* udp-port (\d+).*$/'
+  default_value: null
+
+receivers:
+  config_get: "show running snmp all"
+  config_get_token: '/^snmp-server host (\S+) (traps|informs)/'
+  config_set: "<state> snmp-server host <ip> <type> version <version> <security> <username> <udp_port>"
+  multiple:
+
+security:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.* version 3 (auth|noauth|priv).*$/'
+  default_value: null
+
+source_interface:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.* source-interface (\S+).*$/'
+  config_set: "snmp-server host <ip> source-interface <source_interface> <port>"
+  default_value: null
+
+type:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s (traps|informs).*$/'
+  default_value: null
+
+username:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.*version.* (\S+)$/'
+  default_value: null
+
+username_with_port:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.*version.* (\S+) udp-port/'
+  default_value: null
+
+version:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.* version (\S+).*$/'
+  default_value: null
+
+vrf:
+  config_get: "show running-config snmp all"
+  config_get_token: '/^snmp-server host %s.* use-vrf (\S+).*$/'
+  config_set: "snmp-server host <ip> use-vrf <vrf> <port>"
+  default_value: null
+

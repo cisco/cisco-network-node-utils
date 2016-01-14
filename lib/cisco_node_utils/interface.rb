@@ -18,6 +18,7 @@ require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'pim'
 require_relative 'vrf'
+require_relative 'vni'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -75,6 +76,84 @@ module Cisco
       config_set('interface', 'access_vlan', @name, vlan)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def ipv4_acl_in
+      config_get('interface', 'ipv4_acl_in', @name)
+    end
+
+    def ipv4_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_in
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_in', @name, state, val)
+    end
+
+    def default_ipv4_acl_in
+      config_get_default('interface', 'ipv4_acl_in')
+    end
+
+    def ipv4_acl_out
+      config_get('interface', 'ipv4_acl_out', @name)
+    end
+
+    def ipv4_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_out
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_out', @name, state, val)
+    end
+
+    def default_ipv4_acl_out
+      config_get_default('interface', 'ipv4_acl_out')
+    end
+
+    def ipv6_acl_in
+      config_get('interface', 'ipv6_acl_in', @name)
+    end
+
+    def ipv6_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_in
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_in', @name, state, val)
+    end
+
+    def default_ipv6_acl_in
+      config_get_default('interface', 'ipv6_acl_in')
+    end
+
+    def ipv6_acl_out
+      config_get('interface', 'ipv6_acl_out', @name)
+    end
+
+    def ipv6_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_out
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_out', @name, state, val)
+    end
+
+    def default_ipv6_acl_out
+      config_get_default('interface', 'ipv6_acl_out')
     end
 
     def default_access_vlan
@@ -563,11 +642,13 @@ module Cisco
     end
 
     def vlan_mapping
-      config_get('interface', 'vlan_mapping', @name).each(&:compact!)
+      match = config_get('interface', 'vlan_mapping', @name)
+      match.each(&:compact!) unless match.nil?
+      match
     end
 
     def vlan_mapping=(should_list)
-      Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+      Vni.feature_vni_enable unless Vni.feature_vni_enabled
 
       # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must
