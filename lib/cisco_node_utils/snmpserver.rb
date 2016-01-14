@@ -106,16 +106,12 @@ module Cisco
     end
 
     def protocol?
-      match = config_get('snmp_server', 'protocol')
-      !match.nil? && match.include?('Enable')
+      config_get('snmp_server', 'protocol')
     end
 
     def protocol=(enable)
-      if enable
-        config_set('snmp_server', 'protocol', '')
-      else
-        config_set('snmp_server', 'protocol', 'no')
-      end
+      no_cmd = (enable ? '' : 'no')
+      config_set('snmp_server', 'protocol', no_cmd)
     end
 
     def default_protocol
@@ -123,8 +119,7 @@ module Cisco
     end
 
     def tcp_session_auth?
-      match = config_get('snmp_server', 'tcp_session_auth')
-      !match.nil? && match.include?('Enabled')
+      config_get('snmp_server', 'tcp_session_auth')
     end
 
     def tcp_session_auth=(enable)
