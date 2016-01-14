@@ -524,6 +524,7 @@ test3:
 
   RAW_1 = {
     'name' => {
+      '_exclude'      => ['/N3K/'],
       'default_value' => 'generic',
       'nexus'         => {
         'default_value' => 'NXAPI base',
@@ -552,6 +553,10 @@ test3:
         '/N7K/'         => { 'default_value' => nil },
       },
     }
+  }
+
+  FILTERED_1_NEXUS_N3K = {
+    'name' => {}
   }
 
   RAW_2 = {
@@ -587,13 +592,20 @@ test3:
   def test_filter_hash
     filtered = CommandReference.filter_hash(RAW_1)
     assert_equal({ 'name' => { 'default_value' => 'generic' } }, filtered)
+
     filtered = CommandReference.filter_hash(RAW_1,
                                             platform: :nexus)
     assert_equal(FILTERED_1_NEXUS, filtered)
+
     filtered = CommandReference.filter_hash(RAW_1,
                                             platform:   :nexus,
                                             product_id: 'N7K-C7010')
     assert_equal(FILTERED_1_NEXUS_N7K, filtered)
+
+    filtered = CommandReference.filter_hash(RAW_1,
+                                            platform:   :nexus,
+                                            product_id: 'N3K-C3172PQ')
+    assert_equal(FILTERED_1_NEXUS_N3K, filtered)
 
     filtered = CommandReference.filter_hash(RAW_2)
     assert_equal({ '_template' => {} }, filtered)

@@ -465,8 +465,9 @@ module Cisco
 
     # Helper method
     # Given a Hash of command reference data as read from YAML, does:
-    # - Filter out any API-specific data not applicable to this API
-    # - Filter any platform-specific data not applicable to this product_id
+    # - Delete any platform-specific data not applicable to this platform
+    # - Delete any product-specific data not applicable to this product_id
+    # - Delete any data-model-specific data not supported by this node
     # Returns the filtered hash (possibly empty)
     def self.filter_hash(hash,
                          platform:           nil,
@@ -475,9 +476,10 @@ module Cisco
                          allow_unknown_keys: true)
       result = {}
 
-      exclude = hash.delete('_exclude') || []
+      exclude = hash['_exclude'] || []
       exclude.each do |value|
-        if key_match(value, platform, product_id, data_formats) == true
+        # We don't allow exclusion by data_format - just platform/product
+        if key_match(value, platform, product_id, nil) == true
           debug "Exclude this product (#{product_id}, #{value})"
           return result
         end
@@ -489,6 +491,7 @@ module Cisco
       regexp_match = false
 
       hash.each do |key, value|
+        next if key == '_exclude'
         if CmdRef.keys.include?(key)
           result[key] = value
         elsif key != 'else'

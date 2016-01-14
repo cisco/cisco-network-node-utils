@@ -40,15 +40,9 @@ mapping:
       '/N9K/': *base
       # 'else' case if not matching any filter above
       else: *base
-      # Property attributes
+      # Getter-specific attributes
       auto_default:
         type: bool
-      context:
-        type: seq
-        sequence:
-          - type: str
-      default_only:
-        type: any
       default_value:
         type: any
       get_command:
@@ -64,12 +58,23 @@ mapping:
         enum: [boolean, int, string, symbol]
       multiple:
         type: bool
+      # Setter-specific attributes
       set_context:
         type: seq
         sequence:
           - type: str
       set_value:
         type: str
+      # Generally applicable attributes
+      context:
+        type: seq
+        sequence:
+          - type: str
+      value:
+        type: str
+      default_only:
+        type: any
+      # Test-only attributes (TODO)
       test_get_command:
         type: str
       test_get_value:

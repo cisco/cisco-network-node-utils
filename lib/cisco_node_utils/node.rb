@@ -73,7 +73,8 @@ module Cisco
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
 
-      return ref.default_value if ref.default_only?
+      # If we have a default value but no getter, just return the default
+      return ref.default_value if ref.default_value? && !ref.getter?
 
       get_args = ref.getter(*args)
       massage(get(command:     ref.get_command,
