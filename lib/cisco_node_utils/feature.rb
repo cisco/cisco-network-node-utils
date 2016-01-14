@@ -33,6 +33,37 @@ module Cisco
     end
 
     # ---------------------------
+    def self.fabric_enable
+      # install feature-set and enable it
+      return if fabric_enabled?
+      config_set('feature', 'fabric', state: 'install') unless fabric_installed?
+      config_set('feature', 'fabric', state: '')
+    end
+
+    def self.fabric_enabled?
+      config_get('feature', 'fabric') =~ /^enabled/
+    end
+
+    def self.fabric_installed?
+      config_get('feature', 'fabric') !~ /^uninstalled/
+    end
+
+    def self.fabric_supported?
+      config_get('feature', 'fabric')
+    end
+
+    #  ---------------------------
+    def self.fabric_forwarding_enable
+      return if fabric_forwarding_enabled?
+      Feature.fabric_enable if Feature.fabric_supported?
+      config_set('feature', 'fabric_forwarding')
+    end
+
+    def self.fabric_forwarding_enabled?
+      config_get('feature', 'fabric_forwarding')
+    end
+
+    # ---------------------------
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
