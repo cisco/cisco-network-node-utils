@@ -112,8 +112,6 @@ module Cisco
     def protocol=(enable)
       no_cmd = (enable ? '' : 'no')
       config_set('snmp_server', 'protocol', no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_protocol
@@ -130,8 +128,6 @@ module Cisco
       else
         config_set('snmp_server', 'tcp_session_auth', 'no', '')
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_tcp_session_auth
