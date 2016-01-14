@@ -1,5 +1,7 @@
 # vxlan_vtep
 ---
+_exclude: [/N(3|5|6)/]
+
 _template:
   config_get: "show running-config interface all | section 'interface nve'"
   config_get_token: '/^interface <name>$/i'

@@ -49,6 +49,8 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_vnis
+    skip('Platform does not support vnis') if VxlanVtepVni.vnis['nve1'].nil?
+
     # Test empty case
     assert_empty(VxlanVtepVni.vnis['nve1'])
 
