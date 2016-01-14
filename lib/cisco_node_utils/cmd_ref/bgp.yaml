@@ -120,12 +120,6 @@ fast_external_fallover:
   config_set_append: '<state> fast-external-fallover'
   default_value: true
 
-feature:
-  kind: boolean
-  config_get: "show running bgp"
-  config_get_token: '/^feature bgp$/'
-  config_set: "<state> feature bgp"
-
 flush_routes:
   kind: boolean
   config_get_token_append: '/^flush-routes$/'
@@ -189,6 +183,7 @@ reconnect_interval:
   default_value: 60
 
 route_distinguisher:
+  # This property is also supported by vrf.yaml
   config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
   config_set: ["vrf context <vrf>", "<state> rd <rd>"]
   default_value: ""

@@ -45,7 +45,7 @@ class TestEvpnVni < CiscoTestCase
     assert_equal(true, vni_list.empty?, 'VLAN collection is empty')
   end
 
-  def test_set_get_route_distinguisher
+  def test_route_distinguisher
     vni = EvpnVni.new(4096)
     vni.route_distinguisher = 'auto'
     assert_equal('auto', vni.route_distinguisher,

@@ -67,8 +67,8 @@ module Cisco
       return false
     end
 
-    def self.feature_vni_enable
-      Feature.nv_overlay_enable unless Feature.nv_overlay_enabled?
+    def self.feature_vni_enable # TBD: move this to feature.rb
+      Feature.nv_overlay_enable
       config_set('vni', 'feature')
     end
 

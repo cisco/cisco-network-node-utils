@@ -25,8 +25,6 @@ class TestVni < CiscoTestCase
     super
     skip('Platform does not support MT-full or MT-lite') unless
       Vni.mt_full_support || Vni.mt_lite_support
-    skip('Platform does not support nv overlay feature') unless
-      Feature.nv_overlay_supported?
   end
 
   def teardown
