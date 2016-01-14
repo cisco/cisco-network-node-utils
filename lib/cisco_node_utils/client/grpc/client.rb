@@ -104,8 +104,21 @@ class Cisco::Client::GRPC < Cisco::Client
     # This makes it possible to guarantee we are in the correct context:
     #   context: ['foo', 'bar'], values: ['baz', 'bat']
     #   ---> values: ['foo bar baz', 'foo bar bat']
+    # However, there's a special case for 'no' commands:
+    #   context: ['foo', 'bar'], values: ['no baz']
+    #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
     context = context.join(' ')
-    values.map! { |cmd| context + ' ' + cmd } unless context.empty?
+    unless context.empty?
+      values.map! do |cmd|
+        match = cmd[/^\s*no\s+(.*)/, 1]
+        if match
+          cmd = "no #{context} #{match}"
+        else
+          cmd = "#{context} #{cmd}"
+        end
+        cmd
+      end
+    end
     # CliConfigArgs wants a newline-separated string of commands
     args = CliConfigArgs.new(cli: values.join("\n"))
     req(@config, 'cli_config', args)

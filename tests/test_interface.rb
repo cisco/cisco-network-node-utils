@@ -368,7 +368,7 @@ class TestInterface < CiscoTestCase
       assert_equal(ref.default_value, interface.default_ipv4_redirects,
                    "ipv4 redirects default incorrect for interface #{k}")
 
-      if ref.config_set?
+      if ref.setter?
         cmd = show_cmd(interface.name)
         interface.ipv4_redirects = true
         assert(interface.ipv4_redirects, "Couldn't set redirects to true")
@@ -487,6 +487,8 @@ class TestInterface < CiscoTestCase
     assert_equal(1520, interface.mtu)
     interface.mtu = 1580
     assert_equal(1580, interface.mtu)
+    interface.mtu = interface.default_mtu
+    assert_equal(interface.default_mtu, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -499,6 +501,8 @@ class TestInterface < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.mtu = 1550
     assert_equal(1550, interface.mtu)
+    interface.mtu = interface.default_mtu
+    assert_equal(interface.default_mtu, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -639,7 +643,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
 
-    unless cmd_ref.config_set?
+    unless cmd_ref.setter?
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
         interface.negotiate_auto = true

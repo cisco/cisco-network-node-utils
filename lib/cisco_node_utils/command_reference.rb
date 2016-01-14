@@ -57,6 +57,13 @@ module Cisco
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         case key
+        when 'context' # TODO
+          if value.nil?
+            @hash['get_context'] = value
+          else
+            @hash['get_context'] = value.map { |entry| "/^#{entry}$/i" }
+          end
+          @hash['set_context'] = value
         when 'auto_default'
           @auto_default = value ? true : false
         when 'default_only'
