@@ -226,7 +226,7 @@ class TestVpc < CiscoTestCase
   end
 
   def test_shutdown
-    skip('Only supported on N6K,N7K') unless node.product_id[/N[67]/]
+    # skip('Only supported on N6K,N7K') unless node.product_id[/N[67]/]
     @vpc = Vpc.new(100)
 
     @vpc.shutdown = @vpc.default_shutdown

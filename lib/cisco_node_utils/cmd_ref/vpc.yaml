@@ -6,7 +6,6 @@ _template:
   config_set:  "vpc domain <domain>"
 
 auto_recovery: 
-  _exclude: [/N5K/, /N6K/]
   kind: boolean
   auto_default: false
   config_get_token_append: '/^auto\-recovery/'
@@ -82,7 +81,7 @@ graceful_consistency_check:
 
 layer3_peer_routing: 
   kind: boolean
-  _exclude: [/N3K/, /N5K/, /N6K/, /N9K/]
+  _exclude: [/N3K/, /N5K/]
   config_get_token_append: '/^layer3 peer-router$/'
   config_set_append: "<state> layer3 peer-router"
   default_value: false
@@ -149,7 +148,6 @@ self_isolation:
 
 shutdown: 
   kind: boolean
-  _exclude: [/N5K/, /N6K/, /N9K/]
   config_get_token_append: '/^shutdown/'
   config_set_append: "<state> shutdown"
   default_value: false
