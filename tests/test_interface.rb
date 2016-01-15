@@ -957,6 +957,10 @@ class TestInterface < CiscoTestCase
     # Set back to default
     int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
     assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+
+    # Attempt to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
   end
 
   def test_interface_ipv4_proxy_arp

@@ -331,6 +331,8 @@ module Cisco
     end
 
     def ipv4_arp_timeout=(timeout)
+      fail "'ipv4 arp timeout' can ony be configured on a vlan interface" unless
+        /vlan/.match(@name)
       state = (timeout == default_ipv4_arp_timeout) ? 'no' : ''
       config_set('interface', 'ipv4_arp_timeout', @name, state, timeout)
     end
