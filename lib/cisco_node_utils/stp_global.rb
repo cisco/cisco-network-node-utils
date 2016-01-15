@@ -145,6 +145,7 @@ module Cisco
     end
 
     def mst_forward_time=(val)
+      check_stp_mode_mst
       if val == default_mst_forward_time
         state = 'no'
         val = ''
@@ -164,6 +165,7 @@ module Cisco
     end
 
     def mst_hello_time=(val)
+      check_stp_mode_mst
       if val == default_mst_hello_time
         state = 'no'
         val = ''
@@ -183,6 +185,7 @@ module Cisco
     end
 
     def mst_max_age=(val)
+      check_stp_mode_mst
       if val == default_mst_max_age
         state = 'no'
         val = ''
@@ -202,6 +205,7 @@ module Cisco
     end
 
     def mst_max_hops=(val)
+      check_stp_mode_mst
       if val == default_mst_max_hops
         state = 'no'
         val = ''
@@ -221,6 +225,7 @@ module Cisco
     end
 
     def mst_name=(val)
+      check_stp_mode_mst
       if val
         state = ''
       else
@@ -240,6 +245,7 @@ module Cisco
     end
 
     def mst_revision=(val)
+      check_stp_mode_mst
       if val.zero?
         state = 'no'
         val = ''
@@ -268,6 +274,11 @@ module Cisco
 
     def default_pathcost
       config_get_default('stp_global', 'pathcost')
+    end
+
+    def check_stp_mode_mst
+      fail "#{caller[0][/`.*'/][1..-2]} cannot be set unless spanning-tree" \
+        ' mode is mst' unless mode == 'mst'
     end
   end # class
 end # module

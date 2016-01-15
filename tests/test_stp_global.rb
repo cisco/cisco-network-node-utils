@@ -23,9 +23,11 @@ class TestStpGlobal < CiscoTestCase
 
   def setup
     super
+    config 'no spanning-tree mode'
   end
 
   def teardown
+    config 'no spanning-tree mode'
     super
   end
 
@@ -120,6 +122,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_forward_time
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_forward_time = 25
     assert_equal(25, @global.mst_forward_time)
     @global.mst_forward_time =
@@ -130,6 +133,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_hello_time
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_hello_time = 5
     assert_equal(5, @global.mst_hello_time)
     @global.mst_hello_time =
@@ -140,6 +144,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_max_age
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_max_age = 35
     assert_equal(35, @global.mst_max_age)
     @global.mst_max_age =
@@ -150,6 +155,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_max_hops
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_max_hops = 200
     assert_equal(200, @global.mst_max_hops)
     @global.mst_max_hops =
@@ -160,6 +166,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_name
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_name = 'nexus'
     assert_equal('nexus', @global.mst_name)
     @global.mst_name =
@@ -170,6 +177,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_mst_revision
     @global = create_stp_global
+    @global.mode = 'mst'
     @global.mst_revision = 34
     assert_equal(34, @global.mst_revision)
     @global.mst_revision =
