@@ -140,6 +140,120 @@ module Cisco
       config_get_default('stp_global', 'mode')
     end
 
+    def mst_forward_time
+      config_get('stp_global', 'mst_forward_time')
+    end
+
+    def mst_forward_time=(val)
+      if val == default_mst_forward_time
+        state = 'no'
+        val = ''
+      else
+        state = ''
+      end
+      config_set('stp_global',
+                 'mst_forward_time', state, val)
+    end
+
+    def default_mst_forward_time
+      config_get_default('stp_global', 'mst_forward_time')
+    end
+
+    def mst_hello_time
+      config_get('stp_global', 'mst_hello_time')
+    end
+
+    def mst_hello_time=(val)
+      if val == default_mst_hello_time
+        state = 'no'
+        val = ''
+      else
+        state = ''
+      end
+      config_set('stp_global',
+                 'mst_hello_time', state, val)
+    end
+
+    def default_mst_hello_time
+      config_get_default('stp_global', 'mst_hello_time')
+    end
+
+    def mst_max_age
+      config_get('stp_global', 'mst_max_age')
+    end
+
+    def mst_max_age=(val)
+      if val == default_mst_max_age
+        state = 'no'
+        val = ''
+      else
+        state = ''
+      end
+      config_set('stp_global',
+                 'mst_max_age', state, val)
+    end
+
+    def default_mst_max_age
+      config_get_default('stp_global', 'mst_max_age')
+    end
+
+    def mst_max_hops
+      config_get('stp_global', 'mst_max_hops')
+    end
+
+    def mst_max_hops=(val)
+      if val == default_mst_max_hops
+        state = 'no'
+        val = ''
+      else
+        state = ''
+      end
+      config_set('stp_global',
+                 'mst_max_hops', state, val)
+    end
+
+    def default_mst_max_hops
+      config_get_default('stp_global', 'mst_max_hops')
+    end
+
+    def mst_name
+      config_get('stp_global', 'mst_name')
+    end
+
+    def mst_name=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('stp_global',
+                 'mst_name', state, val)
+    end
+
+    def default_mst_name
+      config_get_default('stp_global', 'mst_name')
+    end
+
+    def mst_revision
+      config_get('stp_global', 'mst_revision')
+    end
+
+    def mst_revision=(val)
+      if val.zero?
+        state = 'no'
+        val = ''
+      else
+        state = ''
+      end
+      config_set('stp_global',
+                 'mst_revision', state, val)
+    end
+
+    def default_mst_revision
+      config_get_default('stp_global', 'mst_revision')
+    end
+
     def pathcost
       config_get('stp_global', 'pathcost')
     end

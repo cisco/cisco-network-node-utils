@@ -84,10 +84,6 @@ class TestStpGlobal < CiscoTestCase
       @global.default_domain
     assert_equal(@global.default_domain,
                  @global.domain)
-    @global.domain =
-      @global.default_domain
-    assert_equal(@global.default_domain,
-                 @global.domain)
   end
 
   def test_get_set_fcoe
@@ -120,6 +116,66 @@ class TestStpGlobal < CiscoTestCase
       @global.default_mode
     assert_equal(@global.default_mode,
                  @global.mode)
+  end
+
+  def test_get_set_mst_forward_time
+    @global = create_stp_global
+    @global.mst_forward_time = 25
+    assert_equal(25, @global.mst_forward_time)
+    @global.mst_forward_time =
+      @global.default_mst_forward_time
+    assert_equal(@global.default_mst_forward_time,
+                 @global.mst_forward_time)
+  end
+
+  def test_get_set_mst_hello_time
+    @global = create_stp_global
+    @global.mst_hello_time = 5
+    assert_equal(5, @global.mst_hello_time)
+    @global.mst_hello_time =
+      @global.default_mst_hello_time
+    assert_equal(@global.default_mst_hello_time,
+                 @global.mst_hello_time)
+  end
+
+  def test_get_set_mst_max_age
+    @global = create_stp_global
+    @global.mst_max_age = 35
+    assert_equal(35, @global.mst_max_age)
+    @global.mst_max_age =
+      @global.default_mst_max_age
+    assert_equal(@global.default_mst_max_age,
+                 @global.mst_max_age)
+  end
+
+  def test_get_set_mst_max_hops
+    @global = create_stp_global
+    @global.mst_max_hops = 200
+    assert_equal(200, @global.mst_max_hops)
+    @global.mst_max_hops =
+      @global.default_mst_max_hops
+    assert_equal(@global.default_mst_max_hops,
+                 @global.mst_max_hops)
+  end
+
+  def test_get_set_mst_name
+    @global = create_stp_global
+    @global.mst_name = 'nexus'
+    assert_equal('nexus', @global.mst_name)
+    @global.mst_name =
+      @global.default_mst_name
+    assert_equal(@global.default_mst_name,
+                 @global.mst_name)
+  end
+
+  def test_get_set_mst_revision
+    @global = create_stp_global
+    @global.mst_revision = 34
+    assert_equal(34, @global.mst_revision)
+    @global.mst_revision =
+      @global.default_mst_revision
+    assert_equal(@global.default_mst_revision,
+                 @global.mst_revision)
   end
 
   def test_get_set_pathcost
