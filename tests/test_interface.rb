@@ -231,7 +231,7 @@ class TestInterface < CiscoTestCase
                         pattern: pattern)
       assert_equal(address, interface.ipv4_address,
                    "Error: ipv4 address get value mismatch for #{k}")
-      assert_equal(length, interface.ipv4_netmask_length,
+      assert_equal(length, interface.ipv4_netmask,
                    "Error: ipv4 netmask length get value mismatch for #{k}")
 
       # Get default
@@ -240,12 +240,12 @@ class TestInterface < CiscoTestCase
 
       # get_default_netmask
       assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
-                   interface.default_ipv4_netmask_length,
+                   interface.default_ipv4_netmask,
                    "Error: ipv4 netmask length default mismatch for #{k}")
 
       # Unconfigure ipaddress
       interface.ipv4_addr_mask_set(interface.default_ipv4_address,
-                                   interface.default_ipv4_netmask_length)
+                                   interface.default_ipv4_netmask)
       pattern = %r{^\s+ip address #{address}/#{length}}
       refute_show_match(command: show_cmd(interface.name),
                         pattern: pattern,
@@ -253,7 +253,7 @@ class TestInterface < CiscoTestCase
       assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                    "Error: ipv4 address value mismatch after unconfig for #{k}")
       assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
-                   interface.ipv4_netmask_length,
+                   interface.ipv4_netmask,
                    "Error: ipv4 netmask length default mismatch for #{k}")
     end
   end
@@ -855,27 +855,42 @@ class TestInterface < CiscoTestCase
     interface = create_interface
     interface.switchport_mode = :disabled
     address = '8.7.1.1'
+    sec_addr = '10.5.5.1'
+    secondary = true
     length = 15
 
-    # setter, getter
+    # Primary: setter, getter
     interface.ipv4_addr_mask_set(address, length)
     pattern = %r{^\s+ip address #{address}/#{length}}
     assert_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address missing in CLI')
     assert_equal(address, interface.ipv4_address,
                  'Error: ipv4 address get value mismatch')
-    assert_equal(length, interface.ipv4_netmask_length,
+    assert_equal(length, interface.ipv4_netmask,
                  'Error: ipv4 netmask length get value mismatch')
+
+    # Secondary: setter, getter
+    interface.ipv4_addr_mask_set(sec_addr, length, secondary)
+    pattern = %r{^\s+ip address #{sec_addr}/#{length} secondary}
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ipv4 address missing in CLI')
+    assert_equal(sec_addr, interface.ipv4_address_secondary,
+                 'Error: ipv4 address get value mismatch')
+    assert_equal(length, interface.ipv4_netmask,
+                 'Error: ipv4 netmask length get value mismatch')
+
     # get default
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.default_ipv4_address,
                  'Error: ipv4 address get default value mismatch')
 
     # get_default_netmask
     assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
-                 interface.default_ipv4_netmask_length,
+                 interface.default_ipv4_netmask,
                  'Error: ipv4 netmask length get default value mismatch')
 
-    # unconfigure ipaddress
+    # unconfigure ipaddress - secondary must be removed first
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
+                                 secondary)
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip address (.*)/)
     refute_show_match(pattern: pattern,
@@ -883,7 +898,7 @@ class TestInterface < CiscoTestCase
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.ipv4_address,
                  'Error: ipv4 address value mismatch after unconfig')
     assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
-                 interface.ipv4_netmask_length,
+                 interface.ipv4_netmask,
                  'Error: ipv4 netmask length default get value mismatch')
 
     interface_ethernet_default(interfaces_id[0])
@@ -900,7 +915,7 @@ class TestInterface < CiscoTestCase
     # getter
     assert_equal(address, interface.ipv4_address,
                  'Error: ipv4 address get value mismatch')
-    assert_equal(length, interface.ipv4_netmask_length,
+    assert_equal(length, interface.ipv4_netmask,
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress
     interface_ipv4_config(ifname, address, length, false)
@@ -922,11 +937,26 @@ class TestInterface < CiscoTestCase
     # getter
     assert_equal(address, interface.ipv4_address,
                  'Error: ipv4 address get value mismatch')
-    assert_equal(length, interface.ipv4_netmask_length,
+    assert_equal(length, interface.ipv4_netmask,
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress includign secondary
     interface_ipv4_config(ifname, address, length, false, false)
     interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_ipv4_arp_timeout
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+
+    # Test default
+    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+    # Test non-default
+    int.ipv4_arp_timeout = 300
+    assert_equal(300, int.ipv4_arp_timeout)
+    # Set back to default
+    int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
+    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
   end
 
   def test_interface_ipv4_proxy_arp

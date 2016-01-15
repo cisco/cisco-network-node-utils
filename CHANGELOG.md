@@ -55,6 +55,7 @@ Changelog
 * Extend interface with attributes:
   * `channel_group`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
+  * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
