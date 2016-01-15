@@ -21,6 +21,7 @@ This document describes the structure and semantics of these files.
   * [`_exclude`](#_exclude)
   * [Combinations of these](#combinations-of-these)
 * [Attribute properties](#attribute-properties)
+  * [`get_data_format`](#get_data_format)
   * [`get_command`](#get_command)
   * [`get_context`](#get_context)
   * [`get_value`](#get_value)
@@ -222,15 +223,17 @@ description:
 
 Clients for different Cisco platforms may use different data formats. NXAPI (used for Cisco Nexus platforms) supports a CLI-based data format (essentially a wrapper for the Nexus CLI) as well as a NXAPI-specific structured format for some 'show' commands. Currently the gRPC client provided here (used for Cisco IOS XR platforms) supports a CLI-based format. Other platforms may have other formats such as YANG. As different formats have different requirements, the YAML must be able to accommodate this.
 
-CLI is the lowest common denominator, so YAML entries not otherwise flagged as applicable to a specific API type will be assumed to reference CLI. Other API types can be indicated by using the API type as a key (`cli`, `nxapi_structured`, `yang`, etc.). For example, some Nexus platforms support a structured form of 'show version', while other clients might use the same command but will need to parse CLI output with a regular expression:
+CLI is the lowest common denominator, so YAML entries not otherwise flagged as applicable to a specific API type will be assumed to reference CLI. Other API types can be indicated by using the API type as a key (`cli`, `nxapi_structured`, `yang`, etc.). For example, Nexus platforms support a structured form of 'show version', while other clients might use the same command but will need to parse CLI output with a regular expression:
 
 ```yaml
 # show_version.yaml
 description:
   get_command: 'show version'
-  nxapi_structured:
+  nexus:
+    data_model: nxapi_structured
     get_value: 'chassis_id'
-  cli:
+  else:
+    data_model: cli
     get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
 ```
 
@@ -306,15 +309,17 @@ Using `_template` in combination with platform and data format variants:
 _template:
   ios_xr:
     get_command: 'show inventory | begin "Rack 0"'
+    get_data_model: cli
     test_get_command: 'show inventory'
   nexus:
     get_command: 'show inventory'
+    get_data_model: nxapi_structured
     test_get_command: 'show inventory | no-more'
 
 productid:
   ios_xr:
     get_value: '/PID: ([^ ,]+)/'
-  nxapi_structured:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv", 0]
     get_value: "productid"
 ```
@@ -324,9 +329,9 @@ Using platform variants and product variants together:
 ```yaml
 # inventory.yaml
 description:
-  nxapi_structured:
-    get_value: "chassis_id"
   nexus:
+    get_data_model: nxapi_structured
+    get_value: "chassis_id"
     /N7K/:
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
@@ -339,6 +344,19 @@ description:
 ```
 
 ## Attribute properties
+
+### `get_data_format`
+
+The `get_data_format` key is optionally used to specify which data format a given client should use for a get operation. Supported values are `cli` and `nxapi_structured`. If not specified, this key defaults to `cli`.
+
+```yaml
+# inventory.yaml
+productid:
+  get_command: 'show inventory'
+  nexus:
+    get_data_model: nxapi_structured
+    get_context: ['TABLE_inv', 'ROW_inv', 0]
+```
 
 ### `get_command`
 
@@ -361,7 +379,8 @@ area:
 # inventory.yaml
 productid:
   get_command: 'show inventory'
-  nxapi_structured:
+  nexus:
+    get_data_model: nxapi_structured
     get_context: ['TABLE_inv', 'ROW_inv', 0]
     get_value: 'productid'
     # config_get('inventory', 'productid') returns
@@ -372,7 +391,7 @@ productid:
 # interface.yaml
 description:
   get_command: 'show running interface all'
-  cli:
+  ios_xr:
     get_context: '/^interface <name>$/i'
     get_value: '/^description (.*)/'
     # config_get('interface', 'description', name: 'Ethernet1/1') gets the

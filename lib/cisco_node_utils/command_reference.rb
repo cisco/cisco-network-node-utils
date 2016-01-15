@@ -26,9 +26,9 @@ module Cisco
     alias_method :multiple?, :multiple
 
     KEYS = %w(default_value default_only
-              context
-              set_context set_value
-              get_command get_context get_value
+              data_format context value
+              get_data_format get_command get_context get_value
+              set_data_format set_context set_value
               auto_default multiple kind
               test_get_command test_get_value)
 
@@ -53,16 +53,16 @@ module Cisco
 
       values_to_hash(values, file)
 
-      if @hash['get_value']
+      if @hash['get_value'] || @hash['get_command']
         define_helper('getter',
-                      data_format: :cli, # TODO
+                      data_format: @hash['get_data_format'] || :cli,
                       command:     @hash['get_command'],
                       context:     @hash['get_context'] || [],
                       value:       @hash['get_value'])
       end
       if @hash['set_value'] # rubocop:disable Style/GuardClause
         define_helper('setter',
-                      data_format: :cli, # TODO
+                      data_format: @hash['set_data_format'] || :cli,
                       context:     @hash['set_context'] || [],
                       values:      @hash['set_value'])
       end
@@ -77,6 +77,8 @@ module Cisco
         case key
         when 'auto_default'
           @auto_default = value ? true : false
+        when 'data_format', 'get_data_format', 'set_data_format'
+          @hash[key] = value.to_sym
         when 'default_only'
           @default_only = true
           # default_value overrides default_only
@@ -94,6 +96,12 @@ module Cisco
       end
 
       # Inherit general to specific if needed
+      if @hash.key?('data_format')
+        @hash['get_data_format'] = @hash['data_format'] \
+          unless @hash.key?('get_data_format')
+        @hash['set_data_format'] = @hash['data_format'] \
+          unless @hash.key?('set_data_format')
+      end
       if @hash.key?('context')
         @hash['get_context'] = @hash['context'] unless @hash.key?('get_context')
         @hash['set_context'] = @hash['context'] unless @hash.key?('set_context')

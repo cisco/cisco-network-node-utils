@@ -93,7 +93,9 @@ module Cisco
     #       'sn'    => 'SAL1812NTBP' }
     def self.chassis
       node.cache_flush # TODO: investigate why this is needed
-      chas = config_get('inventory', 'chassis')
+      all = config_get('inventory', 'chassis')
+      return nil if all.nil?
+      chas = all.find { |item| item['name'] == '"Chassis"' }
       return nil if chas.nil?
       {
         'descr' => chas['desc'].tr('"', ''),
@@ -158,7 +160,7 @@ module Cisco
     #      { ... }}
     def self.virtual_services
       virts = config_get('virtual_service', 'services')
-      return [] if virts.nil?
+      return {} if virts.nil?
       # NXAPI returns hash instead of array if there's only 1
       virts = [virts] if virts.is_a? Hash
       # convert to expected format

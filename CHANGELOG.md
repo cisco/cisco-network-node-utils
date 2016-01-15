@@ -35,6 +35,7 @@ Changelog
   - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
   - Replaced `config_set(_append)?` with `set_context`, and `set_value`
   - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
+  - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
 * `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
 
 ### Fixed

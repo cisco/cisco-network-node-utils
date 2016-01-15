@@ -1,33 +1,31 @@
 # show_version
 ---
 _template:
-  nxapi_structured:
-    get_command: 'sh version'
+  get_command: 'sh version'
   nexus:
+    data_format: nxapi_structured
     test_get_command: "sh version | no-more"
   ios_xr:
-    cli:
-      get_command: 'sh version'
+    data_format: cli
     test_get_command: "sh version"
 
 board:
-  nxapi_structured:
+  nexus:
     get_value: 'proc_board_id'
 
 boot_image:
   _exclude: [ios_xr]
-  nxapi_structured:
+  nexus:
     get_value: "kick_file_name"
   test_get_value: '/.*NXOS image file is: (.*)$.*/'
 
 cpu:
-  nxapi_structured:
+  nexus:
     get_value: 'cpu_name'
 
 description:
-  nxapi_structured:
-    get_value: "chassis_id"
   nexus:
+    get_value: "chassis_id"
     '/N7K/':
       test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
@@ -50,13 +48,13 @@ full:
   get_command: "sh version"
 
 header:
-  nxapi_structured:
+  nexus:
     get_value: "header_str"
   ios_xr:
     get_value: '/Cisco.*Software/'
 
 host_name:
-  nxapi_structured:
+  nexus:
     get_value: "host_name"
   ios_xr:
     # not displayed in 'show version' on IOS XR
@@ -66,37 +64,33 @@ host_name:
 
 last_reset_reason:
   _exclude: [ios_xr]
-  nxapi_structured:
-    get_value: "rr_reason"
+  get_value: "rr_reason"
   test_get_value: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
 
 last_reset_time:
   _exclude: [ios_xr]
   kind: string
   default_value: ''
-  nxapi_structured:
-    get_value: "rr_ctime"
+  get_value: "rr_ctime"
   test_get_value: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
 
 system_image:
   _exclude: [ios_xr]
   '/N7K/':
-    nxapi_structured:
-      get_value: "isan_file_name"
+    get_value: "isan_file_name"
     test_get_value: '/.*system image file is:    (.*)$.*/'
   else:
-    nxapi_structured:
-      get_value: "kick_file_name"
+    get_value: "kick_file_name"
     test_get_value: '/.*NXOS image file is: (.*)$.*/'
 
 uptime:
-  nxapi_structured:
-    get_value: '/uptime is (.*)/'
+  # TODO: redundant with show_system, uptime?
+  get_data_format: cli
+  get_value: '/uptime is (.*)/'
 
 version:
-  nxapi_structured:
-    get_value: "kickstart_ver_str"
   nexus:
+    get_value: "kickstart_ver_str"
     test_get_value:
       - '/\nkickstart_ver_str\s+(.+)\n/'
       - '/.*NXOS:\s+version (.*)\n/'

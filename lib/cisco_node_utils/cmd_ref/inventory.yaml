@@ -1,24 +1,24 @@
 # inventory
 ---
 _template:
+  get_command: 'show inventory'
   ios_xr:
-    get_command: 'show inventory'
+    data_format: cli
     test_get_command: 'show inventory'
   nexus:
-    nxapi_structured:
-      get_command: 'show inventory'
+    data_format: nxapi_structured
     test_get_command: 'show inventory | no-more'
 
 all:
   multiple: true
-  nxapi_structured:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv"]
 
 chassis:
-  nxapi_structured:
+  nexus:
+    # Get all the inventory and we'll filter it down to the chassis
+    multiple: true
     get_context: ["TABLE_inv", "ROW_inv"]
-    # TODO: get_context?
-    # get_value: {'name': '"Chassis"'}
 
 inventory:
   # TODO: clean this up
@@ -41,20 +41,20 @@ inventory:
 productid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
-  nxapi_structured:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "productid"
 
 serialnum:
   ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
-  nxapi_structured:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "serialnum"
 
 versionid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
-  nxapi_structured:
+  nexus:
     get_context: ["TABLE_inv", "ROW_inv", '0']
     get_value: "vendorid"

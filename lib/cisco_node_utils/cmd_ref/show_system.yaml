@@ -1,6 +1,7 @@
 # show_system
 ---
 uptime:
+  # TODO: redundant with show_version, uptime?
   nexus:
     get_command: 'show system uptime'
   ios_xr:
