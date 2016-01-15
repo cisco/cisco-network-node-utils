@@ -17,7 +17,7 @@ _template:
       - "vrf <vrf>"
 
 address_family:
-  config_set_append: '<state> address-family <afi> <safi>'
+  config_set_append: ' <state> address-family <afi> <safi>'
 
 bestpath_always_compare_med:
   kind: boolean
