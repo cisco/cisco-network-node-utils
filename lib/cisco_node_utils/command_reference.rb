@@ -46,24 +46,35 @@ module Cisco
 
       @feature = feature
       @name = name
-      @hash = {}
       @auto_default = true
       @default_only = false
       @multiple = false
       @kind = nil
 
+      values_to_hash(values, file)
+
+      if @hash['get_value']
+        define_helper('getter',
+                      data_format: :cli, # TODO
+                      command:     @hash['get_command'],
+                      context:     @hash['get_context'] || [],
+                      value:       @hash['get_value'])
+      end
+      if @hash['set_value'] # rubocop:disable Style/GuardClause
+        define_helper('setter',
+                      data_format: :cli, # TODO
+                      context:     @hash['set_context'] || [],
+                      values:      @hash['set_value'])
+      end
+    end
+
+    def values_to_hash(values, file)
+      @hash = {}
       values.each do |key, value|
         unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
         case key
-        when 'context' # TODO
-          if value.nil?
-            @hash['get_context'] = value
-          else
-            @hash['get_context'] = value.map { |entry| "/^#{entry}$/i" }
-          end
-          @hash['set_context'] = value
         when 'auto_default'
           @auto_default = value ? true : false
         when 'default_only'
@@ -82,21 +93,17 @@ module Cisco
         end
       end
 
+      # Inherit general to specific if needed
+      if @hash.key?('context')
+        @hash['get_context'] = @hash['context'] unless @hash.key?('get_context')
+        @hash['set_context'] = @hash['context'] unless @hash.key?('set_context')
+      end
+      if @hash.key?('value')
+        @hash['get_value'] = @hash['value'] unless @hash.key?('get_value')
+        @hash['set_value'] = @hash['value'] unless @hash.key?('set_value')
+      end
+
       @hash.delete_if { |key, _| key != 'default_value' } if @default_only
-      if @hash['get_value']
-        define_helper('getter',
-                      data_format: :cli, # TODO
-                      command:     @hash['get_command'],
-                      context:     @hash['get_context'] || [],
-                      value:       @hash['get_value'])
-      end
-      if @hash['set_value']
-        define_helper('setter',
-                      data_format: :cli, # TODO
-                      context:     @hash['set_context'] || [],
-                      values:      @hash['set_value'])
-      end
-      @hash.each { |key, value| @hash[key] = preprocess_value(value) }
     end
 
     # Does this instance have a valid getter() function?
@@ -202,16 +209,22 @@ module Cisco
           elsif v.is_a?(Array)
             output = []
             v.each do |line|
-              begin
+              # Check for (?) flag indicating optional param
+              optional_line = line[/^\(\?\)(.*)/, 1]
+              if optional_line
+                begin
+                  line = key_substitutor(optional_line, kwargs)
+                rescue ArgumentError # Unsubstituted key - OK to skip this line
+                  next
+                end
+              else
                 line = key_substitutor(line, kwargs)
-              rescue ArgumentError # Unsubstituted key - TODO
-                next
               end
               output.push(line)
             end
             v = output
           end
-          result[k] = preprocess_value(v)
+          result[k] = v
         end
         result
       end
@@ -240,41 +253,18 @@ module Cisco
             end
             v = output
           end
-          result[k] = preprocess_value(v)
+          result[k] = v
         end
         result
       end
     end
 
     def define_static_helper(method_name, base_hash)
-      base_hash.each do |k, v|
-        base_hash[k] = preprocess_value(v)
-      end
       # rubocop:disable Lint/UnusedBlockArgument
       define_singleton_method method_name.to_sym do |*args, **kwargs|
         base_hash
       end
       # rubocop:enable Lint/UnusedBlockArgument
-    end
-
-    # Helper method.
-    # Converts a regexp-like string (or array thereof) into a proper
-    # Regexp object (or array thereof)
-    def preprocess_value(value)
-      if value.is_a?(Array)
-        # Recurse!
-        return value.map { |item| preprocess_value(item) }
-      elsif value.is_a?(String)
-        # Some 'Strings' in YAML are actually intended to be regexps
-        if value[0] == '/' && value[-1] == '/'
-          # '/foo/' => %r{foo}
-          return Regexp.new(value[1..-2])
-        elsif value[0] == '/' && value[-2..-1] == '/i'
-          # '/foo/i' => %r{foo}i
-          return Regexp.new(value[1..-3], Regexp::IGNORECASE)
-        end
-      end
-      value
     end
 
     def convert_to_constant(value)

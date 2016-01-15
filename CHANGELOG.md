@@ -31,7 +31,10 @@ Changelog
 
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
-  - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+  - Added filtering by product ID (`/N7K/`) and by platform (`nexus`, `ios_xr`)
+  - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
+  - Replaced `config_set(_append)?` with `set_context`, and `set_value`
+  - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
 * `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
 
 ### Fixed

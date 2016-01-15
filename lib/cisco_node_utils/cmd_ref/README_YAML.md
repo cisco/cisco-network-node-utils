@@ -12,6 +12,7 @@ This document describes the structure and semantics of these files.
   * [Wildcard substitution](#wildcard-substitution)
     * [Printf-style wildcards](#printf-style-wildcards)
     * [Key-value wildcards](#key-value-wildcards)
+      * [Optional tokens in key-value lists](#optional-tokens-in-key-value-lists)
 * [Advanced attribute definition](#advanced-attribute-definition)
   * [`_template`](#_template)
   * [Data format variants](#data-format-variants)
@@ -79,7 +80,29 @@ needed. In the above, example 'domain' does not have a value defined for
 
 ### Wildcard substitution
 
-The `(get|set)_(context|value)` properties all support two forms of wildcarding - printf-style and key-value. Key-value is generally preferred, as described below.
+The `(get|set)_(context|value)` properties all support two forms of wildcarding - printf-style and key-value. Each has advantages and disadvantages but key-value is generally preferred for a number of reasons as seen below:
+
+<table>
+<tr><th></th><th>Advantages</th><th>Disadvantages</th></tr>
+<tr>
+  <th>Printf-style</th>
+  <td><ul><li>Quick to implement, concise</li></ul></td>
+  <td><ul><li>Can't handle differences in wildcard order between nodes</li>
+    <li>Can't handle differences in wildcard count between nodes</li>
+    <li>Can't support optional tokens (e.g., VRF context)</li>
+    <li>Less readable in Ruby code (not obvious which parameters mean what)</li>
+  </ul></td>
+</tr><tr>
+  <th>Key-Value</th>
+  <td><ul><li>Can handle differences in wildcard order/count between nodes</li>
+    <li>Can handle differences in which wildcards are used on various nodes</li>
+    <li>Can flag tokens as optional (see below)</li>
+    <li>More readable Ruby code due to parameter labels</li>
+  </ul></td>
+  <td><ul><li>Slightly more complex to implement than printf-style</li>
+    <li>Slightly more verbose YAML and Ruby code</li>
+  </ul></td>
+</tr></table>
 
 #### Printf-style wildcards
 
@@ -119,6 +142,32 @@ irb(main):016:0> ref.config_set(name: 'red', cost: '40', type: 'Gbps')
 ```
 
 Key-value wildcards are moderately more complex to implement than Printf-style wildcards but they are more readable in the Ruby code and are flexible enough to handle significant platform differences in CLI. Key-value wildcards are therefore the recommended approach for new development.
+
+##### Optional tokens in key-value lists
+
+When defining `(get|set)_context` entries with key-value wildcards, it is possible to mark some or all of the tokens in the context as optional by prepending `(?)` to them. A common example of this is to support properties that can be defined either globally or under a VRF routing context:
+
+```yaml
+# bgp.yaml
+confederation_peers:
+  ios_xr:
+    get_context:
+      - 'router bgp <asnum>'
+      - '(?)/^vrf <vrf>$/i'
+      - 'bgp confederation peers'
+```
+
+An optional token will be omitted if any of the wildcards in this token do not have an assigned value. By contrast, mandatory tokens (i.e., any token not explicitly flagged as optional) will raise an ArgumentError if wildcard values are missing:
+
+```ruby
+irb(main):003:0> ref = node.cmd_ref.lookup('bgp', 'confederation_peers')
+irb(main):006:0> ref.getter(asnum: 1)[:context]
+=> ["router bgp 1", "bgp confederation peers"]
+irb(main):007:0> ref.getter(asnum: 1, vrf: 'red')[:context]
+=> ["router bgp 1", "/^vrf red$/i", "bgp confederation peers"]
+irb(main):008:0> ref.getter(vrf: 'red')[:context]
+ArgumentError: No value specified for 'asnum' in 'router bgp <asnum>'
+```
 
 ## Advanced attribute definition
 
@@ -188,8 +237,6 @@ description:
 ### Platform variants
 
 Even for clients using the same data format (e.g., CLI), there may be differences between classes of Cisco platform.  Any of the attribute properties can be subdivided by platform type by using the platform type as a key. For example, interface VRF membership defaults to "" (no VRF) on both Nexus and IOS XR platforms, but the CLI is 'vrf member <vrf>' for Nexus and 'vrf <vrf>' for IOS XR. Thus, the YAML could be written as:
-
-
 
 ```yaml
 # interface.yaml
@@ -307,67 +354,39 @@ area:
 
 ### `get_context`
 
-`get_context` can be a single string, a single regex, an array of strings,
-or an array of regexs.
+`get_context` is an optional sequence of tokens used to filter the output from the `get_command` down to the desired context where the `get_value` can be found. For CLI properties, these tokens are implicitly Regexps used to filter down through the hierarchical CLI output, while for `nxapi_structured` properties, the tokens are used as string keys.
 
-If this value is a string or array of strings, then the `get_command` command
-will be executed to produce _structured_ output and the string(s) will be
-used as lookup keys.
-
-**WARNING: structured output, although elegant, may not be supported for all commands or all platforms. Use with caution.**
-
-```yaml
-# show_version.yaml
-cpu:
-  get_command: 'show version'
-  get_value: 'cpu_name'
-  # config_get('show_version', 'cpu') returns structured_output['cpu_name']
-```
 
 ```yaml
 # inventory.yaml
 productid:
   get_command: 'show inventory'
-  get_context: ['TABLE_inv', 'ROW_inv', 0]
-  get_value: 'productid'
-  # config_get('inventory', 'productid') returns
-  # structured_output['TABLE_inv']['ROW_inv'][0]['productid']
+  nxapi_structured:
+    get_context: ['TABLE_inv', 'ROW_inv', 0]
+    get_value: 'productid'
+    # config_get('inventory', 'productid') returns
+    # structured_output['TABLE_inv']['ROW_inv'][0]['productid']
 ```
-
-If this value is a regexp or array of regexps, then the `config_get` command
-will be executed to produce _plaintext_ output.
-
-For a single regexp, it will be used to match against the plaintext.
-
-```yaml
-# memory.yaml
-total:
-  get_command: 'show system resources'
-  get_value: '/Memory.* (\S+) total/'
-  # config_get('memory', 'total') returns
-  # plaintext_output.scan(/Memory.* (\S+) total/)
-```
-
-For an array of regex, then the plaintext is assumed to be hierarchical in
-nature (like `show running-config`) and the regexs are used to filter down
-through the hierarchy.
 
 ```yaml
 # interface.yaml
 description:
   get_command: 'show running interface all'
-  get_context: '/^interface <name>$/i'
-  get_value: '/^description (.*)/'
-  # config_get('interface', 'description', name: 'Ethernet1/1') gets the
-  # plaintext output, finds the subsection under /^interface Ethernet1/1$/i,
-  # then finds the line matching /^description (.*)$/ in that subsection
+  cli:
+    get_context: '/^interface <name>$/i'
+    get_value: '/^description (.*)/'
+    # config_get('interface', 'description', name: 'Ethernet1/1') gets the
+    # plaintext output, finds the subsection under /^interface Ethernet1/1$/i,
+    # then finds the line matching /^description (.*)$/ in that subsection
 ```
+
+If the context is defined using the recommended key-value wildcarding style, it is possible to define individual tokens as [optional](#optional-tokens-in-key-value-lists).
 
 ### `get_value`
 
-When using a `_template` section, an attribute can use
-`get_value` to extend the `get_context` value provided by
-the template instead of replacing it:
+`get_value` is the specific token used to locate the desired value. As with `get_context`, this is implicitly a Regexp for a CLI command, and implicitly a Hash key for a `nxapi_structured` command.
+
+When using a `_template` section, a common pattern is to place the `get_context` in the template to be shared among all attributes, then have specific `get_value` defined for each individual attribute:
 
 ```yaml
 # interface.yaml
@@ -377,54 +396,28 @@ _template:
 
 description:
   get_value: '/^description (.*)$/'
-  # get_value for 'description' is now:
-  # ['/^interface <name>$/i', '/^description (.*)$/']
-```
 
-This can also be used to specify conditional tokens which may or may not be
-used depending on the set of parameters passed into `config_get()`:
-
-```yaml
-# ospf.yaml
-_template:
-  get_command: 'show running ospf all'
-  get_context:
-    - '/^router ospf <name>$/'
-    - '/^vrf <vrf>$/'
-
-router_id:
-  get_value: '/^router-id (\S+)$/'
-```
-
-In this example, the `vrf` parameter is optional and a different
-`getter[:context]` value will be generated depending on its presence or absence:
-
-```ruby
-irb(main):008:0> ref = cr.lookup('ospf', 'router_id')
-irb(main):012:0> ref.getter(name: 'red')
-=> {:data_format=>:cli, :context=>[/^router ospf red$/i], :values=>[/^router-id (\S+)?$/]}
-irb(main):013:0> ref.getter(name: 'red', vrf: 'blue')
-=> {:data_format=>:cli, :context=>[/^router ospf red$/i, /^vrf blue$/i], :values=>[/^router-id (\S+)?$/]}
+duplex:
+  get_value: '/^duplex (.*)$/'
 ```
 
 ### `set_context`
 
-The `set_context` parameter is a string or array of strings representing the
-configuration CLI command(s) used to set the value of the attribute.
+The optional `set_context` parameter is a sequence of strings representing the
+configuration CLI command(s) used to enter the necessary configuration submode before configuring the attribute's `set_value`.
 
 ```yaml
 # interface.yaml
 description:
-  set_context: 'interface <name>'
+  set_context: ['interface <name>']
   set_value: 'description <desc>'
 ```
 
-TODO: add example with array context
+If the context is defined using the recommended key-value wildcarding style, it is possible to define individual tokens as [optional](#optional-tokens-in-key-value-lists).
 
 ### `set_value`
 
-When using a `_template` section, an attribute can use `set_value` to
-extend the `set_context` value provided by the template instead of replacing it:
+`set_value` is the specific command used to set the desired attribute value. As with `get_value`, a common pattern is to specify a `set_context` in the `_template` section and specify `set_value` on a per-attribute basis:
 
 ```yaml
 # interface.yaml
@@ -433,31 +426,9 @@ _template:
 
 access_vlan:
   set_value: 'switchport access vlan <number>'
-  # config_set value for 'access_vlan' is now:
-  # ['interface <name>', 'switchport access vlan <number>']
-```
 
-Much like `get_value`, this can also be used to specify optional
-commands that can be included or omitted as needed:
-
-```yaml
-# ospf.yaml
-_template:
-  set_context:
-    - 'router ospf <name>'
-    - 'vrf <vrf>'
-
-router_id:
-  set_value: 'router-id <router_id>'
-```
-
-```ruby
-irb(main):008:0> ref = cr.lookup('ospf', 'router_id')
-irb(main):017:0> ref.config_set(name: 'red', state: nil, router_id: '1.1.1.1')
-=> ["router ospf red", " router-id 1.1.1.1"]
-irb(main):019:0> ref.config_set(name: 'red', vrf: 'blue',
-                                state: 'no', router_id: '1.1.1.1')
-=> ["router ospf red", "vrf blue", "no router-id 1.1.1.1"]
+description:
+  set_value: '<state> description <desc>'
 ```
 
 ### `default_value`

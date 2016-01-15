@@ -51,7 +51,9 @@ class Cisco::Client
     return cli_output if cli_output.nil?
     context ||= []
     context.each { |filter| cli_output = find_subconfig(cli_output, filter) }
-    return cli_output if cli_output.nil? || cli_output.empty? || value.nil?
+    return nil if cli_output.nil? || cli_output.empty?
+    return cli_output if value.nil?
+    value = to_regexp(value)
     match = cli_output.scan(value)
     return nil if match.empty?
     # find matches and return as array of String if it only does one match.
@@ -67,11 +69,12 @@ class Cisco::Client
   # to retrieve the subsection
   # @return [String, nil] the subsection of body, de-indented
   # appropriately, or nil if no such subsection exists.
-  def self.find_subconfig(body, regex_query)
-    return nil if body.nil? || regex_query.nil?
+  def self.find_subconfig(body, regexp_query)
+    return nil if body.nil? || regexp_query.nil?
+    regexp_query = to_regexp(regexp_query)
 
     rows = body.split("\n")
-    match_row_index = rows.index { |row| regex_query =~ row }
+    match_row_index = rows.index { |row| regexp_query =~ row }
     return nil if match_row_index.nil?
 
     cur = match_row_index + 1
@@ -87,6 +90,29 @@ class Cisco::Client
     min_leading = subconfig.map { |line| line[/\A */].size }.min
     subconfig = subconfig.map { |line| line[min_leading..-1] }
     subconfig.join("\n")
+  end
+
+  # Helper method for CLI getters
+  #
+  # Convert a string or array of strings to a Regexp or array thereof
+  def self.to_regexp(input)
+    if input.is_a?(Regexp)
+      return input
+    elsif input.is_a?(Array)
+      return input.map { |item| to_regexp(item) }
+    else
+      # The string might be explicitly formatted as a regexp
+      if input[0] == '/' && input[-1] == '/'
+        # '/foo/' => %r{foo}
+        return Regexp.new(input[1..-2])
+      elsif input[0] == '/' && input[-2..-1] == '/i'
+        # '/foo/i' => %r{foo}i
+        return Regexp.new(input[1..-3], Regexp::IGNORECASE)
+      else
+        # 'foo' => %r{^foo$}
+        return Regexp.new("^#{input}$")
+      end
+    end
   end
 
   # Helper method for get(data_format: :nxapi_structured).

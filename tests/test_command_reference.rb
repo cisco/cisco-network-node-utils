@@ -153,10 +153,10 @@ name:
   get_command: show hello
   get_context: ['/hello/i']
   get_value: '/world/'
-  set_context: [ \"hello\", \"world\" ]
+  set_context: [ "hello", "world" ]
   set_value:
-    - \"hello\"
-    - \"world\"
+    - "hello"
+    - "world"
   test_get_value: '/hello world/'
 ))
     reference = load_file
@@ -164,13 +164,13 @@ name:
     type_check(ref.default_value, TrueClass)
     type_check(ref.get_command, String)
     type_check(ref.get_context, Array)
-    type_check(ref.get_context[0], Regexp)
-    type_check(ref.get_value, Regexp)
+    type_check(ref.get_context[0], String)
+    type_check(ref.get_value, String)
     type_check(ref.set_context, Array)
     type_check(ref.set_context[0], String)
     type_check(ref.set_value, Array)
     type_check(ref.set_value[0], String)
-    type_check(ref.test_get_value, Regexp)
+    type_check(ref.test_get_value, String)
     assert_raises(IndexError) { ref.test_get_command }
 
     assert(ref.default_value?)
@@ -402,10 +402,10 @@ name:
 name:
   get_context:
     ['/^router ospf <name>$/',
-     '/^vrf <vrf>$/']
+     '(?)/^vrf <vrf>$/']
   get_value: '/^router-id (\S+)$/'
 test2:
-  get_context: ['abc <val1> def']
+  get_context: ['(?)abc <val1> def']
   get_value: 'xyz <val2>'
 test3:
   get_context: ['foo']
@@ -415,21 +415,25 @@ test4:
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
+    # vrf context is flagged as optional
     getter = ref.getter(name: 'red')
     assert_equal({
                    command:     nil,
-                   context:     [/^router ospf red$/],
-                   value:       /^router-id (\S+)$/,
+                   context:     ['/^router ospf red$/'],
+                   value:       '/^router-id (\S+)$/',
                    data_format: :cli,
                  }, getter)
 
     getter = ref.getter(name: 'blue', vrf: 'green')
     assert_equal({
                    command:     nil,
-                   context:     [/^router ospf blue$/, /^vrf green$/],
-                   value:       /^router-id (\S+)$/,
+                   context:     ['/^router ospf blue$/', '/^vrf green$/'],
+                   value:       '/^router-id (\S+)$/',
                    data_format: :cli,
                  }, getter)
+
+    # ospf name is not flagged as optional
+    assert_raises(ArgumentError) { ref.getter(vrf: 'green') }
 
     ref = reference.lookup('test', 'test2')
     getter = ref.getter(val1: '1', val2: '2')
@@ -443,7 +447,7 @@ test4:
     # value params are mandatory
     assert_raises(ArgumentError) { ref.getter(val1: '1', extra_val: 'asdf') }
 
-    # context params are optional - TODO, only if flagged!
+    # context params are optional only if flagged!
     getter = ref.getter(val2: '2')
     assert_equal({
                    command:     nil,
@@ -500,8 +504,8 @@ test3:
     getter = ref.getter('Ethernet1/1')
     assert_equal({
                    command:     nil,
-                   context:     [%r{^interface Ethernet1/1$}i],
-                   value:       /^description (.*)/,
+                   context:     ['/^interface Ethernet1/1$/i'],
+                   value:       '/^description (.*)/',
                    data_format: :cli,
                  }, getter)
     # Negative tests - wrong # of args

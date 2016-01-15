@@ -137,6 +137,7 @@ class TestCase < Minitest::Test
   def assert_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 
@@ -152,6 +153,7 @@ class TestCase < Minitest::Test
   def refute_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 
