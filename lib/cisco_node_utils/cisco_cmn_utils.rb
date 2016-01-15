@@ -117,6 +117,10 @@ module Cisco
     end
 
     def self.delta_add_remove(should, current=[])
+
+      current = [] if current.nil?
+      should  = [] if should.nil?
+
       # Remove nil entries from array
       should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }

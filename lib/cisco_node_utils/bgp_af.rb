@@ -98,50 +98,32 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    # IOS XR?
-    def ios_xr?
-      platform == :ios_xr
+    def fail_unsupported
+      fail Cisco::UnsupportedError.new('','','')
     end
 
-    # Nexus?
-    def nexus?
-      platform == :nexus
-    end
+    # def vrf_unsupported_xr?
+    #   ios_xr? && @vrf != 'default'
+    # end
 
-    def vrf_unsupported_xr?
-      ios_xr? && @vrf != 'default'
-    end
-
-    def fail_if_vrf_unsupported_xr(reason)
-      fail Cisco::UnsupportedError.new(
-        'bgp_af', reason, 'set',
-        "#{reason} is not configurable on a " \
-        'per-VRF basis on IOS XR') if vrf_unsupported_xr?
-    end
+    # def fail_if_vrf_unsupported_xr(reason)
+    #   fail Cisco::UnsupportedError.new(
+    #     'bgp_af', reason, 'set',
+    #     "#{reason} is not configurable on a " \
+    #     'per-VRF basis on IOS XR') if vrf_unsupported_xr?
+    # end
 
     #
     # Client to client (Getter/Setter/Default)
     #
 
-    def client_to_client
-      return nil if vrf_unsupported_xr?
-      config_get('bgp_af', 'client_to_client', @get_args)
-    end
-
     def client_to_client=(state)
-      fail_if_vrf_unsupported_xr('client-to-client')
       # IOS XR uses "client-to-client reflection disable",
       #     so turning it "on" means disabling it.
       # Thus we invert the desired state before telling the CLI what to do:
       state = !state if ios_xr?
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
+      set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'client_to_client', @set_args)
-    end
-
-    def default_client_to_client
-      return nil if vrf_unsupported_xr?
-      config_get_default('bgp_af', 'client_to_client')
     end
 
     #
@@ -152,23 +134,9 @@ module Cisco
       config_get('bgp_af', 'default_information_originate', @get_args)
     end
 
-    def default_information_originate=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'default_information_originate', @set_args)
-    end
-
-    def default_default_information_originate
-      config_get_default('bgp_af', 'default_information_originate')
-    end
-
     #
     # Next Hop route map (Getter/Setter/Default)
     #
-    def next_hop_route_map
-      config_get('bgp_af', 'next_hop_route_map', @get_args)
-    end
-
     def next_hop_route_map=(route_map)
       route_map.strip!
       if route_map.empty?
@@ -184,64 +152,9 @@ module Cisco
       config_set('bgp_af', 'next_hop_route_map', @set_args)
     end
 
-    def default_next_hop_route_map
-      config_get_default('bgp_af', 'next_hop_route_map')
-    end
-
     #
     # additional paths (Getter/Setter/Default)
     #
-
-    # additional_paths_send
-    def additional_paths_send
-      config_get('bgp_af', 'additional_paths_send', @get_args)
-    end
-
-    def additional_paths_send=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_send', @set_args)
-    end
-
-    def default_additional_paths_send
-      config_get_default('bgp_af', 'additional_paths_send')
-    end
-
-    # additional_paths_receive
-    def additional_paths_receive
-      config_get('bgp_af', 'additional_paths_receive', @get_args)
-    end
-
-    def additional_paths_receive=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_receive', @set_args)
-    end
-
-    def default_additional_paths_receive
-      config_get_default('bgp_af', 'additional_paths_receive')
-    end
-
-    # additional_paths_install
-    def additional_paths_install
-      config_get('bgp_af', 'additional_paths_install', @get_args)
-    end
-
-    def additional_paths_install=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_install', @set_args)
-    end
-
-    def default_additional_paths_install
-      config_get_default('bgp_af', 'additional_paths_install')
-    end
-
-    # additional_paths_selection
-    def additional_paths_selection
-      config_get('bgp_af', 'additional_paths_selection', @get_args)
-    end
-
     def additional_paths_selection=(route_map)
       route_map.strip!
       if route_map.empty?
@@ -257,10 +170,6 @@ module Cisco
       config_set('bgp_af', 'additional_paths_selection', @set_args)
     end
 
-    def default_additional_paths_selection
-      config_get_default('bgp_af', 'additional_paths_selection')
-    end
-
     # advertise_l2vpn_evpn
     def advertise_l2vpn_evpn
       return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
@@ -274,26 +183,13 @@ module Cisco
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
     end
 
-    def default_advertise_l2vpn_evpn
-      config_get_default('bgp_af', 'advertise_l2vpn_evpn')
-    end
-
     #
     # dampen_igp_metric (Getter/Setter/Default)
     #
-
-    def dampen_igp_metric
-      config_get('bgp_af', 'dampen_igp_metric', @get_args)
-    end
-
     def dampen_igp_metric=(val)
       set_args_keys(state: (val.nil?) ? 'no' : '',
                     num:   (val.nil?) ? '' : val)
       config_set('bgp_af', 'dampen_igp_metric', @set_args)
-    end
-
-    def default_dampen_igp_metric
-      config_get_default('bgp_af', 'dampen_igp_metric')
     end
 
     #
@@ -306,22 +202,17 @@ module Cisco
     # Value                     Meaning
     # -----                     -------
     # nil                       Dampening is not configured
-    # ''                        Dampening is configured with no options
+    # []                        Dampening is configured with no options
     # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
     # [nil,nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
-      return nil if vrf_unsupported_xr?
       data = config_get('bgp_af', 'dampening', @get_args)
-
-      if data.nil?
-        # no dampening
-        return nil
-      end
+      return nil if data.nil? # no dampening
 
       data = data.flatten
 
       # dampening nil nil nil nil nil
-      val = ''
+      val = []
 
       if !data[4].nil?
         # dampening nil nil nil nil route-map
@@ -395,7 +286,6 @@ module Cisco
     end
 
     def dampening=(damp_array)
-      fail_if_vrf_unsupported_xr('dampening')
       fail ArgumentError if damp_array.kind_of?(Array) &&
                             !(damp_array.length == 4 ||
                               damp_array.length == 0)
@@ -445,35 +335,6 @@ module Cisco
       config_set('bgp_af', 'dampening', @set_args)
     end
 
-    def default_dampening
-      return nil if vrf_unsupported_xr?
-      config_get_default('bgp_af', 'dampening')
-    end
-
-    def default_dampening_state
-      config_get_default('bgp_af', 'dampening_state')
-    end
-
-    def default_dampening_max_suppress_time
-      config_get_default('bgp_af', 'dampening_max_suppress_time')
-    end
-
-    def default_dampening_half_time
-      config_get_default('bgp_af', 'dampening_half_time')
-    end
-
-    def default_dampening_reuse_time
-      config_get_default('bgp_af', 'dampening_reuse_time')
-    end
-
-    def default_dampening_routemap
-      config_get_default('bgp_af', 'dampening_routemap')
-    end
-
-    def default_dampening_suppress_time
-      config_get_default('bgp_af', 'dampening_suppress_time')
-    end
-
     #
     # Distance (Getter/Setter/Default)
     #
@@ -500,28 +361,6 @@ module Cisco
       local.to_i
     end
 
-    def distance
-      match = config_get('bgp_af', 'distance', @get_args)
-      match.nil? ? default_distance : match
-    end
-
-    def default_distance_ebgp
-      config_get_default('bgp_af', 'distance_ebgp')
-    end
-
-    def default_distance_ibgp
-      config_get_default('bgp_af', 'distance_ibgp')
-    end
-
-    def default_distance_local
-      config_get_default('bgp_af', 'distance_local')
-    end
-
-    def default_distance
-      ["#{default_distance_ebgp}", "#{default_distance_ibgp}",
-       "#{default_distance_local}"]
-    end
-
     #
     # default_metric (Getter/Setter/Default)
     #
@@ -539,21 +378,19 @@ module Cisco
       config_set('bgp_af', 'default_metric', @set_args)
     end
 
-    def default_default_metric
-      config_get_default('bgp_af', 'default_metric')
-    end
-
     #
     # inject_map (Getter/Setter/Default)
     #
 
     def inject_map
-      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
-      cmds.sort
+      cmds = config_get('bgp_af', 'inject_map', @get_args)
+      cmds.nil? ? nil : cmds.each(&:compact!).sort
     end
 
     def inject_map=(should_list)
-      delta_hash = Utils.delta_add_remove(should_list, inject_map)
+      c = inject_map
+      fail_unsupported if c.nil?
+      delta_hash = Utils.delta_add_remove(should_list, c)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
         Cisco::Logger.debug("inject_map delta #{@get_args}\n #{action}: " \
@@ -568,34 +405,14 @@ module Cisco
       end
     end
 
-    def default_inject_map
-      config_get_default('bgp_af', 'inject_map')
-    end
-
     #
     # maximum_paths (Getter/Setter/Default)
     #
-
-    def maximum_paths
-      config_get('bgp_af', 'maximum_paths', @get_args)
-    end
 
     def maximum_paths=(val)
       set_args_keys(state: (val == default_maximum_paths) ? 'no' : '',
                     num:   (val == default_maximum_paths) ? '' : val)
       config_set('bgp_af', 'maximum_paths', @set_args)
-    end
-
-    def default_maximum_paths
-      config_get_default('bgp_af', 'maximum_paths')
-    end
-
-    #
-    # maximum_paths_ibgp (Getter/Setter/Default)
-    #
-
-    def maximum_paths_ibgp
-      config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
     end
 
     def maximum_paths_ibgp=(val)
@@ -604,17 +421,14 @@ module Cisco
       config_set('bgp_af', 'maximum_paths_ibgp', @set_args)
     end
 
-    def default_maximum_paths_ibgp
-      config_get_default('bgp_af', 'maximum_paths_ibgp')
-    end
-
     #
     # Networks (Getter/Setter/Default)
     #
 
     # Build an array of all network commands currently on the device
     def networks
-      config_get('bgp_af', 'networks', @get_args).each(&:compact!)
+      c = config_get('bgp_af', 'networks', @get_args)
+      c.nil? ? nil : c.each(&:compact!)
     end
 
     # networks setter.
@@ -639,17 +453,14 @@ module Cisco
       end
     end
 
-    def default_networks
-      config_get_default('bgp_af', 'networks')
-    end
-
     #
     # Redistribute (Getter/Setter/Default)
     #
 
     # Build an array of all redistribute commands currently on the device
     def redistribute
-      config_get('bgp_af', 'redistribute', @get_args).each(&:compact!)
+      c = config_get('bgp_af', 'redistribute', @get_args)
+      c.nil? ? nil : c.each(&:compact!)
     end
 
     # redistribute setter.
@@ -671,96 +482,52 @@ module Cisco
       end
     end
 
-    def default_redistribute
-      config_get_default('bgp_af', 'redistribute')
-    end
-
-    # route target both auto(Getter/Setter/Default)
-    def route_target_both_auto
-      config_get('bgp_af', 'route_target_both_auto', @get_args)
-    end
-
-    def route_target_both_auto=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp_af', 'route_target_both_auto', @set_args)
-      set_args_keys_default
-    end
-
-    def default_route_target_both_auto
-      config_get_default('bgp_af', 'route_target_both_auto')
-    end
-
-    # route target both auto evpn(Getter/Setter/Default)
-    def route_target_both_auto_evpn
-      config_get('bgp_af', 'route_target_both_auto_evpn', @get_args)
-    end
-
-    def route_target_both_auto_evpn=(enable)
-      @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp_af', 'route_target_both_auto_evpn', @set_args)
-      set_args_keys_default
-    end
-
-    def default_route_target_both_auto_evpn
-      config_get_default('bgp_af', 'route_target_both_auto_evpn')
-    end
-
     # route target export
     def route_target_export
       cmds = config_get('bgp_af', 'route_target_export', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_export=(should)
-      route_target_delta(should, route_target_export, 'route_target_export')
-    end
-
-    def default_route_target_export
-      config_get_default('bgp_af', 'route_target_export')
+      c = route_target_export
+      fail_unsupported if c.nil?
+      route_target_delta(should, c, 'route_target_export')
     end
 
     # route target export_evpn
     def route_target_export_evpn
       cmds = config_get('bgp_af', 'route_target_export_evpn', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_export_evpn=(should)
-      route_target_delta(should, route_target_export_evpn,
-                         'route_target_export_evpn')
-    end
-
-    def default_route_target_export_evpn
-      config_get_default('bgp_af', 'route_target_export_evpn')
+      c = route_target_export_evpn
+      fail_unsupported if c.nil?
+      route_target_delta(should, c, 'route_target_export_evpn')
     end
 
     # route target import
     def route_target_import
       cmds = config_get('bgp_af', 'route_target_import', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import=(should)
-      route_target_delta(should, route_target_import, 'route_target_import')
-    end
-
-    def default_route_target_import
-      config_get_default('bgp_af', 'route_target_import')
+      c = route_target_import
+      fail_unsupported if c.nil?
+      route_target_delta(should, c, 'route_target_import')
     end
 
     # route target import_evpn
     def route_target_import_evpn
       cmds = config_get('bgp_af', 'route_target_import_evpn', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import_evpn=(should)
-      route_target_delta(should, route_target_import_evpn,
-                         'route_target_import_evpn')
-    end
-
-    def default_route_target_import_evpn
-      config_get_default('bgp_af', 'route_target_import_evpn')
+      c = route_target_import_evpn
+      fail_unsupported if c.nil?
+      route_target_delta(should, c, 'route_target_import_evpn')
     end
 
     def route_target_delta(should, is, prop)
@@ -779,33 +546,8 @@ module Cisco
     end
 
     #
-    # Suppress Inactive (Getter/Setter/Default)
-    #
-
-    def suppress_inactive
-      config_get('bgp_af', 'suppress_inactive', @get_args)
-    end
-
-    def suppress_inactive=(state)
-      set_args_keys(state: state ? '' : 'no')
-      config_set('bgp_af', 'suppress_inactive', @set_args)
-    end
-
-    def default_suppress_inactive
-      config_get_default('bgp_af', 'suppress_inactive')
-    end
-
-    #
     # Table Map (Getter/Setter/Default)
     #
-
-    def table_map
-      config_get('bgp_af', 'table_map', @get_args)
-    end
-
-    def table_map_filter
-      config_get('bgp_af', 'table_map_filter', @get_args)
-    end
 
     def table_map_set(map, filter=false)
       # To remove table map we can not use 'no table-map'
@@ -827,16 +569,9 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_table_map
-      config_get_default('bgp_af', 'table_map')
-    end
-
-    def default_table_map_filter
-      config_get_default('bgp_af', 'table_map_filter')
-    end
-
     ##########################################
     # Universal Getter, Default Getter, and Setter
+    #
     def method_missing(*args)
       name = args[0].to_s
       if args.length == 1 # Getter
@@ -853,59 +588,16 @@ module Cisco
       end
     end
 
-    ##########################################
-    # All of this can be replaced by the method_missing metafunction
-    #
-    #     def default_information_originate=(state)
-    #     def default_default_information_originate
-    #     def next_hop_route_map
-    #     def default_next_hop_route_map
-    #     def additional_paths_send=(state)
-    #     def additional_paths_send
-    #     def default_additional_paths_send
-    #     def additional_paths_receive
-    #     def additional_paths_receive=(state)
-    #     def default_additional_paths_receive
-    #     def additional_paths_install
-    #     def additional_paths_install=(state)
-    #     def default_additional_paths_install
-    #     def additional_paths_selection
-    #     def default_additional_paths_selection
-    #     def default_advertise_l2vpn_evpn
-    #     def dampen_igp_metric
-    #     def default_dampen_igp_metric
-    #     def default_dampening_state
-    #     def default_dampening_max_suppress_time
-    #     def default_dampening_half_time
-    #     def default_dampening_reuse_time
-    #     def default_dampening_routemap
-    #     def default_dampening_suppress_time
-    #     def default_distance_ebgp
-    #     def default_distance_ibgp
-    #     def default_distance_local
-    #     def default_default_metric
-    #     def default_inject_map
-    #     def maximum_paths
-    #     def default_maximum_paths
-    #     def maximum_paths_ibgp
-    #     def default_maximum_paths_ibgp
-    #     def default_networks
-    #     def default_redistribute
-    #     def route_target_both_auto
-    #     def default_route_target_both_auto
-    #     def route_target_both_auto_evpn
-    #     def default_route_target_both_auto_evpn
-    #     def default_route_target_export
-    #     def default_route_target_export_evpn
-    #     def default_route_target_import
-    #     def default_route_target_import_evpn
-    #     def suppress_inactive
-    #     def suppress_inactive=(state)
-    #     def default_suppress_inactive
-    #     def table_map
-    #     def table_map_filter
-    #     def default_table_map
-    #     def default_table_map_filter
-    ##########################################
+    # Is the given name available in the YAML?
+    def responds_to?(name)
+      ret = true
+      begin
+        config_get('bgp_af', name, @get_args)
+      rescue IndexError
+        ret = false
+      end
+      ret
+    end
+
   end
 end

@@ -74,13 +74,14 @@ dampen_igp_metric:
 
 dampening:
   auto_default: false
+  multiple: true
+  default_value: [15, 750, 2000, 45]
   cli_nexus:
     config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   cli_ios_xr:
     config_get_token_append: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
     config_set_append: ' <state> bgp dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
-  default_value: ""
 
 dampening_half_time:
   kind: int
@@ -123,10 +124,13 @@ default_metric:
   default_value: false
 
 distance:
-  # TODO: add support for XR
-  _exclude: [cli_ios_xr]
-  config_get_token_append: '/^distance (\d+) (\d+) (\d+)$/'
-  config_set_append: '<state> distance <ebgp> <ibgp> <local>'
+  default_value: ['20', '200', '220']
+  cli_nexus:
+    config_get_token_append: '/^distance (\d+) (\d+) (\d+)$/'
+    config_set_append: '<state> distance <ebgp> <ibgp> <local>'
+  cli_ios_xr:
+    config_get_token_append: '/^distance bgp (\d+) (\d+) (\d+)$/'
+    config_set_append: '<state> distance bgp <ebgp> <ibgp> <local>'
 
 distance_ebgp:
   kind: int
@@ -208,6 +212,7 @@ redistribute_policy:
 
 #config in vrf context
 route_target_both_auto:
+  _exclude: [cli_ios_xr]
   config_get: 'sh run | section vrf'
   config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both auto$/']
   config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both auto"]
@@ -215,6 +220,7 @@ route_target_both_auto:
   default_value: false
 
 route_target_both_auto_evpn:
+  _exclude: [cli_ios_xr]
   config_get: 'sh run | section vrf'
   config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both auto evpn$/']
   config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both auto evpn"]
@@ -222,13 +228,19 @@ route_target_both_auto_evpn:
   default_value: false
 
 route_target_export:
-  config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+)$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community>"]
   multiple: true
   default_value: []
+  cli_nexus:
+    config_get: 'sh run | section vrf'
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+)$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community>"]
+  cli_ios_xr:
+    config_get: 'sh run vrf'
+    config_get_token: ['/^vrf <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^export route-target$/', '/^(\S+)$/']
+    config_set: ["vrf <vrf>", "address-family <afi> <safi>", "<state> export route-target <community>"]
 
 route_target_export_evpn:
+  _exclude: [cli_ios_xr]
   config_get: 'sh run | section vrf'
   config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+) evpn$/']
   config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community> evpn"]
@@ -236,13 +248,19 @@ route_target_export_evpn:
   default_value: []
 
 route_target_import:
-  config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+)$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community>"]
   multiple: true
   default_value: []
+  cli_nexus:
+    config_get: 'sh run | section vrf'
+    config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+)$/']
+    config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community>"]
+  cli_ios_xr:
+    config_get: 'sh run vrf'
+    config_get_token: ['/^vrf <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^import route-target$/', '/^(\S+)$/']
+    config_set: ["vrf <vrf>", "address-family <afi> <safi>", "<state> import route-target <community>"]
 
 route_target_import_evpn:
+  _exclude: [cli_ios_xr]
   config_get: 'sh run | section vrf'
   config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+) evpn$/']
   config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community> evpn"]
@@ -252,20 +270,23 @@ route_target_import_evpn:
 suppress_inactive:
   _exclude: [cli_ios_xr]
   kind: boolean
+  default_value: false
   config_get_token_append: '/^suppress-inactive$/'
   config_set_append: '<state> suppress-inactive'
-  default_value: false
 
 table_map:
-  # TODO: add 'table-policy' support for XR
-  _exclude: [cli_ios_xr]
   kind: string
-  config_get_token_append: '/^table-map (\S+)(?: filter)?$/'
-  config_set_append: '<state> table-map <map>'
   default_value: ""
+  cli_nexus:
+    config_get_token_append: '/^table-map (\S+)(?: filter)?$/'
+    config_set_append: '<state> table-map <map>'
+  cli_ios_xr:
+    config_get_token_append: '/^table-policy (\S+)(?: filter)?$/'
+    config_set_append: ' <state> table-policy <map>'
 
 table_map_filter:
+  _exclude: [cli_ios_xr]
   kind: boolean
+  default_value: false
   config_get_token_append: '/^table-map \S+ filter$/'
   config_set_append: '<state> table-map <map> filter'
-  default_value: false
