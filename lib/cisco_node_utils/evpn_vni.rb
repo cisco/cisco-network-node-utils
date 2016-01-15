@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'bgp'
-require_relative 'bgp_af'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 
 module Cisco
   # node_utils class for evpn_vni
@@ -37,7 +36,7 @@ module Cisco
     # Creat a hash of all vni instance
     def self.vnis
       hash = {}
-      return hash unless RouterBgp.enabled
+      return hash unless Feature.bgp_enabled?
       vni_list = config_get('evpn_vni', 'vni')
       return hash if vni_list.nil?
 
@@ -64,12 +63,12 @@ module Cisco
 
     # enable feature bgp and nv overlay evpn
     def self.enable
-      RouterBgp.enable
-      RouterBgpAF.feature_nv_overlay_evpn_enable
+      Feature.bgp_enable
+      Feature.nv_overlay_evpn_enable
     end
 
     def self.enabled
-      RouterBgp.enabled && RouterBgpAF.feature_nv_overlay_evpn_enabled
+      Feature.bgp_enabled? && Feature.nv_overlay_evpn_enabled?
     end
 
     def set_args_keys_default
