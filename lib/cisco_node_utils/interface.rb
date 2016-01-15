@@ -269,9 +269,9 @@ module Cisco
         state = 'no'
         if secondary
           # We need address and mask to remove.
-          am = "#{ipv4_address_secondary}/#{ipv4_netmask_secondary}"
+          am = "#{ipv4_address_secondary}/#{ipv4_netmask_length_secondary}"
         else
-          am = "#{ipv4_address}/#{ipv4_netmask}"
+          am = "#{ipv4_address}/#{ipv4_netmask_length}"
         end
       else
         state = ''
@@ -293,11 +293,15 @@ module Cisco
       when :v4_addr
         v = d.nil? ? default_ipv4_address : d[0]
       when :v4_mask
-        v = d.nil? ? default_ipv4_netmask : d[1].to_i
+        v = d.nil? ? default_ipv4_netmask_length : d[1].to_i
       when :v4_addr_secondary
         v = (d.nil? || d.size < 4) ? default_ipv4_address : d[2]
       when :v4_mask_secondary
-        v = (d.nil? || d.size < 4) ? default_ipv4_netmask : d[3][0, 2].to_i
+        if d.nil? || d.size < 4
+          v = default_ipv4_netmask_length
+        else
+          v = d[3][0, 2].to_i
+        end
       end
       v
     end
@@ -310,11 +314,11 @@ module Cisco
       select_ipv4_attribute(:v4_addr_secondary)
     end
 
-    def ipv4_netmask
+    def ipv4_netmask_length
       select_ipv4_attribute(:v4_mask)
     end
 
-    def ipv4_netmask_secondary
+    def ipv4_netmask_length_secondary
       select_ipv4_attribute(:v4_mask_secondary)
     end
 
@@ -322,7 +326,7 @@ module Cisco
       config_get_default('interface', 'ipv4_address')
     end
 
-    def default_ipv4_netmask
+    def default_ipv4_netmask_length
       config_get_default('interface', 'ipv4_netmask_length')
     end
 
