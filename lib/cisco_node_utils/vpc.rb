@@ -159,7 +159,7 @@ module Cisco
     def layer3_peer_routing=(val)
       set_args_keys(state: val ? '' : 'no')
       # This requires peer_gateway to be set first
-      self.peer_gateway = true unless peer_gateway
+      self.peer_gateway = true if !peer_gateway && val
       config_set('vpc', 'layer3_peer_routing', @set_args)
     end
 
@@ -173,6 +173,8 @@ module Cisco
 
     def peer_gateway=(val)
       set_args_keys(state: val ? '' : 'no')
+      # disable layer3 routing first
+      self.layer3_peer_routing = false if !val && layer3_peer_routing
       config_set('vpc', 'peer_gateway', @set_args)
     end
 
