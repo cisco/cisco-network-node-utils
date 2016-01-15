@@ -29,7 +29,7 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  /N(3|9)/:
+  /N9/:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
