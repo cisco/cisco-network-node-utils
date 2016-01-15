@@ -262,42 +262,87 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
-    def ipv4_addr_mask
-      config_get('interface', 'ipv4_addr_mask', @name)
-    end
-
-    def ipv4_addr_mask_set(addr, mask)
+    def ipv4_addr_mask_set(addr, mask, secondary=false)
       check_switchport_disabled
+      sec = secondary ? 'secondary' : ''
       if addr.nil? || addr == default_ipv4_address
-        config_set('interface', 'ipv4_addr_mask', @name, 'no', '')
+        state = 'no'
+        if secondary
+          # We need address and mask to remove.
+          am = "#{ipv4_address_secondary}/#{ipv4_netmask_length_secondary}"
+        else
+          am = "#{ipv4_address}/#{ipv4_netmask_length}"
+        end
       else
-        config_set('interface', 'ipv4_addr_mask', @name, '',
-                   "#{addr}/#{mask}")
+        state = ''
+        am = "#{addr}/#{mask}"
       end
+      config_set('interface', 'ipv4_addr_mask', @name, state, am, sec)
     rescue Cisco::CliError => e
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def ipv4_addr_mask
+      config_get('interface', 'ipv4_addr_mask', @name)
+    end
+
+    def select_ipv4_attribute(attribute)
+      d = ipv4_addr_mask.flatten unless ipv4_addr_mask.nil?
+      # (d)ata format after flatten: ['addr', 'mask', 'addr', 'mask secondary']
+      case attribute
+      when :v4_addr
+        v = d.nil? ? default_ipv4_address : d[0]
+      when :v4_mask
+        v = d.nil? ? default_ipv4_netmask_length : d[1].to_i
+      when :v4_addr_secondary
+        v = (d.nil? || d.size < 4) ? default_ipv4_address : d[2]
+      when :v4_mask_secondary
+        if d.nil? || d.size < 4
+          v = default_ipv4_netmask_length
+        else
+          v = d[3][0, 2].to_i
+        end
+      end
+      v
+    end
+
     def ipv4_address
-      val = ipv4_addr_mask
-      return default_ipv4_address if val.nil?
-      # val is [[addr, mask], [addr, mask secondary]] - we just want the addr
-      val.shift.first
+      select_ipv4_attribute(:v4_addr)
+    end
+
+    def ipv4_address_secondary
+      select_ipv4_attribute(:v4_addr_secondary)
+    end
+
+    def ipv4_netmask_length
+      select_ipv4_attribute(:v4_mask)
+    end
+
+    def ipv4_netmask_length_secondary
+      select_ipv4_attribute(:v4_mask_secondary)
     end
 
     def default_ipv4_address
       config_get_default('interface', 'ipv4_address')
     end
 
-    def ipv4_netmask_length
-      val = ipv4_addr_mask
-      return default_ipv4_netmask_length if val.nil?
-      # val is [[addr, mask], [addr, mask secondary]] - we just want the mask
-      val.shift.last.to_i
-    end
-
     def default_ipv4_netmask_length
       config_get_default('interface', 'ipv4_netmask_length')
+    end
+
+    def ipv4_arp_timeout
+      config_get('interface', 'ipv4_arp_timeout', @name)
+    end
+
+    def ipv4_arp_timeout=(timeout)
+      fail "'ipv4 arp timeout' can ony be configured on a vlan interface" unless
+        /vlan/.match(@name)
+      state = (timeout == default_ipv4_arp_timeout) ? 'no' : ''
+      config_set('interface', 'ipv4_arp_timeout', @name, state, timeout)
+    end
+
+    def default_ipv4_arp_timeout
+      config_get_default('interface', 'ipv4_arp_timeout')
     end
 
     def ipv4_pim_sparse_mode
