@@ -82,7 +82,7 @@ graceful_consistency_check:
 
 layer3_peer_routing: 
   kind: boolean
-  _exclude: [/N3K/, /N5K/]
+  _exclude: [/N3K/, /N5K/, /N9K/]
   config_get_token_append: '/^layer3 peer-router$/'
   config_set_append: "<state> layer3 peer-router"
   default_value: false
@@ -170,6 +170,7 @@ self_isolation:
 
 shutdown: 
   kind: boolean
+  _exclude: [/N3K/, /N9K/]
   config_get_token_append: '/^shutdown/'
   config_set_append: "<state> shutdown"
   default_value: false

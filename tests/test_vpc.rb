@@ -268,7 +268,8 @@ class TestVpc < CiscoTestCase
   end
 
   def test_shutdown
-    # skip('Only supported on N6K,N7K') unless node.product_id[/N[67]/]
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'layer3_peer_routing').default_value.nil?
     @vpc = Vpc.new(100)
 
     @vpc.shutdown = @vpc.default_shutdown
