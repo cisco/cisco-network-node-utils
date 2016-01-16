@@ -13,6 +13,8 @@ Changelog
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+* Feature
+  * feature (@robert-w-gries)
 * Interface
   * interface_service_vni (@chrisvanheuveln)
 * PIM
@@ -26,6 +28,8 @@ Changelog
   * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
+* VRF
+  * vrf_af (@chrisvanheuveln)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
@@ -41,6 +45,7 @@ Changelog
   * `flush_routes`
   * `isolate`
   * `neighbor_down_fib_accelerate`
+  * `route_distinguisher`
 * Extend bgp_af with attributes:
   * `default_metric`
   * `distance_ebgp`, `distance_ibgp`, `distance_local`
@@ -50,6 +55,7 @@ Changelog
 * Extend interface with attributes:
   * `channel_group`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
+  * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
