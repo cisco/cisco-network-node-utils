@@ -779,6 +779,35 @@ module Cisco
         ' is disabled' unless switchport_mode == :disabled
     end
 
+    def vpc_id
+      config_get('interface', 'vpc_id', @name)
+    end
+
+    def vpc_id=(num)
+      if num
+        config_set('interface', 'vpc_id', @name, '', num)
+      else
+        config_set('interface', 'vpc_id', @name, 'no', '')
+      end
+    end
+
+    def default_vpc_id
+      config_get_default('interface', 'vpc_id')
+    end
+
+    def vpc_peer_link
+      config_get('interface', 'vpc_peer_link', @name)
+    end
+
+    def vpc_peer_link=(state)
+      no_cmd = (state ? '' : 'no')
+      config_set('interface', 'vpc_peer_link', @name, no_cmd)
+    end
+
+    def default_vpc_peer_link
+      config_get_default('interface', 'vpc_peer_link')
+    end
+
     def vrf
       config_get('interface', 'vrf', @name)
     end

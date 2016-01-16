@@ -167,6 +167,80 @@ module Cisco
       config_get_default('vpc', 'layer3_peer_routing')
     end
 
+    # peer keepalive
+    def peer_keepalive_dest
+      config_get('vpc', 'peer_keepalive_dest')
+    end
+
+    def default_peer_keepalive_dest
+      config_get_default('vpc', 'peer_keepalive_dest')
+    end
+
+    def peer_keepalive_hold_timeout
+      config_get('vpc', 'peer_keepalive_hold_timeout')
+    end
+
+    def default_peer_keepalive_hold_timeout
+      config_get_default('vpc', 'peer_keepalive_hold_timeout')
+    end
+
+    def peer_keepalive_interval
+      config_get('vpc', 'peer_keepalive_interval')
+    end
+
+    def default_peer_keepalive_interval
+      config_get_default('vpc', 'peer_keepalive_interval')
+    end
+
+    def peer_keepalive_interval_timeout
+      config_get('vpc', 'peer_keepalive_timeout')
+    end
+
+    def default_peer_keepalive_interval_timeout
+      config_get_default('vpc', 'peer_keepalive_timeout')
+    end
+
+    def peer_keepalive_precedence
+      config_get('vpc', 'peer_keepalive_precedence')
+    end
+
+    def default_peer_keepalive_precedence
+      config_get_default('vpc', 'peer_keepalive_precedence')
+    end
+
+    def peer_keepalive_src
+      config_get('vpc', 'peer_keepalive_src')
+    end
+
+    def default_peer_keepalive_src
+      config_get_default('vpc', 'peer_keepalive_src')
+    end
+
+    def peer_keepalive_udp_port
+      config_get('vpc', 'peer_keepalive_udp_port')
+    end
+
+    def default_peer_keepalive_udp_port
+      config_get_default('vpc', 'peer_keepalive_udp_port')
+    end
+
+    def peer_keepalive_vrf
+      config_get('vpc', 'peer_keepalive_vrf')
+    end
+
+    def default_peer_keepalive_vrf
+      config_get_default('vpc', 'peer_keepalive_vrf')
+    end
+
+    # common setter
+    def peer_keepalive_set(dest, src, udp_port, vrf, interval, timeout,
+                           prec, hold_timeout)
+      set_args_keys(dest: dest, src: src, port_num: udp_port, vrf: vrf,
+                    interval: interval, timeout: timeout, 
+                    precedence: prec, hold_timeout: hold_timeout)
+      config_set('vpc', 'peer_keepalive_set', @set_args)
+    end
+
     def peer_gateway
       config_get('vpc', 'peer_gateway')
     end

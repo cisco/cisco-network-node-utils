@@ -13,6 +13,7 @@
 # limitations under the License.
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vpc'
+require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
 
@@ -160,6 +161,47 @@ class TestVpc < CiscoTestCase
     refute(@vpc.layer3_peer_routing, 'layer3_peer_routing not getting disabled')
   end
 
+  def test_peer_keepalive
+    @vpc = Vpc.new(100)
+
+    # Check default values
+    dest = @vpc.default_peer_keepalive_dest
+    assert_equal('', dest, 'destination should be 1.1.1.2')
+    source = @vpc.default_peer_keepalive_src
+    assert_equal('', source, 'source should be 1.1.1.1')
+    udp_port = @vpc.default_peer_keepalive_udp_port
+    assert_equal(3200, udp_port, 'udp port should be 3200')
+    vrf = @vpc.default_peer_keepalive_vrf
+    assert_equal('management', vrf, 'vrf should be management')
+    interval = @vpc.default_peer_keepalive_interval
+    assert_equal(1000, interval, 'interval should be 1000')
+    timeout = @vpc.default_peer_keepalive_interval_timeout
+    assert_equal(5, timeout, 'interval timeout should be 5')
+    precedence = @vpc.default_peer_keepalive_precedence
+    assert_equal(6, precedence, 'precedence should be 6')
+    hold_timeout = @vpc.default_peer_keepalive_hold_timeout
+    assert_equal(3, hold_timeout, 'hold timeout should be 3')
+
+    @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
+                            6, 3)
+    dest = @vpc.peer_keepalive_dest
+    assert_equal('1.1.1.2', dest, 'destination should be 1.1.1.2')
+    source = @vpc.peer_keepalive_src
+    assert_equal('1.1.1.1', source, 'source should be 1.1.1.1')
+    udp_port = @vpc.peer_keepalive_udp_port
+    assert_equal(3800, udp_port, 'udp port should be 3800')
+    vrf = @vpc.peer_keepalive_vrf
+    assert_equal('management', vrf, 'vrf should be management')
+    interval = @vpc.peer_keepalive_interval
+    assert_equal(400, interval, 'interval should be 400')
+    timeout = @vpc.peer_keepalive_interval_timeout
+    assert_equal(3, timeout, 'interval timeout should be 3')
+    precedence = @vpc.peer_keepalive_precedence
+    assert_equal(6, precedence, 'precedence should be 6')
+    hold_timeout = @vpc.peer_keepalive_hold_timeout
+    assert_equal(3, hold_timeout, 'hold timeout should be 3')
+  end
+
   def test_peer_gateway
     @vpc = Vpc.new(100)
     default_val = @vpc.default_peer_gateway
@@ -271,5 +313,74 @@ class TestVpc < CiscoTestCase
 
     @vpc.track = 44
     assert_equal(44, @vpc.track, 'track should be 44')
+  end
+
+  def test_interface_vpc_id
+    @vpc = Vpc.new(100)
+    # test phy port vpc
+    interface = Interface.new(interfaces[0])
+    assert_equal(interface.vpc_id, interface.default_vpc_id,
+                 'default vpc_id should be null')
+    # Make sure PKA is set
+    @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
+                            6, 3)
+    # Phy port vPC is supported only on N7K
+    if /N7/ =~ node.product_id
+      interface.switchport_mode = :trunk
+      interface.vpc_id = 10
+      assert_equal(10, interface.vpc_id, 'vpc_id should be 10')
+
+      # negative - cannot config peer link on this
+      e = assert_raises(CliError) do
+        interface.vpc_peer_link = 'true'
+      end
+      assert_match(/Invalid number/i, e.message)
+
+      # turn off vpc id
+      interface.vpc_id = false
+      refute(interface.vpc_id, 'vpc_id should be unset')
+    end
+    # test port-channel vpc
+    interface = Interface.new(interfaces[0])
+    interface.channel_group = 10
+    interface_pc = Interface.new('port-channel10')
+    interface_pc.switchport_mode = :trunk
+    interface_pc.vpc_id = 20
+    assert_equal(20, interface_pc.vpc_id, 'vpc_id should be 20')
+    # test limits
+    interface_pc.vpc_id = false
+    refute(interface_pc.vpc_id, 'vpc_id should be empty')
+    interface_pc.vpc_id = 4095
+    assert_equal(4095, interface_pc.vpc_id, 'vpc_id should be empty')
+    # clean-up
+    interface_pc.vpc_id = false
+    # remove PC
+    interface.channel_group = false
+    refute(interface.channel_group, 'Port channel not cleaned up')
+  end
+
+  def test_interface_vpc_peer_link
+    @vpc = Vpc.new(100)
+    # Make sure PKA is set
+    @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
+                            6, 3)
+    interface = Interface.new(interfaces[1])
+    interface.channel_group = 100
+    interface_pc = Interface.new('port-channel100')
+    interface_pc.switchport_mode = :trunk
+    refute(interface_pc.vpc_peer_link,
+           'vpc_peer_link should not be set by default')
+    interface_pc.vpc_peer_link = true
+    assert(interface_pc.vpc_peer_link, 'vpc_peer_link should be set')
+    interface_pc.vpc_peer_link = false
+    refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
+    # clean up
+    interface.channel_group = false
+    #
+    # negative - try on a phy port
+    e = assert_raises(CliError) do
+      interface.vpc_peer_link = 'true'
+    end
+    assert_match(/Invalid/i, e.message)
   end
 end

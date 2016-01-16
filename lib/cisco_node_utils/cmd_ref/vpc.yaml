@@ -7,6 +7,7 @@ _template:
 
 auto_recovery: 
   kind: boolean
+  _exclude: [/N5K/, /N6K/]
   auto_default: false
   config_get_token_append: '/^auto\-recovery/'
   config_set_append: "<state> auto-recovery"
@@ -108,24 +109,45 @@ peer_gateway_exclude_vlan:
   default_value: ''
 
 # Peer-keep-alive
-peer_keep_alive: 
-  config_get_token_append:  '/^peer\-keepalive destination (\S+)\s+^source\s+(\S+)\s+^udp-port\s+(\d+)\s+vrf\s+(\S+)\s+^interval\s+(\d+)\s+^timeout\s+(\d+)\s+^precedence\s+(\d+)\s+^hold-timeout\s+(\d+)/'
-  config_set_append:  "peer-keepalive destination <dst> source <src> udp-port <port-num> vrf <vrf> interval <interval> timeout <timeout> precedence <precedence> hold-timeout <hole-timeout>"
+peer_keepalive_dest:
+  config_get_token_append:  '/^peer\-keepalive destination (\S+)/'
+  default_value: ''
 
-pka_hold_timeout: 
+peer_keepalive_hold_timeout: 
+  kind: int
+  config_get_token_append:  '/^peer\-keepalive .*hold\-timeout (\S+)/'
   default_value: 3
 
-pka_interval: 
+peer_keepalive_interval: 
+  kind: int
+  config_get_token_append:  '/^peer\-keepalive .*interval (\S+)/'
   default_value: 1000
 
-pka_precedence: 
+peer_keepalive_precedence: 
+  kind: int
+  config_get_token_append:  '/^peer\-keepalive .*precedence (\S+)/'
   default_value: 6
 
-pka_timeout: 
+peer_keepalive_set: 
+  config_set_append:  "peer-keepalive destination <dest> source <src> udp-port <port_num> vrf <vrf> interval <interval> timeout <timeout> precedence <precedence> hold-timeout <hold_timeout>"
+
+peer_keepalive_src:
+  config_get_token_append:  '/^peer\-keepalive .*source (\S+)/'
+  default_value: ''
+
+peer_keepalive_timeout: 
+  kind: int
+  config_get_token_append:  '/^peer\-keepalive .* timeout (\S+)/'
   default_value: 5
 
-pka_upd_port: 
+peer_keepalive_udp_port: 
+  kind: int
+  config_get_token_append:  '/^peer\-keepalive .*udp\-port (\S+)/'
   default_value: 3200
+
+peer_keepalive_vrf:
+  config_get_token_append:  '/^peer\-keepalive .*vrf (\S+)/'
+  default_value: 'management'
 
 port_channel_limit: 
   _exclude: [/N5K/, /N6K/, /N9K/]
