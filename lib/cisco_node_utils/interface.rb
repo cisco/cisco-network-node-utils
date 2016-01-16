@@ -832,7 +832,9 @@ module Cisco
       if num
         config_set('interface', 'vpc_id', @name, '', num)
       else
-        config_set('interface', 'vpc_id', @name, 'no', '')
+        # 'no vpc' doesn't work for phy ports, so do a get
+        num = vpc_id
+        config_set('interface', 'vpc_id', @name, 'no', num)
       end
     end
 

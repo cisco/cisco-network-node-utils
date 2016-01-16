@@ -35,10 +35,18 @@ module Cisco
       my_domain = config_get('vpc', 'domain')
       hash[my_domain] = Vpc.new(my_domain, false) unless my_domain.nil?
       hash
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
 
     def self.enabled
       config_get('vpc', 'feature')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
     end
 
     def create

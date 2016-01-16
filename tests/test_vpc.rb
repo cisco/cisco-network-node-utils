@@ -319,6 +319,8 @@ class TestVpc < CiscoTestCase
     @vpc = Vpc.new(100)
     # test phy port vpc
     interface = Interface.new(interfaces[0])
+    # check if it is already part of a PC and clear it
+    interface.channel_group = false if interface.channel_group
     assert_equal(interface.vpc_id, interface.default_vpc_id,
                  'default vpc_id should be null')
     # Make sure PKA is set
