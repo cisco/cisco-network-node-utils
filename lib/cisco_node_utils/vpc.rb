@@ -244,7 +244,7 @@ module Cisco
     def peer_keepalive_set(dest, src, udp_port, vrf, interval, timeout,
                            prec, hold_timeout)
       set_args_keys(dest: dest, src: src, port_num: udp_port, vrf: vrf,
-                    interval: interval, timeout: timeout, 
+                    interval: interval, timeout: timeout,
                     precedence: prec, hold_timeout: hold_timeout)
       config_set('vpc', 'peer_keepalive_set', @set_args)
     end
