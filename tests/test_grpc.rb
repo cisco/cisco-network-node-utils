@@ -124,7 +124,7 @@ int gi0/0/0/0 bark bark
   def test_get_cli_empty
     result = client.get(command:     'show debug | include foo | exclude foo',
                         data_format: :cli)
-    assert_empty(result)
+    assert_nil(result)
   end
 
   def test_get_cli_cache

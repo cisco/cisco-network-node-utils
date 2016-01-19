@@ -187,7 +187,7 @@ class Cisco::Client
   # @param command [String] the get command to execute
   # @param context [String, Array<String>] Context to refine/filter the results
   # @param value [String, Regexp] Specific key or regexp to look up
-  # @return [String, Hash]
+  # @return [String, Hash, nil] The state found, or nil if not found.
   def get(data_format: :cli,
           command:     nil,
           context:     nil,

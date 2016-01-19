@@ -89,7 +89,7 @@ CLI execution error
   def test_get_cli_empty
     result = client.get(command:     'show hostname | incl foo | excl foo',
                         data_format: :cli)
-    assert_equal('', result)
+    assert_nil(result)
   end
 
   def test_get_nxapi_structured
