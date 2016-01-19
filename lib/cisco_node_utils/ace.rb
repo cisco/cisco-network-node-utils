@@ -20,8 +20,10 @@ module Cisco
     attr_reader :afi, :acl_name, :seqno
 
     def initialize(afi, acl_name, seqno)
-      @set_args = @get_args =
-        { afi: Acl.afi_cli(afi), acl_name: acl_name.to_s, seqno: seqno.to_s }
+      @afi = Acl.afi_cli(afi)
+      @acl_name = acl_name.to_s
+      @seqno = seqno.to_s
+      set_args_keys_default
     end
 
     # Create a hash of all aces under a given acl_name.
@@ -47,6 +49,22 @@ module Cisco
       hash
     end
 
+    def destroy
+      set_args_keys(state: 'no')
+      config_set('acl', 'ace_destroy', @set_args)
+    end
+
+    def set_args_keys_default
+      keys = { afi: @afi, acl_name: @acl_name, seqno: @seqno }
+      @get_args = @set_args = keys
+    end
+
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
     # common ace getter
     def ace_get
       str = config_get('acl', 'ace', @get_args)
@@ -68,14 +86,17 @@ module Cisco
       regexp.match(str)
     end
 
-    def destroy
-      ace_set({})
-    end
-
     # common ace setter. Put the values you need in a hash and pass it in.
     # attrs = {:action=>'permit', :proto=>'tcp', :src =>'host 1.1.1.1'}
     def ace_set(attrs)
-      @set_args[:state] = attrs.empty? ? 'no' : ''
+      if attrs.empty?
+        attrs[:state] = 'no'
+      else
+        # remove existing ace first
+        destroy if seqno
+        attrs[:state] = ''
+      end
+
       if attrs[:remark]
         cmd = 'ace_remark'
       else
@@ -90,15 +111,21 @@ module Cisco
           attrs[p] = '' if attrs[p].nil?
         end
       end
-
-      @set_args.merge!(attrs)
+      set_args_keys(attrs)
       config_set('acl', cmd, @set_args)
     end
 
     # PROPERTIES
     # ----------
+    def seqno
+      match = ace_get
+      return nil if match.nil?
+      match.names.include?('seqno') ? match[:seqno] : nil
+    end
+
     def action
       match = ace_get
+      return nil if match.nil?
       match.names.include?('action') ? match[:action] : nil
     end
 
@@ -108,6 +135,7 @@ module Cisco
 
     def remark
       match = ace_get
+      return nil if match.nil?
       match.names.include?('remark') ? match[:remark] : nil
     end
 
@@ -117,6 +145,7 @@ module Cisco
 
     def proto
       match = ace_get
+      return nil if match.nil?
       match.names.include?('proto') ? match[:proto] : nil
     end
 
@@ -126,6 +155,7 @@ module Cisco
 
     def src_addr
       match = ace_get
+      return nil if match.nil?
       match.names.include?('src_addr') ? match[:src_addr] : nil
     end
 
@@ -135,6 +165,7 @@ module Cisco
 
     def src_port
       match = ace_get
+      return nil if match.nil?
       match.names.include?('src_port') ? match[:src_port] : nil
     end
 
@@ -144,6 +175,7 @@ module Cisco
 
     def dst_addr
       match = ace_get
+      return nil if match.nil?
       match.names.include?('dst_addr') ? match[:dst_addr] : nil
     end
 
@@ -153,6 +185,7 @@ module Cisco
 
     def dst_port
       match = ace_get
+      return nil if match.nil?
       match.names.include?('dst_port') ? match[:dst_port] : nil
     end
 

@@ -133,4 +133,28 @@ class TestAce < CiscoTestCase
     refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
                       msg:     "failed to remove ace seqno #{@seqno}")
   end
+
+  def test_ace_update
+    action = 'permit'
+    proto = 'tcp'
+    src = '1.0.0.0/8'
+    dst = '3.0.0.0 0.0.0.8'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+
+    a = Ace.new('ipv4', 'ace_update', 10)
+    a.ace_set(entry)
+
+    assert_equal(src, a.src_addr)
+    assert_equal(dst, a.dst_addr)
+
+    src = '2.0.0.0/16'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+    a.ace_set(entry)
+    assert_equal(src, a.src_addr)
+
+    dst = '3.0.0.0 0.0.0.4'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+    a.ace_set(entry)
+    assert_equal(dst, a.dst_addr)
+  end
 end
