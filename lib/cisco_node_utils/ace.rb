@@ -63,8 +63,7 @@ module Cisco
                  ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)*'\
                  ' *(?<src_port>eq \S+|neq \S+|lt \S+|''gt \S+|range \S+ \S+|portgroup \S+)?'\
                  ' *(?<dst_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)'\
-                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|portgroup \S+)?'\
-                 ' *(?<option_format>[a-zA-Z0-9\-\/ ]*)*')
+                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|portgroup \S+)?')
       # rubocop:enable Metrics/LineLength
       regexp.match(str)
     end
@@ -148,18 +147,6 @@ module Cisco
 
     def dst_port=(src_port)
       @set_args[:dst_port] = src_port
-    end
-
-    # TBD option_format is currently a catch-all for all other ace properties.
-    # This will likely need to be reworked to support explicit properties.
-    def option_format
-      match = ace_get
-      return nil if match.nil?
-      match[:option_format]
-    end
-
-    def option_format=(option)
-      @set_args[:option_format] = option
     end
   end
 end
