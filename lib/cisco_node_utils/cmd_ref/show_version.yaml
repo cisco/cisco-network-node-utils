@@ -4,10 +4,8 @@ _template:
   get_command: 'sh version'
   nexus:
     data_format: nxapi_structured
-    test_get_command: "sh version | no-more"
   ios_xr:
     data_format: cli
-    test_get_command: "sh version"
 
 board:
   nexus:
@@ -41,7 +39,6 @@ description:
   ios_xr:
     get_command: 'show inventory | inc "Rack 0"'
     get_value: '/DESCR: "(.*)"/'
-    test_get_command: 'show inventory | inc "Rack 0"'
     test_get_value: '/DESCR: "(.*)"/'
 
 full:

@@ -28,7 +28,7 @@ module Cisco
               get_data_format get_command get_context get_value
               set_data_format set_context set_value
               auto_default multiple kind
-              test_get_command test_get_value)
+              test_get_value)
 
     def self.keys
       KEYS
@@ -546,6 +546,8 @@ module Cisco
           result[key] = value
         elsif value.is_a?(Hash)
           to_inspect << value
+        elsif value.nil?
+          next
         else
           fail "Unexpected non-hash data: #{value}"
         end

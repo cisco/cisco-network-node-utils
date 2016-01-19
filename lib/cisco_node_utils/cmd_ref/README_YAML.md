@@ -32,7 +32,7 @@ This document describes the structure and semantics of these files.
   * [`kind`](#kind)
   * [`multiple`](#multiple)
   * [`auto_default`](#auto_default)
-  * [`test_get_command` and `test_get_value`](#test_get_command-and-test_get_value)
+  * [`test_get_value`](#test_get_value)
 * [Style Guide](#style-guide)
 
 ## Introduction
@@ -310,11 +310,9 @@ _template:
   ios_xr:
     get_command: 'show inventory | begin "Rack 0"'
     get_data_model: cli
-    test_get_command: 'show inventory'
   nexus:
     get_command: 'show inventory'
     get_data_model: nxapi_structured
-    test_get_command: 'show inventory | no-more'
 
 productid:
   ios_xr:
@@ -339,7 +337,6 @@ description:
   ios_xr:
     get_command: 'show inventory | inc "Rack 0"'
     get_value: '/DESCR: "(.*)"/'
-    test_get_command: 'show inventory | inc "Rack 0"'
     test_get_value: '/DESCR: "(.*)"/'
 ```
 
@@ -550,17 +547,13 @@ dampen_igp_metric:
   set_value: '<state> dampen-igp-metric <num>'
 ```
 
-### `test_get_command` and `test_get_value`
+### `test_get_value`
 
-Test-only equivalents to `get_command` and `get_value` - a show command
-to be executed over telnet by the minitest unit test scripts, and a regex
-(or array thereof) to match in the resulting plaintext output.
-Should only be referenced by test scripts, never by a feature provider itself.
+Test-only equivalent to `get_value` - a regex (or array thereof) to match in any plaintext output gathered from the node under test. Should only be referenced by test scripts, never by a feature provider itself.
 
 ```yaml
 # show_version.yaml
 boot_image:
-  test_get_command: 'show version | no-more'
   test_get_value: '/NXOS image file is: (.*)$/'
 ```
 

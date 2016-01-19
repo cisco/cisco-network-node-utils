@@ -336,7 +336,7 @@ module Cisco
     # @return [Float] combined user/kernel CPU utilization
     def system_cpu_utilization
       output = config_get('system', 'resources')
-      fail 'failed to retrieve cpu utilization' if output.nil?
+      return output if output.nil?
       output['cpu_state_user'].to_f + output['cpu_state_kernel'].to_f
     end
 

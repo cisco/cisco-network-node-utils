@@ -171,7 +171,7 @@ name:
     type_check(ref.set_value, Array)
     type_check(ref.set_value[0], String)
     type_check(ref.test_get_value, String)
-    assert_raises(IndexError) { ref.test_get_command }
+    assert_raises(IndexError) { ref.context }
 
     assert(ref.default_value?)
     assert(ref.get_command?)
@@ -566,12 +566,12 @@ test3:
   RAW_2 = {
     '_template' => {
       'ios_xr' => {
-        'cli'              => { 'get_command' => 'show inventory' },
-        'test_get_command' => 'show inventory',
+        'cli'       => { 'get_command' => 'show inventory' },
+        'set_value' => 'show inventory',
       },
       'nexus'  => {
         'nxapi_structured' => { get_command: 'show inventory' },
-        'test_get_command' => 'show inventory | no-more',
+        'set_value'        => 'show inventory | no-more',
       },
     }
   }
@@ -579,7 +579,7 @@ test3:
   FILTERED_2_IOS_XR = {
     '_template' => {
       'ios_xr' => {
-        'test_get_command' => 'show inventory'
+        'set_value' => 'show inventory'
       }
     }
   }
@@ -587,8 +587,8 @@ test3:
   FILTERED_2_IOS_XR_CLI = {
     '_template' => {
       'ios_xr' => {
-        'cli'              => { 'get_command' => 'show inventory' },
-        'test_get_command' => 'show inventory',
+        'cli'       => { 'get_command' => 'show inventory' },
+        'set_value' => 'show inventory',
       }
     }
   }
@@ -632,10 +632,10 @@ test3:
     assert_equal({ 'default_value' => nil }, merged)
 
     merged = CommandReference.hash_merge(FILTERED_2_IOS_XR)
-    assert_equal({ 'test_get_command' => 'show inventory' }, merged)
+    assert_equal({ 'set_value' => 'show inventory' }, merged)
 
     merged = CommandReference.hash_merge(FILTERED_2_IOS_XR_CLI)
-    assert_equal({ 'test_get_command' => 'show inventory',
-                   'get_command'      => 'show inventory' }, merged)
+    assert_equal({ 'set_value'   => 'show inventory',
+                   'get_command' => 'show inventory' }, merged)
   end
 end
