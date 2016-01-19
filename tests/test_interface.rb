@@ -1219,8 +1219,8 @@ class TestInterface < CiscoTestCase
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
     interface = Interface.new(interfaces[0])
-    interface.stp_cost = '2000'
-    assert_equal('2000', interface.stp_cost)
+    interface.stp_cost = 2000
+    assert_equal(2000, interface.stp_cost)
     interface.stp_cost = interface.default_stp_cost
     assert_equal(interface.default_stp_cost,
                  interface.stp_cost)

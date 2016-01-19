@@ -524,7 +524,9 @@ module Cisco
     end
 
     def stp_cost
-      config_get('interface', 'stp_cost', @name)
+      cost = config_get('interface', 'stp_cost', @name)
+      cost = cost.to_i unless cost == 'auto'
+      cost
     end
 
     def stp_cost=(val)
