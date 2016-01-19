@@ -78,11 +78,12 @@ class TestInterface < CiscoTestCase
 
   # Helper to check for misc speed change disallowed error messages.
   def speed_change_disallowed(message)
-    pattern = Regexp.new('(port doesn t support this speed|' \
-                         'Changing interface speed is not permitted|' \
-                         'requested config change not allowed)')
+    patterns = %w(port doesn t support this speed
+                  Changing interface speed is not permitted
+                  requested config change not allowed
+                  Configuration does not match the transceiver speed)
     skip('Skip test: Interface type does not allow config change') if
-         message[pattern]
+         message[Regexp.union(patterns)]
     flunk(message)
   end
 
