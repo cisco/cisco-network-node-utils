@@ -119,8 +119,8 @@ class Cisco::Client
         # '/foo/i' => %r{foo}i
         return Regexp.new(input[1..-3], Regexp::IGNORECASE)
       else
-        # 'foo' => %r{^foo$}
-        return Regexp.new("^#{input}$")
+        # 'foo' => %r{^foo$}i
+        return Regexp.new("^#{input}$", Regexp::IGNORECASE)
       end
     end
   end
