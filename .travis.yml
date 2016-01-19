@@ -8,16 +8,5 @@ rvm:
   - 2.1.6
   - 2.0.0-p648 # specify non-clang version of ruby
 
-before_install:
-  - git clone https://github.com/grpc/grpc.git
-  - cd grpc
-  - git checkout release-0_12
-  - gem build grpc.gemspec
-  - gem install --local --force grpc-*.gem
-  - mkdir -p ../vendor/cache
-  - cp grpc-*.gem ../vendor/cache
-  - cd ..
-  - rm -rf grpc
-
 script:
  - bundle exec rake
