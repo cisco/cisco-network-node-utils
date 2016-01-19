@@ -119,17 +119,25 @@ class TestNodeExt < CiscoTestCase
 
   def test_get_product_description
     product_description = node.product_description
-    ref = cmd_ref.lookup('show_version', 'description')
-    assert(ref, 'Error, reference not found')
 
     if platform == :nexus
       command = 'show version'
+      # Hardware
+      #   cisco Nexus9000 C9396PX Chassis
+      #
+      # Other variants for the line of interest:
+      #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
+      #                                          ^-module_id-ignore!-^
+      #   cisco Nexus3000 C3132Q Chassis
+      #   cisco N3K-C3048TP-1GE
+      pattern = /Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/
     elsif platform == :ios_xr
       command = 'show inventory | inc "Rack 0"'
+      pattern = /DESCR: "(.*)"/
     end
 
     assert_output_check(command: command,
-                        pattern: ref.test_get_value,
+                        pattern: pattern,
                         check:   product_description,
                         msg:     'Error, Product description does not match')
   end
@@ -163,10 +171,13 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_os_version
-    ref = cmd_ref.lookup('show_version', 'version')
-    assert(ref, 'Error, reference not found')
+    if platform == :nexus
+      pattern = /.*NXOS:\s+version (.*)\n/
+    elsif platform == :ios_xr
+      pattern = /IOS XR.*Version (.*)$/
+    end
     assert_output_check(command: 'show version',
-                        pattern: ref.test_get_value[1],
+                        pattern: pattern,
                         check:   node.os_version,
                         msg:     'Error, OS version does not match')
   end
@@ -325,17 +336,15 @@ class TestNodeExt < CiscoTestCase
       return
     end
     last_reset_time = node.last_reset_time
-    ref = cmd_ref.lookup('show_version', 'last_reset_time')
-    assert(ref, 'Error, reference not found')
     # N9k doesn't provide this info at present.
     if !last_reset_time.empty?
       assert_output_check(command: 'show version',
-                          pattern: ref.test_get_value,
+                          pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
                           check:   last_reset_time,
                           msg:     'Error, Last reset time does not match')
     else
       refute_show_match(command: 'show version',
-                        pattern: ref.test_get_value,
+                        pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
                         msg:     'output found in ASCII but not in node')
     end
   end
@@ -345,10 +354,8 @@ class TestNodeExt < CiscoTestCase
       assert_nil(node.last_reset_reason)
       return
     end
-    ref = cmd_ref.lookup('show_version', 'last_reset_reason')
-    assert(ref, 'Error, reference not found')
     assert_output_check(command: 'show version',
-                        pattern: ref.test_get_value,
+                        pattern: /.*\nLast reset.*\n\n?  Reason: (.*)\n/,
                         check:   node.last_reset_reason,
                         msg:     'Error, Last reset reason does not match')
   end
@@ -359,10 +366,9 @@ class TestNodeExt < CiscoTestCase
       return
     end
     cpu_utilization = node.system_cpu_utilization
-    ref = cmd_ref.lookup('system', 'resources')
-    assert(ref, 'Error, reference not found')
-    md = assert_show_match(command: 'show system resources',
-                           pattern: ref.test_get_value)
+    md = assert_show_match(
+      command: 'show system resources',
+      pattern: /.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/)
     observed_cpu_utilization = md[1].to_f + md[2].to_f
     delta = cpu_utilization - observed_cpu_utilization
     assert(delta > -15.0 && delta < 15.0,
@@ -374,10 +380,8 @@ class TestNodeExt < CiscoTestCase
       assert_nil(node.boot)
       return
     end
-    ref = cmd_ref.lookup('show_version', 'boot_image')
-    assert(ref, 'Error, reference not found')
     assert_output_check(command: 'show version',
-                        pattern: ref.test_get_value,
+                        pattern: /.*NXOS image file is: (.*)$.*/,
                         check:   node.boot,
                         msg:     'Error, Kickstart Image does not match')
   end
@@ -387,10 +391,8 @@ class TestNodeExt < CiscoTestCase
       assert_nil(node.system)
       return
     end
-    ref = cmd_ref.lookup('show_version', 'system_image')
-    assert(ref, 'Error, reference not found')
     assert_output_check(command: 'show version',
-                        pattern: ref.test_get_value,
+                        pattern: /.*(?:system|NXOS) image file is: (.*)$.*/,
                         check:   node.system,
                         msg:     'Error, System Image does not match')
   end

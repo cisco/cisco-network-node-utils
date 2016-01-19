@@ -27,8 +27,7 @@ module Cisco
               data_format context value
               get_data_format get_command get_context get_value
               set_data_format set_context set_value
-              auto_default multiple kind
-              test_get_value)
+              auto_default multiple kind)
 
     def self.keys
       KEYS

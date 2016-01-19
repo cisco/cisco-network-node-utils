@@ -69,6 +69,3 @@ mapping:
       set_context: *context
       set_value:
         type: str
-      # Test-only attributes (TODO)
-      test_get_value:
-        type: any

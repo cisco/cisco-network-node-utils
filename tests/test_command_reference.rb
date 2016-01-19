@@ -157,7 +157,6 @@ name:
   set_value:
     - "hello"
     - "world"
-  test_get_value: '/hello world/'
 ))
     reference = load_file
     ref = reference.lookup('test', 'name')
@@ -170,7 +169,6 @@ name:
     type_check(ref.set_context[0], String)
     type_check(ref.set_value, Array)
     type_check(ref.set_value[0], String)
-    type_check(ref.test_get_value, String)
     assert_raises(IndexError) { ref.context }
 
     assert(ref.default_value?)

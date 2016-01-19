@@ -18,24 +18,6 @@ chassis:
     multiple: true
     get_context: ["TABLE_inv", "ROW_inv"]
 
-inventory:
-  # TODO: clean this up
-  '/N7K/':
-    test_get_value: [
-    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
-    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
-    ]
-  '/N9K/':
-    test_get_value: [
-    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
-    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
-    ]
-  else:
-    test_get_value: [
-    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/',
-    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/'
-    ]
-
 productid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'

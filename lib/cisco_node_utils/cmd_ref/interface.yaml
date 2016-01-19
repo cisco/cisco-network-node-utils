@@ -109,10 +109,6 @@ ipv4_redirects_loopback:
     get_value: '/^((?:no )?ipv4 redirects)$/'
     set_value: "<state> ipv4 redirects"
     default_value: false
-    test_get_value: [
-    '/^\s+ipv4 redirects/',
-    '/^\s+no ipv4 redirects/'
-    ]
 
 ipv4_redirects_other_interfaces:
   kind: boolean
@@ -120,18 +116,10 @@ ipv4_redirects_other_interfaces:
     get_value: '/^((?:no )?ip redirects)$/'
     set_value: "<state> ip redirects"
     default_value: true
-    test_get_value: [
-    '/^\s+ip redirects/',
-    '/^\s+no ip redirects/'
-    ]
   ios_xr:
     get_value: '/^((?:no )?ipv4 redirects)$/'
     set_value: "<state> ipv4 redirects"
     default_value: false
-    test_get_value: [
-    '/^\s+ipv4 redirects/',
-    '/^\s+no ipv4 redirects/'
-    ]
 
 mtu_loopback:
   kind: boolean
@@ -149,10 +137,6 @@ mtu_other_interfaces:
 negotiate_auto_ethernet:
   kind: boolean
   _exclude: [ios_xr]
-  test_get_value: [
-  '/^\s+no negotiate auto/',
-  '/^\s+negotiate auto/'
-  ]
   '/(N7K|C3064)/':
     default_only: false
   else:
@@ -169,10 +153,6 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr]
   nexus:
-    test_get_value: [
-    '/^\s+no negotiate auto/',
-    '/^\s+negotiate auto/'
-    ]
     '/N7K/':
       default_only: false
     else:

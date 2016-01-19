@@ -32,7 +32,6 @@ This document describes the structure and semantics of these files.
   * [`kind`](#kind)
   * [`multiple`](#multiple)
   * [`auto_default`](#auto_default)
-  * [`test_get_value`](#test_get_value)
 * [Style Guide](#style-guide)
 
 ## Introduction
@@ -265,10 +264,8 @@ for all products that do not match any of the given regexps:
 system_image:
   /N9K/:
     get_value: "kick_file_name"
-    test_get_value: '/.*NXOS image file is: (.*)$.*/'
   else:
     get_value: "isan_file_name"
-    test_get_value: '/.*system image file is:    (.*)$.*/'
 ```
 
 ### `_exclude`
@@ -325,19 +322,17 @@ productid:
 Using platform variants and product variants together:
 
 ```yaml
-# inventory.yaml
-description:
+# interface.yaml
+negotiate_auto_portchannel:
+  kind: boolean
+  _exclude: [ios_xr]
   nexus:
-    get_data_model: nxapi_structured
-    get_value: "chassis_id"
-    /N7K/:
-      test_get_value: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+    '/N7K/':
+      default_only: false
     else:
-      test_get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
-  ios_xr:
-    get_command: 'show inventory | inc "Rack 0"'
-    get_value: '/DESCR: "(.*)"/'
-    test_get_value: '/DESCR: "(.*)"/'
+      get_value: '/^(no )?negotiate auto$/'
+      set_value: "<state> negotiate auto"
+      default_value: true
 ```
 
 ## Attribute properties
@@ -545,16 +540,6 @@ dampen_igp_metric:
   kind: int
   get_value: '/^dampen-igp-metric (\d+)$/'
   set_value: '<state> dampen-igp-metric <num>'
-```
-
-### `test_get_value`
-
-Test-only equivalent to `get_value` - a regex (or array thereof) to match in any plaintext output gathered from the node under test. Should only be referenced by test scripts, never by a feature provider itself.
-
-```yaml
-# show_version.yaml
-boot_image:
-  test_get_value: '/NXOS image file is: (.*)$/'
 ```
 
 ## Style Guide
