@@ -714,7 +714,7 @@ class TestInterface < CiscoTestCase
     # Some platforms/interfaces/versions do not support negotiation changes
     begin
       interface.negotiate_auto = false
-    rescue RuntimeError => e
+    rescue CliError => e
       skip('Skip test: Interface type does not allow config change') if
         e.message[/requested config change not allowed/]
       flunk(e.message)
