@@ -326,12 +326,29 @@ module Cisco
       config_get_default('interface', 'ipv4_address')
     end
 
+    def default_ipv4_address_secondary
+      default_ipv4_address
+    end
+
     def default_ipv4_netmask_length
       config_get_default('interface', 'ipv4_netmask_length')
     end
 
+    def default_ipv4_netmask_length_secondary
+      default_ipv4_netmask_length
+    end
+
+    def ipv4_arp_timeout_lookup_string
+      case @name
+      when /vlan/i
+        return 'ipv4_arp_timeout'
+      else
+        return 'ipv4_arp_timeout_non_vlan_interfaces'
+      end
+    end
+
     def ipv4_arp_timeout
-      config_get('interface', 'ipv4_arp_timeout', @name)
+      config_get('interface', ipv4_arp_timeout_lookup_string, @name)
     end
 
     def ipv4_arp_timeout=(timeout)
@@ -342,7 +359,7 @@ module Cisco
     end
 
     def default_ipv4_arp_timeout
-      config_get_default('interface', 'ipv4_arp_timeout')
+      config_get_default('interface', ipv4_arp_timeout_lookup_string)
     end
 
     def ipv4_pim_sparse_mode
