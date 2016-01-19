@@ -4,7 +4,7 @@
 #
 # December 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -226,33 +226,6 @@ module Cisco
 
     def cache_auto=(enable)
       @client.cache_auto = enable
-    end
-
-    # Helper method for config_get().
-    # @param token [Array, Hash] lookup sequence
-    # @param result [Array, Hash] structured output from node
-    def config_get_handle_structured(token, result)
-      token.each do |t|
-        # if token is a hash and result is an array, check each
-        # array index (which should return another hash) to see if
-        # it contains the matching key/value pairs specified in token,
-        # and return the first match (or nil)
-        if t.kind_of?(Hash)
-          fail "Expected array, got #{result.class}" unless result.is_a? Array
-          result = result.select { |x| t.all? { |k, v| x[k] == v } }
-          fail "Multiple matches found for #{t}" if result.length > 1
-          fail "No match found for #{t}" if result.length == 0
-          result = result[0]
-        else # result is array or hash
-          fail "No key \"#{t}\" in #{result}" if result[t].nil?
-          result = result[t]
-        end
-      end
-      result
-    rescue RuntimeError
-      # TODO: logging user story, Syslog isn't available here
-      # Syslog.debug(e.message)
-      nil
     end
 
     # Send a config command to the device.

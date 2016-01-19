@@ -1,3 +1,5 @@
+# Kwalify schema for cmd_ref YAML files
+
 type: map
 mapping:
   # List of cases to specifically exclude
@@ -6,9 +8,6 @@ mapping:
     sequence:
       - type: str
         enum: &filters # Things we can filter by
-          # Data format classes
-          - 'cli'
-          - 'nxapi_structured'
           # Platform classes
           - 'ios_xr'
           - 'nexus'

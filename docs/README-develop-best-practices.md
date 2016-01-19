@@ -14,7 +14,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 
 * [Y1](#yaml1): One feature per YAML file
 * [Y2](#yaml2): All attribute entries must be kept in alphabetical order.
-* [Y3](#yaml3): Use *regexp* anchors where needed for `get_command`, `get_context`, and `get_value` entries.
+* [Y3](#yaml3): Use *regexp* anchors where needed for CLI `get_context` and `get_value` entries.
 * [Y4](#yaml4): Avoid nested optional matches.
 * [Y5](#yaml5): Use the `_template` feature when getting/setting the same property value at multiple levels.
 * [Y6](#yaml6): When possible include a `default_value` that represents the system default value.
@@ -55,11 +55,9 @@ All attribute entries in a given YAML file must be kept in alphabetical order. A
 
 This rule is enforced by the `Cisco::CommandReference` class itself - it will raise an exception if it detects any out-of-order entries.
 
-### <a name="yaml3">Y3: Use *regexp* anchors where needed for `get_command`, `get_context`, and `get_value` entries.
+### <a name="yaml3">Y3: Use *regexp* anchors where needed for CLI `get_context` and `get_value` entries.
 
-Please use *regexp* anchors `^$` to ensure you match the correct feature information in the `show` output.
-
-TODO
+By default, CLI clients assume that `get_context` and `get_value` are to be treated as Regexps, and implicitly add regexp anchors and case-insensitivity (i.e., a `get_value` of `'router bgp 100'` becomes the regexp `/^router bgp 100$/i`). If you want to explicitly specify a regexp (perhaps because the default behavior does not meet your needs for a specific property), be sure to add the `^` and `$` anchors to ensure you match the correct feature information in the `show` output and do not unexpectedly match similar but undesired CLI strings.
 
 ```yaml
 # syslog_settings.yaml

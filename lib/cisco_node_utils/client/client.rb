@@ -162,7 +162,7 @@ class Cisco::Client
   def set(data_format: :cli,
           context:     nil,
           values:      nil)
-    # subclasses will generally want to call munge_to_array()
+    # subclasses will generally want to call Client.munge_to_array()
     # on context and/or values before calling super()
     fail RequestNotSupported unless self.supports?(data_format)
     cache_flush if cache_auto?
@@ -172,15 +172,6 @@ class Cisco::Client
     Cisco::Logger.debug("  to value(s):\n    #{values.join("\n    ")}") \
       unless values.nil? || values.empty?
     # to be implemented by subclasses
-  end
-
-  def munge_to_array(val)
-    if val.is_a?(String)
-      val = val.split("\n")
-    elsif val.nil?
-      val = []
-    end
-    val
   end
 
   # Get the given state from the device.
@@ -201,7 +192,7 @@ class Cisco::Client
           command:     nil,
           context:     nil,
           value:       nil)
-    # subclasses will generally want to call munge_to_array()
+    # subclasses will generally want to call Client.munge_to_array()
     # on context and/or value before calling super()
     fail RequestNotSupported unless self.supports?(data_format)
     Cisco::Logger.debug("Get state using data format '#{data_format}'")
@@ -216,7 +207,7 @@ class Cisco::Client
 
   private
 
-  # List of data formats supported by this client.
+  # Set the list of data formats supported by this client.
   # If the client supports multiple formats, and a given feature or property
   # can be managed by multiple formats, the list order indicates preference.
   def data_formats=(data_formats)
@@ -226,6 +217,7 @@ class Cisco::Client
     @data_formats = data_formats
   end
 
+  # Set the platform of the node managed by this client.
   def platform=(platform)
     fail ArgumentError, "unknown platform #{platform}" \
       unless Cisco::PLATFORMS.include?(platform)

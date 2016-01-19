@@ -20,10 +20,20 @@ require_relative 'client_errors'
 require_relative '../constants'
 require_relative '../logger'
 
-include Cisco::Logger
-
 # Utility methods for clients of various RPC formats
 class Cisco::Client
+  # Make a best effort to convert a given input value to an Array.
+  # Strings are split by newlines, and nil becomes an empty Array.
+  def self.munge_to_array(val)
+    val = [] if val.nil?
+    val = val.split("\n") if val.is_a?(String)
+    val
+  end
+
+  def munge_to_array(val)
+    self.class.munge_to_array(val)
+  end
+
   # Helper function that subclasses may use with get(data_format: :cli)
   # Method for working with hierarchical show command output such as
   # "show running-config". Searches the given multi-line string

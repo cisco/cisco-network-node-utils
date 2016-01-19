@@ -137,7 +137,7 @@ YAML files in the `/cmd_ref/` subdirectory are automatically discovered at runti
 
 The following basic command_reference parameters will be defined for each resource property:
 
- 1. `get_command:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
+ 1. `get_command:` This defines the CLI command (usually a 'show...' command) or similar request string used to retrieve the property's current configuration state. Note that some commands may not be present on NX-OS until a pre-requisite feature is enabled.
  2. `get_value:` A regexp pattern for extracting state values from the get_command output.
  3. `set_value:` The configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
@@ -145,7 +145,7 @@ The following basic command_reference parameters will be defined for each resour
  6. `multiple:` By default a property is assumed to be found once or not at all by the `get_command`/`get_value` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
 
 There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md) document for more information on the structure and semantics of these files.
-The properties in this example require additional context for their `get_value` values because they need to differentiate between different eigrp instances. This is done with the `get_context` parameter. Most properties will also have a default value.
+The properties in this example require additional context for their `get_value` and `set_value` because they need to differentiate between different eigrp instances. This is done with the `context` parameter. (For more complex properties, you can define `get_context` and `set_context` separately if needed.) Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
 
@@ -168,10 +168,10 @@ feature:
 maximum_paths:
   # This is an integer property
   kind: int
+  context: 
+    - 'router eigrp <name>'
   get_command: 'show running eigrp all'
-  get_context: '/^router eigrp <name>$/'
   get_value: '/^maximum-paths (\d+)/'
-  set_context: 'router eigrp <name>'
   set_value: 'maximum-paths <val>'
   default_value: 8
 
@@ -185,10 +185,10 @@ router:
 shutdown:
   # This is a boolean property
   kind: boolean
+  context:
+    - 'router eigrp <name>'
   get_command: 'show running eigrp all'
-  get_context: '/^router eigrp <name>$/'
   get_value: '/^shutdown$/'
-  set_context: 'router eigrp <name>'
   set_value: '<state> shutdown'
   default_value: false
 ```

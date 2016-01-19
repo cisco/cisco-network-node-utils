@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,21 +27,20 @@ class TestNodeExt < CiscoTestCase
     assert_equal(md[1], check, msg)
   end
 
-  def test_node_config_get
+  def test_config_get
     result = node.config_get('show_version', 'system_image')
     assert_equal(result, node.system)
   end
 
-  def test_node_config_get_regexp_tokens
+  def test_config_get_regexp_tokens
     node.client.set(context: ['interface loopback0'], values: ['shutdown'])
-    # TODO: smarter handling of 'no' on XR
     node.client.set(values: ['interface loopback1', 'no shutdown'])
 
     result = node.config_get('interface', 'shutdown', name: 'loopback1')
     refute(result)
   end
 
-  def test_node_config_get_invalid
+  def test_config_get_invalid
     assert_raises IndexError do # no entry
       node.config_get('feature', 'name')
     end
@@ -50,12 +49,12 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_config_get_default
+  def test_config_get_default
     result = node.config_get_default('bgp', 'graceful_restart_timers_restart')
     assert_equal(120, result)
   end
 
-  def test_node_config_get_default_invalid
+  def test_config_get_default_invalid
     assert_raises IndexError do # no name entry
       node.config_get_default('show_version', 'foobar')
     end
@@ -67,7 +66,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_config_set
+  def test_config_set
     node.config_set('interface', 'create', name: 'loopback122')
     run = node.client.get(command: 'show run | inc interface')
     val = Client.filter_cli(cli_output: run, value: /interface loopback122/i)
@@ -79,7 +78,7 @@ class TestNodeExt < CiscoTestCase
     assert_nil(val)
   end
 
-  def test_node_config_set_invalid
+  def test_config_set_invalid
     assert_raises IndexError do
       node.config_set('feature', 'name')
     end
@@ -98,7 +97,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_cli_caching
+  def test_cli_caching
     # don't use config() here because we are testing caching and flushing
     @device.cmd('conf t')
     @device.cmd("#{@domain} minitest")
@@ -117,7 +116,7 @@ class TestNodeExt < CiscoTestCase
     refute_equal(dom1, dom3)
   end
 
-  def test_node_get_product_description
+  def test_get_product_description
     product_description = node.product_description
     ref = cmd_ref.lookup('show_version', 'description')
     assert(ref, 'Error, reference not found')
@@ -128,7 +127,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Product description does not match')
   end
 
-  def test_node_get_product_id
+  def test_get_product_id
     ref = cmd_ref.lookup('inventory', 'productid')
     assert_output_check(command: ref.test_get_command,
                         pattern: /NAME: \"#{@chassis}\".*\nPID: (\S+)/,
@@ -136,7 +135,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Product id does not match')
   end
 
-  def test_node_get_product_version_id
+  def test_get_product_version_id
     ref = cmd_ref.lookup('inventory', 'versionid')
     assert_output_check(command: ref.test_get_command,
                         pattern: /NAME: \"#{@chassis}\".*\n.*VID: (\w+)/,
@@ -144,7 +143,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Version id does not match')
   end
 
-  def test_node_get_product_serial_number
+  def test_get_product_serial_number
     ref = cmd_ref.lookup('inventory', 'serialnum')
     assert_output_check(command: ref.test_get_command,
                         pattern: /NAME: \"#{@chassis}\".*\n.*SN: ([-\w]+)/,
@@ -152,7 +151,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Serial number does not match')
   end
 
-  def test_node_get_os
+  def test_get_os
     ref = cmd_ref.lookup('show_version', 'version')
     assert_output_check(command: ref.test_get_command,
                         pattern: /\n(Cisco.*Software)/,
@@ -160,7 +159,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, OS version does not match')
   end
 
-  def test_node_get_os_version
+  def test_get_os_version
     ref = cmd_ref.lookup('show_version', 'version')
     assert(ref, 'Error, reference not found')
     assert_output_check(command: ref.test_get_command,
@@ -169,7 +168,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, OS version does not match')
   end
 
-  def test_node_get_host_name_when_not_set
+  def test_get_host_name_when_not_set
     if platform == :nexus
       s = @device.cmd('show running-config all | no-more')
     else
@@ -206,7 +205,7 @@ class TestNodeExt < CiscoTestCase
     config("switchname #{configured_name}") if switchname == true
   end
 
-  def test_node_get_host_name_when_set
+  def test_get_host_name_when_set
     if platform == :nexus
       s = @device.cmd('show running-config all | no-more')
     else
@@ -243,7 +242,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_get_domain_name_when_not_set
+  def test_get_domain_name_when_not_set
     # Test with default vrf only
     s = @device.cmd("show running-config | incl '^#{@domain}'")
     pattern = /^#{@domain} (\S+)/
@@ -266,7 +265,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_get_domain_name_when_set
+  def test_get_domain_name_when_set
     s = @device.cmd('show running-config | no-more')
     pattern = /.*\n#{@domain} (\S+)/
     md = pattern.match(s)
@@ -288,7 +287,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_get_system_uptime
+  def test_get_system_uptime
     node.cache_flush
     pattern = /
       .*System\suptime.*
@@ -317,7 +316,7 @@ class TestNodeExt < CiscoTestCase
            "Error, System uptime delta is (#{delta}), expected (delta < 10)")
   end
 
-  def test_node_get_last_reset_time
+  def test_get_last_reset_time
     if platform == :ios_xr
       assert_nil(node.last_reset_time)
       return
@@ -338,7 +337,7 @@ class TestNodeExt < CiscoTestCase
     end
   end
 
-  def test_node_get_last_reset_reason
+  def test_get_last_reset_reason
     if platform == :ios_xr
       assert_nil(node.last_reset_reason)
       return
@@ -351,7 +350,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Last reset reason does not match')
   end
 
-  def test_node_get_system_cpu_utilization
+  def test_get_system_cpu_utilization
     if platform == :ios_xr
       assert_nil(node.last_reset_reason)
       return
@@ -367,7 +366,7 @@ class TestNodeExt < CiscoTestCase
            "Error: delta #{delta}, not +- 15.0")
   end
 
-  def test_node_get_boot
+  def test_get_boot
     if platform == :ios_xr
       assert_nil(node.boot)
       return
@@ -380,7 +379,7 @@ class TestNodeExt < CiscoTestCase
                         msg:     'Error, Kickstart Image does not match')
   end
 
-  def test_node_get_system
+  def test_get_system
     if platform == :ios_xr
       assert_nil(node.system)
       return
