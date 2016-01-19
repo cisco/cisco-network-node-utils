@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ module Cisco
 
       # remark is a description field, needs a separate regex
       # Example: <MatchData "20 remark foo bar" seqno:"20" remark:"foo bar">
-      remark = str.match(/(?<seqno>\d+) remark (?<remark>.*)/)
+      remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
       # rubocop:disable Metrics/LineLength
@@ -68,12 +68,30 @@ module Cisco
       regexp.match(str)
     end
 
+    def destroy
+      ace_set({})
+    end
+
     # common ace setter. Put the values you need in a hash and pass it in.
     # attrs = {:action=>'permit', :proto=>'tcp', :src =>'host 1.1.1.1'}
     def ace_set(attrs)
-      @set_args[:state] = attrs.empty? ? 'no ' : ''
-      @set_args.merge!(attrs) unless attrs.empty?
-      cmd = @set_args[:remark] ? 'ace_remark' : 'ace'
+      @set_args[:state] = attrs.empty? ? 'no' : ''
+      if attrs[:remark]
+        cmd = 'ace_remark'
+      else
+        cmd = 'ace'
+        [:action,
+         :proto,
+         :src_addr,
+         :src_port,
+         :dst_addr,
+         :dst_port,
+        ].each do |p|
+          attrs[p] = '' if attrs[p].nil?
+        end
+      end
+
+      @set_args.merge!(attrs)
       config_set('acl', cmd, @set_args)
     end
 
@@ -81,8 +99,7 @@ module Cisco
     # ----------
     def action
       match = ace_get
-      return nil if match.nil?
-      match[:action]
+      match.names.include?('action') ? match[:action] : nil
     end
 
     def action=(action)
@@ -91,8 +108,7 @@ module Cisco
 
     def remark
       match = ace_get
-      return nil if match.nil?
-      match[:remark]
+      match.names.include?('remark') ? match[:remark] : nil
     end
 
     def remark=(remark)
@@ -101,8 +117,7 @@ module Cisco
 
     def proto
       match = ace_get
-      return nil if match.nil?
-      match[:proto]
+      match.names.include?('proto') ? match[:proto] : nil
     end
 
     def proto=(proto)
@@ -111,8 +126,7 @@ module Cisco
 
     def src_addr
       match = ace_get
-      return nil if match.nil?
-      match[:src_addr]
+      match.names.include?('src_addr') ? match[:src_addr] : nil
     end
 
     def src_addr=(src_addr)
@@ -121,8 +135,7 @@ module Cisco
 
     def src_port
       match = ace_get
-      return nil if match.nil?
-      match[:src_port]
+      match.names.include?('src_port') ? match[:src_port] : nil
     end
 
     def src_port=(src_port)
@@ -131,8 +144,7 @@ module Cisco
 
     def dst_addr
       match = ace_get
-      return nil if match.nil?
-      match[:dst_addr]
+      match.names.include?('dst_addr') ? match[:dst_addr] : nil
     end
 
     def dst_addr=(dst_addr)
@@ -141,8 +153,7 @@ module Cisco
 
     def dst_port
       match = ace_get
-      return nil if match.nil?
-      match[:dst_port]
+      match.names.include?('dst_port') ? match[:dst_port] : nil
     end
 
     def dst_port=(src_port)

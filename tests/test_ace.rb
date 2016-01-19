@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -129,8 +129,7 @@ class TestAce < CiscoTestCase
     end
     assert_show_match(pattern: /\s+#{@seqno} #{action}$/,
                       msg:     "failed to create ace seqno #{@seqno}")
-    # remove ace
-    ace.ace_set({})
+    ace.destroy
     refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
                       msg:     "failed to remove ace seqno #{@seqno}")
   end
