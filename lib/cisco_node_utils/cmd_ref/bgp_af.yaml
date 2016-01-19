@@ -204,8 +204,10 @@ redistribute_policy:
     set_value: ' <state> redistribute <protocol> route-policy <policy>'
 
 #config in vrf context
+# TODO: fix these for XR
 route_target_both_auto:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
@@ -215,7 +217,8 @@ route_target_both_auto:
   default_value: false
 
 route_target_both_auto_evpn:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
@@ -225,7 +228,8 @@ route_target_both_auto_evpn:
   default_value: false
 
 route_target_export:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
@@ -235,7 +239,8 @@ route_target_export:
   default_value: []
 
 route_target_export_evpn:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
@@ -245,7 +250,8 @@ route_target_export_evpn:
   default_value: []
 
 route_target_import:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"
@@ -255,7 +261,8 @@ route_target_import:
   default_value: []
 
 route_target_import_evpn:
-  get_command: 'sh run | section vrf'
+  nexus:
+    get_command: 'sh run | section vrf'
   context:
     - "vrf context <vrf>"
     - "address-family <afi> <safi>"

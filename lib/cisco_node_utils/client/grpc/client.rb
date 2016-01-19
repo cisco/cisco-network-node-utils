@@ -43,15 +43,8 @@ class Cisco::Client::GRPC < Cisco::Client
           password:     password,
           data_formats: [:cli],
           platform:     :ios_xr)
-    @update_metadata = proc do |md|
-      md[:username] = username
-      md[:password] = password
-      md
-    end
-    @config = GRPCConfigOper::Stub.new(address,
-                                       update_metadata: @update_metadata)
-    @exec = GRPCExec::Stub.new(address,
-                               update_metadata: @update_metadata)
+    @config = GRPCConfigOper::Stub.new(address, :this_channel_is_insecure)
+    @exec = GRPCExec::Stub.new(address, :this_channel_is_insecure)
 
     # Make sure we can actually connect
     @timeout = 5
@@ -144,7 +137,10 @@ class Cisco::Client::GRPC < Cisco::Client
     if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
       debug "  with cli: '#{args.cli}'"
     end
-    response = stub.send(type, args, timeout: @timeout)
+    response = stub.send(type, args,
+                         timeout:  @timeout,
+                         username: @username,
+                         password: @password)
     output = ''
     # gRPC server may split the response into multiples
     response = response.is_a?(Enumerator) ? response.to_a : [response]
