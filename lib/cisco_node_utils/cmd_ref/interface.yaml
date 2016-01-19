@@ -91,6 +91,9 @@ ipv4_arp_timeout:
   config_set_append: "%s ip arp timeout %s"
   default_value: 700
 
+ipv4_arp_timeout_non_vlan_interfaces:
+  default_only: ~
+
 ipv4_netmask_length:
   default_value: ~
 
