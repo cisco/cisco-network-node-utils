@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,23 +44,21 @@ class TestAce < CiscoTestCase
   # TESTS
   def test_create_destroy_ace_one
     attr_v4_1 = {
-      action:        'permit',
-      proto:         'tcp',
-      src_addr:      '7.8.9.6 2.3.4.5',
-      src_port:      'eq 40',
-      dst_addr:      '1.2.3.4/32',
-      dst_port:      'neq 20',
-      option_format: 'precedence critical',
+      action:   'permit',
+      proto:    'tcp',
+      src_addr: '7.8.9.6 2.3.4.5',
+      src_port: 'eq 40',
+      dst_addr: '1.2.3.4/32',
+      dst_port: 'neq 20',
     }
 
     attr_v4_2 = {
-      action:        'deny',
-      proto:         'udp',
-      src_addr:      '7.8.9.6/32',
-      src_port:      'eq 41',
-      dst_addr:      'host 1.2.3.4',
-      dst_port:      'neq 20',
-      option_format: '',
+      action:   'deny',
+      proto:    'udp',
+      src_addr: '7.8.9.6/32',
+      src_port: 'eq 41',
+      dst_addr: 'host 1.2.3.4',
+      dst_port: 'neq 20',
     }
 
     attr_v4_3 = {
@@ -68,23 +66,21 @@ class TestAce < CiscoTestCase
     }
 
     attr_v6_1 = {
-      action:        'permit',
-      proto:         '6',
-      src_addr:      'addrgroup fi',
-      src_port:      '',
-      dst_addr:      '1::7/32',
-      dst_port:      '',
-      option_format: 'dscp cs2 fragments packet-length eq 30',
+      action:   'permit',
+      proto:    '6',
+      src_addr: 'addrgroup fi',
+      src_port: '',
+      dst_addr: '1::7/32',
+      dst_port: '',
     }
 
     attr_v6_2 = {
-      action:        'permit',
-      proto:         'udp',
-      src_addr:      '1::8/56',
-      src_port:      'eq 41',
-      dst_addr:      'any',
-      dst_port:      '',
-      option_format: '',
+      action:   'permit',
+      proto:    'udp',
+      src_addr: '1::8/56',
+      src_port: 'eq 41',
+      dst_addr: 'any',
+      dst_port: '',
     }
 
     attr_v6_3 = {
@@ -133,9 +129,32 @@ class TestAce < CiscoTestCase
     end
     assert_show_match(pattern: /\s+#{@seqno} #{action}$/,
                       msg:     "failed to create ace seqno #{@seqno}")
-    # remove ace
-    ace.ace_set({})
+    ace.destroy
     refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
                       msg:     "failed to remove ace seqno #{@seqno}")
+  end
+
+  def test_ace_update
+    action = 'permit'
+    proto = 'tcp'
+    src = '1.0.0.0/8'
+    dst = '3.0.0.0 0.0.0.8'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+
+    a = Ace.new('ipv4', 'ace_update', 10)
+    a.ace_set(entry)
+
+    assert_equal(src, a.src_addr)
+    assert_equal(dst, a.dst_addr)
+
+    src = '2.0.0.0/16'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+    a.ace_set(entry)
+    assert_equal(src, a.src_addr)
+
+    dst = '3.0.0.0 0.0.0.4'
+    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+    a.ace_set(entry)
+    assert_equal(dst, a.dst_addr)
   end
 end

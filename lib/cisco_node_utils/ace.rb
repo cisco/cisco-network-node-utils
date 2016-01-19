@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ module Cisco
     attr_reader :afi, :acl_name, :seqno
 
     def initialize(afi, acl_name, seqno)
-      @set_args = @get_args =
-        { afi: Acl.afi_cli(afi), acl_name: acl_name.to_s, seqno: seqno.to_s }
+      @afi = Acl.afi_cli(afi)
+      @acl_name = acl_name.to_s
+      @seqno = seqno.to_s
+      set_args_keys_default
     end
 
     # Create a hash of all aces under a given acl_name.
@@ -47,6 +49,22 @@ module Cisco
       hash
     end
 
+    def destroy
+      set_args_keys(state: 'no')
+      config_set('acl', 'ace_destroy', @set_args)
+    end
+
+    def set_args_keys_default
+      keys = { afi: @afi, acl_name: @acl_name, seqno: @seqno }
+      @get_args = @set_args = keys
+    end
+
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
     # common ace getter
     def ace_get
       str = config_get('acl', 'ace', @get_args)
@@ -54,7 +72,7 @@ module Cisco
 
       # remark is a description field, needs a separate regex
       # Example: <MatchData "20 remark foo bar" seqno:"20" remark:"foo bar">
-      remark = str.match(/(?<seqno>\d+) remark (?<remark>.*)/)
+      remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
       # rubocop:disable Metrics/LineLength
@@ -63,8 +81,7 @@ module Cisco
                  ' *(?<src_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)*'\
                  ' *(?<src_port>eq \S+|neq \S+|lt \S+|''gt \S+|range \S+ \S+|portgroup \S+)?'\
                  ' *(?<dst_addr>any|host \S+|\S+\/\d+|\S+ [:\.0-9a-fA-F]+|addrgroup \S+)'\
-                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|portgroup \S+)?'\
-                 ' *(?<option_format>[a-zA-Z0-9\-\/ ]*)*')
+                 ' *(?<dst_port>eq \S+|neq \S+|lt \S+|gt \S+|range \S+ \S+|portgroup \S+)?')
       # rubocop:enable Metrics/LineLength
       regexp.match(str)
     end
@@ -72,18 +89,44 @@ module Cisco
     # common ace setter. Put the values you need in a hash and pass it in.
     # attrs = {:action=>'permit', :proto=>'tcp', :src =>'host 1.1.1.1'}
     def ace_set(attrs)
-      @set_args[:state] = attrs.empty? ? 'no ' : ''
-      @set_args.merge!(attrs) unless attrs.empty?
-      cmd = @set_args[:remark] ? 'ace_remark' : 'ace'
+      if attrs.empty?
+        attrs[:state] = 'no'
+      else
+        # remove existing ace first
+        destroy if seqno
+        attrs[:state] = ''
+      end
+
+      if attrs[:remark]
+        cmd = 'ace_remark'
+      else
+        cmd = 'ace'
+        [:action,
+         :proto,
+         :src_addr,
+         :src_port,
+         :dst_addr,
+         :dst_port,
+        ].each do |p|
+          attrs[p] = '' if attrs[p].nil?
+        end
+      end
+      set_args_keys(attrs)
       config_set('acl', cmd, @set_args)
     end
 
     # PROPERTIES
     # ----------
+    def seqno
+      match = ace_get
+      return nil if match.nil?
+      match.names.include?('seqno') ? match[:seqno] : nil
+    end
+
     def action
       match = ace_get
       return nil if match.nil?
-      match[:action]
+      match.names.include?('action') ? match[:action] : nil
     end
 
     def action=(action)
@@ -93,7 +136,7 @@ module Cisco
     def remark
       match = ace_get
       return nil if match.nil?
-      match[:remark]
+      match.names.include?('remark') ? match[:remark] : nil
     end
 
     def remark=(remark)
@@ -103,7 +146,7 @@ module Cisco
     def proto
       match = ace_get
       return nil if match.nil?
-      match[:proto]
+      match.names.include?('proto') ? match[:proto] : nil
     end
 
     def proto=(proto)
@@ -113,7 +156,7 @@ module Cisco
     def src_addr
       match = ace_get
       return nil if match.nil?
-      match[:src_addr]
+      match.names.include?('src_addr') ? match[:src_addr] : nil
     end
 
     def src_addr=(src_addr)
@@ -123,7 +166,7 @@ module Cisco
     def src_port
       match = ace_get
       return nil if match.nil?
-      match[:src_port]
+      match.names.include?('src_port') ? match[:src_port] : nil
     end
 
     def src_port=(src_port)
@@ -133,7 +176,7 @@ module Cisco
     def dst_addr
       match = ace_get
       return nil if match.nil?
-      match[:dst_addr]
+      match.names.include?('dst_addr') ? match[:dst_addr] : nil
     end
 
     def dst_addr=(dst_addr)
@@ -143,23 +186,11 @@ module Cisco
     def dst_port
       match = ace_get
       return nil if match.nil?
-      match[:dst_port]
+      match.names.include?('dst_port') ? match[:dst_port] : nil
     end
 
     def dst_port=(src_port)
       @set_args[:dst_port] = src_port
-    end
-
-    # TBD option_format is currently a catch-all for all other ace properties.
-    # This will likely need to be reworked to support explicit properties.
-    def option_format
-      match = ace_get
-      return nil if match.nil?
-      match[:option_format]
-    end
-
-    def option_format=(option)
-      @set_args[:option_format] = option
     end
   end
 end
