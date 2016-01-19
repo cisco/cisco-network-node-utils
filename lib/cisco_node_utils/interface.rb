@@ -485,6 +485,116 @@ module Cisco
       config_get_default('interface', lookup)
     end
 
+    def stp_bpdufilter
+      config_get('interface', 'stp_bpdufilter', @name)
+    end
+
+    def stp_bpdufilter=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpdufilter', @name, state, val)
+    end
+
+    def default_stp_bpdufilter
+      config_get_default('interface', 'stp_bpdufilter')
+    end
+
+    def stp_bpduguard
+      config_get('interface', 'stp_bpduguard', @name)
+    end
+
+    def stp_bpduguard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpduguard', @name, state, val)
+    end
+
+    def default_stp_bpduguard
+      config_get_default('interface', 'stp_bpduguard')
+    end
+
+    def stp_cost
+      config_get('interface', 'stp_cost', @name)
+    end
+
+    def stp_cost=(val)
+      config_set('interface', 'stp_cost', @name, val)
+    end
+
+    def default_stp_cost
+      config_get_default('interface', 'stp_cost')
+    end
+
+    def stp_guard
+      config_get('interface', 'stp_guard', @name)
+    end
+
+    def stp_guard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_guard', @name, state, val)
+    end
+
+    def default_stp_guard
+      config_get_default('interface', 'stp_guard')
+    end
+
+    def stp_link_type
+      config_get('interface', 'stp_link_type', @name)
+    end
+
+    def stp_link_type=(val)
+      config_set('interface', 'stp_link_type', @name, val)
+    end
+
+    def default_stp_link_type
+      config_get_default('interface', 'stp_link_type')
+    end
+
+    def stp_port_priority
+      config_get('interface', 'stp_port_priority', @name)
+    end
+
+    def stp_port_priority=(val)
+      config_set('interface', 'stp_port_priority', @name, val)
+    end
+
+    def default_stp_port_priority
+      config_get_default('interface', 'stp_port_priority')
+    end
+
+    def stp_port_type
+      config_get('interface', 'stp_port_type', @name)
+    end
+
+    def stp_port_type=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_port_type', @name, state, val)
+    end
+
+    def default_stp_port_type
+      config_get_default('interface', 'stp_port_type')
+    end
+
     def switchport
       # This is "switchport", not "switchport mode"
       config_get('interface', 'switchport', @name)

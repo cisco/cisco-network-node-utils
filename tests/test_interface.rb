@@ -43,6 +43,14 @@ class TestInterface < CiscoTestCase
   IF_DESCRIPTION_SIZE = 243 # SIZE = VSH Max 255 - "description " keyword
   IF_VRF_MAX_LENGTH = 32
 
+  def n9k_platform?
+    /N(3|9)/ =~ node.product_id
+  end
+
+  def n6k_platform?
+    /N(5|6)/ =~ node.product_id
+  end
+
   def interface_ipv4_config(ifname, address, length,
                             do_config=true, secip=false)
     if do_config
@@ -1179,6 +1187,99 @@ class TestInterface < CiscoTestCase
     assert_equal(pc.to_i, interface.channel_group)
     interface.channel_group = interface.default_channel_group
     assert_equal(interface.default_channel_group, interface.channel_group)
+  end
+
+  def test_interface_stp_bpdufilter_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_bpdufilter = 'enable'
+    assert_equal('enable', interface.stp_bpdufilter)
+    interface.stp_bpdufilter = 'disable'
+    assert_equal('disable', interface.stp_bpdufilter)
+    interface.stp_bpdufilter = interface.default_stp_bpdufilter
+    assert_equal(interface.default_stp_bpdufilter,
+                 interface.stp_bpdufilter)
+  end
+
+  def test_interface_stp_bpduguard_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_bpduguard = 'enable'
+    assert_equal('enable', interface.stp_bpduguard)
+    interface.stp_bpduguard = 'disable'
+    assert_equal('disable', interface.stp_bpduguard)
+    interface.stp_bpduguard = interface.default_stp_bpduguard
+    assert_equal(interface.default_stp_bpduguard,
+                 interface.stp_bpduguard)
+  end
+
+  def test_interface_stp_cost_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_cost = '2000'
+    assert_equal('2000', interface.stp_cost)
+    interface.stp_cost = interface.default_stp_cost
+    assert_equal(interface.default_stp_cost,
+                 interface.stp_cost)
+  end
+
+  def test_interface_stp_guard_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_guard = 'loop'
+    assert_equal('loop', interface.stp_guard)
+    interface.stp_guard = 'none'
+    assert_equal('none', interface.stp_guard)
+    interface.stp_guard = 'root'
+    assert_equal('root', interface.stp_guard)
+    interface.stp_guard = interface.default_stp_guard
+    assert_equal(interface.default_stp_guard,
+                 interface.stp_guard)
+  end
+
+  def test_interface_stp_link_type_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_link_type = 'shared'
+    assert_equal('shared', interface.stp_link_type)
+    interface.stp_link_type = 'point-to-point'
+    assert_equal('point-to-point', interface.stp_link_type)
+    interface.stp_link_type = interface.default_stp_link_type
+    assert_equal(interface.default_stp_link_type,
+                 interface.stp_link_type)
+  end
+
+  def test_interface_stp_port_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_port_priority = 32
+    assert_equal(32, interface.stp_port_priority)
+    interface.stp_port_priority = interface.default_stp_port_priority
+    assert_equal(interface.default_stp_port_priority,
+                 interface.stp_port_priority)
+  end
+
+  def test_interface_stp_port_type_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    interface.stp_port_type = 'edge'
+    assert_equal('edge', interface.stp_port_type)
+    interface.stp_port_type = 'edge trunk'
+    assert_equal('edge trunk', interface.stp_port_type)
+    interface.stp_port_type = 'network'
+    assert_equal('network', interface.stp_port_type)
+    interface.stp_port_type = 'normal'
+    assert_equal('normal', interface.stp_port_type)
+    interface.stp_port_type = interface.default_stp_port_type
+    assert_equal(interface.default_stp_port_type,
+                 interface.stp_port_type)
   end
 
   def test_ipv4_pim_sparse_mode
