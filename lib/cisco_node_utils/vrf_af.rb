@@ -74,9 +74,9 @@ module Cisco
     end
 
     def route_target_feature_enable
-      Feature.bgp_enable
-      Feature.nv_overlay_enable
-      Feature.nv_overlay_evpn_enable
+      Feature.bgp_enable if platform == :nexus
+      Feature.nv_overlay_enable if platform == :nexus
+      Feature.nv_overlay_evpn_enable if platform == :nexus
     end
 
     ########################################################
@@ -115,7 +115,7 @@ module Cisco
     # --------------------------
     def route_target_export
       cmds = config_get('vrf', 'route_target_export', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_export=(should)
@@ -129,7 +129,7 @@ module Cisco
     # --------------------------
     def route_target_export_evpn
       cmds = config_get('vrf', 'route_target_export_evpn', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_export_evpn=(should)
@@ -144,7 +144,7 @@ module Cisco
     # --------------------------
     def route_target_import
       cmds = config_get('vrf', 'route_target_import', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import=(should)
@@ -158,7 +158,7 @@ module Cisco
     # --------------------------
     def route_target_import_evpn
       cmds = config_get('vrf', 'route_target_import_evpn', @get_args)
-      cmds.sort
+      cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import_evpn=(should)
@@ -175,10 +175,11 @@ module Cisco
     # properties. It walks the delta hash and adds/removes each target cli.
     def route_target_delta(should, is, prop)
       route_target_feature_enable
+      fail Cisco::UnsupportedError.new('vrf_af', prop) if is.nil?
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
+        Cisco::Logger.debug("#{prop}" \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |community|
           state = (action == :add) ? '' : 'no'

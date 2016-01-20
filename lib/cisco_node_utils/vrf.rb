@@ -67,6 +67,10 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_description
+      config_get_default('vrf', 'description')
+    end
+
     def shutdown
       config_get('vrf', 'shutdown', vrf: @name)
     end
@@ -78,6 +82,10 @@ module Cisco
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_shutdown
+      config_get_default('vrf', 'shutdown')
+    end
+
     # route_distinguisher
     # Note that this property is supported by both bgp and vrf providers.
     def route_distinguisher
@@ -86,9 +94,9 @@ module Cisco
 
     def route_distinguisher=(rd)
       # feature bgp and nv overlay required for rd cli in NXOS
-      Feature.bgp_enable
-      Feature.nv_overlay_enable
-      Feature.nv_overlay_evpn_enable
+      Feature.bgp_enable if platform == :nexus
+      Feature.nv_overlay_enable if platform == :nexus
+      Feature.nv_overlay_evpn_enable if platform == :nexus
       if rd == default_route_distinguisher
         state = 'no'
         rd = ''
@@ -108,7 +116,7 @@ module Cisco
     end
 
     def vni=(id)
-      Feature.vn_segment_vlan_based_enable
+      Feature.vn_segment_vlan_based_enable if platform == :nexus
       no_cmd = (id) ? '' : 'no'
       id = (id) ? id : vni
       config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)
