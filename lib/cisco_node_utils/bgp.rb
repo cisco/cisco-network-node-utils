@@ -102,7 +102,7 @@ module Cisco
 
     # Create one router bgp instance
     def create
-      Feature.bgp_enable
+      Feature.bgp_enable if platform == :nexus
       router_bgp
     end
 
@@ -391,6 +391,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
+      return nil if match.nil?
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_cli
@@ -412,7 +413,8 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
-      return 'false' if match.nil?
+      return nil if match.nil? && platform == :ios_xr
+      return 'false' if match.nil? || match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_detail
     end
@@ -433,6 +435,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
+      return nil if match.nil?
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_events
@@ -454,6 +457,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
+      return nil if match.nil?
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_periodic

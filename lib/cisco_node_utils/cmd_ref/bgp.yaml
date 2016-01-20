@@ -122,16 +122,19 @@ create_destroy_neighbor:
   config_set_append: ' <state> neighbor <nbr>'
 
 disable_policy_batching:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^disable-policy-batching$/'
   config_set_append: '<state> disable-policy-batching'
   default_value: false
 
 disable_policy_batching_ipv4:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^disable-policy-batching ipv4 prefix-list (\S+)$/'
   config_set_append: '<state> disable-policy-batching ipv4 prefix-list <prefix_list>'
   default_value: ""
 
 disable_policy_batching_ipv6:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^disable-policy-batching ipv6 prefix-list (\S+)$/'
   config_set_append: '<state> disable-policy-batching ipv6 prefix-list <prefix_list>'
   default_value: ""
@@ -147,22 +150,26 @@ enforce_first_as:
     config_set_append: '<state> enforce-first-as'
 
 event_history_cli:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^(no )?event-history cli(?: size (\S+))?$/'
   config_set_append: '<state> event-history cli <size>'
   default_value: 'size_small'
 
 event_history_detail:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^(no )?event-history detail(?: size (\S+))?$/'
   config_set_append: '<state> event-history detail <size>'
   auto_default: false
   default_value: 'size_disable'
 
 event_history_events:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^(no )?event-history events(?: size (\S+))?$/'
   config_set_append: '<state> event-history events <size>'
   default_value: 'size_small'
 
 event_history_periodic:
+  _exclude: [cli_ios_xr]
   config_get_token_append: '/^(no )?event-history periodic(?: size (\S+))?$/'
   config_set_append: '<state> event-history periodic <size>'
   default_value: 'size_small'
