@@ -68,12 +68,20 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def ipv4_address_pattern(address, length)
+  def ipv4_address_pattern(address, length, secondary=false)
     if platform == :nexus
-      %r{^\s+ip address #{address}/#{length}}
+      if secondary
+        %r{^\s+ip address #{address}/#{length} secondary$}
+      else
+        %r{^\s+ip address #{address}/#{length}$}
+      end
     elsif platform == :ios_xr
       mask = Utils.length_to_bitmask(length)
-      /^\s+ipv4 address #{address} #{mask}/
+      if secondary
+        /^\s+ipv4 address #{address} #{mask} secondary$/
+      else
+        /^\s+ipv4 address #{address} #{mask}$/
+      end
     end
   end
 
@@ -827,7 +835,12 @@ class TestInterface < CiscoTestCase
 
     # create acls first
     %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
-      Acl.new('ipv4', acl_name)
+      if platform == :nexus
+        Acl.new('ipv4', acl_name)
+      else
+        # TODO: Acl is not yet supported on XR
+        config("ipv4 access-list #{acl_name} 1 permit any")
+      end
     end
     interface_ethernet_default(interfaces[0])
     intf = Interface.new(interfaces[0])
@@ -849,7 +862,7 @@ class TestInterface < CiscoTestCase
 
     # delete acls
     %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
-      config('no ip access-list ' + acl_name)
+      config("no #{ipv4} access-list #{acl_name}")
     end
   end
 
@@ -865,7 +878,12 @@ class TestInterface < CiscoTestCase
 
     # create acls first
     %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
-      Acl.new('ipv6', acl_name)
+      if platform == :nexus
+        Acl.new('ipv6', acl_name)
+      else
+        # TODO: Acl is not yet supported on XR
+        config("ipv6 access-list #{acl_name} 1 permit any any")
+      end
     end
 
     intf.ipv6_acl_in = 'v6acl1'
@@ -909,7 +927,7 @@ class TestInterface < CiscoTestCase
 
     # Secondary: setter, getter
     interface.ipv4_addr_mask_set(sec_addr, length, secondary)
-    pattern = %r{^\s+ip address #{sec_addr}/#{length} secondary}
+    pattern = ipv4_address_pattern(sec_addr, length, secondary)
     assert_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address missing in CLI')
     assert_equal(sec_addr, interface.ipv4_address_secondary,
@@ -983,19 +1001,20 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_ipv4_arp_timeout
-    # Setup
-    config('no interface vlan11')
-    int = Interface.new('vlan11')
+    unless platform == :ios_xr
+      # Setup
+      config('no interface vlan11')
+      int = Interface.new('vlan11')
 
-    # Test default
-    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
-    # Test non-default
-    int.ipv4_arp_timeout = 300
-    assert_equal(300, int.ipv4_arp_timeout)
-    # Set back to default
-    int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
-    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
-
+      # Test default
+      assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+      # Test non-default
+      int.ipv4_arp_timeout = 300
+      assert_equal(300, int.ipv4_arp_timeout)
+      # Set back to default
+      int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
+      assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+    end
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
@@ -1316,13 +1335,19 @@ class TestInterface < CiscoTestCase
   end
 
   def test_ipv4_pim_sparse_mode
+    config('no feature pim') if platform == :nexus
+    i = Interface.new(interfaces[0])
+    if platform == :ios_xr
+      assert_nil(i.ipv4_pim_sparse_mode)
+      assert_nil(i.default_ipv4_pim_sparse_mode)
+      assert_raises(Cisco::UnsupportedError) { i.ipv4_pim_sparse_mode = true }
+      return
+    end
     # Sample cli:
     #
     #   interface Ethernet1/1
     #     ip pim sparse-mode
     #
-    config('no feature pim')
-    i = Interface.new(interfaces[0])
     i.ipv4_pim_sparse_mode = false
     refute(i.ipv4_pim_sparse_mode)
 

@@ -93,7 +93,7 @@ module Cisco
     end
 
     def ipv4_acl_in
-      config_get('interface', 'ipv4_acl_in', @name)
+      config_get('interface', 'ipv4_acl_in', name: @name)
     end
 
     def ipv4_acl_in=(val)
@@ -105,7 +105,8 @@ module Cisco
       end
 
       return unless val && val != ''
-      config_set('interface', 'ipv4_acl_in', @name, state, val)
+      config_set('interface', 'ipv4_acl_in',
+                 name: @name, state: state, acl: val)
     end
 
     def default_ipv4_acl_in
@@ -113,7 +114,7 @@ module Cisco
     end
 
     def ipv4_acl_out
-      config_get('interface', 'ipv4_acl_out', @name)
+      config_get('interface', 'ipv4_acl_out', name: @name)
     end
 
     def ipv4_acl_out=(val)
@@ -125,7 +126,8 @@ module Cisco
       end
 
       return unless val && val != ''
-      config_set('interface', 'ipv4_acl_out', @name, state, val)
+      config_set('interface', 'ipv4_acl_out',
+                 name: @name, state: state, acl: val)
     end
 
     def default_ipv4_acl_out
@@ -133,7 +135,7 @@ module Cisco
     end
 
     def ipv6_acl_in
-      config_get('interface', 'ipv6_acl_in', @name)
+      config_get('interface', 'ipv6_acl_in', name: @name)
     end
 
     def ipv6_acl_in=(val)
@@ -144,7 +146,8 @@ module Cisco
         val = ipv6_acl_in
       end
       return unless val && val != ''
-      config_set('interface', 'ipv6_acl_in', @name, state, val)
+      config_set('interface', 'ipv6_acl_in',
+                 name: @name, state: state, acl: val)
     end
 
     def default_ipv6_acl_in
@@ -152,7 +155,7 @@ module Cisco
     end
 
     def ipv6_acl_out
-      config_get('interface', 'ipv6_acl_out', @name)
+      config_get('interface', 'ipv6_acl_out', name: @name)
     end
 
     def ipv6_acl_out=(val)
@@ -163,7 +166,8 @@ module Cisco
         val = ipv6_acl_out
       end
       return unless val && val != ''
-      config_set('interface', 'ipv6_acl_out', @name, state, val)
+      config_set('interface', 'ipv6_acl_out',
+                 name: @name, state: state, acl: val)
     end
 
     def default_ipv6_acl_out
@@ -371,14 +375,15 @@ module Cisco
     end
 
     def ipv4_arp_timeout
-      config_get('interface', ipv4_arp_timeout_lookup_string, @name)
+      config_get('interface', ipv4_arp_timeout_lookup_string, name: @name)
     end
 
     def ipv4_arp_timeout=(timeout)
       fail "'ipv4 arp timeout' can ony be configured on a vlan interface" unless
         /vlan/.match(@name)
       state = (timeout == default_ipv4_arp_timeout) ? 'no' : ''
-      config_set('interface', 'ipv4_arp_timeout', @name, state, timeout)
+      config_set('interface', 'ipv4_arp_timeout',
+                 name: @name, state: state, timeout: timeout)
     end
 
     def default_ipv4_arp_timeout
@@ -386,16 +391,14 @@ module Cisco
     end
 
     def ipv4_pim_sparse_mode
-      config_get('interface', 'ipv4_pim_sparse_mode', @name)
+      config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
     end
 
     def ipv4_pim_sparse_mode=(state)
       check_switchport_disabled
-      Pim.feature_enable unless Pim.feature_enabled
-      config_set('interface', 'ipv4_pim_sparse_mode', @name,
-                 state ? '' : 'no')
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      Pim.feature_enable unless platform == :ios_xr || Pim.feature_enabled
+      config_set('interface', 'ipv4_pim_sparse_mode',
+                 name: @name, state: state ? '' : 'no')
     end
 
     def default_ipv4_pim_sparse_mode
@@ -721,7 +724,7 @@ module Cisco
     end
 
     def vlan_mapping
-      match = config_get('interface', 'vlan_mapping', @name)
+      match = config_get('interface', 'vlan_mapping', name: @name)
       match.each(&:compact!) unless match.nil?
       match
     end
@@ -741,8 +744,8 @@ module Cisco
                           "#{action}: #{delta_hash[action]}")
         delta_hash[action].each do |original, translated|
           state = (action == :add) ? '' : 'no'
-          config_set('interface', 'vlan_mapping', @name,
-                     state, original, translated)
+          config_set('interface', 'vlan_mapping', name: @name,
+                     state: state, original: original, translated: translated)
         end
       end
     rescue Cisco::CliError => e
@@ -755,12 +758,12 @@ module Cisco
     end
 
     def vlan_mapping_enable
-      config_get('interface', 'vlan_mapping_enable', @name)
+      config_get('interface', 'vlan_mapping_enable', name: @name)
     end
 
     def vlan_mapping_enable=(state)
-      config_set('interface', 'vlan_mapping_enable', @name,
-                 state ? '' : 'no')
+      config_set('interface', 'vlan_mapping_enable',
+                 name: @name, state: state ? '' : 'no')
     end
 
     def default_switchport_trunk_native_vlan
@@ -860,16 +863,16 @@ module Cisco
     end
 
     def vpc_id
-      config_get('interface', 'vpc_id', @name)
+      config_get('interface', 'vpc_id', name: @name)
     end
 
     def vpc_id=(num)
       if num
-        config_set('interface', 'vpc_id', @name, '', num)
+        config_set('interface', 'vpc_id', name: @name, state: '', id: num)
       else
         # 'no vpc' doesn't work for phy ports, so do a get
         num = vpc_id
-        config_set('interface', 'vpc_id', @name, 'no', num)
+        config_set('interface', 'vpc_id', name: @name, state: 'no', id: num)
       end
     end
 
@@ -878,12 +881,12 @@ module Cisco
     end
 
     def vpc_peer_link
-      config_get('interface', 'vpc_peer_link', @name)
+      config_get('interface', 'vpc_peer_link', name: @name)
     end
 
     def vpc_peer_link=(state)
       no_cmd = (state ? '' : 'no')
-      config_set('interface', 'vpc_peer_link', @name, no_cmd)
+      config_set('interface', 'vpc_peer_link', name: @name, state: no_cmd)
     end
 
     def default_vpc_peer_link
