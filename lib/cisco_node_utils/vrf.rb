@@ -67,6 +67,10 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_description
+      config_get_default('vrf', 'description')
+    end
+
     def shutdown
       config_get('vrf', 'shutdown', vrf: @name)
     end
@@ -76,6 +80,10 @@ module Cisco
       config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_shutdown
+      config_get_default('vrf', 'shutdown')
     end
 
     # route_distinguisher
