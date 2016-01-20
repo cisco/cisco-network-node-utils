@@ -758,13 +758,15 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   end
 
   def weight(af, dbg)
-    af.weight = 22
-    assert_equal(22, af.weight, "Test 1. #{dbg} Failed to set weight")
+    # check the default value before set
+    assert_equal(af.default_weight, af.weight,
+                 "Test 1. #{dbg} Error: should be default value")
 
-    # Seems odd to set an int to false - but normally there's a default value
-    # of some kind but in bgp weight is ignored unless configured. 0 is not
-    # acceptable as is nvgens.
-    af.weight = false
-    assert_equal(nil, af.weight, "Test 2. #{dbg} Failed to remove weight")
+    af.weight = 22
+    assert_equal(22, af.weight, "Test 2. #{dbg} Failed to set weight")
+
+    af.weight = af.default_weight
+    assert_equal(af.default_weight, af.weight,
+                 "Test 3. #{dbg} Failed to remove weight")
   end
 end

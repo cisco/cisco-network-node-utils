@@ -1,17 +1,19 @@
 # vxlan_vtep_vni
 ---
+_exclude: [/N(3|5|6)/]
+
 _template:
   config_get: "show running-config interface all | section 'interface nve'"
   config_get_token: '/^interface <name>$/i'
   config_get_token_append:
-    - '/^member vni <vni>$/'
+    - '/^member vni <vni> ?(associate-vrf)?$/'
   config_set: 'interface <name>'
   config_set_append:
-    - 'member vni <vni>'
+    - 'member vni <vni> <assoc_vrf>'
 
 all_vnis:
   multiple:
-  config_get_token_append: '/^member vni (\d+|\d+-\d+)$/'
+  config_get_token_append: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
   kind: string

@@ -21,6 +21,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
+require_relative '../lib/cisco_node_utils/feature'
 
 # TestRouterBgpAF - Minitest for RouterBgpAF class
 class TestRouterBgpAF < CiscoTestCase
@@ -471,20 +472,6 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.destroy
   end
 
-  ## feature nv overlay evpn
-  def test_feature_nv_overlay_evpn
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        RouterBgpAF.feature_nv_overlay_evpn_enable
-      end
-    else
-      config('no nv overlay evpn')
-      RouterBgpAF.feature_nv_overlay_evpn_enable
-      assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
-             'Error:feature nv overlay evpn is not enabled')
-    end
-  end
-
   ##
   ## distance
   ##
@@ -879,93 +866,6 @@ class TestRouterBgpAF < CiscoTestCase
     expected = { add: [], remove: [] }
     result = Utils.delta_add_remove(should, current)
     assert_equal(expected, result, 'Test 5. delta mismatch')
-  end
-
-  # test route_target
-  def test_route_target
-    # TODO: Fix this so we don't have to skip
-    # - Needs YAML differentiation for IOL vs. Nexus
-    skip('Currently broken on IOS XR: US59615') if platform == :ios_xr
-    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
-    afs.each do |af|
-      route_target(55, 'red', af)
-    end
-  end
-
-  def route_target(asn, vrf, af)
-    # Common test for route-target providers. Tests evpn and non-evpn.
-
-    config_ios_xr_dependencies(asn, vrf) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    # test route target both auto and route target both auto evpn
-    refute(bgp_af.default_route_target_both_auto,
-           'default value for route target both auto should be false')
-
-    refute(bgp_af.default_route_target_both_auto_evpn,
-           'default value for route target both auto evpn should be false')
-
-    bgp_af.route_target_both_auto = true
-    assert(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto should be enabled')
-
-    bgp_af.route_target_both_auto = false
-    refute(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto should be disabled')
-
-    bgp_af.route_target_both_auto_evpn = true
-    assert(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto evpn should be enabled')
-
-    bgp_af.route_target_both_auto_evpn = false
-    refute(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto evpn should be disabled')
-
-    opts = [:import, :export]
-
-    # Master list of communities to test against
-    master = ['1:1', '2:2', '3:3', '4:5']
-
-    # Test 1: both/import/export when no commands are present. Each target
-    # option will be tested with and without evpn (6 separate types)
-    should = master.clone
-    route_target_tester(bgp_af, af, opts, should, 'Test 1')
-
-    # Test 2: remove half of the entries
-    should = ['1:1', '4:4']
-    route_target_tester(bgp_af, af, opts, should, 'Test 2')
-
-    # Test 3: restore the removed entries
-    should = master.clone
-    route_target_tester(bgp_af, af, opts, should, 'Test 3')
-
-    # Test 4: 'default'
-    should = bgp_af.default_route_target_import
-    route_target_tester(bgp_af, af, opts, should, 'Test 4')
-
-    bgp_af.destroy
-  end
-
-  def route_target_tester(bgp_af, af, opts, should, test_id)
-    # First configure all four property types
-    opts.each do |opt|
-      # non-evpn
-      bgp_af.send("route_target_#{opt}=", should)
-      # evpn
-      bgp_af.send("route_target_#{opt}_evpn=", should)
-    end
-
-    # Now check the results
-    opts.each do |opt|
-      # non-evpn
-      result = bgp_af.send("route_target_#{opt}")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}")
-      # evpn
-      result = bgp_af.send("route_target_#{opt}_evpn")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}_evpn")
-    end
   end
 
   ##

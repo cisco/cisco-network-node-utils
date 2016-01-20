@@ -121,6 +121,21 @@ confederation_peers:
 create_destroy_neighbor:
   config_set_append: ' <state> neighbor <nbr>'
 
+disable_policy_batching:
+  config_get_token_append: '/^disable-policy-batching$/'
+  config_set_append: '<state> disable-policy-batching'
+  default_value: false
+
+disable_policy_batching_ipv4:
+  config_get_token_append: '/^disable-policy-batching ipv4 prefix-list (\S+)$/'
+  config_set_append: '<state> disable-policy-batching ipv4 prefix-list <prefix_list>'
+  default_value: ""
+
+disable_policy_batching_ipv6:
+  config_get_token_append: '/^disable-policy-batching ipv6 prefix-list (\S+)$/'
+  config_set_append: '<state> disable-policy-batching ipv6 prefix-list <prefix_list>'
+  default_value: ""
+
 enforce_first_as:
   kind: boolean
   default_value: true
@@ -131,6 +146,27 @@ enforce_first_as:
     config_get_token_append: '/^(no )?enforce-first-as$/'
     config_set_append: '<state> enforce-first-as'
 
+event_history_cli:
+  config_get_token_append: '/^(no )?event-history cli(?: size (\S+))?$/'
+  config_set_append: '<state> event-history cli <size>'
+  default_value: 'size_small'
+
+event_history_detail:
+  config_get_token_append: '/^(no )?event-history detail(?: size (\S+))?$/'
+  config_set_append: '<state> event-history detail <size>'
+  auto_default: false
+  default_value: 'size_disable'
+
+event_history_events:
+  config_get_token_append: '/^(no )?event-history events(?: size (\S+))?$/'
+  config_set_append: '<state> event-history events <size>'
+  default_value: 'size_small'
+
+event_history_periodic:
+  config_get_token_append: '/^(no )?event-history periodic(?: size (\S+))?$/'
+  config_set_append: '<state> event-history periodic <size>'
+  default_value: 'size_small'
+
 fast_external_fallover:
   kind: boolean
   default_value: true
@@ -140,17 +176,6 @@ fast_external_fallover:
   cli_nexus:
     config_get_token_append: '/^(no )?fast-external-fallover$/'
     config_set_append: '<state> fast-external-fallover'
-
-feature:
-  kind: boolean
-  cli_ios_xr:
-    config_get: "show running-config router bgp"
-    config_get_token: '/^router bgp$/'
-    config_set: "<state> router bgp"
-  cli_nexus:
-    config_get: "show running bgp all"
-    config_get_token: '/^feature bgp$/'
-    config_set: "<state> feature bgp"
 
 flush_routes:
   _exclude: [cli_ios_xr]
@@ -230,7 +255,7 @@ maxas_limit:
 neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
   cli_nexus:
-    _exclude: [/N6K/, /N7K/]
+    _exclude: [/N6/, /N7/]
     kind: boolean
     config_get_token_append: '/^neighbor-down fib-accelerate$/'
     config_set_append: '<state> neighbor-down fib-accelerate'
@@ -239,13 +264,14 @@ neighbor_down_fib_accelerate:
 reconnect_interval:
   # Note: Does not exist in IOS XR
   cli_nexus:
-    _exclude: [/N6K/, /N7K/]
+    _exclude: [/N6/, /N7/]
     kind: int
     config_get_token_append: '/^reconnect-interval (\d+)$/'
     config_set_append: '<state> reconnect-interval <seconds>'
     default_value: 60
 
 route_distinguisher:
+  # This property is also supported by vrf.yaml
   default_value: ""
   cli_ios_xr:
     config_get_token_append: '/^rd (\S+)$/'

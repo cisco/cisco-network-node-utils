@@ -50,6 +50,6 @@ priv_protocol:
 # [no] snmp-server user <user> [group] [auth {md5|sha} <passwd1> \
 #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
 user:
-  config_get: "show snmp user"
-  config_get_token: ["TABLE_snmp_users", "ROW_snmp_users"]
+  config_get: "show run snmp all | i 'snmp-server user'"
+  config_get_token: '/^snmp.server user (.*)$/'
   config_set: "%s snmp-server user %s %s %s %s %s %s"

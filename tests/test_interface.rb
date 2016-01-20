@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 
@@ -816,13 +817,87 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(interfaces_id[0])
   end
 
+  def test_ipv4_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ip access-group v4acl1 in
+    #     ip access-group v4acl2 out
+    #
+
+    # create acls first
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      Acl.new('ipv4', acl_name)
+    end
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
+
+    intf.ipv4_acl_in = 'v4acl1'
+    assert_equal('v4acl1', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl2'
+    assert_equal('v4acl2', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = 'v4acl3'
+    assert_equal('v4acl3', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = 'v4acl4'
+    assert_equal('v4acl4', intf.ipv4_acl_out)
+
+    intf.ipv4_acl_in = intf.default_ipv4_acl_in
+    assert_equal('', intf.ipv4_acl_in)
+    intf.ipv4_acl_out = intf.default_ipv4_acl_out
+    assert_equal('', intf.ipv4_acl_out)
+
+    # delete acls
+    %w(v4acl1 v4acl2 v4acl3 v4acl4).each do |acl_name|
+      config('no ip access-list ' + acl_name)
+    end
+  end
+
+  def test_ipv6_acl
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ipv6 traffic-filter v6acl1 in
+    #     ipv6 traffic-filter v6acl2 out
+    #
+    interface_ethernet_default(interfaces[0])
+    intf = Interface.new(interfaces[0])
+
+    # create acls first
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      Acl.new('ipv6', acl_name)
+    end
+
+    intf.ipv6_acl_in = 'v6acl1'
+    assert_equal('v6acl1', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl2'
+    assert_equal('v6acl2', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = 'v6acl3'
+    assert_equal('v6acl3', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = 'v6acl4'
+    assert_equal('v6acl4', intf.ipv6_acl_out)
+
+    intf.ipv6_acl_in = intf.default_ipv6_acl_in
+    assert_equal('', intf.ipv6_acl_in)
+    intf.ipv6_acl_out = intf.default_ipv6_acl_out
+    assert_equal('', intf.ipv6_acl_out)
+
+    # delete acls
+    %w(v6acl1 v6acl2 v6acl3 v6acl4).each do |acl_name|
+      config('no ipv6 access-list ' + acl_name)
+    end
+  end
+
   def test_interface_ipv4_address
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     address = '8.7.1.1'
+    sec_addr = '10.5.5.1'
+    secondary = true
     length = 15
 
-    # setter, getter
+    # Primary: setter, getter
     interface.ipv4_addr_mask_set(address, length)
     pattern = ipv4_address_pattern(address, length)
     assert_show_match(pattern: pattern,
@@ -831,6 +906,17 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 address get value mismatch')
     assert_equal(length, interface.ipv4_netmask_length,
                  'Error: ipv4 netmask length get value mismatch')
+
+    # Secondary: setter, getter
+    interface.ipv4_addr_mask_set(sec_addr, length, secondary)
+    pattern = %r{^\s+ip address #{sec_addr}/#{length} secondary}
+    assert_show_match(pattern: pattern,
+                      msg:     'Error: ipv4 address missing in CLI')
+    assert_equal(sec_addr, interface.ipv4_address_secondary,
+                 'Error: ipv4 address get value mismatch')
+    assert_equal(length, interface.ipv4_netmask_length,
+                 'Error: ipv4 netmask length get value mismatch')
+
     # get default
     assert_equal(DEFAULT_IF_IP_ADDRESS, interface.default_ipv4_address,
                  'Error: ipv4 address get default value mismatch')
@@ -840,7 +926,9 @@ class TestInterface < CiscoTestCase
                  interface.default_ipv4_netmask_length,
                  'Error: ipv4 netmask length get default value mismatch')
 
-    # unconfigure ipaddress
+    # unconfigure ipaddress - secondary must be removed first
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
+                                 secondary)
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip(v4)? address (.*)/)
     refute_show_match(pattern: pattern,
@@ -892,6 +980,25 @@ class TestInterface < CiscoTestCase
     # unconfigure ipaddress includign secondary
     interface_ipv4_config(ifname, address, length, false, false)
     interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_interface_ipv4_arp_timeout
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+
+    # Test default
+    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+    # Test non-default
+    int.ipv4_arp_timeout = 300
+    assert_equal(300, int.ipv4_arp_timeout)
+    # Set back to default
+    int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
+    assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+
+    # Attempt to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
   end
 
   def test_interface_ipv4_proxy_arp
@@ -1206,5 +1313,23 @@ class TestInterface < CiscoTestCase
   rescue Cisco::UnsupportedError => e
     # Some platforms only support channel-group with certain software versions
     skip(e.to_s)
+  end
+
+  def test_ipv4_pim_sparse_mode
+    # Sample cli:
+    #
+    #   interface Ethernet1/1
+    #     ip pim sparse-mode
+    #
+    config('no feature pim')
+    i = Interface.new(interfaces[0])
+    i.ipv4_pim_sparse_mode = false
+    refute(i.ipv4_pim_sparse_mode)
+
+    i.ipv4_pim_sparse_mode = true
+    assert(i.ipv4_pim_sparse_mode)
+
+    i.ipv4_pim_sparse_mode = i.default_ipv4_pim_sparse_mode
+    assert_equal(i.default_ipv4_pim_sparse_mode, i.ipv4_pim_sparse_mode)
   end
 end

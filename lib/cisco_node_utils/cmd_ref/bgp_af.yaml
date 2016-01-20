@@ -140,14 +140,6 @@ distance_local:
   kind: int
   default_value: 220
 
-# This is a multi-provider, enable-only feature. Do not disable from provider.
-feature_nv_overlay_evpn:
-  _exclude: [cli_ios_xr]
-  kind: boolean
-  config_get: "show running | section nv"
-  config_get_token: '/^nv overlay evpn$/'
-  config_set: "nv overlay evpn"
-
 inject_map:
   _exclude: [cli_ios_xr]
   multiple: true
@@ -205,56 +197,6 @@ redistribute_policy:
     config_set_append: '<state> redistribute <protocol> route-map <policy>'
   cli_ios_xr:
     config_set_append: ' <state> redistribute <protocol> route-policy <policy>'
-
-#config in vrf context
-# TODO: fix these for XR
-route_target_both_auto:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both auto$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both auto"]
-  kind: boolean
-  default_value: false
-
-route_target_both_auto_evpn:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target both auto evpn$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target both auto evpn"]
-  kind: boolean
-  default_value: false
-
-route_target_export:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+)$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community>"]
-  multiple: true
-  default_value: []
-
-route_target_export_evpn:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target export (\S+) evpn$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target export <community> evpn"]
-  multiple: true
-  default_value: []
-
-route_target_import:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+)$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community>"]
-  multiple: true
-  default_value: []
-
-route_target_import_evpn:
-  cli_nexus:
-    config_get: 'sh run | section vrf'
-  config_get_token: ['/^vrf context <vrf>$/i', '/^address-family <afi> <safi>$/i', '/^route-target import (\S+) evpn$/']
-  config_set: ["vrf context <vrf>", "address-family <afi> <safi>", "<state> route-target import <community> evpn"]
-  multiple: true
-  default_value: []
 
 suppress_inactive:
   _exclude: [cli_ios_xr]

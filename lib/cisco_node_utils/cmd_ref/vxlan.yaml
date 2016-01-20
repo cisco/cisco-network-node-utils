@@ -1,7 +1,0 @@
-# vxlan
----
-feature:
-  kind: boolean
-  config_get: 'show running nv overlay'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: "<state> feature nv overlay"
