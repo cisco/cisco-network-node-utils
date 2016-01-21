@@ -275,7 +275,11 @@ system_default_svi_autostate:
   # default_value: n/a. This is a user-configurable system default.
 
 system_default_switchport:
-  kind: boolean
+  # Note: This is a simple boolean state but there is a bug on some
+  # platforms that causes the cli to nvgen twice; this causes config_get to
+  # raise an error when it encounters the multiple. Therefore we define it
+  # as a multiple to avoid the raise.
+  multiple:
   config_get: "show running all | include 'system default'"
   config_get_token: ['/^no system default switchport$/']
   default_value: true

@@ -752,7 +752,15 @@ module Cisco
 
     def system_default_switchport
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_switchport')
+      #
+      # Note: This is a simple boolean state but there is a bug on some
+      # platforms that causes the cli to nvgen twice; this causes config_get to
+      # raise an error when it encounters the multiple. Therefore we define it
+      # as a multiple to avoid the raise and handle the array if necessary.
+      #
+      val = config_get('interface', 'system_default_switchport')
+      return (val[0][/^no /] ? false : true) if val.is_a?(Array)
+      val
     end
 
     def system_default_switchport_shutdown
