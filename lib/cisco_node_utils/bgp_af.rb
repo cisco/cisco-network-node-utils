@@ -86,7 +86,7 @@ module Cisco
     ########################################################
 
     def fail_unsupported(callee)
-      fail Cisco::UnsupportedError.new('bgp_af',callee.to_s)
+      fail Cisco::UnsupportedError.new('bgp_af', callee.to_s)
     end
 
     #
@@ -516,6 +516,5 @@ module Cisco
       end
       ret
     end
-
   end
 end

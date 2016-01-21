@@ -103,12 +103,12 @@ class TestRouterBgpAF < CiscoTestCase
     [:maximum_paths_ibgp,             [7, 9]],
     [:dampen_igp_metric,              [555, nil]],
     [:default_metric,                 [50, false]],
-    [:route_target_import,            [['1:1', '2:2', '3:3', '4:4'],['1:1', '4:4']]],
-    [:route_target_import_evpn,       [['1:1', '2:2', '3:3', '4:4'],['1:1', '4:4']]],
-    [:route_target_export,            [['1:1', '2:2', '3:3', '4:4'],['1:1', '4:4']]],
-    [:route_target_export_evpn,       [['1:1', '2:2', '3:3', '4:4'],['1:1', '4:4']]],
-    [:inject_map,                     [[%w(lax sfo), %w(lax sjc), %w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)],[%w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)]]],
-    ]
+    [:route_target_import,            [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
+    [:route_target_import_evpn,       [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
+    [:route_target_export,            [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
+    [:route_target_export_evpn,       [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
+    [:inject_map,                     [[%w(lax sfo), %w(lax sjc), %w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)], [%w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)]]],
+  ]
 
   # Given the cartesian product of the above parameters, not all tests are supported.
   # Here we record which tests are expected to fail, and what kind of failure is expected.
@@ -176,6 +176,7 @@ class TestRouterBgpAF < CiscoTestCase
   ]
 
   # rubocop:disable Style/SpaceAroundOperators
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def check_test_exceptions(test_, os_, vrf_, af_)
     ret = nil
     amb = nil
@@ -192,7 +193,7 @@ class TestRouterBgpAF < CiscoTestCase
       return expect if expect == :success || expect == :skip
 
       # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
-      if ret != nil && ret != expect
+      if !ret.nil? && ret != expect
         assert('TEST ERROR: Exceptions matrix has ambiguous entries! ' \
                "#{amb} and [#{test}, #{os}, #{vrf}, #{af}]")
       end
@@ -202,9 +203,10 @@ class TestRouterBgpAF < CiscoTestCase
     # Return the expected test result
     ret.nil? ? :success : ret
   end
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   # rubocop:enable Style/SpaceAroundOperators
 
-  def properties_matrix( asns, vrfs, afs, values )
+  def properties_matrix(asns, vrfs, afs, values)
     asns.each do |asn|
       config_ios_xr_dependencies(asn) if platform == :ios_xr
 
@@ -253,7 +255,7 @@ class TestRouterBgpAF < CiscoTestCase
               #
               #    Assert 'nil' inital value failed for: advertise_l2vpn_evpn 55 default ["ipv4", "unicast"].
               #    Expected false to be nil.
-              #assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
+              # assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
 
               # Setter should raise UnsupportedError
               assert_raises(Cisco::UnsupportedError,
@@ -297,7 +299,7 @@ class TestRouterBgpAF < CiscoTestCase
   # rubocop:enable Metrics/LineLength
 
   def test_properties_matrix
-    properties_matrix( T_ASNS, T_VRFS, T_AFS, T_VALUES )
+    properties_matrix(T_ASNS, T_VRFS, T_AFS, T_VALUES)
   end
 
   ##
@@ -321,7 +323,8 @@ class TestRouterBgpAF < CiscoTestCase
 
     bgp_afs = []
     %w(default red blue orange black).each do |vrf|
-      [%w(ipv4 unicast), %w(ipv6 unicast), %w(ipv4 multicast), %w(ipv6 multicast)].each do |af|
+      [%w(ipv4 unicast), %w(ipv6 unicast),
+       %w(ipv4 multicast), %w(ipv6 multicast)].each do |af|
         config_ios_xr_dependencies(55, vrf)
         bgp_afs.push(RouterBgpAF.new(55, vrf, af))
       end
@@ -355,9 +358,11 @@ class TestRouterBgpAF < CiscoTestCase
           afi = af_key[0]
           safi = af_key[1]
           assert(afi.length > 0, 'Error: AFI length is zero')
-          assert_match(/^(ip|vpn)v[46]/, afi, 'Error: AFI must be vpnv4, ipv4, vpnv6 or ipv6')
+          assert_match(/^(ip|vpn)v[46]/, afi,
+                       'Error: AFI must be vpnv4, ipv4, vpnv6 or ipv6')
           assert(safi.length > 0, 'Error: SAFI length is zero')
-          assert_match(/^(un|mult)icast/, safi, 'Error: AFI must be unicast or multicast')
+          assert_match(/^(un|mult)icast/, safi,
+                       'Error: AFI must be unicast or multicast')
         end
       end
     end
