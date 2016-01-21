@@ -30,7 +30,7 @@ additional_paths_selection:
     set_value: '<state> additional-paths selection route-map <route_map>'
   ios_xr:
     get_value: '/^additional-paths selection route-policy (.*)$/'
-    set_value: ' <state> additional-paths selection route-policy <route_policy>'
+    set_value: '<state> additional-paths selection route-policy <route_policy>'
   default_value: ""
 
 additional_paths_send:
@@ -58,7 +58,7 @@ client_to_client:
     set_value: '<state> client-to-client reflection'
   ios_xr:
     get_value: '/^bgp client-to-client reflection disable$/'
-    set_value: ' <state> bgp client-to-client reflection disable'
+    set_value: '<state> bgp client-to-client reflection disable'
 
 dampen_igp_metric:
   _exclude: [ios_xr]
@@ -153,7 +153,7 @@ maximum_paths:
     set_value: '<state> maximum-paths <num>'
   ios_xr:
     get_value: '/^maximum-paths ebgp (\d+)$/'
-    set_value: ' <state> maximum-paths ebgp <num>'
+    set_value: '<state> maximum-paths ebgp <num>'
   default_value: 1
 
 maximum_paths_ibgp:
@@ -169,7 +169,7 @@ networks:
     set_value: '<state> network <network> <route_map>'
   ios_xr:
     get_value: '/^network (\S+) ?(?:route-policy )?(\S+)?$/'
-    set_value: ' <state> network <network> <route_policy>'
+    set_value: '<state> network <network> <route_policy>'
   default_value: []
 
 next_hop_route_map:
@@ -177,14 +177,14 @@ next_hop_route_map:
   default_value: ""
   nexus:
     get_value: '/^nexthop route-map (.*)$/'
-    set_value: ' <state> nexthop route-map <route_map>'
+    set_value: '<state> nexthop route-map <route_map>'
   ios_xr:
     get_value: '/nexthop route-policy (.*)$/'
-    set_value: ' <state> nexthop route-policy <route_map>'
+    set_value: '<state> nexthop route-policy <route_map>'
 
 redistribute:
   multiple: true
-  set_value: ' <state> redistribute <protocol>'
+  set_value: '<state> redistribute <protocol>'
   nexus:
     get_value: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
   ios_xr:
@@ -195,7 +195,7 @@ redistribute_policy:
   nexus:
     set_value: '<state> redistribute <protocol> route-map <policy>'
   ios_xr:
-    set_value: ' <state> redistribute <protocol> route-policy <policy>'
+    set_value: '<state> redistribute <protocol> route-policy <policy>'
 
 suppress_inactive:
   _exclude: [ios_xr]
@@ -212,7 +212,7 @@ table_map:
     set_value: '<state> table-map <map>'
   ios_xr:
     get_value: '/^table-policy (\S+)$/'
-    set_value: ' <state> table-policy <map>'
+    set_value: '<state> table-policy <map>'
 
 table_map_filter:
   _exclude: [ios_xr]

@@ -61,7 +61,7 @@ default_originate:
   default_value: false
   ios_xr:
     get_value: '/^default-originate(?: route-policy .*)?/'
-    set_value: ' <state> default-originate <map>'
+    set_value: '<state> default-originate <map>'
   nexus:
     get_value: '/^default-originate(?: route-map .*)?/'
     set_value: '<state> default-originate <map>'
@@ -145,7 +145,7 @@ route_map_in:
     set_value: '<state> route-map <str> in'
   ios_xr:
     get_value: '/^route-policy (\S+) in$/'
-    set_value: ' <state> route-policy <str> in'
+    set_value: '<state> route-policy <str> in'
 
 route_map_out:
   kind: string
@@ -155,7 +155,7 @@ route_map_out:
     set_value: '<state> route-map <str> out'
   ios_xr:
     get_value: '/^route-policy (\S+) out$/'
-    set_value: ' <state> route-policy <str> out'
+    set_value: '<state> route-policy <str> out'
 
 route_reflector_client:
   kind: boolean
@@ -176,7 +176,7 @@ send_community:
     # send-community-ebgp' and 'send-extended-community-ebgp' are the equivalents
     # of the NXOS: standard | extended functionality
     get_value: '/^(send-community-ebgp|send-extended-community-ebgp)/'
-    set_value: ' <state> <attr>'
+    set_value: '<state> <attr>'
 
 soft_reconfiguration_in:
   auto_default: false

@@ -86,7 +86,7 @@ cluster_id:
   ios_xr:
     # Note: Only applies to global BGP; not VRF applicable
     get_value: 'bgp cluster-id (\S+)'
-    set_value: ' <state> bgp cluster-id <id>'
+    set_value: '<state> bgp cluster-id <id>'
   nexus:
     get_value: 'cluster-id (\S+)'
     set_value: '<state> cluster-id <id>'
@@ -279,7 +279,7 @@ route_distinguisher:
   default_value: ""
   ios_xr:
     get_value: 'rd (\S+)'
-    set_value: ' <state> rd <rd>'
+    set_value: '<state> rd <rd>'
   nexus:
     context:
       - "vrf context <vrf>"
