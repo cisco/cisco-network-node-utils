@@ -162,7 +162,7 @@ feature:
   # feature eigrp must be enabled before configuring router eigrp
   kind: boolean
   get_command: 'show running eigrp all'
-  get_value: '/^feature eigrp$/'
+  get_value: 'feature eigrp'
   set_value: '<state> feature eigrp'
 
 maximum_paths:
@@ -171,7 +171,7 @@ maximum_paths:
   context: 
     - 'router eigrp <name>'
   get_command: 'show running eigrp all'
-  get_value: '/^maximum-paths (\d+)/'
+  get_value: 'maximum-paths (\d+)'
   set_value: 'maximum-paths <val>'
   default_value: 8
 
@@ -179,7 +179,7 @@ router:
   # There can be multiple eigrp instances
   multiple: true
   get_command: 'show running eigrp all'         # all eigrp-related configs
-  get_value: '/^router eigrp (\S+)$/'   # Match instance name
+  get_value: 'router eigrp (\S+)'   # Match instance name
   set_value: '<state> router eigrp <name>'    # config to add or remove
 
 shutdown:
@@ -188,7 +188,7 @@ shutdown:
   context:
     - 'router eigrp <name>'
   get_command: 'show running eigrp all'
-  get_value: '/^shutdown$/'
+  get_value: 'shutdown'
   set_value: '<state> shutdown'
   default_value: false
 ```

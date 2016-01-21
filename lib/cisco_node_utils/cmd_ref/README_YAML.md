@@ -183,11 +183,11 @@ with the `interface <name>` configuration command. Thus, you might have:
 # interface.yaml
 _template:
   get_command: 'show running-config interface all'
-  get_context: '/^interface <name>$/'
+  get_context: 'interface <name>'
   set_context: 'interface <name>'
 
 access_vlan:
-  get_value: '/^switchport access vlan (.*)$/'
+  get_value: 'switchport access vlan (.*)'
   set_value: 'switchport access vlan <number>'
 
 description:
@@ -203,14 +203,14 @@ instead of the more repetitive (but equally valid):
 # interface.yaml
 access_vlan:
   get_command: 'show running interface all'
-  get_context: '/^interface <name>$/i'
-  get_value: '/^switchport access vlan (.*)$/'
+  get_context: 'interface <name>'
+  get_value: 'switchport access vlan (.*)'
   set_context: 'interface <name>'
   set_value: 'switchport access vlan <number>'
 
 description:
   get_command: 'show running-config interface all'
-  get_context: '/^interface <name>$/i'
+  get_context: 'interface <name>'
   get_value: '/^description (.*)$/'
   set_context: 'interface <name>'
   set_value: 'description <desc>'
@@ -245,10 +245,10 @@ Even for clients using the same data format (e.g., CLI), there may be difference
 vrf:
   default_value: ""
   nexus:
-    get_value: '/^vrf member (.*)/'
+    get_value: 'vrf member (.*)'
     set_value: "<state> vrf member <vrf>"
   ios_xr:
-    get_value: '/^vrf (.*)/'
+    get_value: 'vrf (.*)'
     set_value: "<state> vrf <vrf>"
 ```
 
@@ -330,7 +330,7 @@ negotiate_auto_portchannel:
     '/N7/':
       default_only: false
     else:
-      get_value: '/^(no )?negotiate auto$/'
+      get_value: '(no )?negotiate auto'
       set_value: "<state> negotiate auto"
       default_value: true
 ```
@@ -384,7 +384,7 @@ productid:
 description:
   get_command: 'show running interface all'
   ios_xr:
-    get_context: '/^interface <name>$/i'
+    get_context: 'interface <name>'
     get_value: '/^description (.*)/'
     # config_get('interface', 'description', name: 'Ethernet1/1') gets the
     # plaintext output, finds the subsection under /^interface Ethernet1/1$/i,
@@ -403,13 +403,13 @@ When using a `_template` section, a common pattern is to place the `get_context`
 # interface.yaml
 _template:
   get_command: 'show running-config interface all'
-  get_context: '/^interface <name>$/i'
+  get_context: 'interface <name>'
 
 description:
   get_value: '/^description (.*)$/'
 
 duplex:
-  get_value: '/^duplex (.*)$/'
+  get_value: 'duplex (.*)'
 ```
 
 ### `set_context`
@@ -477,7 +477,7 @@ negotiate_auto_ethernet:
       # this feature is always off on these platforms and cannot be changed
       default_only: false
     else:
-      get_value: '/^(no )?negotiate auto$/'
+      get_value: '(no )?negotiate auto'
       set_value: "%s negotiate auto"
       default_value: true
 ```
@@ -494,22 +494,22 @@ The `kind` attribute is used to specify the type of value that is returned by `c
 # interface.yaml
 ---
 access_vlan:
-  get_value: '/^switchport access vlan (.*)$/'
-  set_value: "switchport access vlan %s"
+  get_value: 'switchport access vlan (.*)'
+  set_value: "switchport access vlan <vlan>"
   kind: int
   default_value: 1
 
 description:
   kind: string
-  get_value: '/^description (.*)/'
-  set_value: "%s description %s"
+  get_value: 'description (.*)'
+  set_value: "<state> description <desc>"
   default_value: ""
 
 feature_lacp:
   kind: boolean
   get_command: "show running | i ^feature"
-  get_value: '/^feature lacp$/'
-  set_value: "%s feature lacp"
+  get_value: 'feature lacp'
+  set_value: "<state> feature lacp"
 ```
 
 ### `multiple`
@@ -521,7 +521,7 @@ By default, `get_value` should uniquely identify a single configuration entry, a
 ---
 all_interfaces:
   multiple:
-  get_value: '/^interface (.*)/'
+  get_value: 'interface (.*)'
 ```
 
 ### `auto_default`
@@ -538,7 +538,7 @@ dampen_igp_metric:
   default_value: 600
   auto_default: false
   kind: int
-  get_value: '/^dampen-igp-metric (\d+)$/'
+  get_value: 'dampen-igp-metric (\d+)'
   set_value: '<state> dampen-igp-metric <num>'
 ```
 

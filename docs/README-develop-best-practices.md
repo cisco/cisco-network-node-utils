@@ -63,7 +63,9 @@ By default, CLI clients assume that `get_context` and `get_value` are to be trea
 # syslog_settings.yaml
 timestamp:
   get_command: "show running-config all | include '^logging timestamp'"
-  get_value: '/^logging timestamp (.*)$/'
+  get_value: 'logging timestamp (.*)'
+  # this is equivalent to:
+  # get_value: '/^logging timestamp (.*)$/'
   set_value: '<state> logging timestamp <units>'
   default_value: 'seconds'
 ```
@@ -77,20 +79,20 @@ One case where this may crop up is in trying to match both affirmative and
 negative variants of a config command:
 
 ```yaml
-get_context: '/^interface <name>$/i'
-get_value: '/^((no )?switchport)$/'
+get_context: ['interface <name>']
+get_value: '((no )?switchport)'
 
-get_value: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
+get_value: '(no)? ?ip tacacs source-interface ?(\S+)?'
 ```
 
 Instead, match the affirmative form of a command and treat its absence as
 confirmation of the negative form:
 
 ```yaml
-get_context: '/^interface <name>$/i'
-get_value: '/^switchport$/'
+get_context: ['interface <name>']
+get_value: 'switchport'
 
-get_value: '/^tacacs-server source-interface (\S+)$/'
+get_value: 'tacacs-server source-interface (\S+)'
 ```
 
 ### <a name="yaml5">Y5: Use the `_template` feature when getting/setting the same property value at multiple levels.
@@ -101,20 +103,17 @@ Using the template below, `auto_cost` and `default_metric` can be set under `rou
 # ospf.yaml
 _template:
   get_command: "show running ospf all"
-  get_context:
-    - '/^router ospf <name>$/'
-    - '/^vrf <vrf>$/'
-  set_context:
-    - "router ospf <name>"
-    - "vrf <vrf>"
+  context:
+    - 'router ospf <name>'
+    - '(?)vrf <vrf>'
 
 auto_cost:
-  get_value: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
+  get_value: 'auto-cost reference-bandwidth (\d+)\s*(\S+)?'
   set_value: "auto-cost reference-bandwidth <cost> <type>"
   default_value: [40, "Gbps"]
 
 default_metric:
-  get_value: '/^default-metric (\d+)?$/'
+  get_value: 'default-metric (\d+)?'
   set_value: "<state> default-metric <metric>"
   default_value: 0
 ```
@@ -129,7 +128,7 @@ Default value for `message_digest_alg_type` is `md5`
 ```yaml
 message_digest_alg_type:
   get_command: 'show running interface all'
-  get_context: '/^interface <name>$/i'
+  get_context: 'interface <name>'
   get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   default_value: 'md5'
 ```
@@ -141,7 +140,7 @@ If the `default_value` differs between cisco platforms, use per-API or per-platf
 ```yaml
 message_digest_alg_type:
   get_command: 'show running interface all'
-  get_context: '/^interface <name>$/i'
+  get_context: 'interface <name>'
   get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   /N9K/:
     default_value: 'sha2'
