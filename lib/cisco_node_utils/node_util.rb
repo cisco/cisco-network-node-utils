@@ -85,5 +85,13 @@ module Cisco
     def show(*args)
       node.show(*args)
     end
+
+    def ios_xr?
+      platform == :ios_xr
+    end
+
+    def nexus?
+      platform == :nexus
+    end
   end
 end

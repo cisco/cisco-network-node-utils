@@ -70,13 +70,13 @@ dampen_igp_metric:
 
 dampening:
   auto_default: false
+  default_value: ['15', '750', '2000', '45']
   nexus:
     get_value: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     set_value: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   ios_xr:
     get_value: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
-    set_value: ' <state> bgp dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
-  default_value: ""
+    set_value: '<state> bgp dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
 
 dampening_half_time:
   kind: int
@@ -200,9 +200,9 @@ redistribute_policy:
 suppress_inactive:
   _exclude: [ios_xr]
   kind: boolean
+  default_value: false
   get_value: '/^suppress-inactive$/'
   set_value: '<state> suppress-inactive'
-  default_value: false
 
 table_map:
   kind: string
@@ -217,6 +217,6 @@ table_map:
 table_map_filter:
   _exclude: [ios_xr]
   kind: boolean
+  default_value: false
   get_value: '/^table-map \S+ filter$/'
   set_value: '<state> table-map <map> filter'
-  default_value: false
