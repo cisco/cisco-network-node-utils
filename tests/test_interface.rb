@@ -1316,6 +1316,70 @@ class TestInterface < CiscoTestCase
                  interface.stp_port_type)
   end
 
+  def test_interface_stp_mst_cost_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    mc = [['0,2-4,6,8-12', '4500'], %w(1 20000)]
+    interface.stp_mst_cost = mc
+    assert_equal(mc, interface.stp_mst_cost)
+    mc = [['0-42', '1834'], ['83-92,1000-2300', '200000000'],
+          ['4000-4020', '1']]
+    interface.stp_mst_cost = mc
+    assert_equal(mc, interface.stp_mst_cost)
+    interface.stp_mst_cost = interface.default_stp_mst_cost
+    assert_equal(interface.default_stp_mst_cost,
+                 interface.stp_mst_cost)
+  end
+
+  def test_interface_stp_mst_port_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    mpp = [['0,2-4,6,8-12', '224'], %w(1 32)]
+    interface.stp_mst_port_priority = mpp
+    assert_equal(mpp, interface.stp_mst_port_priority)
+    mpp = [['0-42', '128'], ['83-92,1000-2300', '160'],
+           ['4000-4020', '192']]
+    interface.stp_mst_port_priority = mpp
+    assert_equal(mpp, interface.stp_mst_port_priority)
+    interface.stp_mst_port_priority = interface.default_stp_mst_port_priority
+    assert_equal(interface.default_stp_mst_port_priority,
+                 interface.stp_mst_port_priority)
+  end
+
+  def test_interface_stp_vlan_cost_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    vc = [['1-4,6,8-12', '4500'], %w(14 20000)]
+    interface.stp_vlan_cost = vc
+    assert_equal(vc, interface.stp_vlan_cost)
+    vc = [['1-42', '1834'], ['83-92,1000-2300', '200000000'],
+          ['3000-3960', '1']]
+    interface.stp_vlan_cost = vc
+    assert_equal(vc, interface.stp_vlan_cost)
+    interface.stp_vlan_cost = interface.default_stp_vlan_cost
+    assert_equal(interface.default_stp_vlan_cost,
+                 interface.stp_vlan_cost)
+  end
+
+  def test_interface_stp_vlan_port_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
+    interface = Interface.new(interfaces[0])
+    vpp = [['1-4,6,8-12', '224'], %w(14 32)]
+    interface.stp_vlan_port_priority = vpp
+    assert_equal(vpp, interface.stp_vlan_port_priority)
+    vpp = [['1-42', '128'], ['83-92,1000-2300', '160'],
+           ['3000-3960', '192']]
+    interface.stp_vlan_port_priority = vpp
+    assert_equal(vpp, interface.stp_vlan_port_priority)
+    interface.stp_vlan_port_priority = interface.default_stp_vlan_port_priority
+    assert_equal(interface.default_stp_vlan_port_priority,
+                 interface.stp_vlan_port_priority)
+  end
+
   def test_ipv4_pim_sparse_mode
     # Sample cli:
     #

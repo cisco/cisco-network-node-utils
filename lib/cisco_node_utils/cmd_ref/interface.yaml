@@ -213,53 +213,85 @@ speed:
   default_value: "auto"
 
 stp_bpdufilter:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree bpdufilter (.*)$/']
   config_set_append: ["%s spanning-tree bpdufilter %s"]
   default_value: false
 
 stp_bpduguard:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree bpduguard (.*)$/']
   config_set_append: ["%s spanning-tree bpduguard %s"]
   default_value: false
 
 stp_cost:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree cost (.*)$/']
   config_set_append: ["spanning-tree cost %s"]
   default_value: 'auto'
 
 stp_guard:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree guard (.*)$/']
   config_set_append: ["%s spanning-tree guard %s"]
   default_value: false
 
 stp_link_type:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree link-type (.*)$/']
   config_set_append: ["spanning-tree link-type %s"]
   default_value: 'auto'
 
+stp_mst_cost:
+  _exclude: [/N(3|5|6|9)/]
+  multiple:
+  config_get: "show running interface"
+  config_get_token_append: ['/^spanning-tree mst (.*) cost (.*)$/']
+  config_set_append: ["%s spanning-tree mst %s cost %s"]
+  default_value: []
+
+stp_mst_port_priority:
+  _exclude: [/N(3|5|6|9)/]
+  multiple:
+  config_get: "show running interface"
+  config_get_token_append: ['/^spanning-tree mst (.*) port-priority (.*)$/']
+  config_set_append: ["%s spanning-tree mst %s port-priority %s"]
+  default_value: []
+
 stp_port_priority:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: int
   config_get_token_append: ['/^spanning-tree port-priority (\d+)$/']
   config_set_append: ["spanning-tree port-priority %s"]
   default_value: 128
 
 stp_port_type:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [/N(3|5|6|9)/]
   kind: string
   config_get_token_append: ['/^spanning-tree port type (.*)$/']
   config_set_append: ["%s spanning-tree port type %s"]
   default_value: false
+
+stp_vlan_cost:
+  _exclude: [/N(3|5|6|9)/]
+  multiple:
+  config_get: "show running interface"
+  config_get_token_append: ['/^spanning-tree vlan (.*) cost (.*)$/']
+  config_set_append: ["%s spanning-tree vlan %s cost %s"]
+  default_value: []
+
+stp_vlan_port_priority:
+  _exclude: [/N(3|5|6|9)/]
+  multiple:
+  config_get: "show running interface"
+  config_get_token_append: ['/^spanning-tree vlan (.*) port-priority (.*)$/']
+  config_set_append: ["%s spanning-tree vlan %s port-priority %s"]
+  default_value: []
 
 svi_autostate:
   kind: boolean

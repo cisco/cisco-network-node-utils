@@ -641,6 +641,40 @@ module Cisco
       config_get_default('interface', 'stp_port_priority')
     end
 
+    def stp_mst_cost
+      config_get('interface', 'stp_mst_cost', @name)
+    end
+
+    def stp_mst_cost=(list)
+      config_set('interface', 'stp_mst_cost',
+                 @name, 'no', '0-4094', '')
+      list.each do |inst, pri|
+        config_set('interface', 'stp_mst_cost',
+                   @name, '', inst, pri)
+      end
+    end
+
+    def default_stp_mst_cost
+      config_get_default('interface', 'stp_mst_cost')
+    end
+
+    def stp_mst_port_priority
+      config_get('interface', 'stp_mst_port_priority', @name)
+    end
+
+    def stp_mst_port_priority=(list)
+      config_set('interface', 'stp_mst_port_priority',
+                 @name, 'no', '0-4094', '')
+      list.each do |inst, pri|
+        config_set('interface', 'stp_mst_port_priority',
+                   @name, '', inst, pri)
+      end
+    end
+
+    def default_stp_mst_port_priority
+      config_get_default('interface', 'stp_mst_port_priority')
+    end
+
     def stp_port_type
       config_get('interface', 'stp_port_type', @name)
     end
@@ -657,6 +691,40 @@ module Cisco
 
     def default_stp_port_type
       config_get_default('interface', 'stp_port_type')
+    end
+
+    def stp_vlan_cost
+      config_get('interface', 'stp_vlan_cost', @name)
+    end
+
+    def stp_vlan_cost=(list)
+      config_set('interface', 'stp_vlan_cost',
+                 @name, 'no', '1-3967', '')
+      list.each do |range, pri|
+        config_set('interface', 'stp_vlan_cost',
+                   @name, '', range, pri)
+      end
+    end
+
+    def default_stp_vlan_cost
+      config_get_default('interface', 'stp_vlan_cost')
+    end
+
+    def stp_vlan_port_priority
+      config_get('interface', 'stp_vlan_port_priority', @name)
+    end
+
+    def stp_vlan_port_priority=(list)
+      config_set('interface', 'stp_vlan_port_priority',
+                 @name, 'no', '1-3967', '')
+      list.each do |range, pri|
+        config_set('interface', 'stp_vlan_port_priority',
+                   @name, '', range, pri)
+      end
+    end
+
+    def default_stp_vlan_port_priority
+      config_get_default('interface', 'stp_vlan_port_priority')
     end
 
     def switchport
