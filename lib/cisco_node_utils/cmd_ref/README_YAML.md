@@ -238,7 +238,7 @@ description:
 
 ### Platform variants
 
-Even for clients using the same data format (e.g., CLI), there may be differences between classes of Cisco platform.  Any of the attribute properties can be subdivided by platform type by using the platform type as a key. For example, interface VRF membership defaults to "" (no VRF) on both Nexus and IOS XR platforms, but the CLI is 'vrf member <vrf>' for Nexus and 'vrf <vrf>' for IOS XR. Thus, the YAML could be written as:
+Even for clients using the same data format (e.g., CLI), there may be differences between classes of Cisco platform.  Any of the attribute properties can be subdivided by platform type by using the platform type as a key. For example, interface VRF membership defaults to `""` (no VRF) on both Nexus and IOS XR platforms, but the CLI is `vrf member <vrf>` for Nexus and `vrf <vrf>` for IOS XR. Thus, the YAML could be written as:
 
 ```yaml
 # interface.yaml
@@ -433,7 +433,7 @@ If the context is defined using the recommended key-value wildcarding style, it 
 ```yaml
 # interface.yaml
 _template:
-  set_context: 'interface <name>'
+  set_context: ['interface <name>']
 
 access_vlan:
   set_value: 'switchport access vlan <number>'
