@@ -585,9 +585,6 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   def test_inject_map
-    # TODO: Fix it so we don't have to skip
-    skip('Currently broken on IOS XR') if platform == :ios_xr
-
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
       config_ios_xr_dependencies('55') if platform == :ios_xr
@@ -617,7 +614,7 @@ class TestRouterBgpAF < CiscoTestCase
   def network_cmd(af, dbg)
     if platform == :ios_xr
       %w(rtmap1 rtmap2 rtmap3 rtmap5 rtmap6 rtmap7).each do |policy|
-        config("route-policy #{policy}", 'end')
+        config("route-policy #{policy}", 'end-policy')
       end
     end
     # Initial 'should' state
@@ -670,7 +667,7 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :ios_xr
       %w(rtmap1_55 rtmap2_55 rtmap3_55 rtmap5_55
          rtmap6_55 rtmap7_55).each do |policy|
-        config("route-policy #{policy}", 'end')
+        config("route-policy #{policy}", 'end-policy')
       end
     end
     should = master.map { |network, rm| [network, rm.nil? ? nil : "#{rm}_55"] }
@@ -913,6 +910,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   def table_map(asn, vrf, af)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
+    config('route-policy sjc', 'end-policy') if platform == :ios_xr
 
     #
     # Set and verify
@@ -934,14 +932,22 @@ class TestRouterBgpAF < CiscoTestCase
            'Error: suppress inactive value does not match set value')
 
     val = true
-    bgp_af.table_map_set('sjc', val)
-    assert(bgp_af.table_map_filter,
-           'Error: suppress inactive value does not match set value')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.table_map_set('sjc', val)
+      end
+      assert_nil(bgp_af.default_table_map_filter)
+    else
+      bgp_af.table_map_set('sjc', val)
+      assert(bgp_af.table_map_filter,
+             'Error: suppress inactive value does not match set value')
 
-    val = bgp_af.default_table_map_filter
-    bgp_af.table_map_set('sjc', val)
-    refute(bgp_af.table_map_filter,
-           'Error: suppress inactive value does not match default value')
+      val = bgp_af.default_table_map_filter
+      bgp_af.table_map_set('sjc', val)
+      refute(bgp_af.table_map_filter,
+             'Error: suppress inactive value does not match default value')
+    end
+    config('no route-policy sjc') if platform == :ios_xr
   end
 
   def test_table_map

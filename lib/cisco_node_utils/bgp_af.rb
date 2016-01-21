@@ -536,8 +536,8 @@ module Cisco
     #
 
     def inject_map
-      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
-      cmds.sort
+      cmds = config_get('bgp_af', 'inject_map', @get_args)
+      cmds.nil? ? nil : cmds.each(&:compact!).sort
     end
 
     def inject_map=(should_list)
