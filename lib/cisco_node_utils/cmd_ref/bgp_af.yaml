@@ -74,8 +74,7 @@ dampen_igp_metric:
 
 dampening:
   auto_default: false
-  multiple: true
-  default_value: [15, 750, 2000, 45]
+  default_value: ['15', '750', '2000', '45']
   cli_nexus:
     config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
