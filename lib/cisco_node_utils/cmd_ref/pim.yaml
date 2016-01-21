@@ -1,0 +1,42 @@
+# pim
+---
+_template:
+  get_command: "show run pim all"
+  get_context:
+    - '/^vrf context <vrf>$/'
+  set_context:
+    - "vrf context <vrf>"
+
+all_group_lists:
+  multiple:
+  get_value : '/^<afi> pim rp-address ([0-9\.]+) group-list (\S+)/'
+
+all_rp_addresses:
+  multiple:
+  get_value: '/^<afi> pim rp-address (.*)$/'
+
+all_ssm_ranges:
+  multiple:
+  get_value : '/^<afi> pim ssm range (.*)$/'
+
+feature:
+  get_command: 'show running | section feature'
+  get_context: ~
+  get_value: '/^feature pim$/' # TBD pim6
+  set_context: ~
+  set_value: 'feature pim'
+
+group_list:
+  default_value: ~
+  get_value: '/^<afi> pim rp-address (\S+) group-list (\S+)/'
+  set_value: "<state> <afi> pim rp-address <addr> group-list <group>"
+
+rp_address:
+  multiple:
+  get_value: '/^<afi> pim rp-address (\S+)/'
+  set_value: "<state> <afi> pim rp-address <addr>"
+  default_value: ~
+
+ssm_range:
+  get_value: '/^<afi> pim ssm range (.*)/'
+  set_value: "<state> <afi> pim ssm range <ssm_range>"

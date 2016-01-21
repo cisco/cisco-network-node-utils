@@ -57,7 +57,7 @@ last_reset_time:
 
 system_image:
   _exclude: [ios_xr]
-  '/N7K/':
+  '/N7/':
     get_value: "isan_file_name"
   else:
     get_value: "kick_file_name"

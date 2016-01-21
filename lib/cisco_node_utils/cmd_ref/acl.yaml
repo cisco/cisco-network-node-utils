@@ -10,7 +10,13 @@ _template:
 
 ace:
   get_value: '/^<seqno> .+$/'
-  set_value: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port> <option_format>'
+  set_value: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port>'
+
+ace_destroy:
+  set_value: 'no <seqno>'
+
+ace_remark:
+  set_value: '<state> <seqno> remark <remark>'
 
 acl:
   context: ~

@@ -7,9 +7,29 @@ Changelog
 * ACL
   * acl (@saqibraza)
   * ace (@yjyongz)
+  * remark ace (@bansalpradeep)
+* EVPN
+  * evpn_vni (@andish)
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+* Feature
+  * feature (@robert-w-gries)
+* Interface
+  * interface_service_vni (@chrisvanheuveln)
+* PIM
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
+* Port Channel
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
+* SNMP
+  * snmpnotification (@tphoney)
+* VDC
+  * vdc (@chrisvanheuveln)
+* VRF
+  * vrf_af (@chrisvanheuveln)
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
@@ -18,14 +38,40 @@ Changelog
 ### Added
 
 * `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
-* Extend bgp with attributes: `fast_external_fallover`,`flush_routes`,`isolate`,`neighbor_down_fib_accelerate`
-* Extend bgp_af with attributes: `suppress_inactive`, `default_metric`, `table_map`, `inject_map`, `distance_ebgp`,`distance_ibgp`,`distance_local`
-* Extend interface with `channel_group` attribute and support for fabric path attributes
-* Extend vrf with `vni` attribute
-* Extend vlan with `mode` attribute
-* Added client support for gRPC on IOS XR 6.0.0.
+* Extend bgp with attributes:
+  * `disable_policy_batching`, `disable_policy_batching_ipv4`, `disable_policy_batching_ipv6`
+  * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
+  * `fast_external_fallover`
+  * `flush_routes`
+  * `isolate`
+  * `neighbor_down_fib_accelerate`
+  * `route_distinguisher`
+* Extend bgp_af with attributes:
+  * `default_metric`
+  * `distance_ebgp`, `distance_ibgp`, `distance_local`
+  * `inject_map`
+  * `suppress_inactive`
+  * `table_map`
+* Extend interface with attributes:
+  * `channel_group`
+  * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
+  * `ipv4_address_secondary`, `ipv4_arp_timeout`
+  * `vlan_mapping`
+  * switchport mode `fabricpath`
+* Extend vrf with attributes:
+  * `vni`
+* Extend vlan with attribute:
+  * `mode`
+
+* Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
-* XR support for bgp_neighbor
+* Add IOS XR support for the following classes:
+  * bgp
+  * bgp_af
+  * bgp_neighbor
+  * bgp_neighbor_af
+  * interface
+  * command_config
 
 ### Changed
 
@@ -43,7 +89,6 @@ Changelog
 * Interface:
   - Correctly restore IP address when changing VRF membership
   - MTU is not supported on loopback interfaces
-* NXAPI - Better handling of empty output from cli_show_ascii requests (@hunner)
 
 ## [v1.1.0]
 
@@ -59,6 +104,8 @@ Changelog
 * RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
+* SNMP
+  * snmp_notification_receiver (@jonnytpuppet)
 * SYSLOG
   * syslog_server (@jonnytpuppet)
   * syslog_setting (@jonnytpuppet)

@@ -75,21 +75,56 @@ feature_vlan:
     get_value: '/^feature interface-vlan$/'
     set_value: "%s feature interface-vlan"
 
+ipv4_acl_in:
+  ios_xr:
+    get_value: '/^ipv4 access-group (\S+) ingress/'
+    set_value: "<state> ipv4 access-group <acl> ingress"
+  nexus:
+    get_value: '/^ip access-group (\S+) in/'
+    set_value: "<state> ip access-group <acl> in"
+  default_value: ""
+
+ipv4_acl_out:
+  ios_xr:
+    get_value: '/^ipv4 access-group (\S+) egress/'
+    set_value: "<state> ipv4 access-group <acl> egress"
+  nexus:
+    get_value: '/^ip access-group (\S+) out/'
+    set_value: "<state> ip access-group <acl> out"
+  default_value: ""
+
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
   multiple:
   nexus:
     get_value: '/^ip address ([0-9\.]+)[\s\/](.*)/'
-    set_value: "<state> ip address <addr>"
+    set_value: "<state> ip address <addr> <secondary>"
   ios_xr:
     get_value: '/^ipv4 address ([0-9\.]+) (.*)/'
-    set_value: '<state> ipv4 address <addr>'
+    set_value: '<state> ipv4 address <addr> <secondary>'
 
 ipv4_address:
   default_value: ~
 
+ipv4_arp_timeout:
+  kind: int
+  get_value: '/^ip arp timeout (\d+)$/'
+  set_value: "<state> ip arp timeout <timeout>"
+  default_value: 700
+
+ipv4_arp_timeout_non_vlan_interfaces:
+  default_only: ~
+
 ipv4_netmask_length:
   default_value: ~
+
+ipv4_pim_sparse_mode:
+  _exclude: [ios_xr]
+  kind: boolean
+  default_value: false
+  nexus:
+    get_value: '/^ip pim sparse-mode$/'
+    set_value: "<state> ip pim sparse-mode"
 
 ipv4_proxy_arp:
   kind: boolean
@@ -121,6 +156,24 @@ ipv4_redirects_other_interfaces:
     set_value: "<state> ipv4 redirects"
     default_value: false
 
+ipv6_acl_in:
+  ios_xr:
+    get_value: '/^ipv6 access-group (\S+) ingress/'
+    set_value: "<state> ipv6 access-group <acl> ingress"
+  nexus:
+    get_value: '/^ipv6 traffic-filter (\S+) in/'
+    set_value: "<state> ipv6 traffic-filter <acl> in"
+  default_value: ""
+
+ipv6_acl_out:
+  ios_xr:
+    get_value: '/^ipv6 access-group (\S+) egress/'
+    set_value: "<state> ipv6 access-group <acl> egress"
+  nexus:
+    get_value: '/^ipv6 traffic-filter (\S+) out/'
+    set_value: "<state> ipv6 traffic-filter <acl> out"
+  default_value: ""
+
 mtu_loopback:
   kind: boolean
   default_only: ~
@@ -137,7 +190,7 @@ mtu_other_interfaces:
 negotiate_auto_ethernet:
   kind: boolean
   _exclude: [ios_xr]
-  '/(N7K|C3064)/':
+  '/(N7|C3064)/':
     default_only: false
   else:
     get_value: '/^(no )?negotiate auto$/'
@@ -153,7 +206,7 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr]
   nexus:
-    '/N7K/':
+    '/N7/':
       default_only: false
     else:
       get_value: '/^(no )?negotiate auto$/'
@@ -287,6 +340,32 @@ system_default_switchport_shutdown:
     # default_value: n/a. This is a user-configurable system default.
   ios_xr:
     default_only: true
+
+vlan_mapping:
+  _exclude: [/N(3|5|6|9)/]
+  multiple:
+  get_value: '/^switchport vlan mapping (\d+) (\d+)/'
+  set_value: '<state> switchport vlan mapping <original> <translated>'
+  default_value: []
+
+vlan_mapping_enable:
+  _exclude: [/N(3|5|6|9)/]
+  kind: boolean
+  get_value: '/^(no )?switchport vlan mapping enable/'
+  set_value: '<state> switchport vlan mapping enable'
+  default_value: true
+
+vpc_id:
+  kind: int
+  get_value: '/^vpc (\d+)$/'
+  set_value: '<state> vpc <id>'
+  default_value: false
+
+vpc_peer_link:
+  kind: boolean
+  get_value: '/^vpc peer\-link$/'
+  set_value: '<state> vpc peer-link'
+  default_value: false
 
 vrf:
   default_value: ""

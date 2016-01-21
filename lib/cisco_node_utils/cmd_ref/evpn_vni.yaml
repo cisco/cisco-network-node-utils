@@ -1,0 +1,46 @@
+# evpn_vni.yaml
+---
+_template:
+  get_command: "show running bgp all"
+  get_context:
+    - '/^evpn$/'
+    - '/^vni <vni> l2$/'
+  set_context:
+    - 'evpn'
+    - "vni <vni> l2"
+
+evpn:
+  get_context: ~
+  get_value: "/^evpn$/"
+  set_context: ~
+  set_value: "<state> evpn"
+
+route_distinguisher:
+  get_value: '/^rd (\S+)$/'
+  set_value: "<state> rd <rd>"
+  default_value: ""
+
+route_target_both:
+  get_value: '/^route-target both (\S+)$/'
+  set_value: "<state> route-target both <community>"
+  multiple: true
+  default_value: []
+
+route_target_export:
+  get_value: '/^route-target export (\S+)$/'
+  set_value: "<state> route-target export <community>"
+  multiple: true
+  default_value: []
+
+route_target_import:
+  get_value: '/^route-target import (\S+)$/'
+  set_value: "<state> route-target import <community>"
+  multiple: true
+  default_value: []
+
+vni:
+  multiple: true
+  get_context: ['/^evpn$/']
+  get_value: '/^vni\s+(\S+)\s+l2$/'
+  set_context: ['evpn']
+  set_value: "<state> vni <vni> l2"

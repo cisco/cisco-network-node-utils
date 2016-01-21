@@ -21,6 +21,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
+require_relative '../lib/cisco_node_utils/feature'
 
 # TestRouterBgpAF - Minitest for RouterBgpAF class
 class TestRouterBgpAF < CiscoTestCase
@@ -471,20 +472,6 @@ class TestRouterBgpAF < CiscoTestCase
     bgp_af.destroy
   end
 
-  ## feature nv overlay evpn
-  def test_feature_nv_overlay_evpn
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        RouterBgpAF.feature_nv_overlay_evpn_enable
-      end
-    else
-      config('no nv overlay evpn')
-      RouterBgpAF.feature_nv_overlay_evpn_enable
-      assert(RouterBgpAF.feature_nv_overlay_evpn_enabled,
-             'Error:feature nv overlay evpn is not enabled')
-    end
-  end
-
   ##
   ## distance
   ##
@@ -598,9 +585,6 @@ class TestRouterBgpAF < CiscoTestCase
   end
 
   def test_inject_map
-    # TODO: Fix it so we don't have to skip
-    skip('Currently broken on IOS XR') if platform == :ios_xr
-
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
     afs.each do |af|
       config_ios_xr_dependencies('55') if platform == :ios_xr
@@ -630,7 +614,7 @@ class TestRouterBgpAF < CiscoTestCase
   def network_cmd(af, dbg)
     if platform == :ios_xr
       %w(rtmap1 rtmap2 rtmap3 rtmap5 rtmap6 rtmap7).each do |policy|
-        config("route-policy #{policy}", 'end')
+        config("route-policy #{policy}", 'end-policy')
       end
     end
     # Initial 'should' state
@@ -683,7 +667,7 @@ class TestRouterBgpAF < CiscoTestCase
     if platform == :ios_xr
       %w(rtmap1_55 rtmap2_55 rtmap3_55 rtmap5_55
          rtmap6_55 rtmap7_55).each do |policy|
-        config("route-policy #{policy}", 'end')
+        config("route-policy #{policy}", 'end-policy')
       end
     end
     should = master.map { |network, rm| [network, rm.nil? ? nil : "#{rm}_55"] }
@@ -881,93 +865,6 @@ class TestRouterBgpAF < CiscoTestCase
     assert_equal(expected, result, 'Test 5. delta mismatch')
   end
 
-  # test route_target
-  def test_route_target
-    # TODO: Fix this so we don't have to skip
-    # - Needs YAML differentiation for IOL vs. Nexus
-    skip('Currently broken on IOS XR: US59615') if platform == :ios_xr
-    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
-    afs.each do |af|
-      route_target(55, 'red', af)
-    end
-  end
-
-  def route_target(asn, vrf, af)
-    # Common test for route-target providers. Tests evpn and non-evpn.
-
-    config_ios_xr_dependencies(asn, vrf) if platform == :ios_xr
-    bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-    # test route target both auto and route target both auto evpn
-    refute(bgp_af.default_route_target_both_auto,
-           'default value for route target both auto should be false')
-
-    refute(bgp_af.default_route_target_both_auto_evpn,
-           'default value for route target both auto evpn should be false')
-
-    bgp_af.route_target_both_auto = true
-    assert(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto should be enabled')
-
-    bgp_af.route_target_both_auto = false
-    refute(bgp_af.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto should be disabled')
-
-    bgp_af.route_target_both_auto_evpn = true
-    assert(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto evpn should be enabled')
-
-    bgp_af.route_target_both_auto_evpn = false
-    refute(bgp_af.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'bgp_af route-target both auto evpn should be disabled')
-
-    opts = [:import, :export]
-
-    # Master list of communities to test against
-    master = ['1:1', '2:2', '3:3', '4:5']
-
-    # Test 1: both/import/export when no commands are present. Each target
-    # option will be tested with and without evpn (6 separate types)
-    should = master.clone
-    route_target_tester(bgp_af, af, opts, should, 'Test 1')
-
-    # Test 2: remove half of the entries
-    should = ['1:1', '4:4']
-    route_target_tester(bgp_af, af, opts, should, 'Test 2')
-
-    # Test 3: restore the removed entries
-    should = master.clone
-    route_target_tester(bgp_af, af, opts, should, 'Test 3')
-
-    # Test 4: 'default'
-    should = bgp_af.default_route_target_import
-    route_target_tester(bgp_af, af, opts, should, 'Test 4')
-
-    bgp_af.destroy
-  end
-
-  def route_target_tester(bgp_af, af, opts, should, test_id)
-    # First configure all four property types
-    opts.each do |opt|
-      # non-evpn
-      bgp_af.send("route_target_#{opt}=", should)
-      # evpn
-      bgp_af.send("route_target_#{opt}_evpn=", should)
-    end
-
-    # Now check the results
-    opts.each do |opt|
-      # non-evpn
-      result = bgp_af.send("route_target_#{opt}")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}")
-      # evpn
-      result = bgp_af.send("route_target_#{opt}_evpn")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}_evpn")
-    end
-  end
-
   ##
   ## suppress_inactive
   ##
@@ -1013,6 +910,7 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   def table_map(asn, vrf, af)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
+    config('route-policy sjc', 'end-policy') if platform == :ios_xr
 
     #
     # Set and verify
@@ -1034,14 +932,22 @@ class TestRouterBgpAF < CiscoTestCase
            'Error: suppress inactive value does not match set value')
 
     val = true
-    bgp_af.table_map_set('sjc', val)
-    assert(bgp_af.table_map_filter,
-           'Error: suppress inactive value does not match set value')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.table_map_set('sjc', val)
+      end
+      assert_nil(bgp_af.default_table_map_filter)
+    else
+      bgp_af.table_map_set('sjc', val)
+      assert(bgp_af.table_map_filter,
+             'Error: suppress inactive value does not match set value')
 
-    val = bgp_af.default_table_map_filter
-    bgp_af.table_map_set('sjc', val)
-    refute(bgp_af.table_map_filter,
-           'Error: suppress inactive value does not match default value')
+      val = bgp_af.default_table_map_filter
+      bgp_af.table_map_set('sjc', val)
+      refute(bgp_af.table_map_filter,
+             'Error: suppress inactive value does not match default value')
+    end
+    config('no route-policy sjc') if platform == :ios_xr
   end
 
   def test_table_map

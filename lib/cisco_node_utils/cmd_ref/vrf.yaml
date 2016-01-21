@@ -1,58 +1,135 @@
-# vrf
+# vrf.yaml
 ---
+_template:
+  nexus:
+    get_command: "show running all | section '^vrf context'"
+    get_context:
+      - '/^vrf context <vrf>$/'
+      - '/^address-family <afi> <safi>$/'
+    set_context:
+      - 'vrf context <vrf>'
+      - 'address-family <afi> <safi>'
+  ios_xr:
+    get_command: "show run vrf"
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+    set_context:
+      - 'vrf <vrf>'
+      - 'address-family <afi> <safi>'
+
+address_family:
+  nexus:
+    set_context: ['vrf context <vrf>']
+    set_value: '<state> address-family <afi> <safi>'
+  ios_xr:
+    set_context: ['vrf <vrf>']
+    set_value: '<state> address-family <afi> <safi>'
+
+all_vrf_afs:
+  multiple: true
+  get_value: '/^address-family (\S+) (\S+)$/'
+
 all_vrfs:
   multiple: true
-  get_command: "show running | section 'vrf context'"
-  get_value: '/^vrf context (.*)/'
+  nexus:
+    get_value: '/^vrf context (.*)/'
+  ios_xr:
+    get_value: '/^vrf (.*)/'
 
 create:
-  set_value:  "vrf context <vrf>"
+  nexus:
+    set_value:  'vrf context <vrf>'
+  ios_xr:
+    set_value:  'vrf <vrf>'
 
 description:
-  kind: string
-  get_command: "show running | section 'vrf context'"
-  context:
-    - "vrf context <vrf>"
   get_value: '/^description (.*)/'
-  set_value: "<state> description <desc>"
-  default_value: ""
+  set_value: '<state> description <desc>'
+  kind: string
+  default_value: ''
 
 destroy:
-  set_value: "no vrf context <vrf>"
-
-feature_vn_segment_vlan_based:
-  _exclude:
-    - /N7K/  # Support for multi-tenancy full only
-  kind: boolean
-  default_value: false
   nexus:
-    get_command: 'show running section feature'
-    get_value: '/^feature vn-segment-vlan-based$/'
-    set_value: 'feature vn-segment-vlan-based'
+    set_value: 'no vrf context <vrf>'
+  ios_xr:
+    set_value: 'no vrf <vrf>'
 
-feature_vni:
-  _exclude: [/N3K/, /N9K/]   # Support for multi-tenancy lite only
+route_distinguisher:
+  # Only configurable under BGP in IOS XR, not under VRF context
+  _exclude: [ios_xr]
+  get_value: '/^rd (\S+)$/'
+  set_value: '<state> rd <rd>'
+  default_value: ''
+
+route_target_both_auto:
+  _exclude: [ios_xr]
   kind: boolean
+  get_value: '/^route-target both auto$/'
+  set_value: '<state> route-target both auto'
   default_value: false
+
+route_target_both_auto_evpn:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^route-target both auto evpn$/'
+  set_value: '<state> route-target both auto evpn'
+  default_value: false
+
+route_target_export:
+  multiple: true
+  default_value: []
   nexus:
-    get_command: 'show running section feature'
-    get_value: '/^feature vni$/'
-    set_value: 'feature vni'
+    get_value: '/^route-target export (\S+)$/'
+    set_value: '<state> route-target export <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^export route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> export route-target <community>'
+
+route_target_export_evpn:
+  _exclude: [ios_xr]
+  multiple: true
+  get_value: '/^route-target export (\S+) evpn$/'
+  set_value: '<state> route-target export <community> evpn'
+  default_value: []
+
+route_target_import:
+  multiple: true
+  default_value: []
+  nexus:
+    get_value: '/^route-target import (\S+)$/'
+    set_value: '<state> route-target import <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^import route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> import route-target <community>'
+
+route_target_import_evpn:
+  _exclude: [ios_xr]
+  multiple: true
+  get_value: '/^route-target import (\S+) evpn$/'
+  set_value: '<state> route-target import <community> evpn'
+  default_value: []
 
 shutdown:
+  _exclude: [ios_xr]
   kind: boolean
-  get_command: "show running | section 'vrf context'"
-  context: ["vrf context <vrf>"]
+
   get_value: '/^shutdown$/'
-  set_value: "<state> shutdown"
+  set_value: '<state> shutdown'
   default_value: false
 
-vni:
-  _exclude:
-    - /N3/   # N3: Support Unknown
-  kind: int
-  get_command: "show running | section 'vrf context'"
-  context: ["vrf context <vrf>"]
-  get_value: '/^vni (\d+)$/'
-  set_value: "<state> vni <id>"
-  default_value: false
+vni: # TBD Should this move to the vni provider as vrf_vni?
+  # MT-lite only
+  '/N9/':
+    kind: int
+    get_value: '/^vni (\d+)$/'
+    set_value: '<state> vni <id>'
+    default_value: false

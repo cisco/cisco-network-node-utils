@@ -119,10 +119,13 @@ default_metric:
   default_value: false
 
 distance:
-  # TODO: add support for XR
-  _exclude: [ios_xr]
-  get_value: '/^distance (\d+) (\d+) (\d+)$/'
-  set_value: '<state> distance <ebgp> <ibgp> <local>'
+  default_value: ['20', '200', '220']
+  nexus:
+    get_value: '/^distance (\d+) (\d+) (\d+)$/'
+    set_value: '<state> distance <ebgp> <ibgp> <local>'
+  ios_xr:
+    get_value: '/^distance bgp (\d+) (\d+) (\d+)$/'
+    set_value: '<state> distance bgp <ebgp> <ibgp> <local>'
 
 distance_ebgp:
   kind: int
@@ -135,15 +138,6 @@ distance_ibgp:
 distance_local:
   kind: int
   default_value: 220
-
-# This is a multi-provider, enable-only feature. Do not disable from provider.
-feature_nv_overlay_evpn:
-  _exclude: [ios_xr]
-  kind: boolean
-  get_command: "show running | section nv"
-  context: ~
-  get_value: '/^nv overlay evpn$/'
-  set_value: "nv overlay evpn"
 
 inject_map:
   _exclude: [ios_xr]
@@ -203,74 +197,6 @@ redistribute_policy:
   ios_xr:
     set_value: ' <state> redistribute <protocol> route-policy <policy>'
 
-#config in vrf context
-# TODO: fix these for XR
-route_target_both_auto:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target both auto$/'
-  set_value: "<state> route-target both auto"
-  kind: boolean
-  default_value: false
-
-route_target_both_auto_evpn:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target both auto evpn$/'
-  set_value: "<state> route-target both auto evpn"
-  kind: boolean
-  default_value: false
-
-route_target_export:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target export (\S+)$/'
-  set_value: "<state> route-target export <community>"
-  multiple: true
-  default_value: []
-
-route_target_export_evpn:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target export (\S+) evpn$/'
-  set_value: "<state> route-target export <community> evpn"
-  multiple: true
-  default_value: []
-
-route_target_import:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target import (\S+)$/'
-  set_value: "<state> route-target import <community>"
-  multiple: true
-  default_value: []
-
-route_target_import_evpn:
-  nexus:
-    get_command: 'sh run | section vrf'
-  context:
-    - "vrf context <vrf>"
-    - "address-family <afi> <safi>"
-  get_value: '/^route-target import (\S+) evpn$/'
-  set_value: "<state> route-target import <community> evpn"
-  multiple: true
-  default_value: []
-
 suppress_inactive:
   _exclude: [ios_xr]
   kind: boolean
@@ -279,14 +205,17 @@ suppress_inactive:
   default_value: false
 
 table_map:
-  # TODO: add 'table-policy' support for XR
-  _exclude: [ios_xr]
   kind: string
-  get_value: '/^table-map (\S+)(?: filter)?$/'
-  set_value: '<state> table-map <map>'
   default_value: ""
+  nexus:
+    get_value: '/^table-map (\S+)(?: filter)?$/'
+    set_value: '<state> table-map <map>'
+  ios_xr:
+    get_value: '/^table-policy (\S+)$/'
+    set_value: ' <state> table-policy <map>'
 
 table_map_filter:
+  _exclude: [ios_xr]
   kind: boolean
   get_value: '/^table-map \S+ filter$/'
   set_value: '<state> table-map <map> filter'

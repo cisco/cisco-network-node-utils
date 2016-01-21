@@ -118,6 +118,24 @@ confederation_peers:
 create_destroy_neighbor:
   set_value: '<state> neighbor <nbr>'
 
+disable_policy_batching:
+  _exclude: [ios_xr]
+  get_value: '/^disable-policy-batching$/'
+  set_value: '<state> disable-policy-batching'
+  default_value: false
+
+disable_policy_batching_ipv4:
+  _exclude: [ios_xr]
+  get_value: '/^disable-policy-batching ipv4 prefix-list (\S+)$/'
+  set_value: '<state> disable-policy-batching ipv4 prefix-list <prefix_list>'
+  default_value: ""
+
+disable_policy_batching_ipv6:
+  _exclude: [ios_xr]
+  get_value: '/^disable-policy-batching ipv6 prefix-list (\S+)$/'
+  set_value: '<state> disable-policy-batching ipv6 prefix-list <prefix_list>'
+  default_value: ""
+
 enforce_first_as:
   kind: boolean
   default_value: true
@@ -128,6 +146,31 @@ enforce_first_as:
     get_value: '(no )?enforce-first-as'
     set_value: '<state> enforce-first-as'
 
+event_history_cli:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history cli(?: size (\S+))?$/'
+  set_value: '<state> event-history cli <size>'
+  default_value: 'size_small'
+
+event_history_detail:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history detail(?: size (\S+))?$/'
+  set_value: '<state> event-history detail <size>'
+  auto_default: false
+  default_value: 'size_disable'
+
+event_history_events:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history events(?: size (\S+))?$/'
+  set_value: '<state> event-history events <size>'
+  default_value: 'size_small'
+
+event_history_periodic:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history periodic(?: size (\S+))?$/'
+  set_value: '<state> event-history periodic <size>'
+  default_value: 'size_small'
+
 fast_external_fallover:
   kind: boolean
   default_value: true
@@ -137,18 +180,6 @@ fast_external_fallover:
   nexus:
     get_value: '(no )?fast-external-fallover'
     set_value: '<state> fast-external-fallover'
-
-feature:
-  kind: boolean
-  context: ~
-  ios_xr:
-    get_command: "show running-config router bgp"
-    get_value: 'router bgp'
-    set_value: "<state> router bgp"
-  nexus:
-    get_command: "show running bgp all"
-    get_value: 'feature bgp'
-    set_value: "<state> feature bgp"
 
 flush_routes:
   _exclude: [ios_xr]
@@ -228,7 +259,7 @@ maxas_limit:
 neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
   nexus:
-    _exclude: [/N6K/, /N7K/]
+    _exclude: [/N6/, /N7/]
     kind: boolean
     get_value: 'neighbor-down fib-accelerate'
     set_value: '<state> neighbor-down fib-accelerate'
@@ -237,13 +268,14 @@ neighbor_down_fib_accelerate:
 reconnect_interval:
   # Note: Does not exist in IOS XR
   nexus:
-    _exclude: [/N6K/, /N7K/]
+    _exclude: [/N6/, /N7/]
     kind: int
     get_value: 'reconnect-interval (\d+)'
     set_value: '<state> reconnect-interval <seconds>'
     default_value: 60
 
 route_distinguisher:
+  # This property is also supported by vrf.yaml
   default_value: ""
   ios_xr:
     get_value: 'rd (\S+)'

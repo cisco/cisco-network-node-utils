@@ -15,11 +15,20 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vlan'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/vdc'
+require_relative '../lib/cisco_node_utils/vxlan_vtep'
 
 include Cisco
 
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
+  def teardown
+    return unless Vdc.vdc_support
+    # Reset the vdc module type back to default
+    v = Vdc.new('default')
+    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
+  end
+
   def interface_ethernet_default(ethernet_id)
     config("default interface ethernet #{ethernet_id}")
   end
@@ -148,9 +157,31 @@ class TestVlan < CiscoTestCase
     v2.destroy
   end
 
-  def test_vlan_mode
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
+  def compatible_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find a compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
+  end
+
+  def mt_full_env_setup
+    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
+    compatible_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
+  end
+
+  def test_vlan_mode_fabricpath
+    mt_full_env_setup
+
+    # Test for valid mode
     v = Vlan.new(2000)
     assert_equal('ce', v.mode,
                  'Mode should have been default to ce')
@@ -159,11 +190,8 @@ class TestVlan < CiscoTestCase
                  'Fabricpath feature should have been enabled')
     assert_equal('fabricpath', v.mode,
                  'Mode should have been set to fabricpath')
-  end
 
-  def test_vlan_mode_invalid
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
+    # Test for invalid mode
     v = Vlan.new(100)
     assert_equal('ce', v.mode,
                  'Mode should have been default to ce')

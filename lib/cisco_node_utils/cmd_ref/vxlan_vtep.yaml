@@ -1,5 +1,7 @@
 # vxlan_vtep
 ---
+_exclude: [/N(3|5|6)/]
+
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
   context:
@@ -10,9 +12,35 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)$/'
 
-mac_distribution:
-  get_value: '/^host-reachability protocol (\S+)/'
-  set_value: '<state> host-reachability protocol <proto>'
+host_reachability:
+  '/N(7|9)/':
+    get_value: '/^host-reachability protocol (\S+)/'
+    set_value: '<state> host-reachability protocol <proto>'
+    default_value: 'flood'
+
+mt_full_support:
+  # This is only used for determining support for Multi-Tenancy Full
+  kind: boolean
+  '/N7/':
+    default_only: true
+  else:
+    # this feature is always off on these platforms and cannot be changed
+    default_only: false
+
+mt_lite_support:
+  # This is only used for determining support for Multi-Tenancy Lite
+  kind: boolean
+  '/N9/':
+    default_only: true
+  else:
+    # this feature is always off on these platforms and cannot be changed
+    default_only: false
+
+shutdown:
+  kind: boolean
+  get_value: '/^no shutdown$/'
+  set_value: '<state> shutdown'
+  default_value: true
 
 source_intf:
   get_value: '/^source\-interface (\S+)$/'
@@ -20,4 +48,14 @@ source_intf:
   default_value: ''
 
 vni:
-  set_value: '<state> member vni <vni>'
+  set_value: '<state> member vni <vni> <assoc_vrf>'
+
+vni_with_vrf:
+  kind: boolean
+  get_value: '/^member vni <vni> associate-vrf$/'
+  default_value: false
+
+vni_without_vrf:
+  kind: boolean
+  get_value: '/^member vni <vni>$/'
+  default_value: false

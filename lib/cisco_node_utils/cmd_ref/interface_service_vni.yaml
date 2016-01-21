@@ -1,0 +1,36 @@
+# interface_service_vni
+---
+_template:
+  _exclude: [/N(3|5|6|9)/]
+  get_command: 'show running interface all'
+  get_context:
+    - '/^interface <name>$/i'
+    - '/^service instance <sid> vni$/'
+  set_context:
+    - 'interface <name>'
+    - 'service instance <sid> vni'
+
+all_service_vni_ids:
+  multiple:
+  get_context:
+    - '/^interface <name>$/i'
+  get_value: '/^service instance (\d+) vni/'
+
+create_destroy:
+  set_context:
+    - 'interface <name>'
+  set_value: '<state> service instance <sid> vni'
+
+encapsulation_profile_vni:
+  get_value: '/encapsulation profile (\S+)  default/'
+  set_value: '<state> encapsulation profile <profile> default'
+  default_value: ''
+
+shutdown:
+  '/N7/':
+    kind: boolean
+    get_value: '/^(?:no )?shutdown$/'
+    set_value: "<state> shutdown"
+    default_value: true
+  else:
+    default_value: false

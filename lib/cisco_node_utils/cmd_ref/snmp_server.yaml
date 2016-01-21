@@ -35,13 +35,17 @@ packet_size:
   default_value: 1500
 
 protocol:
-  get_command: "show snmp"
-  get_value: "protocol_status"
+  kind: boolean
+  auto_default: false
+  get_command: "show running-config snmp all"
+  get_value: '/^snmp.server protocol enable/'
   set_value: "%s snmp-server protocol enable"
   default_value: true
 
 tcp_session_auth:
-  get_command: "show snmp"
-  get_value: "tcp_auth_status"
+  kind: boolean
+  auto_default: false
+  get_command: "show running-config snmp all"
+  get_value: '/^snmp.server tcp.session auth$/'
   set_value: "%s snmp-server tcp-session %s"
   default_value: true

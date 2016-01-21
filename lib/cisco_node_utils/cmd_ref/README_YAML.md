@@ -262,7 +262,7 @@ for all products that do not match any of the given regexps:
 ```yaml
 # show_version.yaml
 system_image:
-  /N9K/:
+  /N9/:
     get_value: "kick_file_name"
   else:
     get_value: "isan_file_name"
@@ -275,7 +275,7 @@ Related to product variants, an `_exclude` entry can be used to mark an entire f
 ```yaml
 # fabricpath.yaml
 ---
-_exclude: [/N3K/, /N9K/]
+_exclude: [/N3/, /N9/]
 
 _template:
 ...
@@ -286,7 +286,7 @@ Individual feature attributes can also be excluded in this way:
 ```yaml
 attribute:
   _exclude:
-    - /N7K/
+    - /N7/
   default_value: true
   get_command: 'show attribute'
   set_value: 'attribute'
@@ -327,7 +327,7 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr]
   nexus:
-    '/N7K/':
+    '/N7/':
       default_only: false
     else:
       get_value: '/^(no )?negotiate auto$/'
@@ -473,7 +473,7 @@ Some attributes may be hard-coded in such a way that they have a meaningful defa
 negotiate_auto_ethernet:
   kind: boolean
   nexus:
-    /(N7K|C3064)/:
+    /(N7|C3064)/:
       # this feature is always off on these platforms and cannot be changed
       default_only: false
     else:

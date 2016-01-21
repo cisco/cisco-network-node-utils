@@ -13,7 +13,9 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vni'
+require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
@@ -21,53 +23,111 @@ include Cisco
 class TestVni < CiscoTestCase
   def setup
     super
-    no_vni
+    skip('Platform does not support MT-full or MT-lite') unless
+      Vni.mt_full_support || Vni.mt_lite_support
   end
 
   def teardown
-    no_vni
-    super
+    return unless Vdc.vdc_support
+    # Reset the vdc module type back to default
+    v = Vdc.new('default')
+    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
   end
 
-  def no_vni
+  def compatible_interface?
+    # This test requires specific linecards; find a compatible linecard
+    # and create an appropriate interface name from it.
+    # Example 'show mod' output to match against:
+    # '9    12     10/40 Gbps Ethernet Module          N7K-F312FQ-25      ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
+  end
+
+  def mt_full_env_setup
+    skip('Platform does not support MT-full') unless Vni.mt_full_support
+    compatible_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
+    config('no feature vni')
+    config('no feature nv overlay')
+  end
+
+  def mt_lite_env_setup
+    skip('Platform does not support MT-lite') unless Vni.mt_lite_support
     config('no feature vn-segment-vlan-based')
+    config('no feature nv overlay')
   end
 
-  def test_on_off
-    vni = Vni.new(1_000_0, true)
-    assert_equal(:enabled, vni.feature, 'Error: vni feature not enabled')
+  def test_mt_full_vni_create_destroy
+    mt_full_env_setup
 
-    vni.feature_set(:disabled)
-    assert_equal(:disabled, vni.feature, 'Error: vni feature still enabled')
+    v1 = Vni.new(10_001)
+    v2 = Vni.new(10_002)
+    v3 = Vni.new(10_003)
+    assert_equal(3, Vni.vnis.keys.count)
+
+    v2.destroy
+    assert_equal(2, Vni.vnis.keys.count)
+
+    v1.destroy
+    v3.destroy
+    assert_equal(0, Vni.vnis.keys.count)
   end
 
-  def test_mapped_vlan
+  # def test_mt_full_encapsulation_dot1q
+  # TBD
+  #  mt_full_env_setup
+  # end
+
+  # def test_mt_full_mapped_bd
+  # TBD
+  #  mt_full_env_setup
+  # end
+
+  def test_mt_full_shutdown
+    mt_full_env_setup
+    vni = Vni.new(10_000)
+    vni.shutdown = true
+    assert(vni.shutdown)
+
+    vni.shutdown = false
+    refute(vni.shutdown)
+
+    vni.shutdown = !vni.default_shutdown
+    assert_equal(!vni.default_shutdown, vni.shutdown)
+
+    vni.shutdown = vni.default_shutdown
+    assert_equal(vni.default_shutdown, vni.shutdown)
+  end
+
+  def test_mt_lite_mapped_vlan
+    mt_lite_env_setup
     # Set the vni vlan mapping
-    vni = Vni.new(1_000_0)
-    vni.mapped_vlan = 100
-    assert_equal(100, vni.mapped_vlan,
+    v = Vni.new(10_000)
+    v.mapped_vlan = 100
+    assert_equal(100, v.mapped_vlan,
                  'Error: mapped-vlan mismatch')
     # Now clear the vni vlan mapping
-    vni.mapped_vlan = vni.default_vlan
-    assert_equal(nil, vni.mapped_vlan,
-                 'Error: cannot clear vni vlan mapping')
-  end
+    v.mapped_vlan = v.default_mapped_vlan
+    assert_nil(v.mapped_vlan, 'Error: cannot clear vni vlan mapping')
+    v.destroy
 
-  def test_multiple_vnis_vlans
-    # Set vni to vlan mappings
-    vni_to_vlan_map = { 1_000_0 => 100, 2_000_0 => 200, 3_000_0 => 300 }
+    # Multiples: Set vni to vlan mappings
+    vni_to_vlan_map = { 10_000 => 100, 20_000 => 200, 30_000 => 300 }
     vni_to_vlan_map.each do |vni, vlan|
-      vni_id = Vni.new(vni)
-      vni_id.mapped_vlan = vlan
-      assert_equal(vlan, vni_id.mapped_vlan,
-                   'Error: mapped-vlan mismatch')
+      v = Vni.new(vni)
+      v.mapped_vlan = vlan
+      assert_equal(vlan, v.mapped_vlan, 'Error: mapped-vlan mismatch')
     end
     # Clear all mappings
-    vni_to_vlan_map.each do |vni, _vlan|
-      vni_id = Vni.new(vni)
-      vni_id.mapped_vlan = vni_id.default_vlan
-      assert_equal(nil, vni_id.mapped_vlan,
-                   'Error: cannot clear vni vlan mapping')
+    vni_to_vlan_map.each do |vni, _|
+      v = Vni.new(vni)
+      v.mapped_vlan = v.default_mapped_vlan
+      assert_nil(v.mapped_vlan, 'Error: cannot clear vni vlan mapping')
     end
   end
 end

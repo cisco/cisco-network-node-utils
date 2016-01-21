@@ -18,6 +18,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'vrf'
 
 module Cisco
   # node_utils class for vxlan_vtep
@@ -34,7 +35,7 @@ module Cisco
 
     def self.vteps
       hash = {}
-      return hash unless feature_enabled
+      return hash unless Feature.nv_overlay_enabled?
       vtep_list = config_get('vxlan_vtep', 'all_interfaces')
       return hash if vtep_list.nil?
 
@@ -45,23 +46,17 @@ module Cisco
       hash
     end
 
-    def self.feature_enabled
-      config_get('vxlan', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax when feature is not enabled.
-      raise unless e.clierror =~ /Syntax error/
-      return false
+    def self.mt_full_support
+      config_get('vxlan_vtep', 'mt_full_support')
     end
 
-    def self.enable(state='')
-      # vdc only supported on n7k currently.
-      vdc_name = config_get('limit_resource', 'vdc')
-      config_set('limit_resource', 'vxlan', vdc_name) unless vdc_name.nil?
-      config_set('vxlan', 'feature', state: state)
+    def self.mt_lite_support
+      config_get('vxlan_vtep', 'mt_lite_support')
     end
 
     def create
-      VxlanVtep.enable unless VxlanVtep.feature_enabled
+      Feature.nv_overlay_enable
+      Feature.vn_segment_vlan_based_enable if VxlanVtep.mt_lite_support
       # re-use the "interface command ref hooks"
       config_set('interface', 'create', @name)
     end
@@ -90,121 +85,50 @@ module Cisco
       else
         config_set('interface', 'description', @name, '', desc)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
       config_get_default('interface', 'description')
     end
 
-    # TODO: Move vni_mcast_grp_map to vxlan_vtp_vni.rb object
-    #
-    # def vni_mcast_grp_map
-    #  final_hash = {}
-    #  show = show("show running-config interface #{@name}")
-    #  debug("show class is #{show.class} and show op is #{show}")
-    #  return final_hash if show == {}
-    #  match_pat1 = /vni\s+(\S+).*mcast\-group\s+(\S+)/m
-    #  match_pat2 = /vni\s+(\S+).*(associate\-vrf)/m
-    #  split_pat = /member\s+/
-    #  pair_arr = show.split(split_pat)
-    #  pair_arr.each do |pair|
-    #    match_arr = match_pat1.match(pair)
-    #    match_arr ||= match_pat2.match(pair)
-    #    unless match_arr.nil?
-    #      debug "match arr 1 : #{match_arr[1]} 2: #{match_arr[2]}"
-    #      final_hash[match_arr[1]] = "#{match_arr[2]}"
-    #    end
-    #  end
-    #  final_hash
-    # end
-
-    # TODO: Move vni_mcast_grp_map to vxlan_vtp_vni.rb object
-    #
-    # def vni_mcast_grp_map=(val, prev_val=nil)
-    #  debug "val is of class #{val.class} and is #{val} prev is #{prev_val}"
-    #  # When prev_val is nil, HashDiff doesn't do a `+' on each element, so
-    #  # this
-    #  debug "value of mac_dist = #{@mac_dist_proto}"
-    #  param_hash = {}
-    #  # supress_arp = (@mac_dist_proto == :evpn) ? "supress-arp" : ""
-    #  if prev_val.nil?
-    #    val.each do |fresh_vni, fresh_mgrp|
-    #      param_hash = { name: @name, no_cmd: '', vni: fresh_vni,
-    #                     mcast_grp: fresh_mgrp }
-    #      config_set('vxlan_vtep', 'member_vni_mgrp', param_hash)
-    #    end
-    #    return
-    #  end
-    #  require 'hashdiff'
-    #  hash_diff = HashDiff.diff(prev_val, val)
-    #  debug "hsh diff ; #{hash_diff}"
-    #  return if hash_diff == []
-    #  hash_diff.each do |diff|
-    #    case diff[0]
-    #    when /\+/
-    #      param_hash = { name: @name, no_cmd: '', vni: diff[1],
-    #                     mcast_grp: diff[2] }
-    #    when /\-/
-    #      param_hash = { name: @name, no_cmd: 'no', vni: diff[1],
-    #                     mcast_grp: diff[2] }
-    #    when /~/
-    #      param_hash = { name: @name, no_cmd: 'no', vni: diff[1],
-    #                     mcast_grp: diff[2] }
-    #      config_set('vxlan_vtep', 'member_vni_mgrp', param_hash)
-    #      param_hash = { name: @name, no_cmd: '', vni: diff[1],
-    #                     mcast_grp: diff[3] }
-    #    end
-    #    config_set('vxlan_vtep', 'member_vni_mgrp', param_hash)
-    #  end
-    # rescue CliError => e
-    #  raise "[vxlan_vtep #{@name}] '#{e.command}' : #{e.clierror}"
-    # end
-
-    def mac_distribution
-      mac_dist = config_get('vxlan_vtep', 'mac_distribution', name: @name)
-      if mac_dist.nil?
-        @mac_dist_proto = :flood
-      else
-        @mac_dist_proto = (mac_dist == 'bgp') ? :evpn : :flood
-      end
-      @mac_dist_proto.to_s
+    def host_reachability
+      hr = config_get('vxlan_vtep', 'host_reachability', name: @name)
+      hr == 'bgp' ? 'evpn' : hr
     end
 
-    def mac_distribution=(val)
-      if val == :flood
-        if @mac_dist_proto == :evpn
-          config_set('vxlan_vtep', 'mac_distribution',
-                     name: @name, state: 'no', proto: 'bgp')
-        end
-        @mac_dist_proto = :flood
-      elsif val == :evpn
-        config_set('vxlan_vtep', 'mac_distribution',
-                   name: @name, state: '', proto: 'bgp')
-        @mac_dist_proto = :evpn
+    def host_reachability=(val)
+      set_args = { name: @name, proto: 'bgp' }
+      if val.to_s == 'flood' && host_reachability == 'evpn'
+        set_args[:state] = 'no'
+      elsif val.to_s == 'evpn'
+        set_args[:state] = ''
+      else
+        return
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('vxlan_vtep', 'host_reachability', set_args)
+    end
+
+    def default_host_reachability
+      config_get_default('vxlan_vtep', 'host_reachability')
     end
 
     def source_interface
-      src_intf = config_get('vxlan_vtep', 'source_intf', name: @name)
-      return default_source_interface if src_intf.nil?
-      src_intf
+      config_get('vxlan_vtep', 'source_intf', name: @name)
+    end
+
+    def source_interface_set(val)
+      set_args = { name: @name, lpbk_intf: val }
+      set_args[:state] = val.empty? ? 'no' : ''
+      config_set('vxlan_vtep', 'source_intf', set_args)
     end
 
     def source_interface=(val)
-      fail TypeError unless val.is_a?(String)
-      if val.empty?
-        config_set('vxlan_vtep', 'source_intf',
-                   name: @name, state: 'no', lpbk_intf: val)
-      else
-        config_set('vxlan_vtep', 'source_intf',
-                   name: @name, state: '', lpbk_intf: val)
-      end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      # The source interface can only be changed if the nve
+      # interface is in a shutdown state.
+      current_state = shutdown
+      self.shutdown = true unless shutdown
+      source_interface_set(val)
+      self.shutdown = current_state
     end
 
     def default_source_interface
@@ -212,19 +136,16 @@ module Cisco
     end
 
     def shutdown
-      state = config_get('interface', 'shutdown', @name)
-      state ? true : false
+      config_get('vxlan_vtep', 'shutdown', name: @name)
     end
 
     def shutdown=(bool)
       state = (bool ? '' : 'no')
-      config_set('interface', 'shutdown', @name, state)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('vxlan_vtep', 'shutdown', name: @name, state: state)
     end
 
     def default_shutdown
-      false
+      config_get_default('vxlan_vtep', 'shutdown')
     end
   end  # Class
 end    # Module

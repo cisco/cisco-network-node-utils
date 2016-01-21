@@ -1,7 +1,0 @@
-# vxlan
----
-feature:
-  kind: boolean
-  get_command: 'show running nv overlay'
-  get_value: '/^feature nv overlay$/'
-  set_value: "<state> feature nv overlay"

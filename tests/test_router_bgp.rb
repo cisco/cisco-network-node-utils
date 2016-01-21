@@ -172,19 +172,20 @@ class TestRouterBgp < CiscoTestCase
   def test_create_valid_asn
     [1, 4_294_967_295, '55', '1.0', '1.65535',
      '65535.0', '65535.65535'].each do |test|
-      bgp = RouterBgp.new(test)
+      rtr_bgp = RouterBgp.new(test)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test)
       refute_nil(line, "Error: 'router bgp #{test}' not configured")
-      bgp.destroy
+      rtr_bgp.destroy
 
       vrf = 'Duke'
-      bgp = create_bgp_vrf(test, vrf)
+      bgp_vrf = create_bgp_vrf(test, vrf)
       test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
       line = get_routerbgp_match_line(test, vrf)
       refute_nil(line,
                  "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
-      bgp.destroy
+      bgp_vrf.destroy
+      rtr_bgp.destroy
     end
   end
 
@@ -212,7 +213,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end
@@ -403,6 +404,98 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_set_get_disable_policy_batching
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.disable_policy_batching)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.disable_policy_batching = true
+      end
+    else
+      bgp.disable_policy_batching = true
+      assert(bgp.disable_policy_batching,
+             'bgp disable-policy-batching should be enabled')
+      bgp.disable_policy_batching = false
+      refute(bgp.disable_policy_batching,
+             'bgp disable-policy-batching should be disabled')
+    end
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.disable_policy_batching)
+      assert_nil(bgp.default_disable_policy_batching)
+    else
+      refute(bgp.disable_policy_batching,
+             'bgp disable-policy-batching value should be false')
+    end
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv4
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.disable_policy_batching_ipv4)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.disable_policy_batching_ipv4 = 'xx'
+      end
+    else
+      bgp.disable_policy_batching_ipv4 = 'xx'
+      assert_equal('xx', bgp.disable_policy_batching_ipv4,
+                   "bgp disable_policy_batching_ipv4 should be set to 'xx'")
+      bgp.disable_policy_batching_ipv4 = \
+        bgp.default_disable_policy_batching_ipv4
+      assert_empty(bgp.disable_policy_batching_ipv4,
+                   'bgp disable_policy_batching_ipv4 should be empty')
+    end
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv4
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.default_disable_policy_batching_ipv4,
+                 'disable_policy_batching_ipv4 default value should be nil')
+    else
+      assert_empty(bgp.default_disable_policy_batching_ipv4,
+                   'disable_policy_batching_ipv4 default value should be empty')
+    end
+    bgp.destroy
+  end
+
+  def test_set_get_disable_policy_batching_ipv6
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.disable_policy_batching_ipv6)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.disable_policy_batching_ipv6 = 'xx'
+      end
+    else
+      bgp.disable_policy_batching_ipv6 = 'xx'
+      assert_equal('xx', bgp.disable_policy_batching_ipv6,
+                   "bgp disable_policy_batching_ipv6 should be set to 'xx'")
+      bgp.disable_policy_batching_ipv6 = \
+        bgp.default_disable_policy_batching_ipv6
+      assert_empty(bgp.disable_policy_batching_ipv6,
+                   'bgp disable_policy_batching_ipv6 should be empty')
+    end
+    bgp.destroy
+  end
+
+  def test_default_disable_policy_batching_ipv6
+    bgp = setup_default
+    if platform == :ios_xr
+      assert_nil(bgp.default_disable_policy_batching_ipv6,
+                 'disable_policy_batching_ipv6 default value should be empty')
+    else
+      assert_empty(bgp.default_disable_policy_batching_ipv6,
+                   'disable_policy_batching_ipv6 default value should be empty')
+    end
+    bgp.destroy
+  end
+
   def test_enforce_first_as
     bgp = setup_default
     if platform == :ios_xr
@@ -429,6 +522,54 @@ class TestRouterBgp < CiscoTestCase
                  bgp.enforce_first_as,
                  'bgp enforce-first-as default value is incorrect')
     bgp.destroy
+  end
+
+  def test_event_history
+    bgp = setup_default
+
+    opts = [:cli, :detail, :events, :periodic]
+    opts.each do |opt|
+      if platform == :ios_xr # unsupported on XR
+        assert_equal(nil, bgp.send("event_history_#{opt}"))
+        assert_equal(nil, bgp.send("default_event_history_#{opt}"))
+        assert_raises(Cisco::UnsupportedError) do
+          bgp.send("event_history_#{opt}=", 'true')
+        end
+        next
+      end
+      # Test basic true
+      bgp.send("event_history_#{opt}=", 'true')
+      set = bgp.send("default_event_history_#{opt}")
+      result = bgp.send("event_history_#{opt}")
+      assert_equal(set, result,
+                   "Failed to set event_history_#{opt} True with Size")
+
+      # Test true with size
+      bgp.send("event_history_#{opt}=", 'size_large')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_large', result,
+                   "Failed to set event_history_#{opt} True with Size")
+
+      # Test false with size
+      bgp.send("event_history_#{opt}=", 'false')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('false', result,
+                   "Failed to set event_history_#{opt} state to False")
+
+      # Test true with size, from false
+      bgp.send("event_history_#{opt}=", 'size_small')
+      result = bgp.send("event_history_#{opt}")
+      assert_equal('size_small', result,
+                   "Failed to set event_history_#{opt} True with Size " \
+                   'from false state')
+
+      # Test default_state
+      set = bgp.send("default_event_history_#{opt}")
+      bgp.send("event_history_#{opt}=", set)
+      result = bgp.send("event_history_#{opt}")
+      assert_equal(set, result,
+                   "Failed to set event_history_#{opt} state to default")
+    end
   end
 
   def test_set_get_fast_external_fallover
@@ -870,21 +1011,17 @@ class TestRouterBgp < CiscoTestCase
   def test_route_distinguisher
     bgp = setup_vrf
     bgp.route_distinguisher = 'auto'
-    assert_equal('auto', bgp.route_distinguisher,
-                 "bgp route_distinguisher should be set to 'auto'")
+    assert_equal('auto', bgp.route_distinguisher)
+
     bgp.route_distinguisher = '1:1'
-    assert_equal('1:1', bgp.route_distinguisher,
-                 "bgp route_distinguisher should be set to '1:1'")
+    assert_equal('1:1', bgp.route_distinguisher)
+
+    bgp.route_distinguisher = '2:3'
+    assert_equal('2:3', bgp.route_distinguisher)
+
     bgp.route_distinguisher = bgp.default_route_distinguisher
     assert_empty(bgp.route_distinguisher,
                  'bgp route_distinguisher should *NOT* be configured')
-    bgp.destroy
-  end
-
-  def test_default_route_distinguisher
-    bgp = setup_vrf
-    assert_empty(bgp.default_route_distinguisher,
-                 'bgp route_distinguisher default value should be empty')
     bgp.destroy
   end
 

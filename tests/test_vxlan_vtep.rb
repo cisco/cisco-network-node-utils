@@ -13,7 +13,9 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vxlan_vtep'
+require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
@@ -21,19 +23,50 @@ include Cisco
 class TestVxlanVtep < CiscoTestCase
   def setup
     super
-    no_vxlan_global
+    skip('Platform does not support MT-full or MT-lite') unless
+      VxlanVtep.mt_full_support || VxlanVtep.mt_lite_support
   end
 
   def teardown
-    no_vxlan_global
-    super
+    return unless Vdc.vdc_support
+    # Reset the vdc module type back to default
+    v = Vdc.new('default')
+    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
   end
 
-  def no_vxlan_global
+  def compatible_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find a compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
+  end
+
+  def mt_full_env_setup
+    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
+    compatible_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
     config('no feature nv overlay')
   end
 
+  def mt_lite_env_setup
+    skip('Platform does not support MT-lite') unless VxlanVtep.mt_lite_support
+    config('no feature nv overlay')
+    config('no feature vn-segment-vlan-based')
+  end
+
   def test_create_destroy_one
+    # VxlanVtep.new() will enable 'feature nv overlay'
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
     id = 'nve1'
     vtep = VxlanVtep.new(id)
     @default_show_command = "show running | i 'interface #{id}'"
@@ -49,8 +82,12 @@ class TestVxlanVtep < CiscoTestCase
                       msg:     "failed to destroy interface #{id}")
   end
 
-  def test_create_destroy_multiple
-    skip('Only supported on n7k') if node.product_id =~ /N[3|5|9]K/
+  def test_mt_full_create_destroy_multiple
+    if VxlanVtep.mt_full_support
+      mt_full_env_setup
+    else
+      skip('Platform does not support MT-full')
+    end
 
     id1 = 'nve1'
     id2 = 'nve2'
@@ -80,13 +117,16 @@ class TestVxlanVtep < CiscoTestCase
     end
   end
 
-  def test_create_multiple_negative
-    # N[3|9]K supports a single nve int, N7K supports 4.
-    case node.product_id
-    when /N[3|9]K/
+  def test_create_negative
+    # MT-lite supports a single nve int, MT-full supports 4.
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+    if VxlanVtep.mt_lite_support
       VxlanVtep.new('nve1')
       negative_id = 'nve2'
-    when /N7K/
+
+    elsif VxlanVtep.mt_full_support
+      mt_full_env_setup
       (1..4).each { |n| VxlanVtep.new("nve#{n}") }
       negative_id = 'nve5'
     end
@@ -97,40 +137,44 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_description
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
     vtep = VxlanVtep.new('nve1')
 
     # Set description to non-default value and verify
     desc = 'vxlan interface'
     vtep.description = desc
-    assert_equal(vtep.description, desc, "description is not #{desc}")
+    assert_equal(desc, vtep.description)
 
     # Set description to default value and verify
     desc = vtep.default_description
     vtep.description = desc
-    assert_equal(vtep.description, desc, "description is not #{desc}")
+    assert_equal(desc, vtep.description)
   end
 
-  def test_mac_distribution
+  def test_host_reachability
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vxlan_vtep', 'host_reachability').default_value.nil?
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
     vtep = VxlanVtep.new('nve1')
 
-    val = :flood
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
-
-    val = :evpn
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
+    vtep.host_reachability = 'flood'
+    assert_equal('flood', vtep.host_reachability)
+    vtep.host_reachability = 'evpn'
+    assert_equal('evpn', vtep.host_reachability)
 
     # Set value back to flood, currently evpn.
-    val = :flood
-    vtep.mac_distribution = val
-    assert_equal(vtep.mac_distribution, val.to_s,
-                 "mac_distribution is not #{val}")
+    vtep.host_reachability = 'flood'
+    assert_equal('flood', vtep.host_reachability)
   end
 
   def test_shutdown
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
     vtep = VxlanVtep.new('nve1')
 
     vtep.shutdown = true
@@ -138,19 +182,33 @@ class TestVxlanVtep < CiscoTestCase
 
     vtep.shutdown = false
     refute(vtep.shutdown, 'source_interface is shutdown')
+
+    vtep.shutdown = vtep.default_shutdown
+    assert(vtep.shutdown, 'source_interface is not shutdown')
   end
 
   def test_source_interface
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
     vtep = VxlanVtep.new('nve1')
 
     # Set source_interface to non-default value
     val = 'loopback55'
     vtep.source_interface = val
-    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    assert_equal(val, vtep.source_interface)
+
+    # Change source_interface when nve interface is in a 'no shutdown' state
+    vtep.shutdown = false
+    val = 'loopback77'
+    vtep.source_interface = val
+    assert_equal(val, vtep.source_interface)
+    # source_interface should 'no shutdown' after the change.
+    refute(vtep.shutdown, 'source_interface is shutdown')
 
     # Set source_interface to default value
     val = vtep.default_source_interface
     vtep.source_interface = val
-    assert_equal(vtep.source_interface, val, "source_interface is not #{val}")
+    assert_equal(val, vtep.source_interface)
   end
 end

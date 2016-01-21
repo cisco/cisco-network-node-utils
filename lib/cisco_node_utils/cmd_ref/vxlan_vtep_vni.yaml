@@ -1,17 +1,19 @@
 # vxlan_vtep_vni
 ---
+_exclude: [/N(3|5|6)/]
+
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
   get_context:
     - '/^interface <name>$/i'
-    - '/^member vni <vni>?$/'
+    - '/^member vni <vni> ?(associate-vrf)?$/'
   set_context:
     - 'interface <name>'
-    - 'member vni <vni>'
+    - 'member vni <vni> <assoc_vrf>'
 
 all_vnis:
   multiple:
-  get_value: '/^member vni (\d+|\d+-\d+)$/'
+  get_value: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
   kind: string

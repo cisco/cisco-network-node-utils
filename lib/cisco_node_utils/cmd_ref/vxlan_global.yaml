@@ -31,8 +31,3 @@ dup_host_mac_detection_host_moves:
 
 dup_host_mac_detection_timeout:
   default_value: 180
-
-feature:
-  get_command: "show running | i ^feature"
-  get_value: '/^feature fabric forwarding$/'
-  set_value: "<state> feature fabric forwarding"

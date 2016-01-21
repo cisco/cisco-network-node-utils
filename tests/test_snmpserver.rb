@@ -316,79 +316,23 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
   end
 
-  def test_snmpserver_protocol_get_default
-    snmpserver = SnmpServer.new
-    # set default
-    snmpserver.protocol = true
-    assert_show_match(pattern: /^snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_protocol_get_disabled
+  def test_snmpserver_protocol_get_set
     snmpserver = SnmpServer.new
     snmpserver.protocol = false
-    device_enabled = snmpserver.protocol?
-    if device_enabled
-      assert_show_match(pattern: /^snmp-server protocol enable/)
-    else
-      assert_show_match(pattern: /no snmp-server protocol enable/)
-    end
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
+    assert_equal(false, snmpserver.protocol?)
+    snmpserver.protocol =
+      snmpserver.default_protocol
+    assert_equal(snmpserver.default_protocol,
+                 snmpserver.protocol?)
   end
 
-  def test_snmpserver_protocol_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.protocol = true
-    assert_show_match(pattern: /^snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_protocol_set_disabled
-    snmpserver = SnmpServer.new
-    snmpserver.protocol = false
-    assert_show_match(pattern: /no snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_tcp_session_auth_get_default
-    snmpserver = SnmpServer.new
-    # default value is false
-    snmpserver.tcp_session_auth = false
-    device_enabled = snmpserver.tcp_session_auth?
-    if device_enabled
-      assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    else
-      assert_show_match(pattern: /no snmp-server tcp-session auth/)
-    end
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_get_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.tcp_session_auth = true
-    assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.tcp_session_auth = true
-    assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_set_default
+  def test_snmpserver_tcp_session_auth_get_set
     snmpserver = SnmpServer.new
     snmpserver.tcp_session_auth = false
-    assert_show_match(pattern: /no snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
+    assert_equal(false, snmpserver.tcp_session_auth?)
+    snmpserver.tcp_session_auth =
+      snmpserver.default_tcp_session_auth
+    assert_equal(snmpserver.default_tcp_session_auth,
+                 snmpserver.tcp_session_auth?)
   end
 end

@@ -1,0 +1,56 @@
+# interface_portchannel
+---
+_template:
+  get_command: "show running interface all"
+  get_context: ['/^interface %s$/i']
+  set_context: ["interface %s"]
+
+create:
+  set_context: ~
+  set_value: "interface %s"
+
+destroy:
+  set_context: ~
+  set_value: "no interface %s"
+
+lacp_graceful_convergence:
+  kind: boolean
+  auto_default: false
+  get_value: '/^lacp graceful.convergence$/'
+  set_value: "%s lacp graceful-convergence"
+  default_value: true
+
+lacp_max_bundle:
+  kind: int
+  get_value: '/^lacp max.bundle (\d+)$/'
+  set_value: "lacp max-bundle %s"
+  '/N(3|9)/':
+    default_value: 32
+  else:
+    default_value: 16
+
+lacp_min_links:
+  kind: int
+  get_value: '/^lacp min.links (\d+)$/'
+  set_value: "lacp min-links %s"
+  default_value: 1
+
+lacp_suspend_individual:
+  kind: boolean
+  auto_default: false
+  get_value: '/^lacp suspend.individual$/'
+  set_value: "%s lacp suspend-individual"
+  default_value: true
+
+port_hash_distribution:
+  _exclude: [/N6/, /N5/]
+  get_value: '/^port-channel port hash.distribution (.*)$/'
+  set_value: "%s port-channel port hash-distribution %s"
+  default_value: false
+
+port_load_defer:
+  _exclude: [/N6/, /N5/]
+  kind: boolean
+  get_value: '/^port-channel port load.defer$/'
+  set_value: "%s port-channel port load-defer"
+  default_value: false

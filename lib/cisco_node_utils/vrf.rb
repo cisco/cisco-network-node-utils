@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'feature'
 
 module Cisco
   # Vrf - node utility class for VRF configuration management
@@ -26,7 +27,6 @@ module Cisco
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
       @name = name.downcase.strip
-      @args = { vrf: @name }
       create if instantiate
     end
 
@@ -43,15 +43,19 @@ module Cisco
     end
 
     def create
-      config_set('vrf', 'create', @args)
+      config_set('vrf', 'create', vrf: @name)
     end
 
     def destroy
-      config_set('vrf', 'destroy', @args)
+      config_set('vrf', 'destroy', vrf: @name)
     end
 
+    ########################################################
+    #                      PROPERTIES                      #
+    ########################################################
+
     def description
-      config_get('vrf', 'description', @args)
+      config_get('vrf', 'description', vrf: @name)
     end
 
     def description=(desc)
@@ -63,8 +67,12 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_description
+      config_get_default('vrf', 'description')
+    end
+
     def shutdown
-      config_get('vrf', 'shutdown', @args)
+      config_get('vrf', 'shutdown', vrf: @name)
     end
 
     def shutdown=(val)
@@ -74,47 +82,41 @@ module Cisco
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
-    def self.feature_vni_enabled
-      config_get('vrf', 'feature_vni')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
+    def default_shutdown
+      config_get_default('vrf', 'shutdown')
     end
 
-    def self.feature_vni_enable
-      config_set('vrf', 'feature_vni')
+    # route_distinguisher
+    # Note that this property is supported by both bgp and vrf providers.
+    def route_distinguisher
+      config_get('vrf', 'route_distinguisher', vrf: @name)
     end
 
-    def self.feature_vn_segment_vlan_based_enabled
-      config_get('vrf', 'feature_vn_segment_vlan_based')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_vn_segment_vlan_based_enable
-      config_set('vrf', 'feature_vn_segment_vlan_based')
-    end
-
-    def enable_vni_features
-      # config_get_default returns nil if command is unsupported on a platform
-      unless config_get_default('vrf', 'feature_vni').nil?
-        Vrf.feature_vni_enable unless Vrf.feature_vni_enabled
+    def route_distinguisher=(rd)
+      # feature bgp and nv overlay required for rd cli in NXOS
+      Feature.bgp_enable if platform == :nexus
+      Feature.nv_overlay_enable if platform == :nexus
+      Feature.nv_overlay_evpn_enable if platform == :nexus
+      if rd == default_route_distinguisher
+        state = 'no'
+        rd = ''
+      else
+        state = ''
       end
-      return if config_get_default('vrf', 'feature_vn_segment_vlan_based').nil?
-      Vrf.feature_vn_segment_vlan_based_enable unless
-        Vrf.feature_vn_segment_vlan_based_enabled
+      config_set('vrf', 'route_distinguisher', state: state, vrf: @name, rd: rd)
+    end
+
+    def default_route_distinguisher
+      config_get_default('vrf', 'route_distinguisher')
     end
 
     # Vni (Getter/Setter/Default)
     def vni
-      config_get('vrf', 'vni', @args)
+      config_get('vrf', 'vni', vrf: @name)
     end
 
     def vni=(id)
-      enable_vni_features
+      Feature.vn_segment_vlan_based_enable if platform == :nexus
       no_cmd = (id) ? '' : 'no'
       id = (id) ? id : vni
       config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)

@@ -16,6 +16,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp_af'
 require_relative 'logger'
 
@@ -75,22 +76,6 @@ module Cisco
       return {}
     end
 
-    def self.enabled
-      config_get('bgp', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.enable(state='')
-      # IOS XR has no '[no] feature bgp' command so:
-      #  enable == false: do 'no router bgp' instead
-      #  enable == true:  no-op
-      config_set('bgp', 'feature', state: state) if
-        platform == :nexus || state == 'no'
-    end
-
     # Convert BGP ASN ASDOT+ to ASPLAIN
     def self.dot_to_big(dot_str)
       fail ArgumentError unless dot_str.is_a? String
@@ -105,17 +90,7 @@ module Cisco
       high_bits + low_bits
     end
 
-    def router_bgp(asnum, vrf, state='')
-      # Only one bgp autonomous system number is allowed
-      # Raise an error if one is already configured that
-      # differs from the one being created.
-      configured = config_get('bgp', 'router')
-      if !configured.nil? && configured.to_s != asnum.to_s
-        fail %(
-          Changing the BGP Autonomous System Number is not allowed.
-          Current BGP asn: #{configured}
-          Attempted change to asn: #{asnum})
-      end
+    def router_bgp(state='')
       @set_args[:state] = state
       if vrf == 'default'
         config_set('bgp', 'router', @set_args)
@@ -125,33 +100,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def enable_create_router_bgp(asnum, vrf)
-      RouterBgp.enable
-      router_bgp(asnum, vrf)
-    end
-
     # Create one router bgp instance
     def create
-      if RouterBgp.enabled
-        router_bgp(@asnum, @vrf)
-      else
-        enable_create_router_bgp(@asnum, @vrf)
-      end
+      Feature.bgp_enable if platform == :nexus
+      router_bgp
     end
 
     # Destroy router bgp instance
     def destroy
-      vrf_ids = config_get('bgp', 'vrf', asnum: @asnum)
-      vrf_ids = ['default'] if vrf_ids.nil?
-      router_bgp(asnum, @vrf, 'no')
-      if vrf_ids.size == 1 || @vrf == 'default'
-        RouterBgp.enable('no')
-      else
-        router_bgp(asnum, @vrf, 'no')
-      end
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      router_bgp('no')
     end
 
     # Helper method to delete @set_args hash keys
@@ -289,7 +246,7 @@ module Cisco
                                          'cluster-id is not configurable ' \
                                          'on a per-VRF basis on IOS XR')
       end
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_cluster_id
         @set_args[:state] = 'no'
@@ -323,7 +280,7 @@ module Cisco
                                          'configurable ' \
                                          'on a per-VRF basis on IOS XR')
       end
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_confederation_id
         @set_args[:state] = 'no'
@@ -339,6 +296,71 @@ module Cisco
     def default_confederation_id
       return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'confederation_id')
+    end
+
+    #
+    # disable-policy-batching (Getter/Setter/Default)
+    #
+    def disable_policy_batching
+      config_get('bgp', 'disable_policy_batching', @get_args)
+    end
+
+    def disable_policy_batching=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'disable_policy_batching', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching
+      config_get_default('bgp', 'disable_policy_batching')
+    end
+
+    #
+    # disable-policy-batching ipv4 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv4
+      config_get('bgp', 'disable_policy_batching_ipv4', @get_args)
+    end
+
+    def disable_policy_batching_ipv4=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv4
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv4', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv4
+      config_get_default('bgp', 'disable_policy_batching_ipv4')
+    end
+
+    #
+    # disable-policy-batching ipv6 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv6
+      config_get('bgp', 'disable_policy_batching_ipv6', @get_args)
+    end
+
+    def disable_policy_batching_ipv6=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv6
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv6', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv6
+      config_get_default('bgp', 'disable_policy_batching_ipv6')
     end
 
     # Enforce First As (Getter/Setter/Default)
@@ -362,6 +384,95 @@ module Cisco
 
     def default_enforce_first_as
       config_get_default('bgp', 'enforce_first_as')
+    end
+
+    # event-history
+    # event-history cli [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_cli
+      match = config_get('bgp', 'event_history_cli', @get_args)
+      return nil if match.nil?
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_cli
+    end
+
+    def event_history_cli=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_cli', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_cli
+      config_get_default('bgp', 'event_history_cli')
+    end
+
+    # event-history detail [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_detail
+      match = config_get('bgp', 'event_history_detail', @get_args)
+      return nil if match.nil? && platform == :ios_xr
+      return 'false' if match.nil? || match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_detail
+    end
+
+    def event_history_detail=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_detail', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_detail
+      config_get_default('bgp', 'event_history_detail')
+    end
+
+    # event-history events [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_events
+      match = config_get('bgp', 'event_history_events', @get_args)
+      return nil if match.nil?
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_events
+    end
+
+    def event_history_events=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_events', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_events
+      config_get_default('bgp', 'event_history_events')
+    end
+
+    # event-history periodic [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_periodic
+      match = config_get('bgp', 'event_history_periodic', @get_args)
+      return nil if match.nil?
+      return 'false' if match[0] == 'no '
+      return 'size_' + match[1] if match[1]
+      default_event_history_periodic
+    end
+
+    def event_history_periodic=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_periodic', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_periodic
+      config_get_default('bgp', 'event_history_periodic')
     end
 
     # Fast External fallover (Getter/Setter/Default)
@@ -649,23 +760,20 @@ module Cisco
       config_get_default('bgp', 'reconnect_interval')
     end
 
-    # Route Distinguisher (Getter/Setter/Default)
-    # Configure in vrf context
+    # route_distinguisher
+    # Note that this property is supported by both bgp and vrf providers.
     def route_distinguisher
-      if platform == :nexus
-        return false unless RouterBgpAF.feature_nv_overlay_evpn_enabled
-      end
       config_get('bgp', 'route_distinguisher', @get_args)
     end
 
     def route_distinguisher=(rd)
       if platform == :nexus
-        RouterBgpAF.feature_nv_overlay_evpn_enable unless
-          RouterBgpAF.feature_nv_overlay_evpn_enabled
+        Feature.nv_overlay_enable
+        Feature.nv_overlay_evpn_enable
       end
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
-        @set_args[:rd] = route_distinguisher
+        @set_args[:rd] = ''
       else
         @set_args[:state] = ''
         @set_args[:rd] = rd
@@ -776,9 +884,9 @@ module Cisco
 
     def timer_bestpath_limit_set(seconds, always=false)
       if always
-        feature = 'timer_bestpath_limit_always'
+        opt = 'timer_bestpath_limit_always'
       else
-        feature = 'timer_bestpath_limit'
+        opt = 'timer_bestpath_limit'
       end
       if seconds == default_timer_bestpath_limit
         @set_args[:state] = 'no'
@@ -787,7 +895,7 @@ module Cisco
         @set_args[:state] = ''
         @set_args[:seconds] = seconds
       end
-      config_set('bgp', feature, @set_args)
+      config_set('bgp', opt, @set_args)
       set_args_keys_default
     end
 

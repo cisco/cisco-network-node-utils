@@ -214,7 +214,6 @@ unsuppress_map:
 
 weight:
   kind: int
-  auto_default: false
   get_value: '/^weight (\d+)$/'
   set_value: '<state> weight <int>'
   default_value: false
