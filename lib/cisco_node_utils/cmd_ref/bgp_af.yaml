@@ -74,13 +74,13 @@ dampen_igp_metric:
 
 dampening:
   auto_default: false
+  default_value: ['15', '750', '2000', '45']
   cli_nexus:
     config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
     config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
   cli_ios_xr:
     config_get_token_append: '/^bgp dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-policy (.*)))?$/'
     config_set_append: ' <state> bgp dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
-  default_value: ""
 
 dampening_half_time:
   kind: int
@@ -204,9 +204,9 @@ redistribute_policy:
 suppress_inactive:
   _exclude: [cli_ios_xr]
   kind: boolean
+  default_value: false
   config_get_token_append: '/^suppress-inactive$/'
   config_set_append: '<state> suppress-inactive'
-  default_value: false
 
 table_map:
   kind: string
@@ -221,6 +221,6 @@ table_map:
 table_map_filter:
   _exclude: [cli_ios_xr]
   kind: boolean
+  default_value: false
   config_get_token_append: '/^table-map \S+ filter$/'
   config_set_append: '<state> table-map <map> filter'
-  default_value: false
