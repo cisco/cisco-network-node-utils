@@ -94,8 +94,6 @@ class TestRouterBgpAF < CiscoTestCase
     [:additional_paths_receive,       [:toggle]],
     [:additional_paths_install,       [:toggle]],
     [:advertise_l2vpn_evpn,           [:toggle]],
-    [:route_target_both_auto,         [:toggle]],
-    [:route_target_both_auto_evpn,    [:toggle]],
 
     [:next_hop_route_map,             ['drop_all']],
     [:additional_paths_selection,     ['drop_all']],
@@ -103,10 +101,6 @@ class TestRouterBgpAF < CiscoTestCase
     [:maximum_paths_ibgp,             [7, 9]],
     [:dampen_igp_metric,              [555, nil]],
     [:default_metric,                 [50, false]],
-    [:route_target_import,            [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
-    [:route_target_import_evpn,       [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
-    [:route_target_export,            [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
-    [:route_target_export_evpn,       [['1:1', '2:2', '3:3', '4:4'], ['1:1', '4:4']]],
     [:inject_map,                     [[%w(lax sfo), %w(lax sjc), %w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)], [%w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)]]],
   ]
 
@@ -124,12 +118,6 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
-    [:route_target_both_auto,        :nexus,  :VRF,      :unicast,             :success],
-    [:route_target_both_auto_evpn,   :nexus,  :VRF,      :unicast,             :success],
-    [:route_target_export,           :nexus,  :VRF,      :unicast,             :success],
-    [:route_target_export_evpn,      :nexus,  :VRF,      :unicast,             :success],
-    [:route_target_import,           :nexus,  :VRF,      :unicast,             :success],
-    [:route_target_import_evpn,      :nexus,  :VRF,      :unicast,             :success],
 
     # TODO: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
     #       This causes the getter and setter to be out of sync, thus failing the test(s)
@@ -143,10 +131,6 @@ class TestRouterBgpAF < CiscoTestCase
     [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
     [:default_metric,                :ios_xr, :any,      :any,                 :unsupported],
     [:inject_map,                    :ios_xr, :any,      :any,                 :unsupported],
-    [:route_target_both_auto,        :ios_xr, :any,      :any,                 :unsupported],
-    [:route_target_both_auto_evpn,   :ios_xr, :any,      :any,                 :unsupported],
-    [:route_target_export_evpn,      :ios_xr, :any,      :any,                 :unsupported],
-    [:route_target_import_evpn,      :ios_xr, :any,      :any,                 :unsupported],
 
     # XR CLI Errors
     [:additional_paths_send,         :ios_xr, :any,      :multicast,           :CliError],
@@ -156,8 +140,6 @@ class TestRouterBgpAF < CiscoTestCase
     [:maximum_paths,                 :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
     [:maximum_paths_ibgp,            :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
     [:next_hop_route_map,            :ios_xr, :VRF,      :any,                 :CliError],
-    [:route_target_export,           :ios_xr, 'default', :any,                 :CliError],
-    [:route_target_import,           :ios_xr, 'default', :any,                 :CliError],
 
     # Nexus Unsupported
 
@@ -167,12 +149,6 @@ class TestRouterBgpAF < CiscoTestCase
     [:advertise_l2vpn_evpn,          :nexus,  'default', :any,                 :CliError],
     [:advertise_l2vpn_evpn,          :nexus,  :VRF,      :multicast,           :CliError],
     [:inject_map,                    :nexus,  :any,      :multicast,           :CliError],
-    [:route_target_both_auto,        :nexus,  :any,      :any,                 :CliError],
-    [:route_target_both_auto_evpn,   :nexus,  :any,      :any,                 :CliError],
-    [:route_target_export,           :nexus,  :any,      :any,                 :CliError],
-    [:route_target_export_evpn,      :nexus,  :any,      :any,                 :CliError],
-    [:route_target_import,           :nexus,  :any,      :any,                 :CliError],
-    [:route_target_import_evpn,      :nexus,  :any,      :any,                 :CliError],
   ]
 
   # rubocop:disable Style/SpaceAroundOperators
