@@ -124,40 +124,40 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
-    [:route_target_both_auto,        :nexus,  'red',     :unicast,             :success],
-    [:route_target_both_auto_evpn,   :nexus,  'red',     :unicast,             :success],
-    [:route_target_import,           :nexus,  'red',     :unicast,             :success],
-    [:route_target_import_evpn,      :nexus,  'red',     :unicast,             :success],
-    [:route_target_export,           :nexus,  'red',     :unicast,             :success],
-    [:route_target_export_evpn,      :nexus,  'red',     :unicast,             :success],
+    [:route_target_both_auto,        :nexus,  :VRF,      :unicast,             :success],
+    [:route_target_both_auto_evpn,   :nexus,  :VRF,      :unicast,             :success],
+    [:route_target_export,           :nexus,  :VRF,      :unicast,             :success],
+    [:route_target_export_evpn,      :nexus,  :VRF,      :unicast,             :success],
+    [:route_target_import,           :nexus,  :VRF,      :unicast,             :success],
+    [:route_target_import_evpn,      :nexus,  :VRF,      :unicast,             :success],
 
     # TODO: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
     #       This causes the getter and setter to be out of sync, thus failing the test(s)
     #       Should be able to remove this skip after fixing the CLI command generator
-    [:any,                           :any,    'red',     %w(l2vpn evpn),       :skip],
+    [:any,                           :any,    :VRF,      %w(l2vpn evpn),       :skip],
 
     # XR Unsupported
-    [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
     [:additional_paths_install,      :ios_xr, :any,      :any,                 :unsupported],
     [:advertise_l2vpn_evpn,          :ios_xr, :any,      :any,                 :unsupported],
     [:dampen_igp_metric,             :ios_xr, :any,      :any,                 :unsupported],
+    [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
     [:default_metric,                :ios_xr, :any,      :any,                 :unsupported],
+    [:inject_map,                    :ios_xr, :any,      :any,                 :unsupported],
     [:route_target_both_auto,        :ios_xr, :any,      :any,                 :unsupported],
     [:route_target_both_auto_evpn,   :ios_xr, :any,      :any,                 :unsupported],
-    [:route_target_import_evpn,      :ios_xr, :any,      :any,                 :unsupported],
     [:route_target_export_evpn,      :ios_xr, :any,      :any,                 :unsupported],
-    [:inject_map,                    :ios_xr, :any,      :any,                 :unsupported],
+    [:route_target_import_evpn,      :ios_xr, :any,      :any,                 :unsupported],
 
     # XR CLI Errors
-    [:client_to_client,              :ios_xr, 'red',     :any,                 :CliError],
     [:additional_paths_send,         :ios_xr, :any,      :multicast,           :CliError],
     [:additional_paths_receive,      :ios_xr, :any,      :multicast,           :CliError],
     [:additional_paths_selection,    :ios_xr, :any,      :multicast,           :CliError],
-    [:next_hop_route_map,            :ios_xr, 'red',     :any,                 :CliError],
+    [:client_to_client,              :ios_xr, :VRF,      :any,                 :CliError],
     [:maximum_paths,                 :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
     [:maximum_paths_ibgp,            :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
-    [:route_target_import,           :ios_xr, 'default', :any,                 :CliError],
+    [:next_hop_route_map,            :ios_xr, :VRF,      :any,                 :CliError],
     [:route_target_export,           :ios_xr, 'default', :any,                 :CliError],
+    [:route_target_import,           :ios_xr, 'default', :any,                 :CliError],
 
     # Nexus Unsupported
 
@@ -165,14 +165,14 @@ class TestRouterBgpAF < CiscoTestCase
     [:any,                           :nexus,  'default', %w(l2vpn evpn),       :CliError],
     [:additional_paths_install,      :nexus,  :any,      :ipv6,                :CliError],
     [:advertise_l2vpn_evpn,          :nexus,  'default', :any,                 :CliError],
-    [:advertise_l2vpn_evpn,          :nexus,  'red',     :multicast,           :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  :VRF,      :multicast,           :CliError],
     [:inject_map,                    :nexus,  :any,      :multicast,           :CliError],
     [:route_target_both_auto,        :nexus,  :any,      :any,                 :CliError],
     [:route_target_both_auto_evpn,   :nexus,  :any,      :any,                 :CliError],
-    [:route_target_import,           :nexus,  :any,      :any,                 :CliError],
-    [:route_target_import_evpn,      :nexus,  :any,      :any,                 :CliError],
     [:route_target_export,           :nexus,  :any,      :any,                 :CliError],
     [:route_target_export_evpn,      :nexus,  :any,      :any,                 :CliError],
+    [:route_target_import,           :nexus,  :any,      :any,                 :CliError],
+    [:route_target_import_evpn,      :nexus,  :any,      :any,                 :CliError],
   ]
 
   # rubocop:disable Style/SpaceAroundOperators
@@ -182,7 +182,8 @@ class TestRouterBgpAF < CiscoTestCase
     TEST_EXCEPTIONS.each do |test, os, vrf, af, expect|
       next unless (test_ == test || test == :any) &&
                   (os_   == os   || os   == :any) &&
-                  (vrf_  == vrf  || vrf  == :any) &&
+                  (vrf_  == vrf  || vrf  == :any ||
+                    (vrf == :VRF && vrf_ != 'default')) &&
                   (af_   == af   || af   == :any ||
                     (af == :unicast   && (af_.include? 'unicast'))   ||
                     (af == :multicast && (af_.include? 'multicast')) ||
@@ -444,9 +445,7 @@ class TestRouterBgpAF < CiscoTestCase
 
     # Check getters
 
-    # TODO: one returns a list of integers, the other a list of numbers
-    #       thus they don't match and the assert fails... should fix
-    #assert_equal(bgp_af.default_dampening, bgp_af.dampening)
+    assert_equal(bgp_af.default_dampening, bgp_af.dampening)
 
     assert_equal(bgp_af.default_dampening_half_time,
                  bgp_af.dampening_half_time,

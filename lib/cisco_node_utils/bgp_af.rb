@@ -85,20 +85,9 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    def fail_unsupported
-      fail Cisco::UnsupportedError.new('','','')
+    def fail_unsupported(callee)
+      fail Cisco::UnsupportedError.new('bgp_af',callee.to_s)
     end
-
-    # def vrf_unsupported_xr?
-    #   ios_xr? && @vrf != 'default'
-    # end
-
-    # def fail_if_vrf_unsupported_xr(reason)
-    #   fail Cisco::UnsupportedError.new(
-    #     'bgp_af', reason, 'set',
-    #     "#{reason} is not configurable on a " \
-    #     'per-VRF basis on IOS XR') if vrf_unsupported_xr?
-    # end
 
     #
     # Client to client (Getter/Setter/Default)
@@ -377,7 +366,7 @@ module Cisco
 
     def inject_map=(should_list)
       c = inject_map
-      fail_unsupported if c.nil?
+      fail_unsupported(__callee__) if c.nil?
       delta_hash = Utils.delta_add_remove(should_list, c)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
