@@ -24,10 +24,12 @@ class TestStpGlobal < CiscoTestCase
   def setup
     super
     config 'no spanning-tree mode'
+    config 'system bridge-domain none'
   end
 
   def teardown
     config 'no spanning-tree mode'
+    config 'system bridge-domain none'
     super
   end
 
@@ -45,6 +47,96 @@ class TestStpGlobal < CiscoTestCase
 
   def create_stp_global(name=DEFAULT_NAME)
     StpGlobal.new(name)
+  end
+
+  def test_bd_designated_priority_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bddp = [['2-4,6,8-12', '4096'], %w(14 8192)]
+    @global.bd_designated_priority = bddp
+    assert_equal(bddp, @global.bd_designated_priority)
+    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3960', '16384']]
+    @global.bd_designated_priority = bddp
+    assert_equal(bddp, @global.bd_designated_priority)
+    @global.bd_designated_priority = @global.default_bd_designated_priority
+    assert_equal(@global.default_bd_designated_priority,
+                 @global.bd_designated_priority)
+  end
+
+  def test_bd_forward_time_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bdft = [['2-4,6,8-12', '4'], %w(14 30)]
+    @global.bd_forward_time = bdft
+    assert_equal(bdft, @global.bd_forward_time)
+    bdft = [['2-42', '26'], ['83-92,1000-2300', '20'],
+            ['3000-3960', '16']]
+    @global.bd_forward_time = bdft
+    assert_equal(bdft, @global.bd_forward_time)
+    @global.bd_forward_time = @global.default_bd_forward_time
+    assert_equal(@global.default_bd_forward_time,
+                 @global.bd_forward_time)
+  end
+
+  def test_bd_hello_time_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bdft = [['2-4,6,8-12', '1'], %w(14 10)]
+    @global.bd_hello_time = bdft
+    assert_equal(bdft, @global.bd_hello_time)
+    bdft = [['2-42', '6'], ['83-92,1000-2300', '9'],
+            ['3000-3960', '3']]
+    @global.bd_hello_time = bdft
+    assert_equal(bdft, @global.bd_hello_time)
+    @global.bd_hello_time = @global.default_bd_hello_time
+    assert_equal(@global.default_bd_hello_time,
+                 @global.bd_hello_time)
+  end
+
+  def test_bd_max_age_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bdft = [['2-4,6,8-12', '10'], %w(14 40)]
+    @global.bd_max_age = bdft
+    assert_equal(bdft, @global.bd_max_age)
+    bdft = [['2-42', '6'], ['83-92,1000-2300', '29'],
+            ['3000-3960', '13']]
+    @global.bd_max_age = bdft
+    assert_equal(bdft, @global.bd_max_age)
+    @global.bd_max_age = @global.default_bd_max_age
+    assert_equal(@global.default_bd_max_age,
+                 @global.bd_max_age)
+  end
+
+  def test_bd_priority_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
+    @global.bd_priority = bdft
+    assert_equal(bdft, @global.bd_priority)
+    bdft = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3960', '16384']]
+    @global.bd_priority = bdft
+    assert_equal(bdft, @global.bd_priority)
+    @global.bd_priority = @global.default_bd_priority
+    assert_equal(@global.default_bd_priority,
+                 @global.bd_priority)
+  end
+
+  def test_bd_root_priority_change
+    @global = create_stp_global
+    config 'system bridge-domain all'
+    bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
+    @global.bd_root_priority = bdft
+    assert_equal(bdft, @global.bd_root_priority)
+    bdft = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3960', '16384']]
+    @global.bd_root_priority = bdft
+    assert_equal(bdft, @global.bd_root_priority)
+    @global.bd_root_priority = @global.default_bd_root_priority
+    assert_equal(@global.default_bd_root_priority,
+                 @global.bd_root_priority)
   end
 
   def test_get_set_bpdufilter
@@ -120,6 +212,21 @@ class TestStpGlobal < CiscoTestCase
                  @global.mode)
   end
 
+  def test_get_set_mst_designated_priority
+    @global = create_stp_global
+    @global.mode = 'mst'
+    bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
+    @global.mst_designated_priority = bddp
+    assert_equal(bddp, @global.mst_designated_priority)
+    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-4080', '16384']]
+    @global.mst_designated_priority = bddp
+    assert_equal(bddp, @global.mst_designated_priority)
+    @global.mst_designated_priority = @global.default_mst_designated_priority
+    assert_equal(@global.default_mst_designated_priority,
+                 @global.mst_designated_priority)
+  end
+
   def test_get_set_mst_forward_time
     @global = create_stp_global
     @global.mode = 'mst'
@@ -140,6 +247,21 @@ class TestStpGlobal < CiscoTestCase
       @global.default_mst_hello_time
     assert_equal(@global.default_mst_hello_time,
                  @global.mst_hello_time)
+  end
+
+  def test_get_set_mst_inst_vlan_map
+    @global = create_stp_global
+    @global.mode = 'mst'
+    bddp = [['8', '2-65'], ['14', '200-300']]
+    @global.mst_inst_vlan_map = bddp
+    assert_equal(bddp, @global.mst_inst_vlan_map)
+    bddp = [['2', '6-47'], ['92', '120-400'],
+            ['3000', '1000-3200']]
+    @global.mst_inst_vlan_map = bddp
+    assert_equal(bddp, @global.mst_inst_vlan_map)
+    @global.mst_inst_vlan_map = @global.default_mst_inst_vlan_map
+    assert_equal(@global.default_mst_inst_vlan_map,
+                 @global.mst_inst_vlan_map)
   end
 
   def test_get_set_mst_max_age
@@ -175,6 +297,21 @@ class TestStpGlobal < CiscoTestCase
                  @global.mst_name)
   end
 
+  def test_get_set_mst_priority
+    @global = create_stp_global
+    @global.mode = 'mst'
+    bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
+    @global.mst_priority = bddp
+    assert_equal(bddp, @global.mst_priority)
+    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-4080', '16384']]
+    @global.mst_priority = bddp
+    assert_equal(bddp, @global.mst_priority)
+    @global.mst_priority = @global.default_mst_priority
+    assert_equal(@global.default_mst_priority,
+                 @global.mst_priority)
+  end
+
   def test_get_set_mst_revision
     @global = create_stp_global
     @global.mode = 'mst'
@@ -186,6 +323,21 @@ class TestStpGlobal < CiscoTestCase
                  @global.mst_revision)
   end
 
+  def test_get_set_mst_root_priority
+    @global = create_stp_global
+    @global.mode = 'mst'
+    bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
+    @global.mst_root_priority = bddp
+    assert_equal(bddp, @global.mst_root_priority)
+    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-4080', '16384']]
+    @global.mst_root_priority = bddp
+    assert_equal(bddp, @global.mst_root_priority)
+    @global.mst_root_priority = @global.default_mst_root_priority
+    assert_equal(@global.default_mst_root_priority,
+                 @global.mst_root_priority)
+  end
+
   def test_get_set_pathcost
     @global = create_stp_global
     @global.pathcost = 'long'
@@ -194,5 +346,83 @@ class TestStpGlobal < CiscoTestCase
       @global.default_pathcost
     assert_equal(@global.default_pathcost,
                  @global.pathcost)
+  end
+
+  def test_get_set_vlan_designated_priority
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '4096']]
+    @global.vlan_designated_priority = bddp
+    assert_equal(bddp, @global.vlan_designated_priority)
+    bddp = [['1-42', '40960']]
+    @global.vlan_designated_priority = bddp
+    assert_equal(bddp, @global.vlan_designated_priority)
+    @global.vlan_designated_priority = @global.default_vlan_designated_priority
+    assert_equal(@global.default_vlan_designated_priority,
+                 @global.vlan_designated_priority)
+  end
+
+  def test_get_set_vlan_forward_time
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '10']]
+    @global.vlan_forward_time = bddp
+    assert_equal(bddp, @global.vlan_forward_time)
+    bddp = [['1-42', '19']]
+    @global.vlan_forward_time = bddp
+    assert_equal(bddp, @global.vlan_forward_time)
+    @global.vlan_forward_time = @global.default_vlan_forward_time
+    assert_equal(@global.default_vlan_forward_time,
+                 @global.vlan_forward_time)
+  end
+
+  def test_get_set_vlan_hello_time
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '5']]
+    @global.vlan_hello_time = bddp
+    assert_equal(bddp, @global.vlan_hello_time)
+    bddp = [['1-42', '10']]
+    @global.vlan_hello_time = bddp
+    assert_equal(bddp, @global.vlan_hello_time)
+    @global.vlan_hello_time = @global.default_vlan_hello_time
+    assert_equal(@global.default_vlan_hello_time,
+                 @global.vlan_hello_time)
+  end
+
+  def test_get_set_vlan_max_age
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '40']]
+    @global.vlan_max_age = bddp
+    assert_equal(bddp, @global.vlan_max_age)
+    bddp = [['1-42', '21']]
+    @global.vlan_max_age = bddp
+    assert_equal(bddp, @global.vlan_max_age)
+    @global.vlan_max_age = @global.default_vlan_max_age
+    assert_equal(@global.default_vlan_max_age,
+                 @global.vlan_max_age)
+  end
+
+  def test_get_set_vlan_priority
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '4096']]
+    @global.vlan_priority = bddp
+    assert_equal(bddp, @global.vlan_priority)
+    bddp = [['1-42', '40960']]
+    @global.vlan_priority = bddp
+    assert_equal(bddp, @global.vlan_priority)
+    @global.vlan_priority = @global.default_vlan_priority
+    assert_equal(@global.default_vlan_priority,
+                 @global.vlan_priority)
+  end
+
+  def test_get_set_vlan_root_priority
+    @global = create_stp_global
+    bddp = [['1-4,6,8-12', '4096']]
+    @global.vlan_root_priority = bddp
+    assert_equal(bddp, @global.vlan_root_priority)
+    bddp = [['1-42', '40960']]
+    @global.vlan_root_priority = bddp
+    assert_equal(bddp, @global.vlan_root_priority)
+    @global.vlan_root_priority = @global.default_vlan_root_priority
+    assert_equal(@global.default_vlan_root_priority,
+                 @global.vlan_root_priority)
   end
 end

@@ -35,6 +35,108 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def bd_designated_priority
+      config_get('stp_global', 'bd_designated_priority')
+    end
+
+    def bd_designated_priority=(list)
+      config_set('stp_global', 'bd_designated_priority',
+                 'no', '2-3967', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'bd_designated_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_bd_designated_priority
+      config_get_default('stp_global', 'bd_designated_priority')
+    end
+
+    def bd_forward_time
+      config_get('stp_global', 'bd_forward_time')
+    end
+
+    def bd_forward_time=(list)
+      config_set('stp_global', 'bd_forward_time',
+                 'no', '2-3967', '')
+      list.each do |range, ft|
+        config_set('stp_global', 'bd_forward_time',
+                   '', range, ft)
+      end
+    end
+
+    def default_bd_forward_time
+      config_get_default('stp_global', 'bd_forward_time')
+    end
+
+    def bd_hello_time
+      config_get('stp_global', 'bd_hello_time')
+    end
+
+    def bd_hello_time=(list)
+      config_set('stp_global', 'bd_hello_time',
+                 'no', '2-3967', '')
+      list.each do |range, ht|
+        config_set('stp_global', 'bd_hello_time',
+                   '', range, ht)
+      end
+    end
+
+    def default_bd_hello_time
+      config_get_default('stp_global', 'bd_hello_time')
+    end
+
+    def bd_max_age
+      config_get('stp_global', 'bd_max_age')
+    end
+
+    def bd_max_age=(list)
+      config_set('stp_global', 'bd_max_age',
+                 'no', '2-3967', '')
+      list.each do |range, ma|
+        config_set('stp_global', 'bd_max_age',
+                   '', range, ma)
+      end
+    end
+
+    def default_bd_max_age
+      config_get_default('stp_global', 'bd_max_age')
+    end
+
+    def bd_priority
+      config_get('stp_global', 'bd_priority')
+    end
+
+    def bd_priority=(list)
+      config_set('stp_global', 'bd_priority',
+                 'no', '2-3967', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'bd_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_bd_priority
+      config_get_default('stp_global', 'bd_priority')
+    end
+
+    def bd_root_priority
+      config_get('stp_global', 'bd_root_priority')
+    end
+
+    def bd_root_priority=(list)
+      config_set('stp_global', 'bd_root_priority',
+                 'no', '2-3967', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'bd_root_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_bd_root_priority
+      config_get_default('stp_global', 'bd_root_priority')
+    end
+
     def bpdufilter
       config_get('stp_global', 'bpdufilter')
     end
@@ -140,6 +242,24 @@ module Cisco
       config_get_default('stp_global', 'mode')
     end
 
+    def mst_designated_priority
+      config_get('stp_global', 'mst_designated_priority')
+    end
+
+    def mst_designated_priority=(list)
+      check_stp_mode_mst
+      config_set('stp_global', 'mst_designated_priority',
+                 'no', '0-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'mst_designated_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_mst_designated_priority
+      config_get_default('stp_global', 'mst_designated_priority')
+    end
+
     def mst_forward_time
       config_get('stp_global', 'mst_forward_time')
     end
@@ -178,6 +298,24 @@ module Cisco
 
     def default_mst_hello_time
       config_get_default('stp_global', 'mst_hello_time')
+    end
+
+    def mst_inst_vlan_map
+      config_get('stp_global', 'mst_inst_vlan_map')
+    end
+
+    def mst_inst_vlan_map=(list)
+      check_stp_mode_mst
+      config_set('stp_global', 'mst_inst_vlan_map',
+                 '0', '1-4094')
+      list.each do |inst, range|
+        config_set('stp_global', 'mst_inst_vlan_map',
+                   inst, range)
+      end
+    end
+
+    def default_mst_inst_vlan_map
+      config_get_default('stp_global', 'mst_inst_vlan_map')
     end
 
     def mst_max_age
@@ -240,6 +378,24 @@ module Cisco
       config_get_default('stp_global', 'mst_name')
     end
 
+    def mst_priority
+      config_get('stp_global', 'mst_priority')
+    end
+
+    def mst_priority=(list)
+      check_stp_mode_mst
+      config_set('stp_global', 'mst_priority',
+                 'no', '0-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'mst_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_mst_priority
+      config_get_default('stp_global', 'mst_priority')
+    end
+
     def mst_revision
       config_get('stp_global', 'mst_revision')
     end
@@ -260,6 +416,24 @@ module Cisco
       config_get_default('stp_global', 'mst_revision')
     end
 
+    def mst_root_priority
+      config_get('stp_global', 'mst_root_priority')
+    end
+
+    def mst_root_priority=(list)
+      check_stp_mode_mst
+      config_set('stp_global', 'mst_root_priority',
+                 'no', '0-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'mst_root_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_mst_root_priority
+      config_get_default('stp_global', 'mst_root_priority')
+    end
+
     def pathcost
       config_get('stp_global', 'pathcost')
     end
@@ -274,6 +448,108 @@ module Cisco
 
     def default_pathcost
       config_get_default('stp_global', 'pathcost')
+    end
+
+    def vlan_designated_priority
+      config_get('stp_global', 'vlan_designated_priority')
+    end
+
+    def vlan_designated_priority=(list)
+      config_set('stp_global', 'vlan_designated_priority',
+                 'no', '1-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'vlan_designated_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_vlan_designated_priority
+      config_get_default('stp_global', 'vlan_designated_priority')
+    end
+
+    def vlan_forward_time
+      config_get('stp_global', 'vlan_forward_time')
+    end
+
+    def vlan_forward_time=(list)
+      config_set('stp_global', 'vlan_forward_time',
+                 'no', '1-4094', '')
+      list.each do |range, ft|
+        config_set('stp_global', 'vlan_forward_time',
+                   '', range, ft)
+      end
+    end
+
+    def default_vlan_forward_time
+      config_get_default('stp_global', 'vlan_forward_time')
+    end
+
+    def vlan_hello_time
+      config_get('stp_global', 'vlan_hello_time')
+    end
+
+    def vlan_hello_time=(list)
+      config_set('stp_global', 'vlan_hello_time',
+                 'no', '1-4094', '')
+      list.each do |range, ht|
+        config_set('stp_global', 'vlan_hello_time',
+                   '', range, ht)
+      end
+    end
+
+    def default_vlan_hello_time
+      config_get_default('stp_global', 'vlan_hello_time')
+    end
+
+    def vlan_max_age
+      config_get('stp_global', 'vlan_max_age')
+    end
+
+    def vlan_max_age=(list)
+      config_set('stp_global', 'vlan_max_age',
+                 'no', '1-4094', '')
+      list.each do |range, ma|
+        config_set('stp_global', 'vlan_max_age',
+                   '', range, ma)
+      end
+    end
+
+    def default_vlan_max_age
+      config_get_default('stp_global', 'vlan_max_age')
+    end
+
+    def vlan_priority
+      config_get('stp_global', 'vlan_priority')
+    end
+
+    def vlan_priority=(list)
+      config_set('stp_global', 'vlan_priority',
+                 'no', '1-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'vlan_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_vlan_priority
+      config_get_default('stp_global', 'vlan_priority')
+    end
+
+    def vlan_root_priority
+      config_get('stp_global', 'vlan_root_priority')
+    end
+
+    def vlan_root_priority=(list)
+      config_set('stp_global', 'vlan_root_priority',
+                 'no', '1-4094', '')
+      list.each do |range, pri|
+        config_set('stp_global', 'vlan_root_priority',
+                   '', range, pri)
+      end
+    end
+
+    def default_vlan_root_priority
+      config_get_default('stp_global', 'vlan_root_priority')
     end
 
     def check_stp_mode_mst

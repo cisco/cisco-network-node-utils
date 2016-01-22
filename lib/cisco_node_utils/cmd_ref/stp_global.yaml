@@ -1,16 +1,56 @@
 # stp_global
 ---
 _template:
-  config_get: "show running-config spanning-tree all"
+  config_get: "show running-config spanning-tree"
+
+bd_designated_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^bridge-domain (.*) designated priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s designated priority %s", "exit"]
+  default_value: []
+
+bd_forward_time:
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) forward-time (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s forward-time %s"]
+  default_value: []
+
+bd_hello_time:
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) hello-time (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s hello-time %s"]
+  default_value: []
+
+bd_max_age:
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) max-age (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s max-age %s"]
+  default_value: []
+
+bd_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s priority %s"]
+  default_value: []
+
+bd_root_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^bridge-domain (.*) root priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s root priority %s", "exit"]
+  default_value: []
 
 bpdufilter:
   kind: boolean
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree port type edge bpdufilter default$/'
   config_set: "%s spanning-tree port type edge bpdufilter default"
   default_value: false
 
 bpduguard:
   kind: boolean
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree port type edge bpduguard default$/'
   config_set: "%s spanning-tree port type edge bpduguard default"
   default_value: false
@@ -18,77 +58,154 @@ bpduguard:
 bridge_assurance:
   kind: boolean
   auto_default: false
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree bridge assurance$/'
   config_set: "%s spanning-tree bridge assurance"
   default_value: true
 
 domain:
-  _exclude: [/N3/, /N9/]
+  _exclude: [/N(3|9)/]
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree domain (\d+)$/'
   config_set: "%s spanning-tree domain %s"
   default_value: false
 
 fcoe:
   kind: boolean
-  _exclude: [/N5/, /N6/, /N7/]
+  _exclude: [/N(5|6|7)/]
   auto_default: false
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree fcoe$/'
   config_set: "%s spanning-tree fcoe"
   default_value: true
 
 loopguard:
   kind: boolean
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree loopguard default$/'
   config_set: "%s spanning-tree loopguard default"
   default_value: false
 
 mode:
   kind: string
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mode (.*)$/'
   config_set: "%s spanning-tree mode %s"
   default_value: "rapid-pvst"
 
+mst_designated_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^mst (.*) designated priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s", "exit"]
+  default_value: []
+
 mst_forward_time:
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst forward-time (\d+)$/'
   config_set: "%s spanning-tree mst forward-time %s"
   default_value: 15
 
 mst_hello_time:
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst hello-time (\d+)$/'
   config_set: "%s spanning-tree mst hello-time %s"
   default_value: 2
 
+mst_inst_vlan_map:
+  multiple:
+  config_get_token: '/^spanning-tree mst configuration$/'
+  config_get_token_append: '/^instance (.*) vlan (.*)$/'
+  config_set: ["spanning-tree mst configuration", "instance %s vlan %s", "exit"]
+  default_value: []
+
 mst_max_age:
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst max-age (\d+)$/'
   config_set: "%s spanning-tree mst max-age %s"
   default_value: 20
 
 mst_max_hops:
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst max-hops (\d+)$/'
   config_set: "%s spanning-tree mst max-hops %s"
   default_value: 20
 
 mst_name:
   kind: string
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst configuration$/'
   config_get_token_append: '/^name (.*)$/'
   config_set: ["spanning-tree mst configuration", "%s name %s", "exit"]
   default_value: false
 
+mst_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree mst (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree mst %s priority %s"]
+  default_value: []
+
 mst_revision:
   kind: int
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree mst configuration$/'
   config_get_token_append: '/^revision (\d+)$/'
   config_set: ["spanning-tree mst configuration", "%s revision %s", "exit"]
   default_value: 0
 
+mst_root_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^mst (.*) root priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s", "exit"]
+  default_value: []
+
 pathcost:
   kind: string
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree pathcost method (.*)$/'
   config_set: "%s spanning-tree pathcost method %s"
   default_value: "short"
+
+vlan_designated_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^vlan (.*) designated priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s designated priority %s", "exit"]
+  default_value: []
+
+vlan_forward_time:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) forward-time (.*)$/']
+  config_set: ["%s spanning-tree vlan %s forward-time %s"]
+  default_value: []
+
+vlan_hello_time:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) hello-time (.*)$/']
+  config_set: ["%s spanning-tree vlan %s hello-time %s"]
+  default_value: []
+
+vlan_max_age:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) max-age (.*)$/']
+  config_set: ["%s spanning-tree vlan %s max-age %s"]
+  default_value: []
+
+vlan_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree vlan %s priority %s"]
+  default_value: []
+
+vlan_root_priority:
+  multiple:
+  config_get_token: '/^spanning-tree pseudo-information$/'
+  config_get_token_append: '/^vlan (.*) root priority (.*)$/'
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s root priority %s", "exit"]
+  default_value: []
