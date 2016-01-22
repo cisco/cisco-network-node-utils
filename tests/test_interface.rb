@@ -455,6 +455,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_change
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1520
     assert_equal(1520, interface.mtu)
     interface.mtu = 1580
@@ -464,11 +465,13 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_invalid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     assert_raises(RuntimeError) { interface.mtu = 'hello' }
   end
 
   def test_interface_mtu_valid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1550
     assert_equal(1550, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
