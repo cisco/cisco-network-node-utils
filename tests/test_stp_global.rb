@@ -24,12 +24,12 @@ class TestStpGlobal < CiscoTestCase
   def setup
     super
     config 'no spanning-tree mode'
-    config 'system bridge-domain none'
+    config 'system bridge-domain none' if n7k_platform?
   end
 
   def teardown
     config 'no spanning-tree mode'
-    config 'system bridge-domain none'
+    config 'system bridge-domain none' if n7k_platform?
     super
   end
 
@@ -50,6 +50,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_designated_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bddp = [['2-4,6,8-12', '4096'], %w(14 8192)]
@@ -65,6 +67,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_forward_time_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '4'], %w(14 30)]
@@ -80,6 +84,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_hello_time_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '1'], %w(14 10)]
@@ -95,6 +101,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_max_age_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '10'], %w(14 40)]
@@ -110,6 +118,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
@@ -125,6 +135,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_root_priority_change
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
@@ -350,10 +362,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_designated_priority
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '4096']]
+    bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
     @global.vlan_designated_priority = bddp
     assert_equal(bddp, @global.vlan_designated_priority)
-    bddp = [['1-42', '40960']]
+    bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3700', '16384']]
     @global.vlan_designated_priority = bddp
     assert_equal(bddp, @global.vlan_designated_priority)
     @global.vlan_designated_priority = @global.default_vlan_designated_priority
@@ -363,10 +376,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_forward_time
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '10']]
+    bddp = [['1-4,6,8-12', '10'], %w(14 8)]
     @global.vlan_forward_time = bddp
     assert_equal(bddp, @global.vlan_forward_time)
-    bddp = [['1-42', '19']]
+    bddp = [['1-42', '19'], ['83-92,1000-2300', '13'],
+            ['3000-3700', '16']]
     @global.vlan_forward_time = bddp
     assert_equal(bddp, @global.vlan_forward_time)
     @global.vlan_forward_time = @global.default_vlan_forward_time
@@ -376,10 +390,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_hello_time
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '5']]
+    bddp = [['1-4,6,8-12', '5'], %w(14 8)]
     @global.vlan_hello_time = bddp
     assert_equal(bddp, @global.vlan_hello_time)
-    bddp = [['1-42', '10']]
+    bddp = [['1-42', '10'], ['83-92,1000-2300', '6'],
+            ['3000-3700', '3']]
     @global.vlan_hello_time = bddp
     assert_equal(bddp, @global.vlan_hello_time)
     @global.vlan_hello_time = @global.default_vlan_hello_time
@@ -389,10 +404,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_max_age
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '40']]
+    bddp = [['1-4,6,8-12', '40'], %w(14 35)]
     @global.vlan_max_age = bddp
     assert_equal(bddp, @global.vlan_max_age)
-    bddp = [['1-42', '21']]
+    bddp = [['1-42', '21'], ['83-92,1000-2300', '13'],
+            ['3000-3700', '16']]
     @global.vlan_max_age = bddp
     assert_equal(bddp, @global.vlan_max_age)
     @global.vlan_max_age = @global.default_vlan_max_age
@@ -402,10 +418,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_priority
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '4096']]
+    bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
     @global.vlan_priority = bddp
     assert_equal(bddp, @global.vlan_priority)
-    bddp = [['1-42', '40960']]
+    bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3700', '16384']]
     @global.vlan_priority = bddp
     assert_equal(bddp, @global.vlan_priority)
     @global.vlan_priority = @global.default_vlan_priority
@@ -415,10 +432,11 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_vlan_root_priority
     @global = create_stp_global
-    bddp = [['1-4,6,8-12', '4096']]
+    bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
     @global.vlan_root_priority = bddp
     assert_equal(bddp, @global.vlan_root_priority)
-    bddp = [['1-42', '40960']]
+    bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
+            ['3000-3700', '16384']]
     @global.vlan_root_priority = bddp
     assert_equal(bddp, @global.vlan_root_priority)
     @global.vlan_root_priority = @global.default_vlan_root_priority

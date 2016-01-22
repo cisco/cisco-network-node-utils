@@ -456,7 +456,7 @@ module Cisco
 
     def vlan_designated_priority=(list)
       config_set('stp_global', 'vlan_designated_priority',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, pri|
         config_set('stp_global', 'vlan_designated_priority',
                    '', range, pri)
@@ -473,7 +473,7 @@ module Cisco
 
     def vlan_forward_time=(list)
       config_set('stp_global', 'vlan_forward_time',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, ft|
         config_set('stp_global', 'vlan_forward_time',
                    '', range, ft)
@@ -490,7 +490,7 @@ module Cisco
 
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, ht|
         config_set('stp_global', 'vlan_hello_time',
                    '', range, ht)
@@ -507,7 +507,7 @@ module Cisco
 
     def vlan_max_age=(list)
       config_set('stp_global', 'vlan_max_age',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, ma|
         config_set('stp_global', 'vlan_max_age',
                    '', range, ma)
@@ -524,7 +524,7 @@ module Cisco
 
     def vlan_priority=(list)
       config_set('stp_global', 'vlan_priority',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, pri|
         config_set('stp_global', 'vlan_priority',
                    '', range, pri)
@@ -541,7 +541,7 @@ module Cisco
 
     def vlan_root_priority=(list)
       config_set('stp_global', 'vlan_root_priority',
-                 'no', '1-4094', '')
+                 'no', '1-3967', '')
       list.each do |range, pri|
         config_set('stp_global', 'vlan_root_priority',
                    '', range, pri)

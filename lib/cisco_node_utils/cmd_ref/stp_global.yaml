@@ -4,6 +4,7 @@ _template:
   config_get: "show running-config spanning-tree"
 
 bd_designated_priority:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^bridge-domain (.*) designated priority (.*)$/'
@@ -11,30 +12,35 @@ bd_designated_priority:
   default_value: []
 
 bd_forward_time:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) forward-time (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s forward-time %s"]
   default_value: []
 
 bd_hello_time:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) hello-time (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s hello-time %s"]
   default_value: []
 
 bd_max_age:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) max-age (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s max-age %s"]
   default_value: []
 
 bd_priority:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) priority (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s priority %s"]
   default_value: []
 
 bd_root_priority:
+  _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^bridge-domain (.*) root priority (.*)$/'
@@ -96,6 +102,7 @@ mode:
 
 mst_designated_priority:
   multiple:
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^mst (.*) designated priority (.*)$/'
   config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s", "exit"]
@@ -160,6 +167,7 @@ mst_revision:
 
 mst_root_priority:
   multiple:
+  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^mst (.*) root priority (.*)$/'
   config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s", "exit"]
