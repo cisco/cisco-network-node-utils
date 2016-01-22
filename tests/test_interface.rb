@@ -64,7 +64,7 @@ class TestInterface < CiscoTestCase
   end
 
   def show_cmd(name)
-    all = node.product_id =~ /N7/ ? '' : 'all'
+    all = (name =~ /port-channel\d/ && node.product_id =~ /N7/) ? '' : 'all'
     "show run interface #{name} #{all} | no-more"
   end
 
