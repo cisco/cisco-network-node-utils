@@ -2,7 +2,7 @@
 #
 # October 2015, Glenn F. Matthews
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,26 +49,29 @@ class TestGRPC < TestCase
     end
   end
 
-  def test_config_string
-    client.config("int gi0/0/0/0\ndescription panda\n")
-    run = client.show('show run int gi0/0/0/0')
+  def test_set_cli_string
+    client.set(context: 'int gi0/0/0/0',
+               values:  'description panda')
+    run = client.get(command: 'show run int gi0/0/0/0')
     assert_match(/description panda/, run)
   end
 
-  def test_config_array
-    client.config(['int gi0/0/0/0', 'description elephant'])
-    run = client.show('show run int gi0/0/0/0')
+  def test_set_cli_array
+    client.set(context: ['int gi0/0/0/0'],
+               values:  ['description elephant'])
+    run = client.get(command: 'show run int gi0/0/0/0')
     assert_match(/description elephant/, run)
   end
 
-  def test_config_invalid
+  def test_set_cli_invalid
     e = assert_raises Cisco::Client::GRPC::CliError do
-      client.config(['int gi0/0/0/0', 'wark', 'bark'])
+      client.set(context: ['int gi0/0/0/0'],
+                 values:  ['wark', 'bark bark'])
     end
     # rubocop:disable Style/TrailingWhitespace
     assert_equal('The following commands were rejected:
-  wark
-  bark
+  int gi0/0/0/0 wark
+  int gi0/0/0/0 bark bark
 with error:
 
 !! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
@@ -79,81 +82,55 @@ with error:
 !!  - the current user is not a member of a task-group that has 
 !!    permissions to use the commands.
 
-wark
-bark
+int gi0/0/0/0 wark
+int gi0/0/0/0 bark bark
 
 ', e.message)
     # rubocop:enable Style/TrailingWhitespace
     # Unlike NXAPI, a gRPC config command is always atomic
     assert_empty(e.successful_input)
-    assert_equal(%w(wark bark), e.rejected_input)
+    assert_equal(['int gi0/0/0/0 wark', 'int gi0/0/0/0 bark bark'],
+                 e.rejected_input)
   end
 
-  def test_exec
-    # gRPC only allows 'show' commands:
-    result = client.exec('show inventory')
-    s = @device.cmd('show inventory')
-    # Strip the leading timestamp and trailing prompt from the telnet output
-    s = s.split("\n")[2..-2].join("\n")
-    assert_equal(s.rstrip, result)
-  end
-
-  def test_exec_disallowed
-    e = assert_raises Cisco::Client::RequestNotSupported do
-      client.exec('run echo hello')
-    end
-    assert_match(/Disallowed.*run echo hello/, e.message)
-  end
-
-  def test_exec_invalid
-    e = assert_raises Cisco::Client::GRPC::CliError do
-      client.exec('show xyzzy')
-    end
-    assert_equal("The command 'show xyzzy' was rejected with error:
-show xyzzy
-      ^
-% Invalid input detected at '^' marker.", e.message)
-    assert_empty(e.successful_input)
-    assert_equal('show xyzzy', e.rejected_input)
-  end
-
-  def test_show_ascii_default
-    result = client.show('show debug')
+  def test_get_cli_default
+    result = client.get(command: 'show debug')
     s = @device.cmd('show debug')
     # Strip the leading timestamp and trailing prompt from the telnet output
     s = s.split("\n")[2..-2].join("\n")
     assert_equal(s, result)
   end
 
-  def test_show_ascii_invalid
+  def test_get_cli_invalid
     assert_raises Cisco::Client::GRPC::CliError do
-      client.show('show fuzz')
+      client.get(command: 'show fuzz')
     end
   end
 
-  def test_show_ascii_incomplete
+  def test_get_cli_incomplete
     assert_raises Cisco::Client::GRPC::CliError do
-      client.show('show ')
+      client.get(command: 'show ')
     end
   end
 
-  def test_show_ascii_explicit
-    result = client.show('show debug', :ascii)
+  def test_get_cli_explicit
+    result = client.get(command: 'show debug', data_format: :cli)
     s = @device.cmd('show debug')
     # Strip the leading timestamp and trailing prompt from the telnet output
     s = s.split("\n")[2..-2].join("\n")
     assert_equal(s, result)
   end
 
-  def test_show_ascii_empty
-    result = client.show('show debug | include foo | exclude foo', :ascii)
-    assert_empty(result)
+  def test_get_cli_empty
+    result = client.get(command:     'show debug | include foo | exclude foo',
+                        data_format: :cli)
+    assert_nil(result)
   end
 
-  def test_show_ascii_cache
-    result = client.show('show clock', :ascii)
+  def test_get_cli_cache
+    result = client.get(command: 'show clock', data_format: :cli)
     sleep 2
-    assert_equal(result, client.show('show clock', :ascii))
+    assert_equal(result, client.get(command: 'show clock', data_format: :cli))
   end
 
   # TODO: add structured output test cases (when supported on XR)
@@ -162,6 +139,7 @@ show xyzzy
     autoclient = Cisco::Client.create(address, username, password)
     assert_equal(Cisco::Client::GRPC, autoclient.class)
     assert(autoclient.supports?(:cli))
+    refute(autoclient.supports?(:nxapi_structured))
     assert_equal(:ios_xr, autoclient.platform)
   end
 end

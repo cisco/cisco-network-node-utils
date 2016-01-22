@@ -1,37 +1,39 @@
 # dnsclient
 ---
 _template:
-  config_get: "show running-config all"
+  get_command: "show running-config all"
 
 domain_list:
   multiple: true
-  config_get_token: '/^ip domain-list (\S+)$/'
-  config_set: '<state> ip domain-list <name>'
+  get_value: '/^ip domain-list (\S+)$/'
+  set_value: '<state> ip domain-list <name>'
   default_value: []
 
 domain_list_vrf:
   multiple: true
-  config_get_token: ['/vrf context <vrf>/', '/ip domain-list (\S+)/']
-  config_set: ['vrf context <vrf>', '<state> ip domain-list <name>']
+  context: ['vrf context <vrf>']
+  get_value: '/ip domain-list (\S+)/'
+  set_value: '<state> ip domain-list <name>'
   default_value: []
 
 domain_name:
   default_value: ''
-  cli_nexus:
-    config_set: '<state> ip domain-name <name>'
-    config_get_token: '/^ip domain-name (\S+)$/'
-  cli_ios_xr:
-    config_set: '<state> domain name <name>'
-    config_get_token: '/^domain name (\S+)$/'
+  nexus:
+    set_value: '<state> ip domain-name <name>'
+    get_value: '/^ip domain-name (\S+)$/'
+  ios_xr:
+    set_value: '<state> domain name <name>'
+    get_value: '/^domain name (\S+)$/'
 
 domain_name_vrf:
-  config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
-  config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+  context: ['vrf context <vrf>']
+  get_value: '/ip domain-name (\S+)/'
+  set_value: '<state> ip domain-name <name>'
   default_value: ''
 
 name_server:
   multiple: true
   default_value: []
-  config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
-  config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
-  config_set: '<state> ip name-server <ip>'
+  get_command: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+  get_value: '/^ip name-server ([\s\d\.:]+)$/'
+  set_value: '<state> ip name-server <ip>'

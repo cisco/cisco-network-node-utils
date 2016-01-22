@@ -4,7 +4,7 @@
 #
 # December 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,14 +51,16 @@ module Cisco
   class Node
     include Singleton
 
-    # Convenience wrapper for show(command, :structured).
+    # Convenience wrapper for get()
     # Uses CommandReference to look up the given show command and key
     # of interest, executes that command, and returns the value corresponding
     # to that key.
     #
     # @raise [IndexError] if the given (feature, name) pair is not in the
     #        CommandReference data or if the data doesn't have values defined
-    #        for the 'config_get' and (optional) 'config_get_token' fields.
+    #        for the 'get_command' and (optional) 'get_value' fields.
+    # @raise [Cisco::UnsupportedError] if the (feature, name) pair is flagged
+    #        in the YAML as unsupported on this device.
     # @raise [Cisco::CliError] if the given command is rejected by the device.
     #
     # @param feature [String]
@@ -67,31 +69,19 @@ module Cisco
     # @example config_get("show_version", "system_image")
     # @example config_get("ospf", "router_id",
     #                     {name: "green", vrf: "one"})
-    def config_get(feature, name, *args)
+    def config_get(feature, property, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
+      ref = @cmd_ref.lookup(feature, property)
 
-      return ref.default_value if ref.default_only?
+      # If we have a default value but no getter, just return the default
+      return ref.default_value if ref.default_value? && !ref.getter?
 
-      begin
-        token = ref.config_get_token(*args)
-      rescue IndexError
-        # IndexError: no entry for config_get_token
-        token = nil
-      end
-
-      if token.nil?
-        # Just get the whole output
-        return massage(show(ref.config_get, :structured), ref)
-      elsif token[0].kind_of?(Regexp)
-        return massage(Cisco.find_ascii(show(ref.config_get, :ascii),
-                                        token[-1], *token[0..-2]), ref)
-      else
-        return massage(
-          config_get_handle_structured(token,
-                                       show(ref.config_get, :structured)),
-          ref)
-      end
+      get_args = ref.getter(*args)
+      massage(get(command:     ref.get_command,
+                  data_format: get_args[:data_format],
+                  context:     get_args[:context],
+                  value:       get_args[:value]),
+              ref)
     end
 
     # Attempt to massage the given value into the format specified by the
@@ -139,10 +129,11 @@ module Cisco
     # @param feature [String]
     # @param name [String]
     # @return [String]
+    # @return [nil] if this feature/name pair is marked as unsupported
     # @example config_get_default("vtp", "file")
-    def config_get_default(feature, name)
+    def config_get_default(feature, property)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
+      ref = @cmd_ref.lookup(feature, property)
       ref.default_value
     end
 
@@ -151,6 +142,7 @@ module Cisco
     #
     # @raise [IndexError] if no relevant cmd_ref config_set exists
     # @raise [ArgumentError] if too many or too few args are provided.
+    # @raise [Cisco::UnsupportedError] if this feature/name is unsupported
     # @raise [Cisco::CliError] if any command is rejected by the device.
     #
     # @param feature [String]
@@ -160,10 +152,11 @@ module Cisco
     # @example config_set("ospf", "router_id",
     #  {:name => "green", :vrf => "one", :state => "",
     #   :router_id => "192.0.0.1"})
-    def config_set(feature, name, *args)
+    def config_set(feature, property, *args)
       fail 'lazy_connect specified but did not request connect' unless @cmd_ref
-      ref = @cmd_ref.lookup(feature, name)
-      config(ref.config_set(*args))
+      ref = @cmd_ref.lookup(feature, property)
+      set_args = ref.setter(*args)
+      set(**set_args)
     end
 
     # Clear the cache of CLI output results.
@@ -208,9 +201,9 @@ module Cisco
     # "hidden" API - used for UT but shouldn't be used elsewhere
     def connect(*args)
       @client = Cisco::Client.create(*args)
-      @cmd_ref = CommandReference.new(product:  product_id,
-                                      platform: @client.platform,
-                                      cli:      @client.supports?(:cli))
+      @cmd_ref = CommandReference.new(product:      product_id,
+                                      platform:     @client.platform,
+                                      data_formats: @client.data_formats)
       cache_flush
     end
 
@@ -235,46 +228,13 @@ module Cisco
       @client.cache_auto = enable
     end
 
-    # Helper method for config_get().
-    # @param token [Array, Hash] lookup sequence
-    # @param result [Array, Hash] structured output from node
-    def config_get_handle_structured(token, result)
-      token.each do |t|
-        # if token is a hash and result is an array, check each
-        # array index (which should return another hash) to see if
-        # it contains the matching key/value pairs specified in token,
-        # and return the first match (or nil)
-        if t.kind_of?(Hash)
-          fail "Expected array, got #{result.class}" unless result.is_a? Array
-          result = result.select { |x| t.all? { |k, v| x[k] == v } }
-          fail "Multiple matches found for #{t}" if result.length > 1
-          fail "No match found for #{t}" if result.length == 0
-          result = result[0]
-        else # result is array or hash
-          fail "No key \"#{t}\" in #{result}" if result[t].nil?
-          result = result[t]
-        end
-      end
-      result
-    rescue RuntimeError
-      # TODO: logging user story, Syslog isn't available here
-      # Syslog.debug(e.message)
-      nil
-    end
-
     # Send a config command to the device.
     # In general, clients should use config_set() rather than calling
     # this function directly.
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
-    def config(commands)
-      Cisco::Logger.debug('CLI sent to device:')
-      if commands.is_a?(Array)
-        commands.each { |cli| Cisco::Logger.debug("#{cli}") }
-      else
-        Cisco::Logger.debug("#{commands}")
-      end
-      @client.config(commands)
+    def set(**kwargs)
+      @client.set(**kwargs)
     rescue Cisco::Client::RequestFailed => e
       raise Cisco::CliError.new(
         e.rejected_input,
@@ -287,9 +247,8 @@ module Cisco
     # this function directly.
     #
     # @raise [Cisco::CliError] if any command is rejected by the device.
-    def show(command, type=:ascii)
-      Cisco::Logger.debug("Show command sent to device: '#{command}'")
-      @client.show(command, type)
+    def get(**kwargs)
+      @client.get(**kwargs)
     rescue Cisco::Client::RequestFailed => e
       raise Cisco::CliError.new(
         e.rejected_input,
@@ -321,11 +280,13 @@ module Cisco
       else
         # We use this function to *find* the appropriate CommandReference
         if @client.platform == :nexus
-          entries = show('show inventory', :structured)
+          entries = get(command:     'show inventory',
+                        data_format: :nxapi_structured)
           return entries['TABLE_inv']['ROW_inv'][0]['productid']
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
-          output = show('show inventory', :ascii)
+          output = get(command:     'show inventory',
+                       data_format: :cli)
           return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[1]
         end
       end
@@ -375,7 +336,7 @@ module Cisco
     # @return [Float] combined user/kernel CPU utilization
     def system_cpu_utilization
       output = config_get('system', 'resources')
-      fail 'failed to retrieve cpu utilization' if output.nil?
+      return output if output.nil?
       output['cpu_state_user'].to_f + output['cpu_state_kernel'].to_f
     end
 
@@ -391,70 +352,4 @@ module Cisco
       config_get('show_version', 'system_image')
     end
   end
-
-  # Method for working with hierarchical show command output such as
-  # "show running-config". Searches the given multi-line string
-  # for all matches to the given regex_query. If parents is provided,
-  # the matches will be filtered to only those that are located "under"
-  # the given parent sequence (as determined by indentation).
-  #
-  # @param body [String] The body of text to search
-  # @param regex_query [Regex] The regular expression to match
-  # @param parents [*Regex] zero or more regular expressions defining
-  #                the parent configs to filter by.
-  # @return [[String], nil] array of matching (sub)strings, else nil.
-  #
-  # @example Find all OSPF router names in the running-config
-  #   ospf_names = find_ascii(running_cfg, /^router ospf (\d+)/)
-  #
-  # @example Find all address-family types under the given BGP router
-  #   bgp_afs = find_ascii(show_run_bgp, /^address-family (.*)/,
-  #                        /^router bgp #{ASN}/)
-  def find_ascii(body, regex_query, *parent_cfg)
-    return nil if body.nil? || regex_query.nil?
-
-    # get subconfig
-    parent_cfg.each { |p| body = find_subconfig(body, p) }
-    if body.nil? || body.empty?
-      return nil
-    else
-      # find matches and return as array of String if it only does one
-      # match in the regex. Otherwise return array of array
-      match = body.scan(regex_query)
-      return nil if match.empty?
-      match = match.flatten if match[0].is_a?(Array) && match[0].length == 1
-      return match
-    end
-  end
-  module_function :find_ascii
-
-  # Returns the subsection associated with the given
-  # line of config
-  # @param [String] the body of text to search
-  # @param [Regex] the regex key of the config for which
-  # to retrieve the subsection
-  # @return [String, nil] the subsection of body, de-indented
-  # appropriately, or nil if no such subsection exists.
-  def find_subconfig(body, regex_query)
-    return nil if body.nil? || regex_query.nil?
-
-    rows = body.split("\n")
-    match_row_index = rows.index { |row| regex_query =~ row }
-    return nil if match_row_index.nil?
-
-    cur = match_row_index + 1
-    subconfig = []
-
-    until (/\A\s+.*/ =~ rows[cur]).nil? || cur == rows.length
-      subconfig << rows[cur]
-      cur += 1
-    end
-    return nil if subconfig.empty?
-    # Strip an appropriate minimal amount of leading whitespace from
-    # all lines in the subconfig
-    min_leading = subconfig.map { |line| line[/\A */].size }.min
-    subconfig = subconfig.map { |line| line[min_leading..-1] }
-    subconfig.join("\n")
-  end
-  module_function :find_subconfig
 end

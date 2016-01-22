@@ -2,7 +2,7 @@
 #
 # November 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,11 @@ class Cisco::Client::NXAPI < Cisco::Client
   # unix domain socket. If you need to connect to a remote device,
   # you must provide the address/username/password parameters.
   def initialize(address=nil, username=nil, password=nil)
-    super
+    super(address:      address,
+          username:     username,
+          password:     password,
+          data_formats: [:nxapi_structured, :cli],
+          platform:     :nexus)
     # Default: connect to unix domain socket on localhost, if available
     if address.nil?
       unless File.socket?(NXAPI_UDS)
@@ -63,10 +67,9 @@ class Cisco::Client::NXAPI < Cisco::Client
     # also used as the default config by firefox.
     @http.read_timeout = 300
     @address = @http.address
-    @platform = :nexus
 
     # Make sure we can actually connect to the socket
-    show('show hostname')
+    get(command: 'show hostname')
   end
 
   def validate_args(address, username, password)
@@ -82,10 +85,6 @@ class Cisco::Client::NXAPI < Cisco::Client
     end
   end
 
-  def supports?(api)
-    (api == :cli)
-  end
-
   def reload
     # no-op for now
   end
@@ -93,7 +92,7 @@ class Cisco::Client::NXAPI < Cisco::Client
   # Clear the cache of CLI output results.
   #
   # If cache_auto is true (default) then this will be performed automatically
-  # whenever a config() or exec() is called, but providers may also call this
+  # whenever a set() is called, but providers may also call this
   # to explicitly force the cache to be cleared.
   def cache_flush
     @cache_hash = {
@@ -103,59 +102,56 @@ class Cisco::Client::NXAPI < Cisco::Client
     }
   end
 
-  # Configure the given command(s) on the device.
+  # Configure the given CLI command(s) on the device.
   #
-  # @raise [CliError] if any command is rejected by the device
+  # @raise [RequestNotSupported] if this client doesn't support CLI config
   #
-  # @param commands [String, Array<String>] either of:
-  #   1) The configuration sequence, as a newline-separated string
-  #   2) An array of command strings (one command per string, no newlines)
-  def config(commands)
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
+  # @param context [String, Array<String>] Zero or more configuration commands
+  #   used to enter the desired CLI sub-mode
+  # @param values [String, Array<String>] One or more commands
+  #   to enter within the CLI sub-mode.
+  def set(data_format: :cli,
+          context: nil,
+          values: nil)
+    # we don't currently support nxapi_structured for configuration
+    fail RequestNotSupported if data_format == :nxapi_structured
+    context = munge_to_array(context)
+    values = munge_to_array(values)
     super
-    if commands.is_a?(String)
-      commands = commands.split(/\n/)
-    elsif !commands.is_a?(Array)
-      fail TypeError
-    end
-    req('cli_conf', commands)
+    req('cli_conf', context + values)
   end
 
-  # Executes a command in exec mode on the device.
+  # Get the given state from the device.
   #
-  # If cache_auto? (on by default) is set then the CLI cache will be flushed.
-  #
-  # For "show" commands please use show() instead of exec().
-  #
-  # @param command [String] the exec command to execute
-  # @return [String, nil] the body of the output of the exec command
-  #   (if any)
-  def exec(command)
-    super
-    req('cli_show_ascii', command)
-  end
-
-  # Executes a "show" command on the device, returning either ASCII or
-  # structured output.
-  #
-  # Unlike config() and exec() this will not clear the CLI cache;
-  # multiple calls to the same "show" command may return cached data
+  # Unlike set() this will not clear the CLI cache;
+  # multiple calls with the same parameters may return cached data
   # rather than querying the device repeatedly.
   #
   # @raise [RequestNotSupported] if
   #   structured output is requested but the given command can't provide it.
   # @raise [CliError] if the command is rejected by the device
   #
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param command [String] the show command to execute
-  # @param type [:ascii, :structured] ASCII or structured output.
-  #             Default is :ascii
-  # @return [String] the output of the show command, if type == :ascii
-  # @return [Hash{String=>String}] key-value pairs, if type == :structured
-  def show(command, type=:ascii)
+  # @param context [String, Array<String>] Context to refine the results
+  # @param value [String] Specific key to look up
+  # @return [String, Hash]
+  def get(data_format: :cli,
+          command:     nil,
+          context:     nil,
+          value:       nil)
+    context = munge_to_array(context)
     super
-    if type == :ascii
-      return req('cli_show_ascii', command)
-    elsif type == :structured
-      return req('cli_show', command)
+    if data_format == :cli
+      output = req('cli_show_ascii', command)
+      return self.class.filter_cli(cli_output: output,
+                                   context:    context,
+                                   value:      value)
+    elsif data_format == :nxapi_structured
+      output = req('cli_show', command)
+      return self.class.filter_data(data: output,
+                                    keys: context + munge_to_array(value))
     else
       fail TypeError
     end

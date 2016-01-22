@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -377,15 +377,15 @@ class TestInterface < CiscoTestCase
       assert_equal(ref.default_value, interface.default_ipv4_redirects,
                    "ipv4 redirects default incorrect for interface #{k}")
 
-      if ref.config_set?
+      if ref.setter?
         cmd = show_cmd(interface.name)
         interface.ipv4_redirects = true
         assert(interface.ipv4_redirects, "Couldn't set redirects to true")
-        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[1])
+        refute_show_match(command: cmd, pattern: /^\s+no #{ipv4} redirects/)
 
         interface.ipv4_redirects = false
         refute(interface.ipv4_redirects, "Couldn't set redirects to false")
-        refute_show_match(command: cmd, pattern: ref.test_config_get_regex[0])
+        refute_show_match(command: cmd, pattern: /^#{ipv4} redirects/)
       else
         # Getter should return same value as default if setter isn't supported
         assert_equal(interface.ipv4_redirects, interface.default_ipv4_redirects,
@@ -496,6 +496,8 @@ class TestInterface < CiscoTestCase
     assert_equal(1520, interface.mtu)
     interface.mtu = 1580
     assert_equal(1580, interface.mtu)
+    interface.mtu = interface.default_mtu
+    assert_equal(interface.default_mtu, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -508,6 +510,8 @@ class TestInterface < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.mtu = 1550
     assert_equal(1550, interface.mtu)
+    interface.mtu = interface.default_mtu
+    assert_equal(interface.default_mtu, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -648,7 +652,7 @@ class TestInterface < CiscoTestCase
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
 
-    unless cmd_ref.config_set?
+    unless cmd_ref.setter?
       # check the set for unsupported platforms
       assert_raises(RuntimeError) do
         interface.negotiate_auto = true
@@ -660,7 +664,11 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
-    pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
+    if default
+      pattern = /^\s+negotiate auto/
+    else
+      pattern = /^\s+no negotiate auto/
+    end
     assert_show_match(pattern: pattern)
 
     non_default = !default
@@ -682,7 +690,11 @@ class TestInterface < CiscoTestCase
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
 
-    pattern = cmd_ref.test_config_get_regex[non_default ? 1 : 0]
+    if non_default
+      pattern = /^\s+negotiate auto/
+    else
+      pattern = /^\s+no negotiate auto/
+    end
     assert_show_match(pattern: pattern)
 
     # Clean up after ourselves
@@ -690,7 +702,11 @@ class TestInterface < CiscoTestCase
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{default}")
 
-    pattern = cmd_ref.test_config_get_regex[default ? 1 : 0]
+    if default
+      pattern = /^\s+negotiate auto/
+    else
+      pattern = /^\s+no negotiate auto/
+    end
     assert_show_match(pattern: pattern)
   end
 
@@ -1073,26 +1089,30 @@ class TestInterface < CiscoTestCase
     # set with value false
     interface.ipv4_redirects = false
     if interface.default_ipv4_redirects == true
-      assert_show_match(pattern: ref.test_config_get_regex[1],
+      assert_show_match(pattern: /^\s+no #{ipv4} redirects/,
                         msg:     'Error: ip redirects disable missing in CLI')
     end
-    refute_show_match(pattern: ref.test_config_get_regex[0])
+    refute_show_match(pattern: /^\s+#{ipv4} redirects/)
     refute(interface.ipv4_redirects,
            "Error: ip redirects get value 'false' mismatch")
 
     # set with value true
     interface.ipv4_redirects = true
     if interface.default_ipv4_redirects == false
-      assert_show_match(pattern: ref.test_config_get_regex[0])
+      assert_show_match(pattern: /^\s+#{ipv4} redirects/)
     end
-    refute_show_match(pattern: ref.test_config_get_regex[1],
+    refute_show_match(pattern: /^\s+no #{ipv4} redirects/,
                       msg:     'Error: ip redirects enable missing in CLI')
     assert(interface.ipv4_redirects,
            "Error: ip redirects get value 'true' mismatch")
 
     # get default and set
     interface.ipv4_redirects = interface.default_ipv4_redirects
-    pat = ref.test_config_get_regex[interface.default_ipv4_redirects ? 1 : 0]
+    if interface.default_ipv4_redirects
+      pat = /^\s+no #{ipv4} redirects/
+    else
+      pat = /^\s+#{ipv4} redirects/
+    end
     refute_show_match(pattern: pat,
                       msg:     'Error: default ip redirects set failed')
     assert_equal(interface.default_ipv4_redirects, interface.ipv4_redirects,

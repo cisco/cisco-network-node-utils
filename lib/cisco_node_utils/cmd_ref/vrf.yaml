@@ -1,128 +1,135 @@
 # vrf.yaml
 ---
 _template:
-  cli_nexus:
-    config_get: "show running all | section '^vrf context'"
-    config_get_token: '/^vrf context <vrf>$/'
-    config_get_token_append:
+  nexus:
+    get_command: "show running all | section '^vrf context'"
+    get_context:
+      - '/^vrf context <vrf>$/'
       - '/^address-family <afi> <safi>$/'
-    config_set: 'vrf context <vrf>'
-    config_set_append:
+    set_context:
+      - 'vrf context <vrf>'
       - 'address-family <afi> <safi>'
-  cli_ios_xr:
-    config_get: "show run vrf"
-    config_get_token: '/^vrf <vrf>$/i'
-    config_get_token_append:
+  ios_xr:
+    get_command: "show run vrf"
+    get_context:
+      - '/^vrf <vrf>$/i'
       - '/^address-family <afi> <safi>$/'
-    config_set: 'vrf <vrf>'
-    config_set_append:
+    set_context:
+      - 'vrf <vrf>'
       - 'address-family <afi> <safi>'
 
 address_family:
-  cli_nexus:
-    config_set: ['vrf context <vrf>', '<state> address-family <afi> <safi>']
-  cli_ios_xr:
-    config_set: ['vrf <vrf>', '<state> address-family <afi> <safi>']
+  nexus:
+    set_context: ['vrf context <vrf>']
+    set_value: '<state> address-family <afi> <safi>'
+  ios_xr:
+    set_context: ['vrf <vrf>']
+    set_value: '<state> address-family <afi> <safi>'
 
 all_vrf_afs:
   multiple: true
-  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+  get_value: '/^address-family (\S+) (\S+)$/'
 
 all_vrfs:
   multiple: true
-  cli_nexus:
-    config_get_token: '/^vrf context (.*)/'
-  cli_ios_xr:
-    config_get_token: '/^vrf (.*)/'
+  nexus:
+    get_value: '/^vrf context (.*)/'
+  ios_xr:
+    get_value: '/^vrf (.*)/'
 
 create:
-  cli_nexus:
-    config_set:  'vrf context <vrf>'
-  cli_ios_xr:
-    config_set:  'vrf <vrf>'
+  nexus:
+    set_value:  'vrf context <vrf>'
+  ios_xr:
+    set_value:  'vrf <vrf>'
 
 description:
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: '<state> description <desc>'
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <desc>'
   kind: string
   default_value: ''
 
 destroy:
-  cli_nexus:
-    config_set: 'no vrf context <vrf>'
-  cli_ios_xr:
-    config_set: 'no vrf <vrf>'
+  nexus:
+    set_value: 'no vrf context <vrf>'
+  ios_xr:
+    set_value: 'no vrf <vrf>'
 
 route_distinguisher:
   # Only configurable under BGP in IOS XR, not under VRF context
-  _exclude: [cli_ios_xr]
-  config_get_token_append: '/^rd (\S+)$/'
-  config_set_append: '<state> rd <rd>'
+  _exclude: [ios_xr]
+  get_value: '/^rd (\S+)$/'
+  set_value: '<state> rd <rd>'
   default_value: ''
 
 route_target_both_auto:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^route-target both auto$/'
-  config_set_append: '<state> route-target both auto'
+  get_value: '/^route-target both auto$/'
+  set_value: '<state> route-target both auto'
   default_value: false
 
 route_target_both_auto_evpn:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^route-target both auto evpn$/'
-  config_set_append: '<state> route-target both auto evpn'
+  get_value: '/^route-target both auto evpn$/'
+  set_value: '<state> route-target both auto evpn'
   default_value: false
 
 route_target_export:
   multiple: true
   default_value: []
-  cli_nexus:
-    config_get_token_append: '/^route-target export (\S+)$/'
-    config_set_append: '<state> route-target export <community>'
-  cli_ios_xr:
-    config_get_token_append:
+  nexus:
+    get_value: '/^route-target export (\S+)$/'
+    set_value: '<state> route-target export <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
       - '/^export route-target$/'
-      - '/^(\S+)$/'
-    config_set_append: '<state> export route-target <community>'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> export route-target <community>'
 
 route_target_export_evpn:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   multiple: true
-  config_get_token_append: '/^route-target export (\S+) evpn$/'
-  config_set_append: '<state> route-target export <community> evpn'
+  get_value: '/^route-target export (\S+) evpn$/'
+  set_value: '<state> route-target export <community> evpn'
   default_value: []
 
 route_target_import:
   multiple: true
   default_value: []
-  cli_nexus:
-    config_get_token_append: '/^route-target import (\S+)$/'
-    config_set_append: '<state> route-target import <community>'
-  cli_ios_xr:
-    config_get_token_append:
+  nexus:
+    get_value: '/^route-target import (\S+)$/'
+    set_value: '<state> route-target import <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
       - '/^import route-target$/'
-      - '/^(\S+)$/'
-    config_set_append: '<state> import route-target <community>'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> import route-target <community>'
 
 route_target_import_evpn:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   multiple: true
-  config_get_token_append: '/^route-target import (\S+) evpn$/'
-  config_set_append: '<state> route-target import <community> evpn'
+  get_value: '/^route-target import (\S+) evpn$/'
+  set_value: '<state> route-target import <community> evpn'
   default_value: []
 
 shutdown:
-  _exclude: [cli_ios_xr]
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^shutdown$/'
-  config_set_append: '<state> shutdown'
+
+  get_value: '/^shutdown$/'
+  set_value: '<state> shutdown'
   default_value: false
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
   # MT-lite only
-  /N9/:
+  '/N9/':
     kind: int
-    config_get_token_append: '/^vni (\d+)$/'
-    config_set_append: '<state> vni <id>'
+    get_value: '/^vni (\d+)$/'
+    set_value: '<state> vni <id>'
     default_value: false

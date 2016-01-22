@@ -3,63 +3,68 @@
 _exclude: [/N(5|6)/]
 all_vnis:
   multiple:
-  /N7/:
+  '/N7/':
     # MT-full only
-    config_get: 'show vni'
-    config_get_token: '/^(\d+)\s/'
-  /N(3|9)/:
+    get_command: 'show vni'
+    get_value: '/^(\d+)\s/'
+  '/N(3|9)/':
     # MT-lite only
-    config_get: 'show running vlan'
-    config_get_token: '/vn-segment (\d+)/'
+    get_command: 'show running vlan'
+    get_value: '/vn-segment (\d+)/'
 
 bridge_domain:
   # MT-full only
-  config_get: 'show vni'
-  config_get_token: [ '/^%d\s+\S+\s+(\d+)/' ]
-  config_set: ['bridge-domain <domain>', '<state> member vni <vni>', 'end']
+  get_command: 'show vni'
+  get_value: '/^%d\s+\S+\s+(\d+)/'
+  set_context: ['bridge-domain <domain>']
+  set_value: '<state> member vni <vni>'
   default_value: ~
 
 bridge_domain_activate:
-  config_set: ['<state> system bridge-domain add <domain>', 'end']
+  set_value: '<state> system bridge-domain add <domain>'
 
 create:
-  config_set: ['vni <vni>' , 'end']
+  set_value: 'vni <vni>'
 
 destroy:
-  /N7/:
+  '/N7/':
     # MT-full only
-    config_set: 'no vni <vni>'
-  /N(3|9)/:
+    set_value: 'no vni <vni>'
+  '/N(3|9)/':
     # MT-lite only
-    config_set: ['vlan <vlan>', 'no vn-segment <vni> ; end']
+    set_context: ['vlan <vlan>']
+    set_value: 'no vn-segment <vni>'
 
 encap_dot1q:
-  config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
+  set_context:
+    - "encapsulation profile vni %s"
+  set_value: "%s dot1q %s vni %s"
   default_value: ~
 
 feature:
-  config_get: 'show running | i ^feature'
-  /N7/:
+  get_command: 'show running | i ^feature'
+  '/N7/':
     # MT-Full only
-    config_get_token: '/^feature vni$/'
-    config_set: 'feature vni'
-  /N(3|9)/:
+    get_value: '/^feature vni$/'
+    set_value: 'feature vni'
+  '/N(3|9)/':
     # MT-lite only
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
 
 mapped_vlan:
   # MT-lite only
-  /N(3|9)/:
-    config_get: 'show running vlan'
-    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
+  '/N(3|9)/':
+    get_command: 'show running vlan'
+    context: ['vlan <vlan>']
+    get_value: '/^vn-segment (\d+)$/'
+    set_value: '<state> vn-segment <vni>'
     default_value: ''
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean
-  /N7/:
+  '/N7/':
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -68,7 +73,7 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  /N(3|9)/:
+  '/N(3|9)/':
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -76,9 +81,10 @@ mt_lite_support:
 
 shutdown:
   # MT-Full only
-  /N7/:
+  '/N7/':
     kind: boolean
-    config_get: 'show vni'
-    config_get_token: '/^<vni> +Down/'
-    config_set: ['vni <vni>', '<state> shutdown', 'end']
+    get_command: 'show vni'
+    get_value: '/^<vni> +Down/'
+    set_context: ['vni <vni>']
+    set_value: '<state> shutdown'
     default_value: false

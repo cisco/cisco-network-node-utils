@@ -2,7 +2,7 @@
 #
 # October 2015, Glenn F. Matthews
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,15 +38,18 @@ class Cisco::Client::GRPC < Cisco::Client
       username ||= ENV['NODE'].split(' ')[1]
       password ||= ENV['NODE'].split(' ')[2]
     end
-    super(address, username, password)
+    super(address:      address,
+          username:     username,
+          password:     password,
+          data_formats: [:cli],
+          platform:     :ios_xr)
     @config = GRPCConfigOper::Stub.new(address, :this_channel_is_insecure)
     @exec = GRPCExec::Stub.new(address, :this_channel_is_insecure)
-    @platform = :ios_xr
 
     # Make sure we can actually connect
     @timeout = 5
     begin
-      show('show clock')
+      get(command: 'show clock')
     rescue ::GRPC::BadStatus => e
       if e.code == ::GRPC::Core::StatusCodes::DEADLINE_EXCEEDED
         raise Cisco::Client::ConnectionRefused, e.details
@@ -67,10 +70,6 @@ class Cisco::Client::GRPC < Cisco::Client
     fail TypeError, 'password must be specified' if password.nil?
   end
 
-  def supports?(api)
-    (api == :cli)
-  end
-
   def cache_flush
     @cache_hash = {
       'cli_config'           => {},
@@ -79,27 +78,54 @@ class Cisco::Client::GRPC < Cisco::Client
     }
   end
 
-  # Configure the given command(s) on the device.
-  def config(commands)
+  # Configure the given CLI command(s) on the device.
+  #
+  # @raise [RequestNotSupported] if this client doesn't support CLI config
+  #
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
+  # @param context [Array<String>] Zero or more configuration commands used
+  #                to enter the desired CLI sub-mode
+  # @param values [Array<String>] One or more commands to enter within the
+  #   CLI sub-mode.
+  def set(data_format: :cli,
+          context:     nil,
+          values:      nil)
+    context = munge_to_array(context)
+    values = munge_to_array(values)
     super
-    commands = commands.join("\n") if commands.is_a?(Array)
-    args = CliConfigArgs.new(cli: commands)
+    # IOS XR lets us concatenate submode commands together.
+    # This makes it possible to guarantee we are in the correct context:
+    #   context: ['foo', 'bar'], values: ['baz', 'bat']
+    #   ---> values: ['foo bar baz', 'foo bar bat']
+    # However, there's a special case for 'no' commands:
+    #   context: ['foo', 'bar'], values: ['no baz']
+    #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
+    context = context.join(' ')
+    unless context.empty?
+      values.map! do |cmd|
+        match = cmd[/^\s*no\s+(.*)/, 1]
+        if match
+          cmd = "no #{context} #{match}"
+        else
+          cmd = "#{context} #{cmd}"
+        end
+        cmd
+      end
+    end
+    # CliConfigArgs wants a newline-separated string of commands
+    args = CliConfigArgs.new(cli: values.join("\n"))
     req(@config, 'cli_config', args)
   end
 
-  def exec(command)
+  def get(data_format: :cli,
+          command:     nil,
+          context:     nil,
+          value:       nil)
     super
+    fail ArgumentError if command.nil?
     args = ShowCmdArgs.new(cli: command)
-    req(@exec, 'show_cmd_text_output', args)
-  end
-
-  def show(command, type=:ascii)
-    super
-    args = ShowCmdArgs.new(cli: command)
-    fail TypeError unless type == :ascii || type == :structured
-    req(@exec,
-        type == :ascii ? 'show_cmd_text_output' : 'show_cmd_json_output',
-        args)
+    output = req(@exec, 'show_cmd_text_output', args)
+    self.class.filter_cli(cli_output: output, context: context, value: value)
   end
 
   def req(stub, type, args)

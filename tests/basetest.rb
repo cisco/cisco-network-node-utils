@@ -3,7 +3,7 @@
 # Basic unit test case class.
 # December 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -137,6 +137,7 @@ class TestCase < Minitest::Test
   def assert_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 
@@ -152,6 +153,7 @@ class TestCase < Minitest::Test
   def refute_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 

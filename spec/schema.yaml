@@ -1,0 +1,92 @@
+# Kwalify schema for cmd_ref YAML files
+
+type: map
+mapping:
+  # List of cases to specifically exclude
+  _exclude: &exclude
+    type: seq
+    sequence:
+      - type: str
+        enum: &filters # Things we can filter by
+          # Platform classes
+          - 'ios_xr'
+          - 'nexus'
+          # Product IDs
+          - '/C3064/'
+          - '/N3/'
+          - '/N3K/'
+          - '/N5/'
+          - '/N5K/'
+          - '/N6/'
+          - '/N6K/'
+          - '/N7/'
+          - '/N7K/'
+          - '/N9/'
+          - '/N9K/'
+          # TODO - remove these
+          - '/N(3|5|6)/'
+          - '/N(3|5|6|9)/'
+          - '/N(3|9)/'
+          - '/N(5|6)/'
+          - '/N(5|6|7)/'
+          - '/N(6|7)/'
+        
+  =: &base # default rule - apply to all properties
+    type: map
+    mapping:
+      _exclude: *exclude
+      # Platform and product filters
+      ios_xr: *base
+      nexus: *base
+      '/C3064/': *base
+      '/N3/': *base
+      '/N3K/': *base
+      '/N5/': *base
+      '/N5K/': *base
+      '/N6/': *base
+      '/N6K/': *base
+      '/N7/': *base
+      '/N9/': *base
+      '/N9K/': *base
+      # TODO - remove these
+      '/(N3K|N9K)/': *base
+      '/(N7|C3064)/': *base
+      '/N(3|9)/': *base
+      '/N(5|6)/': *base
+      '/N(5|6|7)/': *base
+      '/N(7|9)/': *base
+      # 'else' case if not matching any filter above
+      else: *base
+      # Generally applicable attributes
+      data_format: &data_format
+        type: str
+        enum: [cli, nxapi_structured]
+      context: &context
+        type: seq
+        sequence:
+          - type: str
+      value:
+        type: str
+      default_only:
+        type: any
+      # Getter-specific attributes
+      auto_default:
+        type: bool
+      default_value:
+        type: any
+      get_command:
+        type: str
+      get_data_format: *data_format
+      get_context: *context
+      get_value:
+        type: str
+      kind:
+        type: str
+        enum: [boolean, int, string, symbol]
+      multiple:
+        type: bool
+      # Setter-specific attributes
+      set_data_format: *data_format
+      set_context: *context
+      set_value:
+        type: str

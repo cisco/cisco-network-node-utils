@@ -1,16 +1,16 @@
 # portchannel_global
 ---
 _template:
-  config_get: "show running all"
+  get_command: "show running all"
 
 asymmetric:
   _exclude: [/N6/, /N5/, /N3/, /N9/]
   default_value: false
 
 bundle_hash:
-  /N(5|6|7)/:
+  '/N(5|6|7)/':
     default_value: 'ip'
-  /N(3|9)/:
+  '/N(3|9)/':
     default_value: 'ip-l4port'
 
 bundle_select:
@@ -22,8 +22,8 @@ concatenation:
 
 hash_distribution:
   _exclude: [/N6/, /N5/, /N3/, /N9/]
-  config_get_token: ['/^port.channel hash.distribution (.*)$/']
-  config_set: ["terminal dont-ask", "port-channel hash-distribution %s", "end"]
+  get_value: '/^port.channel hash.distribution (.*)$/'
+  set_value: "port-channel hash-distribution %s"
   default_value: 'adaptive'
 
 hash_poly:
@@ -32,31 +32,30 @@ hash_poly:
 
 load_balance_type:
   kind: string
-  /N(5|6)/:
+  '/N(5|6)/':
     default_only: "ethernet"
-  /N7/:
+  '/N7/':
     default_only: "asymmetric"
-  /N(3|9)/:
+  '/N(3|9)/':
     default_only: "symmetry"
 
 load_defer:
   _exclude: [/N6/, /N5/, /N3/, /N9/]
   kind: int
-  config_get_token: ['/^port.channel load.defer (\d+)$/']
-  config_set: ["port-channel load-defer %s"]
+  get_value: '/^port.channel load.defer (\d+)$/'
+  set_value: "port-channel load-defer %s"
   default_value: 120
 
 port_channel_load_balance:
   multiple:
-  config_get_token: '/^port-channel load-balance (.*)$/'
-  config_set: "port-channel load-balance %s %s %s %s %s %s"
+  get_value: '/^port-channel load-balance (.*)$/'
+  set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
   _exclude: [/N6/, /N5/, /N7/]
   kind: boolean
-  config_get: "show running-config all"
-  config_get_token: '/^port-channel load-balance resilient$/'
-  config_set: "%s port-channel load-balance resilient"
+  get_value: '/^port-channel load-balance resilient$/'
+  set_value: "%s port-channel load-balance resilient"
   default_value: false
 
 rotate:

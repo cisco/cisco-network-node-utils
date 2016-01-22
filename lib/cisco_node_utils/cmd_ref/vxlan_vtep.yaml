@@ -3,24 +3,25 @@
 _exclude: [/N(3|5|6)/]
 
 _template:
-  config_get: "show running-config interface all | section 'interface nve'"
-  config_get_token: '/^interface <name>$/i'
-  config_set: 'interface <name>'
+  get_command: "show running-config interface all | section 'interface nve'"
+  context:
+    - 'interface <name>'
 
 all_interfaces:
   multiple:
-  config_get_token: '/^interface (.*)$/'
+  get_context: ~
+  get_value: '/^interface (.*)$/'
 
 host_reachability:
-  /N(7|9)/:
-    config_get_token_append: '/^host-reachability protocol (\S+)/'
-    config_set_append: '<state> host-reachability protocol <proto>'
+  '/N(7|9)/':
+    get_value: '/^host-reachability protocol (\S+)/'
+    set_value: '<state> host-reachability protocol <proto>'
     default_value: 'flood'
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean
-  /N(7)/:
+  '/N7/':
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -29,7 +30,7 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  /N9/:
+  '/N9/':
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -37,24 +38,24 @@ mt_lite_support:
 
 shutdown:
   kind: boolean
-  config_get_token_append: '/^no shutdown$/'
-  config_set_append: '<state> shutdown'
+  get_value: '/^no shutdown$/'
+  set_value: '<state> shutdown'
   default_value: true
 
 source_intf:
-  config_get_token_append: '/^source\-interface (\S+)$/'
-  config_set_append: '<state> source-interface <lpbk_intf>'
+  get_value: '/^source\-interface (\S+)$/'
+  set_value: '<state> source-interface <lpbk_intf>'
   default_value: ''
 
 vni:
-  config_set_append: '<state> member vni <vni> <assoc_vrf>'
+  set_value: '<state> member vni <vni> <assoc_vrf>'
 
 vni_with_vrf:
   kind: boolean
-  config_get_token_append: '/^member vni <vni> associate-vrf$/'
+  get_value: '/^member vni <vni> associate-vrf$/'
   default_value: false
 
 vni_without_vrf:
   kind: boolean
-  config_get_token_append: '/^member vni <vni>$/'
+  get_value: '/^member vni <vni>$/'
   default_value: false

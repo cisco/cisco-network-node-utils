@@ -5,31 +5,33 @@ _exclude: [/N3/, /N9K/]
 
 all_topos:
   multiple:
-  config_get: "show fabricpath topology"
-  config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
+  get_command: "show fabricpath topology"
+  get_value: '/^\S+[\s]+(\d+)[\s]+/'
 
 create:
-  config_set: ["fabricpath topology <topo>" , "end"]
+  set_value: "fabricpath topology <topo>"
 
 description:
   kind: string
-  config_get: "show fabricpath topology"
-  config_get_token: '/^(\S+)[\s]+%d+[\s]+\S+/'
-  config_set: ["fabricpath topology <topo>" , "<state> description <name>", "end"]
+  get_command: "show fabricpath topology"
+  get_value: '/^(\S+)[\s]+%d+[\s]+\S+/'
+  set_context: ["fabricpath topology <topo>"]
+  set_value: "<state> description <name>"
   default_value: ""
 
 destroy:
-  config_set: "no fabricpath topology <topo>"
+  set_value: "no fabricpath topology <topo>"
 
 member_vlans:
   kind: string
-  config_get: "show fabricpath topology vlan"
-  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
-  config_set: ["fabricpath topology <topo>" , "<state> member vlan <vlan_range>", "end"]
+  get_command: "show fabricpath topology vlan"
+  get_value: '/^\S+[\s]+%d+[\s]+(\S+)/'
+  set_context: ["fabricpath topology <topo>"]
+  set_value: "<state> member vlan <vlan_range>"
   default_value: "--"
 
 state:
   kind: string
-  config_get: "show fabricpath topology"
-  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
+  get_command: "show fabricpath topology"
+  get_value: '/^\S+[\s]+%d+[\s]+(\S+)/'
   default_value: "up"

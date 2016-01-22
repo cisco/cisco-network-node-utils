@@ -2,7 +2,7 @@
 #
 # October 2015, Glenn F. Matthews
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 # limitations under the License.
 
 require_relative 'client_errors'
+require_relative 'utils'
+require_relative '../constants'
 require_relative '../logger'
 
 include Cisco::Logger
 
 # Base class for clients of various RPC formats
 class Cisco::Client
-  APIS = [:cli, :yang]
   @@clients = [] # rubocop:disable Style/ClassVars
 
   def self.clients
@@ -35,9 +36,13 @@ class Cisco::Client
     @@clients << client
   end
 
-  attr_reader :platform
+  attr_reader :data_formats, :platform
 
-  def initialize(address=nil, username=nil, password=nil)
+  def initialize(address:      nil,
+                 username:     nil,
+                 password:     nil,
+                 data_formats: [],
+                 platform:     nil)
     if self.class == Cisco::Client
       fail NotImplementedError, 'Cisco::Client is an abstract class. ' \
         "Instantiate one of #{@@clients} or use Cisco::Client.create() instead"
@@ -46,9 +51,10 @@ class Cisco::Client
     @address = address
     @username = username
     @password = password
+    self.data_formats = data_formats
+    self.platform = platform
     @cache_enable = true
     @cache_auto = true
-    @platform = nil # to be overridden by subclasses
     cache_flush
   end
 
@@ -67,8 +73,8 @@ class Cisco::Client
     end
   end
 
-  def supports?(api) # rubocop:disable Lint/UnusedMethodArgument
-    false # to be overridden by subclasses
+  def supports?(data_format)
+    data_formats.include?(data_format)
   end
 
   # Try to create an instance of an appropriate subclass
@@ -139,55 +145,82 @@ class Cisco::Client
   # Clear the cache of CLI output results.
   #
   # If cache_auto is true (default) then this will be performed automatically
-  # whenever a config() or exec() is called, but providers may also call this
+  # whenever a set() is called, but providers may also call this
   # to explicitly force the cache to be cleared.
   def cache_flush
     # to be implemented by subclasses
   end
 
-  # Configure the given command(s) on the device.
+  # Configure the given state on the device.
   #
-  # @raise [RequestFailed] if the configuration fails
+  # @raise [RequestNotSupported] if this client doesn't support the given
+  #   data_format
   #
-  # @param commands [String, Array<String>] either of:
-  #   1) The configuration sequence, as a newline-separated string
-  #   2) An array of command strings (one command per string, no newlines)
-  def config(commands) # rubocop:disable Lint/UnusedMethodArgument
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
+  # @param context [String, Array<String>] Context for the configuration
+  # @param values [String, Array<String>] Actual configuration to set
+  def set(data_format: :cli,
+          context:     nil,
+          values:      nil)
+    # subclasses will generally want to call Client.munge_to_array()
+    # on context and/or values before calling super()
+    fail RequestNotSupported unless self.supports?(data_format)
     cache_flush if cache_auto?
+    Cisco::Logger.debug("Set state using data format '#{data_format}'")
+    Cisco::Logger.debug("  with context:\n    #{context.join("\n    ")}") \
+      unless context.nil? || context.empty?
+    Cisco::Logger.debug("  to value(s):\n    #{values.join("\n    ")}") \
+      unless values.nil? || values.empty?
     # to be implemented by subclasses
   end
 
-  # Executes a command in exec mode on the device.
+  # Get the given state from the device.
   #
-  # If cache_auto? (on by default) is set then the CLI cache will be flushed.
-  #
-  # For "show" commands please use show() instead of exec().
-  #
-  # @param command [String] the exec command to execute
-  # @return [String, nil] the body of the output of the exec command
-  #   (if any)
-  def exec(command) # rubocop:disable Lint/UnusedMethodArgument
-    cache_flush if cache_auto?
-    # to be implemented by subclasses
-  end
-
-  # Executes a "show" command on the device, returning either ASCII or
-  # structured output.
-  #
-  # Unlike config() and exec() this will not clear the CLI cache;
-  # multiple calls to the same "show" command may return cached data
+  # Unlike set() this will not clear the CLI cache;
+  # multiple calls with the same parameters may return cached data
   # rather than querying the device repeatedly.
   #
-  # @raise [RequestNotSupported] if
-  #   structured output is requested but the given command can't provide it.
+  # @raise [RequestNotSupported] if the client doesn't support the data_format
   # @raise [RequestFailed] if the command is rejected by the device
   #
-  # @param command [String] the show command to execute
-  # @param type [:ascii, :structured] ASCII or structured output.
-  #             Default is :ascii
-  # @return [String] the output of the show command, if type == :ascii
-  # @return [Hash{String=>String}] key-value pairs, if type == :structured
-  def show(command, type=:ascii)
+  # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
+  # @param command [String] the get command to execute
+  # @param context [String, Array<String>] Context to refine/filter the results
+  # @param value [String, Regexp] Specific key or regexp to look up
+  # @return [String, Hash, nil] The state found, or nil if not found.
+  def get(data_format: :cli,
+          command:     nil,
+          context:     nil,
+          value:       nil)
+    # subclasses will generally want to call Client.munge_to_array()
+    # on context and/or value before calling super()
+    fail RequestNotSupported unless self.supports?(data_format)
+    Cisco::Logger.debug("Get state using data format '#{data_format}'")
+    Cisco::Logger.debug("  executing command:\n    #{command}") \
+      unless command.nil? || command.empty?
+    Cisco::Logger.debug("  with context:\n    #{context.join("\n    ")}") \
+      unless context.nil? || context.empty?
+    Cisco::Logger.debug("  to get value:     #{value}") \
+      unless value.nil?
     # to be implemented by subclasses
+  end
+
+  private
+
+  # Set the list of data formats supported by this client.
+  # If the client supports multiple formats, and a given feature or property
+  # can be managed by multiple formats, the list order indicates preference.
+  def data_formats=(data_formats)
+    data_formats = [data_formats] unless data_formats.is_a?(Array)
+    unknown = data_formats - Cisco::DATA_FORMATS
+    fail ArgumentError, "unknown data formats: #{unknown}" unless unknown.empty?
+    @data_formats = data_formats
+  end
+
+  # Set the platform of the node managed by this client.
+  def platform=(platform)
+    fail ArgumentError, "unknown platform #{platform}" \
+      unless Cisco::PLATFORMS.include?(platform)
+    @platform = platform
   end
 end
