@@ -18,7 +18,7 @@ cpu:
 description:
   config_get_token: "chassis_id"
   cli_nexus:
-    /N7/:
+    N7k:
       test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       # Hardware
@@ -53,7 +53,7 @@ last_reset_time:
 
 system_image:
   cli_nexus:
-    /N7/:
+    N7k:
       config_get_token: "isan_file_name"
       test_config_get_regex: '/.*system image file is:    (.*)$.*/'
     else:

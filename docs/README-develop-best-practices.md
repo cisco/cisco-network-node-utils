@@ -133,13 +133,13 @@ message_digest_alg_type:
 
 **NOTE1: Use strings rather then symbols when applicable**.
 
-If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9K is `md5` then you might do something like this:
+If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9k is `md5` then you might do something like this:
 
 ```yaml
 message_digest_alg_type:
   config_get: 'show running interface all'
   config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
-  /N9K/:
+  N9k:
     default_value: 'sha2'
   else:
     default_value: 'md5'

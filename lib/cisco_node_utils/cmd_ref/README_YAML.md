@@ -207,15 +207,12 @@ vrf:
 
 ### Product variants
 
-Any of the attribute properties can be subdivided by platform product ID string
-using a regexp against the product ID as a key. When one or more regexp keys
-are defined thus, you can also use the special key `else` to provide values
-for all products that do not match any of the given regexps:
+Various product categories can also be used as keys to subdivide attributes as needed. Supported categories currently include the various Nexus switch product lines (`N3k`, `N5k`, `N6k`. `N7k`, `N9k`). When using one or more product keys in this fashion, you can also use the special key `else` to handle all other products not specifically called out:
 
 ```yaml
 # show_version.yaml
 system_image:
-  /N9/:
+  N9k:
     config_get_token: "kick_file_name"
     test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
   else:
@@ -230,7 +227,7 @@ Related to product variants, an `_exclude` entry can be used to mark an entire f
 ```yaml
 # fabricpath.yaml
 ---
-_exclude: [/N3/, /N9/]
+_exclude: [N3k, N9k]
 
 _template:
 ...
@@ -241,7 +238,7 @@ Individual feature attributes can also be excluded in this way:
 ```yaml
 attribute:
   _exclude:
-    - /N7/
+    - N7k
   default_value: true
   config_get: 'show attribute'
   config_set: 'attribute'
@@ -280,7 +277,7 @@ Using platform variants and product variants together:
 description:
   config_get_token: "chassis_id"
   cli_nexus:
-    /N7/:
+    N7k:
       test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
     else:
       test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
@@ -580,7 +577,7 @@ Should only be referenced by test scripts, never by a feature provider itself.
 ```yaml
 # vtp.yaml
 version:
-  /N7/:
+  N7k:
     test_config_result:
       3: 3
   else:

@@ -30,7 +30,7 @@ version:
   config_get_token: '/VTP\s+version\s+running\s+:\s+(\d+)/'
   config_set: "vtp version %s"
   default_value: 1
-  /N7/:
+  N7k:
     test_config_result:
       3: 3
   else:
