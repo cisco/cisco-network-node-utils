@@ -16,12 +16,15 @@ Changelog
 * Feature
   * feature (@robert-w-gries)
 * Interface
+  * interface_channel_group (@chrisvanheuveln)
+  * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
 * PIM
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
 * Port Channel
+  * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
 * SNMP
@@ -53,7 +56,6 @@ Changelog
   * `suppress_inactive`
   * `table_map`
 * Extend interface with attributes:
-  * `channel_group`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`

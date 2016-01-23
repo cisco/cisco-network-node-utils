@@ -1,0 +1,28 @@
+# interface_channel_group
+---
+_template:
+  config_get: "show running interface all"
+  config_get_token: '/^interface <name>$/i'
+  config_set: 'interface <name>'
+
+all_interfaces:
+  multiple:
+  config_get_token: '/^interface (Ethernet.*)/i'
+
+channel_group:
+  kind: int
+  config_get_token_append: '/^channel-group (\d+)$/'
+  config_set_append: '<state> channel-group <group> <force>'
+  default_value: false
+
+description:
+  kind: string
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: '<state> description <desc>'
+  default_value: ''
+
+shutdown:
+  kind: boolean
+  config_get_token_append: '/^(?:no )?shutdown$/'
+  config_set_append: '<state> shutdown'
+  default_value: true
