@@ -47,6 +47,44 @@ module Cisco
       config_set('pim', 'feature')
     end
 
+    def self.pims
+      afis = %w(ipv4) # Add ipv6 later
+      hash_final = {}
+      afis.each do |afi|
+        hash_final[afi] = {}
+        default_vrf = 'default'
+        ranges = config_get('pim', 'all_ssm_ranges', afi: Pim.afi_cli(afi))
+        unless ranges.nil?
+          ranges.each do |range|
+            # Get the RPs under default VRF
+            hash_final[afi][default_vrf] =
+                      Pim.new(afi, default_vrf, false)
+            hash_final[afi][default_vrf].ssm_range = (range)
+          end
+        end
+        # Getting all custom vrfs rp_Addrs"
+        vrf_ids = config_get('vrf', 'all_vrfs')
+        vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
+        vrf_ids.each do |vrf|
+          get_args = { vrf: @vrf, afi: Pim.afi_cli(afi) }
+          get_args[:vrf] = vrf
+          ranges = config_get('pim', 'all_ssm_ranges', get_args)
+          next if ranges.nil?
+          ranges.each do |addr|
+            hash_final[afi] ||= {}
+            hash_final[afi][vrf] =
+                      Pim.new(afi, vrf, false)
+            hash_final[afi][vrf].ssm_range = (addr)
+          end
+        end
+      end
+      hash_final
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
+    end
+
     def self.afi_cli(afi)
       # Add ipv6 support later
       fail ArgumentError, "Argument afi must be 'ipv4'" unless
@@ -68,14 +106,19 @@ module Cisco
     #-----------
     # Properties
     #-----------
-
     def ssm_range
-      ranges = config_get('pim', 'ssm_range', @get_args)
-      ranges.split.sort
+      range = config_get('pim', 'ssm_range', @get_args)
+      range.split.sort.join(' ')
     end
 
     def ssm_range=(range)
-      set_args_keys(state: range ? '' : 'no', ssm_range: range)
+      if range.empty?
+        state = 'no'
+        range = ssm_range
+      else
+        state = ''
+      end
+      set_args_keys(state: state, ssm_range: range)
       config_set('pim', 'ssm_range', @set_args)
     end
   end  # Class
