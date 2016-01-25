@@ -492,11 +492,7 @@ module Cisco
     def negotiate_auto=(negotiate_auto)
       lookup = negotiate_auto_lookup_string
       no_cmd = (negotiate_auto ? '' : 'no')
-      begin
-        config_set('interface', lookup, @name, no_cmd)
-      rescue Cisco::CliError => e
-        raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      end
+      config_set('interface', lookup, @name, no_cmd)
     end
 
     def default_negotiate_auto
