@@ -40,8 +40,6 @@ class TestInterface < CiscoTestCase
   DEFAULT_IF_IP_PROXY_ARP = false
   DEFAULT_IF_IP_REDIRECTS = true
   DEFAULT_IF_VRF = ''
-  IF_DESCRIPTION_VALID_SIZE = 68 # SIZE = VSH Max 80 - "description " keyword
-  IF_DESCRIPTION_INVALID_SIZE = 255
   IF_VRF_MAX_LENGTH = 32
 
   def interface_ipv4_config(ifname, address, length,
@@ -401,24 +399,11 @@ class TestInterface < CiscoTestCase
     assert_equal('', interface.description)
   end
 
-  def test_interface_description_too_long
-    interface = Interface.new(interfaces[0])
-    description = 'a' * (IF_DESCRIPTION_INVALID_SIZE)
-    assert_raises(RuntimeError) { interface.description = description }
-    interface_ethernet_default(interfaces_id[0])
-  end
-
   def test_interface_description_valid
     interface = Interface.new(interfaces[0])
-    alphabet = 'abcdefghijklmnopqrstuvwxyz 0123456789'
-    description = ''
-    1.upto(IF_DESCRIPTION_VALID_SIZE) do |i|
-      description += alphabet[i % alphabet.size, 1]
-      next unless i == IF_DESCRIPTION_VALID_SIZE
-      # puts("description (#{i}): #{description}")
-      interface.description = description
-      assert_equal(description.rstrip, interface.description)
-    end
+    description = 'This is a test description ! '
+    interface.description = description
+    assert_equal(description.rstrip, interface.description)
     interface_ethernet_default(interfaces_id[0])
   end
 
