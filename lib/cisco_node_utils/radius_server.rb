@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require File.join(File.dirname(__FILE__), 'node_util')
+require 'ipaddr'
 
 module Cisco
   # RadiusServer - node utility class for
@@ -25,8 +26,16 @@ module Cisco
     attr_reader :name
 
     def initialize(name, instantiate=true)
-      unless name[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
-        fail ArgumentError, 'Invalid value (Name is not an IP address)'
+      unless name =~ /^[a-zA-Z0-9\.\:]*$/
+        fail ArgumentError,
+             'Invalid value (IPv4/IPv6 address contains invalid characters)'
+      end
+
+      begin
+        IPAddr.new(name)
+      rescue
+        raise ArgumentError,
+              'Invalid value (Name is not a valid single IPv4/IPv6 address)'
       end
       @name = name
 
@@ -37,8 +46,7 @@ module Cisco
       hash = {}
 
       radiusservers_list = config_get('radius_server', 'hosts')
-      return hash if radiusservers_list.nil?
-
+      return hash if radiusservers_list.empty?
       radiusservers_list.each do |id|
         hash[id] = RadiusServer.new(id, false)
       end
