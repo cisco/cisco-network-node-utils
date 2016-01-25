@@ -74,8 +74,6 @@ module Cisco
 
     def access_vlan=(vlan)
       config_set('interface', 'access_vlan', @name, vlan)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def ipv4_acl_in
@@ -182,8 +180,6 @@ module Cisco
       end
       config_set('interface',
                  'channel_group', @name, state, val, force)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_channel_group
@@ -201,8 +197,6 @@ module Cisco
       else
         config_set('interface', 'description', @name, '', desc)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
@@ -219,8 +213,6 @@ module Cisco
       else
         config_set('interface', 'encapsulation_dot1q', @name, '', val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encapsulation_dot1q
@@ -258,8 +250,6 @@ module Cisco
         config_set('fex', 'feature', 'no') if curr == :enabled
         config_set('fex', 'feature_install', 'no')
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def ipv4_addr_mask_set(addr, mask, secondary=false)
@@ -278,8 +268,6 @@ module Cisco
         am = "#{addr}/#{mask}"
       end
       config_set('interface', 'ipv4_addr_mask', @name, state, am, sec)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def ipv4_addr_mask
@@ -371,8 +359,6 @@ module Cisco
       Pim.feature_enable unless Pim.feature_enabled
       config_set('interface', 'ipv4_pim_sparse_mode', @name,
                  state ? '' : 'no')
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_ipv4_pim_sparse_mode
@@ -432,8 +418,6 @@ module Cisco
     def mtu=(val)
       check_switchport_disabled
       config_set('interface', 'mtu', @name, '', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_mtu
@@ -449,8 +433,6 @@ module Cisco
         fail 'Changing interface speed is not permitted on this platform'
       end
       config_set('interface', 'speed', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_speed
@@ -466,8 +448,6 @@ module Cisco
         fail 'Changing interface duplex is not permitted on this platform'
       end
       config_set('interface', 'duplex', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_duplex
@@ -492,11 +472,7 @@ module Cisco
     def negotiate_auto=(negotiate_auto)
       lookup = negotiate_auto_lookup_string
       no_cmd = (negotiate_auto ? '' : 'no')
-      begin
-        config_set('interface', lookup, @name, no_cmd)
-      rescue Cisco::CliError => e
-        raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      end
+      config_set('interface', lookup, @name, no_cmd)
     end
 
     def default_negotiate_auto
@@ -510,8 +486,6 @@ module Cisco
     def shutdown=(state)
       no_cmd = (state ? '' : 'no')
       config_set('interface', 'shutdown', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
@@ -637,9 +611,6 @@ module Cisco
       else
         switchport_enable_and_mode(mode_set)
       end # case
-
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_mode
@@ -660,8 +631,6 @@ module Cisco
         config_set(
           'interface', 'switchport_trunk_allowed_vlan', @name, '', val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_trunk_allowed_vlan
@@ -680,8 +649,6 @@ module Cisco
         config_set(
           'interface', 'switchport_trunk_native_vlan', @name, '', val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     # vlan_mapping & vlan_mapping_enable
@@ -728,8 +695,6 @@ module Cisco
                      state, original, translated)
         end
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     # cli: switchport vlan mapping enable
@@ -778,8 +743,6 @@ module Cisco
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def svi_cmd_allowed?(cmd)
@@ -883,8 +846,6 @@ module Cisco
       else
         config_set('interface', 'vrf', @name, '', vrf)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_vrf
