@@ -10,5 +10,5 @@ group:
   config_set: '<state> aaa group server radius <name>'
 
 servers:
-  config_get_token: ['/^aaa group server radius %s $/i', '/server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/']
+  config_get_token: ['/^aaa group server radius %s $/i', '/server (\S+)/']
   config_set: ['aaa group server radius <group>', '<state> server <ip>']
