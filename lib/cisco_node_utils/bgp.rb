@@ -360,6 +360,9 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
+      if match == default_event_history_cli
+        return default_event_history_cli
+      end   
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_cli
@@ -402,6 +405,9 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
+      if match == default_event_history_events
+        return default_event_history_events
+      end
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_events
@@ -423,6 +429,9 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
+      if match == default_event_history_periodic
+        return default_event_history_periodic
+      end
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_periodic
@@ -660,7 +669,6 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
-      Feature.nv_overlay_enable
       Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'

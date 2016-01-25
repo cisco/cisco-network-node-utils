@@ -228,7 +228,6 @@ module Cisco
     end
 
     def advertise_l2vpn_evpn=(state)
-      Feature.nv_overlay_enable
       Feature.nv_overlay_evpn_enable
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
@@ -244,7 +243,13 @@ module Cisco
 
     # dampen_igp_metric
     def dampen_igp_metric
-      config_get('bgp_af', 'dampen_igp_metric', @get_args)
+      match = config_get('bgp_af', 'dampen_igp_metric', @get_args)
+      if match == default_dampen_igp_metric
+        return default_dampen_igp_metric
+      end
+      return nil if match[0] == 'no '
+      return match[1].to_i if match[1]
+      default_dampen_igp_metric
     end
 
     def dampen_igp_metric=(val)
