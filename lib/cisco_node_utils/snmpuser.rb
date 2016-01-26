@@ -222,7 +222,7 @@ module Cisco
       current_pw = auth_password
       if current_pw.nil?
         fail "SNMP user #{@name} #{@engine_id} has auth #{auth_protocol} " \
-             "but no password?\n" + @@node.show('show run snmp all')
+             "but no password?\n" + @@node.get(command: 'show run snmp all')
       end
 
       if is_localized
@@ -242,7 +242,8 @@ module Cisco
         hashed_pw = SnmpUser.auth_password('dummy_user', @engine_id)
         if hashed_pw.nil?
           fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
-               "but password is missing?\n" + @@node.show('show run snmp all')
+               "but password is missing?\n" \
+               + @@node.get(command: 'show run snmp all')
         end
 
         # Delete dummy user
@@ -267,7 +268,7 @@ module Cisco
       current_pw = priv_password
       if current_pw.nil?
         fail "SNMP user #{@name} #{@engine_id} has priv #{priv_protocol} " \
-             "but no password?\n" + @@node.show('show run snmp all')
+             "but no password?\n" + @@node.get(command: 'show run snmp all')
       end
 
       if is_localized
@@ -289,7 +290,8 @@ module Cisco
         hashed_pw = SnmpUser.priv_password('dummy_user', @engine_id)
         if hashed_pw.nil?
           fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
-               "but password is missing?\n" + @@node.show('show run snmp all')
+               "but password is missing?\n" \
+               + @@node.get(command: 'show run snmp all')
         end
 
         # Delete dummy user

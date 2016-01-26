@@ -82,8 +82,8 @@ module Cisco
       client.platform
     end
 
-    def show(*args)
-      node.show(*args)
+    def get(**kwargs)
+      node.get(**kwargs)
     end
 
     def ios_xr?

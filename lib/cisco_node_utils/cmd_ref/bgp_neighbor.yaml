@@ -7,7 +7,7 @@ _template:
     get_command: "show running bgp all"
   context:
     - "router bgp <asnum>"
-    - "vrf <vrf>"
+    - "(?)vrf <vrf>"
     - "neighbor <nbr>"
 
 af:
@@ -15,6 +15,9 @@ af:
 
 all_neighbors:
   multiple: true
+  context:
+    - "router bgp <asnum>"
+    - "(?)vrf <vrf>"
   get_value: '/^neighbor (\S+)$/'
 
 capability_negotiation:

@@ -7,7 +7,7 @@ _template:
     get_command: 'show run router bgp'
   context:
     - 'router bgp <asnum>'
-    - 'vrf <vrf>'
+    - '(?)vrf <vrf>'
     - 'neighbor <nbr>'
     - 'address-family <afi> <safi>'
 
@@ -40,6 +40,10 @@ advertise_map_non_exist:
 
 all_afs:
   multiple: true
+  context:
+    - 'router bgp <asnum>'
+    - '(?)vrf <vrf>'
+    - 'neighbor <nbr>'
   get_value: '/^address-family (\S+) (\S+)$/'
 
 allowas_in:
