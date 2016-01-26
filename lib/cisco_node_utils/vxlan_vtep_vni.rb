@@ -29,7 +29,7 @@ module Cisco
     def initialize(name, vni, assoc_vrf=false, instantiate=true)
       @name = name
       @vni = vni
-      @assoc_vrf = assoc_vrf == :true ? true : false
+      @assoc_vrf = assoc_vrf
 
       set_args_keys_default
       create if instantiate
@@ -48,7 +48,7 @@ module Cisco
         vni_list = config_get('vxlan_vtep_vni', 'all_vnis', get_args)
         next if vni_list.nil?
         vni_list.each do |vni, assoc_vrf|
-          assoc_vrf = assoc_vrf.nil? ? :false : :true
+          assoc_vrf = assoc_vrf.nil? ? false : true
           hash[name][vni] = VxlanVtepVni.new(name, vni, assoc_vrf, false)
         end
       end

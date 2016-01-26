@@ -297,4 +297,32 @@ class TestVlan < CiscoTestCase
     v.destroy
     interface_ethernet_default(interfaces_id[0])
   end
+
+  def test_vlan_mapped_vnis
+    # Map
+    v1 = Vlan.new(100)
+    vni1 = 10000
+    v1.mapped_vni = vni1
+    assert_equal(vni1, v1.mapped_vni)
+
+    v2 = Vlan.new(500)
+    vni2 = 50000
+    v2.mapped_vni = vni2
+    assert_equal(vni2, v2.mapped_vni)
+
+    v3 = Vlan.new(900)
+    vni3 = 90000
+    v3.mapped_vni = vni3
+    assert_equal(vni3, v3.mapped_vni)
+
+    # Unmap
+    v1.mapped_vni = v1.default_mapped_vni
+    assert_equal(v1.default_mapped_vni.to_i, v1.mapped_vni)
+
+    v2.mapped_vni = v2.default_mapped_vni
+    assert_equal(v2.default_mapped_vni.to_i, v2.mapped_vni)
+
+    v3.mapped_vni = v3.default_mapped_vni
+    assert_equal(v3.default_mapped_vni.to_i, v3.mapped_vni)
+  end
 end

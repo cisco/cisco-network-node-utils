@@ -34,7 +34,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_create_with_existing
     VxlanVtep.new('nve1').host_reachability = 'evpn'
-    associate_vrf = :true
+    associate_vrf = true
     member = '5000'
 
     VxlanVtepVni.new('nve1', member)
@@ -57,7 +57,7 @@ class TestVxlanVtepVni < CiscoTestCase
     # Host reachablity must be set to evpn for associate_vrf
     # testing.
     VxlanVtep.new('nve1').host_reachability = 'evpn'
-    associate_vrf = :true
+    associate_vrf = true
 
     # Create one
     member1 = '5000'
