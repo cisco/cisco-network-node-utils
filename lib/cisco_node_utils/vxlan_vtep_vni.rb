@@ -173,7 +173,7 @@ module Cisco
         ip_start, ip_end = range.split(' ')
         ip_end = '' if ip_end.nil?
         # Since multicast group and ingress replication are exclusive
-        # properties, flush out ingress replication first
+        # properties, remove ingress replication first
         unless ingress_replication.empty?
           set_args_keys(state: 'no', protocol: ingress_replication)
           config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
