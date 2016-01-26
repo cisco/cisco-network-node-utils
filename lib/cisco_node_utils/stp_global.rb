@@ -452,6 +452,9 @@ module Cisco
 
     def vlan_designated_priority
       config_get('stp_global', 'vlan_designated_priority')
+    rescue Exception => e
+      raise unless e.message =~ /{}:Hash/
+      return []
     end
 
     def vlan_designated_priority=(list)
@@ -537,6 +540,9 @@ module Cisco
 
     def vlan_root_priority
       config_get('stp_global', 'vlan_root_priority')
+    rescue Exception => e
+      raise unless e.message =~ /{}:Hash/
+      return []
     end
 
     def vlan_root_priority=(list)

@@ -49,23 +49,6 @@ class TestStpGlobal < CiscoTestCase
     StpGlobal.new(name)
   end
 
-  def test_bd_designated_priority_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
-    @global = create_stp_global
-    config 'system bridge-domain all'
-    bddp = [['2-4,6,8-12', '4096'], %w(14 8192)]
-    @global.bd_designated_priority = bddp
-    assert_equal(bddp, @global.bd_designated_priority)
-    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-3960', '16384']]
-    @global.bd_designated_priority = bddp
-    assert_equal(bddp, @global.bd_designated_priority)
-    @global.bd_designated_priority = @global.default_bd_designated_priority
-    assert_equal(@global.default_bd_designated_priority,
-                 @global.bd_designated_priority)
-  end
-
   def test_bd_forward_time_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
@@ -117,38 +100,35 @@ class TestStpGlobal < CiscoTestCase
                  @global.bd_max_age)
   end
 
-  def test_bd_priority_change
+  def test_bd_priorities_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
     @global = create_stp_global
     config 'system bridge-domain all'
     bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
     @global.bd_priority = bdft
+    @global.bd_root_priority = bdft
+    @global.bd_designated_priority = bdft
     assert_equal(bdft, @global.bd_priority)
+    assert_equal(bdft, @global.bd_root_priority)
+    assert_equal(bdft, @global.bd_designated_priority)
     bdft = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
             ['3000-3960', '16384']]
     @global.bd_priority = bdft
+    @global.bd_root_priority = bdft
+    @global.bd_designated_priority = bdft
     assert_equal(bdft, @global.bd_priority)
+    assert_equal(bdft, @global.bd_root_priority)
+    assert_equal(bdft, @global.bd_designated_priority)
     @global.bd_priority = @global.default_bd_priority
+    @global.bd_root_priority = @global.default_bd_root_priority
+    @global.bd_designated_priority = @global.default_bd_designated_priority
     assert_equal(@global.default_bd_priority,
                  @global.bd_priority)
-  end
-
-  def test_bd_root_priority_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
-    @global = create_stp_global
-    config 'system bridge-domain all'
-    bdft = [['2-4,6,8-12', '4096'], %w(14 8192)]
-    @global.bd_root_priority = bdft
-    assert_equal(bdft, @global.bd_root_priority)
-    bdft = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-3960', '16384']]
-    @global.bd_root_priority = bdft
-    assert_equal(bdft, @global.bd_root_priority)
-    @global.bd_root_priority = @global.default_bd_root_priority
     assert_equal(@global.default_bd_root_priority,
                  @global.bd_root_priority)
+    assert_equal(@global.default_bd_designated_priority,
+                 @global.bd_designated_priority)
   end
 
   def test_get_set_bpdufilter
@@ -224,17 +204,31 @@ class TestStpGlobal < CiscoTestCase
                  @global.mode)
   end
 
-  def test_get_set_mst_designated_priority
+  def test_get_set_mst_priorities
     @global = create_stp_global
     @global.mode = 'mst'
     bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
+    @global.mst_priority = bddp
+    @global.mst_root_priority = bddp
     @global.mst_designated_priority = bddp
+    assert_equal(bddp, @global.mst_priority)
+    assert_equal(bddp, @global.mst_root_priority)
     assert_equal(bddp, @global.mst_designated_priority)
     bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
             ['3000-4080', '16384']]
+    @global.mst_priority = bddp
+    @global.mst_root_priority = bddp
     @global.mst_designated_priority = bddp
+    assert_equal(bddp, @global.mst_priority)
+    assert_equal(bddp, @global.mst_root_priority)
     assert_equal(bddp, @global.mst_designated_priority)
+    @global.mst_priority = @global.default_mst_priority
+    @global.mst_root_priority = @global.default_mst_root_priority
     @global.mst_designated_priority = @global.default_mst_designated_priority
+    assert_equal(@global.default_mst_priority,
+                 @global.mst_priority)
+    assert_equal(@global.default_mst_root_priority,
+                 @global.mst_root_priority)
     assert_equal(@global.default_mst_designated_priority,
                  @global.mst_designated_priority)
   end
@@ -309,21 +303,6 @@ class TestStpGlobal < CiscoTestCase
                  @global.mst_name)
   end
 
-  def test_get_set_mst_priority
-    @global = create_stp_global
-    @global.mode = 'mst'
-    bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
-    @global.mst_priority = bddp
-    assert_equal(bddp, @global.mst_priority)
-    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-4080', '16384']]
-    @global.mst_priority = bddp
-    assert_equal(bddp, @global.mst_priority)
-    @global.mst_priority = @global.default_mst_priority
-    assert_equal(@global.default_mst_priority,
-                 @global.mst_priority)
-  end
-
   def test_get_set_mst_revision
     @global = create_stp_global
     @global.mode = 'mst'
@@ -335,21 +314,6 @@ class TestStpGlobal < CiscoTestCase
                  @global.mst_revision)
   end
 
-  def test_get_set_mst_root_priority
-    @global = create_stp_global
-    @global.mode = 'mst'
-    bddp = [['0-4,6,8-12', '4096'], %w(14 8192)]
-    @global.mst_root_priority = bddp
-    assert_equal(bddp, @global.mst_root_priority)
-    bddp = [['2-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-4080', '16384']]
-    @global.mst_root_priority = bddp
-    assert_equal(bddp, @global.mst_root_priority)
-    @global.mst_root_priority = @global.default_mst_root_priority
-    assert_equal(@global.default_mst_root_priority,
-                 @global.mst_root_priority)
-  end
-
   def test_get_set_pathcost
     @global = create_stp_global
     @global.pathcost = 'long'
@@ -358,20 +322,6 @@ class TestStpGlobal < CiscoTestCase
       @global.default_pathcost
     assert_equal(@global.default_pathcost,
                  @global.pathcost)
-  end
-
-  def test_get_set_vlan_designated_priority
-    @global = create_stp_global
-    bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
-    @global.vlan_designated_priority = bddp
-    assert_equal(bddp, @global.vlan_designated_priority)
-    bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-3700', '16384']]
-    @global.vlan_designated_priority = bddp
-    assert_equal(bddp, @global.vlan_designated_priority)
-    @global.vlan_designated_priority = @global.default_vlan_designated_priority
-    assert_equal(@global.default_vlan_designated_priority,
-                 @global.vlan_designated_priority)
   end
 
   def test_get_set_vlan_forward_time
@@ -388,6 +338,7 @@ class TestStpGlobal < CiscoTestCase
                  @global.vlan_forward_time)
   end
 
+  # on n6k the 'no' cmd for vlan_hello_time is not working so this will fail
   def test_get_set_vlan_hello_time
     @global = create_stp_global
     bddp = [['1-4,6,8-12', '5'], %w(14 8)]
@@ -416,31 +367,31 @@ class TestStpGlobal < CiscoTestCase
                  @global.vlan_max_age)
   end
 
-  def test_get_set_vlan_priority
+  def test_get_set_vlan_priorities
     @global = create_stp_global
     bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
     @global.vlan_priority = bddp
+    @global.vlan_root_priority = bddp
+    @global.vlan_designated_priority = bddp
     assert_equal(bddp, @global.vlan_priority)
+    assert_equal(bddp, @global.vlan_root_priority)
+    assert_equal(bddp, @global.vlan_designated_priority)
     bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
             ['3000-3700', '16384']]
     @global.vlan_priority = bddp
+    @global.vlan_root_priority = bddp
+    @global.vlan_designated_priority = bddp
     assert_equal(bddp, @global.vlan_priority)
+    assert_equal(bddp, @global.vlan_root_priority)
+    assert_equal(bddp, @global.vlan_designated_priority)
     @global.vlan_priority = @global.default_vlan_priority
+    @global.vlan_root_priority = @global.default_vlan_root_priority
+    @global.vlan_designated_priority = @global.default_vlan_designated_priority
     assert_equal(@global.default_vlan_priority,
                  @global.vlan_priority)
-  end
-
-  def test_get_set_vlan_root_priority
-    @global = create_stp_global
-    bddp = [['1-4,6,8-12', '4096'], %w(14 8192)]
-    @global.vlan_root_priority = bddp
-    assert_equal(bddp, @global.vlan_root_priority)
-    bddp = [['1-42', '40960'], ['83-92,1000-2300', '53248'],
-            ['3000-3700', '16384']]
-    @global.vlan_root_priority = bddp
-    assert_equal(bddp, @global.vlan_root_priority)
-    @global.vlan_root_priority = @global.default_vlan_root_priority
     assert_equal(@global.default_vlan_root_priority,
                  @global.vlan_root_priority)
+    assert_equal(@global.default_vlan_designated_priority,
+                 @global.vlan_designated_priority)
   end
 end

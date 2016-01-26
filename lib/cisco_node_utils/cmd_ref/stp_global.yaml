@@ -102,7 +102,6 @@ mode:
 
 mst_designated_priority:
   multiple:
-  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^mst (.*) designated priority (.*)$/'
   config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s", "exit"]
@@ -167,7 +166,6 @@ mst_revision:
 
 mst_root_priority:
   multiple:
-  config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree pseudo-information$/'
   config_get_token_append: '/^mst (.*) root priority (.*)$/'
   config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s", "exit"]
