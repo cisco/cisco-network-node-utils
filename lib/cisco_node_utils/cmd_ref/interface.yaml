@@ -42,7 +42,7 @@ duplex:
 
 encapsulation_dot1q:
   kind: int
-  config_get_token_append: '/^encapsulation dot1q (.*)/'
+  config_get_token_append: '/^encapsulation dot1q (.*)/i'
   config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 
