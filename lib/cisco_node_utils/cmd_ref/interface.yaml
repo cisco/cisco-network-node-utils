@@ -22,12 +22,6 @@ all_interfaces:
   multiple:
   config_get_token: '/^interface (.*)/'
 
-channel_group:
-  kind: int
-  config_get_token_append: '/^channel-group (\d+)$/'
-  config_set_append: "%s channel-group %s %s"
-  default_value: false
-
 create:
   config_set: "interface %s"
 
@@ -48,7 +42,7 @@ duplex:
 
 encapsulation_dot1q:
   kind: int
-  config_get_token_append: '/^encapsulation dot1q (.*)/'
+  config_get_token_append: '/^encapsulation dot1q (.*)/i'
   config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 

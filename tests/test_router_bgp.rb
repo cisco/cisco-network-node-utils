@@ -404,32 +404,33 @@ class TestRouterBgp < CiscoTestCase
       set = bgp.send("default_event_history_#{opt}")
       result = bgp.send("event_history_#{opt}")
       assert_equal(set, result,
-                   'Failed to set True with Size')
+                   "event_history_#{opt}: Failed to set to default state")
 
       # Test true with size
       bgp.send("event_history_#{opt}=", 'size_large')
       result = bgp.send("event_history_#{opt}")
       assert_equal('size_large', result,
-                   'Failed to set True with Size')
+                   "event_history_#{opt}: Failed to set True with Size large")
 
       # Test false with size
       bgp.send("event_history_#{opt}=", 'false')
       result = bgp.send("event_history_#{opt}")
       assert_equal('false', result,
-                   'Failed to set state to False')
+                   "event_history_#{opt}: Failed to set state to False")
 
       # Test true with size, from false
       bgp.send("event_history_#{opt}=", 'size_small')
       result = bgp.send("event_history_#{opt}")
       assert_equal('size_small', result,
-                   'Failed to set True with Size from false state')
+                   "event_history_#{opt}: Failed to set True with "\
+                   'Size from false state')
 
       # Test default_state
       set = bgp.send("default_event_history_#{opt}")
       bgp.send("event_history_#{opt}=", set)
       result = bgp.send("event_history_#{opt}")
       assert_equal(set, result,
-                   'Failed to set state to default')
+                   "event_history_#{opt}: Failed to set state to default")
     end
   end
 

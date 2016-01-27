@@ -160,36 +160,6 @@ module Cisco
       config_get_default('interface', 'access_vlan')
     end
 
-    def channel_group
-      config_get('interface', 'channel_group', @name)
-    end
-
-    def channel_group=(val)
-      fail "channel_group is not supported on #{@name}" unless
-        @name[/Ethernet/i]
-      # 'force' is needed by cli_nxos to handle the case where a port-channel
-      # interface is created prior to the channel-group cli; in which case
-      # the properties of the port-channel interface will be different from
-      # the ethernet interface. 'force' is not needed if the port-channel is
-      # created as a result of the channel-group cli but since it does no
-      # harm we will use it every time.
-      if val
-        state = ''
-        force = 'force'
-      else
-        state = 'no'
-        val = force = ''
-      end
-      config_set('interface',
-                 'channel_group', @name, state, val, force)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_channel_group
-      config_get_default('interface', 'channel_group')
-    end
-
     def description
       config_get('interface', 'description', @name)
     end
@@ -492,11 +462,7 @@ module Cisco
     def negotiate_auto=(negotiate_auto)
       lookup = negotiate_auto_lookup_string
       no_cmd = (negotiate_auto ? '' : 'no')
-      begin
-        config_set('interface', lookup, @name, no_cmd)
-      rescue Cisco::CliError => e
-        raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      end
+      config_set('interface', lookup, @name, no_cmd)
     end
 
     def default_negotiate_auto
