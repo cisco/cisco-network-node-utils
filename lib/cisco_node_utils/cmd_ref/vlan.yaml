@@ -11,13 +11,6 @@ create:
 destroy:
   config_set: "no vlan %s"
 
-feature_vn_segment:
-  config_get: 'show running | i ^feature'
-  /N(3|9)/:
-    # MT-lite only
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
-
 mapped_vni:
   /N(3|9)/:
     kind: int
