@@ -158,12 +158,9 @@ class TestRouterBgpAF < CiscoTestCase
     af = %w(ipv4 unicast)
 
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    pattern = /^ *client-to-client reflection$/
     #
     # Default is 'client-to-client' is configured
     #
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-
     assert(bgp_af.client_to_client,
            "Error: 'client-to-client is not configured but should be")
     #

@@ -215,7 +215,6 @@ class TestRouterBgpNeighbor < CiscoTestCase
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
       check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
                neighbor.default_log_neighbor_changes]
-      end
       check.each do |value|
         neighbor.log_neighbor_changes = value
         assert_equal(value.to_sym, neighbor.log_neighbor_changes)
