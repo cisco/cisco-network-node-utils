@@ -122,6 +122,12 @@ module Cisco
 
     # Attributes:
 
+    # nsr Getter
+    def nsr
+      result = config_get('bgp', 'nsr', @get_args)
+      result
+    end
+
     # Bestpath Getters
     def bestpath_always_compare_med
       config_get('bgp', 'bestpath_always_compare_med', @get_args)
@@ -150,6 +156,22 @@ module Cisco
 
     def bestpath_med_non_deterministic
       config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
+    end
+
+    # nsr Setter
+    def nsr=(enable)
+      if platform == :nexus
+        fail Cisco::UnsupportedError.new('bgp', 'nsr', 'set', 'nsr is not ' \
+                  'configurable on NEXUS')
+      end
+      if @vrf != 'default'
+        fail Cisco::UnsupportedError.new('bgp', 'nsr', 'set', 'nsr is not ' \
+                  'configurable with verf != default')
+      end
+
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'nsr', @set_args)
+      set_args_keys_default
     end
 
     # Bestpath Setters
@@ -199,6 +221,11 @@ module Cisco
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'bestpath_med_non_deterministic', @set_args)
       set_args_keys_default
+    end
+
+    # nsr Default
+    def default_nsr
+      config_get_default('bgp', 'nsr')
     end
 
     # Bestpath Defaults

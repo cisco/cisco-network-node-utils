@@ -229,6 +229,27 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_nsr
+    nsr(setup_default)
+    nsr(setup_vrf)
+  end
+
+  def nsr(bgp)
+    if platform == :nexus || !@vrf[/default/]
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.nsr = true
+      end
+    else
+      bgp.nsr = true
+      assert(bgp.nsr,
+             'bgp nsr should be enabled')
+      bgp.nsr = false
+      refute(bgp.nsr,
+             'bgp nsr should be disabled')
+    end
+    bgp.destroy
+  end
+
   def test_bestpath_default
     bestpath(setup_default)
   end
