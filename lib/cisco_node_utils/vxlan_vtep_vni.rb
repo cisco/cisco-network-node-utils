@@ -123,18 +123,20 @@ module Cisco
     end
 
     def ingress_replication=(protocol)
-      if protocol == default_ingress_replication
+      return if protocol.to_s == ingress_replication
+      # Only set ingress_replicatin to the default value if it's not already.
+      if protocol.to_s == default_ingress_replication &&
+         (ingress_replication != default_ingress_replication)
         set_args_keys(state: 'no', protocol: ingress_replication)
-        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args) unless
-          ingress_replication == default_ingress_replication
+        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       else
-        # Since multicast group and ingress replication are exclusive
-        # properties, remove multicast_group first
+        # Multicast group and ingress replication are mutually exclusive
+        # properties, so remove multicast_group first
         unless multicast_group.empty?
           set_args_keys(state: 'no', ip_start: '', ip_end: '')
           config_set('vxlan_vtep_vni', 'multicast_group', @set_args)
         end
-        remove_add_ingress_replication(protocol)
+        remove_add_ingress_replication(protocol.to_s)
       end
     end
 
