@@ -45,6 +45,19 @@ module Cisco
       hash
     end
 
+    # feature vni
+    def self.feature_vni_enabled
+      config_get('vlan', 'feature_vn_segment')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.feature_vni_enable # TBD: move this to feature.rb
+      config_set('vlan', 'feature_vn_segment')
+    end
+
     def create
       config_set('vlan', 'create', @vlan_id)
     end
@@ -182,6 +195,22 @@ module Cisco
         interfaces[name] = i
       end
       interfaces
+    end
+
+    def mapped_vni
+      vni = config_get('vlan', 'mapped_vni', vlan: @vlan_id)
+      vni.to_i
+    end
+
+    def mapped_vni=(vni)
+      Vlan.feature_vni_enable unless Vni.feature_vni_enabled
+      state = vni == default_mapped_vni ? 'no' : ''
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                          state: state, vni: vni)
+    end
+
+    def default_mapped_vni
+      config_get_default('vlan', 'mapped_vni')
     end
   end # class
 end # module

@@ -11,18 +11,32 @@ create:
 destroy:
   config_set: "no vlan %s"
 
+feature_vn_segment:
+  config_get: 'show running | i ^feature'
+  /N(3|9)/:
+    # MT-lite only
+    config_get_token: '/^feature vn-segment-vlan-based$/'
+    config_set: 'feature vn-segment-vlan-based'
+
+mapped_vni:
+  /N(3|9)/:
+    config_get: 'show running vlan'
+    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
+    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
+    default_value: ''
+
 mode:
   _exclude:
     - /N(3|9)/
   kind: string
   config_get: "show vlan"
-  config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
+  config_get_token: '/^%d\s+enet\s+(\S+)\s/'
   config_set: ["vlan %d" , "%s mode %s", "end"]
   default_value: "ce"
-  
+
 name:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+(\S+)\s/'
   config_set: ["vlan %d", "%s name %s", "end"]
   /N9K/:
     test_config_result:
@@ -33,12 +47,12 @@ name:
 
 shutdown:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
   config_set: ["vlan %d", "%s shutdown", "end"]
   default_value: false
 
 state:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
   config_set: ["vlan %d", "%s state %s", "end"]
   default_value: "active"

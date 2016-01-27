@@ -18,7 +18,7 @@ all_vnis:
 ingress_replication:
   kind: string
   config_get_token_append: '/^ingress-replication protocol (\S+)$/'
-  config_set_append: '<state> ingress-replication protocol <protocol>'
+  config_set_append: '<state> ingress-replication protocol <protocol> ; end'
   default_value: ''
 
 multicast_group:

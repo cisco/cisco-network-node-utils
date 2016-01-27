@@ -31,6 +31,7 @@ module Cisco
       @vni = vni
       @assoc_vrf = assoc_vrf
 
+      set_args_keys_default
       create if instantiate
       # NOTE: This can be removed after the puppet type/provider are coded
       # but a few design notes so we don't forget!.
@@ -118,7 +119,7 @@ module Cisco
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       else
         # Sadly, the only way to change between protocols is to
-        # first remove the exisitng protocol.
+        # first remove the existing protocol.
         set_args_keys(state: 'no', protocol: ingress_replication)
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
         set_args_keys(state: '', protocol: protocol)
@@ -132,6 +133,12 @@ module Cisco
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args) unless
           ingress_replication == default_ingress_replication
       else
+        # Since multicast group and ingress replication are exclusive
+        # properties, flush out multicast_group first
+        unless multicast_group.empty?
+          set_args_keys(state: 'no', ip_start: '', ip_end: '')
+          config_set('vxlan_vtep_vni', 'multicast_group', @set_args)
+        end
         remove_add_ingress_replication(protocol)
       end
     end
@@ -154,11 +161,23 @@ module Cisco
 
     def multicast_group=(range)
       if range == default_multicast_group
-        set_args_keys(state: 'no', ip_start: '', ip_end: '')
-        config_set('vxlan_vtep_vni', 'multicast_group', @set_args)
+        # Due to CSCux78514, trying to remove multicast-group in CLI
+        # when ingress replication is configured results in removing
+        # ingress replication from nvgen. So be careful and negate
+        # Multicast-group only is it is configured.
+        unless multicast_group.empty?
+          set_args_keys(state: 'no', ip_start: '', ip_end: '')
+          config_set('vxlan_vtep_vni', 'multicast_group', @set_args)
+        end
       else
         ip_start, ip_end = range.split(' ')
         ip_end = '' if ip_end.nil?
+        # Since multicast group and ingress replication are exclusive
+        # properties, remove ingress replication first
+        unless ingress_replication.empty?
+          set_args_keys(state: 'no', protocol: ingress_replication)
+          config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
+        end
         remove_add_multicast_group(ip_start, ip_end)
       end
     end
@@ -195,10 +214,16 @@ module Cisco
     end
 
     def suppress_arp=(state)
-      # Host reachability must be enabled for this property
-      VxlanVtep.new(@name).host_reachability = 'evpn'
-      set_args_keys(state: (state ? '' : 'no'))
-      config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
+      if state
+        set_args_keys(state: '')
+        # Host reachability must be enabled for this property
+        VxlanVtep.new(@name).host_reachability = 'evpn'
+        config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
+      else
+        set_args_keys(state: 'no')
+        # Negate suppress-arp only if it is configured
+        config_set('vxlan_vtep_vni', 'suppress_arp', @set_args) if suppress_arp
+      end
     end
 
     def default_suppress_arp

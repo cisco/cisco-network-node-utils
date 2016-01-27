@@ -64,6 +64,7 @@ class TestVxlanVtepVni < CiscoTestCase
     vni1 = VxlanVtepVni.new('nve1', member1, associate_vrf)
     assert_includes(VxlanVtepVni.vnis['nve1'], member1)
     assert(VxlanVtepVni.vnis['nve1'], associate_vrf)
+
     assert_equal(VxlanVtepVni.vnis['nve1'][member1], vni1)
 
     # Create several
