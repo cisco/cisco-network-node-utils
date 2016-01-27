@@ -780,7 +780,7 @@ class TestRouterBgp < CiscoTestCase
     asnum = 55
     bgp = RouterBgp.new(asnum)
     assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
-                 "reconnect_interval should be set to default value of '60'")
+                 "reconnect_interval should be set to default value")
     bgp.destroy
   end
 
