@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.2.0]
 
 ### New feature support
 * ACL
@@ -31,6 +31,8 @@ Changelog
   * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
+* VPC
+  * vpc (@dcheriancisco)
 * VRF
   * vrf_af (@chrisvanheuveln)
 * VXLAN
@@ -59,6 +61,7 @@ Changelog
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`
+  * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
   * `vni`
@@ -167,7 +170,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
