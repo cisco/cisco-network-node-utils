@@ -690,12 +690,10 @@ module Cisco
       # not working on N7K need a valid router_id
       dummy_id = router_id
       if id == default_router_id
-        if dummy_id.empty?
-          return
-        else
-          @set_args[:state] = 'no'
-          @set_args[:id] = dummy_id
-        end
+        # Nothing to do if router_id is already set to default.
+        return if router_id == default_router_id
+        @set_args[:state] = 'no'
+        @set_args[:id] = dummy_id
       else
         @set_args[:state] = ''
         @set_args[:id] = id
