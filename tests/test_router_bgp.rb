@@ -237,9 +237,18 @@ class TestRouterBgp < CiscoTestCase
   def nsr(bgp)
     if platform == :nexus || !@vrf[/default/]
       assert_raises(Cisco::UnsupportedError) do
+        refute(bgp.default_nsr,
+               'bgp nsr should be disabled by default')
+        assert_equal(bgp.nsr, bgp.default_nsr)
         bgp.nsr = true
+        assert(bgp.nsr,
+               'bgp nsr should be enabled')
+        bgp.nsr = false
+        refute(bgp.nsr,
+               'bgp nsr should be disabled')
       end
     else
+      assert_equal(bgp.nsr, bgp.default_nsr)
       bgp.nsr = true
       assert(bgp.nsr,
              'bgp nsr should be enabled')
