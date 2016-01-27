@@ -80,7 +80,12 @@ module Cisco
 
     # ---------------------------
     def self.nv_overlay_evpn_enable
-      return if nv_overlay_evpn_enabled?
+      begin
+        return if nv_overlay_evpn_enabled? && fabric_forwarding_enabled?
+        config_set('feature', 'fabric_forwarding')
+        config_set('feature', 'nv_overlay_evpn')
+      end
+    rescue
       config_set('feature', 'nv_overlay_evpn')
     end
 
