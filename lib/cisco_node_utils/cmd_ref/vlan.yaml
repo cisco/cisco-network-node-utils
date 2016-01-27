@@ -20,6 +20,7 @@ feature_vn_segment:
 
 mapped_vni:
   /N(3|9)/:
+    kind: int
     config_get: 'show running vlan'
     config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
     config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']

@@ -45,19 +45,6 @@ module Cisco
       hash
     end
 
-    # feature vni
-    def self.feature_vni_enabled
-      config_get('vlan', 'feature_vn_segment')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_vni_enable # TBD: move this to feature.rb
-      config_set('vlan', 'feature_vn_segment')
-    end
-
     def create
       config_set('vlan', 'create', @vlan_id)
     end
@@ -198,12 +185,15 @@ module Cisco
     end
 
     def mapped_vni
-      vni = config_get('vlan', 'mapped_vni', vlan: @vlan_id)
-      vni.to_i
+      config_get('vlan', 'mapped_vni', vlan: @vlan_id)
     end
 
     def mapped_vni=(vni)
-      Vlan.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vn_segment_vlan_based_enable
+      # Remove the existing mapping first as cli doesn't support overwriting.
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                         state: 'no', vni: vni)
+      # Configure the new mapping
       state = vni == default_mapped_vni ? 'no' : ''
       config_set('vlan', 'mapped_vni', vlan: @vlan_id,
                           state: state, vni: vni)

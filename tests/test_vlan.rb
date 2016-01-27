@@ -314,15 +314,14 @@ class TestVlan < CiscoTestCase
     vni3 = 90_000
     v3.mapped_vni = vni3
     assert_equal(vni3, v3.mapped_vni)
-
     # Unmap
     v1.mapped_vni = v1.default_mapped_vni
-    assert_equal(v1.default_mapped_vni.to_i, v1.mapped_vni)
+    assert_equal(v1.default_mapped_vni, v1.mapped_vni)
 
     v2.mapped_vni = v2.default_mapped_vni
-    assert_equal(v2.default_mapped_vni.to_i, v2.mapped_vni)
+    assert_equal(v2.default_mapped_vni, v2.mapped_vni)
 
     v3.mapped_vni = v3.default_mapped_vni
-    assert_equal(v3.default_mapped_vni.to_i, v3.mapped_vni)
+    assert_equal(v3.default_mapped_vni, v3.mapped_vni)
   end
 end

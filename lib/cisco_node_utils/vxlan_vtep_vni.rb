@@ -33,11 +33,6 @@ module Cisco
 
       set_args_keys_default
       create if instantiate
-      # NOTE: This can be removed after the puppet type/provider are coded
-      # but a few design notes so we don't forget!.
-      # 1) The title pattern should be cisco_vxlan_vtep_vni { 'name', 'vni' :
-      # 2) assoc_vrf will be a property but will also be a namevar.
-      # 3) Type must check that assoc_vrf is always set to either true or false.
     end
 
     def self.vnis
@@ -134,7 +129,7 @@ module Cisco
           ingress_replication == default_ingress_replication
       else
         # Since multicast group and ingress replication are exclusive
-        # properties, flush out multicast_group first
+        # properties, remove multicast_group first
         unless multicast_group.empty?
           set_args_keys(state: 'no', ip_start: '', ip_end: '')
           config_set('vxlan_vtep_vni', 'multicast_group', @set_args)
@@ -221,7 +216,11 @@ module Cisco
         config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
       else
         set_args_keys(state: 'no')
-        # Negate suppress-arp only if it is configured
+        # Remove suppress-arp only if it is configured. Suppress-arp needs
+        # free TCAM region for arp-ether ACL. Customers who don't need
+        # suppress-arp, needn't see cli failures warning about TCAM regions
+        # issued due to 'no suppress-arp'. Note that for suppress-arp, default
+        # is 'false' which is no suppress-arp
         config_set('vxlan_vtep_vni', 'suppress_arp', @set_args) if suppress_arp
       end
     end
