@@ -26,7 +26,7 @@ module Cisco
   class VxlanGlobal < NodeUtil
     # Constructor for vxlan_global
     def initialize(instantiate=true)
-      Feature.nv_overlay_evpn_enable if instantiate
+      Feature.fabric_forwarding_enable if instantiate
     end
 
     def disable

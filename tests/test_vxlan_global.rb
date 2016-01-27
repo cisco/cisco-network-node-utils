@@ -20,21 +20,23 @@ include Cisco
 
 # TestVxlanGlobal - Minitest for VxlanGlobal node utility
 class TestVxlanGlobal < CiscoTestCase
-  @@clean = false # rubocop:disable Style/ClassVars
   def setup
     super
-    no_vxlan_global unless @@clean
-    @@clean = true # rubocop:disable Style/ClassVars
+    no_vxlan_global
+  end
+
+  def teardown
+    no_vxlan_global
+    super
   end
 
   def no_vxlan_global
-    begin
-      return if !(nv_overlay_evpn_enabled?) && !(fabric_forwarding_enabled?)
-      config('no feature fabric forwarding')
-      config('no nv overlay evpn')
-    end
-  rescue
-    config('no nv overlay evpn')
+    config('no feature fabric forwarding')
+  end
+
+  def test_feature_on
+    VxlanGlobal.new
+    assert(Feature.fabric_forwarding_enabled?)
   end
 
   def test_dup_host_ip_addr_detection_set
