@@ -183,5 +183,24 @@ module Cisco
       end
       interfaces
     end
+
+    def mapped_vni
+      config_get('vlan', 'mapped_vni', vlan: @vlan_id)
+    end
+
+    def mapped_vni=(vni)
+      Feature.vn_segment_vlan_based_enable
+      # Remove the existing mapping first as cli doesn't support overwriting.
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                         state: 'no', vni: vni)
+      # Configure the new mapping
+      state = vni == default_mapped_vni ? 'no' : ''
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                          state: state, vni: vni)
+    end
+
+    def default_mapped_vni
+      config_get_default('vlan', 'mapped_vni')
+    end
   end # class
 end # module

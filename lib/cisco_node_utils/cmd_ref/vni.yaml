@@ -48,14 +48,6 @@ feature:
     config_get_token: '/^feature vn-segment-vlan-based$/'
     config_set: 'feature vn-segment-vlan-based'
 
-mapped_vlan:
-  # MT-lite only
-  /N(3|9)/:
-    config_get: 'show running vlan'
-    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
-    default_value: ''
-
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean

@@ -104,6 +104,14 @@ class TestVxlanVtepVni < CiscoTestCase
     ir = vni.default_ingress_replication
     vni.ingress_replication = ir
     assert_equal(ir, vni.ingress_replication)
+
+    # Test the case where an existing multicast_group is removed before
+    # configuring ingress_replication
+    vni.multicast_group = '224.1.1.1'
+    assert_equal('224.1.1.1', vni.multicast_group)
+
+    vni.ingress_replication = 'static'
+    assert_equal('static', vni.ingress_replication)
   end
 
   def test_multicast_group
@@ -114,6 +122,14 @@ class TestVxlanVtepVni < CiscoTestCase
     assert_empty(vni1.multicast_group)
 
     # Test single multicast group
+    vni1.multicast_group = '224.1.1.1'
+    assert_equal('224.1.1.1', vni1.multicast_group)
+
+    # Test the case where an existing ingress_replication is removed before
+    # configuring multicast_group
+    vni1.ingress_replication = 'static'
+    assert_equal('static', vni1.ingress_replication)
+
     vni1.multicast_group = '224.1.1.1'
     assert_equal('224.1.1.1', vni1.multicast_group)
 
