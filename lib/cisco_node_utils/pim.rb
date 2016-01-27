@@ -47,35 +47,26 @@ module Cisco
       config_set('pim', 'feature')
     end
 
+    # self.pims returns a hash of all current pim objects.
+    # There will be one object for each vrf. This method has slightly different
+    # behavior than most of the other "get all objects" methods because the
+    # pim properties are standalone and do not reside in a "pim" container;
+    # therefore, this method simply returns a pim object for each vrf
+    # regardless of whether there are any specific pim properties currently
+    # defined for the context.
     def self.pims
-      afis = %w(ipv4) # Add ipv6 later
+      afis = %w(ipv4) # TBD: No support for ipv6 at this time
       hash_final = {}
       afis.each do |afi|
         hash_final[afi] = {}
         default_vrf = 'default'
-        ranges = config_get('pim', 'all_ssm_ranges', afi: Pim.afi_cli(afi))
-        unless ranges.nil?
-          ranges.each do |range|
-            # Get the RPs under default VRF
-            hash_final[afi][default_vrf] =
-                      Pim.new(afi, default_vrf, false)
-            hash_final[afi][default_vrf].ssm_range = (range)
-          end
-        end
-        # Getting all custom vrfs rp_Addrs"
+        hash_final[afi][default_vrf] = Pim.new(afi, default_vrf, false)
+
+        # Now the vrf's
         vrf_ids = config_get('vrf', 'all_vrfs')
         vrf_ids.delete_if { |vrf_id| vrf_id == 'management' }
         vrf_ids.each do |vrf|
-          get_args = { vrf: @vrf, afi: Pim.afi_cli(afi) }
-          get_args[:vrf] = vrf
-          ranges = config_get('pim', 'all_ssm_ranges', get_args)
-          next if ranges.nil?
-          ranges.each do |addr|
-            hash_final[afi] ||= {}
-            hash_final[afi][vrf] =
-                      Pim.new(afi, vrf, false)
-            hash_final[afi][vrf].ssm_range = (addr)
-          end
+          hash_final[afi][vrf] = Pim.new(afi, vrf, false)
         end
       end
       hash_final
@@ -107,8 +98,7 @@ module Cisco
     # Properties
     #-----------
     def ssm_range
-      range = config_get('pim', 'ssm_range', @get_args)
-      range.split.sort.join(' ')
+      config_get('pim', 'ssm_range', @get_args)
     end
 
     def ssm_range=(range)
