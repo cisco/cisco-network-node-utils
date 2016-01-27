@@ -16,6 +16,8 @@ mapped_vni:
     kind: int
     config_get: 'show running vlan'
     config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
+    # In the cli 'vn-segment' config is not applied untill the 'end'
+    # statement is issued.
     config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
     default_value: ''
 
