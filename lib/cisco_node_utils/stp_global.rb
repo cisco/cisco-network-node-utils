@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'interface'
 
 module Cisco
   # node_utils class for stp_global

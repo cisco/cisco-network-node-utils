@@ -7,7 +7,7 @@ bd_designated_priority:
   _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) designated priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s designated priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s designated priority %s"]
   default_value: []
 
 bd_forward_time:
@@ -42,7 +42,7 @@ bd_root_priority:
   _exclude: [/N(3|5|6|9)/]
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) root priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s root priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s root priority %s"]
   default_value: []
 
 bpdufilter:
@@ -96,7 +96,7 @@ mode:
 mst_designated_priority:
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^mst (.*) designated priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s"]
   default_value: []
 
 mst_forward_time:
@@ -114,7 +114,7 @@ mst_hello_time:
 mst_inst_vlan_map:
   multiple:
   config_get_token: ['/^spanning-tree mst configuration$/', '/^instance (.*) vlan (.*)$/']
-  config_set: ["spanning-tree mst configuration", "instance %s vlan %s", "exit"]
+  config_set: ["spanning-tree mst configuration", "instance %s vlan %s"]
   default_value: []
 
 mst_max_age:
@@ -132,7 +132,7 @@ mst_max_hops:
 mst_name:
   kind: string
   config_get_token: ['/^spanning-tree mst configuration$/', '/^name (.*)$/']
-  config_set: ["spanning-tree mst configuration", "%s name %s", "exit"]
+  config_set: ["spanning-tree mst configuration", "%s name %s"]
   default_value: false
 
 mst_priority:
@@ -144,13 +144,13 @@ mst_priority:
 mst_revision:
   kind: int
   config_get_token: ['/^spanning-tree mst configuration$/', '/^revision (\d+)$/']
-  config_set: ["spanning-tree mst configuration", "%s revision %s", "exit"]
+  config_set: ["spanning-tree mst configuration", "%s revision %s"]
   default_value: 0
 
 mst_root_priority:
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^mst (.*) root priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s"]
   default_value: []
 
 pathcost:
@@ -162,7 +162,7 @@ pathcost:
 vlan_designated_priority:
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^vlan (.*) designated priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s vlan %s designated priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s designated priority %s"]
   default_value: []
 
 vlan_forward_time:
@@ -192,5 +192,5 @@ vlan_priority:
 vlan_root_priority:
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^vlan (.*) root priority (.*)$/']
-  config_set: ["spanning-tree pseudo-information", "%s vlan %s root priority %s", "exit"]
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s root priority %s"]
   default_value: []
