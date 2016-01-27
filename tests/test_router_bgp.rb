@@ -350,7 +350,8 @@ class TestRouterBgp < CiscoTestCase
   def test_default_disable_policy_batching_ipv4
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    assert_empty(bgp.default_disable_policy_batching_ipv4,
+    assert_equal(bgp.default_disable_policy_batching_ipv4,
+                 bgp.disable_policy_batching_ipv4,
                  'disable_policy_batching_ipv4 default value should be empty')
     bgp.destroy
   end
@@ -369,7 +370,8 @@ class TestRouterBgp < CiscoTestCase
   def test_default_disable_policy_batching_ipv6
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    assert_empty(bgp.default_disable_policy_batching_ipv6,
+    assert_equal(bgp.default_disable_policy_batching_ipv6,
+                 bgp.disable_policy_batching_ipv6,
                  'disable_policy_batching_ipv6 default value should be empty')
     bgp.destroy
   end
@@ -777,7 +779,7 @@ class TestRouterBgp < CiscoTestCase
   def test_routerbgp_get_reconnect_interval_default
     asnum = 55
     bgp = RouterBgp.new(asnum)
-    assert_equal(60, bgp.reconnect_interval,
+    assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
                  "reconnect_interval should be set to default value of '60'")
     bgp.destroy
   end

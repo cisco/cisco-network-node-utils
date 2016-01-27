@@ -360,6 +360,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
+      return default_event_history_cli if match == 'size_small'
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_cli
@@ -402,6 +403,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
+      return default_event_history_events if match == 'size_small'
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_events
@@ -423,6 +425,7 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
+      return default_event_history_periodic if match == 'size_small'
       return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
       default_event_history_periodic
@@ -660,7 +663,6 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
-      Feature.nv_overlay_enable
       Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
@@ -685,10 +687,15 @@ module Cisco
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
       # 'no bgp router-id'. Dummy-id specified to work around this.
-      dummy_id = '1.2.3.4'
+      # not working on N7K need a valid router_id
+      dummy_id = router_id
       if id == default_router_id
-        @set_args[:state] = 'no'
-        @set_args[:id] = dummy_id
+        if dummy_id.empty?
+          return
+        else
+          @set_args[:state] = 'no'
+          @set_args[:id] = dummy_id
+        end
       else
         @set_args[:state] = ''
         @set_args[:id] = id
