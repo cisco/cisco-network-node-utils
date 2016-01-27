@@ -244,9 +244,7 @@ module Cisco
     # dampen_igp_metric
     def dampen_igp_metric
       match = config_get('bgp_af', 'dampen_igp_metric', @get_args)
-      if match == default_dampen_igp_metric
-        return default_dampen_igp_metric
-      end
+      return default_dampen_igp_metric if match == default_dampen_igp_metric
       return nil if match[0] == 'no '
       return match[1].to_i if match[1]
       default_dampen_igp_metric
