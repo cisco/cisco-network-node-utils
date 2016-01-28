@@ -385,6 +385,6 @@ class TestVpc < CiscoTestCase
     e = assert_raises(CliError) do
       interface.vpc_peer_link = true
     end
-    assert_match(/Invalid number/i, e.message)
+    assert_match(/Invalid/i, e.message)
   end
 end
