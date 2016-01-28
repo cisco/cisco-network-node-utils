@@ -14,6 +14,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vpc'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/interface_channel_group'
 
 include Cisco
 
@@ -87,7 +88,7 @@ class TestVpc < CiscoTestCase
     assert_equal(300, @vpc.auto_recovery_reload_delay,
                  'Auto recovery delay should be 300')
     # negative high range
-    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 3601 }
+    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 86401 }
     assert_match(/Invalid number.*range/, e.message)
   end
 
@@ -320,8 +321,6 @@ class TestVpc < CiscoTestCase
     @vpc = Vpc.new(100)
     # test phy port vpc
     interface = Interface.new(interfaces[0])
-    # check if it is already part of a PC and clear it
-    interface.channel_group = false if interface.channel_group
     assert_equal(interface.vpc_id, interface.default_vpc_id,
                  'default vpc_id should be null')
     # Make sure PKA is set
@@ -344,7 +343,7 @@ class TestVpc < CiscoTestCase
       refute(interface.vpc_id, 'vpc_id should be unset')
     end
     # test port-channel vpc
-    interface = Interface.new(interfaces[0])
+    interface = InterfaceChannelGroup.new(interfaces[0])
     interface.channel_group = 10
     interface_pc = Interface.new('port-channel10')
     interface_pc.switchport_mode = :trunk
@@ -367,7 +366,7 @@ class TestVpc < CiscoTestCase
     # Make sure PKA is set
     @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                             6, 3)
-    interface = Interface.new(interfaces[1])
+    interface = InterfaceChannelGroup.new(interfaces[1])
     interface.channel_group = 100
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :trunk
@@ -379,11 +378,5 @@ class TestVpc < CiscoTestCase
     refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
     # clean up
     interface.channel_group = false
-    #
-    # negative - try on a phy port
-    e = assert_raises(CliError) do
-      interface.vpc_peer_link = 'true'
-    end
-    assert_match(/Invalid/i, e.message)
   end
 end
