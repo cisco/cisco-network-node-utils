@@ -213,7 +213,7 @@ module Cisco
     # is configured because they are mutually exclusive.
     def dampening_half_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[0].to_i
       else
         default_dampening_half_time
@@ -222,7 +222,7 @@ module Cisco
 
     def dampening_reuse_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[1].to_i
       else
         default_dampening_reuse_time
@@ -231,7 +231,7 @@ module Cisco
 
     def dampening_suppress_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[2].to_i
       else
         default_dampening_suppress_time
@@ -240,7 +240,7 @@ module Cisco
 
     def dampening_max_suppress_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[3].to_i
       else
         default_dampening_max_suppress_time
@@ -507,14 +507,24 @@ module Cisco
     end
 
     # Is the given name available in the YAML?
-    def responds_to?(name)
-      ret = true
-      begin
-        config_get('bgp_af', name, @get_args)
-      rescue IndexError
-        ret = false
+    def respond_to?(method_sym, _include_private=false)
+      name = method_sym.to_s
+      key = :getter?
+      if name =~ /^(.*)=$/
+        name = Regexp.last_match(1)
+        # Use table_map_set() to set these properties
+        return false if name == 'table_map' || name == 'table_map_filter'
+        key = :setter?
+      elsif name =~ /^default_(.*)$/
+        name = Regexp.last_match(1)
+        key = :default_value?
       end
-      ret
+      begin
+        ref = node.cmd_ref.lookup('bgp_af', name)
+        ref.send(key)
+      rescue IndexError
+        super
+      end
     end
   end
 end

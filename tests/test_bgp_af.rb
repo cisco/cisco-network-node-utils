@@ -766,6 +766,38 @@ class TestRouterBgpAF < CiscoTestCase
     assert_equal(expected, result, 'Test 5. delta mismatch')
   end
 
+  def test_respond_to?
+    config_ios_xr_dependencies('22') if platform == :ios_xr
+    bgp_af = RouterBgpAF.new('22', 'red', %w(ipv4 unicast))
+
+    # Functions that are actually defined in bgp_af.rb
+    assert_respond_to(bgp_af, :dampening_max_suppress_time)
+    assert_respond_to(bgp_af, :next_hop_route_map=)
+    assert_respond_to(bgp_af, :default_additional_paths_selection)
+
+    # Functions that are covered by the method_missing magic
+    assert_respond_to(bgp_af, :next_hop_route_map)
+    assert_respond_to(bgp_af, :additional_paths_selection)
+    assert_respond_to(bgp_af, :default_default_information_originate)
+    if platform == :ios_xr
+      # not supported
+      refute_respond_to(bgp_af, :default_information_originate=)
+    else
+      assert_respond_to(bgp_af, :default_information_originate=)
+    end
+    assert_respond_to(bgp_af, :table_map)
+    assert_respond_to(bgp_af, :default_table_map)
+
+    # Functions that are explicitly excluded from method_missing
+    refute_respond_to(bgp_af, :table_map=)
+    refute_respond_to(bgp_af, :table_map_filter=)
+
+    # Functions that shouldn't be covered by method_missing
+    refute_respond_to(bgp_af, :default_next_hop_route_map=)
+
+    bgp_af.destroy
+  end
+
   ##
   ## table_map
   ##
