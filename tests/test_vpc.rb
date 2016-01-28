@@ -88,7 +88,7 @@ class TestVpc < CiscoTestCase
     assert_equal(300, @vpc.auto_recovery_reload_delay,
                  'Auto recovery delay should be 300')
     # negative high range
-    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 86401 }
+    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 86_401 }
     assert_match(/Invalid number.*range/, e.message)
   end
 
@@ -334,7 +334,7 @@ class TestVpc < CiscoTestCase
 
       # negative - cannot config peer link on this
       e = assert_raises(CliError) do
-        interface.vpc_peer_link = 'true'
+        interface.vpc_peer_link = true
       end
       assert_match(/Invalid number/i, e.message)
 
@@ -378,5 +378,13 @@ class TestVpc < CiscoTestCase
     refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
     # clean up
     interface.channel_group = false
+    refute(interface.channel_group, 'channel group should be unset')
+    # try with a phy port
+    interface = Interface.new(interfaces[1])
+    # negative - cannot config peer link on this
+    e = assert_raises(CliError) do
+      interface.vpc_peer_link = true
+    end
+    assert_match(/Invalid number/i, e.message)
   end
 end
