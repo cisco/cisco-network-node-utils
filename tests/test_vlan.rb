@@ -22,6 +22,20 @@ include Cisco
 
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
+  @@interface_cleaned = false # rubocop:disable Style/ClassVars
+  def setup
+    super
+    # Cleanup any non-default vlans prior to each test.
+    s = @device.cmd("show run | i '^vlan 1'")
+    s.split(',').each do |v|
+      vlan = v.match(/(\d+)/).to_s
+      config("no vlan #{vlan}") unless vlan.to_s == '1'
+    end
+    # Only pre-clean interface on initial setup
+    interface_ethernet_default(interfaces_id[0]) unless @@interface_cleaned
+    @@interface_cleaned = true # rubocop:disable Style/ClassVars
+  end
+
   def teardown
     return unless Vdc.vdc_support
     # Reset the vdc module type back to default
@@ -119,7 +133,6 @@ class TestVlan < CiscoTestCase
     1.upto(VLAN_NAME_SIZE - 1) do |i|
       begin
         name += alphabet[i % alphabet.size, 1]
-        # puts "n is #{name}"
         if i == VLAN_NAME_SIZE - 1
           v.vlan_name = name
           assert_equal(name, v.vlan_name)
@@ -283,7 +296,6 @@ class TestVlan < CiscoTestCase
     interface.switchport_mode = :disabled
     assert_raises(RuntimeError) { v.add_interface(interface) }
     v.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_vlan_remove_interface_invalid
@@ -295,7 +307,6 @@ class TestVlan < CiscoTestCase
     assert_raises(RuntimeError) { v.remove_interface(interface) }
 
     v.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_vlan_mapped_vnis
