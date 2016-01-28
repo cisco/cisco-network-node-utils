@@ -360,8 +360,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_cli
     end
 
@@ -402,8 +404,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_events
     end
 
@@ -423,8 +427,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_periodic
     end
 
@@ -660,7 +666,6 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
-      Feature.nv_overlay_enable
       Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
@@ -684,11 +689,13 @@ module Cisco
 
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
-      # 'no bgp router-id'. Dummy-id specified to work around this.
-      dummy_id = '1.2.3.4'
+      # 'no bgp router-id'. On some platforms you can specify a dummy
+      # value, but on N7K at least you need the current router_id.
       if id == default_router_id
+        # Nothing to do if router_id is already set to default.
+        return if router_id == default_router_id
         @set_args[:state] = 'no'
-        @set_args[:id] = dummy_id
+        @set_args[:id] = router_id
       else
         @set_args[:state] = ''
         @set_args[:id] = id
