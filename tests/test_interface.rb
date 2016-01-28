@@ -883,6 +883,10 @@ class TestInterface < CiscoTestCase
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
                                  secondary)
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
+    # unconfigure should be safely idempotent
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
+                                 secondary)
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip address (.*)/)
     refute_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address still present in CLI')
