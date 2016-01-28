@@ -360,9 +360,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
-      return default_event_history_cli if match == 'size_small'
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_cli
     end
 
@@ -403,9 +404,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
-      return default_event_history_events if match == 'size_small'
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_events
     end
 
@@ -425,9 +427,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
-      return default_event_history_periodic if match == 'size_small'
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_periodic
     end
 
