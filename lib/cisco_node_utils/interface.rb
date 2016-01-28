@@ -238,9 +238,11 @@ module Cisco
       if addr.nil? || addr == default_ipv4_address
         state = 'no'
         if secondary
+          return if ipv4_address_secondary == default_ipv4_address_secondary
           # We need address and mask to remove.
           am = "#{ipv4_address_secondary}/#{ipv4_netmask_length_secondary}"
         else
+          return if ipv4_address == default_ipv4_address
           am = "#{ipv4_address}/#{ipv4_netmask_length}"
         end
       else
