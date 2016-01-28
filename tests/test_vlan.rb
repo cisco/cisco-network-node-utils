@@ -22,20 +22,23 @@ include Cisco
 
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
-  @@interface_cleaned = false # rubocop:disable Style/ClassVars
-  def setup
-    super
-    # Cleanup any non-default vlans prior to each test.
+  @@cleaned = false # rubocop:disable Style/ClassVars
+  def cleanup
     Vlan.vlans.each do |vlan_id, obj|
       next if vlan_id == '1'
       obj.destroy
     end
-    # Only pre-clean interface on initial setup
-    interface_ethernet_default(interfaces_id[0]) unless @@interface_cleaned
-    @@interface_cleaned = true # rubocop:disable Style/ClassVars
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def setup
+    super
+    cleanup unless @@cleaned
+    @@cleaned = true # rubocop:disable Style/ClassVars
   end
 
   def teardown
+    cleanup
     return unless Vdc.vdc_support
     # Reset the vdc module type back to default
     v = Vdc.new('default')
