@@ -58,7 +58,7 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].to_s.empty?
+      fail result[2]['body'] if /ERROR:/.match(result[2]['body'].to_s)
     end
 
     def fabricpath_feature
