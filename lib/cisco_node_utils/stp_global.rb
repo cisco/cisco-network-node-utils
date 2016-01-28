@@ -46,7 +46,7 @@ module Cisco
       config_get('stp_global', 'bd_designated_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_designated_priority=(list)
       config_set('stp_global', 'bd_designated_priority',
                  'no', '2-3967', '')
@@ -70,7 +70,7 @@ module Cisco
       config_get('stp_global', 'bd_forward_time')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_forward_time=(list)
       config_set('stp_global', 'bd_forward_time',
                  'no', '2-3967', '')
@@ -94,7 +94,7 @@ module Cisco
       config_get('stp_global', 'bd_hello_time')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_hello_time=(list)
       config_set('stp_global', 'bd_hello_time',
                  'no', '2-3967', '')
@@ -118,7 +118,7 @@ module Cisco
       config_get('stp_global', 'bd_max_age')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_max_age=(list)
       config_set('stp_global', 'bd_max_age',
                  'no', '2-3967', '')
@@ -142,7 +142,7 @@ module Cisco
       config_get('stp_global', 'bd_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_priority=(list)
       config_set('stp_global', 'bd_priority',
                  'no', '2-3967', '')
@@ -166,7 +166,7 @@ module Cisco
       config_get('stp_global', 'bd_root_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def bd_root_priority=(list)
       config_set('stp_global', 'bd_root_priority',
                  'no', '2-3967', '')
@@ -295,7 +295,7 @@ module Cisco
       config_get('stp_global', 'mst_designated_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def mst_designated_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_designated_priority',
@@ -360,7 +360,7 @@ module Cisco
       config_get('stp_global', 'mst_inst_vlan_map')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def mst_inst_vlan_map=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_inst_vlan_map',
@@ -445,7 +445,7 @@ module Cisco
       config_get('stp_global', 'mst_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def mst_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_priority',
@@ -490,7 +490,7 @@ module Cisco
       config_get('stp_global', 'mst_root_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def mst_root_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_root_priority',
@@ -531,7 +531,7 @@ module Cisco
       config_get('stp_global', 'vlan_designated_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_designated_priority=(list)
       config_set('stp_global', 'vlan_designated_priority',
                  'no', '1-3967', '')
@@ -555,7 +555,7 @@ module Cisco
       config_get('stp_global', 'vlan_forward_time')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_forward_time=(list)
       config_set('stp_global', 'vlan_forward_time',
                  'no', '1-3967', '')
@@ -579,7 +579,7 @@ module Cisco
       config_get('stp_global', 'vlan_hello_time')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
                  'no', '1-3967', '')
@@ -603,7 +603,7 @@ module Cisco
       config_get('stp_global', 'vlan_max_age')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_max_age=(list)
       config_set('stp_global', 'vlan_max_age',
                  'no', '1-3967', '')
@@ -627,7 +627,7 @@ module Cisco
       config_get('stp_global', 'vlan_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_priority=(list)
       config_set('stp_global', 'vlan_priority',
                  'no', '1-3967', '')
@@ -651,7 +651,7 @@ module Cisco
       config_get('stp_global', 'vlan_root_priority')
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def vlan_root_priority=(list)
       config_set('stp_global', 'vlan_root_priority',
                  'no', '1-3967', '')

@@ -651,7 +651,7 @@ module Cisco
       config_get('interface', 'stp_mst_cost', @name)
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def stp_mst_cost=(list)
       config_set('interface', 'stp_mst_cost',
                  @name, 'no', '0-4094', '')
@@ -675,7 +675,7 @@ module Cisco
       config_get('interface', 'stp_mst_port_priority', @name)
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def stp_mst_port_priority=(list)
       config_set('interface', 'stp_mst_port_priority',
                  @name, 'no', '0-4094', '')
@@ -717,7 +717,7 @@ module Cisco
       config_get('interface', 'stp_vlan_cost', @name)
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def stp_vlan_cost=(list)
       config_set('interface', 'stp_vlan_cost',
                  @name, 'no', '1-3967', '')
@@ -741,7 +741,7 @@ module Cisco
       config_get('interface', 'stp_vlan_port_priority', @name)
     end
 
-    #need to reset entire range before set
+    # need to reset entire range before set
     def stp_vlan_port_priority=(list)
       config_set('interface', 'stp_vlan_port_priority',
                  @name, 'no', '1-3967', '')
