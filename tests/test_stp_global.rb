@@ -338,7 +338,6 @@ class TestStpGlobal < CiscoTestCase
                  @global.vlan_forward_time)
   end
 
-  # on n6k the 'no' cmd for vlan_hello_time is not working so this will fail
   def test_get_set_vlan_hello_time
     @global = create_stp_global
     bddp = [['1-4,6,8-12', '5'], %w(14 8)]

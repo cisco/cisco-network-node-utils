@@ -36,10 +36,17 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # Getter: Builds an array of bd designated priority
+    # commands currently on the device.
+    # cli: bridge-domain 2-42 designated priority 40960
+    #      bridge-domain 83-92,1000-2300 designated priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def bd_designated_priority
       config_get('stp_global', 'bd_designated_priority')
     end
 
+    #need to reset entire range before set
     def bd_designated_priority=(list)
       config_set('stp_global', 'bd_designated_priority',
                  'no', '2-3967', '')
@@ -53,10 +60,17 @@ module Cisco
       config_get_default('stp_global', 'bd_designated_priority')
     end
 
+    # Getter: Builds an array of bd forward time
+    # commands currently on the device.
+    # cli: spanning-tree bridge-domain 2-42 forward-time 4
+    #      spanning-tree bridge-domain 83-92,1000-2300 forward-time 30
+    # array: [['2-42', '4'], ['83-92,1000-2300', '30']]
+    #
     def bd_forward_time
       config_get('stp_global', 'bd_forward_time')
     end
 
+    #need to reset entire range before set
     def bd_forward_time=(list)
       config_set('stp_global', 'bd_forward_time',
                  'no', '2-3967', '')
@@ -70,10 +84,17 @@ module Cisco
       config_get_default('stp_global', 'bd_forward_time')
     end
 
+    # Getter: Builds an array of bd hello time
+    # commands currently on the device.
+    # cli: spanning-tree bridge-domain 2-42 hello-time 6
+    #      spanning-tree bridge-domain 83-92,1000-2300 hello-time 9
+    # array: [['2-42', '6'], ['83-92,1000-2300', '9']]
+    #
     def bd_hello_time
       config_get('stp_global', 'bd_hello_time')
     end
 
+    #need to reset entire range before set
     def bd_hello_time=(list)
       config_set('stp_global', 'bd_hello_time',
                  'no', '2-3967', '')
@@ -87,10 +108,17 @@ module Cisco
       config_get_default('stp_global', 'bd_hello_time')
     end
 
+    # Getter: Builds an array of bd max age
+    # commands currently on the device.
+    # cli: spanning-tree bridge-domain 2-42 max-age 10
+    #      spanning-tree bridge-domain 83-92,1000-2300 max-age 40
+    # array: [['2-42', '10'], ['83-92,1000-2300', '40']]
+    #
     def bd_max_age
       config_get('stp_global', 'bd_max_age')
     end
 
+    #need to reset entire range before set
     def bd_max_age=(list)
       config_set('stp_global', 'bd_max_age',
                  'no', '2-3967', '')
@@ -104,10 +132,17 @@ module Cisco
       config_get_default('stp_global', 'bd_max_age')
     end
 
+    # Getter: Builds an array of bd priority
+    # commands currently on the device.
+    # cli: spanning-tree bridge-domain 2-42 priority 40960
+    #      spanning-tree bridge-domain 83-92,1000-2300 priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def bd_priority
       config_get('stp_global', 'bd_priority')
     end
 
+    #need to reset entire range before set
     def bd_priority=(list)
       config_set('stp_global', 'bd_priority',
                  'no', '2-3967', '')
@@ -121,10 +156,17 @@ module Cisco
       config_get_default('stp_global', 'bd_priority')
     end
 
+    # Getter: Builds an array of bd root priority
+    # commands currently on the device.
+    # cli: bridge-domain 2-42 root priority 40960
+    #      bridge-domain 83-92,1000-2300 root priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def bd_root_priority
       config_get('stp_global', 'bd_root_priority')
     end
 
+    #need to reset entire range before set
     def bd_root_priority=(list)
       config_set('stp_global', 'bd_root_priority',
                  'no', '2-3967', '')
@@ -243,10 +285,17 @@ module Cisco
       config_get_default('stp_global', 'mode')
     end
 
+    # Getter: Builds an array of mst designated priority
+    # commands currently on the device.
+    # cli: spanning-tree mst 2-42 designated priority 40960
+    #      spanning-tree mst 83-92,1000-2300 designated priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def mst_designated_priority
       config_get('stp_global', 'mst_designated_priority')
     end
 
+    #need to reset entire range before set
     def mst_designated_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_designated_priority',
@@ -301,10 +350,17 @@ module Cisco
       config_get_default('stp_global', 'mst_hello_time')
     end
 
+    # Getter: Builds an array of mst instance to vlan range
+    # commands currently on the device.
+    # cli: instance 2 vlan 6-47
+    #      instance 3000 vlan 1000-3200
+    # array: [['2', '6-47'], ['3000', '1000-3200']]
+    #
     def mst_inst_vlan_map
       config_get('stp_global', 'mst_inst_vlan_map')
     end
 
+    #need to reset entire range before set
     def mst_inst_vlan_map=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_inst_vlan_map',
@@ -379,10 +435,17 @@ module Cisco
       config_get_default('stp_global', 'mst_name')
     end
 
+    # Getter: Builds an array of mst priority
+    # commands currently on the device.
+    # cli: spanning-tree mst 2-42 priority 40960
+    #      spanning-tree mst 83-92,1000-2300 priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def mst_priority
       config_get('stp_global', 'mst_priority')
     end
 
+    #need to reset entire range before set
     def mst_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_priority',
@@ -417,10 +480,17 @@ module Cisco
       config_get_default('stp_global', 'mst_revision')
     end
 
+    # Getter: Builds an array of mst root priority
+    # commands currently on the device.
+    # cli: spanning-tree mst 2-42 root priority 40960
+    #      spanning-tree mst 83-92,1000-2300 root priority 53248
+    # array: [['2-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def mst_root_priority
       config_get('stp_global', 'mst_root_priority')
     end
 
+    #need to reset entire range before set
     def mst_root_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_root_priority',
@@ -451,10 +521,17 @@ module Cisco
       config_get_default('stp_global', 'pathcost')
     end
 
+    # Getter: Builds an array of vlan designated priority
+    # commands currently on the device.
+    # cli: vlan 1-42 designated priority 40960
+    #      vlan 83-92,1000-2300 designated priority 53248
+    # array: [['1-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def vlan_designated_priority
       config_get('stp_global', 'vlan_designated_priority')
     end
 
+    #need to reset entire range before set
     def vlan_designated_priority=(list)
       config_set('stp_global', 'vlan_designated_priority',
                  'no', '1-3967', '')
@@ -468,10 +545,17 @@ module Cisco
       config_get_default('stp_global', 'vlan_designated_priority')
     end
 
+    # Getter: Builds an array of vlan forward time
+    # commands currently on the device.
+    # cli: spanning-tree vlan 1-42 forward-time 19
+    #      spanning-tree vlan 3000-3700 forward-time 13
+    # array: [['1-42', '19'], ['3000-3700', '13']]
+    #
     def vlan_forward_time
       config_get('stp_global', 'vlan_forward_time')
     end
 
+    #need to reset entire range before set
     def vlan_forward_time=(list)
       config_set('stp_global', 'vlan_forward_time',
                  'no', '1-3967', '')
@@ -485,10 +569,17 @@ module Cisco
       config_get_default('stp_global', 'vlan_forward_time')
     end
 
+    # Getter: Builds an array of vlan hello time
+    # commands currently on the device.
+    # cli: spanning-tree vlan 1-42 hello-time 10
+    #      spanning-tree vlan 3000-3700 hello-time 6
+    # array: [['1-42', '10'], ['3000-3700', '6']]
+    #
     def vlan_hello_time
       config_get('stp_global', 'vlan_hello_time')
     end
 
+    #need to reset entire range before set
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
                  'no', '1-3967', '')
@@ -502,10 +593,17 @@ module Cisco
       config_get_default('stp_global', 'vlan_hello_time')
     end
 
+    # Getter: Builds an array of vlan max-age
+    # commands currently on the device.
+    # cli: spanning-tree vlan 1-42 max-age 21
+    #      spanning-tree vlan 3000-3700 max-age 13
+    # array: [['1-42', '21'], ['3000-3700', '13']]
+    #
     def vlan_max_age
       config_get('stp_global', 'vlan_max_age')
     end
 
+    #need to reset entire range before set
     def vlan_max_age=(list)
       config_set('stp_global', 'vlan_max_age',
                  'no', '1-3967', '')
@@ -519,10 +617,17 @@ module Cisco
       config_get_default('stp_global', 'vlan_max_age')
     end
 
+    # Getter: Builds an array of vlan priority
+    # commands currently on the device.
+    # cli: spanning-tree vlan 1-42 priority 40960
+    #      spanning-tree vlan 83-92,1000-2300 priority 53248
+    # array: [['1-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def vlan_priority
       config_get('stp_global', 'vlan_priority')
     end
 
+    #need to reset entire range before set
     def vlan_priority=(list)
       config_set('stp_global', 'vlan_priority',
                  'no', '1-3967', '')
@@ -536,10 +641,17 @@ module Cisco
       config_get_default('stp_global', 'vlan_priority')
     end
 
+    # Getter: Builds an array of vlan root priority
+    # commands currently on the device.
+    # cli: vlan 1-42 root priority 40960
+    #      vlan 83-92,1000-2300 root priority 53248
+    # array: [['1-42', '40960'], ['83-92,1000-2300', '53248']]
+    #
     def vlan_root_priority
       config_get('stp_global', 'vlan_root_priority')
     end
 
+    #need to reset entire range before set
     def vlan_root_priority=(list)
       config_set('stp_global', 'vlan_root_priority',
                  'no', '1-3967', '')
