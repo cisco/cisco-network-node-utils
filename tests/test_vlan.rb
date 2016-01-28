@@ -26,10 +26,9 @@ class TestVlan < CiscoTestCase
   def setup
     super
     # Cleanup any non-default vlans prior to each test.
-    s = @device.cmd("show run | i '^vlan 1'")
-    s.split(',').each do |v|
-      vlan = v.match(/(\d+)/).to_s
-      config("no vlan #{vlan}") unless vlan.to_s == '1'
+    Vlan.vlans.each do |vlan_id, obj|
+      next if vlan_id == '1'
+      obj.destroy
     end
     # Only pre-clean interface on initial setup
     interface_ethernet_default(interfaces_id[0]) unless @@interface_cleaned
