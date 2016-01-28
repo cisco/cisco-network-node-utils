@@ -689,14 +689,13 @@ module Cisco
 
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
-      # 'no bgp router-id'. Dummy-id specified to work around this.
-      # not working on N7K need a valid router_id
-      dummy_id = router_id
+      # 'no bgp router-id'. On some platforms you can specify a dummy
+      # value, but on N7K at least you need the current router_id.
       if id == default_router_id
         # Nothing to do if router_id is already set to default.
         return if router_id == default_router_id
         @set_args[:state] = 'no'
-        @set_args[:id] = dummy_id
+        @set_args[:id] = router_id
       else
         @set_args[:state] = ''
         @set_args[:id] = id
