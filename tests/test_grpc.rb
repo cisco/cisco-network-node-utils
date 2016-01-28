@@ -32,21 +32,60 @@ class TestGRPC < TestCase
     @@client
   end
 
+  def test_new_nil_address
+    e = assert_raises(TypeError) do
+      Cisco::Client::GRPC.new(nil, username, password)
+    end
+    assert_equal('gRPC client creation failure: address must be specified',
+                 e.message)
+  end
+
+  def test_new_invalid_address
+    e = assert_raises(ArgumentError) do
+      Cisco::Client::GRPC.new('127.0.0.1', username, password)
+    end
+    assert_equal('gRPC client creation failure: port # required in address',
+                 e.message)
+  end
+
+  def test_new_nil_username
+    e = assert_raises(TypeError) do
+      Cisco::Client::GRPC.new(address, nil, password)
+    end
+    assert_equal('gRPC client creation failure: username must be specified',
+                 e.message)
+  end
+
+  def test_new_nil_password
+    e = assert_raises(TypeError) do
+      Cisco::Client::GRPC.new(address, username, nil)
+    end
+    assert_equal('gRPC client creation failure: password must be specified',
+                 e.message)
+  end
+
   def test_auth_failure
-    assert_raises Cisco::Client::AuthenticationFailed do
+    e = assert_raises Cisco::Client::AuthenticationFailed do
       Cisco::Client::GRPC.new(address, username, 'wrong password')
     end
+    assert_equal('gRPC client creation failure: Failed authentication',
+                 e.message)
   end
 
   def test_connection_failure
     # Connecting to a port that's listening, but not gRPC is one failure path
-    assert_raises Cisco::Client::ConnectionRefused do
+    e = assert_raises Cisco::Client::ConnectionRefused do
       Cisco::Client::GRPC.new('127.0.0.1:22', 'user', 'pass')
     end
+    assert_equal('gRPC client creation failure: Connection refused: ',
+                 e.message)
     # Connecting to a port that's not listening is a different failure path
-    assert_raises Cisco::Client::ConnectionRefused do
+    e = assert_raises Cisco::Client::ConnectionRefused do
       Cisco::Client::GRPC.new('127.0.0.1:0', 'user', 'pass')
     end
+    assert_equal('gRPC client creation failure: ' \
+                 'timed out during initial connection: Deadline Exceeded',
+                 e.message)
   end
 
   def test_set_cli_string
