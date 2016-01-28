@@ -54,11 +54,6 @@ class TestVpc < CiscoTestCase
            'Domain collection should not be empty after create')
   end
 
-  def test_vpc_create_negative
-    e = assert_raises(CliError) { Vpc.new(1001) }
-    assert_match(/Invalid number.*range/, e.message)
-  end
-
   def test_vpc_destroy
     # create and test again
     @vpc = Vpc.new(100)
@@ -87,9 +82,6 @@ class TestVpc < CiscoTestCase
     @vpc.auto_recovery_reload_delay = 300
     assert_equal(300, @vpc.auto_recovery_reload_delay,
                  'Auto recovery delay should be 300')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 86_401 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_delay_restore
@@ -100,9 +92,6 @@ class TestVpc < CiscoTestCase
     @vpc.delay_restore = 1000
     assert_equal(1000, @vpc.delay_restore,
                  'delay restore should be 1000')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.delay_restore = 3601 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_delay_restore_interface_vlan
@@ -113,9 +102,6 @@ class TestVpc < CiscoTestCase
     @vpc.delay_restore_interface_vlan = 2000
     assert_equal(2000, @vpc.delay_restore_interface_vlan,
                  'delay restore should be 2000')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.delay_restore_interface_vlan = 3601 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_dual_active_exclude_interface_vlan_bridge_domain
@@ -129,11 +115,6 @@ class TestVpc < CiscoTestCase
     assert_equal('2-20,900',
                  @vpc.dual_active_exclude_interface_vlan_bridge_domain,
                  'exclude vlan/bd should be 2-20,900')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.dual_active_exclude_interface_vlan_bridge_domain = '64535'
-    end
-    assert_match(/Invalid value.*range/, e.message)
   end
 
   def test_graceful_consistency_check
@@ -225,11 +206,6 @@ class TestVpc < CiscoTestCase
     @vpc.peer_gateway_exclude_bridge_domain = '10-20,400'
     assert_equal('10-20,400', @vpc.peer_gateway_exclude_bridge_domain,
                  'peer_gateway exclude list not getting set')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.peer_gateway_exclude_bridge_domain = '64535'
-    end
-    assert_match(/Invalid/i, e.message)
   end
 
   def test_peer_gateway_exclude_vlan
@@ -242,11 +218,6 @@ class TestVpc < CiscoTestCase
     @vpc.peer_gateway_exclude_vlan = '10-20,400'
     assert_equal('10-20,400', @vpc.peer_gateway_exclude_vlan,
                  'peer_gateway exclude list not getting set')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.peer_gateway_exclude_vlan = '4096'
-    end
-    assert_match(/Invalid/i, e.message)
   end
 
   def test_role_priority
