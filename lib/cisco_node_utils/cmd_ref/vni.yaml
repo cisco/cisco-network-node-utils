@@ -1,16 +1,17 @@
 # vni
 ---
-_exclude: [/N(5|6)/]
+_exclude: [N5k, N6k]
 all_vnis:
   multiple:
-  /N7/:
+  N7k:
     # MT-full only
     config_get: 'show vni'
     config_get_token: '/^(\d+)\s/'
-  /N(3|9)/:
+  N3k: &all_vnis_mt_lite
     # MT-lite only
     config_get: 'show running vlan'
     config_get_token: '/vn-segment (\d+)/'
+  N9k: *all_vnis_mt_lite
 
 bridge_domain:
   # MT-full only
@@ -26,40 +27,42 @@ create:
   config_set: ['vni <vni>' , 'end']
 
 destroy:
-  /N7/:
+  N7k:
     # MT-full only
     config_set: 'no vni <vni>'
-  /N(3|9)/:
+  N3k: &destroy_mt_lite
     # MT-lite only
     config_set: ['vlan <vlan>', 'no vn-segment <vni> ; end']
-
+  N9k: *destroy_mt_lite
 encap_dot1q:
   config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
   default_value: ~
 
 feature:
   config_get: 'show running | i ^feature'
-  /N7/:
+  N7k:
     # MT-Full only
     config_get_token: '/^feature vni$/'
     config_set: 'feature vni'
-  /N(3|9)/:
+  N3k: &feature_mt_lite
     # MT-lite only
     config_get_token: '/^feature vn-segment-vlan-based$/'
     config_set: 'feature vn-segment-vlan-based'
+  N9k: *feature_mt_lite
 
 mapped_vlan:
   # MT-lite only
-  /N(3|9)/:
+  N3k: &mapped_vlan_mt_lite
     config_get: 'show running vlan'
     config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
     config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
     default_value: ''
+  N9k: *mapped_vlan_mt_lite
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean
-  /N7/:
+  N7k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -68,15 +71,16 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  /N(3|9)/:
+  N3k: &mt_lite_supported
     default_only: true
+  N9k: *mt_lite_supported
   else:
     # this feature is always off on these platforms and cannot be changed
     default_only: false
 
 shutdown:
   # MT-Full only
-  /N7/:
+  N7k:
     kind: boolean
     config_get: 'show vni'
     config_get_token: '/^<vni> +Down/'

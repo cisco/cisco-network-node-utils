@@ -81,7 +81,7 @@ shutdown:
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
   # MT-lite only
-  /N9/:
+  N9k:
     kind: int
     config_get_token_append: '/^vni (\d+)$/'
     config_set_append: '<state> vni <id>'

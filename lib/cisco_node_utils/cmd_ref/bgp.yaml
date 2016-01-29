@@ -169,14 +169,14 @@ maxas_limit:
   default_value: false
 
 neighbor_down_fib_accelerate:
-  _exclude: [/N6/, /N7/]
+  _exclude: [N6k, N7k]
   kind: boolean
   config_get_token_append: '/^neighbor-down fib-accelerate$/'
   config_set_append: '<state> neighbor-down fib-accelerate'
   default_value: false
 
 reconnect_interval:
-  _exclude: [/N6/, /N7/]
+  _exclude: [N6k, N7k]
   kind: int
   config_get_token_append: '/^reconnect-interval (\d+)$/'
   config_set_append: '<state> reconnect-interval <seconds>'

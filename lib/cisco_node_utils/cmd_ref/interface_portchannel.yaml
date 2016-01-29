@@ -22,7 +22,9 @@ lacp_max_bundle:
   kind: int
   config_get_token_append: ['/^lacp max.bundle (\d+)$/']
   config_set_append: ["lacp max-bundle %s"]
-  /N(3|9)/:
+  N3k:
+    default_value: 32
+  N9k:
     default_value: 32
   else:
     default_value: 16
@@ -41,13 +43,13 @@ lacp_suspend_individual:
   default_value: true
 
 port_hash_distribution:
-  _exclude: [/N6/, /N5/]
+  _exclude: [N6k, N5k]
   config_get_token_append: ['/^port-channel port hash.distribution (.*)$/']
   config_set: ["terminal dont-ask", "interface %s", "%s port-channel port hash-distribution %s", "end"]
   default_value: false
 
 port_load_defer:
-  _exclude: [/N6/, /N5/]
+  _exclude: [N6k, N5k]
   kind: boolean
   config_get_token_append: ['/^port-channel port load.defer$/']
   config_set_append: ["%s port-channel port load-defer"]

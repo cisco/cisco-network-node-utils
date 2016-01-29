@@ -22,6 +22,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
 * [Y9](#yaml9): Selection of `show` commands for `config_get`.
 * [Y10](#yaml10): Use `true` and `false` for boolean values.
+* [Y11](#yaml11): Use YAML anchors and aliases to avoid redundant entries.
 
 
 
@@ -133,13 +134,13 @@ message_digest_alg_type:
 
 **NOTE1: Use strings rather then symbols when applicable**.
 
-If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9K is `md5` then you might do something like this:
+If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9k is `md5` then you might do something like this:
 
 ```yaml
 message_digest_alg_type:
   config_get: 'show running interface all'
   config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
-  /N9K/:
+  N9k:
     default_value: 'sha2'
   else:
     default_value: 'md5'
@@ -205,6 +206,42 @@ The following commands should be preferred over `show [feature]` commands since 
 ### <a name="yaml10">Y10: Use `true` and `false` for boolean values.
 
 YAML allows various synonyms for `true` and `false` such as `yes` and `no`, but for consistency and readability (especially to users more familiar with Ruby than with YAML), we recommend using `true` and `false` rather than any of their synonyms.
+
+### <a name="yaml11">Y11: Use YAML anchors and aliases to avoid redundant entries.
+
+Use the standard YAML functionality of [node anchors](http://www.yaml.org/spec/1.2/spec.html#id2785586) and [node aliases](http://www.yaml.org/spec/1.2/spec.html#id2786196) to avoid redundant entries. In other words, instead of:
+
+```yaml
+  vn_segment_vlan_based:
+   # MT-lite only
+   N3k:
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+   N9k:
+     # same as N3k
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+```
+
+instead you can do:
+
+```yaml
+  vn_segment_vlan_based:
+   # MT-lite only
+   N3k: &vn_segment_vlan_based_mt_lite
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+   N9k: *vn_segment_vlan_based_mt_lite
+```
 
 ## Common Object Best Practices:
 

@@ -339,12 +339,34 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
+    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N9k XRv9k)
+
+    def self.platform_to_filter(platform)
+      case platform
+      when 'C3064'
+        /C3064/
+      when 'N3k'
+        /N3/
+      when 'N5k'
+        /N5/
+      when 'N6k'
+        /N6/
+      when 'N7k'
+        /N7/
+      when 'N9k'
+        /N9/
+      when 'XRv9k'
+        /XRV9/
+      else
+        fail IndexError, "Unknown platform key '#{platform}'"
+      end
+    end
+
     KNOWN_FILTERS = %w(cli_nexus)
 
     def self.key_match(key, platform, product_id, cli)
-      if key[0] == '/' && key[-1] == '/'
-        # It's a product-id regexp. Does it match our given product_id?
-        return Regexp.new(key[1..-2]) =~ product_id ? true : false
+      if KNOWN_PLATFORMS.include?(key)
+        return platform_to_filter(key) =~ product_id ? true : false
       elsif KNOWN_FILTERS.include?(key)
         return false if key.match(/cli/) && !cli
         return Regexp.new(platform.to_s) =~ key ? true : false

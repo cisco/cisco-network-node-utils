@@ -16,7 +16,7 @@ auth_password_with_engine_id:
 
 auth_protocol:
   default_value: "md5"
-  /N9K/:
+  N9k:
     # TODO: is this really N9K-specific?
     config_get_token: "auth"
 
@@ -25,7 +25,7 @@ engine_id:
 
 group:
   default_value: "network-operator"
-  /N9K/:
+  N9k:
     # TODO: is this really N9K-specific?
     config_get_token: "group"
 
@@ -42,7 +42,7 @@ priv_password_with_engine_id:
 
 priv_protocol:
   default_value: "des"
-  /N9K/:
+  N9k:
     # TODO: is this really N9K-specific?
     config_get_token: "priv"
 
