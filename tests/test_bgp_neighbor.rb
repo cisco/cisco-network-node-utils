@@ -97,7 +97,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
     regex = /neighbor #{addr}/
     if vrf == 'default'
       if platform == :ios_xr
-        cmd = "show run router bgp"
+        cmd = 'show run router bgp'
         regex = /^ neighbor #{addr}/
       else
         cmd = "show run bgp all | section 'router bgp' | no-more"
