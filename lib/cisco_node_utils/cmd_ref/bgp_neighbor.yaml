@@ -8,7 +8,7 @@ _template:
   context:
     - "router bgp <asnum>"
     - "(?)vrf <vrf>"
-    - "neighbor <nbr>"
+    - "(?)neighbor <nbr>"
 
 af:
   set_value: '<state> address-family <afi> <safi>'

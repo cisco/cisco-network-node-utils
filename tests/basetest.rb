@@ -127,9 +127,11 @@ class TestCase < Minitest::Test
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
-    @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
+    cfg = args.join("\n")
+    output = @device.cmd('String' => "configure terminal\n#{cfg}\nend",
                 # NX-OS has a space after '#', IOS XR does not
                 'Match'  => /^[^()]+[$%#>] *\z/n)
+    Cisco::Logger.debug("Basetest.config(): \n#{output}")
   rescue Net::ReadTimeout => e
     raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end

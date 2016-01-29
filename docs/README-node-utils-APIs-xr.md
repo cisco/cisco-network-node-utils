@@ -1,4 +1,4 @@
-# How To Create New node_utils APIs
+# How To Update node_utils APIs to Support XR
 
 #### Table of Contents
 
@@ -122,7 +122,7 @@ First, we exclude the attribute in bgp_neighbor.yaml:
     default_value: false
 ```
 
-This will cause any calls to config_set for this attribute to raise a Cisco::UnsupportedError, and  calls to config_get and config_get_default will return nil.  Because of this, we must update the test_bgp_neighbor.rb minitest to expect these conditions on XR (see [Development Best Practices: MT6](./README-develop-best-practices.md#mt6)):
+This will cause any calls to config_set for this attribute to raise a Cisco::UnsupportedError, and calls to config_get and config_get_default will return nil.  Because of this, we must update the test_bgp_neighbor.rb minitest to expect these conditions on XR (see [Development Best Practices: MT6](./README-develop-best-practices.md#mt6)):
 
 ```ruby
   def test_low_memory_exempt
@@ -169,7 +169,7 @@ RP/0/RP0/CPU0:agent-lab20-xr(config)#router bgp 55 neighbor 1.1.1.1  update-sour
 % Invalid input detected at '^' marker.
 ```
 
-Although the formatting makes it difficult to tell, the '^' marker is pointing to "Ethernet1/1" in the above example.  Instead of using hardcoded interface names, use the interfaces[] array (see [Development Best Practices: MT3](./README-develop-best-practices.md#mt3)).
+As you can see in CLI output, the '^' marker is indicating that "Ethernet1/1" is invalid.  Instead of using hardcoded interface names, use the interfaces[] array (see [Development Best Practices: MT3](./README-develop-best-practices.md#mt3)).
 
 ```ruby test_bgp_router.rb
   def test_update_source
@@ -189,7 +189,7 @@ Although the formatting makes it difficult to tell, the '^' marker is pointing t
 
 #### <a name="setup">Setup/teardown differences</a>
 
-Your minitest's setup method is run before each test, and the teardown method is run after each test.  These methods often contain calls to the TestCase.config method to execute commands to clear and setup existing configuration on the device, and often, the commands will differ between platforms. Currently, the config method does not display the output from any executed commands, even when debug is enabled, so any errors that occur will be masked.
+Your minitest's setup method is run before each test, and the teardown method is run after each test.  These methods often contain calls to the TestCase.config method to execute commands to clear existing configuration on the device, and often, the commands will differ between platforms. Currently, the config method does not display the output from executed commands, even when debug is enabled, so any errors that occur will be masked.
 
 You should verify that any existing config commands are valid for XR (either by sight, or by executing them manually on the XR CLI).  The following changes were needed for test_bgp_neighbor.rb:
 
@@ -216,9 +216,9 @@ You should verify that any existing config commands are valid for XR (either by 
 
 #### <a name="dependency">Dependency differences</a>
 
-While enhancing the Cisco BGP features to support IOS XR, we found that configuring some attributes would require that other attributes be configured in a certain way, first (sometimes in the same sub-mode, sometimes in a parent mode).  Usually, we were able to solve this by creating helper methods in the minitest to set up any dependencies.
+While enhancing the Cisco BGP features to support IOS XR, we found that configuring some attributes would require that other attributes be configured in a certain way, first (sometimes in the same sub-mode, sometimes in a parent mode).  Usually, we were able to solve this by creating helper methods in the minitests to set up any dependencies.
 
-As an example, XR requires the remote-as attribute to be set before any other attribute can be set.  Attempting to set the description on a neighbor without first setting the remove-as results in the following error:
+As an example, XR requires the bgp neighbor remote-as attribute to be set before any other neighbor attribute can be set.  Attempting to set the description on a neighbor without first setting the remote-as results in the following error:
 
 ```bash
   1) Error:
@@ -268,7 +268,7 @@ Other examples of BGP dependency issues we ran into on XR that did not exist on 
 Each feature will be different, so it there will almost certainly be unique changes needed to support XR for a particular feature.  For bgp neighbor, that included the following:
 
  - XR does not support bgp neighbor addresses in the prefix/len format ("2.2.2.2/24"), so we had to skip those in the minitest on XR.
- - XR only supports a single encryption type for the password attribute (simply specified as "encrypted", which maps to "md5").  We updated the ruby API to fail with a Cisco::UnsupportedError if an encryption type other than md5 is specified on XR (and updated the minitest to match).
+ - XR only supports a single encryption type for the password attribute (simply specified as "encrypted", which is actually "md5").  We updated the node_utils API to fail with a Cisco::UnsupportedError if an encryption type other than md5 is specified on XR (and updated the minitest to match).
  - XR supports three transport connection modes (active-only, passive-only, both), while Nexus only supports two (passive-only, both) through the transport_passive_only attribute.  We added a new transport_passive_mode attribute that accepts all three types.
 
 
