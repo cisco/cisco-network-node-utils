@@ -64,12 +64,14 @@ class CiscoTestCase < TestCase
   end
 
   def interfaces
+    puts `host #{address}`
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
       @@interfaces = []
-      Interface.interfaces.each do |int, _obj|
+      Interface.interfaces.each do |int, obj|
         next unless /ethernet/.match(int)
+        #puts "int info: #{obj.ipv4_interface} , #{obj.ipv4_interface.class}"
         @@interfaces << int
       end
       # rubocop:enable Style/ClassVars
