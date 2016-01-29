@@ -12,25 +12,12 @@ mapping:
           - 'ios_xr'
           - 'nexus'
           # Product IDs
-          - '/C3064/'
-          - '/N3/'
-          - '/N3K/'
-          - '/N5/'
-          - '/N5K/'
-          - '/N6/'
-          - '/N6K/'
-          - '/N7/'
-          - '/N7K/'
-          - '/N9/'
-          - '/N9K/'
-          # TODO - remove these
-          - '/N(3|5|6)/'
-          - '/N(3|5|6|9)/'
-          - '/N(3|9)/'
-          - '/N(5|6)/'
-          - '/N(5|6|7)/'
-          - '/N(6|7)/'
-        
+          - 'N3k'
+          - 'N5k'
+          - 'N6k'
+          - 'N7k'
+          - 'N9k'
+
   =: &base # default rule - apply to all properties
     type: map
     mapping:
@@ -38,23 +25,12 @@ mapping:
       # Platform and product filters
       ios_xr: *base
       nexus: *base
-      '/C3064/': *base
-      '/N3/': *base
-      '/N3K/': *base
-      '/N5/': *base
-      '/N5K/': *base
-      '/N6/': *base
-      '/N6K/': *base
-      '/N7/': *base
-      '/N9/': *base
-      '/N9K/': *base
-      # TODO - remove these
-      '/(N3K|N9K)/': *base
-      '/(N7|C3064)/': *base
-      '/N(3|9)/': *base
-      '/N(5|6)/': *base
-      '/N(5|6|7)/': *base
-      '/N(7|9)/': *base
+      C3064: *base
+      N3k: *base
+      N5k: *base
+      N6k: *base
+      N7k: *base
+      N9k: *base
       # 'else' case if not matching any filter above
       else: *base
       # Generally applicable attributes

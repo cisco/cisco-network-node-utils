@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require 'ipaddr'
 
 module Cisco
   # RadiusServerGroup - node utility class for
@@ -92,8 +93,17 @@ module Cisco
 
       # Add new IPs that aren't already on the device
       val.each do |new_ip|
-        fail ArgumentError, 'Servers must be an array of valid IP addresses' \
-          unless new_ip[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
+        unless new_ip =~ /^[a-zA-Z0-9\.\:]*$/
+          fail ArgumentError,
+               'Servers must be an array of valid IPv4/IPv6 addresses'
+        end
+
+        begin
+          IPAddr.new(new_ip)
+        rescue
+          raise ArgumentError,
+                'Servers must be an array of valid IPv4/IPv6 addresses'
+        end
 
         next unless current.nil? || !current.include?(new_ip)
         config_set('radius_server_group',

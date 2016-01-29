@@ -187,12 +187,12 @@ name:
   default_value: 'generic'
   nexus:
     default_value: 'NXAPI base'
-    /N7K/:
+    N7k:
       default_value: ~
-    /N9K/:
+    N9k:
       default_value: 'NXAPI N9K'
   ios_xr:
-    /XRV9000/:
+    XRv9k:
       default_value: ~
     else:
       default_value: 'gRPC base'
@@ -248,10 +248,10 @@ name:
   def write_exclusions
     write("
 _exclude:
-  - /N9K/
+  - N9k
 
 name:
-  _exclude: [/C30../, /C31../]
+  _exclude: [N3k]
   default_value: hello
 
 rank:
@@ -526,16 +526,16 @@ test3:
 
   RAW_1 = {
     'name' => {
-      '_exclude'      => ['/N3K/'],
+      '_exclude'      => ['N3k'],
       'default_value' => 'generic',
       'nexus'         => {
         'default_value' => 'NXAPI base',
-        '/N7K/'         => { 'default_value' => nil },
-        '/N9K/'         => { 'default_value' => 'NXAPI N9K' },
+        'N7k'           => { 'default_value' => nil },
+        'N9k'           => { 'default_value' => 'NXAPI N9K' },
       },
       'ios_xr'        => {
-        '/XRV9000/' => { 'default_value' => nil },
-        'else'      => { 'default_value' => 'gRPC base' },
+        'XRv9k' => { 'default_value' => nil },
+        'else'  => { 'default_value' => 'gRPC base' },
       },
     }
   }
@@ -552,7 +552,7 @@ test3:
       'default_value' => 'generic',
       'nexus'         => {
         'default_value' => 'NXAPI base',
-        '/N7K/'         => { 'default_value' => nil },
+        'N7k'           => { 'default_value' => nil },
       },
     }
   }

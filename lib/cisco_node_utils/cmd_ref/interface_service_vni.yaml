@@ -1,7 +1,7 @@
 # interface_service_vni
 ---
 _template:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   get_command: 'show running interface all'
   get_context:
     - '/^interface <name>$/i'
@@ -27,7 +27,7 @@ encapsulation_profile_vni:
   default_value: ''
 
 shutdown:
-  '/N7/':
+  N7k:
     kind: boolean
     get_value: '/^(?:no )?shutdown$/'
     set_value: "<state> shutdown"

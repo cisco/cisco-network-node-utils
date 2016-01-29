@@ -1,6 +1,6 @@
 # vxlan_vtep_vni
 ---
-_exclude: [/N(3|5|6)/]
+_exclude: [N3k, N5k, N6k]
 
 _template:
   get_command: "show running-config interface all | section 'interface nve'"

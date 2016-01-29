@@ -1,16 +1,17 @@
 # vni
 ---
-_exclude: [/N(5|6)/]
+_exclude: [N5k, N6k]
 all_vnis:
   multiple:
-  '/N7/':
+  N7k:
     # MT-full only
     get_command: 'show vni'
     get_value: '/^(\d+)\s/'
-  '/N(3|9)/':
+  N3k: &all_vnis_mt_lite
     # MT-lite only
     get_command: 'show running vlan'
     get_value: '/vn-segment (\d+)/'
+  N9k: *all_vnis_mt_lite
 
 bridge_domain:
   # MT-full only
@@ -27,13 +28,14 @@ create:
   set_value: 'vni <vni>'
 
 destroy:
-  '/N7/':
+  N7k:
     # MT-full only
     set_value: 'no vni <vni>'
-  '/N(3|9)/':
+  N3k: &destroy_mt_lite
     # MT-lite only
     set_context: ['vlan <vlan>']
     set_value: 'no vn-segment <vni>'
+  N9k: *destroy_mt_lite
 
 encap_dot1q:
   set_context:
@@ -43,28 +45,30 @@ encap_dot1q:
 
 feature:
   get_command: 'show running | i ^feature'
-  '/N7/':
+  N7k:
     # MT-Full only
     get_value: '/^feature vni$/'
     set_value: 'feature vni'
-  '/N(3|9)/':
+  N3k: &feature_mt_lite
     # MT-lite only
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
+  N9k: *feature_mt_lite
 
 mapped_vlan:
   # MT-lite only
-  '/N(3|9)/':
+  N3k: &mapped_vlan_mt_lite
     get_command: 'show running vlan'
     context: ['vlan <vlan>']
     get_value: '/^vn-segment (\d+)$/'
     set_value: '<state> vn-segment <vni>'
     default_value: ''
+  N9k: *mapped_vlan_mt_lite
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean
-  '/N7/':
+  N7k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -73,15 +77,16 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  '/N(3|9)/':
+  N3k: &mt_lite_supported
     default_only: true
+  N9k: *mt_lite_supported
   else:
     # this feature is always off on these platforms and cannot be changed
     default_only: false
 
 shutdown:
   # MT-Full only
-  '/N7/':
+  N7k:
     kind: boolean
     get_command: 'show vni'
     get_value: '/^<vni> +Down/'

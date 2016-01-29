@@ -1,6 +1,6 @@
 # vxlan_vtep
 ---
-_exclude: [/N(3|5|6)/]
+_exclude: [N3k, N5k, N6k]
 
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
@@ -13,15 +13,14 @@ all_interfaces:
   get_value: '/^interface (.*)$/'
 
 host_reachability:
-  '/N(7|9)/':
-    get_value: '/^host-reachability protocol (\S+)/'
-    set_value: '<state> host-reachability protocol <proto>'
-    default_value: 'flood'
+  get_value: '/^host-reachability protocol (\S+)/'
+  set_value: '<state> host-reachability protocol <proto>'
+  default_value: 'flood'
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean
-  '/N7/':
+  N7k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
@@ -30,7 +29,7 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  '/N9/':
+  N9k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed

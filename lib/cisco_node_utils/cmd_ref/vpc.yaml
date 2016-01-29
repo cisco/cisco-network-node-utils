@@ -7,11 +7,13 @@ _template:
 
 auto_recovery: 
   kind: boolean
-  _exclude: [/N5K/, /N6K/]
+  _exclude: [N5k, N6k]
   auto_default: false
   get_value: '/^auto\-recovery/'
   set_value: "<state> auto-recovery"
-  '/(N3K|N9K)/':
+  N3k:
+    default_value: false
+  N9k:
     default_value: false
   else:
     default_value: true
@@ -45,7 +47,7 @@ domain:
 
 dual_active_exclude_interface_vlan_bridge_domain: 
   kind: string
-  '/N7/':
+  N7k:
     get_value: '/^dual\-active exclude interface\-vlan\-bridge\-domain\s+(\S+)/'
     set_value: "<state> dual-active exclude interface-vlan-bridge-domain <range>"
   else:
@@ -86,7 +88,7 @@ graceful_consistency_check:
 
 layer3_peer_routing: 
   kind: boolean
-  _exclude: [/N3K/, /N5K/, /N9K/]
+  _exclude: [N3k, N5k, N9k]
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
   default_value: false
@@ -100,13 +102,13 @@ peer_gateway:
 # Exclude everyone for now till the BD command is fully supported
 peer_gateway_exclude_bridge_domain: 
   kind: string
-  _exclude: [/N3K/, /N5K/, /N6K/, /N7/, /N9K/]
+  _exclude: [N3k, N5k, N6k, N7k, N9k]
   get_value: '/^peer\-gateway exclude bridge\-domain\s+(\S+)/'
   set_value: "peer-gateway exclude-bridge-domain <range>"
   default_value: ''
 
 peer_gateway_exclude_vlan: 
-  _exclude: [/N3K/, /N9K/]
+  _exclude: [N3k, N9k]
   kind: string
   get_value: '/^peer\-gateway exclude-vlan\s(\S+)/'
   set_value: "peer-gateway exclude-vlan <range>"
@@ -154,7 +156,7 @@ peer_keepalive_vrf:
   default_value: 'management'
 
 port_channel_limit: 
-  _exclude: [/N5K/, /N6K/, /N9K/]
+  _exclude: [N5k, N6k, N9k]
   kind: boolean    
   get_value: '/^port\-channel limit/'
   set_value: "<state> port-channel limit"
@@ -167,14 +169,14 @@ role_priority:
 
 self_isolation: 
   kind: boolean
-  _exclude: [/N5K/, /N6K/, /N9K/]
+  _exclude: [N5k, N6k, N9k]
   get_value: '/^self\-isolation/'
   set_value: "<state> self-isolation"
   default_value: false
 
 shutdown: 
   kind: boolean
-  _exclude: [/N3K/, /N9K/]
+  _exclude: [N3k, N9k]
   get_value: '/^shutdown/'
   set_value: "<state> shutdown"
   default_value: false
@@ -194,7 +196,7 @@ system_priority:
 # Exclude everyone for now till the track command is fully supported
 track: 
   kind: int
-  _exclude: [/N3K/, /N5K/, /N6K/, /N7/, /N9K/]
+  _exclude: [N3k, N5k, N6k, N7k, N9k]
   get_value: '/^track\s+(\d+)/'
   set_value: "<state> track <val>"
   default_value: 0
