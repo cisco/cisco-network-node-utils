@@ -15,6 +15,7 @@
 require_relative 'basetest'
 require_relative 'platform_info'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
 
@@ -66,10 +67,15 @@ class CiscoTestCase < TestCase
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
-      platform_info = PlatformInfo.new(node.host_name, :nexus)
-      @@interfaces = platform_info.get_value_from_key('interfaces')
+      @@interfaces = []
+      Interface.interfaces.each do |int, _obj|
+        next unless /ethernet/.match(int)
+        @@interfaces << int
+      end
       # rubocop:enable Style/ClassVars
     end
+    abort "No suitable interfaces found on #{node} for this test" if
+      @@interfaces.empty?
     @@interfaces
   end
 
