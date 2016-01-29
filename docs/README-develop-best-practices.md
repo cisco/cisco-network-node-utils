@@ -234,13 +234,13 @@ instead you can do:
 ```yaml
   vn_segment_vlan_based:
    # MT-lite only
-   N3k: &vn_segment_vlan_based_N3k
+   N3k: &vn_segment_vlan_based_mt_lite
      kind: boolean
      config_get: 'show running section feature'
      config_get_token: '/^feature vn-segment-vlan-based$/'
      config_set: 'feature vn-segment-vlan-based'
      default_value: false
-   N9k: *vn_segment_vlan_based_N3k
+   N9k: *vn_segment_vlan_based_mt_lite
 ```
 
 ## Common Object Best Practices:

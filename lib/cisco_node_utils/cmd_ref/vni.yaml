@@ -7,11 +7,11 @@ all_vnis:
     # MT-full only
     config_get: 'show vni'
     config_get_token: '/^(\d+)\s/'
-  N3k: &all_vnis_N3k
+  N3k: &all_vnis_mt_lite
     # MT-lite only
     config_get: 'show running vlan'
     config_get_token: '/vn-segment (\d+)/'
-  N9k: *all_vnis_N3k
+  N9k: *all_vnis_mt_lite
 
 bridge_domain:
   # MT-full only
@@ -30,10 +30,10 @@ destroy:
   N7k:
     # MT-full only
     config_set: 'no vni <vni>'
-  N3k: &destroy_N3k
+  N3k: &destroy_mt_lite
     # MT-lite only
     config_set: ['vlan <vlan>', 'no vn-segment <vni> ; end']
-  N9k: *destroy_N3k
+  N9k: *destroy_mt_lite
 encap_dot1q:
   config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
   default_value: ~
@@ -44,20 +44,20 @@ feature:
     # MT-Full only
     config_get_token: '/^feature vni$/'
     config_set: 'feature vni'
-  N3k: &feature_N3k
+  N3k: &feature_mt_lite
     # MT-lite only
     config_get_token: '/^feature vn-segment-vlan-based$/'
     config_set: 'feature vn-segment-vlan-based'
-  N9k: *feature_N3k
+  N9k: *feature_mt_lite
 
 mapped_vlan:
   # MT-lite only
-  N3k: &mapped_vlan_N3k
+  N3k: &mapped_vlan_mt_lite
     config_get: 'show running vlan'
     config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
     config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
     default_value: ''
-  N9k: *mapped_vlan_N3k
+  N9k: *mapped_vlan_mt_lite
 
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
@@ -71,9 +71,9 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  N3k: &mt_lite_support_N3k
+  N3k: &mt_lite_supported
     default_only: true
-  N9k: *mt_lite_support_N3k
+  N9k: *mt_lite_supported
   else:
     # this feature is always off on these platforms and cannot be changed
     default_only: false
