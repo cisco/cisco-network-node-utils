@@ -28,12 +28,7 @@ class TestVxlanGlobal < CiscoTestCase
   end
 
   def no_vxlan_global
-    begin
-      return if !(nv_overlay_evpn_enabled?) && !(fabric_forwarding_enabled?)
-      config('no feature fabric forwarding')
-      config('no nv overlay evpn')
-    end
-  rescue
+    config('no feature fabric forwarding')
     config('no nv overlay evpn')
   end
 
