@@ -460,6 +460,8 @@ class TestStpGlobal < CiscoTestCase
 
   def test_interface_stp_port_type_change
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
+    interface.switchport_mode = :trunk
     interface.stp_port_type = 'edge'
     assert_equal('edge', interface.stp_port_type)
     interface.stp_port_type = 'edge trunk'
