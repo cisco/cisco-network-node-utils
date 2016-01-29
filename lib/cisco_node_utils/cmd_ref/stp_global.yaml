@@ -4,42 +4,42 @@ _template:
   config_get: "show running-config spanning-tree"
 
 bd_designated_priority:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) designated priority (.*)$/']
   config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s designated priority %s"]
   default_value: []
 
 bd_forward_time:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) forward-time (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s forward-time %s"]
   default_value: []
 
 bd_hello_time:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) hello-time (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s hello-time %s"]
   default_value: []
 
 bd_max_age:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) max-age (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s max-age %s"]
   default_value: []
 
 bd_priority:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree bridge-domain (.*) priority (.*)$/']
   config_set: ["%s spanning-tree bridge-domain %s priority %s"]
   default_value: []
 
 bd_root_priority:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) root priority (.*)$/']
   config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s root priority %s"]
@@ -66,15 +66,15 @@ bridge_assurance:
   default_value: true
 
 domain:
-  _exclude: [/N(3|9)/]
+  _exclude: [N3k, N9k]
   kind: int
   config_get_token: '/^spanning-tree domain (\d+)$/'
   config_set: "%s spanning-tree domain %s"
   default_value: false
 
 fcoe:
+  _exclude: [N5k, N6k, N7k]
   kind: boolean
-  _exclude: [/N(5|6|7)/]
   auto_default: false
   config_get: "show running-config spanning-tree all"
   config_get_token: '/^spanning-tree fcoe$/'
