@@ -1,0 +1,64 @@
+# Kwalify schema for cmd_ref YAML files
+
+type: map
+mapping:
+  # List of cases to specifically exclude
+  _exclude: &exclude
+    type: seq
+    sequence:
+      - type: str
+        enum: &filters # Things we can filter by
+          # Platform classes
+          - 'cli_nexus'
+          # Product IDs
+          - 'N3k'
+          - 'N5k'
+          - 'N6k'
+          - 'N7k'
+          - 'N9k'
+
+  =: &base # default rule - apply to all properties
+    type: map
+    mapping:
+      _exclude: *exclude
+      # Platform and product filters
+      cli_nexus: *base
+      C3064: *base
+      N3k: *base
+      N5k: *base
+      N6k: *base
+      N7k: *base
+      N9k: *base
+      # 'else' case if not matching any filter above
+      else: *base
+      # Generally applicable attributes
+      default_only:
+        type: any
+      # Getter-specific attributes
+      auto_default:
+        type: bool
+      default_value:
+        type: any
+      config_get:
+        type: str
+      config_get_token:
+        type: any
+      config_get_token_append:
+        type: any
+      kind:
+        type: str
+        enum: [boolean, int, string, symbol]
+      multiple:
+        type: bool
+      # Setter-specific attributes
+      config_set:
+        type: any
+      config_set_append:
+        type: any
+      # Test attributes
+      test_config_get:
+        type: any
+      test_config_get_regex:
+        type: any
+      test_config_result:
+        type: any
