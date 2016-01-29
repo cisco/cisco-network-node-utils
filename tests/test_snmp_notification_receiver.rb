@@ -38,7 +38,7 @@ class TestSnmpNotificationReceiver < CiscoTestCase
   def no_snmpnotificationreceiver
     # Turn the feature off for a clean test.
     config('no snmp-server host 4.5.6.7 informs version 3 priv ab udp-port 45',
-           'no snmp-server host 8.9.10.11 traps version 3 auth cd udp-port 46')
+           'no snmp-server host 2004::7 traps version 3 auth cd udp-port 46')
   end
 
   # TESTS
@@ -56,19 +56,50 @@ class TestSnmpNotificationReceiver < CiscoTestCase
                                           username:         'ab',
                                           port:             '45',
                                           vrf:              'red',
-                                          source_interface: 'ethernet1/3')
+                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id], receiver)
+    assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].source_interface,
-                 'ethernet1/3')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].port, '45')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].type, 'informs')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].username, 'ab')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].version, '3')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].vrf, 'red')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].security, 'priv')
+    assert_equal(interfaces[0].downcase,
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+    assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
+    assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
+    assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
+    assert_equal('3', Cisco::SnmpNotificationReceiver.receivers[id].version)
+    assert_equal('red', Cisco::SnmpNotificationReceiver.receivers[id].vrf)
+    assert_equal('priv', Cisco::SnmpNotificationReceiver.receivers[id].security)
+
+    receiver.destroy
+    refute_includes(Cisco::SnmpNotificationReceiver.receivers, id)
+  end
+
+  def test_create_destroy_single_ipv6
+    id = '2004::7'
+    refute_includes(Cisco::SnmpNotificationReceiver.receivers, id)
+
+    receiver = \
+      Cisco::SnmpNotificationReceiver.new(id,
+                                          instantiate:      true,
+                                          type:             'informs',
+                                          version:          '3',
+                                          security:         'priv',
+                                          username:         'ab',
+                                          port:             '45',
+                                          vrf:              'red',
+                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
+
+    assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
+    assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
+
+    assert_equal(interfaces[0].downcase,
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+    assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
+    assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
+    assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
+    assert_equal('3', Cisco::SnmpNotificationReceiver.receivers[id].version)
+    assert_equal('red', Cisco::SnmpNotificationReceiver.receivers[id].vrf)
+    assert_equal('priv', Cisco::SnmpNotificationReceiver.receivers[id].security)
 
     receiver.destroy
     refute_includes(Cisco::SnmpNotificationReceiver.receivers, id)
@@ -76,7 +107,7 @@ class TestSnmpNotificationReceiver < CiscoTestCase
 
   def test_create_destroy_multiple
     id = '4.5.6.7'
-    id2 = '8.9.10.11'
+    id2 = '2004::7'
 
     refute_includes(Cisco::SnmpNotificationReceiver.receivers, id)
     refute_includes(Cisco::SnmpNotificationReceiver.receivers, id2)
@@ -90,7 +121,7 @@ class TestSnmpNotificationReceiver < CiscoTestCase
                                           username:         'ab',
                                           port:             '45',
                                           vrf:              'red',
-                                          source_interface: 'ethernet1/3')
+                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
 
     receiver2 = \
       Cisco::SnmpNotificationReceiver.new(id2,
@@ -101,33 +132,32 @@ class TestSnmpNotificationReceiver < CiscoTestCase
                                           username:         'cd',
                                           port:             '46',
                                           vrf:              'red',
-                                          source_interface: 'ethernet1/4')
+                                          source_interface: interfaces[1].downcase) # rubocop:disable Metrics/LineLength
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id], receiver)
+    assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].source_interface,
-                 'ethernet1/3')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].port, '45')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].type, 'informs')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].username, 'ab')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].version, '3')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].vrf, 'red')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id].security, 'priv')
+    assert_equal(interfaces[0].downcase,
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+    assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
+    assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
+    assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
+    assert_equal('3', Cisco::SnmpNotificationReceiver.receivers[id].version)
+    assert_equal('red', Cisco::SnmpNotificationReceiver.receivers[id].vrf)
+    assert_equal('priv', Cisco::SnmpNotificationReceiver.receivers[id].security)
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id2)
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2], receiver2)
+    assert_equal(receiver2, Cisco::SnmpNotificationReceiver.receivers[id2])
 
-    assert_equal(
-      Cisco::SnmpNotificationReceiver.receivers[id2].source_interface,
-      'ethernet1/4')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].port, '46')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].type, 'traps')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].username, 'cd')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].version, '3')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].vrf, 'red')
-    assert_equal(Cisco::SnmpNotificationReceiver.receivers[id2].security,
-                 'auth')
+    assert_equal(interfaces[1].downcase,
+                 Cisco::SnmpNotificationReceiver.receivers[id2].source_interface) # rubocop:disable Metrics/LineLength
+    assert_equal('46', Cisco::SnmpNotificationReceiver.receivers[id2].port)
+    assert_equal('traps', Cisco::SnmpNotificationReceiver.receivers[id2].type)
+    assert_equal('cd', Cisco::SnmpNotificationReceiver.receivers[id2].username)
+    assert_equal('3', Cisco::SnmpNotificationReceiver.receivers[id2].version)
+    assert_equal('red', Cisco::SnmpNotificationReceiver.receivers[id2].vrf)
+    assert_equal('auth',
+                 Cisco::SnmpNotificationReceiver.receivers[id2].security)
 
     receiver.destroy
     receiver2.destroy
