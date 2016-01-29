@@ -19,6 +19,7 @@ This document describes the structure and semantics of these files.
   * [Platform variants](#platform-variants)
   * [Product variants](#product-variants)
   * [`_exclude`](#_exclude)
+  * [YAML anchors and aliases](#YAML-anchors-and-aliases)
   * [Combinations of these](#combinations-of-these)
 * [Attribute properties](#attribute-properties)
   * [`get_data_format`](#get_data_format)
@@ -254,15 +255,12 @@ vrf:
 
 ### Product variants
 
-If there are differences between individual products within a platform group, any of the attribute properties can be subdivided by platform product ID string
-using a regexp against the product ID as a key. When one or more regexp keys
-are defined thus, you can also use the special key `else` to provide values
-for all products that do not match any of the given regexps:
+Various product categories can also be used as keys to subdivide attributes as needed. Supported categories currently include the various Nexus switch product lines (`N3k`, `N5k`, `N6k`. `N7k`, `N9k`). When using one or more product keys in this fashion, you can also use the special key `else` to handle all other products not specifically called out:
 
 ```yaml
 # show_version.yaml
 system_image:
-  /N9/:
+  N9k:
     get_value: "kick_file_name"
   else:
     get_value: "isan_file_name"
@@ -275,7 +273,7 @@ Related to product variants, an `_exclude` entry can be used to mark an entire f
 ```yaml
 # fabricpath.yaml
 ---
-_exclude: [/N3/, /N9/]
+_exclude: [N3k, N9k]
 
 _template:
 ...
@@ -286,13 +284,29 @@ Individual feature attributes can also be excluded in this way:
 ```yaml
 attribute:
   _exclude:
-    - /N7/
+    - N7k
   default_value: true
   get_command: 'show attribute'
   set_value: 'attribute'
 ```
 
 When a feature or attribute is excluded in this way, attempting to call `config_get` or `config_set` on an excluded node will result in a `Cisco::UnsupportedError` being raised. Calling `config_get_default` on such a node will always return `nil`.
+
+### YAML anchors and aliases
+
+To reduce repetition, YAML provides the functionality of [node anchors](http://www.yaml.org/spec/1.2/spec.html#id2785586) and [node aliases](http://www.yaml.org/spec/1.2/spec.html#id2786196). A node anchor can be defined with the syntax `&anchor_name` and other nodes can alias against this anchor with the syntax `*anchor_name`. For example, to provide the same data for N3k and N9k platforms:
+
+```yaml
+  vn_segment_vlan_based:
+   # MT-lite only
+   N3k: &vn_segment_vlan_based_mt_lite
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+   N9k: *vn_segment_vlan_based_mt_lite
+```
 
 ### Combinations of these
 
@@ -327,7 +341,7 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr]
   nexus:
-    '/N7/':
+    N7k:
       default_only: false
     else:
       get_value: '(no )?negotiate auto'

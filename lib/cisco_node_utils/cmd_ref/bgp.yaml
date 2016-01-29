@@ -259,7 +259,7 @@ maxas_limit:
 neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
   nexus:
-    _exclude: [/N6/, /N7/]
+    _exclude: [N6k, N7k]
     kind: boolean
     get_value: 'neighbor-down fib-accelerate'
     set_value: '<state> neighbor-down fib-accelerate'
@@ -268,7 +268,7 @@ neighbor_down_fib_accelerate:
 reconnect_interval:
   # Note: Does not exist in IOS XR
   nexus:
-    _exclude: [/N6/, /N7/]
+    _exclude: [N6k, N7k]
     kind: int
     get_value: 'reconnect-interval (\d+)'
     set_value: '<state> reconnect-interval <seconds>'

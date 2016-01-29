@@ -103,7 +103,6 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}")
     config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
            "address-family #{af_v4}")
-    @@node.show('show run')
   end
 
   def cleanup

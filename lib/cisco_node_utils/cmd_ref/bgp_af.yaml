@@ -3,7 +3,7 @@
 _template:
   context:
     - "router bgp <asnum>"
-    - 'vrf <vrf>'
+    - '(?)vrf <vrf>'
     - 'address-family <afi> <safi>'
   nexus:
     get_command: 'show running bgp all'
@@ -48,6 +48,9 @@ advertise_l2vpn_evpn:
 
 all_afs:
   multiple: true
+  context:
+    - "router bgp <asnum>"
+    - '(?)vrf <vrf>'
   get_value: '/^address-family (\S+) (\S+)$/'
 
 client_to_client:

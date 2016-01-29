@@ -3,12 +3,12 @@
 prefer:
   multiple: true
   get_command: "show running-config all | include 'ntp server(.*)(prefer)'"
-  get_value: '/ntp server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/'
+  get_value: '/ntp server (\S+)/'
   default_value: []
 
 server:
   multiple: true
   get_command: "show running-config all | include 'ntp server'"
-  get_value: '/ntp server ((?:[0-9]{1,3}\.){3}[0-9]{1,3})/'
+  get_value: '/ntp server (\S+)/'
   set_value: '<state> ntp server <ip> <prefer>'
   default_value: []

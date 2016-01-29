@@ -13,7 +13,8 @@ destroy:
 
 mode:
   _exclude:
-    - /N(3|9)/
+    - N3k
+    - N9k
   kind: string
   get_command: "show vlan"
   get_value: '/^%d+\s+enet\s+(\S+)\s/'

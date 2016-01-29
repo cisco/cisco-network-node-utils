@@ -46,7 +46,7 @@ class TestCommandConfig < CiscoTestCase
 
   def compare_with_results(desired_config_str, current_key)
     retrieve_command = 'show running all'
-    running_config_str = node.show(retrieve_command)
+    running_config_str = node.get(command: retrieve_command)
 
     begin
       should_config = ConfigParser::Configuration.new(desired_config_str)
@@ -71,7 +71,7 @@ class TestCommandConfig < CiscoTestCase
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
-          node.config(cfg_string)
+          node.set(values: cfg_string)
           # make sure config is present in success case
           compare_with_results(v1, k)
         rescue CliError => e
@@ -148,7 +148,7 @@ class TestCommandConfig < CiscoTestCase
       v.each_value do |v1|
         cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
-        assert_raises(Cisco::CliError) { node.config(cfg_string) }
+        assert_raises(Cisco::CliError) { node.set(values: cfg_string) }
       end
     end
   end

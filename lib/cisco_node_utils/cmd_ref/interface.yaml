@@ -190,7 +190,9 @@ mtu_other_interfaces:
 negotiate_auto_ethernet:
   kind: boolean
   _exclude: [ios_xr]
-  '/(N7|C3064)/':
+  N7k:
+    default_only: false
+  C3064:
     default_only: false
   else:
     get_value: '/^(no )?negotiate auto$/'
@@ -206,7 +208,7 @@ negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr]
   nexus:
-    '/N7/':
+    N7k:
       default_only: false
     else:
       get_value: '/^(no )?negotiate auto$/'
@@ -342,14 +344,14 @@ system_default_switchport_shutdown:
     default_only: true
 
 vlan_mapping:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   multiple:
   get_value: '/^switchport vlan mapping (\d+) (\d+)/'
   set_value: '<state> switchport vlan mapping <original> <translated>'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: boolean
   get_value: '/^(no )?switchport vlan mapping enable/'
   set_value: '<state> switchport vlan mapping enable'

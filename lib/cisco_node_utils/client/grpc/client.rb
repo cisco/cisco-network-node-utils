@@ -33,7 +33,7 @@ class Cisco::Client::GRPC < Cisco::Client
 
   def initialize(address, username, password)
     # TODO: remove if/when we have a local socket to use
-    if address.nil? && ENV['NODE']
+    if address.nil? && username.nil? && password.nil? && ENV['NODE']
       address ||= ENV['NODE'].split(' ')[0]
       username ||= ENV['NODE'].split(' ')[1]
       password ||= ENV['NODE'].split(' ')[2]
@@ -49,12 +49,15 @@ class Cisco::Client::GRPC < Cisco::Client
     # Make sure we can actually connect
     @timeout = 5
     begin
+      base_msg = 'gRPC client creation failure: '
       get(command: 'show clock')
-    rescue ::GRPC::BadStatus => e
-      if e.code == ::GRPC::Core::StatusCodes::DEADLINE_EXCEEDED
-        raise Cisco::Client::ConnectionRefused, e.details
+    rescue Cisco::Client::ClientError => e
+      error 'initial connect failed: ' + e.to_s
+      if e.message[/deadline exceeded/i]
+        raise Cisco::Client::ConnectionRefused, \
+              base_msg + 'timed out during initial connection: ' + e.message
       end
-      raise
+      raise e.class, base_msg + e.message
     end
 
     # Let commands in general take up to 2 minutes
@@ -63,11 +66,13 @@ class Cisco::Client::GRPC < Cisco::Client
 
   def validate_args(address, username, password)
     super
-    fail TypeError, 'address must be specified' if address.nil?
-    fail ArgumentError, 'port # required in address' unless address[/:/]
+    base_msg = 'gRPC client creation failure: '
+    fail TypeError, base_msg + 'address must be specified' if address.nil?
+    fail ArgumentError, base_msg + 'port # required in address' \
+         unless address[/:/]
     # Connection to remote system - username and password are required
-    fail TypeError, 'username must be specified' if username.nil?
-    fail TypeError, 'password must be specified' if password.nil?
+    fail TypeError, base_msg + 'username must be specified' if username.nil?
+    fail TypeError, base_msg + 'password must be specified' if password.nil?
   end
 
   def cache_flush
@@ -154,13 +159,18 @@ class Cisco::Client::GRPC < Cisco::Client
     @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
     return output
   rescue ::GRPC::BadStatus => e
+    warn "gRPC error '#{e.code}' during '#{type}' request: "
+    if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
+      warn "  with cli: '#{args.cli}'"
+    end
+    warn "  '#{e.details}'"
     case e.code
     when ::GRPC::Core::StatusCodes::UNAVAILABLE
-      raise Cisco::Client::ConnectionRefused, e.details
+      raise Cisco::Client::ConnectionRefused, "Connection refused: #{e.details}"
     when ::GRPC::Core::StatusCodes::UNAUTHENTICATED
       raise Cisco::Client::AuthenticationFailed, e.details
     else
-      raise
+      raise Cisco::Client::ClientError, e.details
     end
   end
 

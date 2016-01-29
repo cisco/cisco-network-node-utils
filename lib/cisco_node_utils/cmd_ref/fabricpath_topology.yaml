@@ -1,7 +1,7 @@
 # fabricpath_topology
 ---
 # Fabricpath feature is not available on N3K and N9K
-_exclude: [/N3/, /N9K/]
+_exclude: [N3k, N9k]
 
 all_topos:
   multiple:

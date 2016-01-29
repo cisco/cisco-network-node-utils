@@ -7,19 +7,19 @@ bgp:
   set_value: "feature bgp"
 
 fabric:
-  _exclude: [/N(3|9)/]
+  _exclude: [N3k, N9k]
   get_command: "show feature-set"
   get_value: '/^fabric[\s\d]+(\w+)/'
   set_value: "<state> feature-set fabric"
 
 fabric_forwarding:
-  _exclude: [/N3/]
+  _exclude: [N3k]
   get_command: "show running | i ^feature"
   get_value: '/^feature fabric forwarding$/'
   set_value: "feature fabric forwarding"
 
 nv_overlay:
-  _exclude: [/N(3|5|6)/]
+  _exclude: [N3k, N5k, N6k]
   kind: boolean
   get_command: 'show running nv overlay'
   get_value: '/^feature nv overlay$/'
@@ -27,7 +27,7 @@ nv_overlay:
 
 nv_overlay_evpn:
   # TBD: Not a feature but a dependency for several properties
-  _exclude: [/N(3|5|6)/]
+  _exclude: [N3k, N5k, N6k]
   kind: boolean
   get_command: "show running | section nv"
   get_value: '/^nv overlay evpn$/'
@@ -35,9 +35,10 @@ nv_overlay_evpn:
 
 vn_segment_vlan_based:
   # MT-lite only
-  '/N(3|9)/':
+  N3k: &vn_segment_vlan_based_mt_lite
     kind: boolean
     get_command: 'show running section feature'
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
+  N9k: *vn_segment_vlan_based_mt_lite

@@ -22,8 +22,8 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
 * [Y9](#yaml9): Selection of `show` commands for `get_command`.
 * [Y10](#yaml10): Use `true` and `false` for boolean values.
-* [Y11](#yaml11): Use `_exclude` to return `nil` for unsupported properties.
-
+* [Y11](#yaml11): Use YAML anchors and aliases to avoid redundant entries.
+* [Y12](#yaml12): Use `_exclude` to return `nil` for unsupported properties.
 
 ## <a name="odbp">Common Object Development Best Practices</a>
 
@@ -135,14 +135,14 @@ message_digest_alg_type:
 
 **NOTE1: Use strings rather then symbols when applicable**.
 
-If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9K is `md5` then you might do something like this:
+If the `default_value` differs between cisco platforms, use per-API or per-platform keys in the YAML as needed. For example, if the default value on all platforms except the N9k is `md5` then you might do something like this:
 
 ```yaml
 message_digest_alg_type:
   get_command: 'show running interface all'
   get_context: 'interface <name>'
   get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
-  /N9K/:
+  N9k:
     default_value: 'sha2'
   else:
     default_value: 'md5'
@@ -209,7 +209,43 @@ The following commands should be preferred over `show [feature]` commands since 
 
 YAML allows various synonyms for `true` and `false` such as `yes` and `no`, but for consistency and readability (especially to users more familiar with Ruby than with YAML), we recommend using `true` and `false` rather than any of their synonyms.
 
-### <a name="yaml11">Y11: Use `_exclude` to return `nil` for unsupported properties.
+### <a name="yaml11">Y11: Use YAML anchors and aliases to avoid redundant entries.
+
+Use the standard YAML functionality of [node anchors](http://www.yaml.org/spec/1.2/spec.html#id2785586) and [node aliases](http://www.yaml.org/spec/1.2/spec.html#id2786196) to avoid redundant entries. In other words, instead of:
+
+```yaml
+  vn_segment_vlan_based:
+   # MT-lite only
+   N3k:
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+   N9k:
+     # same as N3k
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+```
+
+instead you can do:
+
+```yaml
+  vn_segment_vlan_based:
+   # MT-lite only
+   N3k: &vn_segment_vlan_based_mt_lite
+     kind: boolean
+     config_get: 'show running section feature'
+     config_get_token: '/^feature vn-segment-vlan-based$/'
+     config_set: 'feature vn-segment-vlan-based'
+     default_value: false
+   N9k: *vn_segment_vlan_based_mt_lite
+```
+
+### <a name="yaml12">Y12: Use `_exclude` to return `nil` for unsupported properties.
 
 Some properties are only applicable to specific platforms. Rather than using `default_only` to specify an 'unconfigured' default like `''` or `false`, it is more accurate to return `nil` for a property that is not applicable at all. By returning `nil`, the property will not even appear in commands like `puppet resource`, which is the desired outcome.
 
