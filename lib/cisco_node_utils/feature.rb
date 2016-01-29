@@ -80,9 +80,10 @@ module Cisco
 
     # ---------------------------
     def self.nv_overlay_evpn_enable
-    # The feature fabric-forwarding cli is required in some older nxos images but is not 
-    # present in newer images because nv_overlay_evpn handles both features; therefore
-    # feature fabric-forwarding is best-effort and ignored on cli failure.
+      # The feature fabric-forwarding cli is required in some older nxos images
+      # but is not present in newer images because nv_overlay_evpn handles
+      # both features; therefore feature fabric-forwarding is best-effort
+      # and ignored on cli failure.
       begin
         return if nv_overlay_evpn_enabled?
         config_set('feature', 'fabric_forwarding')
