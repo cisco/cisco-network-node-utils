@@ -395,8 +395,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_bpdufilter_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_bpdufilter = 'enable'
     assert_equal('enable', interface.stp_bpdufilter)
@@ -408,8 +406,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_bpduguard_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_bpduguard = 'enable'
     assert_equal('enable', interface.stp_bpduguard)
@@ -421,8 +417,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_cost_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_cost = 2000
     assert_equal(2000, interface.stp_cost)
@@ -432,8 +426,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_guard_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_guard = 'loop'
     assert_equal('loop', interface.stp_guard)
@@ -447,8 +439,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_link_type_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_link_type = 'shared'
     assert_equal('shared', interface.stp_link_type)
@@ -460,8 +450,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_port_priority_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_port_priority = 32
     assert_equal(32, interface.stp_port_priority)
@@ -471,8 +459,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_port_type_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     interface.stp_port_type = 'edge'
     assert_equal('edge', interface.stp_port_type)
@@ -488,8 +474,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_mst_cost_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     mc = [['0,2-4,6,8-12', '4500'], %w(1 20000)]
     interface.stp_mst_cost = mc
@@ -504,8 +488,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_mst_port_priority_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     mpp = [['0,2-4,6,8-12', '224'], %w(1 32)]
     interface.stp_mst_port_priority = mpp
@@ -520,8 +502,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_vlan_cost_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     vc = [['1-4,6,8-12', '4500'], %w(14 20000)]
     interface.stp_vlan_cost = vc
@@ -536,8 +516,6 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_vlan_port_priority_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     interface = Interface.new(interfaces[0])
     vpp = [['1-4,6,8-12', '224'], %w(14 32)]
     interface.stp_vlan_port_priority = vpp
