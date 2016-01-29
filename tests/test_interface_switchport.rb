@@ -100,6 +100,8 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_switchport_vtp_enabled_access
+    skip('Cannot apply VTP config because port mode is access') if
+      node.product_id =~ /N(5|6|7)/
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -147,6 +149,8 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_default_access
+    skip('Cannot apply VTP config because port mode is access') if
+      node.product_id =~ /N(5|6|7)/
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -188,6 +192,8 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_true_access
+    skip('Cannot apply VTP config because port mode is access') if
+      node.product_id =~ /N(5|6|7)/
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
 
