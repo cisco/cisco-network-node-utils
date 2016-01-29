@@ -1,7 +1,7 @@
 # interface_service_vni
 ---
 _template:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N9k]
   config_get: 'show running interface all'
   config_get_token: '/^interface <name>$/i'
   config_get_token_append:
@@ -23,7 +23,7 @@ encapsulation_profile_vni:
   default_value: ''
 
 shutdown:
-  /N7/:
+  N7k:
     kind: boolean
     config_get_token_append: '/^(?:no )?shutdown$/'
     config_set_append: "<state> shutdown"

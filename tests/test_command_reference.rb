@@ -178,9 +178,9 @@ name:
   default_value: 'generic'
   cli_nexus:
     default_value: 'NXAPI base'
-    /N7K/:
+    N7k:
       default_value: ~
-    /N9K/:
+    N9k:
       default_value: 'NXAPI N9K'
 ")
   end
@@ -213,10 +213,10 @@ name:
   def write_exclusions
     write("
 _exclude:
-  - /N9K/
+  - N9k
 
 name:
-  _exclude: [/C30../, /C31../]
+  _exclude: [N3k]
   default_value: hello
 
 rank:

@@ -3,7 +3,7 @@
 # The current simplified implementation assumes no admin-vdc and that the
 # default vdc name uses id 1. Full multi-vdc support is TBD.
 ---
-_exclude: [/N(3|5|6|9)/]
+_exclude: [N3k, N5k, N6k, N9k]
 
 _template:
   config_get: 'show run vdc all'
@@ -31,7 +31,7 @@ limit_resource_module_type:
 vdc_support:
   # This is a only used for determining support for VDCs
   kind: boolean
-  /N7/:
+  N7k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
