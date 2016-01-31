@@ -67,7 +67,7 @@ class TestAce < CiscoTestCase
 
     attr_v6_1 = {
       action:   'permit',
-      proto:    '6',
+      proto:    'tcp',
       src_addr: 'addrgroup fi',
       src_port: '',
       dst_addr: '1::7/32',
@@ -87,9 +87,116 @@ class TestAce < CiscoTestCase
       remark: 'ipv6 remark'
     }
 
+    attr_v4_flags_1 = attr_v4_1.dup
+    attr_v4_flags_1[:tcp_flags] = 'ack syn fin'
+
+    attr_v4_flags_2 = attr_v4_1.dup
+    attr_v4_flags_2[:tcp_flags] = 'syn ack fin'
+
+    attr_v4_flags_3 = attr_v4_1.dup
+    attr_v4_flags_3[:tcp_flags] = 'psh'
+
+    attr_v4_flags_4 = attr_v4_1.dup
+    attr_v4_flags_4[:tcp_flags] = 'rst ack psh syn urg'
+
+    attr_v6_flags_1 = attr_v6_1.dup
+    attr_v6_flags_1[:tcp_flags] = 'ack syn fin'
+
+    attr_v6_flags_2 = attr_v6_1.dup
+    attr_v6_flags_2[:tcp_flags] = 'syn ack fin'
+
+    attr_v6_flags_3 = attr_v6_1.dup
+    attr_v6_flags_3[:tcp_flags] = 'psh'
+
+    attr_v6_flags_4 = attr_v6_1.dup
+    attr_v6_flags_4[:tcp_flags] = 'rst ack psh syn urg'
+
+    attr_v4_est_1 = attr_v4_1.dup
+    attr_v4_est_1[:established] = true
+
+    attr_v4_est_2 = attr_v4_1.dup
+    attr_v4_est_2[:established] = false
+
+    attr_v6_est_1 = attr_v6_1.dup
+    attr_v6_est_1[:established] = true
+
+    attr_v6_est_2 = attr_v6_1.dup
+    attr_v6_est_2[:established] = false
+
+    attr_v4_dscp_1 = attr_v4_1.dup
+    attr_v4_dscp_1[:dscp] = '34'
+
+    attr_v4_dscp_2 = attr_v4_1.dup
+    attr_v4_dscp_2[:dscp] = 'af43'
+
+    attr_v4_dscp_3 = attr_v4_1.dup
+    attr_v4_dscp_3[:dscp] = 'ef'
+
+    attr_v6_dscp_1 = attr_v6_1.dup
+    attr_v6_dscp_1[:dscp] = '21'
+
+    attr_v6_dscp_2 = attr_v6_1.dup
+    attr_v6_dscp_2[:dscp] = 'default'
+
+    attr_v6_dscp_3 = attr_v6_1.dup
+    attr_v6_dscp_3[:dscp] = 'cs4'
+
+    attr_v4_tcp_comb_1 = {
+      tcp_flags: 'syn fin urg', 	
+      established: 'false',
+      dscp: 'af11',
+      http_method: 'post',
+      packet_length: 'range 80 1000',
+      tcp_option_length: '20',
+      time_range: 'my_range',
+      ttl: '153',
+      redirect: 'Ethernet1/1,Ethernet1/2,port-channel1',
+      log: 'false',
+    }
+    attr_v4_tcp_comb_1.merge!(attr_v4_1)
+
+    attr_v4_tcp_comb_2 = {
+      tcp_flags: 'syn fin urg',
+      established: 'true',
+      precedence: 'flash',
+      packet_length: 'neq 1000',
+      time_range: 'my_range',
+      ttl: '30',
+      redirect: '',
+      log: 'true',
+    }
+    attr_v4_tcp_comb_2.merge!(attr_v4_1)
+
+    attr_v6_tcp_comb_1 = {
+      tcp_flags: 'urg',
+      established: 'true',
+      dscp: 'cs7',
+      packet_length: 'gt 80',
+      time_range: 'my_range',
+      log: 'false',
+    }
+    attr_v6_tcp_comb_1.merge!(attr_v6_1)
+
+    attr_v6_tcp_comb_2 = {
+      tcp_flags: 'syn fin urg',
+      established: 'fasle',
+      dscp: 'af11',
+      packet_length: 'eq 200',
+      time_range: 'my_range',
+      log: 'true',
+    }
+    attr_v6_tcp_comb_2.merge!(attr_v6_1)
+	
+    
     props = {
-      'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3],
-      'ipv6' => [attr_v6_1, attr_v6_2, attr_v6_3],
+      'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3, attr_v4_flags_1,
+                 attr_v4_flags_2, attr_v4_flags_3, attr_v4_flags_4,
+                 attr_v4_est_1, attr_v4_est_2, attr_v4_dscp_1, attr_v4_dscp_2,
+                 attr_v4_dscp_3, attr_v4_tcp_comb_1, attr_v4_tcp_comb_2],
+      'ipv6' => [attr_v6_1, attr_v6_2, attr_v6_3, attr_v6_flags_1,
+                 attr_v6_flags_2, attr_v6_flags_3, attr_v6_flags_4,
+                 attr_v6_est_1, attr_v6_est_2, attr_v6_dscp_1, attr_v6_dscp_2,
+                 attr_v6_dscp_3, attr_v6_tcp_comb_1, attr_v6_tcp_comb_2],
     }
 
     %w(ipv4 ipv6).each do |afi|
