@@ -74,7 +74,7 @@ class CiscoTestCase < TestCase
   def convert_dns_name(ip)
     ip_address?(ip) ? ip : Resolv.getaddress(ip)
   rescue Resolv::ResolvError
-    return ''
+    raise "Unable to resolve name #{ip}. Use static ip to connect instead!"
   end
 
   def address_match?(int_ip)
