@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddr'
+require 'resolv'
 require_relative 'basetest'
 require_relative 'platform_info'
-require_relative '../lib/cisco_node_utils/node'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/node'
 
 include Cisco
 
@@ -63,15 +65,34 @@ class CiscoTestCase < TestCase
     result
   end
 
+  def ip_address?(ip)
+    return true if IPAddr.new(ip).ipv4?
+  rescue IPAddr::InvalidAddressError
+    false
+  end
+
+  def convert_dns_name(ip)
+    ip_address?(ip) ? ip : Resolv.getaddress(ip)
+  rescue Resolv::ResolvError
+    return ''
+  end
+
+  def address_match?(int_ip)
+    # Compare the interface address with the current session address.
+    # and return true if they match.
+    return false if int_ip.nil?
+    return true if int_ip == convert_dns_name(address)
+    false
+  end
+
   def interfaces
-    puts `host #{address}`
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
       @@interfaces = []
       Interface.interfaces.each do |int, obj|
         next unless /ethernet/.match(int)
-        #puts "int info: #{obj.ipv4_interface} , #{obj.ipv4_interface.class}"
+        next if address_match?(obj.ipv4_address)
         @@interfaces << int
       end
       # rubocop:enable Style/ClassVars
