@@ -8,8 +8,8 @@ _template:
   context:
     - 'router bgp <asnum>'
     - '(?)vrf <vrf>'
-    - '(?)neighbor <nbr>'
-    - '(?)address-family <afi> <safi>'
+    - 'neighbor <nbr>'
+    - 'address-family <afi> <safi>'
 
 additional_paths_receive:
   _exclude: [ios_xr]
