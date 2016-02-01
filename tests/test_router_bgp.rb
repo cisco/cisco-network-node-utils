@@ -229,6 +229,40 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_nsr
+    nsr(setup_default)
+    nsr(setup_vrf)
+  end
+
+  def nsr(bgp)
+    if (platform == :nexus) || (platform == :ios_xr && !@vrf[/default/])
+      if platform == :nexus
+        assert_nil(bgp.default_nsr,
+                   'default bgp nsr should be nil on Nexus')
+        assert_nil(bgp.nsr,
+                   'bgp nsr should be nil on Nexus')
+      else
+        assert_nil(bgp.default_nsr,
+                   'default bgp nsr should return nil on XR with non-default' \
+                   ' vrf')
+        assert_nil(bgp.nsr,
+                   'bgp nsr should return nil on XR with non-default vrf')
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.nsr = true
+      end
+    else
+      assert_equal(bgp.nsr, bgp.default_nsr)
+      bgp.nsr = true
+      assert(bgp.nsr,
+             'bgp nsr should be enabled')
+      bgp.nsr = false
+      refute(bgp.nsr,
+             'bgp nsr should be disabled')
+    end
+    bgp.destroy
+  end
+
   def test_bestpath_default
     bestpath(setup_default)
   end

@@ -265,6 +265,13 @@ neighbor_down_fib_accelerate:
     set_value: '<state> neighbor-down fib-accelerate'
     default_value: false
 
+nsr:
+  _exclude: [nexus]
+  kind: boolean
+  default_value: false
+  get_value: '/^nsr$/'
+  set_value: '<state> nsr'
+
 reconnect_interval:
   # Note: Does not exist in IOS XR
   nexus:
