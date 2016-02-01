@@ -67,15 +67,15 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_create_asnum_invalid
-    ['', 55.5, 'Fifty_Five'].each do |test|
-      assert_raises(ArgumentError, "#{test} not a valid asn") do
+  def test_asnum_invalid
+    ['', 'Fifty_Five'].each do |test|
+      assert_raises(CliError, "#{test} not a valid asn") do
         RouterBgp.new(test)
       end
     end
   end
 
-  def test_routerbgp_create_vrf_invalid
+  def test_vrf_invalid
     ['', 55].each do |test|
       assert_raises(ArgumentError, "#{test} not a valid vrf name") do
         RouterBgp.new(88, test)
@@ -104,21 +104,16 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_create_valid_asn
+  def test_create_valid_asn
     [1, 4_294_967_295, '55', '1.0', '1.65535',
      '65535.0', '65535.65535'].each do |test|
       rtr_bgp = RouterBgp.new(test)
-      test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
-      line = get_routerbgp_match_line(test)
-      refute_nil(line, "Error: 'router bgp #{test}' not configured")
+      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
       rtr_bgp.destroy
 
       vrf = 'Duke'
       bgp_vrf = RouterBgp.new(test, vrf)
-      test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
-      line = get_routerbgp_match_line(test, vrf)
-      refute_nil(line,
-                 "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
+      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
       bgp_vrf.destroy
       rtr_bgp.destroy
     end
@@ -417,7 +412,8 @@ class TestRouterBgp < CiscoTestCase
       # Test false with size
       bgp.send("event_history_#{opt}=", 'false')
       result = bgp.send("event_history_#{opt}")
-      assert_equal('false', result,
+      expected = (opt == :detail) ? bgp.default_event_history_detail : 'false'
+      assert_equal(expected, result,
                    "event_history_#{opt}: Failed to set state to False")
 
       # Test true with size, from false

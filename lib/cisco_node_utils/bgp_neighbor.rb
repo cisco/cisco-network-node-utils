@@ -164,8 +164,7 @@ module Cisco
     end
 
     def local_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_local_as
+      if val == default_local_as
         set_args_keys(state: 'no', local_as: '')
       else
         set_args_keys(state: '', local_as: val)
@@ -269,8 +268,7 @@ module Cisco
     end
 
     def remote_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_remote_as
+      if val == default_remote_as
         set_args_keys(state: 'no', remote_as: '')
       else
         set_args_keys(state: '', remote_as: val)

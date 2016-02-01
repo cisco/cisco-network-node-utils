@@ -26,7 +26,7 @@ module Cisco
     def initialize(asnum, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
-      @asnum = RouterBgp.process_asnum(asnum)
+      @asnum = asnum.to_s
       @vrf = vrf
       if @vrf == 'default'
         @get_args = @set_args = { asnum: @asnum }
@@ -34,19 +34,6 @@ module Cisco
         @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
       end
       create if instantiate
-    end
-
-    def self.process_asnum(asnum)
-      err_msg = "BGP asnum must be either a 'String' or an" \
-                " 'Integer' object"
-      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
-                                         asnum.is_a?(String)
-      if asnum.is_a? String
-        # Match ASDOT '1.5' or ASPLAIN '55' strings
-        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
-        asnum = RouterBgp.dot_to_big(asnum) if /\d+\.\d+/.match(asnum)
-      end
-      asnum.to_i
     end
 
     # Create a hash of all router bgp default and non-default
@@ -72,20 +59,6 @@ module Cisco
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
       return {}
-    end
-
-    # Convert BGP ASN ASDOT+ to ASPLAIN
-    def self.dot_to_big(dot_str)
-      fail ArgumentError unless dot_str.is_a? String
-      return dot_str unless /\d+\.\d+/.match(dot_str)
-      mask = 0b1111111111111111
-      high = dot_str.to_i
-      low = 0
-      low_match = dot_str.match(/\.(\d+)/)
-      low = low_match[1].to_i if low_match
-      high_bits = (mask & high) << 16
-      low_bits = mask & low
-      high_bits + low_bits
     end
 
     def router_bgp(state='')
@@ -384,9 +357,11 @@ module Cisco
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
       # This property requires auto_default=false
-      return default_event_history_detail if match.nil?
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
+      default_event_history_detail
     end
 
     def event_history_detail=(val)
