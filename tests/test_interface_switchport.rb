@@ -49,6 +49,11 @@ class TestInterfaceSwitchport < CiscoTestCase
     end
   end
 
+  def platform_supports_vtp_switchport_access?
+    skip('Platform does not support VTP when switchport mode is access') if
+      node.product_id =~ /N(5|6|7)/
+  end
+
   def system_default_switchport(state='')
     config("#{state} system default switchport")
   end
@@ -100,6 +105,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_switchport_vtp_enabled_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -147,6 +153,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_default_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -188,6 +195,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_true_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
 
