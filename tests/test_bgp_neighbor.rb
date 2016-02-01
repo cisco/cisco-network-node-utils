@@ -90,6 +90,32 @@ class TestRouterBgpNeighbor < CiscoTestCase
     find_neighbor(addr, vrf, bgp_neighbors) != nil
   end
 
+  # Finds the neighbor with the specified address in the
+  # output from a show cmd.  Returns the matching line of
+  # output if found, otherwise nil.
+  def get_bgpneighbor_match_line(addr, vrf='default')
+    regex = /neighbor #{addr}/
+    if vrf == 'default'
+      if platform == :ios_xr
+        cmd = 'show run router bgp'
+        regex = /^ neighbor #{addr}/
+      else
+        cmd = "show run bgp all | section 'router bgp' | no-more"
+      end
+    else
+      if platform == :ios_xr
+        cmd = "show run router bgp #{ASN} vrf #{vrf}"
+      else
+        cmd = "show run bgp all | section 'vrf #{vrf}' | no-more"
+      end
+    end
+    s = @device.cmd("#{cmd}")
+    Cisco::Logger.debug("matching '#{addr}' with vrf '#{vrf}', output: \n#{s}")
+    line = regex.match(s)
+    Cisco::Logger.debug(line)
+    line
+  end
+
   # Creates a neighbor for use in tests, and sets its remote_as.
   def create_neighbor(vrf, addr=ADDR)
     neighbor = RouterBgpNeighbor.new(ASN, vrf, addr)
@@ -128,8 +154,15 @@ class TestRouterBgpNeighbor < CiscoTestCase
     # see if all expected neighbors are there
     test.each do |d|
       d[:neighbors].each do |neighbor|
+        # see if the neighbor exists in the list returned by the API
         assert(neighbor_exists?(neighbor, d[:vrf], bgp_neighbors),
-               "Did not find match for nbr '#{neighbor}', vrf '#{d[:vrf]}'")
+               'Did not find in neighbor list: '\
+               "nbr '#{neighbor}', vrf '#{d[:vrf]}'")
+
+        # see if the neighbor exists via show cmd output
+        line = get_bgpneighbor_match_line(neighbor, d[:vrf])
+        refute_nil(line, 'Did not find in show output: '\
+                   "nbr '#{neighbor}', vrf '#{d[:vrf]}'")
       end
     end
   end
@@ -140,9 +173,13 @@ class TestRouterBgpNeighbor < CiscoTestCase
         neighbor = RouterBgpNeighbor.new(ASN, d[:vrf], addr)
         exists = neighbor_exists?(addr, d[:vrf])
         assert(exists, "Failed to create bgp neighbor #{addr}")
+        line = get_bgpneighbor_match_line(addr, d[:vrf])
+        refute_nil(line, "failed to create bgp neighbor #{addr}")
         neighbor.destroy
         exists = neighbor_exists?(addr, d[:vrf])
         refute(exists, "Failed to delete bgp neighbor #{addr}")
+        line = get_bgpneighbor_match_line(addr, d[:vrf])
+        assert_nil(line, "failed to delete bgp neighbor #{addr}")
       end
     end
   end
@@ -201,6 +238,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
+        assert_nil(neighbor.capability_negotiation)
+        assert_nil(neighbor.default_capability_negotiation)
         assert_raises(Cisco::UnsupportedError) do
           neighbor.capability_negotiation = true
         end
@@ -219,6 +258,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
+        assert_nil(neighbor.dynamic_capability)
+        assert_nil(neighbor.default_dynamic_capability)
         assert_raises(Cisco::UnsupportedError) do
           neighbor.dynamic_capability = true
         end
@@ -269,6 +310,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
+        assert_nil(neighbor.log_neighbor_changes)
+        assert_nil(neighbor.default_log_neighbor_changes)
         assert_raises(Cisco::UnsupportedError) do
           neighbor.log_neighbor_changes = :enable
         end
@@ -289,6 +332,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
+        assert_nil(neighbor.low_memory_exempt)
+        assert_nil(neighbor.default_low_memory_exempt)
         assert_raises(Cisco::UnsupportedError) do
           neighbor.low_memory_exempt = true
         end
@@ -416,6 +461,8 @@ class TestRouterBgpNeighbor < CiscoTestCase
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       if platform == :ios_xr
+        assert_nil(neighbor.remove_private_as)
+        assert_nil(neighbor.default_remove_private_as)
         assert_raises(Cisco::UnsupportedError) do
           neighbor.remove_private_as = :enable
         end

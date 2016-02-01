@@ -13,6 +13,7 @@ This workflow map aids *users*, *developers* and *maintainers* of the CiscoNodeU
   * [CONTRIBUTING.md](CONTRIBUTING.md) : Contribution guidelines
   * [README-develop-node-utils-APIs.md](docs/README-develop-node-utils-APIs.md) : Developing new CiscoNodeUtils APIs
   * [README-develop-best-practices.md](docs/README-develop-best-practices.md) : Development best practices
+  * [README-develop-add-XR-support.md](docs/README-develop-add-XR-support.md) : How To Update node_utils APIs to Support IOS XR
 * Maintainers Guides
   * [README-maintainers.md](docs/README-maintainers.md) : Guidelines for core maintainers of the CiscoNodeUtils project
   * All developer guides apply to maintainers as well
