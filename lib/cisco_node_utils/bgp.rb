@@ -383,9 +383,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
-      return 'false' if match.nil?
+      # This property requires auto_default=false
+      return default_event_history_detail if match.nil?
+      return 'false' if match[0] == 'no '
       return 'size_' + match[1] if match[1]
-      default_event_history_detail
     end
 
     def event_history_detail=(val)

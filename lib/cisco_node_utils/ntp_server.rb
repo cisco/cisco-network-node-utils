@@ -25,9 +25,19 @@ module Cisco
     def initialize(ntpserver_id, prefer, instantiate=true)
       @ntpserver_id = ntpserver_id.to_s
       @ntpserver_prefer = prefer
-      unless @ntpserver_id[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
-        fail ArgumentError, 'Invalid value(IP is not an IP address)'
+
+      unless @ntpserver_id =~ /^[a-zA-Z0-9\.\:]*$/
+        fail ArgumentError,
+             'Invalid value (IPv4/IPv6 address contains invalid characters)'
       end
+
+      begin
+        IPAddr.new(@ntpserver_id)
+      rescue
+        raise ArgumentError,
+              'Invalid value (Name is not a valid single IPv4/IPv6 address)'
+      end
+
       unless @ntpserver_prefer == true ||
              @ntpserver_prefer == false ||
              @ntpserver_prefer.nil?
