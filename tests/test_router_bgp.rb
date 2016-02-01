@@ -235,11 +235,19 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def nsr(bgp)
-    if platform == :nexus || !@vrf[/default/]
-      assert_nil(bgp.default_nsr,
-                 'default bgp nsr should be nil for unsupported platform')
-      assert_nil(bgp.nsr,
-                 'bgp nsr should be nil for unsupported platform')
+    if (platform == :nexus) || (platform == :ios_xr && !@vrf[/default/])
+      if platform == :nexus
+        assert_nil(bgp.default_nsr,
+                   'default bgp nsr should be nil on Nexus')
+        assert_nil(bgp.nsr,
+                   'bgp nsr should be nil on Nexus')
+      else
+        assert_nil(bgp.default_nsr,
+                   'default bgp nsr should return nil on XR with non-default' \
+                   ' vrf')
+        assert_nil(bgp.nsr,
+                   'bgp nsr should return nil on XR with non-default vrf')
+      end
       assert_raises(Cisco::UnsupportedError) do
         bgp.nsr = true
       end

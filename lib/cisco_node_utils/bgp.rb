@@ -160,9 +160,9 @@ module Cisco
 
     # nsr Setter
     def nsr=(enable)
-      if platform == :nexus || @vrf != 'default'
+      if platform == :ios_xr && @vrf != 'default'
         fail Cisco::UnsupportedError.new('bgp', 'nsr', 'set', 'nsr is not ' \
-                  'configurable')
+                  'configurable on a per-VRF basis on ios_xr')
       end
       @set_args[:state] = (enable ? '' : 'no')
       config_set('bgp', 'nsr', @set_args)
