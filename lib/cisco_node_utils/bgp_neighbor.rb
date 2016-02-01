@@ -32,7 +32,7 @@ module Cisco
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
       @nbr = Utils.process_network_mask(nbr)
-      @asn = asn
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @get_args = @set_args = { asnum: @asn, nbr: @nbr }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'

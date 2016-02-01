@@ -70,7 +70,7 @@ module Cisco
         af.is_a?(Array) || af.length == 2
 
       nbr = Utils.process_network_mask(nbr)
-      @asn = asn.to_s
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @nbr = nbr
       @afi, @safi = af

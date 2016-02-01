@@ -26,13 +26,9 @@ module Cisco
     def initialize(asnum, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
-      @asnum = asnum.to_s
+      @asnum = RouterBgp.validate_asnum(asnum)
       @vrf = vrf
-      if @vrf == 'default'
-        @get_args = @set_args = { asnum: @asnum }
-      else
-        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      set_args_keys_default
       create if instantiate
     end
 
@@ -61,6 +57,17 @@ module Cisco
       return {}
     end
 
+    def self.validate_asnum(asnum)
+      err_msg = 'BGP asnum must be type String or Integer'
+      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
+                                         asnum.is_a?(String)
+      if asnum.is_a? String
+        # Match ASDOT '1.5' or ASPLAIN '55' strings
+        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
+      end
+      asnum.to_s
+    end
+
     def router_bgp(state='')
       @set_args[:state] = state
       if vrf == 'default'
@@ -84,11 +91,9 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      if @vrf == 'default'
-        @set_args = { asnum: @asnum }
-      else
-        @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      @set_args = { asnum: @asnum }
+      @set_args[:vrf] = @vrf unless @vrf == 'default'
+      @get_args = @set_args
     end
 
     # Attributes:

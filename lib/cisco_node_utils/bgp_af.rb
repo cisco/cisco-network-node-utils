@@ -27,7 +27,7 @@ module Cisco
       err_msg = '"af" argument must be an array of two string values ' \
         'containing an afi + safi tuple'
       fail ArgumentError, err_msg unless af.is_a?(Array) || af.length == 2
-      @asn = asn.to_s
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @afi, @safi = af
       set_args_keys_default
