@@ -313,6 +313,8 @@ class TestVlan < CiscoTestCase
 
   def test_vlan_mapped_vnis
     # Map
+    skip('Feature vn-segment-vlan-based is not supported on this platform.') if
+      node.product_id =~ /N3K-C3048/
     v1 = Vlan.new(100)
     vni1 = 10_000
     v1.mapped_vni = vni1
