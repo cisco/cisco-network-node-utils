@@ -124,8 +124,8 @@ module Cisco
 
     # nsr Getter
     def nsr
-      result = config_get('bgp', 'nsr', @get_args)
-      result
+      return nil if platform == :ios_xr && @vrf != 'default'
+      config_get('bgp', 'nsr', @get_args)
     end
 
     # Bestpath Getters
@@ -220,6 +220,7 @@ module Cisco
 
     # nsr Default
     def default_nsr
+      return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'nsr')
     end
 
