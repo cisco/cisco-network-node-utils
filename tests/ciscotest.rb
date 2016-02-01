@@ -66,7 +66,7 @@ class CiscoTestCase < TestCase
   end
 
   def ip_address?(ip)
-    return true if IPAddr.new(ip).ipv4?
+    return IPAddr.new(ip).ipv4?
   rescue IPAddr::InvalidAddressError
     false
   end
@@ -81,8 +81,7 @@ class CiscoTestCase < TestCase
     # Compare the interface address with the current session address.
     # and return true if they match.
     return false if int_ip.nil?
-    return true if int_ip == convert_dns_name(address)
-    false
+    int_ip == convert_dns_name(address)
   end
 
   def interfaces
