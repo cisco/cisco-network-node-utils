@@ -580,9 +580,11 @@ module Cisco
     end
 
     # need to reset entire range before set
+    # the 'no' cmd does not work for this due to some
+    # issue so we need to reset it differently
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
-                 'no', '1-3967', '')
+                 '', '1-3967', '2')
       list.each do |range, ht|
         config_set('stp_global', 'vlan_hello_time',
                    '', range, ht)
