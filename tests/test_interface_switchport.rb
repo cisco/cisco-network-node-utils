@@ -723,7 +723,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   #   end
 
   def test_system_default_switchport_on_off
-    interface = Interface.new('Eth1/1')
+    interface = Interface.new(interfaces[0])
 
     system_default_switchport('')
     assert(interface.system_default_switchport,
@@ -740,7 +740,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_system_default_switchport_shutdown_on_off
-    interface = Interface.new('Eth1/1')
+    interface = Interface.new(interfaces[0])
 
     system_default_switchport_shutdown('no ')
     refute(interface.system_default_switchport_shutdown,
