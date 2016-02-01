@@ -709,8 +709,8 @@ module Cisco
 
     # Getter: Builds an array of vlan cost commands currently
     # on the device.
-    #   cli: spanning-tree mst 1-4,6,8-12 cost 1000
-    #        spanning-tree mst 4000-4020 cost 2568
+    #   cli: spanning-tree vlan 1-4,6,8-12 cost 1000
+    #        spanning-tree vlan 3000-3960 cost 2568
     # array: [['1-4,6,8-12', '1000'], ['3000-3960', '2568']]
     #
     def stp_vlan_cost
