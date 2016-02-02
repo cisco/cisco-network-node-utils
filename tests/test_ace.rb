@@ -142,52 +142,51 @@ class TestAce < CiscoTestCase
     attr_v6_dscp_3[:dscp] = 'cs4'
 
     attr_v4_tcp_comb_1 = {
-      tcp_flags: 'syn fin urg', 	
-      established: 'false',
-      dscp: 'af11',
-      http_method: 'post',
-      packet_length: 'range 80 1000',
+      tcp_flags:         'syn fin urg',
+      established:       'false',
+      dscp:              'af11',
+      http_method:       'post',
+      packet_length:     'range 80 1000',
       tcp_option_length: '20',
-      time_range: 'my_range',
-      ttl: '153',
-      redirect: 'Ethernet1/1,Ethernet1/2,port-channel1',
-      log: 'false',
+      time_range:        'my_range',
+      ttl:               '153',
+      redirect:          'Ethernet1/1,Ethernet1/2,port-channel1',
+      log:               'false',
     }
     attr_v4_tcp_comb_1.merge!(attr_v4_1)
 
     attr_v4_tcp_comb_2 = {
-      tcp_flags: 'syn fin urg',
-      established: 'true',
-      precedence: 'flash',
+      tcp_flags:     'syn fin urg',
+      established:   'true',
+      precedence:    'flash',
       packet_length: 'neq 1000',
-      time_range: 'my_range',
-      ttl: '30',
-      redirect: '',
-      log: 'true',
+      time_range:    'my_range',
+      ttl:           '30',
+      redirect:      '',
+      log:           'true',
     }
     attr_v4_tcp_comb_2.merge!(attr_v4_1)
 
     attr_v6_tcp_comb_1 = {
-      tcp_flags: 'urg',
-      established: 'true',
-      dscp: 'cs7',
+      tcp_flags:     'urg',
+      established:   'true',
+      dscp:          'cs7',
       packet_length: 'gt 80',
-      time_range: 'my_range',
-      log: 'false',
+      time_range:    'my_range',
+      log:           'false',
     }
     attr_v6_tcp_comb_1.merge!(attr_v6_1)
 
     attr_v6_tcp_comb_2 = {
-      tcp_flags: 'syn fin urg',
-      established: 'fasle',
-      dscp: 'af11',
+      tcp_flags:     'syn fin urg',
+      established:   'fasle',
+      dscp:          'af11',
       packet_length: 'eq 200',
-      time_range: 'my_range',
-      log: 'true',
+      time_range:    'my_range',
+      log:           'true',
     }
     attr_v6_tcp_comb_2.merge!(attr_v6_1)
-	
-    
+
     props = {
       'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3, attr_v4_flags_1,
                  attr_v4_flags_2, attr_v4_flags_3, attr_v4_flags_4,
