@@ -23,8 +23,8 @@ require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
 
-# TestRouterBgpNeighborAF - Minitest for RouterBgpNeighborAF class
-class TestRouterBgpNeighborAF < CiscoTestCase
+# TestBgpNeighborAF - Minitest for RouterBgpNeighborAF class
+class TestBgpNeighborAF < CiscoTestCase
   @@reset_feat = true # rubocop:disable Style/ClassVars
 
   def setup
