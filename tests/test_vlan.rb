@@ -273,7 +273,7 @@ class TestVlan < CiscoTestCase
     count = 3
     interfaces.each do |name, interface|
       next unless interface.name.match(%r{ethernet[0-9/]+$}) && count > 0
-      interface_ethernet_default(%r{net(\d+\/\d+)}.match(name)[1])
+      interface_ethernet_default(%r{net(\d+/\d+)}.match(name)[1])
       interfaces_added_to_vlan << name
       interface.switchport_mode = :access
       v.add_interface(interface)
