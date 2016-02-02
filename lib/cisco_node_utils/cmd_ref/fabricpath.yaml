@@ -38,7 +38,7 @@ graceful_merge:
   config_get: "show run fabricpath all"
   config_get_token: '/^fabricpath graceful\-merge disable\s*$/'
   config_set: "<state> fabricpath graceful-merge disable"
-  default_value: true
+  default_value: enable
 
 linkup_delay:
   kind: int
