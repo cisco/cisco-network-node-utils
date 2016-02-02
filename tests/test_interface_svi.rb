@@ -19,6 +19,27 @@ include Cisco
 
 # TestSvi - Minitest for Interface configuration of SVI interfaces.
 class TestSvi < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
+  def remove_all_svis
+    Interface.interfaces.each do |int, obj|
+      next if int[/vlan1/]
+      next unless int[/vlan/]
+      obj.destroy
+    end
+  end
+
+  def setup
+    super
+    remove_all_svis if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    super
+    remove_all_svis
+  end
+
   def cmd_ref_autostate
     ref = cmd_ref.lookup('interface', 'svi_autostate')
     assert(ref, 'Error, reference not found for autostate')
@@ -35,11 +56,17 @@ class TestSvi < CiscoTestCase
     end
   end
 
+  def skip_autostate_test
+    skip('svi autostate properties are not supported on this platform') if
+      node.product_id =~ /N(5|6)K/
+  end
+
   def system_default_svi_autostate(state='')
     config("#{state}system default interface-vlan autostate")
   end
 
   def test_svi_prop_nil_when_ethernet
+    skip_autostate_test
     intf = Interface.new(interfaces[0])
     assert_nil(intf.svi_autostate,
                'Error: svi_autostate should be nil when interface is ethernet')
@@ -91,6 +118,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_get_autostate_false
+    skip_autostate_test
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'no autostate')
@@ -99,6 +127,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_get_autostate_true
+    skip_autostate_test
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'autostate')
@@ -107,6 +136,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_set_autostate_false
+    skip_autostate_test
     ref = cmd_ref_autostate
     svi = Interface.new('Vlan23')
     assert_result(ref.test_config_result(false),
@@ -117,6 +147,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_set_autostate_true
+    skip_autostate_test
     svi = Interface.new('Vlan23')
     ref = cmd_ref_autostate
     assert_result(ref.test_config_result(true),
@@ -127,6 +158,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_svi_set_autostate_default
+    skip_autostate_test
     svi = Interface.new('Vlan23')
     ref = cmd_ref_autostate
     default_value = ref.default_value
@@ -170,43 +202,34 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
+  def config_svi_properties(state)
+    # Skip default vlan1
+    (2..6).each do |i|
+      svi = Interface.new('Vlan' + i.to_s)
+      svi.svi_autostate = state unless /N(5|6)K/.match(node.product_id)
+      svi.svi_management = state
+    end
+  end
+
   def test_svi_get_svis
-    count = 5
-
-    ref = cmd_ref_autostate
-    # Have to account for interface Vlan1 why we add 1 to count
-    (2..count + 1).each do |i|
-      str = 'Vlan' + i.to_s
-      svi = Interface.new(str)
-      assert_result(ref.test_config_result(false),
-                    'Error: svi autostate not set to false') do
-        svi.svi_autostate = false
+    config_svi_properties(true)
+    Interface.interfaces.each do |id, obj|
+      next if id[/vlan1/]
+      next unless id[/vlan/]
+      unless /N(5|6)K/.match(node.product_id)
+        assert(obj.svi_autostate, "svi autostate should be enabled #{id}")
       end
-      svi.svi_management = true
+      assert(obj.svi_management, "svi management should be enabled #{id}")
     end
 
-    svis = Interface.interfaces
-    ref = cmd_ref_autostate
-    result = ref.default_value
-    svis.each do |id, svi|
-      case id
-      when /^vlan1$/
-        result = true if ref.config_set?
-        assert_equal(result, svi.svi_autostate,
-                     'Error: svis collection, Vlan1, incorrect autostate')
-        refute(svi.svi_management,
-               'Error: svis collection, Vlan1, incorrect management')
-      when /^vlan/
-        result = false if ref.config_set?
-        assert_equal(result, svi.svi_autostate,
-                     "Error: svis collection, Vlan#{id}, incorrect autostate")
-        assert(svi.svi_management,
-               "Error: svis collection, Vlan#{id}, incorrect management")
+    config_svi_properties(false)
+    Interface.interfaces.each do |id, obj|
+      next if id[/vlan1/]
+      next unless id[/vlan/]
+      unless /N(5|6)K/.match(node.product_id)
+        refute(obj.svi_autostate, "svi autostate should be disabled #{id}")
       end
-    end
-
-    svis.each_key do |id|
-      config("no interface #{id}") if id[/^vlan/]
+      refute(obj.svi_management, "svi management should be disabled #{id}")
     end
   end
 
@@ -221,7 +244,8 @@ class TestSvi < CiscoTestCase
   end
 
   def test_system_default_svi_autostate_on_off
-    interface = Interface.new('Eth1/1')
+    skip_autostate_test
+    interface = Interface.new(interfaces[0])
 
     system_default_svi_autostate('no ')
     refute(interface.system_default_svi_autostate,

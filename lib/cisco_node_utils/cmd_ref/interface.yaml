@@ -207,6 +207,7 @@ speed:
   default_value: "auto"
 
 svi_autostate:
+  _exclude: [/N(5|6)/]
   kind: boolean
   config_get_token_append: '/^(?:no )?autostate$/'
   config_set_append: "%s autostate"
@@ -263,10 +264,19 @@ switchport_trunk_native_vlan:
   default_value: 1
 
 system_default_svi_autostate:
+  _exclude: [/N(5|6)/]
   kind: boolean
   config_get: "show running all | include 'system default'"
-  config_get_token: ['/^system default interface-vlan autostate$/']
-  # default_value: n/a. This is a user-configurable system default.
+  /N7K/:
+    # When enabled:  Property does not nvgen.
+    # When disabled: Property nvgens as 'system default interface-vlan no autostate'
+    config_get_token: ['/^system default interface-vlan no autostate$/']
+    # default_value: n/a. This is a user-configurable system default.
+  else:
+    # When enabled:  Property nvgens as 'system default interface-vlan autostate' 
+    # When disabled: Property nvgens as 'no system default interface-vlan autostate'
+    config_get_token: ['/^system default interface-vlan autostate$/']
+    # default_value: n/a. This is a user-configurable system default.
 
 system_default_switchport:
   # Note: This is a simple boolean state but there is a bug on some
