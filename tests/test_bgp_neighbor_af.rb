@@ -246,12 +246,9 @@ class TestBgpNeighborAF < CiscoTestCase
   #   additional_paths_send
   #   soft_reconfiguration_in
 
-  def n6k_platform?
-    /N6K/ =~ node.product_id
-  end
-
-  def n7k_platform?
-    /N7K/ =~ node.product_id
+  def supports_soft_reconfig_always?
+    return true if node.product_id[/N(3|9)K/]
+    false
   end
 
   def test_tri_states
@@ -270,11 +267,11 @@ class TestBgpNeighborAF < CiscoTestCase
 
       # The 'always' keyword is not supported on N6K / N7K
       %w(soft_reconfiguration_in).each do |k|
-        if n6k_platform? || n7k_platform?
-          array = [:enable, :inherit, 'enable', 'inherit',
+        if supports_soft_reconfig_always?
+          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
                    af.send("default_#{k}")]
         else
-          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
+          array = [:enable, :inherit, 'enable', 'inherit',
                    af.send("default_#{k}")]
         end
 
