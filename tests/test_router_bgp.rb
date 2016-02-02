@@ -23,10 +23,10 @@ require_relative '../lib/cisco_node_utils/bgp'
 # TestRouterBgp - Minitest for RouterBgp class
 class TestRouterBgp < CiscoTestCase
   def setup
-    # Disable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
     super
-    config('no feature bgp')
+    # Remove the bgp config
+    bgp = RouterBgp.routers.values.shift
+    bgp['default'].destroy unless bgp.nil?
   end
 
   def get_routerbgp_match_line(as_number, vrf='default')
@@ -67,15 +67,15 @@ class TestRouterBgp < CiscoTestCase
     end
   end
 
-  def test_routerbgp_create_asnum_invalid
-    ['', 55.5, 'Fifty_Five'].each do |test|
+  def test_asnum_invalid
+    ['', 'Fifty_Five'].each do |test|
       assert_raises(ArgumentError, "#{test} not a valid asn") do
         RouterBgp.new(test)
       end
     end
   end
 
-  def test_routerbgp_create_vrf_invalid
+  def test_vrf_invalid
     ['', 55].each do |test|
       assert_raises(ArgumentError, "#{test} not a valid vrf name") do
         RouterBgp.new(88, test)
@@ -104,21 +104,16 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_create_valid_asn
+  def test_valid_asn
     [1, 4_294_967_295, '55', '1.0', '1.65535',
      '65535.0', '65535.65535'].each do |test|
       rtr_bgp = RouterBgp.new(test)
-      test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
-      line = get_routerbgp_match_line(test)
-      refute_nil(line, "Error: 'router bgp #{test}' not configured")
+      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
       rtr_bgp.destroy
 
       vrf = 'Duke'
       bgp_vrf = RouterBgp.new(test, vrf)
-      test = RouterBgp.dot_to_big(test.to_s) if test.is_a? String
-      line = get_routerbgp_match_line(test, vrf)
-      refute_nil(line,
-                 "Error: 'router bgp #{test}' vrf '#{vrf}' not configured")
+      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
       bgp_vrf.destroy
       rtr_bgp.destroy
     end
@@ -151,14 +146,15 @@ class TestRouterBgp < CiscoTestCase
     bgp1.destroy
   end
 
-  def test_routerbgp_get_asnum
-    asnum = 55
+  def test_asnum_dot
+    asnum = 65_540
     bgp = RouterBgp.new(asnum)
-    line = get_routerbgp_match_line(asnum)
-    asnum = line.to_s.split(' ').last.to_i
-    assert_equal(asnum, bgp.asnum,
-                 'Error: router asnum not correct')
-    bgp.destroy
+    assert_equal(asnum.to_s, bgp.asnum, 'Error: router asnum incorrect')
+
+    # Create a new object with the same ASN value but using AS_DOT notation
+    assert_raises(CliError) do
+      RouterBgp.new('1.4')
+    end
   end
 
   def test_routerbgp_destroy
@@ -417,7 +413,8 @@ class TestRouterBgp < CiscoTestCase
       # Test false with size
       bgp.send("event_history_#{opt}=", 'false')
       result = bgp.send("event_history_#{opt}")
-      assert_equal('false', result,
+      expected = (opt == :detail) ? bgp.default_event_history_detail : 'false'
+      assert_equal(expected, result,
                    "event_history_#{opt}: Failed to set state to False")
 
       # Test true with size, from false
@@ -690,33 +687,21 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_routerbgp_set_get_maxas_limit
-    %w(test_default test_vrf).each do |t|
-      if t == 'test_default'
-        asnum = 55
-        vrf = 'default'
-        bgp = RouterBgp.new(asnum)
-      else
-        asnum = 99
-        vrf = 'yamllll'
-        bgp = RouterBgp.new(asnum, vrf)
-      end
-      bgp.maxas_limit = 50
-      assert_equal(50, bgp.maxas_limit,
-                   "vrf #{vrf}: bgp maxas-limit should be set to '50'")
-      bgp.maxas_limit = bgp.default_maxas_limit
-      assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
-                   "vrf #{vrf}: bgp maxas-limit should be set to default value")
-      bgp.destroy
-    end
+  def maxas_limit(vrf)
+    bgp = RouterBgp.new(55, vrf)
+    limit = 20
+    bgp.maxas_limit = limit
+    assert_equal(limit, bgp.maxas_limit, "vrf #{vrf}: maxas-limit invalid")
+
+    limit = bgp.default_maxas_limit
+    bgp.maxas_limit = limit
+    assert_equal(limit, bgp.maxas_limit, "vrf #{vrf}: maxas-limit not default")
   end
 
-  def test_routerbgp_default_maxas_limit
-    asnum = 55
-    bgp = RouterBgp.new(asnum)
-    assert_equal(bgp.default_maxas_limit, bgp.maxas_limit,
-                 'bgp maxas-limit should be default value')
-    bgp.destroy
+  def test_maxas_limit
+    %w(default cyan).each do |vrf|
+      maxas_limit(vrf)
+    end
   end
 
   def test_routerbgp_set_get_neighbor_down_fib_accelerate

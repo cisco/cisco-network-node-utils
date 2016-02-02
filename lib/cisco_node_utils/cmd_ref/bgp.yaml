@@ -192,7 +192,7 @@ route_distinguisher:
 
 router:
   config_get: "show running bgp"
-  config_get_token: '/^router bgp (\d+)$/'
+  config_get_token: '/^router bgp ([\d.]+)$/'
   config_set: "<state> router bgp <asnum>"
 
 router_id:

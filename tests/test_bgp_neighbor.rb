@@ -21,8 +21,8 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 
-# TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
-class TestRouterBgpNeighbor < CiscoTestCase
+# TestBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
+class TestBgpNeighbor < CiscoTestCase
   # rubocop:disable Style/ClassVars
   @@asn = 55
   @@addr = '1.1.1.1'
@@ -203,7 +203,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
         end
       end
       # test a negative value
-      assert_raises(ArgumentError) do
+      assert_raises(CliError) do
         neighbor.local_as = '52 15'
       end
       neighbor.destroy

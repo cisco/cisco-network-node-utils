@@ -23,8 +23,8 @@ require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
 require_relative '../lib/cisco_node_utils/feature'
 
-# TestRouterBgpAF - Minitest for RouterBgpAF class
-class TestRouterBgpAF < CiscoTestCase
+# TestBgpAF - Minitest for RouterBgpAF class
+class TestBgpAF < CiscoTestCase
   def setup
     super
     # Disable and enable feature bgp before each test to ensure we
