@@ -22,22 +22,38 @@ require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
+require_relative '../lib/cisco_node_utils/feature'
 
 # TestBgpNeighborAF - Minitest for RouterBgpNeighborAF class
 class TestBgpNeighborAF < CiscoTestCase
-  @@reset_feat = true # rubocop:disable Style/ClassVars
+  # rubocop:disable Style/ClassVars
+  @@pre_clean_needed = true
+  @@evpn_unsupported = false
+  # rubocop:enable Style/ClassVars
 
   def setup
     super
-    if @@reset_feat
-      config('no feature bgp', 'feature bgp')
-      config('no nv overlay evpn', 'nv overlay evpn')
-      @@reset_feat = false # rubocop:disable Style/ClassVars
-    else
-      # Just ensure that feature is enabled
-      config('feature bgp')
-      config('nv overlay evpn')
-    end
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+    setup_nv_overlay_evpn
+  end
+
+  def teardown
+    super
+    remove_all_bgps
+  end
+
+  def setup_nv_overlay_evpn
+    Feature.bgp_enable
+
+    # l2vpn evpn tests require 'nv overlay evpn' but it is not supported on
+    # all platforms
+    Feature.nv_overlay_evpn_enable unless @@evpn_unsupported
+  rescue Cisco::UnsupportedError => e
+    @@evpn_unsupported = true if # rubocop:disable Style/ClassVars
+      e.message[/unsupported on this node/]
+    # Remove the evpn AF from the test matrix
+    @@matrix.delete(:evpn)
   end
 
   def clean_af(af_args, ebgp=true)
@@ -63,23 +79,23 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # AF test matrix
   @@matrix = { # rubocop:disable Style/ClassVars
-    # 1  => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
-    # 2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
-    # 3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
-    # 4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
-    # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6  => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
-    # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8  => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
-    # 9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
-    # 10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
-    # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
-    # 12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
-    # 13 => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
-    # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
-    # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
-    # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
-    17 => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
+    # 1     => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
+    # 2     => [1, 'default', '10:1::1', %w(ipv4 unicast)],
+    # 3     => [1, 'default', '10:1::1', %w(ipv6 multicast)],
+    # 4     => [1, 'default', '10:1::1', %w(ipv6 unicast)],
+    # 5     => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
+    6     => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    # 7     => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
+    8     => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
+    # 9     => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
+    # 10    => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
+    # 11    => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
+    # 12    => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
+    # 13    => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
+    # 14    => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
+    # 15    => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
+    # 16    => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
+    :evpn => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
   }
 
   # ---------------------------------
@@ -136,7 +152,7 @@ class TestBgpNeighborAF < CiscoTestCase
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
     end
-    @@reset_feat = true # rubocop:disable Style/ClassVars
+    @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   end
 
   # ---------------------------------
@@ -515,7 +531,7 @@ class TestBgpNeighborAF < CiscoTestCase
       af, dbg = clean_af(af_args)
       send_community(af, dbg)
     end
-    @@reset_feat = true # rubocop:disable Style/ClassVars
+    @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   end
 
   def send_community(af, dbg)

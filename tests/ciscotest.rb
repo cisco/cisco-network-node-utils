@@ -113,4 +113,26 @@ class CiscoTestCase < TestCase
     end
     @@interfaces_id
   end
+
+  # Remove all router bgps.
+  def remove_all_bgps
+    require_relative '../lib/cisco_node_utils/bgp'
+    RouterBgp.routers.each do |_asn, vrfs|
+      vrfs.each do |vrf, obj|
+        if vrf == 'default'
+          obj.destroy
+          break
+        end
+      end
+    end
+  end
+
+  # Remove all user vrfs.
+  def remove_all_vrfs
+    require_relative '../lib/cisco_node_utils/vrf'
+    Vrf.vrfs.each do |vrf, obj|
+      next if vrf[/management/]
+      obj.destroy
+    end
+  end
 end
