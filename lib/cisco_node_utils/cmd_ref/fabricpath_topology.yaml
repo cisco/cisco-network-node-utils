@@ -3,33 +3,37 @@
 # Fabricpath feature is not available on N3K and N9K
 _exclude: [/N3/, /N9K/]
 
+_template: 
+  config_get:  'show running-config fabricpath all'
+  config_get_token:  '/^fabricpath topology %d$/'
+  config_set:  'fabricpath topology <topo_id>'
+
 all_topos:
   multiple:
-  config_get: "show fabricpath topology"
-  config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
+  config_get_token: '/^fabricpath topology (\d+)/'
+  default_value: []
 
 create:
-  config_set: ["fabricpath topology <topo>" , "end"]
+  config_set: 'fabricpath topology <topo_id>'
 
 description:
   kind: string
-  config_get: "show fabricpath topology"
-  config_get_token: '/^(\S+)[\s]+%d+[\s]+\S+/'
-  config_set: ["fabricpath topology <topo>" , "<state> description <name>", "end"]
-  default_value: ""
+  config_get_token_append: '/^description (\S+)$/'
+  config_set_append: '<state> description <name>'
+  default_value: ''
 
 destroy:
-  config_set: "no fabricpath topology <topo>"
+  config_set: 'no fabricpath topology <topo_id>'
 
 member_vlans:
   kind: string
-  config_get: "show fabricpath topology vlan"
-  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
-  config_set: ["fabricpath topology <topo>" , "<state> member vlan <vlan_range>", "end"]
-  default_value: "--"
+  config_get_token_append: '/^member vlan (\S+)/'
+  config_set_append: '<state> member vlan <vlan_range>'
+  default_value: ''
 
-state:
+member_vnis:
+  _exclude: [/N5K/, /N6K/]
   kind: string
-  config_get: "show fabricpath topology"
-  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
-  default_value: "up"
+  config_get_token_append: '/^member vni (\S+)/'
+  config_set_append: '<state> member vni <vni_range>'
+  default_value: ''

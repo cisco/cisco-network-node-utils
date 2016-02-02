@@ -43,7 +43,7 @@ graceful_merge:
 linkup_delay:
   kind: int
   config_get: "show run fabricpath all"
-  config_get_token: '/^fabricpath timers linkup-delay (\d+)\s*$/'
+  config_get_token: '/^fabricpath timers linkup\-delay (\d+)\s*$/'
   config_set: "<state> fabricpath timers linkup-delay <delay>"
   default_value: 10
 
@@ -51,7 +51,7 @@ linkup_delay_always:
   _exclude: [/N5K/, /N6K/]
   kind: boolean
   config_get: "show run fabricpath all"
-  config_get_token: '/^fabricpath timers linkup-delay always\s*$/'
+  config_get_token: '/^fabricpath timers linkup\-delay always\s*$/'
   config_set: "<state> fabricpath timers linkup-delay always"
   default_value: false
   
@@ -60,14 +60,14 @@ linkup_delay_enable:
   auto_default: false
   kind: boolean
   config_get: "show run fabricpath all"
-  config_get_token: '/^fabricpath linkup-delay\s*$/'
+  config_get_token: '/^fabricpath linkup\-delay\s*$/'
   config_set: "<state> fabricpath linkup-delay"
   default_value: true
   
 loadbalance_algorithm:
   kind: string
   config_get: "show run fabricpath all"
-  config_get_token: '/^fabricpath load-balance (\S+)\s*$/'
+  config_get_token: '/^fabricpath load\-balance (\S+)\s*$/'
   config_set: "<state> fabricpath load-balance <algo>"
   /N5K/:
     default_value: "source-destination"
@@ -141,10 +141,14 @@ mode:
   config_set: "<state> fabricpath mode transit"
   default_value: "normal"
 
+supported_modules:
+  _exclude: [/N5K/, /N6K/]
+  default_only: "f2e f3"
+
 switch_id:
   kind: int
   config_get: "show run fabricpath all"
-  config_get_token: '/^fabricpath switch-id (\d+)\s*$/'
+  config_get_token: '/^fabricpath switch\-id (\d+)\s*$/'
   config_set: "fabricpath switch-id <swid>"
 
 transition_delay:
