@@ -22,23 +22,17 @@ include Cisco
 # TestVrf - Minitest for Vrf node utility class
 class TestVrf < CiscoTestCase
   VRF_NAME_SIZE = 33
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    vrf_clean
+    remove_all_vrfs if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
     super
-    vrf_clean
-  end
-
-  def vrf_clean
-    vrfs = Vrf.vrfs
-    vrfs.keys do |vrf|
-      next if vrf[/management/]
-      config("no vrf context #{vrf}")
-    end
+    remove_all_vrfs
   end
 
   def test_collection_not_empty

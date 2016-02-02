@@ -25,11 +25,17 @@ require_relative '../lib/cisco_node_utils/feature'
 
 # TestBgpAF - Minitest for RouterBgpAF class
 class TestBgpAF < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
-    # Disable and enable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
-    config('no feature bgp', 'feature bgp')
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    super
+    remove_all_bgps
   end
 
   def get_bgp_af_cfg(asn, vrf, af)
