@@ -86,7 +86,7 @@ module Cisco
         state = ''
         range = str
       end
-      config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id, 
+      config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id,
                  state: state, vlan_range: range)
     end
 
@@ -114,7 +114,7 @@ module Cisco
         state = ''
         range = str
       end
-      config_set('fabricpath_topology', 'member_vnis', topo_id: @topo_id, 
+      config_set('fabricpath_topology', 'member_vnis', topo_id: @topo_id,
                  state: state, vni_range: range)
     end
 
@@ -135,7 +135,7 @@ module Cisco
         state = ''
         name = desc
       end
-      config_set('fabricpath_topology', 'description', topo_id: @topo_id, 
+      config_set('fabricpath_topology', 'description', topo_id: @topo_id,
                  state: state, name: name)
     end
 

@@ -64,7 +64,7 @@ module Cisco
         # modules which support this feature
         if fabricpath_set == :installed || fabricpath_set == :enabled
           v = Vdc.new('default')
-          v.limit_resource_module_type = 
+          v.limit_resource_module_type =
             config_get('fabricpath', 'supported_modules')
           # exception will be raised for un-supported platforms/modules
         end
