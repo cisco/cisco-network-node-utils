@@ -433,6 +433,13 @@ module Cisco
   end
   module_function :find_subconfig
 
+  # For spanning tree range based parameters, the range
+  # is very dynamic and so before the parameters are set,
+  # the rest of the range needs to be reset
+  # For ex: if the ranges 2-42 and 83-200 are getting set,
+  # and the total range of the given parameter is 1-4000
+  # then 1,43-82,201-4000 needs to be reset. This method
+  # takes the set ranges and gives back the range to be reset
   def get_reset_range(total_range, remove_ranges)
     fail 'invalid range' unless total_range.include?('-')
     return total_range if remove_ranges.empty?
@@ -453,6 +460,10 @@ module Cisco
         end
       end
     end
+    # At this stage, the array is built with the reset range,
+    # and the string needs to be built.
+    # for ex: the tarray has 1, 2 to 10, 83 to 2014, 3022
+    # and the string has to be "1,2-10,83-2014,3022"
     farray = tarray.compact.uniq.sort
     lranges = []
     unless farray.empty?
