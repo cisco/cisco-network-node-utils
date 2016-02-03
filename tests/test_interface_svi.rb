@@ -23,8 +23,8 @@ class TestSvi < CiscoTestCase
 
   def remove_all_svis
     Interface.interfaces.each do |int, obj|
-      next if int[/vlan1/]
       next unless int[/vlan/]
+      next if int[/vlan1/]
       obj.destroy
     end
   end
@@ -56,7 +56,7 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def skip_autostate_test
+  def skip_autostate_test?
     skip('svi autostate properties are not supported on this platform') if
       node.product_id =~ /N(5|6)K/
   end
@@ -65,8 +65,8 @@ class TestSvi < CiscoTestCase
     config("#{state}system default interface-vlan autostate")
   end
 
-  def test_svi_prop_nil_when_ethernet
-    skip_autostate_test
+  def test_prop_nil_when_ethernet
+    skip_autostate_test?
     intf = Interface.new(interfaces[0])
     assert_nil(intf.svi_autostate,
                'Error: svi_autostate should be nil when interface is ethernet')
@@ -74,7 +74,7 @@ class TestSvi < CiscoTestCase
                'Error: svi_management should be nil when interface is ethernet')
   end
 
-  def test_svi_create_valid
+  def test_create_valid
     svi = Interface.new('Vlan23')
     s = @device.cmd('show run interface all | inc Vlan')
     cmd = 'interface Vlan1'
@@ -90,25 +90,25 @@ class TestSvi < CiscoTestCase
     refute(s.include?(cmd), 'Error: svi Vlan23 still configured')
   end
 
-  def test_svi_create_vlan_invalid
+  def test_create_vlan_invalid
     assert_raises(CliError) { Interface.new('10.1.1.1') }
   end
 
-  def test_svi_create_vlan_invalid_value
+  def test_create_vlan_invalid_value
     assert_raises(CliError) { Interface.new('Vlan0') }
   end
 
-  def test_svi_create_vlan_nil
+  def test_create_vlan_nil
     assert_raises(TypeError) { Interface.new(nil) }
   end
 
-  def test_svi_name
+  def test_name
     svi = Interface.new('Vlan23')
     assert_equal('vlan23', svi.name, 'Error: svi vlan name is wrong')
     svi.destroy
   end
 
-  def test_svi_assignment
+  def test_assignment
     svi = Interface.new('Vlan23')
     svi.svi_management = true
     assert(svi.svi_management, 'Error: svi svi_management, false')
@@ -117,8 +117,8 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_get_autostate_false
-    skip_autostate_test
+  def test_get_autostate_false
+    skip_autostate_test?
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'no autostate')
@@ -126,8 +126,8 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_get_autostate_true
-    skip_autostate_test
+  def test_get_autostate_true
+    skip_autostate_test?
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'autostate')
@@ -135,8 +135,8 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_set_autostate_false
-    skip_autostate_test
+  def test_set_autostate_false
+    skip_autostate_test?
     ref = cmd_ref_autostate
     svi = Interface.new('Vlan23')
     assert_result(ref.test_config_result(false),
@@ -146,8 +146,8 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_set_autostate_true
-    skip_autostate_test
+  def test_set_autostate_true
+    skip_autostate_test?
     svi = Interface.new('Vlan23')
     ref = cmd_ref_autostate
     assert_result(ref.test_config_result(true),
@@ -157,8 +157,8 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_set_autostate_default
-    skip_autostate_test
+  def test_set_autostate_default
+    skip_autostate_test?
     svi = Interface.new('Vlan23')
     ref = cmd_ref_autostate
     default_value = ref.default_value
@@ -169,7 +169,7 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_get_management_true
+  def test_get_management_true
     svi = Interface.new('Vlan23')
 
     config('interface vlan 23', 'management')
@@ -178,21 +178,21 @@ class TestSvi < CiscoTestCase
     svi.destroy
   end
 
-  def test_svi_set_management_false
+  def test_set_management_false
     svi = Interface.new('Vlan23')
     svi.svi_management = false
     refute(svi.svi_management)
     svi.destroy
   end
 
-  def test_svi_set_management_true
+  def test_set_management_true
     svi = Interface.new('Vlan23')
     svi.svi_management = true
     assert(svi.svi_management)
     svi.destroy
   end
 
-  def test_svi_set_management_default
+  def test_set_management_default
     svi = Interface.new('Vlan23')
     svi.svi_management = true
     assert(svi.svi_management)
@@ -211,7 +211,7 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def test_svi_get_svis
+  def test_get_svis
     config_svi_properties(true)
     Interface.interfaces.each do |id, obj|
       next if id[/vlan1/]
@@ -233,7 +233,7 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def test_svi_create_interface_description
+  def test_create_interface_description
     svi = Interface.new('Vlan23')
 
     description = 'Test description'
@@ -244,7 +244,7 @@ class TestSvi < CiscoTestCase
   end
 
   def test_system_default_svi_autostate_on_off
-    skip_autostate_test
+    skip_autostate_test?
     interface = Interface.new(interfaces[0])
 
     system_default_svi_autostate('no ')
