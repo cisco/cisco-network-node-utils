@@ -108,5 +108,23 @@ module Cisco
     end
 
     # ---------------------------
+    def self.fabric_frwd_anycast_mac
+      config_get('feature', 'fabric_frwd_anycast_mac')
+    end
+
+    def self.fabric_frwd_anycast_mac=(val)
+      puts 'S:Entered Setter:fabric_frwd_anycast_mac='
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('feature',
+                 'fabric_frwd_anycast_mac', state, val)
+    rescue Cisco::CliError => e
+      raise " '#{e.command}' : #{e.clierror}"
+    end
+    # ---------------------------
   end
 end

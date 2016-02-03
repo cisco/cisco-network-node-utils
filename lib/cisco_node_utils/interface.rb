@@ -205,6 +205,28 @@ module Cisco
       FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
     end
 
+    def fabric_frwd_anycast
+      config_get('interface', 'fabric_frwd_anycast', @name)
+    end
+
+    def fabric_frwd_anycast=(state)
+      begin
+        unless Feature.fabric_forwarding_enabled?
+          config_set('feature', 'fabric_forwarding')
+        end
+        return unless Feature.fabric_frwd_anycast_mac
+        no_cmd = (state ? '' : 'no')
+        config_set('interface',
+                   'fabric_frwd_anycast', @name, no_cmd)
+      end
+    rescue Cisco::CliError => e
+      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_fabric_frwd_anycast
+      config_get_default('interface', 'fabric_frwd_anycast')
+    end
+
     def fex_feature
       fex = config_get('fex', 'feature')
       fail 'fex_feature not found' if fex.nil?

@@ -958,6 +958,31 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
   end
 
+  def test_interface_fabric_frwd_anycast
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+    config('feature fabric forwarding')
+    Feature.fabric_frwd_anycast_mac = '2.2.2'
+    # 1. Testing default
+    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+    # 2. Testing non-default
+    int.fabric_frwd_anycast = true
+    assert_equal(true, int.fabric_frwd_anycast)
+    # 3. Setting back to default
+    int.fabric_frwd_anycast = int.default_fabric_frwd_anycast
+    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+
+    # 4. Removing feature fabric forwarding anycast mac
+    config('no fabric forwarding mode')
+    Feature.fabric_frwd_anycast_mac = '1.1.1'
+    int.fabric_frwd_anycast = true
+    assert_equal(true, int.fabric_frwd_anycast)
+    # 5. Attempting to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) { nonvlanint.fabric_frwd_anycast = true }
+  end
+
   def test_interface_ipv4_proxy_arp
     interface = create_interface
     interface.switchport_mode = :disabled
