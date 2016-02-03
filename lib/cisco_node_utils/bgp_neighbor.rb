@@ -111,7 +111,7 @@ module Cisco
 
     def connected_check
       result = config_get('bgp_neighbor', 'connected_check', @get_args)
-      result ? false : true
+      result ? false : default_connected_check
     end
 
     def default_connected_check
@@ -127,7 +127,7 @@ module Cisco
 
     def capability_negotiation
       result = config_get('bgp_neighbor', 'capability_negotiation', @get_args)
-      result ? false : true
+      result ? false : default_capability_negotiation
     end
 
     def default_capability_negotiation
@@ -140,8 +140,7 @@ module Cisco
     end
 
     def dynamic_capability
-      result = config_get('bgp_neighbor', 'dynamic_capability', @get_args)
-      result ? true : false
+      config_get('bgp_neighbor', 'dynamic_capability', @get_args)
     end
 
     def default_dynamic_capability
@@ -213,7 +212,7 @@ module Cisco
 
     def low_memory_exempt
       result = config_get('bgp_neighbor', 'low_memory_exempt', @get_args)
-      result ? true : false
+      result ? true : default_low_memory_exempt
     end
 
     def default_low_memory_exempt
