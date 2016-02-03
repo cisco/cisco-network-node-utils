@@ -620,7 +620,7 @@ module Cisco
     end
 
     def send_comm_ios_xr_set(val)
-      case val
+      case val.to_s
       when 'none'
         set_args_keys(state: 'no', attr: 'send-community-ebgp')
         config_set('bgp_neighbor_af', 'send_community', @set_args)
@@ -641,6 +641,8 @@ module Cisco
         config_set('bgp_neighbor_af', 'send_community', @set_args)
         set_args_keys(state: '', attr: 'send-extended-community-ebgp')
         config_set('bgp_neighbor_af', 'send_community', @set_args)
+      else
+        fail ArgumentError, "Invalid value '#{val}'"
       end
     end
 
