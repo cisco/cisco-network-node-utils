@@ -196,15 +196,11 @@ class TestBgpNeighbor < CiscoTestCase
   def test_local_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      local_asnum = [42, '52', '1.1', neighbor.default_local_as]
-      local_asnum.each do |asnum|
+      [42, '52', '1.1', neighbor.default_local_as].each do |asnum|
         neighbor.local_as = asnum
-        if asnum == '52'
-          assert_equal(asnum.to_i, neighbor.local_as)
-        else
-          assert_equal(asnum, neighbor.local_as)
-        end
+        assert_equal(asnum.to_s, neighbor.local_as)
       end
+
       # test a negative value
       assert_raises(CliError) do
         neighbor.local_as = '52 15'
@@ -310,10 +306,9 @@ class TestBgpNeighbor < CiscoTestCase
   def test_remote_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(@@asn, vrf, @@addr)
-      remote_asnum = [42, '1.1', neighbor.default_remote_as]
-      remote_asnum.each do |asnum|
+      [42, '1.1', neighbor.default_remote_as].each do |asnum|
         neighbor.remote_as = asnum
-        assert_equal(asnum, neighbor.remote_as)
+        assert_equal(asnum.to_s, neighbor.remote_as)
       end
       neighbor.destroy
     end

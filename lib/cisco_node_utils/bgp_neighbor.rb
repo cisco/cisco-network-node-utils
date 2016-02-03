@@ -173,13 +173,11 @@ module Cisco
     end
 
     def local_as
-      result = config_get('bgp_neighbor', 'local_as', @get_args)
-      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
-      result
+      config_get('bgp_neighbor', 'local_as', @get_args).to_s
     end
 
     def default_local_as
-      config_get_default('bgp_neighbor', 'local_as')
+      config_get_default('bgp_neighbor', 'local_as').to_s
     end
 
     def log_neighbor_changes=(val)
@@ -277,13 +275,11 @@ module Cisco
     end
 
     def remote_as
-      result = config_get('bgp_neighbor', 'remote_as', @get_args)
-      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
-      result
+      config_get('bgp_neighbor', 'remote_as', @get_args).to_s
     end
 
     def default_remote_as
-      config_get_default('bgp_neighbor', 'remote_as')
+      config_get_default('bgp_neighbor', 'remote_as').to_s
     end
 
     def remove_private_as=(val)
