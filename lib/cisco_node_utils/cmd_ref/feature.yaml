@@ -18,6 +18,11 @@ fabric_forwarding:
   config_get_token: '/^feature fabric forwarding$/'
   config_set: "feature fabric forwarding"
 
+fabric_frwd_anycast_mac:
+  config_get: "show running | i ^fabric"
+  config_get_token: '/^fabric forwarding anycast-gateway-mac (\S+)/'
+  config_set: "%s fabric forwarding anycast-gateway-mac %s"
+
 nv_overlay:
   _exclude: [/N(3|5|6)/]
   kind: boolean
