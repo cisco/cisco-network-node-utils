@@ -42,6 +42,7 @@ class TestAce < CiscoTestCase
   end
 
   # TESTS
+  # rubocop:disable Metrics/MethodLength
   def test_create_destroy_ace_one
     attr_v4_1 = {
       action:   'permit',
@@ -205,6 +206,7 @@ class TestAce < CiscoTestCase
       end
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   def create_destroy_ace(afi, entry)
     acl_name = @acl_name_v4 if afi[/(ip|ipv4)$/]

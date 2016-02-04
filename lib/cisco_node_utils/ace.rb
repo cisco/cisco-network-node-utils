@@ -141,18 +141,29 @@ module Cisco
 
     # UTILITY FUNCTIONS
     # -----------------
-    def extract_value(prop, prefix)
-      match1 = ace_get
-      return nil if match1.nil?
-      return nil if match1.names.inclucde?(prop) == false
+
+    # extract value of property from ace
+    def extract_value(prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      ace_match = ace_get
+
+      # matching ace not found
+      return nil if ace_match.nil? # no matching ace found
+
+      # property not defined for matching ace
+      return nil unless ace_match.names.inclucde?(prop)
+
+      # extract and return value that follows prefix + <space>
       regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>*)")
-      match2 = regexp.match(match1[prop])
-      return nil if match2.nil?
-      match2[:extracted]
+      value_match = regexp.match(ace_match[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
     end
 
-    def attach_prefix(val, prop, prefix)
-      @set_args[prop] = val.nil? || val == '' ? val : prefix + ' ' + val
+    # prepend property name prefix/keyword to value
+    def attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
     end
 
     # PROPERTIES
@@ -254,19 +265,19 @@ module Cisco
     end
 
     def precedence
-      extract_value('precedence', 'precedence')
+      extract_value('precedence')
     end
 
     def precedence=(precedence)
-      attach_prefix(precedence, :precedence, 'precedence')
+      attach_prefix(precedence, :precedence)
     end
 
     def dscp
-      extract_value('dscp', 'dscp')
+      extract_value('dscp')
     end
 
     def dscp=(dscp)
-      attach_prefix(dscp, :dscp, 'dscp')
+      attach_prefix(dscp, :dscp)
     end
 
     def time_range
@@ -277,20 +288,16 @@ module Cisco
       attach_prefix(time_range, :time_range, 'time-range')
     end
 
-    def packet_length
-      extract_value('packet_length', 'packet-length')
-    end
-
     def packet_length=(packet_length)
       attach_prefix(packet_length, :packet_length, 'packet-length')
     end
 
     def ttl
-      extract_value('ttl', 'ttl')
+      extract_value('ttl')
     end
 
     def ttl=(ttl)
-      attach_prefix(ttl, :ttl, 'ttl')
+      attach_prefix(ttl, :ttl)
     end
 
     def http_method
@@ -310,11 +317,11 @@ module Cisco
     end
 
     def redirect
-      extract_value('redirect', 'redirect')
+      extract_value('redirect')
     end
 
     def redirect=(redirect)
-      attach_prefix(redirect, :redirect, 'redirect')
+      attach_prefix(redirect, :redirect)
     end
 
     def log
