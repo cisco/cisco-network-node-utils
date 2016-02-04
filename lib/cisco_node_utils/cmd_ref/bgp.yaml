@@ -289,7 +289,7 @@ route_distinguisher:
     set_value: '<state> rd <rd>'
   nexus:
     context:
-      - "vrf context <vrf>"
+      - "(?)vrf context <vrf>"
     get_value: 'rd (\S+)'
     set_value: "<state> rd <rd>"
 
