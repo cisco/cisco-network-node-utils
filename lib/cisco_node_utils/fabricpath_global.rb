@@ -111,7 +111,8 @@ module Cisco
         if val == false || set_val == ''
           ''
         else
-          "rotate-amount 0x#{set_val.to_s(16)}"
+          int_val = set_val.to_i
+          "rotate-amount 0x#{int_val.to_s(16)}"
         end
       else
         set_val

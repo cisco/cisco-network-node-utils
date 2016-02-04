@@ -142,7 +142,7 @@ mode:
   default_value: "normal"
 
 supported_modules:
-  _exclude: [/N5K/, /N6K/]
+  _exclude: [N5k, N6k]
   default_only: "f2e f3"
 
 switch_id:
