@@ -68,17 +68,11 @@ module Cisco
     end
 
     def member_vlans
-      str = config_get('fabricpath_topology', 'member_vlans', @topo_id)
-      return [] if str == ''
-      if /,/.match(str)
-        str.split(/\s*,\s*/)
-      else
-        str.lines.to_a
-      end
+      config_get('fabricpath_topology', 'member_vlans',
+                 @topo_id).gsub(/\s+/, '')
     end
 
     def member_vlans=(str)
-      str = str.join(',') unless str.empty?
       if str.empty?
         state = 'no'
         range = ''
@@ -95,13 +89,7 @@ module Cisco
     end
 
     def member_vnis
-      str = config_get('fabricpath_topology', 'member_vnis', @topo_id)
-      return [] if str == ''
-      if /,/.match(str)
-        str.split(/\s*,\s*/)
-      else
-        str.lines.to_a
-      end
+      config_get('fabricpath_topology', 'member_vnis', @topo_id).gsub(/\s+/, '')
     end
 
     def member_vnis=(str)

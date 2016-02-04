@@ -66,8 +66,8 @@ class TestFabricpathTopo < CiscoTestCase
   def test_member_vlans
     @topo = FabricpathTopo.new('25')
     @topo.topo_name = 'Topo-25'
-    @topo.member_vlans = ['2-10', '100', '500']
-    topo25_vlans = @topo.member_vlans.join(',')
+    @topo.member_vlans = '2-10, 100, 500'
+    topo25_vlans = @topo.member_vlans
     puts "Topo #{@topo.topo_name} member vlans #{topo25_vlans}"
     assert_equal('2-10,100,500', topo25_vlans,
                  'Topo 25 not getting set with member vlans')
