@@ -36,6 +36,7 @@ additional_paths_send:
   default_value: false
 
 advertise_l2vpn_evpn:
+  _exclude: [/N(3|6)/]
   kind: boolean
   config_get_token_append: '/^advertise l2vpn evpn$/'
   config_set_append: '<state> advertise l2vpn evpn'
