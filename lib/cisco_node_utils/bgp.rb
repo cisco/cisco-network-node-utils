@@ -808,6 +808,7 @@ module Cisco
     end
 
     def default_route_distinguisher
+      return nil if @vrf.nil? || @vrf == 'default'
       config_get_default('bgp', 'route_distinguisher')
     end
 
