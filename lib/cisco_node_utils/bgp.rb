@@ -817,7 +817,8 @@ module Cisco
 
     def default_route_distinguisher
       if @vrf.nil? || @vrf == 'default'
-        fail Cisco::UnsupportedError.new('bgp', 'route_distinguisher', 'set',
+        fail Cisco::UnsupportedError.new('bgp', 'default_route_distinguisher',
+                                         'get',
                                          'route_distinguisher is not ' \
                                          'configurable on a default VRF')
       end
