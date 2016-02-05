@@ -34,8 +34,8 @@ module Cisco
 
     def self.topos
       hash = {}
-      fabricpath = config_get('fabricpath', 'feature')
-      return hash if (:enabled != fabricpath.to_sym)
+      feature = config_get('fabricpath', 'feature')
+      return hash if feature.nil? || feature.to_sym != :enabled
       topo_list = config_get('fabricpath_topology', 'all_topos')
       return hash if topo_list.nil?
 
