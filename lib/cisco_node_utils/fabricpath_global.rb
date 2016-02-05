@@ -34,8 +34,8 @@ module Cisco
 
     def self.globals
       hash = {}
-      is_fabricpath_feature = config_get('fabricpath', 'feature')
-      return hash if (:enabled != is_fabricpath_feature.to_sym)
+      feature = config_get('fabricpath', 'feature')
+      return hash if feature.nil? || feature.to_sym != :enabled
       hash['default'] = FabricpathGlobal.new('default', false)
       hash
     rescue Cisco::CliError => e

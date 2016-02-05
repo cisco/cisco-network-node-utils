@@ -135,6 +135,8 @@ loadbalance_unicast_support:
     default_only: "combined"
 
 mode:
+  _exclude:
+    - N5k
   kind: string
   config_get: "show run fabricpath all"
   config_get_token: '/^fabricpath mode (\S+)/'
