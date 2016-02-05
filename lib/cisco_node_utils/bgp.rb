@@ -786,6 +786,7 @@ module Cisco
     # route_distinguisher
     # Note that this property is supported by both bgp and vrf providers.
     def route_distinguisher
+      return nil if @vrf.nil? || @vrf == 'default'
       config_get('bgp', 'route_distinguisher', @get_args)
     end
 
@@ -794,6 +795,7 @@ module Cisco
         Feature.nv_overlay_enable
         Feature.nv_overlay_evpn_enable
       end
+      return nil if @vrf.nil? || @vrf == 'default'
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
         @set_args[:rd] = ''
