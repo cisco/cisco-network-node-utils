@@ -22,12 +22,6 @@ all_interfaces:
   multiple:
   config_get_token: '/^interface (.*)/'
 
-channel_group:
-  kind: int
-  config_get_token_append: '/^channel-group (\d+)$/'
-  config_set_append: "%s channel-group %s %s"
-  default_value: false
-
 create:
   config_set: "interface %s"
 
@@ -48,7 +42,7 @@ duplex:
 
 encapsulation_dot1q:
   kind: int
-  config_get_token_append: '/^encapsulation dot1q (.*)/'
+  config_get_token_append: '/^encapsulation dot1q (.*)/i'
   config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 
@@ -215,6 +209,7 @@ speed:
   default_value: "auto"
 
 svi_autostate:
+  _exclude: [N5k, N6k]
   kind: boolean
   config_get_token_append: '/^(?:no )?autostate$/'
   config_set_append: "%s autostate"
@@ -271,13 +266,26 @@ switchport_trunk_native_vlan:
   default_value: 1
 
 system_default_svi_autostate:
+  _exclude: [N5k, N6k]
   kind: boolean
   config_get: "show running all | include 'system default'"
-  config_get_token: ['/^system default interface-vlan autostate$/']
-  # default_value: n/a. This is a user-configurable system default.
+  N7k:
+    # When enabled:  Property does not nvgen.
+    # When disabled: Property nvgens as 'system default interface-vlan no autostate'
+    config_get_token: ['/^system default interface-vlan no autostate$/']
+    # default_value: n/a. This is a user-configurable system default.
+  else:
+    # When enabled:  Property nvgens as 'system default interface-vlan autostate'
+    # When disabled: Property nvgens as 'no system default interface-vlan autostate'
+    config_get_token: ['/^system default interface-vlan autostate$/']
+    # default_value: n/a. This is a user-configurable system default.
 
 system_default_switchport:
-  kind: boolean
+  # Note: This is a simple boolean state but there is a bug on some
+  # platforms that causes the cli to nvgen twice; this causes config_get to
+  # raise an error when it encounters the multiple. Therefore we define it
+  # as a multiple to avoid the raise.
+  multiple:
   config_get: "show running all | include 'system default'"
   config_get_token: ['/^no system default switchport$/']
   default_value: true

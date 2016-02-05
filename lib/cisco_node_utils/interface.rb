@@ -160,36 +160,6 @@ module Cisco
       config_get_default('interface', 'access_vlan')
     end
 
-    def channel_group
-      config_get('interface', 'channel_group', @name)
-    end
-
-    def channel_group=(val)
-      fail "channel_group is not supported on #{@name}" unless
-        @name[/Ethernet/i]
-      # 'force' is needed by cli_nxos to handle the case where a port-channel
-      # interface is created prior to the channel-group cli; in which case
-      # the properties of the port-channel interface will be different from
-      # the ethernet interface. 'force' is not needed if the port-channel is
-      # created as a result of the channel-group cli but since it does no
-      # harm we will use it every time.
-      if val
-        state = ''
-        force = 'force'
-      else
-        state = 'no'
-        val = force = ''
-      end
-      config_set('interface',
-                 'channel_group', @name, state, val, force)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_channel_group
-      config_get_default('interface', 'channel_group')
-    end
-
     def description
       config_get('interface', 'description', @name)
     end
@@ -268,9 +238,11 @@ module Cisco
       if addr.nil? || addr == default_ipv4_address
         state = 'no'
         if secondary
+          return if ipv4_address_secondary == default_ipv4_address_secondary
           # We need address and mask to remove.
           am = "#{ipv4_address_secondary}/#{ipv4_netmask_length_secondary}"
         else
+          return if ipv4_address == default_ipv4_address
           am = "#{ipv4_address}/#{ipv4_netmask_length}"
         end
       else
@@ -492,11 +464,7 @@ module Cisco
     def negotiate_auto=(negotiate_auto)
       lookup = negotiate_auto_lookup_string
       no_cmd = (negotiate_auto ? '' : 'no')
-      begin
-        config_set('interface', lookup, @name, no_cmd)
-      rescue Cisco::CliError => e
-        raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-      end
+      config_set('interface', lookup, @name, no_cmd)
     end
 
     def default_negotiate_auto
@@ -752,7 +720,15 @@ module Cisco
 
     def system_default_switchport
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_switchport')
+      #
+      # Note: This is a simple boolean state but there is a bug on some
+      # platforms that causes the cli to nvgen twice; this causes config_get to
+      # raise an error when it encounters the multiple. Therefore we define it
+      # as a multiple to avoid the raise and handle the array if necessary.
+      #
+      val = config_get('interface', 'system_default_switchport')
+      return (val[0][/^no /] ? false : true) if val.is_a?(Array)
+      val
     end
 
     def system_default_switchport_shutdown
@@ -762,7 +738,17 @@ module Cisco
 
     def system_default_svi_autostate
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_svi_autostate')
+      #
+      # This property behaves differently on an n7k vs ni(3|9)k and therefore
+      # needs special handling.
+      # N7K: When enabled, does not nvgen.
+      #      When disabled, does nvgen, but differently then n(3|9)k.
+      #      Return true for the disabled case, false otherwise.
+      # N(3|9)K: When enabled, does nvgen.
+      #          When disabled, does nvgen.
+      #          Return true for the enabled case, false otherwise.
+      result = config_get('interface', 'system_default_svi_autostate')
+      /N7K/.match(node.product_id) ? !result : result
     end
 
     def switchport_vtp_mode_capable?

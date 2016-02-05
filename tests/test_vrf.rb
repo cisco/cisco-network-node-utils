@@ -22,23 +22,17 @@ include Cisco
 # TestVrf - Minitest for Vrf node utility class
 class TestVrf < CiscoTestCase
   VRF_NAME_SIZE = 33
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    vrf_clean
+    remove_all_vrfs if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
     super
-    vrf_clean
-  end
-
-  def vrf_clean
-    vrfs = Vrf.vrfs
-    vrfs.keys do |vrf|
-      next if vrf[/management/]
-      config("no vrf context #{vrf}")
-    end
+    remove_all_vrfs
   end
 
   def test_collection_not_empty
@@ -77,28 +71,30 @@ class TestVrf < CiscoTestCase
     end
   end
 
-  def test_shutdown_valid
-    shutdown_states = [true, false]
+  def test_shutdown
     v = Vrf.new('test_shutdown')
-    shutdown_states.each do |start|
-      shutdown_states.each do |finish|
-        v.shutdown = start
-        assert_equal(start, v.shutdown, 'start')
-        v.shutdown = finish
-        assert_equal(finish, v.shutdown, 'finish')
-      end
-    end
+    v.shutdown = true
+    assert(v.shutdown)
+    v.shutdown = false
+    refute(v.shutdown)
+
+    v.shutdown = true
+    assert(v.shutdown)
+    v.shutdown = v.default_shutdown
+    refute(v.shutdown)
     v.destroy
   end
 
   def test_description
-    vrf = Vrf.new('test_description')
-    vrf.description = 'tested by minitest'
-    assert_equal('tested by minitest', vrf.description,
-                 'failed to set description')
-    vrf.description = ' '
-    assert_empty(vrf.description, 'failed to remove description')
-    vrf.destroy
+    v = Vrf.new('test_description')
+    desc = 'tested by minitest'
+    v.description = desc
+    assert_equal(desc, v.description)
+
+    desc = v.default_description
+    v.description = desc
+    assert_equal(desc, v.description)
+    v.destroy
   end
 
   def test_vni

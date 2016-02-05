@@ -69,6 +69,10 @@ module Cisco
         end
       end
       hash
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
 
     # set_args_keys_default

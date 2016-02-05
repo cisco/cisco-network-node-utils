@@ -22,7 +22,23 @@ include Cisco
 
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
+  @@cleaned = false # rubocop:disable Style/ClassVars
+  def cleanup
+    Vlan.vlans.each do |vlan_id, obj|
+      next if vlan_id == '1'
+      obj.destroy
+    end
+    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def setup
+    super
+    cleanup unless @@cleaned
+    @@cleaned = true # rubocop:disable Style/ClassVars
+  end
+
   def teardown
+    cleanup
     return unless Vdc.vdc_support
     # Reset the vdc module type back to default
     v = Vdc.new('default')
@@ -119,7 +135,6 @@ class TestVlan < CiscoTestCase
     1.upto(VLAN_NAME_SIZE - 1) do |i|
       begin
         name += alphabet[i % alphabet.size, 1]
-        # puts "n is #{name}"
         if i == VLAN_NAME_SIZE - 1
           v.vlan_name = name
           assert_equal(name, v.vlan_name)
@@ -258,6 +273,7 @@ class TestVlan < CiscoTestCase
     count = 3
     interfaces.each do |name, interface|
       next unless interface.name.match(%r{ethernet[0-9/]+$}) && count > 0
+      interface_ethernet_default(%r{net(\d+/\d+)}.match(name)[1])
       interfaces_added_to_vlan << name
       interface.switchport_mode = :access
       v.add_interface(interface)
@@ -283,7 +299,6 @@ class TestVlan < CiscoTestCase
     interface.switchport_mode = :disabled
     assert_raises(RuntimeError) { v.add_interface(interface) }
     v.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_vlan_remove_interface_invalid
@@ -295,6 +310,34 @@ class TestVlan < CiscoTestCase
     assert_raises(RuntimeError) { v.remove_interface(interface) }
 
     v.destroy
-    interface_ethernet_default(interfaces_id[0])
+  end
+
+  def test_vlan_mapped_vnis
+    # Map
+    skip('Feature vn-segment-vlan-based is not supported on this platform.') if
+      node.product_id =~ /N3K-C3048/
+    v1 = Vlan.new(100)
+    vni1 = 10_000
+    v1.mapped_vni = vni1
+    assert_equal(vni1, v1.mapped_vni)
+
+    v2 = Vlan.new(500)
+    vni2 = 50_000
+    v2.mapped_vni = vni2
+    assert_equal(vni2, v2.mapped_vni)
+
+    v3 = Vlan.new(900)
+    vni3 = 90_000
+    v3.mapped_vni = vni3
+    assert_equal(vni3, v3.mapped_vni)
+    # Unmap
+    v1.mapped_vni = v1.default_mapped_vni
+    assert_equal(v1.default_mapped_vni, v1.mapped_vni)
+
+    v2.mapped_vni = v2.default_mapped_vni
+    assert_equal(v2.default_mapped_vni, v2.mapped_vni)
+
+    v3.mapped_vni = v3.default_mapped_vni
+    assert_equal(v3.default_mapped_vni, v3.mapped_vni)
   end
 end

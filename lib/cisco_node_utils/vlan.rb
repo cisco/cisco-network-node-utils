@@ -58,7 +58,8 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].empty?
+      fail result[2]['body'] if
+        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
     end
 
     def fabricpath_feature
@@ -182,6 +183,25 @@ module Cisco
         interfaces[name] = i
       end
       interfaces
+    end
+
+    def mapped_vni
+      config_get('vlan', 'mapped_vni', vlan: @vlan_id)
+    end
+
+    def mapped_vni=(vni)
+      Feature.vn_segment_vlan_based_enable
+      # Remove the existing mapping first as cli doesn't support overwriting.
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                         state: 'no', vni: vni)
+      # Configure the new mapping
+      state = vni == default_mapped_vni ? 'no' : ''
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                          state: state, vni: vni)
+    end
+
+    def default_mapped_vni
+      config_get_default('vlan', 'mapped_vni')
     end
   end # class
 end # module
