@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/vxlan_global'
 
 include Cisco
 
@@ -956,6 +957,39 @@ class TestInterface < CiscoTestCase
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+  end
+
+  def test_interface_fabric_frwd_anycast
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+    config('feature fabric forwarding')
+    foo = VxlanGlobal.new
+    foo.anycast_gateway_mac = '1223.3445.5668'
+
+    # 1. Testing default
+    int.fabric_frwd_anycast = false
+    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+
+    # 2. Testing non-default
+    int.fabric_frwd_anycast = true
+    assert_equal(true, int.fabric_frwd_anycast)
+
+    # 3. Setting back to default
+    int.fabric_frwd_anycast = int.default_fabric_frwd_anycast
+    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+
+    # 4. Removing fabric forwarding anycast gateway mac
+    foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+    assert_raises(RuntimeError) { int.fabric_frwd_anycast = true }
+
+    # 5. Removing feature fabric forwarding
+    config('no feature fabric forwarding')
+    assert_raises(RuntimeError) { int.fabric_frwd_anycast = true }
+
+    # 6. Attempting to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) { nonvlanint.fabric_frwd_anycast = true }
   end
 
   def test_interface_ipv4_proxy_arp
