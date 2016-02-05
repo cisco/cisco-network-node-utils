@@ -84,7 +84,7 @@ class TestAcl < CiscoTestCase
     # set to false
     rtr.stats_per_entry = false
     refute_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to disnable stats')
+                      msg:     'failed to disable stats')
     refute(rtr.stats_per_entry)
 
     # default getter function
