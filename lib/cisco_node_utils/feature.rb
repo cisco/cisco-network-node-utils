@@ -1,6 +1,6 @@
 # January 2016, Robert W Gries
 #
-# Copyright (c) 2016-16 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
