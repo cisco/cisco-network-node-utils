@@ -46,7 +46,7 @@ encapsulation_dot1q:
   config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
 
-fabric_frwd_anycast:
+fabric_forwarding_anycast_gateway:
   kind: boolean
   config_get_token_append: '/^fabric forwarding mode anycast-gateway$/'
   config_set_append: "%s fabric forwarding mode anycast-gateway"

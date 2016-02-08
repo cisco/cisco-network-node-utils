@@ -206,18 +206,18 @@ module Cisco
       FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
     end
 
-    def fabric_frwd_anycast
-      config_get('interface', 'fabric_frwd_anycast', @name)
+    def fabric_forwarding_anycast_gateway
+      config_get('interface', 'fabric_forwarding_anycast_gateway', @name)
     end
 
-    def fabric_frwd_anycast=(state)
+    def fabric_forwarding_anycast_gateway=(state)
       begin
         Feature.fabric_forwarding_enable
         no_cmd = (state ? '' : 'no')
         config_set('interface',
-                   'fabric_frwd_anycast', @name, no_cmd)
+                   'fabric_forwarding_anycast_gateway', @name, no_cmd)
         expected_state = state
-        fail if fabric_frwd_anycast.to_s != expected_state.to_s
+        fail if fabric_forwarding_anycast_gateway.to_s != expected_state.to_s
       end
     rescue Cisco::CliError => e
       vxlan_global = VxlanGlobal.new
@@ -228,8 +228,8 @@ module Cisco
       end
     end
 
-    def default_fabric_frwd_anycast
-      config_get_default('interface', 'fabric_frwd_anycast')
+    def default_fabric_forwarding_anycast_gateway
+      config_get_default('interface', 'fabric_forwarding_anycast_gateway')
     end
 
     def fex_feature

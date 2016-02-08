@@ -959,7 +959,7 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
   end
 
-  def test_interface_fabric_frwd_anycast
+  def test_interface_fabric_forwarding_anycast_gateway
     # Setup
     config('no interface vlan11')
     int = Interface.new('vlan11')
@@ -968,28 +968,33 @@ class TestInterface < CiscoTestCase
     foo.anycast_gateway_mac = '1223.3445.5668'
 
     # 1. Testing default
-    int.fabric_frwd_anycast = false
-    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+    int.fabric_forwarding_anycast_gateway = false
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
 
     # 2. Testing non-default
-    int.fabric_frwd_anycast = true
-    assert_equal(true, int.fabric_frwd_anycast)
+    int.fabric_forwarding_anycast_gateway = true
+    assert_equal(true, int.fabric_forwarding_anycast_gateway)
 
     # 3. Setting back to default
-    int.fabric_frwd_anycast = int.default_fabric_frwd_anycast
-    assert_equal(int.default_fabric_frwd_anycast, int.fabric_frwd_anycast)
+    int.fabric_forwarding_anycast_gateway =
+      int.default_fabric_forwarding_anycast_gateway
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
 
     # 4. Removing fabric forwarding anycast gateway mac
     foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
-    assert_raises(RuntimeError) { int.fabric_frwd_anycast = true }
+    assert_raises(RuntimeError) { int.fabric_forwarding_anycast_gateway = true }
 
     # 5. Removing feature fabric forwarding
     config('no feature fabric forwarding')
-    assert_raises(RuntimeError) { int.fabric_frwd_anycast = true }
+    assert_raises(RuntimeError) { int.fabric_forwarding_anycast_gateway = true }
 
     # 6. Attempting to configure on a non-vlan interface
     nonvlanint = create_interface
-    assert_raises(RuntimeError) { nonvlanint.fabric_frwd_anycast = true }
+    assert_raises(RuntimeError) do
+      nonvlanint.fabric_forwarding_anycast_gateway = true
+    end
   end
 
   def test_interface_ipv4_proxy_arp
