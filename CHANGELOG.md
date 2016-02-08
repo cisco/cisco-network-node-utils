@@ -8,37 +8,92 @@ Changelog
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
+  * **Platforms:** Nexus (3|9)k
 * EVPN
   * evpn_vni (@andish)
+  * **Platforms:** Nexus (3|9)k
 * Fabric Path
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
+  * **Platforms:** Nexus 7k
 * Feature
   * feature (@robert-w-gries)
 * Interface
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
+  * **Platforms:** Nexus (3|5|6|7|9)k
 * PIM
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
+  * **Platforms:** Nexus (3|9)k
 * Port Channel
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
+  * **Platforms:** Nexus (3|5|6|7|9)k
 * SNMP
   * snmpnotification (@tphoney)
+  * **Platforms:** Nexus (3|9)k
 * VDC
   * vdc (@chrisvanheuveln)
+  * **Platforms:** Nexus 7k
 * VPC
   * vpc (@dcheriancisco)
+  * **Platforms:** Nexus (3|5|6|7|9)k
 * VRF
   * vrf_af (@chrisvanheuveln)
+  * **Platforms:** Nexus (3|5|6|7|9)k
 * VXLAN
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
+  * **Platforms:** Nexus (3|9)k
+
+  
+### New platform support (Cisco Nexus 56xx, 60xx, 70xx)
+* AAA
+  * aaa_authentication_login
+  * aaa_authentication_login_service
+  * aaa_authentication_service
+* BGP
+  * bgp
+  * bgp_af
+  * bgp_af_neighobr
+  * bgp_neighbor_af
+* COMMAND_CONFIG
+  * command_config (config_parser)
+* DOMAIN
+  * dns_domain
+  * domain_name
+  * name_server
+* INTERFACE
+  * interface
+* NTP
+  * ntp_config
+  * ntp_server
+* OSPF
+  * interface_ospf
+  * ospf
+  * ospf_vrf
+* RADIUS
+  * radius_global (**Nexus 56xx, Nexus 60xx**)
+* SNMP
+  * snmp_community
+  * snmp_group
+  * snmp_notification_receiver
+  * snmp_server
+  * snmp_user
+* SYSLOG
+  * syslog_server
+  * syslog_setting
+* TACACS
+  * tacacs_server
+  * tacacs_server_group
+  * tacacs_server_host
+* VLAN
+  * vlan
 
 ### Added
 
