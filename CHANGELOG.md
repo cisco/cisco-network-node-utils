@@ -35,7 +35,7 @@ Changelog
   * vpc (@dcheriancisco)
 * VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vrf_af (@chrisvanheuveln)
-* VXLAN (platforms: Nexus 3k and Nexus 9k)
+* VXLAN (platforms: Nexus 9k)
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
