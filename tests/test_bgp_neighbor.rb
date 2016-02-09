@@ -3,7 +3,7 @@
 #
 # Jie Yang, August 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,33 +22,24 @@ require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/logger'
 
-# TestRouterBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
-class TestRouterBgpNeighbor < CiscoTestCase
+# TestBgpNeighbor - Minitest for RouterBgpNeighbor node utility class
+class TestBgpNeighbor < CiscoTestCase
   ASN = 55
   ADDR = '1.1.1.1'
   REMOTE_ASN = 99
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
-    # Disable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
     super
-    if platform == :ios_xr
-      config('no router bgp', 'router bgp 55')
-    else
-      config('no feature bgp', 'feature bgp', 'router bgp 55')
-    end
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+    # BGP Neighbor requires the presence of a basic bgp global config
+    RouterBgp.new(ASN)
   end
 
   def teardown
-    disable_bgp
-  end
-
-  def disable_bgp
-    if platform == :ios_xr
-      config('no router bgp')
-    else
-      config('no feature bgp')
-    end
+    remove_all_bgps
+    super
   end
 
   # Returns some test data for use in several tests.
@@ -127,7 +118,7 @@ class TestRouterBgpNeighbor < CiscoTestCase
   end
 
   def test_collection_empty
-    disable_bgp
+    remove_all_bgps
     neighbors = RouterBgpNeighbor.neighbors
     assert_empty(neighbors, 'BGP neighbor collection is not empty')
   end
@@ -292,14 +283,11 @@ class TestRouterBgpNeighbor < CiscoTestCase
       local_asnum = [42, '52', '1.1', neighbor.default_local_as]
       local_asnum.each do |asnum|
         neighbor.local_as = asnum
-        if asnum == '52'
-          assert_equal(asnum.to_i, neighbor.local_as)
-        else
-          assert_equal(asnum, neighbor.local_as)
-        end
+        assert_equal(asnum.to_s, neighbor.local_as)
       end
+
       # test a negative value
-      assert_raises(ArgumentError) do
+      assert_raises(CliError) do
         neighbor.local_as = '52 15'
       end
       neighbor.destroy
@@ -448,10 +436,9 @@ class TestRouterBgpNeighbor < CiscoTestCase
   def test_remote_as
     %w(default test_vrf).each do |vrf|
       neighbor = RouterBgpNeighbor.new(ASN, vrf, ADDR)
-      remote_asnum = [42, '1.1', neighbor.default_remote_as]
-      remote_asnum.each do |asnum|
+      [42, '1.1', neighbor.default_remote_as].each do |asnum|
         neighbor.remote_as = asnum
-        assert_equal(asnum, neighbor.remote_as)
+        assert_equal(asnum.to_s, neighbor.remote_as)
       end
       neighbor.destroy
     end

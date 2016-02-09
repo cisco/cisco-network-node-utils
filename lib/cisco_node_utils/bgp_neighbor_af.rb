@@ -62,7 +62,6 @@ module Cisco
     end
 
     def validate_args(asn, vrf, nbr, af)
-      asn = RouterBgp.process_asnum(asn)
       fail ArgumentError unless
         vrf.is_a?(String) && (vrf.length > 0)
       fail ArgumentError unless
@@ -78,7 +77,7 @@ module Cisco
       end
 
       nbr = Utils.process_network_mask(nbr)
-      @asn = asn
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @nbr = nbr
       @afi, @safi = af

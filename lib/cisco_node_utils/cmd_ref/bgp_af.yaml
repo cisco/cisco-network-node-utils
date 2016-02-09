@@ -57,7 +57,7 @@ client_to_client:
   kind: boolean
   default_value: true
   nexus:
-    get_value: '/^no client-to-client reflection$/'
+    get_value: '/^(no )?client-to-client reflection$/'
     set_value: '<state> client-to-client reflection'
   ios_xr:
     get_value: '/^bgp client-to-client reflection disable$/'
@@ -65,9 +65,7 @@ client_to_client:
 
 dampen_igp_metric:
   _exclude: [ios_xr]
-  auto_default: false
-  kind: int
-  get_value: '/^dampen-igp-metric (\d+)$/'
+  get_value: '/^(no )?dampen-igp-metric *(\d+)?$/'
   set_value: '<state> dampen-igp-metric <num>'
   default_value: 600
 

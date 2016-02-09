@@ -14,6 +14,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vpc'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/interface_channel_group'
 
 include Cisco
 
@@ -53,11 +54,6 @@ class TestVpc < CiscoTestCase
            'Domain collection should not be empty after create')
   end
 
-  def test_vpc_create_negative
-    e = assert_raises(CliError) { Vpc.new(1001) }
-    assert_match(/Invalid number.*range/, e.message)
-  end
-
   def test_vpc_destroy
     # create and test again
     @vpc = Vpc.new(100)
@@ -86,9 +82,6 @@ class TestVpc < CiscoTestCase
     @vpc.auto_recovery_reload_delay = 300
     assert_equal(300, @vpc.auto_recovery_reload_delay,
                  'Auto recovery delay should be 300')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.auto_recovery_reload_delay = 3601 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_delay_restore
@@ -99,9 +92,6 @@ class TestVpc < CiscoTestCase
     @vpc.delay_restore = 1000
     assert_equal(1000, @vpc.delay_restore,
                  'delay restore should be 1000')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.delay_restore = 3601 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_delay_restore_interface_vlan
@@ -112,9 +102,6 @@ class TestVpc < CiscoTestCase
     @vpc.delay_restore_interface_vlan = 2000
     assert_equal(2000, @vpc.delay_restore_interface_vlan,
                  'delay restore should be 2000')
-    # negative high range
-    e = assert_raises(CliError) { @vpc.delay_restore_interface_vlan = 3601 }
-    assert_match(/Invalid number.*range/, e.message)
   end
 
   def test_dual_active_exclude_interface_vlan_bridge_domain
@@ -128,11 +115,6 @@ class TestVpc < CiscoTestCase
     assert_equal('2-20,900',
                  @vpc.dual_active_exclude_interface_vlan_bridge_domain,
                  'exclude vlan/bd should be 2-20,900')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.dual_active_exclude_interface_vlan_bridge_domain = '64535'
-    end
-    assert_match(/Invalid value.*range/, e.message)
   end
 
   def test_graceful_consistency_check
@@ -224,11 +206,6 @@ class TestVpc < CiscoTestCase
     @vpc.peer_gateway_exclude_bridge_domain = '10-20,400'
     assert_equal('10-20,400', @vpc.peer_gateway_exclude_bridge_domain,
                  'peer_gateway exclude list not getting set')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.peer_gateway_exclude_bridge_domain = '64535'
-    end
-    assert_match(/Invalid/i, e.message)
   end
 
   def test_peer_gateway_exclude_vlan
@@ -241,11 +218,6 @@ class TestVpc < CiscoTestCase
     @vpc.peer_gateway_exclude_vlan = '10-20,400'
     assert_equal('10-20,400', @vpc.peer_gateway_exclude_vlan,
                  'peer_gateway exclude list not getting set')
-    # negative high range
-    e = assert_raises(CliError) do
-      @vpc.peer_gateway_exclude_vlan = '4096'
-    end
-    assert_match(/Invalid/i, e.message)
   end
 
   def test_role_priority
@@ -320,8 +292,6 @@ class TestVpc < CiscoTestCase
     @vpc = Vpc.new(100)
     # test phy port vpc
     interface = Interface.new(interfaces[0])
-    # check if it is already part of a PC and clear it
-    interface.channel_group = false if interface.channel_group
     assert_equal(interface.vpc_id, interface.default_vpc_id,
                  'default vpc_id should be null')
     # Make sure PKA is set
@@ -335,7 +305,7 @@ class TestVpc < CiscoTestCase
 
       # negative - cannot config peer link on this
       e = assert_raises(CliError) do
-        interface.vpc_peer_link = 'true'
+        interface.vpc_peer_link = true
       end
       assert_match(/Invalid number/i, e.message)
 
@@ -344,7 +314,7 @@ class TestVpc < CiscoTestCase
       refute(interface.vpc_id, 'vpc_id should be unset')
     end
     # test port-channel vpc
-    interface = Interface.new(interfaces[0])
+    interface = InterfaceChannelGroup.new(interfaces[0])
     interface.channel_group = 10
     interface_pc = Interface.new('port-channel10')
     interface_pc.switchport_mode = :trunk
@@ -367,7 +337,7 @@ class TestVpc < CiscoTestCase
     # Make sure PKA is set
     @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                             6, 3)
-    interface = Interface.new(interfaces[1])
+    interface = InterfaceChannelGroup.new(interfaces[1])
     interface.channel_group = 100
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :trunk
@@ -379,10 +349,12 @@ class TestVpc < CiscoTestCase
     refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
     # clean up
     interface.channel_group = false
-    #
-    # negative - try on a phy port
+    refute(interface.channel_group, 'channel group should be unset')
+    # try with a phy port
+    interface = Interface.new(interfaces[1])
+    # negative - cannot config peer link on this
     e = assert_raises(CliError) do
-      interface.vpc_peer_link = 'true'
+      interface.vpc_peer_link = true
     end
     assert_match(/Invalid/i, e.message)
   end

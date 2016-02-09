@@ -125,13 +125,13 @@ disable_policy_batching:
   default_value: false
 
 disable_policy_batching_ipv4:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N5k, N6k, N7k]
   get_value: '/^disable-policy-batching ipv4 prefix-list (\S+)$/'
   set_value: '<state> disable-policy-batching ipv4 prefix-list <prefix_list>'
   default_value: ""
 
 disable_policy_batching_ipv6:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N5k, N6k, N7k]
   get_value: '/^disable-policy-batching ipv6 prefix-list (\S+)$/'
   set_value: '<state> disable-policy-batching ipv6 prefix-list <prefix_list>'
   default_value: ""
@@ -258,12 +258,11 @@ maxas_limit:
 
 neighbor_down_fib_accelerate:
   # Note: Does not exist in IOS XR
-  nexus:
-    _exclude: [N6k, N7k]
-    kind: boolean
-    get_value: 'neighbor-down fib-accelerate'
-    set_value: '<state> neighbor-down fib-accelerate'
-    default_value: false
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  kind: boolean
+  get_value: 'neighbor-down fib-accelerate'
+  set_value: '<state> neighbor-down fib-accelerate'
+  default_value: false
 
 nsr:
   _exclude: [nexus]
@@ -274,12 +273,11 @@ nsr:
 
 reconnect_interval:
   # Note: Does not exist in IOS XR
-  nexus:
-    _exclude: [N6k, N7k]
-    kind: int
-    get_value: 'reconnect-interval (\d+)'
-    set_value: '<state> reconnect-interval <seconds>'
-    default_value: 60
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  kind: int
+  get_value: 'reconnect-interval (\d+)'
+  set_value: '<state> reconnect-interval <seconds>'
+  default_value: 60
 
 route_distinguisher:
   # This property is also supported by vrf.yaml
@@ -299,7 +297,7 @@ router:
   nexus:
     get_command: "show running bgp"
   context: ~
-  get_value: 'router bgp (\d+)'
+  get_value: 'router bgp ([\d.]+)'
   set_value: "<state> router bgp <asnum>"
 
 router_id:

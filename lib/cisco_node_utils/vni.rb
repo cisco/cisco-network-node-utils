@@ -29,9 +29,6 @@
 #   vni 10001                       vlan 100
 #     shutdown                        vn-segment 10001
 #
-# mapped_vlan (vn-segment) and mapped_bd (member vni) are mutually exclusive.
-# ----
-#
 require_relative 'node_util'
 require_relative 'feature'
 
@@ -86,18 +83,7 @@ module Cisco
     end
 
     def destroy
-      # Platform differences: For vni's mapped under the vlan config just remove
-      # the vni config and not the vlan config; for standalone vni configs
-      # remove the entire vni config. The yaml cmdref will ignore the unneeded
-      # keys for the standalone vni config.
-
-      keys = { vni: @vni_id }
-      if Vni.mt_lite_support
-        vlan = mapped_vlan
-        return if vlan.nil?
-        keys[:vlan] = vlan
-      end
-      config_set('vni', 'destroy', keys)
+      config_set('vni', 'destroy', vni: @vni_id)
     end
 
     def cli_error_check(result)
@@ -220,35 +206,6 @@ module Cisco
 
     def default_bridge_domain
       config_get_default('vni', 'bridge_domain')
-    end
-
-    def mapped_vlan
-      vlans = config_get('vlan', 'all_vlans')
-      return nil if vlans.nil?
-      vlans.each do |vlan|
-        return vlan.to_i if
-          config_get('vni', 'mapped_vlan', vlan: vlan) == @vni_id
-      end
-      nil
-    end
-
-    def mapped_vlan=(vlan)
-      # TBD: fail UnsupportedError unless /N9K/.match(node.product_id)
-      if vlan == default_mapped_vlan
-        state = 'no'
-        vlan = mapped_vlan
-      else
-        state = ''
-      end
-      result = config_set('vni', 'mapped_vlan', vlan: vlan,
-                          state: state, vni: @vni_id)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_mapped_vlan
-      config_get_default('vni', 'mapped_vlan')
     end
 
     def shutdown

@@ -55,16 +55,6 @@ feature:
     set_value: 'feature vn-segment-vlan-based'
   N9k: *feature_mt_lite
 
-mapped_vlan:
-  # MT-lite only
-  N3k: &mapped_vlan_mt_lite
-    get_command: 'show running vlan'
-    context: ['vlan <vlan>']
-    get_value: '/^vn-segment (\d+)$/'
-    set_value: '<state> vn-segment <vni>'
-    default_value: ''
-  N9k: *mapped_vlan_mt_lite
-
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean

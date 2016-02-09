@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.2.0]
 
 ### New feature support
 * ACL
@@ -16,18 +16,23 @@ Changelog
 * Feature
   * feature (@robert-w-gries)
 * Interface
+  * interface_channel_group (@chrisvanheuveln)
+  * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
 * PIM
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
 * Port Channel
+  * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
 * SNMP
   * snmpnotification (@tphoney)
 * VDC
   * vdc (@chrisvanheuveln)
+* VPC
+  * vpc (@dcheriancisco)
 * VRF
   * vrf_af (@chrisvanheuveln)
 * VXLAN
@@ -53,10 +58,10 @@ Changelog
   * `suppress_inactive`
   * `table_map`
 * Extend interface with attributes:
-  * `channel_group`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`
+  * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
   * `vni`
@@ -185,7 +190,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0

@@ -28,7 +28,7 @@ module Cisco
       err_msg = '"af" argument must be an array of two string values ' \
         'containing an afi + safi tuple'
       fail ArgumentError, err_msg unless af.is_a?(Array) || af.length == 2
-      @asn = RouterBgp.process_asnum(asn)
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @afi, @safi = af
       set_args_keys_default
@@ -152,10 +152,7 @@ module Cisco
     end
 
     def advertise_l2vpn_evpn=(state)
-      if platform == :nexus
-        Feature.nv_overlay_enable
-        Feature.nv_overlay_evpn_enable
-      end
+      Feature.nv_overlay_evpn_enable if platform == :nexus
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
     end
@@ -163,6 +160,17 @@ module Cisco
     #
     # dampen_igp_metric (Getter/Setter/Default)
     #
+
+    # dampen_igp_metric
+    def dampen_igp_metric
+      match = config_get('bgp_af', 'dampen_igp_metric', @get_args)
+      if match.is_a?(Array)
+        return nil if match[0] == 'no '
+        return match[1].to_i if match[1]
+      end
+      default_dampen_igp_metric
+    end
+
     def dampen_igp_metric=(val)
       set_args_keys(state: (val.nil?) ? 'no' : '',
                     num:   (val.nil?) ? '' : val)

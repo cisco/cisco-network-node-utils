@@ -10,7 +10,7 @@ _template:
 
 ace:
   get_value: '/^<seqno> .+$/'
-  set_value: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port>'
+  set_value: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port> <tcp_flags> <established> <precedence> <dscp> <http_method> <time_range> <packet_length> <ttl> <tcp_option_length> <redirect> <log>'
 
 ace_destroy:
   set_value: 'no <seqno>'

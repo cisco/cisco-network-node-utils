@@ -3,41 +3,40 @@
 _template:
   nexus:
     get_command: "show running all | section '^vrf context'"
-    get_context:
-      - '/^vrf context <vrf>$/'
-      - '/^address-family <afi> <safi>$/'
-    set_context:
+    context:
       - 'vrf context <vrf>'
       - 'address-family <afi> <safi>'
   ios_xr:
     get_command: "show run vrf"
-    get_context:
-      - '/^vrf <vrf>$/i'
-      - '/^address-family <afi> <safi>$/'
-    set_context:
+    context:
       - 'vrf <vrf>'
       - 'address-family <afi> <safi>'
 
 address_family:
+  set_value: '<state> address-family <afi> <safi>'
   nexus:
-    set_context: ['vrf context <vrf>']
-    set_value: '<state> address-family <afi> <safi>'
+    context: ['vrf context <vrf>']
   ios_xr:
-    set_context: ['vrf <vrf>']
-    set_value: '<state> address-family <afi> <safi>'
+    context: ['vrf <vrf>']
 
 all_vrf_afs:
   multiple: true
   get_value: '/^address-family (\S+) (\S+)$/'
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
 
 all_vrfs:
   multiple: true
+  context: ~
   nexus:
     get_value: '/^vrf context (.*)/'
   ios_xr:
     get_value: '/^vrf (.*)/'
 
 create:
+  context: ~
   nexus:
     set_value:  'vrf context <vrf>'
   ios_xr:
@@ -48,8 +47,13 @@ description:
   set_value: '<state> description <desc>'
   kind: string
   default_value: ''
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
 
 destroy:
+  context: ~
   nexus:
     set_value: 'no vrf context <vrf>'
   ios_xr:

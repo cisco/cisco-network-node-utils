@@ -120,6 +120,7 @@ class TestCase < Minitest::Test
 
   def teardown
     @device.close unless @device.nil?
+    @device = nil
     GC.start
   end
 

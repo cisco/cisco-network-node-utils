@@ -13,7 +13,7 @@ all_group_lists:
 
 all_rp_addresses:
   multiple:
-  get_value: '/^<afi> pim rp-address (.*)$/'
+  get_value: '/^<afi> pim rp-address ([0-9\.]+)/'
 
 all_ssm_ranges:
   multiple:

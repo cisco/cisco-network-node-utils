@@ -188,6 +188,9 @@ soft_reconfiguration_in:
   ios_xr:
     get_value: '/^soft-reconfiguration inbound(?: always)?/'
     set_value: '<state> soft-reconfiguration inbound <always>'
+  N3k:
+    get_value: '/^soft-reconfiguration inbound(?: always)?/'
+    set_value: '<state> soft-reconfiguration inbound <always>'
   N9k:
     get_value: '/^soft-reconfiguration inbound(?: always)?/'
     set_value: '<state> soft-reconfiguration inbound <always>'

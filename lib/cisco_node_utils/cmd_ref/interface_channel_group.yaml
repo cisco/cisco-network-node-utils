@@ -1,0 +1,38 @@
+# interface_channel_group
+---
+_template:
+  context: ['interface <name>']
+  ios_xr:
+    get_command: "show running interface"
+  nexus:
+    get_command: "show running interface all"
+
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (Ethernet.*)/i'
+
+channel_group:
+  kind: int
+  default_value: false
+  nexus:
+    get_value: '/^channel-group (\d+)$/'
+    set_value: '<state> channel-group <group> <force>'
+  ios_xr:
+    get_value: '/^bundle id (\d+).*$/'
+    set_value: '<state> bundle id <group>'
+
+description:
+  kind: string
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <desc>'
+  default_value: ''
+
+shutdown:
+  kind: boolean
+  get_value: '/^(?:no )?shutdown$/'
+  set_value: '<state> shutdown'
+  nexus:
+    default_value: true
+  ios_xr:
+    default_value: false

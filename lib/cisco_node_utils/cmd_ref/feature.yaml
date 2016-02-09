@@ -26,8 +26,7 @@ nv_overlay:
   set_value: "feature nv overlay"
 
 nv_overlay_evpn:
-  # TBD: Not a feature but a dependency for several properties
-  _exclude: [N3k, N5k, N6k]
+  _exclude: [N3k]
   kind: boolean
   get_command: "show running | section nv"
   get_value: '/^nv overlay evpn$/'

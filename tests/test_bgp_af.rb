@@ -4,7 +4,7 @@
 #
 # Richard Wellum, August, 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,19 +23,25 @@ require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
 require_relative '../lib/cisco_node_utils/feature'
 
-# TestRouterBgpAF - Minitest for RouterBgpAF class
-class TestRouterBgpAF < CiscoTestCase
+# TestBgpAF - Minitest for RouterBgpAF class
+class TestBgpAF < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
-    # Disable and enable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
-    if platform == :nexus
-      config('no feature bgp', 'feature bgp')
-    elsif platform == :ios_xr
-      config('no vrf red')
-      config('no router bgp')
+    remove_all_bgps if @@pre_clean_needed
+    remove_all_vrfs if @@pre_clean_needed
+    if platform == :ios_xr && @@pre_clean_needed
       config('no route-policy drop_all')
     end
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    remove_all_bgps
+    remove_all_vrfs
+    config('no route-policy drop_all') if platform == :ios_xr
+    super
   end
 
   # Disabling line length to support wide-format test matrix definition
@@ -119,11 +125,6 @@ class TestRouterBgpAF < CiscoTestCase
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
 
-    # TODO: "address-family l2vpn evpn" drops out of "vrf red" context (XR and Nexus)
-    #       This causes the getter and setter to be out of sync, thus failing the test(s)
-    #       Should be able to remove this skip after fixing the CLI command generator
-    [:any,                           :any,    :VRF,      %w(l2vpn evpn),       :skip],
-
     # XR Unsupported
     [:additional_paths_install,      :ios_xr, :any,      :any,                 :unsupported],
     [:advertise_l2vpn_evpn,          :ios_xr, :any,      :any,                 :unsupported],
@@ -188,6 +189,9 @@ class TestRouterBgpAF < CiscoTestCase
 
       vrfs.each do |vrf|
         afs.each do |af|
+          # l2vpn evpn is not supported in a vrf
+          next if vrf != 'default' && af == %w(l2vpn evpn)
+
           puts '**************************************'
           bgp_af = RouterBgpAF.new(asn, vrf, af)
 

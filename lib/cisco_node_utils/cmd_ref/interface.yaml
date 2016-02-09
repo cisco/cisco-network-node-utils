@@ -19,16 +19,6 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)/'
 
-channel_group:
-  kind: int
-  default_value: false
-  nexus:
-    get_value: '/^channel-group (\d+)$/'
-    set_value: "<state> channel-group <val> <force>"
-  ios_xr:
-    get_value: '/^bundle id (\d+).*$/'
-    set_value: "<state> bundle id <val>"
-
 create:
   set_context: ~
   set_value: "interface <name>"
@@ -53,7 +43,7 @@ duplex:
 encapsulation_dot1q:
   kind: int
   default_value: ""
-  get_value: '/^encapsulation dot1q (.*)/'
+  get_value: '/^encapsulation dot1q (.*)/i'
   set_value: "<state> encapsulation dot1q <vlan>"
 
 feature_lacp:
@@ -252,7 +242,7 @@ speed:
   default_value: "auto"
 
 svi_autostate:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N5k, N6k]
   kind: boolean
   get_value: '/^(?:no )?autostate$/'
   set_value: "<state> autostate"
@@ -314,18 +304,30 @@ switchport_trunk_native_vlan:
   default_value: 1
 
 system_default_svi_autostate:
+  _exclude: [N5k, N6k]
   kind: boolean
   nexus:
     get_command: "show running all | include 'system default'"
     get_context: ~
-    get_value: '/^system default interface-vlan autostate$/'
     # default_value: n/a. This is a user-configurable system default.
+    N7k:
+      # When enabled:  Property does not nvgen.
+      # When disabled: Property nvgens as 'system default interface-vlan no autostate'
+      get_value: '/^system default interface-vlan no autostate$/'
+    else:
+      # When enabled:  Property nvgens as 'system default interface-vlan autostate'
+      # When disabled: Property nvgens as 'no system default interface-vlan autostate'
+      get_value: '/^system default interface-vlan autostate$/'
   ios_xr:
     default_only: false
 
 system_default_switchport:
-  kind: boolean
   nexus:
+    # Note: This is a simple boolean state but there is a bug on some
+    # platforms that causes the cli to nvgen twice; this causes config_get to
+    # raise an error when it encounters the multiple. Therefore we define it
+    # as a multiple to avoid the raise.
+    multiple:
     get_command: "show running all | include 'system default'"
     get_context: ~
     get_value: '/^no system default switchport$/'

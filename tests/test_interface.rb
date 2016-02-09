@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/interface_channel_group'
 require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 
 include Cisco
@@ -28,7 +29,6 @@ class TestInterface < CiscoTestCase
   DEFAULT_IF_IP_PROXY_ARP = false
   DEFAULT_IF_IP_REDIRECTS = true
   DEFAULT_IF_VRF = ''
-  IF_DESCRIPTION_SIZE = 243 # SIZE = VSH Max 255 - "description " keyword
   IF_VRF_MAX_LENGTH = 32
 
   def setup
@@ -108,7 +108,8 @@ class TestInterface < CiscoTestCase
 
   def show_cmd(name)
     if platform == :nexus
-      "show run interface #{name} all | no-more"
+      all = (name =~ /port-channel\d/ && node.product_id =~ /N7/) ? '' : 'all'
+      "show run interface #{name} #{all} | no-more"
     else
       "show run interface #{name}"
     end
@@ -131,11 +132,12 @@ class TestInterface < CiscoTestCase
 
   # Helper to check for misc speed change disallowed error messages.
   def speed_change_disallowed(message)
-    pattern = Regexp.new('(port doesn t support this speed|' \
-                         'Changing interface speed is not permitted|' \
-                         'requested config change not allowed)')
+    patterns = ['port doesn t support this speed',
+                'Changing interface speed is not permitted',
+                'requested config change not allowed',
+                /does not match the (transceiver speed|port capability)/]
     skip('Skip test: Interface type does not allow config change') if
-         message[pattern]
+         message[Regexp.union(patterns)]
     flunk(message)
   end
 
@@ -455,25 +457,11 @@ class TestInterface < CiscoTestCase
     assert_equal('', interface.description)
   end
 
-  def test_interface_description_too_long
-    skip('No description length limit on IOS XR') if platform == :ios_xr
-    interface = Interface.new(interfaces[0])
-    description = 'a' * (IF_DESCRIPTION_SIZE + 1)
-    assert_raises(Cisco::CliError) { interface.description = description }
-    interface_ethernet_default(interfaces_id[0])
-  end
-
   def test_interface_description_valid
     interface = Interface.new(interfaces[0])
-    alphabet = 'abcdefghijklmnopqrstuvwxyz 0123456789'
-    description = ''
-    1.upto(IF_DESCRIPTION_SIZE) do |i|
-      description += alphabet[i % alphabet.size, 1]
-      next unless i == IF_DESCRIPTION_SIZE
-      # puts("description (#{i}): #{description}")
-      interface.description = description
-      assert_equal(description.rstrip, interface.description)
-    end
+    description = 'This is a test description ! '
+    interface.description = description
+    assert_equal(description.rstrip, interface.description)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -492,6 +480,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_change
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1520
     assert_equal(1520, interface.mtu)
     interface.mtu = 1580
@@ -503,11 +492,13 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_invalid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     assert_raises(Cisco::CliError) { interface.mtu = 'hello' }
   end
 
   def test_interface_mtu_valid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1550
     assert_equal(1550, interface.mtu)
     interface.mtu = interface.default_mtu
@@ -716,7 +707,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     # Create interface member of this group (required for XR)
-    member = Interface.new(interfaces[0])
+    member = InterfaceChannelGroup.new(interfaces[0])
     begin
       member.channel_group = 10
     rescue Cisco::UnsupportedError
@@ -1235,7 +1226,7 @@ class TestInterface < CiscoTestCase
 
     # pre-configure
     begin
-      Interface.new(interfaces[1]).channel_group = 48
+      InterfaceChannelGroup.new(interfaces[1]).channel_group = 48
     rescue Cisco::UnsupportedError
       raise unless platform == :ios_xr
       # Some XR platform/version combos don't support port-channels
@@ -1266,7 +1257,7 @@ class TestInterface < CiscoTestCase
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)
-      Interface.new(interfaces[1]).channel_group = false
+      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
       raise
     end
   end
@@ -1344,18 +1335,6 @@ class TestInterface < CiscoTestCase
     assert_equal(length, interface.ipv4_netmask_length,
                  'IPv4 mask wrong after changing from vrf test2 => default')
     assert_equal(DEFAULT_IF_VRF, interface.vrf)
-  end
-
-  def test_interface_channel_group_add_delete
-    interface = Interface.new(interfaces[0])
-    pc = 100
-    interface.channel_group = pc
-    assert_equal(pc.to_i, interface.channel_group)
-    interface.channel_group = interface.default_channel_group
-    assert_equal(interface.default_channel_group, interface.channel_group)
-  rescue Cisco::UnsupportedError => e
-    # Some platforms only support channel-group with certain software versions
-    skip(e.to_s)
   end
 
   def test_ipv4_pim_sparse_mode

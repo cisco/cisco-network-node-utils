@@ -178,42 +178,6 @@ module Cisco
       config_get_default('interface', 'access_vlan')
     end
 
-    def channel_group
-      config_get('interface', 'channel_group', name: @name)
-    end
-
-    def channel_group=(val)
-      fail "channel_group is not supported on #{@name}" unless
-        @name[/Ethernet/i]
-      # 'force' is needed by cli_nexus to handle the case where a port-channel
-      # interface is created prior to the channel-group cli; in which case
-      # the properties of the port-channel interface will be different from
-      # the ethernet interface. 'force' is not needed if the port-channel is
-      # created as a result of the channel-group cli but since it does no
-      # harm we will use it every time.
-      # cli_ios_xr simply ignores 'force'.
-      if val
-        state = ''
-        force = 'force'
-      else
-        state = 'no'
-        val = force = ''
-      end
-      config_set('interface',
-                 'channel_group',
-                 name: @name, state: state, val: val, force: force)
-    rescue Cisco::CliError => e
-      # Some XR platforms do not support channel-group configuration
-      # on some OS versions. Since this is an OS version difference and not
-      # a platform difference, we can't handle this in the YAML.
-      raise unless e.message[/the entered commands do not exist/]
-      raise Cisco::UnsupportedError.new('interface', 'channel_group')
-    end
-
-    def default_channel_group
-      config_get_default('interface', 'channel_group')
-    end
-
     def description
       config_get('interface', 'description', name: @name)
     end
@@ -774,7 +738,15 @@ module Cisco
 
     def system_default_switchport
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_switchport')
+      #
+      # Note: This is a simple boolean state but there is a bug on some
+      # platforms that causes the cli to nvgen twice; this causes config_get to
+      # raise an error when it encounters the multiple. Therefore we define it
+      # as a multiple to avoid the raise and handle the array if necessary.
+      #
+      val = config_get('interface', 'system_default_switchport')
+      return (val[0][/^no /] ? false : true) if val.is_a?(Array)
+      val
     end
 
     def system_default_switchport_shutdown
@@ -784,7 +756,17 @@ module Cisco
 
     def system_default_svi_autostate
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_svi_autostate')
+      #
+      # This property behaves differently on an n7k vs ni(3|9)k and therefore
+      # needs special handling.
+      # N7K: When enabled, does not nvgen.
+      #      When disabled, does nvgen, but differently then n(3|9)k.
+      #      Return true for the disabled case, false otherwise.
+      # N(3|9)K: When enabled, does nvgen.
+      #          When disabled, does nvgen.
+      #          Return true for the enabled case, false otherwise.
+      result = config_get('interface', 'system_default_svi_autostate')
+      /N7K/.match(node.product_id) ? !result : result
     end
 
     def switchport_vtp_mode_capable?

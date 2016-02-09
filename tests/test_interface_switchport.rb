@@ -49,6 +49,11 @@ class TestSwitchport < TestInterfaceSwitchport
   DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = '1-4094'
   DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
 
+  def platform_supports_vtp_switchport_access?
+    skip('Platform does not support VTP when switchport mode is access') if
+      node.product_id =~ /N(5|6|7)/
+  end
+
   def system_default_switchport(state='')
     config("#{state} system default switchport")
   end
@@ -542,6 +547,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
   end
 
   def test_switchport_vtp_enabled_access
+    platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
     config("interface ethernet #{interfaces_id[0]}", 'vtp')
 
@@ -572,6 +578,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
   end
 
   def test_set_switchport_vtp_default_access
+    platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
 
     interface.switchport_vtp = interface.default_switchport_vtp
@@ -603,6 +610,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
   end
 
   def test_set_switchport_vtp_true_access
+    platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
     interface.switchport_vtp = true
     assert(interface.switchport_vtp,

@@ -11,33 +11,46 @@ create:
 destroy:
   set_value: "no vlan %s"
 
+mapped_vni:
+  N3k: &mapped_vni_n3k_n9k
+    kind: int
+    get_command: 'show running vlan'
+    get_context: ['/^vlan <vlan>$/']
+    get_value: '/^vn-segment (\d+)$/'
+    set_context: ['vlan <vlan>']
+    # In the cli 'vn-segment' config is not applied untill the 'end'
+    # statement is issued.
+    set_value:  '<state> vn-segment <vni> ; end'
+    default_value: ''
+  N9k: *mapped_vni_n3k_n9k
+
 mode:
   _exclude:
     - N3k
     - N9k
   kind: string
   get_command: "show vlan"
-  get_value: '/^%d+\s+enet\s+(\S+)\s/'
+  get_value: '/^%d\s+enet\s+(\S+)\s/'
   set_context: ["vlan %d"]
   set_value: "%s mode %s"
   default_value: "ce"
-  
+
 name:
   get_command: "show vlan brief"
-  get_value: '/^%d+\s+(\S+)\s/'
+  get_value: '/^%d\s+(\S+)\s/'
   set_context: ["vlan %d"]
   set_value: "%s name %s"
 
 shutdown:
   get_command: "show vlan brief"
-  get_value: '/^%d+\s+\S+\s+(\S+)\s/'
+  get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
   set_value: "%s shutdown"
   default_value: false
 
 state:
   get_command: "show vlan brief"
-  get_value: '/^%d+\s+\S+\s+(\S+)\s/'
+  get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
   set_value: "%s state %s"
   default_value: "active"
