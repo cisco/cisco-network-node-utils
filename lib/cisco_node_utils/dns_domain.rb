@@ -68,15 +68,14 @@ module Cisco
           config_set('dnsclient', 'domain_list_vrf',
                      state: '', name: @name, vrf: @vrf)
         rescue Cisco::CliError => e
-          if /ERROR: Deletion of VRF test in progress/.match(e.to_s)
+          if /ERROR: Deletion of VRF .* in progress/.match(e.to_s)
             sleep 1
             tries -= 1
             # rubocop:disable Metrics/BlockNesting
-            tries > 0 ? retry : raise
+            retry if tries > 0
             # rubocop:enable Metrics/BlockNesting
-          else
-            raise
           end
+          raise
         end
       end
     end
