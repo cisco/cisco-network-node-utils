@@ -61,14 +61,15 @@ module Cisco
       else
         # On some platforms attempts to create a new domain-list results
         # in the error. 'ERROR: Deletion of VRF test in progresswait
-        # for it to complete'.  We handle this by trying up to 500 times
-        # before giving up.
-        tries = 500
+        # for it to complete'.  We handle this by trying up to 10 times
+        # with a 1 second delay between attempts before giving up.
+        tries = 10
         begin
           config_set('dnsclient', 'domain_list_vrf',
                      state: '', name: @name, vrf: @vrf)
         rescue Cisco::CliError => e
           if /ERROR: Deletion of VRF test in progress/.match(e.to_s)
+            sleep 1
             tries -= 1
             # rubocop:disable Metrics/BlockNesting
             tries > 0 ? retry : raise
