@@ -151,10 +151,10 @@ module Cisco
       return nil if ace_match.nil? # no matching ace found
 
       # property not defined for matching ace
-      return nil unless ace_match.names.inclucde?(prop)
+      return nil unless ace_match.names.include?(prop)
 
       # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>*)")
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.\S+)")
       value_match = regexp.match(ace_match[prop])
       return nil if value_match.nil?
       value_match[:extracted]
@@ -286,6 +286,10 @@ module Cisco
 
     def time_range=(time_range)
       attach_prefix(time_range, :time_range, 'time-range')
+    end
+
+    def packet_length
+      extract_value('packet_length', 'packet-length')
     end
 
     def packet_length=(packet_length)
