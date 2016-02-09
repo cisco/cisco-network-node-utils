@@ -515,6 +515,214 @@ module Cisco
       config_get_default('interface', lookup)
     end
 
+    def stp_bpdufilter
+      config_get('interface', 'stp_bpdufilter', @name)
+    end
+
+    def stp_bpdufilter=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpdufilter', @name, state, val)
+    end
+
+    def default_stp_bpdufilter
+      config_get_default('interface', 'stp_bpdufilter')
+    end
+
+    def stp_bpduguard
+      config_get('interface', 'stp_bpduguard', @name)
+    end
+
+    def stp_bpduguard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpduguard', @name, state, val)
+    end
+
+    def default_stp_bpduguard
+      config_get_default('interface', 'stp_bpduguard')
+    end
+
+    def stp_cost
+      cost = config_get('interface', 'stp_cost', @name)
+      cost = cost.to_i unless cost == 'auto'
+      cost
+    end
+
+    def stp_cost=(val)
+      config_set('interface', 'stp_cost', @name, val)
+    end
+
+    def default_stp_cost
+      config_get_default('interface', 'stp_cost')
+    end
+
+    def stp_guard
+      config_get('interface', 'stp_guard', @name)
+    end
+
+    def stp_guard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_guard', @name, state, val)
+    end
+
+    def default_stp_guard
+      config_get_default('interface', 'stp_guard')
+    end
+
+    def stp_link_type
+      config_get('interface', 'stp_link_type', @name)
+    end
+
+    def stp_link_type=(val)
+      config_set('interface', 'stp_link_type', @name, val)
+    end
+
+    def default_stp_link_type
+      config_get_default('interface', 'stp_link_type')
+    end
+
+    def stp_port_priority
+      config_get('interface', 'stp_port_priority', @name)
+    end
+
+    def stp_port_priority=(val)
+      config_set('interface', 'stp_port_priority', @name, val)
+    end
+
+    def default_stp_port_priority
+      config_get_default('interface', 'stp_port_priority')
+    end
+
+    # Getter: Builds an array of mst cost commands currently
+    # on the device.
+    #   cli: spanning-tree mst 0,2-4,6,8-12 cost 1000
+    #        spanning-tree mst 4000-4020 cost 2568
+    # array: [['0,2-4,6,8-12', '1000'], ['4000-4020', '2568']]
+    #
+    def stp_mst_cost
+      config_get('interface', 'stp_mst_cost', @name)
+    end
+
+    # need to reset range which is not being set
+    def stp_mst_cost=(list)
+      config_set('interface', 'stp_mst_cost',
+                 @name, 'no', Cisco.get_reset_range('0-4094', list), '')
+      list.each do |inst, pri|
+        config_set('interface', 'stp_mst_cost',
+                   @name, '', inst, pri)
+      end
+    end
+
+    def default_stp_mst_cost
+      config_get_default('interface', 'stp_mst_cost')
+    end
+
+    # Getter: Builds an array of mst port-priority commands
+    # currently on the device.
+    #   cli: spanning-tree mst 0,2-4,6,8-12 port-priority 64
+    #        spanning-tree mst 4000-4020 port-priority 160
+    # array: [['0,2-4,6,8-12', '64'], ['4000-4020', '160']]
+    #
+    def stp_mst_port_priority
+      config_get('interface', 'stp_mst_port_priority', @name)
+    end
+
+    # need to reset range which is not being set
+    def stp_mst_port_priority=(list)
+      config_set('interface', 'stp_mst_port_priority',
+                 @name, 'no', Cisco.get_reset_range('0-4094', list), '')
+      list.each do |inst, pri|
+        config_set('interface', 'stp_mst_port_priority',
+                   @name, '', inst, pri)
+      end
+    end
+
+    def default_stp_mst_port_priority
+      config_get_default('interface', 'stp_mst_port_priority')
+    end
+
+    def stp_port_type
+      config_get('interface', 'stp_port_type', @name)
+    end
+
+    def stp_port_type=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_port_type', @name, state, val)
+    end
+
+    def default_stp_port_type
+      config_get_default('interface', 'stp_port_type')
+    end
+
+    # Getter: Builds an array of vlan cost commands currently
+    # on the device.
+    #   cli: spanning-tree vlan 1-4,6,8-12 cost 1000
+    #        spanning-tree vlan 3000-3960 cost 2568
+    # array: [['1-4,6,8-12', '1000'], ['3000-3960', '2568']]
+    #
+    def stp_vlan_cost
+      config_get('interface', 'stp_vlan_cost', @name)
+    end
+
+    # need to reset range which is not being set
+    def stp_vlan_cost=(list)
+      config_set('interface', 'stp_vlan_cost',
+                 @name, 'no', Cisco.get_reset_range('1-3967', list), '')
+      list.each do |range, pri|
+        config_set('interface', 'stp_vlan_cost',
+                   @name, '', range, pri)
+      end
+    end
+
+    def default_stp_vlan_cost
+      config_get_default('interface', 'stp_vlan_cost')
+    end
+
+    # Getter: Builds an array of vlan port-priority commands
+    # currently on the device.
+    #   cli: spanning-tree vlan 1-4,6,8-12 port-priority 64
+    #        spanning-tree vlan 3000-3960 port-priority 160
+    # array: [['1-4,6,8-12', '64'], ['3000-3960', '160']]
+    #
+    def stp_vlan_port_priority
+      config_get('interface', 'stp_vlan_port_priority', @name)
+    end
+
+    # need to reset range which is not being set
+    def stp_vlan_port_priority=(list)
+      config_set('interface', 'stp_vlan_port_priority',
+                 @name, 'no', Cisco.get_reset_range('1-3967', list), '')
+      list.each do |range, pri|
+        config_set('interface', 'stp_vlan_port_priority',
+                   @name, '', range, pri)
+      end
+    end
+
+    def default_stp_vlan_port_priority
+      config_get_default('interface', 'stp_vlan_port_priority')
+    end
+
     def switchport
       # This is "switchport", not "switchport mode"
       config_get('interface', 'switchport', @name)

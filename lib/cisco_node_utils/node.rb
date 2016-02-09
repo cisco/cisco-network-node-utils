@@ -432,4 +432,57 @@ module Cisco
     subconfig.join("\n")
   end
   module_function :find_subconfig
+
+  # For spanning tree range based parameters, the range
+  # is very dynamic and so before the parameters are set,
+  # the rest of the range needs to be reset
+  # For ex: if the ranges 2-42 and 83-200 are getting set,
+  # and the total range of the given parameter is 1-4000
+  # then 1,43-82,201-4000 needs to be reset. This method
+  # takes the set ranges and gives back the range to be reset
+  def get_reset_range(total_range, remove_ranges)
+    fail 'invalid range' unless total_range.include?('-')
+    return total_range if remove_ranges.empty?
+
+    trs = total_range.gsub('-', '..')
+    tra = trs.split('..').map { |d| Integer(d) }
+    tr = tra[0]..tra[1]
+    tarray = tr.to_a
+    remove_ranges.each do |rr, _val|
+      rarray = rr.gsub('-', '..').split(',')
+      rarray.each do |elem|
+        if elem.include?('..')
+          elema = elem.split('..').map { |d| Integer(d) }
+          ele = elema[0]..elema[1]
+          tarray -= ele.to_a
+        else
+          tarray.delete(elem.to_i)
+        end
+      end
+    end
+    # At this stage, the array is built with the reset range,
+    # and the string needs to be built.
+    # for ex: the tarray has 1, 2 to 10, 83 to 2014, 3022
+    # and the string has to be "1,2-10,83-2014,3022"
+    farray = tarray.compact.uniq.sort
+    lranges = []
+    unless farray.empty?
+      l = tarray.first
+      r = nil
+      farray.each do |aelem|
+        if r && aelem != r.succ
+          if l == r
+            lranges << l
+          else
+            lranges << Range.new(l, r)
+          end
+          l = aelem
+        end
+        r = aelem
+      end
+      lranges << Range.new(l, r)
+    end
+    lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
+  end
+  module_function :get_reset_range
 end

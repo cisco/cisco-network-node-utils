@@ -1,0 +1,196 @@
+# stp_global
+---
+_template:
+  config_get: "show running-config spanning-tree"
+
+bd_designated_priority:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) designated priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s designated priority %s"]
+  default_value: []
+
+bd_forward_time:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) forward-time (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s forward-time %s"]
+  default_value: []
+
+bd_hello_time:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) hello-time (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s hello-time %s"]
+  default_value: []
+
+bd_max_age:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) max-age (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s max-age %s"]
+  default_value: []
+
+bd_priority:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree bridge-domain (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree bridge-domain %s priority %s"]
+  default_value: []
+
+bd_root_priority:
+  _exclude: [N3k, N5k, N6k, N9k]
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^bridge-domain (.*) root priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s bridge-domain %s root priority %s"]
+  default_value: []
+
+bpdufilter:
+  kind: boolean
+  config_get_token: '/^spanning-tree port type edge bpdufilter default$/'
+  config_set: "%s spanning-tree port type edge bpdufilter default"
+  default_value: false
+
+bpduguard:
+  kind: boolean
+  config_get_token: '/^spanning-tree port type edge bpduguard default$/'
+  config_set: "%s spanning-tree port type edge bpduguard default"
+  default_value: false
+
+bridge_assurance:
+  kind: boolean
+  auto_default: false
+  config_get: "show running-config spanning-tree all"
+  config_get_token: '/^spanning-tree bridge assurance$/'
+  config_set: "%s spanning-tree bridge assurance"
+  default_value: true
+
+domain:
+  _exclude: [N3k, N9k]
+  kind: int
+  config_get_token: '/^spanning-tree domain (\d+)$/'
+  config_set: "%s spanning-tree domain %s"
+  default_value: false
+
+fcoe:
+  _exclude: [N5k, N6k, N7k]
+  kind: boolean
+  auto_default: false
+  config_get: "show running-config spanning-tree all"
+  config_get_token: '/^spanning-tree fcoe$/'
+  config_set: "%s spanning-tree fcoe"
+  default_value: true
+
+loopguard:
+  kind: boolean
+  config_get_token: '/^spanning-tree loopguard default$/'
+  config_set: "%s spanning-tree loopguard default"
+  default_value: false
+
+mode:
+  kind: string
+  config_get_token: '/^spanning-tree mode (.*)$/'
+  config_set: "%s spanning-tree mode %s"
+  default_value: "rapid-pvst"
+
+mst_designated_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^mst (.*) designated priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s mst %s designated priority %s"]
+  default_value: []
+
+mst_forward_time:
+  kind: int
+  config_get_token: '/^spanning-tree mst forward-time (\d+)$/'
+  config_set: "%s spanning-tree mst forward-time %s"
+  default_value: 15
+
+mst_hello_time:
+  kind: int
+  config_get_token: '/^spanning-tree mst hello-time (\d+)$/'
+  config_set: "%s spanning-tree mst hello-time %s"
+  default_value: 2
+
+mst_inst_vlan_map:
+  multiple:
+  config_get_token: ['/^spanning-tree mst configuration$/', '/^instance (.*) vlan (.*)$/']
+  config_set: ["spanning-tree mst configuration", "instance %s vlan %s"]
+  default_value: []
+
+mst_max_age:
+  kind: int
+  config_get_token: '/^spanning-tree mst max-age (\d+)$/'
+  config_set: "%s spanning-tree mst max-age %s"
+  default_value: 20
+
+mst_max_hops:
+  kind: int
+  config_get_token: '/^spanning-tree mst max-hops (\d+)$/'
+  config_set: "%s spanning-tree mst max-hops %s"
+  default_value: 20
+
+mst_name:
+  kind: string
+  config_get_token: ['/^spanning-tree mst configuration$/', '/^name (.*)$/']
+  config_set: ["spanning-tree mst configuration", "%s name %s"]
+  default_value: false
+
+mst_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree mst (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree mst %s priority %s"]
+  default_value: []
+
+mst_revision:
+  kind: int
+  config_get_token: ['/^spanning-tree mst configuration$/', '/^revision (\d+)$/']
+  config_set: ["spanning-tree mst configuration", "%s revision %s"]
+  default_value: 0
+
+mst_root_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^mst (.*) root priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s mst %s root priority %s"]
+  default_value: []
+
+pathcost:
+  kind: string
+  config_get_token: '/^spanning-tree pathcost method (.*)$/'
+  config_set: "%s spanning-tree pathcost method %s"
+  default_value: "short"
+
+vlan_designated_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^vlan (.*) designated priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s designated priority %s"]
+  default_value: []
+
+vlan_forward_time:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) forward-time (.*)$/']
+  config_set: ["%s spanning-tree vlan %s forward-time %s"]
+  default_value: []
+
+vlan_hello_time:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) hello-time (.*)$/']
+  config_set: ["%s spanning-tree vlan %s hello-time %s"]
+  default_value: []
+
+vlan_max_age:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) max-age (.*)$/']
+  config_set: ["%s spanning-tree vlan %s max-age %s"]
+  default_value: []
+
+vlan_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree vlan (.*) priority (.*)$/']
+  config_set: ["%s spanning-tree vlan %s priority %s"]
+  default_value: []
+
+vlan_root_priority:
+  multiple:
+  config_get_token: ['/^spanning-tree pseudo-information$/', '/^vlan (.*) root priority (.*)$/']
+  config_set: ["spanning-tree pseudo-information", "%s vlan %s root priority %s"]
+  default_value: []
