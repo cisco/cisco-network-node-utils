@@ -24,21 +24,13 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for overlay_global
   class OverlayGlobal < NodeUtil
-    # Constructor for overlay_global
-    def initialize(instantiate=true)
-      Feature.nv_overlay_evpn_enable if instantiate
-    end
-
-    def disable
-      dup_host_mac_detection_default
-    end
-
     # ----------
     # PROPERTIES
     # ----------
 
     # dup-host-ip-addr-detection
     def dup_host_ip_addr_detection
+      return nil unless Feature.nv_overlay_evpn_enabled?
       match = config_get('overlay_global', 'dup_host_ip_addr_detection')
       if match.nil?
         default_dup_host_ip_addr_detection
@@ -49,17 +41,16 @@ module Cisco
 
     def dup_host_ip_addr_detection_host_moves
       host_moves, _timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_host_moves if host_moves.nil?
       host_moves
     end
 
     def dup_host_ip_addr_detection_timeout
       _host_moves, timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_timeout if timeout.nil?
       timeout
     end
 
     def dup_host_ip_addr_detection_set(host_moves, timeout)
+      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
       if host_moves == default_dup_host_ip_addr_detection_host_moves &&
          timeout == default_dup_host_ip_addr_detection_timeout
         state = 'no'
@@ -96,13 +87,11 @@ module Cisco
 
     def dup_host_mac_detection_host_moves
       host_moves, _timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_host_moves if host_moves.nil?
       host_moves
     end
 
     def dup_host_mac_detection_timeout
       _host_moves, timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_timeout if timeout.nil?
       timeout
     end
 
@@ -135,12 +124,14 @@ module Cisco
 
     # anycast-gateway-mac
     def anycast_gateway_mac
+      return nil unless Feature.nv_overlay_evpn_enabled?
       config_get('overlay_global', 'anycast_gateway_mac')
     end
 
     def anycast_gateway_mac=(mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
 
+      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
       if mac_addr == default_anycast_gateway_mac
         state = 'no'
         mac_addr = ''

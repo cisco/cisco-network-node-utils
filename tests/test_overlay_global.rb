@@ -20,75 +20,79 @@ include Cisco
 
 # TestOverlayGlobal - Minitest for OverlayGlobal node utility
 class TestOverlayGlobal < CiscoTestCase
-  @@clean = false # rubocop:disable Style/ClassVars
   def setup
     super
-    no_overlay_global unless @@clean
-    @@clean = true # rubocop:disable Style/ClassVars
-  end
-
-  def no_overlay_global
     config('no feature fabric forwarding')
     config('no nv overlay evpn')
   end
 
-  def test_dup_host_ip_addr_detection_set
+  def test_dup_host_ip_addr_detection
     overlay_global = OverlayGlobal.new
-    val = [200, 20]
-    overlay_global.dup_host_ip_addr_detection_set(val[0], val[1])
-    assert_equal(val, overlay_global.dup_host_ip_addr_detection,
-                 'Error: fabric forwarding dup_host_ip_addr_detection ' \
-                 'get values mismatch')
-  end
 
-  def test_dup_host_ip_addr_detection_clear
-    overlay_global = OverlayGlobal.new
-    val = [5, 180]
-    # After the config is cleared, the get method should return
-    # the default values
+    # Before enabling 'nv overlay evpn', these properties do not exist
+    assert_nil(overlay_global.dup_host_ip_addr_detection_host_moves)
+    assert_nil(overlay_global.dup_host_ip_addr_detection_timeout)
+
+    # Set them to the default value and they should now be present
     default = [overlay_global.default_dup_host_ip_addr_detection_host_moves,
                overlay_global.default_dup_host_ip_addr_detection_timeout]
-    overlay_global.dup_host_ip_addr_detection_set(val[0], val[1])
-    assert_equal(default, overlay_global.dup_host_ip_addr_detection,
-                 'Error: fabric forwarding dup_host_ip_addr_detection ' \
-                 'get values mismatch')
+    overlay_global.dup_host_ip_addr_detection_set(*default)
+    assert_equal(default[0],
+                 overlay_global.dup_host_ip_addr_detection_host_moves)
+    assert_equal(default[1],
+                 overlay_global.dup_host_ip_addr_detection_timeout)
+    assert(Feature.nv_overlay_evpn_enabled?)
+
+    # Set them to non-default values
+    val = [200, 20]
+    overlay_global.dup_host_ip_addr_detection_set(*val)
+    assert_equal(val, overlay_global.dup_host_ip_addr_detection)
+    assert_equal(val[0],
+                 overlay_global.dup_host_ip_addr_detection_host_moves)
+    assert_equal(val[1],
+                 overlay_global.dup_host_ip_addr_detection_timeout)
   end
 
-  def test_dup_host_mac_detection_set
+  def test_dup_host_mac_detection
     overlay_global = OverlayGlobal.new
-    val = [160, 16]
-    overlay_global.dup_host_mac_detection_set(val[0], val[1])
-    assert_equal(val, overlay_global.dup_host_mac_detection,
-                 'Error: l2rib dup_host_mac_detection ' \
-                 'get values mismatch')
-  end
-
-  def test_dup_host_mac_detection_default
-    overlay_global = OverlayGlobal.new
-    # After the config is cleared, the get method should return
-    # the default values
+    # These properties always exist, even without 'nv overlay evpn'
     default = [overlay_global.default_dup_host_mac_detection_host_moves,
                overlay_global.default_dup_host_mac_detection_timeout]
+    assert_equal(default, overlay_global.dup_host_mac_detection)
+    refute(Feature.nv_overlay_evpn_enabled?)
+
+    # Set to a non-default value
+    val = [160, 16]
+    overlay_global.dup_host_mac_detection_set(*val)
+    assert_equal(val, overlay_global.dup_host_mac_detection)
+    refute(Feature.nv_overlay_evpn_enabled?)
+
+    # Use the special defaulter method
     overlay_global.dup_host_mac_detection_default
-    assert_equal(default, overlay_global.dup_host_mac_detection,
-                 'Error: l2rib dup_host_mac_detection ' \
-                 'get values mismatch')
+    assert_equal(default, overlay_global.dup_host_mac_detection)
+    refute(Feature.nv_overlay_evpn_enabled?)
+
+    # Set explicitly to default too
+    overlay_global.dup_host_mac_detection_set(*default)
+    assert_equal(default, overlay_global.dup_host_mac_detection)
+    refute(Feature.nv_overlay_evpn_enabled?)
   end
 
-  def test_anycast_gateway_mac_set
+  def test_anycast_gateway_mac
     overlay_global = OverlayGlobal.new
-    mac_addr = '1223.3445.5668'
-    overlay_global.anycast_gateway_mac = mac_addr
-    assert_equal(mac_addr, overlay_global.anycast_gateway_mac,
-                 'Error: anycast-gateway-mac mismatch')
-  end
+    # Before enabling 'nv overlay evpn', this property does not exist
+    assert_nil(overlay_global.anycast_gateway_mac)
 
-  def test_anycast_gateway_mac_clear
-    overlay_global = OverlayGlobal.new
+    # Explicitly set to default and it should be enabled
     overlay_global.anycast_gateway_mac = \
       overlay_global.default_anycast_gateway_mac
     assert_equal(overlay_global.default_anycast_gateway_mac,
-                 overlay_global.anycast_gateway_mac,
-                 'Error: anycast-gateway-mac mismatch')
+                 overlay_global.anycast_gateway_mac)
+    assert(Feature.nv_overlay_evpn_enabled?)
+
+    # Set to non-default value
+    mac_addr = '1223.3445.5668'
+    overlay_global.anycast_gateway_mac = mac_addr
+    assert_equal(mac_addr, overlay_global.anycast_gateway_mac)
   end
 end
