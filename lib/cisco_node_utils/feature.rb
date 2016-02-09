@@ -85,11 +85,10 @@ module Cisco
       # both features; therefore feature fabric-forwarding is best-effort
       # and ignored on cli failure.
       begin
-        return if nv_overlay_evpn_enabled?
         config_set('feature', 'fabric_forwarding')
-        config_set('feature', 'nv_overlay_evpn')
+      rescue Cisco::CliError
+        CiscoLogger.debug '"feature fabric forwarding" CLI was rejected'
       end
-    rescue
       config_set('feature', 'nv_overlay_evpn')
     end
 
