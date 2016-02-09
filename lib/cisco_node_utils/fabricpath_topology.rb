@@ -79,6 +79,9 @@ module Cisco
       else
         state = ''
         range = str
+        # reset existing range since we don't want incremental sets
+        config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id,
+                   state: 'no', vlan_range: '') if member_vlans != ''
       end
       config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id,
                  state: state, vlan_range: range)
