@@ -39,13 +39,13 @@ open source management tools.
 
 This CiscoNodeUtils gem release supports the following:
 
-Platform | OS | OS Version |
----------|----|------------|
+Platform         | OS    | OS Version           |
+-----------------|-------|----------------------|
 Cisco Nexus 30xx | NX-OS | 7.0(3)I2(1) and later
 Cisco Nexus 31xx | NX-OS | 7.0(3)I2(1) and later
 Cisco Nexus 93xx | NX-OS | 7.0(3)I2(1) and later
 Cisco Nexus 95xx | NX-OS | 7.0(3)I2(1) and later
-Cisco N9kv | NX-OS | 7.0(3)I2(1) and later
+Cisco N9kv       | NX-OS | 7.0(3)I2(1) and later
 Cisco Nexus 56xx | NX-OS | 7.3(0)N1(1) and later
 Cisco Nexus 60xx | NX-OS | 7.3(0)N1(1) and later
 Cisco Nexus 70xx | NX-OS | 7.3(0)D1(1) and later

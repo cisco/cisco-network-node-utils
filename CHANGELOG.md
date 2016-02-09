@@ -4,55 +4,45 @@ Changelog
 ## [v1.2.0]
 
 ### New feature support
-* ACL
+* ACL (platforms: Nexus 3k and Nexus 9k)
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
-  * **Platforms:** Nexus (3|9)k
-* EVPN
+* EVPN (platforms: Nexus 3k and Nexus 9k)
   * evpn_vni (@andish)
-  * **Platforms:** Nexus (3|9)k
-* Fabric Path
+* Fabric Path (platforms: Nexus 7k)
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
-  * **Platforms:** Nexus 7k
 * Feature
   * feature (@robert-w-gries)
-* Interface
+* Interface (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
-  * **Platforms:** Nexus (3|5|6|7|9)k
-* PIM
+* PIM (platforms: Nexus 3k and Nexus 9k)
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
-  * **Platforms:** Nexus (3|9)k
-* Port Channel
+* Port Channel (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-  * **Platforms:** Nexus (3|5|6|7|9)k
-* SNMP
+* SNMP (platforms: Nexus 3k and Nexus 9k)
   * snmpnotification (@tphoney)
-  * **Platforms:** Nexus (3|9)k
-* VDC
+* VDC (platforms: Nexus 7k)
   * vdc (@chrisvanheuveln)
-  * **Platforms:** Nexus 7k
-* VPC
+* VPC (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vpc (@dcheriancisco)
-  * **Platforms:** Nexus (3|5|6|7|9)k
-* VRF
+* VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vrf_af (@chrisvanheuveln)
-  * **Platforms:** Nexus (3|5|6|7|9)k
-* VXLAN
+* VXLAN (platforms: Nexus 3k and Nexus 9k)
   * vxlan_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
-  * **Platforms:** Nexus (3|9)k
 
   
-### New platform support (Cisco Nexus 56xx, 60xx, 70xx)
+### Existing classes extended to support additional platforms
+#### Cisco Nexus 56xx, 60xx and 70xx
 * AAA
   * aaa_authentication_login
   * aaa_authentication_login_service
@@ -78,7 +68,7 @@ Changelog
   * ospf
   * ospf_vrf
 * RADIUS
-  * radius_global (**Nexus 56xx, Nexus 60xx**)
+  * radius_global (**Nexus 56xx and Nexus 60xx**)
 * SNMP
   * snmp_community
   * snmp_group
