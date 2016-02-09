@@ -14,80 +14,81 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/feature'
-require_relative '../lib/cisco_node_utils/vxlan_global'
+require_relative '../lib/cisco_node_utils/overlay_global'
 
 include Cisco
 
-# TestVxlanGlobal - Minitest for VxlanGlobal node utility
-class TestVxlanGlobal < CiscoTestCase
+# TestOverlayGlobal - Minitest for OverlayGlobal node utility
+class TestOverlayGlobal < CiscoTestCase
   @@clean = false # rubocop:disable Style/ClassVars
   def setup
     super
-    no_vxlan_global unless @@clean
+    no_overlay_global unless @@clean
     @@clean = true # rubocop:disable Style/ClassVars
   end
 
-  def no_vxlan_global
+  def no_overlay_global
     config('no feature fabric forwarding')
     config('no nv overlay evpn')
   end
 
   def test_dup_host_ip_addr_detection_set
-    vxlan_global = VxlanGlobal.new
+    overlay_global = OverlayGlobal.new
     val = [200, 20]
-    vxlan_global.dup_host_ip_addr_detection_set(val[0], val[1])
-    assert_equal(val, vxlan_global.dup_host_ip_addr_detection,
+    overlay_global.dup_host_ip_addr_detection_set(val[0], val[1])
+    assert_equal(val, overlay_global.dup_host_ip_addr_detection,
                  'Error: fabric forwarding dup_host_ip_addr_detection ' \
                  'get values mismatch')
   end
 
   def test_dup_host_ip_addr_detection_clear
-    vxlan_global = VxlanGlobal.new
+    overlay_global = OverlayGlobal.new
     val = [5, 180]
     # After the config is cleared, the get method should return
     # the default values
-    default = [vxlan_global.default_dup_host_ip_addr_detection_host_moves,
-               vxlan_global.default_dup_host_ip_addr_detection_timeout]
-    vxlan_global.dup_host_ip_addr_detection_set(val[0], val[1])
-    assert_equal(default, vxlan_global.dup_host_ip_addr_detection,
+    default = [overlay_global.default_dup_host_ip_addr_detection_host_moves,
+               overlay_global.default_dup_host_ip_addr_detection_timeout]
+    overlay_global.dup_host_ip_addr_detection_set(val[0], val[1])
+    assert_equal(default, overlay_global.dup_host_ip_addr_detection,
                  'Error: fabric forwarding dup_host_ip_addr_detection ' \
                  'get values mismatch')
   end
 
   def test_dup_host_mac_detection_set
-    vxlan_global = VxlanGlobal.new
+    overlay_global = OverlayGlobal.new
     val = [160, 16]
-    vxlan_global.dup_host_mac_detection_set(val[0], val[1])
-    assert_equal(val, vxlan_global.dup_host_mac_detection,
+    overlay_global.dup_host_mac_detection_set(val[0], val[1])
+    assert_equal(val, overlay_global.dup_host_mac_detection,
                  'Error: l2rib dup_host_mac_detection ' \
                  'get values mismatch')
   end
 
   def test_dup_host_mac_detection_default
-    vxlan_global = VxlanGlobal.new
+    overlay_global = OverlayGlobal.new
     # After the config is cleared, the get method should return
     # the default values
-    default = [vxlan_global.default_dup_host_mac_detection_host_moves,
-               vxlan_global.default_dup_host_mac_detection_timeout]
-    vxlan_global.dup_host_mac_detection_default
-    assert_equal(default, vxlan_global.dup_host_mac_detection,
+    default = [overlay_global.default_dup_host_mac_detection_host_moves,
+               overlay_global.default_dup_host_mac_detection_timeout]
+    overlay_global.dup_host_mac_detection_default
+    assert_equal(default, overlay_global.dup_host_mac_detection,
                  'Error: l2rib dup_host_mac_detection ' \
                  'get values mismatch')
   end
 
   def test_anycast_gateway_mac_set
-    vxlan_global = VxlanGlobal.new
+    overlay_global = OverlayGlobal.new
     mac_addr = '1223.3445.5668'
-    vxlan_global.anycast_gateway_mac = mac_addr
-    assert_equal(mac_addr, vxlan_global.anycast_gateway_mac,
+    overlay_global.anycast_gateway_mac = mac_addr
+    assert_equal(mac_addr, overlay_global.anycast_gateway_mac,
                  'Error: anycast-gateway-mac mismatch')
   end
 
   def test_anycast_gateway_mac_clear
-    vxlan_global = VxlanGlobal.new
-    vxlan_global.anycast_gateway_mac = vxlan_global.default_anycast_gateway_mac
-    assert_equal(vxlan_global.default_anycast_gateway_mac,
-                 vxlan_global.anycast_gateway_mac,
+    overlay_global = OverlayGlobal.new
+    overlay_global.anycast_gateway_mac = \
+      overlay_global.default_anycast_gateway_mac
+    assert_equal(overlay_global.default_anycast_gateway_mac,
+                 overlay_global.anycast_gateway_mac,
                  'Error: anycast-gateway-mac mismatch')
   end
 end

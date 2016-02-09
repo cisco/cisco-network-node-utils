@@ -22,9 +22,9 @@ require_relative 'feature'
 require_relative 'node_util'
 
 module Cisco
-  # node_utils class for vxlan_global
-  class VxlanGlobal < NodeUtil
-    # Constructor for vxlan_global
+  # node_utils class for overlay_global
+  class OverlayGlobal < NodeUtil
+    # Constructor for overlay_global
     def initialize(instantiate=true)
       Feature.nv_overlay_evpn_enable if instantiate
     end
@@ -39,7 +39,7 @@ module Cisco
 
     # dup-host-ip-addr-detection
     def dup_host_ip_addr_detection
-      match = config_get('vxlan_global', 'dup_host_ip_addr_detection')
+      match = config_get('overlay_global', 'dup_host_ip_addr_detection')
       if match.nil?
         default_dup_host_ip_addr_detection
       else
@@ -67,7 +67,7 @@ module Cisco
         state = ''
       end
       set_args = { state: state, host_moves: host_moves, timeout: timeout }
-      config_set('vxlan_global', 'dup_host_ip_addr_detection', set_args)
+      config_set('overlay_global', 'dup_host_ip_addr_detection', set_args)
     end
 
     def default_dup_host_ip_addr_detection
@@ -76,17 +76,17 @@ module Cisco
     end
 
     def default_dup_host_ip_addr_detection_host_moves
-      config_get_default('vxlan_global',
+      config_get_default('overlay_global',
                          'dup_host_ip_addr_detection_host_moves')
     end
 
     def default_dup_host_ip_addr_detection_timeout
-      config_get_default('vxlan_global', 'dup_host_ip_addr_detection_timeout')
+      config_get_default('overlay_global', 'dup_host_ip_addr_detection_timeout')
     end
 
     # dup-host-mac-detection
     def dup_host_mac_detection
-      match = config_get('vxlan_global', 'dup_host_mac_detection')
+      match = config_get('overlay_global', 'dup_host_mac_detection')
       if match.nil?
         default_dup_host_mac_detection
       else
@@ -112,12 +112,12 @@ module Cisco
          timeout == default_dup_host_mac_detection_timeout
         dup_host_mac_detection_default
       else
-        config_set('vxlan_global', 'dup_host_mac_detection', set_args)
+        config_set('overlay_global', 'dup_host_mac_detection', set_args)
       end
     end
 
     def dup_host_mac_detection_default
-      config_set('vxlan_global', 'dup_host_mac_detection_default')
+      config_set('overlay_global', 'dup_host_mac_detection_default')
     end
 
     def default_dup_host_mac_detection
@@ -126,16 +126,16 @@ module Cisco
     end
 
     def default_dup_host_mac_detection_host_moves
-      config_get_default('vxlan_global', 'dup_host_mac_detection_host_moves')
+      config_get_default('overlay_global', 'dup_host_mac_detection_host_moves')
     end
 
     def default_dup_host_mac_detection_timeout
-      config_get_default('vxlan_global', 'dup_host_mac_detection_timeout')
+      config_get_default('overlay_global', 'dup_host_mac_detection_timeout')
     end
 
     # anycast-gateway-mac
     def anycast_gateway_mac
-      config_get('vxlan_global', 'anycast_gateway_mac')
+      config_get('overlay_global', 'anycast_gateway_mac')
     end
 
     def anycast_gateway_mac=(mac_addr)
@@ -147,12 +147,12 @@ module Cisco
       else
         state = ''
       end
-      config_set('vxlan_global', 'anycast_gateway_mac',
+      config_set('overlay_global', 'anycast_gateway_mac',
                  state: state, mac_addr: mac_addr)
     end
 
     def default_anycast_gateway_mac
-      config_get_default('vxlan_global', 'anycast_gateway_mac')
+      config_get_default('overlay_global', 'anycast_gateway_mac')
     end
   end # class
 end # module

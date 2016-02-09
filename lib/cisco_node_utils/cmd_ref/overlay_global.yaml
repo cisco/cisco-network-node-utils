@@ -1,4 +1,4 @@
-# vxlan_global
+# overlay_global
 ---
 anycast_gateway_mac:
   kind: string
