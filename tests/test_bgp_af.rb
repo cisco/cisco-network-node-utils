@@ -4,7 +4,7 @@
 #
 # Richard Wellum, August, 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,13 +23,19 @@ require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
 require_relative '../lib/cisco_node_utils/feature'
 
-# TestRouterBgpAF - Minitest for RouterBgpAF class
-class TestRouterBgpAF < CiscoTestCase
+# TestBgpAF - Minitest for RouterBgpAF class
+class TestBgpAF < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
-    # Disable and enable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
-    config('no feature bgp', 'feature bgp')
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    super
+    remove_all_bgps
   end
 
   def get_bgp_af_cfg(asn, vrf, af)

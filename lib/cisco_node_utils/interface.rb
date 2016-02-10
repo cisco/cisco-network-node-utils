@@ -1,6 +1,6 @@
 # November 2015, Chris Van Heuveln
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -765,7 +765,17 @@ module Cisco
 
     def system_default_svi_autostate
       # This command is a user-configurable system default.
-      config_get('interface', 'system_default_svi_autostate')
+      #
+      # This property behaves differently on an n7k vs ni(3|9)k and therefore
+      # needs special handling.
+      # N7K: When enabled, does not nvgen.
+      #      When disabled, does nvgen, but differently then n(3|9)k.
+      #      Return true for the disabled case, false otherwise.
+      # N(3|9)K: When enabled, does nvgen.
+      #          When disabled, does nvgen.
+      #          Return true for the enabled case, false otherwise.
+      result = config_get('interface', 'system_default_svi_autostate')
+      /N7K/.match(node.product_id) ? !result : result
     end
 
     def switchport_vtp_mode_capable?

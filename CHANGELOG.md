@@ -4,41 +4,86 @@ Changelog
 ## [v1.2.0]
 
 ### New feature support
-* ACL
+* ACL (platforms: Nexus 3k and Nexus 9k)
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
-* EVPN
+* EVPN (platforms: Nexus 3k and Nexus 9k)
   * evpn_vni (@andish)
-* Fabric Path
+* Fabric Path (platforms: Nexus 7k)
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Feature
   * feature (@robert-w-gries)
-* Interface
+* Interface (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
-* PIM
+* PIM (platforms: Nexus 3k and Nexus 9k)
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
-* Port Channel
+* Port Channel (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-* SNMP
+* SNMP (platforms: Nexus 3k and Nexus 9k)
   * snmpnotification (@tphoney)
-* VDC
+* VDC (platforms: Nexus 7k)
   * vdc (@chrisvanheuveln)
-* VPC
+* VPC (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vpc (@dcheriancisco)
-* VRF
+* VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vrf_af (@chrisvanheuveln)
-* VXLAN
-  * vxlan_global (@alok-aggarwal)
+* VXLAN (platforms: Nexus 9k)
+  * overlay_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
+
+  
+### Existing classes extended to support additional platforms
+#### Cisco Nexus 56xx, 60xx and 70xx
+* AAA
+  * aaa_authentication_login
+  * aaa_authentication_login_service
+  * aaa_authentication_service
+* BGP
+  * bgp
+  * bgp_af
+  * bgp_af_neighobr
+  * bgp_neighbor_af
+* COMMAND_CONFIG
+  * command_config (config_parser)
+* DOMAIN
+  * dns_domain
+  * domain_name
+  * name_server
+* INTERFACE
+  * interface
+* NTP
+  * ntp_config
+  * ntp_server
+* OSPF
+  * interface_ospf
+  * ospf
+  * ospf_vrf
+* RADIUS
+  * radius_global (**Nexus 56xx and Nexus 60xx**)
+* SNMP
+  * snmp_community
+  * snmp_group
+  * snmp_notification_receiver
+  * snmp_server
+  * snmp_user
+* SYSLOG
+  * syslog_server
+  * syslog_setting
+* TACACS
+  * tacacs_server
+  * tacacs_server_group
+  * tacacs_server_host
+* VLAN
+  * vlan
 
 ### Added
 

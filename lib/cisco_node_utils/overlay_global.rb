@@ -4,7 +4,7 @@
 #
 # Alok Aggarwal, October 2015
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,24 +22,16 @@ require_relative 'feature'
 require_relative 'node_util'
 
 module Cisco
-  # node_utils class for vxlan_global
-  class VxlanGlobal < NodeUtil
-    # Constructor for vxlan_global
-    def initialize(instantiate=true)
-      Feature.nv_overlay_evpn_enable if instantiate
-    end
-
-    def disable
-      dup_host_mac_detection_default
-    end
-
+  # node_utils class for overlay_global
+  class OverlayGlobal < NodeUtil
     # ----------
     # PROPERTIES
     # ----------
 
     # dup-host-ip-addr-detection
     def dup_host_ip_addr_detection
-      match = config_get('vxlan_global', 'dup_host_ip_addr_detection')
+      return nil unless Feature.nv_overlay_evpn_enabled?
+      match = config_get('overlay_global', 'dup_host_ip_addr_detection')
       if match.nil?
         default_dup_host_ip_addr_detection
       else
@@ -49,17 +41,16 @@ module Cisco
 
     def dup_host_ip_addr_detection_host_moves
       host_moves, _timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_host_moves if host_moves.nil?
       host_moves
     end
 
     def dup_host_ip_addr_detection_timeout
       _host_moves, timeout = dup_host_ip_addr_detection
-      return default_dup_host_ip_addr_detection_timeout if timeout.nil?
       timeout
     end
 
     def dup_host_ip_addr_detection_set(host_moves, timeout)
+      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
       if host_moves == default_dup_host_ip_addr_detection_host_moves &&
          timeout == default_dup_host_ip_addr_detection_timeout
         state = 'no'
@@ -67,7 +58,7 @@ module Cisco
         state = ''
       end
       set_args = { state: state, host_moves: host_moves, timeout: timeout }
-      config_set('vxlan_global', 'dup_host_ip_addr_detection', set_args)
+      config_set('overlay_global', 'dup_host_ip_addr_detection', set_args)
     end
 
     def default_dup_host_ip_addr_detection
@@ -76,17 +67,17 @@ module Cisco
     end
 
     def default_dup_host_ip_addr_detection_host_moves
-      config_get_default('vxlan_global',
+      config_get_default('overlay_global',
                          'dup_host_ip_addr_detection_host_moves')
     end
 
     def default_dup_host_ip_addr_detection_timeout
-      config_get_default('vxlan_global', 'dup_host_ip_addr_detection_timeout')
+      config_get_default('overlay_global', 'dup_host_ip_addr_detection_timeout')
     end
 
     # dup-host-mac-detection
     def dup_host_mac_detection
-      match = config_get('vxlan_global', 'dup_host_mac_detection')
+      match = config_get('overlay_global', 'dup_host_mac_detection')
       if match.nil?
         default_dup_host_mac_detection
       else
@@ -96,13 +87,11 @@ module Cisco
 
     def dup_host_mac_detection_host_moves
       host_moves, _timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_host_moves if host_moves.nil?
       host_moves
     end
 
     def dup_host_mac_detection_timeout
       _host_moves, timeout = dup_host_mac_detection
-      return default_dup_host_mac_detection_timeout if timeout.nil?
       timeout
     end
 
@@ -112,12 +101,12 @@ module Cisco
          timeout == default_dup_host_mac_detection_timeout
         dup_host_mac_detection_default
       else
-        config_set('vxlan_global', 'dup_host_mac_detection', set_args)
+        config_set('overlay_global', 'dup_host_mac_detection', set_args)
       end
     end
 
     def dup_host_mac_detection_default
-      config_set('vxlan_global', 'dup_host_mac_detection_default')
+      config_set('overlay_global', 'dup_host_mac_detection_default')
     end
 
     def default_dup_host_mac_detection
@@ -126,33 +115,35 @@ module Cisco
     end
 
     def default_dup_host_mac_detection_host_moves
-      config_get_default('vxlan_global', 'dup_host_mac_detection_host_moves')
+      config_get_default('overlay_global', 'dup_host_mac_detection_host_moves')
     end
 
     def default_dup_host_mac_detection_timeout
-      config_get_default('vxlan_global', 'dup_host_mac_detection_timeout')
+      config_get_default('overlay_global', 'dup_host_mac_detection_timeout')
     end
 
     # anycast-gateway-mac
     def anycast_gateway_mac
-      config_get('vxlan_global', 'anycast_gateway_mac')
+      return nil unless Feature.nv_overlay_evpn_enabled?
+      config_get('overlay_global', 'anycast_gateway_mac')
     end
 
     def anycast_gateway_mac=(mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
 
+      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
       if mac_addr == default_anycast_gateway_mac
         state = 'no'
         mac_addr = ''
       else
         state = ''
       end
-      config_set('vxlan_global', 'anycast_gateway_mac',
+      config_set('overlay_global', 'anycast_gateway_mac',
                  state: state, mac_addr: mac_addr)
     end
 
     def default_anycast_gateway_mac
-      config_get_default('vxlan_global', 'anycast_gateway_mac')
+      config_get_default('overlay_global', 'anycast_gateway_mac')
     end
   end # class
 end # module
