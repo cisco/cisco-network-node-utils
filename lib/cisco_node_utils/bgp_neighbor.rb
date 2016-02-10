@@ -19,6 +19,7 @@
 require 'ipaddr'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp'
 
 module Cisco
@@ -66,6 +67,7 @@ module Cisco
     end
 
     def create
+      Feature.bgp_enable
       set_args_keys(state: '')
       config_set('bgp', 'create_destroy_neighbor', @set_args)
     end
