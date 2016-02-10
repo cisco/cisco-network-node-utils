@@ -140,9 +140,6 @@ module Cisco
     end
 
     def source_interface_hold_down_time=(time)
-      # Source interface should be configured before hold down time
-      # is configured.
-      return if source_interface == default_source_interface
       state = time == default_source_interface_hold_down_time ? 'no' : ''
       # Cli rejects removing hold-down-time without an argument, so make
       # sure it is configured before attempting to remove it
