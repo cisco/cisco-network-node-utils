@@ -34,7 +34,6 @@ hash_distribution:
 
 hash_poly:
   _exclude: [N7k, N3k, N9k]
-  default_value: 'CRC10b'
 
 load_balance_type:
   kind: string

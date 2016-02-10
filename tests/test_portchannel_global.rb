@@ -145,7 +145,7 @@ class TestPortchannelGlobal < CiscoTestCase
       :port_channel_load_balance=,
       @global.default_bundle_select,
       @global.default_bundle_hash,
-      @global.default_hash_poly,
+      'CRC10b',
       nil, nil, nil, nil)
     assert_equal(
       @global.default_bundle_select,
@@ -153,7 +153,7 @@ class TestPortchannelGlobal < CiscoTestCase
     assert_equal(
       @global.default_bundle_hash,
       @global.bundle_hash)
-    assert_equal(@global.default_hash_poly,
+    assert_equal('CRC10b',
                  @global.hash_poly)
   end
 
