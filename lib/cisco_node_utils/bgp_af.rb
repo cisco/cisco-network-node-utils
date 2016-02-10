@@ -142,7 +142,7 @@ module Cisco
           route_map = additional_paths_selection
         end
       end
-      set_args_keys(state: state, route_map: route_map, route_policy: route_map)
+      set_args_keys(state: state, route_map: route_map )
       config_set('bgp_af', 'additional_paths_selection', @set_args)
     end
 
@@ -424,15 +424,14 @@ module Cisco
       [:add, :remove].each do |action|
         Cisco::Logger.debug("networks delta #{@get_args}\n #{action}: " \
                             "#{delta_hash[action]}")
-        delta_hash[action].each do |network, route_map_policy|
+        delta_hash[action].each do |network, route_map|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
-          unless route_map_policy.nil?
-            route_map = "route-map #{route_map_policy}"
-            route_policy = "route-policy #{route_map_policy}"
+          unless route_map.nil?
+            route_map = "route-map #{route_map}"    if platform == :nexus
+            route_map = "route-policy #{route_map}" if platform == :ios_xr
           end
-          set_args_keys(state: state, network: network, route_map: route_map,
-                        route_policy: route_policy)
+          set_args_keys(state: state, network: network, route_map: route_map )
           config_set('bgp_af', 'networks', @set_args)
         end
       end

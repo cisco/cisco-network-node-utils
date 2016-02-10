@@ -30,7 +30,7 @@ additional_paths_selection:
     set_value: '<state> additional-paths selection route-map <route_map>'
   ios_xr:
     get_value: '/^additional-paths selection route-policy (.*)$/'
-    set_value: '<state> additional-paths selection route-policy <route_policy>'
+    set_value: '<state> additional-paths selection route-policy <route_map>'
   default_value: ""
 
 additional_paths_send:
@@ -170,7 +170,7 @@ networks:
     set_value: '<state> network <network> <route_map>'
   ios_xr:
     get_value: '/^network (\S+) ?(?:route-policy )?(\S+)?$/'
-    set_value: '<state> network <network> <route_policy>'
+    set_value: '<state> network <network> <route_map>'
   default_value: []
 
 next_hop_route_map:
