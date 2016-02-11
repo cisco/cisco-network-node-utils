@@ -94,9 +94,6 @@ dampening_reuse_time:
 dampening_routemap:
   default_value: ""
 
-dampening_routepolicy:
-  default_value: ""
-
 dampening_state:
   kind: boolean
   default_value: true
