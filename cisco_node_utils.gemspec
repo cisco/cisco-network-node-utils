@@ -7,7 +7,8 @@ Gem::Specification.new do |spec|
   spec.name          = 'cisco_node_utils'
   spec.version       = CiscoNodeUtils::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
-                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang', 'Rob Gries']
+                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang',
+                        'Rob Gries']
   spec.email         = 'cisco_agent_gem@cisco.com'
   spec.summary       = 'Utilities for management of Cisco network nodes'
   spec.description   = <<-EOF
