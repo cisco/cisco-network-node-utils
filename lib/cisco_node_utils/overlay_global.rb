@@ -50,7 +50,7 @@ module Cisco
     end
 
     def dup_host_ip_addr_detection_set(host_moves, timeout)
-      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
+      Feature.nv_overlay_evpn_enable
       if host_moves == default_dup_host_ip_addr_detection_host_moves &&
          timeout == default_dup_host_ip_addr_detection_timeout
         state = 'no'
@@ -132,6 +132,7 @@ module Cisco
       fail TypeError unless mac_addr.is_a?(String)
 
       Feature.nv_overlay_evpn_enable
+      Feature.fabric_forwarding_enable
       if mac_addr == default_anycast_gateway_mac
         state = 'no'
         mac_addr = ''

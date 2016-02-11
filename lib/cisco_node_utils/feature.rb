@@ -56,7 +56,15 @@ module Cisco
     def self.fabric_forwarding_enable
       return if fabric_forwarding_enabled?
       Feature.fabric_enable if Feature.fabric_supported?
-      config_set('feature', 'fabric_forwarding')
+      # The feature fabric-forwarding cli is required in some older nxos images
+      # but is not present in newer images because nv_overlay_evpn handles
+      # both features; therefore feature fabric-forwarding is best-effort
+      # and ignored on cli failure.
+      begin
+        config_set('feature', 'fabric_forwarding')
+      rescue Cisco::CliError
+        CiscoLogger.debug '"feature fabric forwarding" CLI was rejected'
+      end
     end
 
     def self.fabric_forwarding_enabled?
@@ -80,15 +88,7 @@ module Cisco
 
     # ---------------------------
     def self.nv_overlay_evpn_enable
-      # The feature fabric-forwarding cli is required in some older nxos images
-      # but is not present in newer images because nv_overlay_evpn handles
-      # both features; therefore feature fabric-forwarding is best-effort
-      # and ignored on cli failure.
-      begin
-        config_set('feature', 'fabric_forwarding')
-      rescue Cisco::CliError
-        CiscoLogger.debug '"feature fabric forwarding" CLI was rejected'
-      end
+      return if nv_overlay_evpn_enabled?
       config_set('feature', 'nv_overlay_evpn')
     end
 
