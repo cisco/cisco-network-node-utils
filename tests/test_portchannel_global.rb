@@ -35,6 +35,15 @@ class TestPortchannelGlobal < CiscoTestCase
     super
   end
 
+  def n3k_in_n3k_mode?
+    return unless /N3/ =~ node.product_id
+    mode = config('show system switch-mode')
+    # note: an n3k in n9k mode displays: 'system switch-mode n9k'
+    patterns = ['system switch-mode n3k',
+                'Switch mode configuration is not not applicable']
+    mode[Regexp.union(patterns)] ? true : false
+  end
+
   def n7k_platform?
     /N7/ =~ node.product_id
   end
@@ -86,8 +95,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_port_channel_load_balance_sym_concat_rot
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n7k_platform?
+    skip('Platform does not support this property') if
+      n6k_platform? || n7k_platform? || n3k_in_n3k_mode?
     @global = create_portchannel_global
     @global.send(:port_channel_load_balance=,
                  'src-dst', 'ip-l4port', nil, nil, true, true, 4)
