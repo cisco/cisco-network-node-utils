@@ -4,7 +4,7 @@
 #
 # Richard Wellum, August, 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,21 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_af'
+require_relative '../lib/cisco_node_utils/feature'
 
-# TestRouterBgpAF - Minitest for RouterBgpAF class
-class TestRouterBgpAF < CiscoTestCase
+# TestBgpAF - Minitest for RouterBgpAF class
+class TestBgpAF < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
-    # Disable and enable feature bgp before each test to ensure we
-    # are starting with a clean slate for each test.
-    config('no feature bgp', 'feature bgp')
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    super
+    remove_all_bgps
   end
 
   def get_bgp_af_cfg(asn, vrf, af)
@@ -67,6 +74,7 @@ class TestRouterBgpAF < CiscoTestCase
   ## BGP Address Family
   ## Configure router bgp, some VRF's and address-family statements
   ## - verify that the final instance objects are correctly populated
+  ## Enable VXLAN and the EVPN
   ##
   def test_collection_not_empty
     config('feature bgp',
@@ -156,16 +164,9 @@ class TestRouterBgpAF < CiscoTestCase
     af = %w(ipv4 unicast)
 
     bgp_af = RouterBgpAF.new(asn, vrf, af)
-    pattern = /^ *client-to-client reflection$/
     #
     # Default is 'client-to-client' is configured
     #
-    af_string = get_bgp_af_cfg(asn, vrf, af)
-
-    assert_match(pattern, af_string,
-                 "Error: 'client-to-client reflection' is not configured " \
-                   'and should be')
-
     assert(bgp_af.client_to_client,
            "Error: 'client-to-client is not configured but should be")
     #
@@ -346,6 +347,39 @@ class TestRouterBgpAF < CiscoTestCase
     refute_match(pattern, af_string,
                  "Error: 'additional-paths selection route-map drop_all' is " \
                    'configured and should not be')
+  end
+
+  ##
+  ## advertise_l2vpn_evpn
+  ##
+  def advertise_l2vpn_evpn(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = false
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match set value')
+
+    val = true
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match set value')
+
+    val = bgp_af.default_advertise_l2vpn_evpn
+    bgp_af.advertise_l2vpn_evpn = val
+    assert_equal(val, bgp_af.advertise_l2vpn_evpn,
+                 'Error: advertise l2vpn evpn value does not match default' \
+                 'value')
+  end
+
+  def test_advertise_l2vpn_evpn
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      advertise_l2vpn_evpn(55, 'red', af)
+    end
   end
 
   ##
@@ -640,6 +674,112 @@ class TestRouterBgpAF < CiscoTestCase
   # rubocop:enable Metrics/AbcSize,Metrics/MethodLength
 
   ##
+  ## distance
+  ##
+  def test_distance
+    asn = '55'
+    vrf = 'red'
+    af = %w(ipv4 unicast)
+
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+    distance = [{ ebgp: 20, ibgp: 40, local: 60 },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: bgp_af.default_distance_local },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  40,
+                  local: 60 },
+                { ebgp:  20,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: bgp_af.default_distance_local },
+                { ebgp:  bgp_af.default_distance_ebgp,
+                  ibgp:  bgp_af.default_distance_ibgp,
+                  local: 60 },
+               ]
+    distance.each do |distancer|
+      bgp_af.distance_set(distancer[:ebgp], distancer[:ibgp], distancer[:local])
+      assert_equal(distancer[:ebgp], bgp_af.distance_ebgp)
+      assert_equal(distancer[:ibgp], bgp_af.distance_ibgp)
+      assert_equal(distancer[:local], bgp_af.distance_local)
+    end
+    bgp_af.destroy
+  end
+
+  ##
+  ## default_metric
+  ##
+  def default_metric(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    refute(bgp_af.default_default_metric,
+           'default value for default default metric should be false')
+    #
+    # Set and verify
+    #
+    val = 50
+    bgp_af.default_metric = val
+    assert_equal(val, bgp_af.default_metric,
+                 'Error: default metric value does not match set value')
+
+    val = bgp_af.default_default_metric
+    bgp_af.default_metric = val
+    assert_equal(val, bgp_af.default_metric,
+                 'Error: default metric value does not match default' \
+                 'value')
+  end
+
+  def test_default_metric
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      default_metric(55, 'red', af)
+    end
+  end
+
+  ##
+  ## inject_map
+  ##
+  def inject_map(asn, vrf, af)
+    # rubocop:disable Style/WordArray
+    master = [['lax', 'sfo'],
+              ['lax', 'sjc'],
+              ['nyc', 'sfo', 'copy-attributes'],
+              ['sjc', 'nyc', 'copy-attributes']]
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    # Test1: both/import/export when no commands are present. Each target
+    # option will be tested with and without evpn (6 separate types)
+    should = master.clone
+    inject_map_tester(bgp_af, should, 'Test 1')
+
+    # Test 2: remove half of the entries
+    should = [['lax', 'sfo'], ['nyc', 'sfo', 'copy-attributes']]
+    # rubocop:enable Style/WordArray
+    inject_map_tester(bgp_af, should, 'Test 2')
+
+    # Test 3: restore the removed entries
+    should = master.clone
+    inject_map_tester(bgp_af, should, 'Test 3')
+
+    # Test 4: 'default'
+    should = bgp_af.default_inject_map
+    inject_map_tester(bgp_af, should, 'Test 4')
+  end
+
+  def inject_map_tester(bgp_af, should, test_id)
+    bgp_af.send('inject_map=', should)
+    result = bgp_af.send('inject_map')
+    assert_equal(should, result,
+                 "#{test_id} : inject_map")
+  end
+
+  def test_inject_map
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      inject_map(55, 'red', af)
+    end
+  end
+
+  ##
   ## maximum_paths
   ##
   def maximum_paths(asn, vrf, af)
@@ -868,6 +1008,47 @@ class TestRouterBgpAF < CiscoTestCase
   ##
   ## common utilities
   ##
+  def test_utils_delta_add_remove_depth_1
+    # Note: AF context is not needed. This test is only validating the
+    # delta_add_remove class method and does not test directly on the device.
+
+    # Initial 'should' state
+    should = ['1:1', '2:2', '3:3', '4:4', '5:5', '6:6']
+    # rubocop:enable Style/WordArray
+
+    # Test: Check delta when every protocol is specified and has a route-map.
+    current = []
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 1. delta mismatch')
+
+    # Test: Check delta when should is the same as current.
+    current = should.clone
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 2. delta mismatch')
+
+    # Test: Move half the 'current' entries to 'should'. Check delta.
+    should = current.shift(4)
+    expected = { add: should, remove: current }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 3. delta mismatch')
+
+    # Test: Remove the route-maps from the current list. Check delta.
+    #       Note: The :remove list should be empty since this is just
+    #       an update of the route-map.
+    should = current.map { |prot_only, _route_map| [prot_only] }
+    expected = { add: should, remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 4. delta mismatch')
+
+    # Test: Check empty inputs
+    should = []
+    current = []
+    expected = { add: [], remove: [] }
+    result = Utils.delta_add_remove(should, current)
+    assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
 
   def test_utils_delta_add_remove
     # Note: AF context is not needed. This test is only validating the
@@ -916,5 +1097,80 @@ class TestRouterBgpAF < CiscoTestCase
     expected = { add: [], remove: [] }
     result = Utils.delta_add_remove(should, current)
     assert_equal(expected, result, 'Test 5. delta mismatch')
+  end
+
+  ##
+  ## suppress_inactive
+  ##
+  def suppress_inactive(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = false
+    bgp_af.suppress_inactive = val
+    refute(bgp_af.suppress_inactive,
+           'Error: suppress inactive value does not match set value')
+
+    val = true
+    bgp_af.suppress_inactive = val
+    assert(bgp_af.suppress_inactive,
+           'Error: suppress inactive value does not match set value')
+
+    val = bgp_af.default_suppress_inactive
+    bgp_af.suppress_inactive = val
+    refute(bgp_af.suppress_inactive,
+           'Error: suppress inactive value does not match default value')
+  end
+
+  def test_suppress_inactive
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      suppress_inactive(55, 'red', af)
+    end
+  end
+
+  ##
+  ## table_map
+  ##
+  def table_map(asn, vrf, af)
+    bgp_af = RouterBgpAF.new(asn, vrf, af)
+
+    #
+    # Set and verify
+    #
+    val = 'sjc'
+    bgp_af.table_map_set(val)
+    assert_equal(val, bgp_af.table_map,
+                 'Error: default metric value does not match set value')
+
+    val = bgp_af.default_table_map
+    bgp_af.table_map_set(val)
+    assert_equal(val, bgp_af.table_map,
+                 'Error: default metric value does not match default' \
+                 'value')
+
+    val = false
+    bgp_af.table_map_set('sjc', val)
+    refute(bgp_af.table_map_filter,
+           'Error: suppress inactive value does not match set value')
+
+    val = true
+    bgp_af.table_map_set('sjc', val)
+    assert(bgp_af.table_map_filter,
+           'Error: suppress inactive value does not match set value')
+
+    val = bgp_af.default_table_map_filter
+    bgp_af.table_map_set('sjc', val)
+    refute(bgp_af.table_map_filter,
+           'Error: suppress inactive value does not match default value')
+  end
+
+  def test_table_map
+    afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    afs.each do |af|
+      table_map(55, 'red', af)
+    end
   end
 end

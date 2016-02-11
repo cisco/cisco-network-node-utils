@@ -1,0 +1,45 @@
+# inventory
+---
+_template:
+  cli_nexus:
+    config_get: 'show inventory'
+    test_config_get: 'show inventory | no-more'
+
+all:
+  multiple: true
+  cli_nexus:
+    config_get_token: ["TABLE_inv", "ROW_inv"]
+
+chassis:
+  cli_nexus:
+    config_get_token: ["TABLE_inv", "ROW_inv", {'name': '"Chassis"'}]
+
+inventory:
+  # TODO: clean this up
+  /N7/:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
+    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
+    ]
+  /N9K/:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\s+\nPID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/',
+    '/.*NAME: "(.+)",\s+DESCR: "(.+)"\s+PID: (\S+)\s+,\s+VID: (.+) ,\s+SN: (.+)\s+\n/'
+    ]
+  else:
+    test_config_get_regex: [
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/',
+    '/.*\nNAME: "(.+)",\s+DESCR: "(.+)"\nPID: (\S+)\s+, VID: (.+) , SN: (.+)\n/'
+    ]
+
+productid:
+  cli_nexus:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "productid"]
+
+serialnum:
+  cli_nexus:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "serialnum"]
+
+versionid:
+  cli_nexus:
+    config_get_token: ["TABLE_inv", "ROW_inv", 0, "vendorid"]

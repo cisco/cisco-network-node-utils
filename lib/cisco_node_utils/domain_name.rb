@@ -2,7 +2,7 @@
 #
 # October 2015, Bryan Jen
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,15 +32,11 @@ module Cisco
     def self.domainnames(vrf=nil)
       hash = {}
       if vrf.nil?
-        domains = config_get('dnsclient', 'domain_name')
+        domain = config_get('dnsclient', 'domain_name')
       else
-        domains = config_get('dnsclient', 'domain_name_vrf', vrf: vrf)
+        domain = config_get('dnsclient', 'domain_name_vrf', vrf: vrf)
       end
-      return hash if domains.nil?
-
-      domains.each do |name|
-        hash[name] = DomainName.new(name, vrf, false)
-      end
+      hash[domain] = DomainName.new(domain, vrf, false) unless domain.empty?
       hash
     end
 

@@ -35,10 +35,23 @@ Please see [Learning Resources](#resources) for additional references.
 
 The CiscoNodeUtils gem provides utilities for management of Cisco network
 nodes. It is designed to work with Puppet and Chef as well as other
-open source management tools. This release supports Cisco NX-OS nodes
-running NX-OS 7.0(3)I2(1) and later.
+open source management tools.
 
-Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+This CiscoNodeUtils gem release supports the following:
+
+Platform         | OS    | OS Version           |
+-----------------|-------|----------------------|
+Cisco Nexus 30xx | NX-OS | 7.0(3)I2(1) and later
+Cisco Nexus 31xx | NX-OS | 7.0(3)I2(1) and later
+Cisco Nexus 93xx | NX-OS | 7.0(3)I2(1) and later
+Cisco Nexus 95xx | NX-OS | 7.0(3)I2(1) and later
+Cisco N9kv       | NX-OS | 7.0(3)I2(1) and later
+Cisco Nexus 56xx | NX-OS | 7.3(0)N1(1) and later
+Cisco Nexus 60xx | NX-OS | 7.3(0)N1(1) and later
+Cisco Nexus 7xxx | NX-OS | 7.3(0)D1(1) and later
+
+
+Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
 ## <a name="installation">Installation</a>
 
@@ -97,15 +110,9 @@ network node. It provides the base APIs `config_set`, `config_get`, and
 
 ### CommandReference
 
-The `CommandReference` module provides for the abstraction of NX-OS CLI,
-especially to handle its variance between hardware platforms.
-A series of YAML files are used to describe the CLI corresponding to a given
-`(feature, attribute)` tuple for any given platform. When a `Node` is
-connected, the platform identification of the Node is used to construct a
-`CmdRef` object that corresponds to this platform. The `Node` APIs
-`config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
+The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG), platform differences (NX-OS vs. IOS XR), or hardware differences (Nexus 9xxx vs. Nexus 3xxx). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
-See also [README_YAML](lib/cisco_node_utils/README_YAML.md).
+See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 
 ### Feature Providers
 
@@ -161,7 +168,7 @@ See [CHANGELOG](CHANGELOG.md) for a list of changes.
 ## <a name="license_info">License Information</a>
 
 
-Copyright (c) 2013-2015 Cisco and/or its affiliates.
+Copyright (c) 2013-2016 Cisco and/or its affiliates.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -2,7 +2,7 @@
 #
 # August 2015, Jie Yang
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 require 'ipaddr'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp'
 
 module Cisco
@@ -32,7 +33,7 @@ module Cisco
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
       @nbr = Utils.process_network_mask(nbr)
-      @asn = asn
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @get_args = @set_args = { asnum: @asn, nbr: @nbr }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'
@@ -66,6 +67,7 @@ module Cisco
     end
 
     def create
+      Feature.bgp_enable
       set_args_keys(state: '')
       config_set('bgp', 'create_destroy_neighbor', @set_args)
     end
@@ -95,9 +97,7 @@ module Cisco
     end
 
     def description
-      desc = config_get('bgp_neighbor', 'description', @get_args)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('bgp_neighbor', 'description', @get_args)
     end
 
     def default_description
@@ -158,7 +158,7 @@ module Cisco
 
     def ebgp_multihop
       result = config_get('bgp_neighbor', 'ebgp_multihop', @get_args)
-      result.nil? ? default_ebgp_multihop : result.first.to_i
+      result.nil? ? default_ebgp_multihop : result.to_i
     end
 
     def default_ebgp_multihop
@@ -166,8 +166,7 @@ module Cisco
     end
 
     def local_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_local_as
+      if val == default_local_as
         set_args_keys(state: 'no', local_as: '')
       else
         set_args_keys(state: '', local_as: val)
@@ -176,14 +175,11 @@ module Cisco
     end
 
     def local_as
-      result = config_get('bgp_neighbor', 'local_as', @get_args)
-      return default_local_as if result.nil?
-      return result.first.to_i unless /\d+\.\d+$/.match(result.first)
-      result.first
+      config_get('bgp_neighbor', 'local_as', @get_args).to_s
     end
 
     def default_local_as
-      config_get_default('bgp_neighbor', 'local_as')
+      config_get_default('bgp_neighbor', 'local_as').to_s
     end
 
     def log_neighbor_changes=(val)
@@ -206,7 +202,7 @@ module Cisco
 
     def default_log_neighbor_changes
       result = config_get_default('bgp_neighbor', 'log_neighbor_changes')
-      result.to_sym
+      result.to_sym unless result.nil?
     end
 
     def low_memory_exempt=(val)
@@ -230,8 +226,7 @@ module Cisco
     end
 
     def maximum_peers
-      result = config_get('bgp_neighbor', 'maximum_peers', @get_args)
-      result.nil? ? default_maximum_peers : result.first.to_i
+      config_get('bgp_neighbor', 'maximum_peers', @get_args)
     end
 
     def default_maximum_peers
@@ -255,8 +250,7 @@ module Cisco
     end
 
     def password
-      result = config_get('bgp_neighbor', 'password', @get_args)
-      result.nil? ? '' : result.first.to_s
+      config_get('bgp_neighbor', 'password', @get_args)
     end
 
     def default_password
@@ -265,11 +259,7 @@ module Cisco
 
     def password_type
       result = config_get('bgp_neighbor', 'password_type', @get_args)
-      if result.nil?
-        default_password_type
-      else
-        Encryption.cli_to_symbol(result.first.to_i)
-      end
+      Encryption.cli_to_symbol(result.to_i)
     end
 
     def default_password_type
@@ -278,8 +268,7 @@ module Cisco
     end
 
     def remote_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_remote_as
+      if val == default_remote_as
         set_args_keys(state: 'no', remote_as: '')
       else
         set_args_keys(state: '', remote_as: val)
@@ -288,14 +277,11 @@ module Cisco
     end
 
     def remote_as
-      result = config_get('bgp_neighbor', 'remote_as', @get_args)
-      return default_remote_as if result.nil?
-      return result.first.to_i unless /\d+\.\d+$/.match(result.first)
-      result.first
+      config_get('bgp_neighbor', 'remote_as', @get_args).to_s
     end
 
     def default_remote_as
-      config_get_default('bgp_neighbor', 'remote_as')
+      config_get_default('bgp_neighbor', 'remote_as').to_s
     end
 
     def remove_private_as=(val)
@@ -362,7 +348,7 @@ module Cisco
 
     def timers_keepalive_hold
       match = config_get('bgp_neighbor', 'timers_keepalive_hold', @get_args)
-      match.nil? ? default_timers_keepalive_hold : match.first
+      match.nil? ? default_timers_keepalive_hold : match
     end
 
     def timers_keepalive
@@ -414,8 +400,7 @@ module Cisco
 
     def update_source
       result = config_get('bgp_neighbor', 'update_source', @get_args)
-      return default_update_source if result.nil? || result.first.nil?
-      result.first.downcase.strip
+      result.downcase.strip
     end
 
     def default_update_source

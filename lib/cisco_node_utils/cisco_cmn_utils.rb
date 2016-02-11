@@ -1,6 +1,6 @@
 # Common Utilities for Puppet Resources.
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -111,16 +111,35 @@ module Cisco
     # Useful for network, redistribute, etc.
     #   should: an array of expected cmds (manifest/recipe)
     #  current: an array of existing cmds on the device
-    def self.delta_add_remove(should, current=[])
+    def self.depth(a)
+      return 0 unless a.is_a?(Array)
+      1 + depth(a[0])
+    end
+
+    def self.delta_add_remove(should, current=[], opt=nil)
       # Remove nil entries from array
-      should.each(&:compact!) unless should.empty?
+      should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }
+
+      # Some cli properties cannot be updated, thus must be removed first
+      return delta if opt == :updates_not_allowed
 
       # Delete entries from :remove if f1 is an update to an existing command
       delta[:add].each do |id, _|
-        delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        if depth(should) == 1
+          delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
+        else
+          delta[:remove].delete_if { |f1, f2| [f1, f2] if f1.to_s == id.to_s }
+        end
       end
       delta
     end # delta_add_remove
+
+    # Helper to 0-pad a mac address.
+    def self.zero_pad_macaddr(mac)
+      return nil if mac.nil? || mac.empty?
+      o1, o2, o3 = mac.split('.').map { |o| o.to_i(16).to_s(10) }
+      sprintf('%04x.%04x.%04x', o1, o2, o3)
+    end
   end # class Utils
 end   # module Cisco

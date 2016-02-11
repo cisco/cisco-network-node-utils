@@ -1,0 +1,51 @@
+# snmp_server
+---
+aaa_user_cache_timeout:
+  cli_nexus:
+    kind: int
+    config_get: "show snmp internal globals"
+    config_get_token: '/AAA Cache Timeout :(\d+)/'
+    config_set: "%s snmp-server aaa-user cache-timeout %d"
+    default_value: 3600
+
+contact:
+  config_get: "show snmp"
+  config_get_token: "sys_contact"
+  config_set: "%s snmp-server contact %s"
+  default_value: ""
+
+global_enforce_priv:
+  kind: boolean
+  config_get: "show run snmp all"
+  config_get_token: '/^(?:no )?snmp-server globalEnforcePriv/'
+  config_set: "%s snmp-server globalEnforcePriv"
+  default_value: false
+
+location:
+  config_get: "show snmp"
+  config_get_token: "sys_location"
+  config_set: "%s snmp-server location %s"
+  default_value: ""
+
+packet_size:
+  kind: int
+  config_get: "show snmp internal globals"
+  config_get_token: '/SNMP Max packet size :(\d+)/'
+  config_set: "%s snmp-server packetsize %d"
+  default_value: 1500
+
+protocol:
+  kind: boolean
+  auto_default: false
+  config_get: "show running-config snmp all"
+  config_get_token: ['/^snmp.server protocol enable/']
+  config_set: "%s snmp-server protocol enable"
+  default_value: true
+
+tcp_session_auth:
+  kind: boolean
+  auto_default: false
+  config_get: "show running-config snmp all"
+  config_get_token: ['/^snmp.server tcp.session auth$/']
+  config_set: "%s snmp-server tcp-session %s"
+  default_value: true

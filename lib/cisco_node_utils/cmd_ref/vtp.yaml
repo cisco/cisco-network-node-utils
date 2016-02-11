@@ -1,0 +1,38 @@
+# vtp
+---
+domain:
+  config_get: "show vtp status"
+  config_get_token: "domain_name"
+  config_set: "vtp domain %s"
+
+feature:
+  kind: boolean
+  config_get: "show running vtp"
+  config_get_token: '/^feature vtp$/'
+  config_set: "%s feature vtp"
+  default_value: false
+
+filename:
+  config_get: "show running vtp"
+  config_get_token: '/vtp file (\S+)/'
+  config_set: "%s vtp file %s"
+  default_value: "bootflash:/vlan.dat"
+
+password:
+  config_get: "show vtp password"
+  config_get_token: "passwd"
+  config_set: "%s vtp password %s"
+  default_value: ""
+
+version:
+  kind: int
+  config_get: "show vtp status"
+  config_get_token: '/VTP\s+version\s+running\s+:\s+(\d+)/'
+  config_set: "vtp version %s"
+  default_value: 1
+  /N7/:
+    test_config_result:
+      3: 3
+  else:
+    test_config_result:
+      3: "Cisco::CliError"

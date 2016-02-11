@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,15 +43,7 @@ module Cisco
     end
 
     def timestamp
-      timestamp = config_get('syslog_settings', 'timestamp')
-      if timestamp.nil?
-        # NXOS doesn't show if timestamp units is set to seconds, so we assume
-        # that no config displayed means that the parameter is set to seconds.
-        timestamp = config_get_default('syslog_settings', 'timestamp')
-      else
-        timestamp = config_get('syslog_settings', 'timestamp')[0]
-      end
-      timestamp
+      config_get('syslog_settings', 'timestamp')
     end
 
     def timestamp=(val)

@@ -1,0 +1,242 @@
+# bgp.yaml
+---
+_template:
+  config_get: "show running bgp all"
+  config_get_token: '/^router bgp <asnum>$/'
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+  config_set: "router bgp <asnum>"
+  config_set_append:
+    - "vrf <vrf>"
+
+address_family:
+  config_set_append: '<state> address-family <afi> <safi>'
+
+bestpath_always_compare_med:
+  kind: boolean
+  config_get_token_append: '/^bestpath always-compare-med$/'
+  config_set_append: '<state> bestpath always-compare-med'
+  default_value: false
+
+bestpath_aspath_multipath_relax:
+  kind: boolean
+  config_get_token_append: '/^bestpath as-path multipath-relax$/'
+  config_set_append: '<state> bestpath as-path multipath-relax'
+  default_value: false
+
+bestpath_compare_routerid:
+  kind: boolean
+  config_get_token_append: '/^bestpath compare-routerid$/'
+  config_set_append: '<state> bestpath compare-routerid'
+  default_value: false
+
+bestpath_cost_community_ignore:
+  kind: boolean
+  config_get_token_append: '/^bestpath cost-community ignore$/'
+  config_set_append: '<state> bestpath cost-community ignore'
+  default_value: false
+
+bestpath_med_confed:
+  kind: boolean
+  config_get_token_append: '/^bestpath med confed$/'
+  config_set_append: '<state> bestpath med confed'
+  default_value: false
+
+bestpath_med_missing_as_worst:
+  kind: boolean
+  config_get_token_append: '/^bestpath med missing-as-worst$/'
+  config_set_append: '<state> bestpath med missing-as-worst'
+  default_value: false
+
+bestpath_med_non_deterministic:
+  kind: boolean
+  config_get_token_append: '/^bestpath med non-deterministic$/'
+  config_set_append: '<state> bestpath med non-deterministic'
+  default_value: false
+
+cluster_id:
+  config_get_token_append: '/^cluster-id (\S+)$/'
+  config_set_append: '<state> cluster-id <id>'
+  default_value: ""
+
+confederation_id:
+  config_get_token_append: '/^confederation identifier (\d+|\d+.\d+)$/'
+  config_set_append: '<state> confederation identifier <id>'
+  default_value: ""
+
+confederation_peers:
+  config_get_token_append: '/^confederation peers (.*)$/'
+  config_set_append: '<state> confederation peers <peer_list>'
+  default_value: ""
+
+create_destroy_neighbor:
+  config_set_append: '<state> neighbor <nbr>'
+
+disable_policy_batching:
+  config_get_token_append: '/^disable-policy-batching$/'
+  config_set_append: '<state> disable-policy-batching'
+  default_value: false 
+
+disable_policy_batching_ipv4:
+  _exclude: [/N(5|6|7)/]
+  config_get_token_append: '/^disable-policy-batching ipv4 prefix-list (\S+)$/'
+  config_set_append: '<state> disable-policy-batching ipv4 prefix-list <prefix_list>'
+  default_value: ""
+
+disable_policy_batching_ipv6:
+  _exclude: [/N(5|6|7)/]
+  config_get_token_append: '/^disable-policy-batching ipv6 prefix-list (\S+)$/'
+  config_set_append: '<state> disable-policy-batching ipv6 prefix-list <prefix_list>'
+  default_value: ""
+
+enforce_first_as:
+  kind: boolean
+  config_get_token_append: '/^(no )?enforce-first-as$/'
+  config_set_append: '<state> enforce-first-as'
+  default_value: true
+
+event_history_cli:
+  config_get_token_append: '/^(no )?event-history cli(?: size (\S+))?$/'
+  config_set_append: '<state> event-history cli <size>'
+  default_value: 'size_small'
+
+event_history_detail:
+  config_get_token_append: '/^(no )?event-history detail(?: size (\S+))?$/'
+  config_set_append: '<state> event-history detail <size>'
+  auto_default: false
+  default_value: 'size_disable'
+
+event_history_events:
+  config_get_token_append: '/^(no )?event-history events(?: size (\S+))?$/'
+  config_set_append: '<state> event-history events <size>'
+  default_value: 'size_small'
+
+event_history_periodic:
+  config_get_token_append: '/^(no )?event-history periodic(?: size (\S+))?$/'
+  config_set_append: '<state> event-history periodic <size>'
+  default_value: 'size_small'
+
+fast_external_fallover:
+  kind: boolean
+  config_get_token_append: '/^(no )?fast-external-fallover$/'
+  config_set_append: '<state> fast-external-fallover'
+  default_value: true
+
+flush_routes:
+  kind: boolean
+  config_get_token_append: '/^flush-routes$/'
+  config_set_append: '<state> flush-routes'
+  default_value: false
+
+graceful_restart:
+  kind: boolean
+  config_get_token_append: '/^(no )?graceful-restart$/'
+  config_set_append: '<state> graceful-restart'
+  default_value: true
+
+graceful_restart_helper:
+  kind: boolean
+  config_get_token_append: '/^graceful-restart-helper$/'
+  config_set_append: '<state> graceful-restart-helper'
+  default_value: false
+
+graceful_restart_timers_restart:
+  kind: int
+  config_get_token_append: '/^graceful-restart restart-time (\d+)$/'
+  config_set_append: '<state> graceful-restart restart-time <seconds>'
+  default_value: 120
+
+graceful_restart_timers_stalepath_time:
+  kind: int
+  config_get_token_append: '/^graceful-restart stalepath-time (\d+)$/'
+  config_set_append: '<state> graceful-restart stalepath-time <seconds>'
+  default_value: 300
+
+isolate:
+  kind: boolean
+  config_get_token_append: '/^isolate$/'
+  config_set_append: '<state> isolate'
+  default_value: false
+
+log_neighbor_changes:
+  kind: boolean
+  config_get_token_append: '/^log-neighbor-changes$/'
+  config_set_append: '<state> log-neighbor-changes'
+  default_value: false
+
+maxas_limit:
+  kind: int
+  config_get_token_append: '/^maxas-limit (\d+)$/'
+  config_set_append: '<state> maxas-limit <limit>'
+  default_value: false
+
+neighbor_down_fib_accelerate:
+  _exclude: [/N(5|6|7)/]
+  kind: boolean
+  config_get_token_append: '/^neighbor-down fib-accelerate$/'
+  config_set_append: '<state> neighbor-down fib-accelerate'
+  default_value: false
+
+reconnect_interval:
+  _exclude: [/N(5|6|7)/]
+  kind: int
+  config_get_token_append: '/^reconnect-interval (\d+)$/'
+  config_set_append: '<state> reconnect-interval <seconds>'
+  default_value: 60
+
+route_distinguisher:
+  # This property is also supported by vrf.yaml
+  config_get_token: ['/^vrf context <vrf>$/i', '/^rd (\S+)$/']
+  config_set: ["vrf context <vrf>", "<state> rd <rd>"]
+  default_value: ""
+
+router:
+  config_get: "show running bgp"
+  config_get_token: '/^router bgp ([\d.]+)$/'
+  config_set: "<state> router bgp <asnum>"
+
+router_id:
+  config_get_token_append: '/^router-id (\S+)$/'
+  config_set_append: '<state> router-id <id>'
+  default_value: ""
+
+shutdown:
+  # Shutdown only applies to global bgp
+  kind: boolean
+  config_get: "show running bgp"
+  config_get_token: ['/^router bgp %s$/i', '/^shutdown$/']
+  config_set: ["router bgp <asnum>", "<state> shutdown"]
+  default_value: false
+
+suppress_fib_pending:
+  kind: boolean
+  config_get_token_append: '/^suppress-fib-pending$/'
+  config_set_append: '<state> suppress-fib-pending'
+  default_value: false
+
+timer_bestpath_limit:
+  kind: int
+  config_get_token_append: '/^timers bestpath-limit (\d+)(?: always)?$/'
+  config_set_append: '<state> timers bestpath-limit <seconds>'
+  default_value: 300
+
+timer_bestpath_limit_always:
+  kind: boolean
+  config_get_token_append: '/^timers bestpath-limit \d+ always$/'
+  config_set_append: '<state> timers bestpath-limit <seconds> always'
+  default_value: false
+
+timer_bgp_hold:
+  default_value: 180
+
+timer_bgp_keepalive:
+  default_value: 60
+
+timer_bgp_keepalive_hold:
+  config_get_token_append: '/^timers bgp (\d+) (\d+)$/'
+  config_set_append: '<state> timers bgp <keepalive> <hold>'
+
+vrf:
+  multiple: true
+  config_get_token_append: '/^vrf\s+(\S+)$/'
+  config_set: ["router bgp <asnum>", "<state> vrf <vrf>", "end"]

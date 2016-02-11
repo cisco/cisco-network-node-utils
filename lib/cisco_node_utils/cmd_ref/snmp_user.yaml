@@ -1,0 +1,55 @@
+# snmp_user
+---
+_template:
+  multiple: true
+
+auth_password:
+  config_get: "show run snmp all"
+  config_get_token: '/snmp-server user (\S+) \S+ auth \S+ (\S+)/'
+  default_value: ""
+
+# The getter format will not have group info if engine id is configured.
+auth_password_with_engine_id:
+  config_get: "show run snmp all"
+  config_get_token: '/snmp-server user (\S+) auth \S+ (\S+) .*engineID (\S+)/'
+  default_value: ""
+
+auth_protocol:
+  default_value: "md5"
+  /N9K/:
+    # TODO: is this really N9K-specific?
+    config_get_token: "auth"
+
+engine_id:
+  default_value: ""
+
+group:
+  default_value: "network-operator"
+  /N9K/:
+    # TODO: is this really N9K-specific?
+    config_get_token: "group"
+
+priv_password:
+  config_get: "show run snmp all"
+  config_get_token: '/snmp-server user (\S+) \S+ auth \S+ \S+ priv.*(0x\S+)/'
+  default_value: ""
+
+# The getter format will not have group info if engine id is configured.
+priv_password_with_engine_id:
+  config_get: "show run snmp all"
+  config_get_token: '/snmp-server user (\S+) auth \S+ \S+ priv .*(0x\S+) .*engineID (\S+)/'
+  default_value: ""
+
+priv_protocol:
+  default_value: "des"
+  /N9K/:
+    # TODO: is this really N9K-specific?
+    config_get_token: "priv"
+
+# Config string syntax:
+# [no] snmp-server user <user> [group] [auth {md5|sha} <passwd1> \
+#       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
+user:
+  config_get: "show run snmp all | i 'snmp-server user'"
+  config_get_token: '/^snmp.server user (.*)$/'
+  config_set: "%s snmp-server user %s %s %s %s %s %s"

@@ -1,0 +1,35 @@
+# fabricpath_topology
+---
+# Fabricpath feature is not available on N3K and N9K
+_exclude: [/N3/, /N9K/]
+
+all_topos:
+  multiple:
+  config_get: "show fabricpath topology"
+  config_get_token: '/^\S+[\s]+(\d+)[\s]+/'
+
+create:
+  config_set: ["fabricpath topology <topo>" , "end"]
+
+description:
+  kind: string
+  config_get: "show fabricpath topology"
+  config_get_token: '/^(\S+)[\s]+%d+[\s]+\S+/'
+  config_set: ["fabricpath topology <topo>" , "<state> description <name>", "end"]
+  default_value: ""
+
+destroy:
+  config_set: "no fabricpath topology <topo>"
+
+member_vlans:
+  kind: string
+  config_get: "show fabricpath topology vlan"
+  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
+  config_set: ["fabricpath topology <topo>" , "<state> member vlan <vlan_range>", "end"]
+  default_value: "--"
+
+state:
+  kind: string
+  config_get: "show fabricpath topology"
+  config_get_token: '/^\S+[\s]+%d+[\s]+(\S+)/'
+  default_value: "up"

@@ -1,6 +1,6 @@
 # June 2015, Michael G Wiebe
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'feature'
+require_relative 'bgp_af'
 
 module Cisco
   # RouterBgp - node utility class for BGP general config management
@@ -24,49 +26,30 @@ module Cisco
     def initialize(asnum, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
-      @asnum = RouterBgp.process_asnum(asnum)
+      @asnum = RouterBgp.validate_asnum(asnum)
       @vrf = vrf
-      if @vrf == 'default'
-        @get_args = @set_args = { asnum: @asnum }
-      else
-        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      set_args_keys_default
       create if instantiate
-    end
-
-    def self.process_asnum(asnum)
-      err_msg = "BGP asnum must be either a 'String' or an" \
-                " 'Integer' object"
-      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
-                                         asnum.is_a?(String)
-      if asnum.is_a? String
-        # Match ASDOT '1.5' or ASPLAIN '55' strings
-        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
-        asnum = RouterBgp.dot_to_big(asnum) if /\d+\.\d+/.match(asnum)
-      end
-      asnum.to_i
     end
 
     # Create a hash of all router bgp default and non-default
     # vrf instances
     def self.routers
-      bgp_ids = config_get('bgp', 'router')
-      return {} if bgp_ids.nil?
+      asnum = config_get('bgp', 'router')
+      return {} if asnum.nil?
 
       hash_final = {}
-      # TODO: Remove loop if only single ASN supported by RFC?
-      bgp_ids.each do |asnum|
-        asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
-        hash_tmp = { asnum =>
-          { 'default' => RouterBgp.new(asnum, 'default', false) } }
-        vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
-        unless vrf_ids.nil?
-          vrf_ids.each do |vrf|
-            hash_tmp[asnum][vrf] = RouterBgp.new(asnum, vrf, false)
-          end
+      asnum = asnum.to_i unless /\d+.\d+/.match(asnum)
+      hash_tmp = {
+        asnum => { 'default' => RouterBgp.new(asnum, 'default', false) }
+      }
+      vrf_ids = config_get('bgp', 'vrf', asnum: asnum)
+      unless vrf_ids.nil?
+        vrf_ids.each do |vrf|
+          hash_tmp[asnum][vrf] = RouterBgp.new(asnum, vrf, false)
         end
-        hash_final.merge!(hash_tmp)
       end
+      hash_final.merge!(hash_tmp)
       return hash_final
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
@@ -74,44 +57,18 @@ module Cisco
       return {}
     end
 
-    def self.enabled
-      feat = config_get('bgp', 'feature')
-      return !(feat.nil? || feat.empty?)
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.enable(state='')
-      config_set('bgp', 'feature', state: state)
-    end
-
-    # Convert BGP ASN ASDOT+ to ASPLAIN
-    def self.dot_to_big(dot_str)
-      fail ArgumentError unless dot_str.is_a? String
-      return dot_str unless /\d+\.\d+/.match(dot_str)
-      mask = 0b1111111111111111
-      high = dot_str.to_i
-      low = 0
-      low_match = dot_str.match(/\.(\d+)/)
-      low = low_match[1].to_i if low_match
-      high_bits = (mask & high) << 16
-      low_bits = mask & low
-      high_bits + low_bits
-    end
-
-    def router_bgp(asnum, vrf, state='')
-      # Only one bgp autonomous system number is allowed
-      # Raise an error if one is already configured that
-      # differs from the one being created.
-      configured = config_get('bgp', 'router')
-      if !configured.nil? && configured.first.to_s != asnum.to_s
-        fail %(
-          Changing the BGP Autonomous System Number is not allowed.
-          Current BGP asn: #{configured.first}
-          Attempted change to asn: #{asnum})
+    def self.validate_asnum(asnum)
+      err_msg = 'BGP asnum must be type String or Integer'
+      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
+                                         asnum.is_a?(String)
+      if asnum.is_a? String
+        # Match ASDOT '1.5' or ASPLAIN '55' strings
+        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
       end
+      asnum.to_s
+    end
+
+    def router_bgp(state='')
       @set_args[:state] = state
       if vrf == 'default'
         config_set('bgp', 'router', @set_args)
@@ -121,79 +78,53 @@ module Cisco
       set_args_keys_default
     end
 
-    def enable_create_router_bgp(asnum, vrf)
-      RouterBgp.enable
-      router_bgp(asnum, vrf)
-    end
-
     # Create one router bgp instance
     def create
-      if RouterBgp.enabled
-        router_bgp(@asnum, @vrf)
-      else
-        enable_create_router_bgp(@asnum, @vrf)
-      end
+      Feature.bgp_enable
+      router_bgp
     end
 
     # Destroy router bgp instance
     def destroy
-      vrf_ids = config_get('bgp', 'vrf', asnum: @asnum)
-      vrf_ids = ['default'] if vrf_ids.nil?
-      if vrf_ids.size == 1 || @vrf == 'default'
-        RouterBgp.enable('no')
-      else
-        router_bgp(asnum, @vrf, 'no')
-      end
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      router_bgp('no')
     end
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      if @vrf == 'default'
-        @set_args = { asnum: @asnum }
-      else
-        @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      @set_args = { asnum: @asnum }
+      @set_args[:vrf] = @vrf unless @vrf == 'default'
+      @get_args = @set_args
     end
 
     # Attributes:
 
     # Bestpath Getters
     def bestpath_always_compare_med
-      match = config_get('bgp', 'bestpath_always_compare_med', @get_args)
-      match.nil? ? default_bestpath_always_compare_med : true
+      config_get('bgp', 'bestpath_always_compare_med', @get_args)
     end
 
     def bestpath_aspath_multipath_relax
-      match = config_get('bgp', 'bestpath_aspath_multipath_relax', @get_args)
-      match.nil? ? default_bestpath_aspath_multipath_relax : true
+      config_get('bgp', 'bestpath_aspath_multipath_relax', @get_args)
     end
 
     def bestpath_compare_routerid
-      match = config_get('bgp', 'bestpath_compare_routerid', @get_args)
-      match.nil? ? default_bestpath_compare_routerid : true
+      config_get('bgp', 'bestpath_compare_routerid', @get_args)
     end
 
     def bestpath_cost_community_ignore
-      match = config_get('bgp', 'bestpath_cost_community_ignore', @get_args)
-      match.nil? ? default_bestpath_cost_community_ignore : true
+      config_get('bgp', 'bestpath_cost_community_ignore', @get_args)
     end
 
     def bestpath_med_confed
-      match = config_get('bgp', 'bestpath_med_confed', @get_args)
-      match.nil? ? default_bestpath_med_confed : true
+      config_get('bgp', 'bestpath_med_confed', @get_args)
     end
 
     def bestpath_med_missing_as_worst
-      match = config_get('bgp', 'bestpath_med_missing_as_worst', @get_args)
-      match.nil? ? default_bestpath_med_missing_as_worst : true
+      config_get('bgp', 'bestpath_med_missing_as_worst', @get_args)
     end
 
     def bestpath_med_non_deterministic
-      match = config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
-      match.nil? ? default_bestpath_med_non_deterministic : true
+      config_get('bgp', 'bestpath_med_non_deterministic', @get_args)
     end
 
     # Bestpath Setters
@@ -270,8 +201,7 @@ module Cisco
 
     # Cluster Id (Getter/Setter/Default)
     def cluster_id
-      match = config_get('bgp', 'cluster_id', @get_args)
-      match.nil? ? default_cluster_id : match.first
+      config_get('bgp', 'cluster_id', @get_args)
     end
 
     def cluster_id=(id)
@@ -279,7 +209,7 @@ module Cisco
       # 'no bgp cluster-id'.  IMO this should be possible because you
       # can only configure a single bgp cluster-id.
       #
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_cluster_id
         @set_args[:state] = 'no'
@@ -298,8 +228,7 @@ module Cisco
 
     # Confederation Id (Getter/Setter/Default)
     def confederation_id
-      match = config_get('bgp', 'confederation_id', @get_args)
-      match.nil? ? default_confederation_id : match.first
+      config_get('bgp', 'confederation_id', @get_args)
     end
 
     def confederation_id=(id)
@@ -307,7 +236,7 @@ module Cisco
       # 'no bgp confederation id'.  IMO this should be possible
       # because you can only configure a single bgp confed id.
       #
-      # HACK: specify a dummy id when removing the feature.
+      # HACK: specify a dummy id when removing the property.
       dummy_id = 1
       if id == default_confederation_id
         @set_args[:state] = 'no'
@@ -324,10 +253,74 @@ module Cisco
       config_get_default('bgp', 'confederation_id')
     end
 
+    #
+    # disable-policy-batching (Getter/Setter/Default)
+    #
+    def disable_policy_batching
+      config_get('bgp', 'disable_policy_batching', @get_args)
+    end
+
+    def disable_policy_batching=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'disable_policy_batching', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching
+      config_get_default('bgp', 'disable_policy_batching')
+    end
+
+    #
+    # disable-policy-batching ipv4 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv4
+      config_get('bgp', 'disable_policy_batching_ipv4', @get_args)
+    end
+
+    def disable_policy_batching_ipv4=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv4
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv4', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv4
+      config_get_default('bgp', 'disable_policy_batching_ipv4')
+    end
+
+    #
+    # disable-policy-batching ipv6 prefix-list <prefix_list>
+    #
+    def disable_policy_batching_ipv6
+      config_get('bgp', 'disable_policy_batching_ipv6', @get_args)
+    end
+
+    def disable_policy_batching_ipv6=(prefix_list)
+      dummy_prefixlist = 'x'
+      if prefix_list == default_disable_policy_batching_ipv6
+        @set_args[:state] = 'no'
+        @set_args[:prefix_list] = dummy_prefixlist
+      else
+        @set_args[:state] = ''
+        @set_args[:prefix_list] = prefix_list
+      end
+      config_set('bgp', 'disable_policy_batching_ipv6', @set_args)
+      set_args_keys_default
+    end
+
+    def default_disable_policy_batching_ipv6
+      config_get_default('bgp', 'disable_policy_batching_ipv6')
+    end
+
     # Enforce First As (Getter/Setter/Default)
     def enforce_first_as
-      match = config_get('bgp', 'enforce_first_as', @get_args)
-      match.nil? ? false : true
+      config_get('bgp', 'enforce_first_as', @get_args)
     end
 
     def enforce_first_as=(enable)
@@ -340,10 +333,133 @@ module Cisco
       config_get_default('bgp', 'enforce_first_as')
     end
 
+    # event-history
+    # event-history cli [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_cli
+      match = config_get('bgp', 'event_history_cli', @get_args)
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
+      default_event_history_cli
+    end
+
+    def event_history_cli=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_cli', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_cli
+      config_get_default('bgp', 'event_history_cli')
+    end
+
+    # event-history detail [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_detail
+      match = config_get('bgp', 'event_history_detail', @get_args)
+      # This property requires auto_default=false
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
+      default_event_history_detail
+    end
+
+    def event_history_detail=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_detail', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_detail
+      config_get_default('bgp', 'event_history_detail')
+    end
+
+    # event-history events [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_events
+      match = config_get('bgp', 'event_history_events', @get_args)
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
+      default_event_history_events
+    end
+
+    def event_history_events=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_events', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_events
+      config_get_default('bgp', 'event_history_events')
+    end
+
+    # event-history periodic [ size <size> ]
+    # Nvgen as True With optional 'size <size>
+    def event_history_periodic
+      match = config_get('bgp', 'event_history_periodic', @get_args)
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
+      default_event_history_periodic
+    end
+
+    def event_history_periodic=(val)
+      size = val[/small|medium|large|disable/]
+      @set_args[:size] = size.nil? ? '' : "size #{size}"
+      @set_args[:state] = val[/false/] ? 'no' : ''
+      config_set('bgp', 'event_history_periodic', @set_args)
+      set_args_keys_default
+    end
+
+    def default_event_history_periodic
+      config_get_default('bgp', 'event_history_periodic')
+    end
+
+    # Fast External fallover (Getter/Setter/Default)
+    def fast_external_fallover
+      config_get('bgp', 'fast_external_fallover', @get_args)
+    end
+
+    def fast_external_fallover=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'fast_external_fallover', @set_args)
+      set_args_keys_default
+    end
+
+    def default_fast_external_fallover
+      config_get_default('bgp', 'fast_external_fallover')
+    end
+
+    # Flush Routes (Getter/Setter/Default)
+    def flush_routes
+      config_get('bgp', 'flush_routes', @get_args)
+    end
+
+    def flush_routes=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'flush_routes', @set_args)
+      set_args_keys_default
+    end
+
+    def default_flush_routes
+      config_get_default('bgp', 'flush_routes')
+    end
+
     # Confederation Peers (Getter/Setter/Default)
     def confederation_peers
-      match = config_get('bgp', 'confederation_peers', @get_args)
-      match.nil? ? default_confederation_peers : match.first
+      config_get('bgp', 'confederation_peers', @get_args)
     end
 
     def confederation_peers_set(peers)
@@ -368,28 +484,19 @@ module Cisco
 
     # Graceful Restart Getters
     def graceful_restart
-      match = config_get('bgp', 'graceful_restart', @get_args)
-      match.nil? ? false : true
+      config_get('bgp', 'graceful_restart', @get_args)
     end
 
     def graceful_restart_timers_restart
-      match = config_get('bgp', 'graceful_restart_timers_restart', @get_args)
-      match.nil? ? default_graceful_restart_timers_restart : match.first.to_i
+      config_get('bgp', 'graceful_restart_timers_restart', @get_args)
     end
 
     def graceful_restart_timers_stalepath_time
-      match = config_get('bgp', 'graceful_restart_timers_stalepath_time',
-                         @get_args)
-      if match.nil?
-        default_graceful_restart_timers_stalepath_time
-      else
-        match.first.to_i
-      end
+      config_get('bgp', 'graceful_restart_timers_stalepath_time', @get_args)
     end
 
     def graceful_restart_helper
-      match = config_get('bgp', 'graceful_restart_helper', @get_args)
-      match.nil? ? default_graceful_restart_helper : true
+      config_get('bgp', 'graceful_restart_helper', @get_args)
     end
 
     # Graceful Restart Setters
@@ -446,10 +553,24 @@ module Cisco
       config_get_default('bgp', 'graceful_restart_helper')
     end
 
+    # Isolate (Getter/Setter/Default)
+    def isolate
+      config_get('bgp', 'isolate', @get_args)
+    end
+
+    def isolate=(enable)
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('bgp', 'isolate', @set_args)
+      set_args_keys_default
+    end
+
+    def default_isolate
+      config_get_default('bgp', 'isolate')
+    end
+
     # MaxAs Limit (Getter/Setter/Default)
     def maxas_limit
-      match = config_get('bgp', 'maxas_limit', @get_args)
-      match.nil? ? default_maxas_limit : match.first.to_i
+      config_get('bgp', 'maxas_limit', @get_args)
     end
 
     def maxas_limit=(limit)
@@ -470,8 +591,7 @@ module Cisco
 
     # Log Neighbor Changes (Getter/Setter/Default)
     def log_neighbor_changes
-      match = config_get('bgp', 'log_neighbor_changes', @get_args)
-      match.nil? ? default_log_neighbor_changes : true
+      config_get('bgp', 'log_neighbor_changes', @get_args)
     end
 
     def log_neighbor_changes=(enable)
@@ -484,26 +604,24 @@ module Cisco
       config_get_default('bgp', 'log_neighbor_changes')
     end
 
-    # Neighbor fib down accelerate (Getter/Setter/Default)
-    def neighbor_fib_down_accelerate
-      match = config_get('bgp', 'neighbor_fib_down_accelerate', @get_args)
-      match.nil? ? default_neighbor_fib_down_accelerate : true
+    # Neighbor down fib accelerate (Getter/Setter/Default)
+    def neighbor_down_fib_accelerate
+      config_get('bgp', 'neighbor_down_fib_accelerate', @get_args)
     end
 
-    def neighbor_fib_down_accelerate=(enable)
+    def neighbor_down_fib_accelerate=(enable)
       @set_args[:state] = (enable ? '' : 'no')
-      config_set('bgp', 'neighbor_fib_down_accelerate', @set_args)
+      config_set('bgp', 'neighbor_down_fib_accelerate', @set_args)
       set_args_keys_default
     end
 
-    def default_neighbor_fib_down_accelerate
-      config_get_default('bgp', 'neighbor_fib_down_accelerate')
+    def default_neighbor_down_fib_accelerate
+      config_get_default('bgp', 'neighbor_down_fib_accelerate')
     end
 
     # Reconnect Interval (Getter/Setter/Default)
     def reconnect_interval
-      match = config_get('bgp', 'reconnect_interval', @get_args)
-      match.nil? ? default_reconnect_interval : match.first.to_i
+      config_get('bgp', 'reconnect_interval', @get_args)
     end
 
     def reconnect_interval=(seconds)
@@ -522,19 +640,43 @@ module Cisco
       config_get_default('bgp', 'reconnect_interval')
     end
 
+    # route_distinguisher
+    # Note that this property is supported by both bgp and vrf providers.
+    def route_distinguisher
+      config_get('bgp', 'route_distinguisher', @get_args)
+    end
+
+    def route_distinguisher=(rd)
+      Feature.nv_overlay_evpn_enable
+      if rd == default_route_distinguisher
+        @set_args[:state] = 'no'
+        @set_args[:rd] = ''
+      else
+        @set_args[:state] = ''
+        @set_args[:rd] = rd
+      end
+      config_set('bgp', 'route_distinguisher', @set_args)
+      set_args_keys_default
+    end
+
+    def default_route_distinguisher
+      config_get_default('bgp', 'route_distinguisher')
+    end
+
     # Router ID (Getter/Setter/Default)
     def router_id
-      match = config_get('bgp', 'router_id', @get_args)
-      match.nil? ? default_router_id : match.first
+      config_get('bgp', 'router_id', @get_args)
     end
 
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
-      # 'no bgp router-id'. Dummy-id specified to work around this.
-      dummy_id = '1.2.3.4'
+      # 'no bgp router-id'. On some platforms you can specify a dummy
+      # value, but on N7K at least you need the current router_id.
       if id == default_router_id
+        # Nothing to do if router_id is already set to default.
+        return if router_id == default_router_id
         @set_args[:state] = 'no'
-        @set_args[:id] = dummy_id
+        @set_args[:id] = router_id
       else
         @set_args[:state] = ''
         @set_args[:id] = id
@@ -549,8 +691,7 @@ module Cisco
 
     # Shutdown (Getter/Setter/Default)
     def shutdown
-      match = config_get('bgp', 'shutdown', @asnum)
-      match.nil? ? default_shutdown : true
+      config_get('bgp', 'shutdown', @asnum)
     end
 
     def shutdown=(enable)
@@ -565,8 +706,7 @@ module Cisco
 
     # Supress Fib Pending (Getter/Setter/Default)
     def suppress_fib_pending
-      match = config_get('bgp', 'suppress_fib_pending', @get_args)
-      match.nil? ? default_suppress_fib_pending : true
+      config_get('bgp', 'suppress_fib_pending', @get_args)
     end
 
     def suppress_fib_pending=(enable)
@@ -582,7 +722,7 @@ module Cisco
     # BGP Timers Getters
     def timer_bgp_keepalive_hold
       match = config_get('bgp', 'timer_bgp_keepalive_hold', @get_args)
-      match.nil? ? default_timer_bgp_keepalive_hold : match.first
+      match.nil? ? default_timer_bgp_keepalive_hold : match
     end
 
     def timer_bgp_keepalive
@@ -598,13 +738,11 @@ module Cisco
     end
 
     def timer_bestpath_limit
-      match = config_get('bgp', 'timer_bestpath_limit', @get_args)
-      match.nil? ? default_timer_bestpath_limit : match.first.to_i
+      config_get('bgp', 'timer_bestpath_limit', @get_args)
     end
 
     def timer_bestpath_limit_always
-      match = config_get('bgp', 'timer_bestpath_limit_always', @get_args)
-      match.nil? ? default_timer_bestpath_limit_always : true
+      config_get('bgp', 'timer_bestpath_limit_always', @get_args)
     end
 
     # BGP Timers Setters
@@ -625,9 +763,9 @@ module Cisco
 
     def timer_bestpath_limit_set(seconds, always=false)
       if always
-        feature = 'timer_bestpath_limit_always'
+        opt = 'timer_bestpath_limit_always'
       else
-        feature = 'timer_bestpath_limit'
+        opt = 'timer_bestpath_limit'
       end
       if seconds == default_timer_bestpath_limit
         @set_args[:state] = 'no'
@@ -636,7 +774,7 @@ module Cisco
         @set_args[:state] = ''
         @set_args[:seconds] = seconds
       end
-      config_set('bgp', feature, @set_args)
+      config_set('bgp', opt, @set_args)
       set_args_keys_default
     end
 

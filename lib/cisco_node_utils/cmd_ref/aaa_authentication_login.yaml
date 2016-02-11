@@ -1,0 +1,31 @@
+# aaa_authentication_login
+---
+ascii_authentication:
+  config_get: "show run aaa all"
+  config_get_token: '/^aaa authentication login ascii-authentication/'
+  config_set: "%s aaa authentication login ascii-authentication"
+  default_value: false
+
+chap:
+  config_get: "show run aaa all"
+  config_get_token: '/^aaa authentication login chap enable/'
+  config_set: "%s aaa authentication login chap enable"
+  default_value: false
+
+error_display:
+  config_get: "show run aaa all"
+  config_get_token: '/^aaa authentication login error-enable/'
+  config_set: "%s aaa authentication login error-enable"
+  default_value: false
+
+mschap:
+  config_get: "show run aaa all"
+  config_get_token: '/^aaa authentication login mschap enable/'
+  config_set: "%s aaa authentication login mschap enable"
+  default_value: false
+
+mschapv2:
+  config_get: "show run aaa all"
+  config_get_token: '/^aaa authentication login mschapv2 enable/'
+  config_set: "%s aaa authentication login mschapv2 enable"
+  default_value: false

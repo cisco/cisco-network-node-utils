@@ -3,7 +3,7 @@
 #
 # August 2015 Chris Van Heuveln
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,20 +22,38 @@ require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
+require_relative '../lib/cisco_node_utils/feature'
 
-# TestRouterBgpNeighborAF - Minitest for RouterBgpNeighborAF class
-class TestRouterBgpNeighborAF < CiscoTestCase
-  @@reset_feat = true # rubocop:disable Style/ClassVars
+# TestBgpNeighborAF - Minitest for RouterBgpNeighborAF class
+class TestBgpNeighborAF < CiscoTestCase
+  # rubocop:disable Style/ClassVars
+  @@pre_clean_needed = true
+  @@evpn_unsupported = false
+  # rubocop:enable Style/ClassVars
 
   def setup
     super
-    if @@reset_feat
-      config('no feature bgp', 'feature bgp')
-      @@reset_feat = false # rubocop:disable Style/ClassVars
-    else
-      # Just ensure that feature is enabled
-      config('feature bgp')
-    end
+    remove_all_bgps if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+    setup_nv_overlay_evpn
+  end
+
+  def teardown
+    super
+    remove_all_bgps
+  end
+
+  def setup_nv_overlay_evpn
+    Feature.bgp_enable
+
+    # l2vpn evpn tests require 'nv overlay evpn' but it is not supported on
+    # all platforms
+    Feature.nv_overlay_evpn_enable unless @@evpn_unsupported
+  rescue Cisco::UnsupportedError => e
+    @@evpn_unsupported = true if # rubocop:disable Style/ClassVars
+      e.message[/unsupported on this node/]
+    # Remove the evpn AF from the test matrix
+    @@matrix.delete(:evpn)
   end
 
   def clean_af(af_args, ebgp=true)
@@ -61,22 +79,23 @@ class TestRouterBgpNeighborAF < CiscoTestCase
 
   # AF test matrix
   @@matrix = { # rubocop:disable Style/ClassVars
-    # 1  => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
-    # 2  => [1, 'default', '10:1::1', %w(ipv4 unicast)],
-    # 3  => [1, 'default', '10:1::1', %w(ipv6 multicast)],
-    # 4  => [1, 'default', '10:1::1', %w(ipv6 unicast)],
-    # 5  => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
-    6 => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
-    # 7  => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
-    8 => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
-    # 9  => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
-    # 10 => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
-    # 11 => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
-    # 12 => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
-    # 13 => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
-    # 14 => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
-    # 15 => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
-    # 16 => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
+    # 1     => [1, 'default', '10:1::1', %w(ipv4 multicast)], # UNSUPPORTED
+    # 2     => [1, 'default', '10:1::1', %w(ipv4 unicast)],
+    # 3     => [1, 'default', '10:1::1', %w(ipv6 multicast)],
+    # 4     => [1, 'default', '10:1::1', %w(ipv6 unicast)],
+    # 5     => [1, 'default', '1.1.1.1', %w(ipv4 multicast)],
+    6     => [1, 'default', '1.1.1.1', %w(ipv4 unicast)],
+    # 7     => [1, 'default', '1.1.1.1', %w(ipv6 multicast)],
+    8     => [1, 'default', '1.1.1.1', %w(ipv6 unicast)],
+    # 9     => [1, 'aa', '2.2.2.2', %w(ipv4 multicast)],
+    # 10    => [1, 'aa', '2.2.2.2', %w(ipv4 unicast)],
+    # 11    => [1, 'bb', '2.2.2.2', %w(ipv6 multicast)],
+    # 12    => [1, 'bb', '2.2.2.2', %w(ipv6 unicast)],
+    # 13    => [1, 'cc', '10:1::2', %w(ipv4 multicast)], # UNSUPPORTED
+    # 14    => [1, 'cc', '10:1::2', %w(ipv4 unicast)],
+    # 15    => [1, 'cc', '10:1::2', %w(ipv6 multicast)],
+    # 16    => [1, 'cc', '10:1::2', %w(ipv6 unicast)],
+    :evpn => [1, 'default', '1.1.1.1', %w(l2vpn evpn)],
   }
 
   # ---------------------------------
@@ -133,7 +152,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       refute(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to destroy AF")
     end
-    @@reset_feat = true # rubocop:disable Style/ClassVars
+    @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   end
 
   # ---------------------------------
@@ -154,6 +173,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       :next_hop_third_party,
       :suppress_inactive,
     ]
+
+    props = [:disable_peer_as_check] if dbg.include?('l2vpn/evpn')
 
     # Call setter to false, then validate with getter
     props.each { |k| af.send("#{k}=", false) }
@@ -198,6 +219,8 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       unsuppress_map:  'unsupp-map-name',
     }
 
+    props.delete(:unsuppress_map) if dbg.include?('l2vpn/evpn')
+
     props.each do |k, v|
       # Call setter.
       af.send("#{k}=", v)
@@ -222,10 +245,17 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   #   additional_paths_receive
   #   additional_paths_send
   #   soft_reconfiguration_in
+
+  def supports_soft_reconfig_always?
+    return true if node.product_id[/N(3|9)K/]
+    false
+  end
+
   def test_tri_states
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
 
+      next if dbg.include?('l2vpn/evpn')
       %w(additional_paths_receive additional_paths_send).each do |k|
         [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
          af.send("default_#{k}")
@@ -235,10 +265,17 @@ class TestRouterBgpNeighborAF < CiscoTestCase
         end
       end
 
+      # The 'always' keyword is not supported on N6K / N7K
       %w(soft_reconfiguration_in).each do |k|
-        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
+        if supports_soft_reconfig_always?
+          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
+                   af.send("default_#{k}")]
+        else
+          array = [:enable, :inherit, 'enable', 'inherit',
+                   af.send("default_#{k}")]
+        end
+
+        array.each do |val|
           af.send("#{k}=", val)
           assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
         end
@@ -250,6 +287,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_advertise_map
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       advertise_map(af, dbg)
     end
   end
@@ -319,6 +357,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
   def test_default_originate
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       default_originate(af, dbg)
     end
   end
@@ -489,7 +528,7 @@ class TestRouterBgpNeighborAF < CiscoTestCase
       af, dbg = clean_af(af_args)
       send_community(af, dbg)
     end
-    @@reset_feat = true # rubocop:disable Style/ClassVars
+    @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   end
 
   def send_community(af, dbg)
@@ -585,5 +624,26 @@ class TestRouterBgpNeighborAF < CiscoTestCase
     af.soo = val
     assert_empty(af.soo,
                  "Test 4. #{dbg} Failed to set default '#{val}'")
+  end
+
+  # --------------------------------
+  def test_weight
+    @@matrix.values.each do |af_args|
+      af, dbg = clean_af(af_args)
+      weight(af, dbg) unless dbg.include?('l2vpn/evpn')
+    end
+  end
+
+  def weight(af, dbg)
+    # check the default value before set
+    assert_equal(af.default_weight, af.weight,
+                 "Test 1. #{dbg} Error: should be default value")
+
+    af.weight = 22
+    assert_equal(22, af.weight, "Test 2. #{dbg} Failed to set weight")
+
+    af.weight = af.default_weight
+    assert_equal(af.default_weight, af.weight,
+                 "Test 3. #{dbg} Failed to remove weight")
   end
 end

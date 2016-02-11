@@ -1,6 +1,6 @@
 # December 2014, Alex Hunsberger
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,8 +50,7 @@ module Cisco
     #  end
 
     def group
-      result = config_get('snmp_community', 'group', @name)
-      result.nil? ? SnmpCommunity.default_group : result.first
+      config_get('snmp_community', 'group', @name)
     end
 
     def group=(group)
@@ -64,8 +63,7 @@ module Cisco
     end
 
     def acl
-      result = config_get('snmp_community', 'acl', @name)
-      result.nil? ? SnmpCommunity.default_acl : result.first
+      config_get('snmp_community', 'acl', @name)
     end
 
     def acl=(acl)

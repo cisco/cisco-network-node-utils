@@ -1,0 +1,172 @@
+# fabricpath
+---
+# Fabricpath feature is not available on N3K and N9K
+_exclude: [/N3/, /N9K/]
+
+aggregate_multicast_routes:
+  _exclude: [/N5K/, /N6K/]
+  kind: boolean
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath multicast aggregate\-routes\s*$/'
+  config_set: "<state> fabricpath multicast aggregate-routes"
+  default_value: false
+  
+allocate_delay:
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath timers allocate\-delay (\d+)/'
+  config_set: "<state> fabricpath timers allocate-delay <delay>"
+  default_value: 10
+
+auto_switch_id: 
+  kind: int
+  config_get: "show fabricpath switch-id"
+  config_get_token: '/^\*\s+(\d+).*No\s*$/'
+
+feature:
+  config_get: "show feature-set"
+  config_get_token: '/^fabricpath[\s]+[\d]+[\s]+(\S+)/'
+  config_set: "<state> feature-set fabricpath"
+  default_value: disabled
+
+feature_install:
+  config_set: "<state> install feature-set fabricpath"
+
+graceful_merge:
+  auto_default: false
+  kind: boolean
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath graceful\-merge disable\s*$/'
+  config_set: "<state> fabricpath graceful-merge disable"
+  default_value: true
+
+linkup_delay:
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath timers linkup-delay (\d+)\s*$/'
+  config_set: "<state> fabricpath timers linkup-delay <delay>"
+  default_value: 10
+
+linkup_delay_always:
+  _exclude: [/N5K/, /N6K/]
+  kind: boolean
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath timers linkup-delay always\s*$/'
+  config_set: "<state> fabricpath timers linkup-delay always"
+  default_value: false
+  
+linkup_delay_enable:
+  _exclude: [/N5K/, /N6K/]
+  auto_default: false
+  kind: boolean
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath linkup-delay\s*$/'
+  config_set: "<state> fabricpath linkup-delay"
+  default_value: true
+  
+loadbalance_algorithm:
+  kind: string
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath load-balance (\S+)\s*$/'
+  config_set: "<state> fabricpath load-balance <algo>"
+  /N5K/:
+    default_value: "source-destination"
+  else:
+    default_value: "symmetric"
+
+loadbalance_multicast_has_vlan:
+  _exclude: [/N5K/, /N6K/]
+  kind: boolean
+  auto_default: false
+  config_get: "show fabricpath load-balance | begin Ftag"
+  config_get_token: '/^Use VLAN: TRUE\s*$/'
+  default_value: true
+
+loadbalance_multicast_reset:
+  _exclude: [/N5K/, /N6K/]
+  config_set: "no fabricpath load-balance multicast"
+
+loadbalance_multicast_rotate:
+  _exclude: [/N5K/, /N6K/]
+  kind: int
+  config_get: "show fabricpath load-balance | begin Ftag"
+  config_get_token: '/^Rotate amount: (\d+)/'
+  default_value: 1
+ 
+loadbalance_multicast_set:
+  _exclude: [/N5K/, /N6K/]
+  config_set: 'fabricpath load-balance multicast <rotate_amt> <inc_vlan>'
+
+loadbalance_unicast_has_vlan:
+  kind: boolean
+  auto_default: false
+  config_get: "show fabricpath load-balance | begin ECMP next 4"
+  config_get_token: '/^Use VLAN: TRUE\s*$/'
+  config_set: "<state> fabricpath load-balance unicast include-vlan"
+  default_value: true
+
+loadbalance_unicast_layer:
+  kind: string
+  config_get: "show fabricpath load-balance | begin ECMP next 4"
+  config_get_token: '/^L3\/L4 Preference: (\S+)/'
+  config_set: "<state> fabricpath load-balance unicast <pref>"
+  default_value: "mixed"
+
+loadbalance_unicast_reset:
+  config_set: "no fabricpath load-balance unicast"
+
+loadbalance_unicast_rotate:
+  _exclude: [/N5K/, /N6K/]
+  kind: int
+  config_get: "show fabricpath load-balance | begin ECMP next 4"
+  config_get_token: '/^Rotate amount: (\d+)/'
+  default_value: 1
+
+loadbalance_unicast_set:
+  config_set: 'fabricpath load-balance unicast <pref> <rotate_amt> <inc_vlan>'
+
+loadbalance_unicast_support:
+  kind: string
+  /N5K/:
+    default_only: "split"
+  /N6K/:
+    default_only: "split"
+  else:
+    default_only: "combined"
+
+mode:
+  kind: string
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath mode (\S+)/'
+  config_set: "<state> fabricpath mode transit"
+  default_value: "normal"
+
+switch_id:
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath switch-id (\d+)\s*$/'
+  config_set: "fabricpath switch-id <swid>"
+
+transition_delay:
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath timers transition\-delay (\d+)\s*$/'
+  config_set: "<state> fabricpath timers transition-delay <delay>"
+  default_value: 10
+
+ttl_multicast:
+  _exclude: [/N5K/, /N6K/]
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath ttl multicast (\d+)\s*$/'
+  config_set: "<state> fabricpath ttl multicast <ttl>"
+  default_value: 32
+
+ttl_unicast:
+  _exclude: [/N5K/, /N6K/]
+  kind: int
+  config_get: "show run fabricpath all"
+  config_get_token: '/^fabricpath ttl unicast (\d+)\s*$/'
+  config_set: "<state> fabricpath ttl unicast <ttl>"
+  default_value: 32
+

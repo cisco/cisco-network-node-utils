@@ -1,0 +1,14 @@
+# radius_server_group
+---
+_template:
+  multiple: true
+  default_value: []
+  config_get: "show running-config radius all"
+
+group:
+  config_get_token: '/^aaa group server radius (\S+)/'
+  config_set: '<state> aaa group server radius <name>'
+
+servers:
+  config_get_token: ['/^aaa group server radius %s $/i', '/server (\S+)/']
+  config_set: ['aaa group server radius <group>', '<state> server <ip>']

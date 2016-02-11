@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,17 +84,7 @@ vrf blue",
     node.client.config(['interface loopback1', 'no shutdown'])
 
     result = node.config_get('interface', 'shutdown', 'loopback1')
-    assert_nil(result)
-  end
-
-  def test_node_token_str_to_regexp
-    token = ['/%s/i', '/%s foo %s/', '/zzz/i']
-    args = %w(LoopBack2 no bar)
-    expected = [/LoopBack2/i, /no foo bar/, /zzz/i]
-
-    result = node.token_str_to_regexp(token, args)
-    # puts "intersection: #{result & expected}, diff: #{result - expected}"
-    assert_equal(expected, result)
+    refute(result)
   end
 
   def test_node_config_get_invalid
@@ -126,13 +116,13 @@ vrf blue",
   def test_node_config_set
     node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
     run = node.client.show('show run all | inc snmp')
-    val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal('100', val)
+    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
+    assert_equal(['100'], val)
 
     node.config_set('snmp_server', 'aaa_user_cache_timeout', 'no', 100)
     run = node.client.show('show run all | inc snmp')
-    val = find_one_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal('3600', val)
+    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
+    assert_equal(['3600'], val)
   end
 
   def test_node_config_set_invalid
@@ -236,8 +226,8 @@ vrf blue",
     assert_equal('switch', name)
 
     return unless configured_name
-    config("hostname #{configured_name}") if (switchname == false)
-    config("switchname #{configured_name}") if (switchname == true)
+    config("hostname #{configured_name}") if switchname == false
+    config("switchname #{configured_name}") if switchname == true
   end
 
   def test_node_get_host_name_when_set
@@ -266,8 +256,8 @@ vrf blue",
     assert_equal('xyz', host_name)
 
     if configured_name
-      config("hostname #{configured_name}") if (switchname == false)
-      config("switchname #{configured_name}") if (switchname == true)
+      config("hostname #{configured_name}") if switchname == false
+      config("switchname #{configured_name}") if switchname == true
     else
       switchname ? config('no switchname') : config('no hostname')
     end

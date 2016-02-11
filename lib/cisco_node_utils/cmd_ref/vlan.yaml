@@ -1,0 +1,56 @@
+# vlan
+---
+all_vlans:
+  multiple: true
+  config_get: "show vlan brief"
+  config_get_token: '/^(\d+)\s/'
+
+create:
+  config_set: ["vlan %s" , "end"]
+
+destroy:
+  config_set: "no vlan %s"
+
+mapped_vni:
+  /N(3|9)/:
+    kind: int
+    config_get: 'show running vlan'
+    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
+    # In the cli 'vn-segment' config is not applied untill the 'end'
+    # statement is issued.
+    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
+    default_value: ''
+
+mode:
+  _exclude:
+    - /N(3|9)/
+  kind: string
+  config_get: "show vlan"
+  # TBD: 'show vlan' is problematic and should be converted to use show run
+  # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
+  config_get_token: '/^%d\s+.+net\s+(\S+)/'
+  config_set: ["vlan %d" , "%s mode %s", "end"]
+  default_value: "ce"
+
+name:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s name %s", "end"]
+  /N9K/:
+    test_config_result:
+      32: "Long VLAN name knob is not enabled"
+  else:
+    test_config_result:
+      32: "String exceeded max length of (32)"
+
+shutdown:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s shutdown", "end"]
+  default_value: false
+
+state:
+  config_get: "show vlan brief"
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
+  config_set: ["vlan %d", "%s state %s", "end"]
+  default_value: "active"

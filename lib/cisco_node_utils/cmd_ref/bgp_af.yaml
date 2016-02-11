@@ -1,0 +1,164 @@
+# bgp_af.yaml
+---
+_template:
+  config_get: 'show running bgp all'
+  config_get_token: '/^router bgp <asnum>$/'
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+    - '/^address-family <afi> <safi>$/'
+  config_set: "router bgp <asnum>"
+  config_set_append:
+    - 'vrf <vrf>'
+    - 'address-family <afi> <safi>'
+
+additional_paths_install:
+  kind: boolean
+  config_get_token_append: '/^additional-paths install backup$/'
+  config_set_append: '<state> additional-paths install backup'
+  default_value: false
+
+additional_paths_receive:
+  kind: boolean
+  config_get_token_append: '/^additional-paths receive$/'
+  config_set_append: '<state> additional-paths receive'
+  default_value: false
+
+additional_paths_selection:
+  kind: string
+  config_get_token_append: '/^additional-paths selection route-map (.*)$/'
+  config_set_append: '<state> additional-paths selection route-map <route_map>'
+  default_value: ""
+
+additional_paths_send:
+  kind: boolean
+  config_get_token_append: '/^additional-paths send$/'
+  config_set_append: '<state> additional-paths send'
+  default_value: false
+
+advertise_l2vpn_evpn:
+  _exclude: [/N(3|6)/]
+  kind: boolean
+  config_get_token_append: '/^advertise l2vpn evpn$/'
+  config_set_append: '<state> advertise l2vpn evpn'
+  default_value: false
+
+all_afs:
+  multiple: true
+  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+client_to_client:
+  kind: boolean
+  config_get_token_append: '/^(no )?client-to-client reflection$/'
+  config_set_append: '<state> client-to-client reflection'
+  default_value: true
+
+dampen_igp_metric:
+  config_get_token_append: '/^(no )?dampen-igp-metric *(\d+)?$/'
+  config_set_append: '<state> dampen-igp-metric <num>'
+  default_value: 600
+
+dampening:
+  auto_default: false
+  config_get_token_append: '/^dampening(?: (?:(\d+) (\d+) (\d+) (\d+)|route-map (.*)))?$/'
+  config_set_append: '<state> dampening <route_map> <decay> <reuse> <suppress> <suppress_max>'
+  default_value: ""
+
+dampening_half_time:
+  default_value: 15
+
+dampening_max_suppress_time:
+  default_value: 45
+
+dampening_reuse_time:
+  default_value: 750
+
+dampening_routemap:
+  default_value: ""
+
+dampening_state:
+  default_value: true
+
+dampening_suppress_time:
+  default_value: 2000
+
+default_information:
+  kind: boolean
+  config_get_token_append: '/^default-information originate$/'
+  config_set_append: '<state> default-information originate'
+  default_value: false
+
+default_metric:
+  kind: int
+  config_get_token_append: '/^default-metric (\d+)$/'
+  config_set_append: '<state> default-metric <num>'
+  default_value: false
+
+distance:
+  config_get_token_append: '/^distance (\d+) (\d+) (\d+)$/'
+  config_set_append: '<state> distance <ebgp> <ibgp> <local>'
+
+distance_ebgp:
+  default_value: 20
+
+distance_ibgp:
+  default_value: 200
+
+distance_local:
+  default_value: 220
+
+inject_map:
+  multiple: true
+  config_get_token_append: '/^inject-map (\S+) exist-map (\S+) *(copy-attributes)?$/'
+  config_set_append: '<state> inject-map <inject> exist-map <exist> <copy>'
+  default_value: []
+
+maximum_paths:
+  kind: int
+  config_get_token_append: '/^maximum-paths (\d+)$/'
+  config_set_append: '<state> maximum-paths <num>'
+  default_value: 1
+
+maximum_paths_ibgp:
+  kind: int
+  config_get_token_append: '/^maximum-paths ibgp (\d+)$/'
+  config_set_append: '<state> maximum-paths ibgp <num>'
+  default_value: 1
+
+network:
+  multiple: true
+  config_get_token_append: '/^network (\S+) ?(?:route-map )?(\S+)?$/'
+  config_set_append: '<state> network <network> <route_map>'
+  default_value: []
+
+next_hop_route_map:
+  config_get_token_append: '/^nexthop route-map (.*)$/'
+  config_set_append: '<state> nexthop route-map <route_map>'
+  default_value: ""
+
+redistribute:
+  multiple: true
+  config_get_token_append: '/^redistribute (\S+ ?\S+?) ?(?:route-map (\S+))?$/'
+  config_set_append: '<state> redistribute <protocol>'
+  default_value: []
+
+redistribute_policy:
+  # route-map/policy is optional on some platforms, required on others
+  config_set_append: '<state> redistribute <protocol> route-map <policy>'
+
+suppress_inactive:
+  kind: boolean
+  config_get_token_append: '/^suppress-inactive$/'
+  config_set_append: '<state> suppress-inactive'
+  default_value: false
+
+table_map:
+  kind: string
+  config_get_token_append: '/^table-map (\S+)(?: filter)?$/'
+  config_set_append: '<state> table-map <map>'
+  default_value: ""
+
+table_map_filter:
+  kind: boolean
+  config_get_token_append: '/^table-map \S+ filter$/'
+  config_set_append: '<state> table-map <map> filter'
+  default_value: false

@@ -2,7 +2,7 @@
 #
 # Jie Yang, July 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'feature'
 
 module Cisco
   # Vrf - node utility class for VRF configuration management
@@ -26,7 +27,6 @@ module Cisco
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
       @name = name.downcase.strip
-      @args = { vrf: @name }
       create if instantiate
     end
 
@@ -43,17 +43,19 @@ module Cisco
     end
 
     def create
-      config_set('vrf', 'create', @args)
+      config_set('vrf', 'create', vrf: @name)
     end
 
     def destroy
-      config_set('vrf', 'destroy', @args)
+      config_set('vrf', 'destroy', vrf: @name)
     end
 
+    ########################################################
+    #                      PROPERTIES                      #
+    ########################################################
+
     def description
-      desc = config_get('vrf', 'description', @args)
-      return '' if desc.nil?
-      desc.shift.strip
+      config_get('vrf', 'description', vrf: @name)
     end
 
     def description=(desc)
@@ -65,9 +67,12 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_description
+      config_get_default('vrf', 'description')
+    end
+
     def shutdown
-      result = config_get('vrf', 'shutdown', @args)
-      result ? true : false
+      config_get('vrf', 'shutdown', vrf: @name)
     end
 
     def shutdown=(val)
@@ -75,6 +80,52 @@ module Cisco
       config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_shutdown
+      config_get_default('vrf', 'shutdown')
+    end
+
+    # route_distinguisher
+    # Note that this property is supported by both bgp and vrf providers.
+    def route_distinguisher
+      config_get('vrf', 'route_distinguisher', vrf: @name)
+    end
+
+    def route_distinguisher=(rd)
+      # feature bgp and nv overlay required for rd cli in NXOS
+      Feature.bgp_enable
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
+      if rd == default_route_distinguisher
+        state = 'no'
+        rd = ''
+      else
+        state = ''
+      end
+      config_set('vrf', 'route_distinguisher', state: state, vrf: @name, rd: rd)
+    end
+
+    def default_route_distinguisher
+      config_get_default('vrf', 'route_distinguisher')
+    end
+
+    # Vni (Getter/Setter/Default)
+    def vni
+      config_get('vrf', 'vni', vrf: @name)
+    end
+
+    def vni=(id)
+      Feature.vn_segment_vlan_based_enable
+      no_cmd = (id) ? '' : 'no'
+      id = (id) ? id : vni
+      config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)
+    rescue Cisco::CliError => e
+      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_vni
+      config_get_default('vrf', 'vni')
     end
   end # class
 end # module

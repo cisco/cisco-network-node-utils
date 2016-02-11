@@ -1,6 +1,126 @@
 Changelog
 =========
 
+## [v1.2.0]
+
+### New feature support
+* ACL (platforms: Nexus 3k and Nexus 9k)
+  * acl (@saqibraza)
+  * ace (@yjyongz)
+  * remark ace (@bansalpradeep)
+* EVPN (platforms: Nexus 3k and Nexus 9k)
+  * evpn_vni (@andish)
+* Fabric Path (platforms: Nexus 7k)
+  * fabricpath_global (@dcheriancisco)
+  * fabricpath_topology (@dcheriancisco)
+* Feature
+  * feature (@robert-w-gries)
+* Interface (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * interface_channel_group (@chrisvanheuveln)
+  * interface_portchannel (@saichint)
+  * interface_service_vni (@chrisvanheuveln)
+* PIM (platforms: Nexus 3k and Nexus 9k)
+  * pim (@smigopal)
+  * pim_group_list (@smigopal)
+  * pim_rp_address (@smigopal)
+* Port Channel (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * interface_channel_group (@chrisvanheuveln)
+  * interface_portchannel (@saichint)
+  * portchannel_global (@saichint)
+* SNMP (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * snmpnotification (@tphoney)
+* VDC (platforms: Nexus 7k)
+  * vdc (@chrisvanheuveln)
+* VPC (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * vpc (@dcheriancisco)
+* VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * vrf_af (@chrisvanheuveln)
+* VXLAN (platforms: Nexus 9k)
+  * overlay_global (@alok-aggarwal)
+  * vxlan_vtep (@dcheriancisco)
+  * vxlan_vtep_vni (@mikewiebe)
+
+  
+### Additional platform support added to existing classes
+#### Cisco Nexus 56xx, 60xx and 7xxx
+* AAA
+  * aaa_authentication_login
+  * aaa_authentication_login_service
+  * aaa_authentication_service
+* BGP
+  * bgp
+  * bgp_af
+  * bgp_af_neighobr
+  * bgp_neighbor_af
+* COMMAND_CONFIG
+  * command_config (config_parser)
+* DOMAIN
+  * dns_domain
+  * domain_name
+  * name_server
+* INTERFACE
+  * interface
+* NTP
+  * ntp_config
+  * ntp_server
+* OSPF
+  * interface_ospf
+  * ospf
+  * ospf_vrf
+* RADIUS
+  * radius_global
+* SNMP
+  * snmp_community
+  * snmp_group
+  * snmp_notification_receiver
+  * snmp_server
+  * snmp_user
+* SYSLOG
+  * syslog_server
+  * syslog_setting
+* TACACS
+  * tacacs_server
+  * tacacs_server_group
+  * tacacs_server_host
+* VLAN
+  * vlan
+
+### Added
+
+* `Cisco::UnsupportedError` exception class, raised when a command is explicitly marked as unsupported on a particular class of nodes.
+* Extend bgp with attributes:
+  * `disable_policy_batching`, `disable_policy_batching_ipv4`, `disable_policy_batching_ipv6`
+  * `event_history_cli`, `event_history_detail`, `event_history_events`, `event_history_periodic`
+  * `fast_external_fallover`
+  * `flush_routes`
+  * `isolate`
+  * `neighbor_down_fib_accelerate`
+  * `route_distinguisher`
+* Extend bgp_af with attributes:
+  * `default_metric`
+  * `distance_ebgp`, `distance_ibgp`, `distance_local`
+  * `inject_map`
+  * `suppress_inactive`
+  * `table_map`
+* Extend interface with attributes:
+  * `fabric_forwarding_anycast_gateway`
+  * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
+  * `ipv4_address_secondary`, `ipv4_arp_timeout`
+  * `vlan_mapping`
+  * `vpc_id`, `vpc_peer_link`
+  * switchport mode `fabricpath`
+* Extend vrf with attributes:
+  * `vni`
+* Extend vlan with attribute:
+  * `mode`
+
+### Changed
+
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
+  - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied). 
+
 ## [v1.1.0]
 
 ### New feature support
@@ -15,10 +135,12 @@ Changelog
 * RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
+* SNMP
+  * snmp_notification_receiver (@jonnytpuppet)
 * SYSLOG
   * syslog_server (@jonnytpuppet)
   * syslog_setting (@jonnytpuppet)
-* Miscellaneous 
+* Miscellaneous
   * dns_domain (@hunner)
   * domain_name (@bmjen)
   * name_server (@hunner)
@@ -43,6 +165,8 @@ Changelog
   * Added `config` and `(assert|refute)_show_match` helper methods for testing.
 * Added `bin/check_metric_limits.rb` helper script in support of refactoring.
 * Added best practices development guide.
+* Added support for radius_global (@jonnytpuppet)
+* Added support for radius_server_group (@jonnytpuppet)
 
 ### Fixed
 
@@ -92,6 +216,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
