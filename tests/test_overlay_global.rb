@@ -24,6 +24,7 @@ class TestOverlayGlobal < CiscoTestCase
     super
     config('no feature fabric forwarding')
     config('no nv overlay evpn')
+    config('l2rib dup-host-mac-detection default')
   end
 
   def test_dup_host_ip_addr_detection
