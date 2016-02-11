@@ -48,7 +48,7 @@ Cisco Nexus 95xx | NX-OS | 7.0(3)I2(1) and later
 Cisco N9kv       | NX-OS | 7.0(3)I2(1) and later
 Cisco Nexus 56xx | NX-OS | 7.3(0)N1(1) and later
 Cisco Nexus 60xx | NX-OS | 7.3(0)N1(1) and later
-Cisco Nexus 70xx | NX-OS | 7.3(0)D1(1) and later
+Cisco Nexus 7xxx | NX-OS | 7.3(0)D1(1) and later
 
 
 Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
