@@ -94,6 +94,14 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
+    # This destroy method is different than most because pim does not have a
+    # "container" for properties, they simply exist in a given vrf context.
+    # For that reason destroy needs to explicitly set each property
+    # to its default state.
+    def destroy
+      self.ssm_range = ''
+    end
+
     #-----------
     # Properties
     #-----------
@@ -105,19 +113,11 @@ module Cisco
       if range.empty?
         state = 'no'
         range = ssm_range
+        return if range.nil?
       else
         state = ''
       end
       set_args_keys(state: state, ssm_range: range)
-      config_set('pim', 'ssm_range', @set_args)
-    end
-
-    # This destroy method is different than most because pim does not have a
-    # "container" for properties, they simply exist in a given vrf context.
-    # For that reason destroy needs to explicitly set each property
-    # to its default state.
-    def destroy
-      set_args_keys(state: 'no', ssm_range: 'none')
       config_set('pim', 'ssm_range', @set_args)
     end
   end  # Class
