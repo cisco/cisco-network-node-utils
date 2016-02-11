@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,15 @@ class TestPortchannelGlobal < CiscoTestCase
     config 'no port-channel load-balance ethernet' unless
     n9k_platform? || n7k_platform?
     super
+  end
+
+  def n3k_in_n3k_mode?
+    return unless /N3/ =~ node.product_id
+    mode = config('show system switch-mode')
+    # note: an n3k in n9k mode displays: 'system switch-mode n9k'
+    patterns = ['system switch-mode n3k',
+                'Switch mode configuration is not not applicable']
+    mode[Regexp.union(patterns)] ? true : false
   end
 
   def n7k_platform?
@@ -86,8 +95,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_get_set_port_channel_load_balance_sym_concat_rot
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n7k_platform?
+    skip('Platform does not support this property') if
+      n6k_platform? || n7k_platform? || n3k_in_n3k_mode?
     @global = create_portchannel_global
     @global.send(:port_channel_load_balance=,
                  'src-dst', 'ip-l4port', nil, nil, true, true, 4)

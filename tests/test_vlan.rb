@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vlan'
 require_relative '../lib/cisco_node_utils/interface'
-require_relative '../lib/cisco_node_utils/vdc'
-require_relative '../lib/cisco_node_utils/vxlan_vtep'
 
 include Cisco
 
@@ -24,11 +22,13 @@ include Cisco
 class TestVlan < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
   def cleanup
-    Vlan.vlans.each do |vlan_id, obj|
-      next if vlan_id == '1'
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlans
+      next if vlan == '1'
+      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
       obj.destroy
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def setup
@@ -39,14 +39,16 @@ class TestVlan < CiscoTestCase
 
   def teardown
     cleanup
-    return unless Vdc.vdc_support
-    # Reset the vdc module type back to default
-    v = Vdc.new('default')
-    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
   end
 
-  def interface_ethernet_default(ethernet_id)
-    config("default interface ethernet #{ethernet_id}")
+  def interface_ethernet_default(intf)
+    config("default interface #{intf}")
+  end
+
+  def linecard_cfg_change_not_allowed?(e)
+    skip('Linecard does not support this test') if
+      e.message[/requested config change not allowed/]
+    flunk(e.message)
   end
 
   def test_vlan_collection_not_empty
@@ -172,55 +174,6 @@ class TestVlan < CiscoTestCase
     v2.destroy
   end
 
-  def compatible_interface?
-    # MT-full tests require a specific linecard; either because they need a
-    # compatible interface or simply to enable the features. Either way
-    # we will provide an appropriate interface name if the linecard is present.
-    # Example 'show mod' output to match against:
-    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
-    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
-    skip('Unable to find a compatible interface in chassis') if slot.nil?
-
-    "ethernet#{slot}/1"
-  end
-
-  def mt_full_env_setup
-    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    compatible_interface?
-    v = Vdc.new('default')
-    v.limit_resource_module_type = 'f3' unless
-      v.limit_resource_module_type == 'f3'
-  end
-
-  def test_vlan_mode_fabricpath
-    mt_full_env_setup
-
-    # Test for valid mode
-    v = Vlan.new(2000)
-    assert_equal('ce', v.mode,
-                 'Mode should have been default to ce')
-    v.mode = 'fabricpath'
-    assert_equal(:enabled, v.fabricpath_feature,
-                 'Fabricpath feature should have been enabled')
-    assert_equal('fabricpath', v.mode,
-                 'Mode should have been set to fabricpath')
-
-    # Test for invalid mode
-    v = Vlan.new(100)
-    assert_equal('ce', v.mode,
-                 'Mode should have been default to ce')
-
-    e = assert_raises(CliError) { v.mode = 'junk' }
-    assert_match(/Invalid parameter detected/, e.message)
-  end
-
-  def test_vlan_state_extended
-    v = Vlan.new(2000)
-    v.state = 'suspend'
-    v.destroy
-  end
-
   def test_vlan_state_invalid
     v = Vlan.new(1000)
     assert_raises(RuntimeError) do
@@ -296,9 +249,13 @@ class TestVlan < CiscoTestCase
   def test_vlan_add_interface_invalid
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.add_interface(interface) }
-    v.destroy
+    begin
+      interface.switchport_mode = :disabled
+      assert_raises(RuntimeError) { v.add_interface(interface) }
+      v.destroy
+    end
+  rescue RuntimeError => e
+    linecard_cfg_change_not_allowed?(e)
   end
 
   def test_vlan_remove_interface_invalid
@@ -306,10 +263,13 @@ class TestVlan < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     v.add_interface(interface)
-    interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.remove_interface(interface) }
-
-    v.destroy
+    begin
+      interface.switchport_mode = :disabled
+      assert_raises(RuntimeError) { v.remove_interface(interface) }
+      v.destroy
+    end
+  rescue RuntimeError => e
+    linecard_cfg_change_not_allowed?(e)
   end
 
   def test_vlan_mapped_vnis
