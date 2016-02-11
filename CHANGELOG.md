@@ -27,7 +27,7 @@ Changelog
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-* SNMP (platforms: Nexus 3k and Nexus 9k)
+* SNMP (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * snmpnotification (@tphoney)
 * VDC (platforms: Nexus 7k)
   * vdc (@chrisvanheuveln)
@@ -41,8 +41,8 @@ Changelog
   * vxlan_vtep_vni (@mikewiebe)
 
   
-### Existing classes extended to support additional platforms
-#### Cisco Nexus 56xx, 60xx and 70xx
+### Additional platform support added to existing classes
+#### Cisco Nexus 56xx, 60xx and 7xxx
 * AAA
   * aaa_authentication_login
   * aaa_authentication_login_service
@@ -68,7 +68,7 @@ Changelog
   * ospf
   * ospf_vrf
 * RADIUS
-  * radius_global (**Nexus 56xx and Nexus 60xx**)
+  * radius_global
 * SNMP
   * snmp_community
   * snmp_group
