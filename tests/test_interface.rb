@@ -961,8 +961,6 @@ class TestInterface < CiscoTestCase
 
   def test_interface_fabric_forwarding_anycast_gateway
     # Setup
-    config('no nv overlay evpn')
-    config('no feature fabric forwarding')
     config('no interface vlan11')
     int = Interface.new('vlan11')
     foo = OverlayGlobal.new
@@ -986,7 +984,8 @@ class TestInterface < CiscoTestCase
       nonvlanint.fabric_forwarding_anycast_gateway = true
     end
 
-    # 5. Removing fabric forwarding anycast gateway mac
+    # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+    #    overlay gateway mac is not set.
     foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
     assert_raises(RuntimeError) { int.fabric_forwarding_anycast_gateway = true }
   end

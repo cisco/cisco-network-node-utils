@@ -217,11 +217,11 @@ module Cisco
       fail if fabric_forwarding_anycast_gateway.to_s != state.to_s
     rescue Cisco::CliError => e
       info = "[#{@name}] '#{e.command}' : #{e.clierror}"
-      raise "#{info} 'fabric_forwarding_anycast_gateway' can ony be " \
+      raise "#{info} 'fabric_forwarding_anycast_gateway' can only be " \
         'configured on a vlan interface' unless /vlan/.match(@name)
       anycast_gateway_mac = OverlayGlobal.new.anycast_gateway_mac
       if anycast_gateway_mac.nil? || anycast_gateway_mac.empty?
-        raise "#{info} Anycast gateway mac needs to be configured " \
+        raise "#{info} Anycast gateway mac must to be configured " \
                'before configuring forwarding mode under interface'
       end
       raise info
