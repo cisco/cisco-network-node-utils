@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/overlay_global'
 
@@ -91,9 +92,11 @@ class TestOverlayGlobal < CiscoTestCase
                  overlay_global.anycast_gateway_mac)
     assert(Feature.nv_overlay_evpn_enabled?)
 
-    # Set to non-default value
-    mac_addr = '1223.3445.5668'
-    overlay_global.anycast_gateway_mac = mac_addr
-    assert_equal(mac_addr, overlay_global.anycast_gateway_mac)
+    # Set to various non-default values
+    %w(1.1.1 55.a10.ffff 1223.3445.5668).each do |mac|
+      overlay_global.anycast_gateway_mac = mac
+      assert_equal(Utils.zero_pad_macaddr(mac),
+                   overlay_global.anycast_gateway_mac)
+    end
   end
 end

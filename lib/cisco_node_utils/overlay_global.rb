@@ -18,6 +18,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'cisco_cmn_utils'
 require_relative 'feature'
 require_relative 'node_util'
 
@@ -125,7 +126,9 @@ module Cisco
     # anycast-gateway-mac
     def anycast_gateway_mac
       return nil unless Feature.nv_overlay_evpn_enabled?
-      config_get('overlay_global', 'anycast_gateway_mac')
+      mac = config_get('overlay_global', 'anycast_gateway_mac')
+      # This value gets 0-padded when nvgened, so we need to convert it.
+      Utils.zero_pad_macaddr(mac).nil? ? default_anycast_gateway_mac : mac
     end
 
     def anycast_gateway_mac=(mac_addr)
