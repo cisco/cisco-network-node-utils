@@ -1,0 +1,64 @@
+# radius_server.yaml
+---
+accounting:
+  auto_default: false
+  kind: boolean
+  config_get: "show running-config radius"
+  config_get_token: '/^radius-server host %s.* (accounting) .*$/'
+  config_set: '<state> radius-server host <ip> accounting'
+  default_value: true
+
+acct-port:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* acct-port (\d+).*$/'
+  config_set: '<state> radius-server host <ip> acct-port <port>'
+  default_value: 1813
+
+auth-port:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* auth-port (\d+).*$/'
+  config_set: '<state> radius-server host <ip> auth-port <port>'
+  default_value: 1812
+
+authentication:
+  auto_default: false
+  kind: boolean
+  config_get: "show running-config radius"
+  config_get_token: '/^radius-server host %s.* (authentication) .*$/'
+  config_set: '<state> radius-server host <ip> authentication'
+  default_value: true
+
+hosts:
+  multiple: true
+  config_get: "show running-config radius"
+  config_get_token: '/^radius-server host (\S+).*/'
+  config_set: '<state> radius-server host <ip>'
+  default_value: ''
+
+key:
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* key \d+\s+(\S+)/'
+  config_set: '<state> radius-server host <ip> key <key>'
+  default_value: ~
+
+key_format:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* key (\d).*$/'
+  default_value: ~
+
+retransmit:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* retransmit (\d+).*$/'
+  config_set: '<state> radius-server host <ip> retransmit <count>'
+  default_value: ~
+
+timeout:
+  kind: int
+  config_get: "show running-config radius all"
+  config_get_token: '/^radius-server host %s.* timeout (\d+).*$/'
+  config_set: '<state> radius-server host <ip> timeout <timeout>'
+  default_value: ~

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -293,122 +293,46 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.packet_size = 0
   end
 
-  def test_snmpserver_global_enforce_priv_get_default
+  def test_snmpserver_global_enforce_priv
     snmpserver = SnmpServer.new
-    # default is false
-    snmpserver.global_enforce_priv = false
-    device_enabled = snmpserver.global_enforce_priv?
-    if device_enabled
-      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
+    default = snmpserver.default_global_enforce_priv
+    snmpserver.global_enforce_priv = default
+    if default == true
+      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
+      assert(snmpserver.global_enforce_priv?)
+
+      snmpserver.global_enforce_priv = false
+      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
+      refute(snmpserver.global_enforce_priv?)
     else
-      assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
+      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
+      refute(snmpserver.global_enforce_priv?)
+
+      snmpserver.global_enforce_priv = true
+      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
+      assert(snmpserver.global_enforce_priv?)
     end
-    # set to default
+    # Cleanup
     snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
   end
 
-  def test_snmpserver_global_enforce_priv_get_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = true
-    device_enabled = snmpserver.global_enforce_priv?
-    if device_enabled
-      refute_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    else
-      assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    end
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_global_enforce_priv_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = true
-    assert_show_match(pattern: /snmp-server globalEnforcePriv/)
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_global_enforce_priv_set_disabled
-    snmpserver = SnmpServer.new
-    snmpserver.global_enforce_priv = false
-    assert_show_match(pattern: /no snmp-server globalEnforcePriv/)
-    # set to default
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
-
-  def test_snmpserver_protocol_get_default
-    snmpserver = SnmpServer.new
-    # set default
-    snmpserver.protocol = true
-    assert_show_match(pattern: /^snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_protocol_get_disabled
+  def test_snmpserver_protocol_get_set
     snmpserver = SnmpServer.new
     snmpserver.protocol = false
-    device_enabled = snmpserver.protocol?
-    if device_enabled
-      assert_show_match(pattern: /^snmp-server protocol enable/)
-    else
-      assert_show_match(pattern: /no snmp-server protocol enable/)
-    end
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
+    assert_equal(false, snmpserver.protocol?)
+    snmpserver.protocol =
+      snmpserver.default_protocol
+    assert_equal(snmpserver.default_protocol,
+                 snmpserver.protocol?)
   end
 
-  def test_snmpserver_protocol_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.protocol = true
-    assert_show_match(pattern: /^snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_protocol_set_disabled
-    snmpserver = SnmpServer.new
-    snmpserver.protocol = false
-    assert_show_match(pattern: /no snmp-server protocol enable/)
-    # set to default
-    snmpserver.protocol = snmpserver.default_protocol
-  end
-
-  def test_snmpserver_tcp_session_auth_get_default
-    snmpserver = SnmpServer.new
-    # default value is false
-    snmpserver.tcp_session_auth = false
-    device_enabled = snmpserver.tcp_session_auth?
-    if device_enabled
-      assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    else
-      assert_show_match(pattern: /no snmp-server tcp-session auth/)
-    end
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_get_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.tcp_session_auth = true
-    assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_set_enabled
-    snmpserver = SnmpServer.new
-    snmpserver.tcp_session_auth = true
-    assert_show_match(pattern: /^snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
-  end
-
-  def test_snmpserver_tcp_session_auth_set_default
+  def test_snmpserver_tcp_session_auth_get_set
     snmpserver = SnmpServer.new
     snmpserver.tcp_session_auth = false
-    assert_show_match(pattern: /no snmp-server tcp-session auth/)
-    # set to default
-    snmpserver.tcp_session_auth = snmpserver.default_tcp_session_auth
+    assert_equal(false, snmpserver.tcp_session_auth?)
+    snmpserver.tcp_session_auth =
+      snmpserver.default_tcp_session_auth
+    assert_equal(snmpserver.default_tcp_session_auth,
+                 snmpserver.tcp_session_auth?)
   end
 end

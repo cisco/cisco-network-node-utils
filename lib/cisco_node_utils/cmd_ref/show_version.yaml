@@ -1,0 +1,72 @@
+# show_version
+---
+_template:
+  config_get: 'sh version'
+  cli_nexus:
+    test_config_get: "sh version | no-more"
+
+board:
+  config_get_token: 'proc_board_id'
+
+boot_image:
+  config_get_token: "kick_file_name"
+  test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+
+cpu:
+  config_get_token: 'cpu_name'
+
+description:
+  config_get_token: "chassis_id"
+  cli_nexus:
+    /N7/:
+      test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
+    else:
+      # Hardware
+      #   cisco Nexus9000 C9396PX Chassis
+      #
+      # Other variants for the line of interest:
+      #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
+      #                                          ^-module_id-ignore!-^
+      #   cisco Nexus3000 C3132Q Chassis
+      #   cisco N3K-C3048TP-1GE
+      test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+
+full:
+  config_get: "sh version"
+
+header:
+  config_get_token: "header_str"
+
+host_name:
+  cli_nexus:
+    config_get_token: "host_name"
+
+last_reset_reason:
+  config_get_token: "rr_reason"
+  test_config_get_regex: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
+
+last_reset_time:
+  kind: string
+  default_value: ''
+  config_get_token: "rr_ctime"
+  test_config_get_regex: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
+
+system_image:
+  cli_nexus:
+    /N7/:
+      config_get_token: "isan_file_name"
+      test_config_get_regex: '/.*system image file is:    (.*)$.*/'
+    else:
+      config_get_token: "kick_file_name"
+      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+
+uptime:
+  config_get_token: '/uptime is (.*)/'
+
+version:
+  cli_nexus:
+    config_get_token: "kickstart_ver_str"
+    test_config_get_regex: [
+    /\nkickstart_ver_str\s+(.+)\n/,
+    '/.*NXOS:\s+version (.*)\n/'
+    ]

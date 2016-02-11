@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # August 2015, Richard Wellum
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp'
 
 module Cisco
@@ -27,7 +28,7 @@ module Cisco
       err_msg = '"af" argument must be an array of two string values ' \
         'containing an afi + safi tuple'
       fail ArgumentError, err_msg unless af.is_a?(Array) || af.length == 2
-      @asn = RouterBgp.process_asnum(asn)
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @afi, @safi = af
       set_args_keys_default
@@ -40,7 +41,7 @@ module Cisco
         af_hash[asn] = {}
         vrfs.keys.each do |vrf_name|
           get_args = { asnum: asn }
-          get_args[:vrf] = vrf_name unless (vrf_name == 'default')
+          get_args[:vrf] = vrf_name unless vrf_name == 'default'
           # Call yaml and search for address-family statements
           af_list = config_get('bgp_af', 'all_afs', get_args)
 
@@ -57,6 +58,7 @@ module Cisco
     end
 
     def create
+      Feature.bgp_enable
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
@@ -124,9 +126,7 @@ module Cisco
     # Next Hop route map (Getter/Setter/Default)
     #
     def next_hop_route_map
-      route_map = config_get('bgp_af', 'next_hop_route_map', @get_args)
-      return '' if route_map.nil?
-      route_map.shift.strip
+      config_get('bgp_af', 'next_hop_route_map', @get_args)
     end
 
     def next_hop_route_map=(route_map)
@@ -202,9 +202,7 @@ module Cisco
 
     # additional_paths_selection
     def additional_paths_selection
-      route_map = config_get('bgp_af', 'additional_paths_selection', @get_args)
-      return '' if route_map.nil?
-      route_map.shift.strip
+      config_get('bgp_af', 'additional_paths_selection', @get_args)
     end
 
     def additional_paths_selection=(route_map)
@@ -226,14 +224,33 @@ module Cisco
       config_get_default('bgp_af', 'additional_paths_selection')
     end
 
+    # advertise_l2vpn_evpn
+    def advertise_l2vpn_evpn
+      config_get('bgp_af', 'advertise_l2vpn_evpn', @get_args)
+    end
+
+    def advertise_l2vpn_evpn=(state)
+      Feature.nv_overlay_evpn_enable
+      set_args_keys(state: (state ? '' : 'no'))
+      config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
+    end
+
+    def default_advertise_l2vpn_evpn
+      config_get_default('bgp_af', 'advertise_l2vpn_evpn')
+    end
+
     #
     # dampen_igp_metric (Getter/Setter/Default)
     #
 
     # dampen_igp_metric
     def dampen_igp_metric
-      result = config_get('bgp_af', 'dampen_igp_metric', @get_args)
-      result ? result.first.to_i : nil
+      match = config_get('bgp_af', 'dampen_igp_metric', @get_args)
+      if match.is_a?(Array)
+        return nil if match[0] == 'no '
+        return match[1].to_i if match[1]
+      end
+      default_dampen_igp_metric
     end
 
     def dampen_igp_metric=(val)
@@ -423,13 +440,111 @@ module Cisco
     end
 
     #
+    # Distance (Getter/Setter/Default)
+    #
+    def distance_set(ebgp, ibgp, local)
+      set_args_keys(state: '', ebgp: ebgp, ibgp: ibgp, local: local)
+      config_set('bgp_af', 'distance', @set_args)
+    end
+
+    def distance_ebgp
+      ebgp, _ibgp, _local = distance
+      return default_distance_ebgp if ebgp.nil?
+      ebgp.to_i
+    end
+
+    def distance_ibgp
+      _ebgp, ibgp, _local = distance
+      return default_distance_ibgp if ibgp.nil?
+      ibgp.to_i
+    end
+
+    def distance_local
+      _ebgp, _ibgp, local = distance
+      return default_distance_local if local.nil?
+      local.to_i
+    end
+
+    def distance
+      match = config_get('bgp_af', 'distance', @get_args)
+      match.nil? ? default_distance : match
+    end
+
+    def default_distance_ebgp
+      config_get_default('bgp_af', 'distance_ebgp')
+    end
+
+    def default_distance_ibgp
+      config_get_default('bgp_af', 'distance_ibgp')
+    end
+
+    def default_distance_local
+      config_get_default('bgp_af', 'distance_local')
+    end
+
+    def default_distance
+      ["#{default_distance_ebgp}", "#{default_distance_ibgp}",
+       "#{default_distance_local}"]
+    end
+
+    #
+    # default_metric (Getter/Setter/Default)
+    #
+
+    # default_metric
+    def default_metric
+      config_get('bgp_af', 'default_metric', @get_args)
+    end
+
+    def default_metric=(val)
+      # To remove the default_metric you can not use 'no default_metric'
+      # dummy metric to work around this
+      dummy_metric = 1
+      set_args_keys(state: (val == default_default_metric) ? 'no' : '',
+                    num:   (val == default_default_metric) ? dummy_metric : val)
+      config_set('bgp_af', 'default_metric', @set_args)
+    end
+
+    def default_default_metric
+      config_get_default('bgp_af', 'default_metric')
+    end
+
+    #
+    # inject_map (Getter/Setter/Default)
+    #
+
+    def inject_map
+      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
+      cmds.sort
+    end
+
+    def inject_map=(should_list)
+      delta_hash = Utils.delta_add_remove(should_list, inject_map)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        CiscoLogger.debug("inject_map delta #{@get_args}\n #{action}: " \
+                          "#{delta_hash[action]}")
+        delta_hash[action].each do |inject, exist, copy|
+          # inject & exist are mandatory, copy is optional
+          state = (action == :add) ? '' : 'no'
+          copy = 'copy-attributes' unless copy.nil?
+          set_args_keys(state: state, inject: inject, exist: exist, copy: copy)
+          config_set('bgp_af', 'inject_map', @set_args)
+        end
+      end
+    end
+
+    def default_inject_map
+      config_get_default('bgp_af', 'inject_map')
+    end
+
+    #
     # maximum_paths (Getter/Setter/Default)
     #
 
     # maximum_paths
     def maximum_paths
-      result = config_get('bgp_af', 'maximum_paths', @get_args)
-      result.nil? ? default_maximum_paths : result.first.to_i
+      config_get('bgp_af', 'maximum_paths', @get_args)
     end
 
     def maximum_paths=(val)
@@ -448,8 +563,7 @@ module Cisco
 
     # maximum_paths_ibgp
     def maximum_paths_ibgp
-      result = config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
-      result.nil? ? default_maximum_paths_ibgp : result.first.to_i
+      config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
     end
 
     def maximum_paths_ibgp=(val)
@@ -468,8 +582,7 @@ module Cisco
 
     # Build an array of all network commands currently on the device
     def networks
-      cmds = config_get('bgp_af', 'network', @get_args)
-      cmds.nil? ? default_networks : cmds.each(&:compact!)
+      config_get('bgp_af', 'network', @get_args).each(&:compact!)
     end
 
     # networks setter.
@@ -500,8 +613,7 @@ module Cisco
 
     # Build an array of all redistribute commands currently on the device
     def redistribute
-      cmds = config_get('bgp_af', 'redistribute', @get_args)
-      cmds.nil? ? default_redistribute : cmds.each(&:compact!)
+      config_get('bgp_af', 'redistribute', @get_args).each(&:compact!)
     end
 
     # redistribute setter.
@@ -525,6 +637,62 @@ module Cisco
 
     def default_redistribute
       config_get_default('bgp_af', 'redistribute')
+    end
+
+    #
+    # Suppress Inactive (Getter/Setter/Default)
+    #
+    def suppress_inactive
+      config_get('bgp_af', 'suppress_inactive', @get_args)
+    end
+
+    def suppress_inactive=(state)
+      set_args_keys(state: state ? '' : 'no')
+      config_set('bgp_af', 'suppress_inactive', @set_args)
+    end
+
+    def default_suppress_inactive
+      config_get_default('bgp_af', 'suppress_inactive')
+    end
+
+    #
+    # Table Map (Getter/Setter/Default)
+    #
+
+    def table_map
+      config_get('bgp_af', 'table_map', @get_args)
+    end
+
+    def table_map_filter
+      config_get('bgp_af', 'table_map_filter', @get_args)
+    end
+
+    def table_map_set(map, filter=false)
+      # To remove table map we can not use 'no table-map'
+      # Dummy-map specified to work around this
+      if filter
+        attr = 'table_map_filter'
+      else
+        attr = 'table_map'
+      end
+      dummy_map = 'dummy'
+      if map == default_table_map
+        @set_args[:state] = 'no'
+        @set_args[:map] = dummy_map
+      else
+        @set_args[:state] = ''
+        @set_args[:map] = map
+      end
+      config_set('bgp_af', attr, @set_args)
+      set_args_keys_default
+    end
+
+    def default_table_map
+      config_get_default('bgp_af', 'table_map')
+    end
+
+    def default_table_map_filter
+      config_get_default('bgp_af', 'table_map_filter')
     end
   end
 end

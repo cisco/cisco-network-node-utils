@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ module Cisco
       fail TypeError unless name.length > 0
       @name = name
 
-      fail TypeError unless level.is_a?(Integer) unless level.nil?
+      fail TypeError unless level.is_a?(Integer) || level.nil?
       @level = level
 
-      fail TypeError unless vrf.is_a?(String) unless vrf.nil?
+      fail TypeError unless vrf.is_a?(String) || vrf.nil?
       @vrf = vrf
 
       create if instantiate
@@ -48,14 +48,8 @@ module Cisco
 
       syslogservers_list.each do |id|
         level = config_get('syslog_server', 'level', id)
-        level = level[0].to_i unless level.nil?
 
         vrf = config_get('syslog_server', 'vrf', id)
-        if vrf.nil?
-          vrf = 'default'
-        else
-          vrf = vrf[0]
-        end
 
         hash[id] = SyslogServer.new(id, level, vrf, false)
       end

@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ module Cisco
 
     def source_interface
       source_interface = config_get('ntp_config', 'source_interface')
-      source_interface = source_interface[0].downcase \
+      source_interface = source_interface.downcase \
                           unless source_interface.nil?
       source_interface
     end

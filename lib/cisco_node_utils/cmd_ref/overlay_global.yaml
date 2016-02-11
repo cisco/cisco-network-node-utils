@@ -1,0 +1,33 @@
+# overlay_global
+---
+anycast_gateway_mac:
+  kind: string
+  config_get: "show running all | inc 'fabric forwarding'"
+  config_get_token: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
+  config_set: "<state> fabric forwarding anycast-gateway-mac <mac_addr>"
+  default_value: ""
+
+dup_host_ip_addr_detection:
+  config_get: "show running all | inc 'fabric forwarding'"
+  config_get_token: '/^fabric forwarding dup-host-ip-addr-detection (\d+) (\d+)$/'
+  config_set: "<state> fabric forwarding dup-host-ip-addr-detection <host_moves> <timeout>"
+
+dup_host_ip_addr_detection_host_moves:
+  default_value: 5
+
+dup_host_ip_addr_detection_timeout:
+  default_value: 180
+
+dup_host_mac_detection:
+  config_get: 'show running | i l2rib'
+  config_get_token: '/^l2rib dup-host-mac-detection (\d+) (\d+)$/'
+  config_set: "l2rib dup-host-mac-detection <host_moves> <timeout>"
+
+dup_host_mac_detection_default:
+  config_set: "l2rib dup-host-mac-detection default"
+
+dup_host_mac_detection_host_moves:
+  default_value: 5
+
+dup_host_mac_detection_timeout:
+  default_value: 180

@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,9 +25,19 @@ module Cisco
     def initialize(ntpserver_id, prefer, instantiate=true)
       @ntpserver_id = ntpserver_id.to_s
       @ntpserver_prefer = prefer
-      unless @ntpserver_id[/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/]
-        fail ArgumentError, 'Invalid value(IP is not an IP address)'
+
+      unless @ntpserver_id =~ /^[a-zA-Z0-9\.\:]*$/
+        fail ArgumentError,
+             'Invalid value (IPv4/IPv6 address contains invalid characters)'
       end
+
+      begin
+        IPAddr.new(@ntpserver_id)
+      rescue
+        raise ArgumentError,
+              'Invalid value (Name is not a valid single IPv4/IPv6 address)'
+      end
+
       unless @ntpserver_prefer == true ||
              @ntpserver_prefer == false ||
              @ntpserver_prefer.nil?
@@ -39,10 +49,9 @@ module Cisco
     def self.ntpservers
       hash = {}
       ntpservers_list = config_get('ntp_server', 'server')
-      return hash if ntpservers_list.nil?
+      return hash if ntpservers_list.empty?
 
       preferred_servers = config_get('ntp_server', 'prefer')
-      preferred_servers = [] unless preferred_servers
 
       ntpservers_list.each do |id|
         hash[id] = NtpServer.new(id, preferred_servers.include?(id), false)

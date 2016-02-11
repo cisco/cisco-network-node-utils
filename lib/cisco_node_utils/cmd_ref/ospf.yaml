@@ -1,0 +1,74 @@
+# ospf
+---
+_template:
+  config_get: "show running ospf all"
+  config_get_token: '/^router ospf <name>$/'
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+  config_set: "router ospf <name>"
+  config_set_append:
+    - "vrf <vrf>"
+
+auto_cost:
+  config_get_token_append: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
+  config_set_append: "auto-cost reference-bandwidth <cost> <type>"
+  default_value: [40, "Gbps"]
+
+default_metric:
+  kind: int
+  config_get_token_append: '/^default-metric (\d+)?$/'
+  config_set_append: "<state> default-metric <metric>"
+  default_value: 0
+
+feature:
+  config_get: "show running ospf"
+  config_get_token: '/^feature ospf$/'
+  config_set: "%s feature ospf"
+
+log_adjacency:
+  auto_default: false
+  config_get_token_append: '/^(log-adjacency-changes)\s*(detail)?$/'
+  config_set_append: "<state> log-adjacency-changes <type>"
+  default_value: :none
+
+router:
+  multiple: true
+  config_get: "show running ospf"
+  config_get_token: '/^router ospf (\S+)$/'
+  config_set: "%s router ospf %s"
+
+router_id:
+  config_get_token_append: '/^router-id (\S+)?$/'
+  config_set_append: "<state> router-id <router_id>"
+  default_value: ""
+
+timer_throttle_lsa:
+  config_get_token_append: '/^timers throttle lsa (\d+) (\d+) (\d+)$/'
+  config_set_append: "timers throttle lsa <start> <hold> <max>"
+
+timer_throttle_lsa_hold:
+  default_value: 5000
+
+timer_throttle_lsa_max:
+  default_value: 5000
+
+timer_throttle_lsa_start:
+  default_value: 0
+
+timer_throttle_spf:
+  config_get_token_append: '/^timers throttle spf (\d+) (\d+) (\d+)$/'
+  config_set_append: "timers throttle spf <start> <hold> <max>"
+
+timer_throttle_spf_hold:
+  default_value: 1000
+
+timer_throttle_spf_max:
+  default_value: 5000
+
+timer_throttle_spf_start:
+  default_value: 200
+
+vrf:
+  multiple: true
+  config_get_token: ['/^router ospf <name>$/i', '/^vrf\s+(\S+)$/']
+  config_set: ["router ospf <name>", "<state> vrf <vrf>", "end"]

@@ -1,0 +1,14 @@
+# ntp_server
+---
+prefer:
+  multiple: true
+  config_get: "show running-config all | include 'ntp server(.*)(prefer)'"
+  config_get_token: '/ntp server (\S+)/'
+  default_value: []
+
+server:
+  multiple: true
+  config_get: "show running-config all | include 'ntp server'"
+  config_get_token: '/ntp server (\S+)/'
+  config_set: '<state> ntp server <ip> <prefer>'
+  default_value: []

@@ -1,7 +1,7 @@
 #
 # Minitest for NtpServer class
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class TestNtpServer < CiscoTestCase
   def no_ntpserver_uk
     # Turn the feature off for a clean test.
     config('no ntpserver 130.88.203.12',
-           'no ntpserver 194.207.34.9')
+           'no ntpserver 2003::5')
   end
 
   # TESTS
@@ -46,7 +46,19 @@ class TestNtpServer < CiscoTestCase
 
     ntp = Cisco::NtpServer.new(id, false)
     assert_includes(Cisco::NtpServer.ntpservers, id)
-    assert_equal(Cisco::NtpServer.ntpservers[id], ntp)
+    assert_equal(ntp, Cisco::NtpServer.ntpservers[id])
+
+    ntp.destroy
+    refute_includes(Cisco::NtpServer.ntpservers, id)
+  end
+
+  def test_ntpserver_create_destroy_single_ipv6
+    id = '2003::5'
+    refute_includes(Cisco::NtpServer.ntpservers, id)
+
+    ntp = Cisco::NtpServer.new(id, false)
+    assert_includes(Cisco::NtpServer.ntpservers, id)
+    assert_equal(ntp, Cisco::NtpServer.ntpservers[id])
 
     ntp.destroy
     refute_includes(Cisco::NtpServer.ntpservers, id)
@@ -54,7 +66,7 @@ class TestNtpServer < CiscoTestCase
 
   def test_ntpserver_create_destroy_multiple
     id1 = '130.88.203.12'
-    id2 = '194.207.34.9'
+    id2 = '2003::5'
     refute_includes(Cisco::NtpServer.ntpservers, id1)
     refute_includes(Cisco::NtpServer.ntpservers, id2)
 
@@ -63,8 +75,8 @@ class TestNtpServer < CiscoTestCase
     refute_equal(ntp1, ntp2)
     assert_includes(Cisco::NtpServer.ntpservers, id1)
     assert_includes(Cisco::NtpServer.ntpservers, id2)
-    assert_equal(Cisco::NtpServer.ntpservers[id1], ntp1)
-    assert_equal(Cisco::NtpServer.ntpservers[id2], ntp2)
+    assert_equal(ntp1, Cisco::NtpServer.ntpservers[id1])
+    assert_equal(ntp2, Cisco::NtpServer.ntpservers[id2])
 
     ntp1.destroy
     ntp2.destroy

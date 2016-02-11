@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -181,7 +181,7 @@ class TestPlatform < CiscoTestCase
     vir_hsh_hsh = {}
     unless vir_arr.nil?
       vir_arr.each do |serv|
-        # rubocop:disable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:disable Style/AlignHash
         vir_hsh_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
                               'path'     => serv['ova_path'],
@@ -201,7 +201,7 @@ class TestPlatform < CiscoTestCase
                               'cpu'      => serv['cpu_reservation'],
           },
         }
-        # rubocop:enable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:enable Style/AlignHash
       end
     end
     assert_equal(vir_hsh_hsh, Platform.virtual_services)

@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,12 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   def show_cmd(name)
-    "show run interface #{name} all | no-more"
+    case name
+    when /ort-channel/
+      "show run interface #{name} | no-more"
+    else
+      "show run interface #{name} all | no-more"
+    end
   end
 
   def create_routerospf(ospfname='ospfTest')
@@ -495,14 +500,14 @@ class TestInterfaceOspf < CiscoTestCase
     assert_show_match(pattern: pattern,
                       msg:     'Error: message digest enable missing in CLI')
     assert(interface.message_digest,
-           'Error: message digest get value mismatch')
+           'Error: message digest is false but should be true')
 
     # get default and set
     interface.message_digest = interface.default_message_digest
     refute_show_match(pattern: pattern,
                       msg:     'Error: default message digest set failed')
     refute(interface.message_digest,
-           'Error: message digest get value mismatch')
+           'Error: message digest is true but should be false (default)')
   end
 
   def test_interfaceospf_message_digest_key

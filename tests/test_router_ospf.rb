@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ class TestRouterOspf < CiscoTestCase
                       msg:     "'router ospf ospfTest' not configured")
     ospf.destroy
 
-    refute_show_match(command: 'show run all | no-more',
+    refute_show_match(command: 'show run all | inc feature | no-more',
                       pattern: /feature ospf/,
                       msg:     "Error: 'feature ospf' still configured")
   end

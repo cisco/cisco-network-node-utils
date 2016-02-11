@@ -2,7 +2,7 @@
 #
 # Michael Wiebe, December 2014
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ class TestCommandConfig < CiscoTestCase
     config_cmd_hash.each do |k, v|
       v.each_value do |v1|
         # Send commands
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}"
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
@@ -120,7 +120,7 @@ class TestCommandConfig < CiscoTestCase
       sleep 30 # long-running command
       curr = @device.cmd('show int brief | count')[/^(\d+)$/]
       flunk('Timeout while creating 1024 loopback interfaces' \
-            "(pre:#{pre} curr:#{curr}") unless (pre == curr - 1024)
+            "(pre:#{pre} curr:#{curr}") unless pre == curr - 1024
     end
 
     # Remove 1024 loopback interfaces
@@ -134,7 +134,7 @@ class TestCommandConfig < CiscoTestCase
       sleep 30 # long-running: n95 can take 70+ sec to remove all of these
       curr = @device.cmd(show_int_count)[/^(\d+)$/]
       flunk('Timeout while deleting 1024 loopback interfaces ' \
-            "(pre:#{pre} curr:#{curr}") unless (pre == curr)
+            "(pre:#{pre} curr:#{curr}") unless pre == curr
     end
   end
 
@@ -142,7 +142,7 @@ class TestCommandConfig < CiscoTestCase
     cfg_hash = load_yaml(:negative)
     cfg_hash.each_value do |v|
       v.each_value do |v1|
-        cfg_cmd_str = "configure terminal\n#{v1.gsub(/^/, '  ')}\n  end\n"
+        cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
         assert_raises(CliError) { node.config(cfg_string) }
       end

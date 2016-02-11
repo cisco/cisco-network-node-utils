@@ -1,6 +1,6 @@
 # Jie Yang, November 2014
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 require_relative 'node_util'
 require_relative 'interface'
+require_relative 'fabricpath_global'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
@@ -57,13 +58,58 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].empty?
+      fail result[2]['body'] if
+        result[2].is_a?(Hash) &&
+        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
+
+      # Some test environments get result[2] as a string instead of a hash
+      fail result[2] if
+        result[2].is_a?(String) &&
+        /(ERROR:|Warning:)/.match(result[2])
+    end
+
+    def fabricpath_feature
+      FabricpathGlobal.fabricpath_feature
+    end
+
+    def fabricpath_feature_set(fabricpath_set)
+      FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
+    end
+
+    def mode
+      result = config_get('vlan', 'mode', @vlan_id)
+      return default_mode if result.nil?
+      case result
+      when /fabricpath/i
+        return 'fabricpath'
+      when /ce/i
+        return 'ce'
+      end
+    end
+
+    def mode=(str)
+      str = str.to_s
+      if str.empty?
+        result = config_set('vlan', 'mode', @vlan_id, 'no', '')
+      else
+        if 'fabricpath' == str
+          fabricpath_feature_set(:enabled) unless
+            :enabled == fabricpath_feature
+        end
+        result = config_set('vlan', 'mode', @vlan_id, '', str)
+      end
+      cli_error_check(result)
+    rescue CliError => e
+      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_mode
+      config_get_default('vlan', 'mode')
     end
 
     def vlan_name
       result = config_get('vlan', 'name', @vlan_id)
-      return default_vlan_name if result.nil?
-      result.shift
+      result.nil? ? default_vlan_name : result
     end
 
     def vlan_name=(str)
@@ -84,8 +130,7 @@ module Cisco
 
     def state
       result = config_get('vlan', 'state', @vlan_id)
-      return default_state if result.nil?
-      case result.first
+      case result
       when /act/
         return 'active'
       when /sus/
@@ -111,9 +156,8 @@ module Cisco
 
     def shutdown
       result = config_get('vlan', 'shutdown', @vlan_id)
-      return default_shutdown if result.nil?
       # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result.first[/shut/] ? true : false
+      result[/shut/] ? true : false
     end
 
     def shutdown=(val)
@@ -145,6 +189,25 @@ module Cisco
         interfaces[name] = i
       end
       interfaces
+    end
+
+    def mapped_vni
+      config_get('vlan', 'mapped_vni', vlan: @vlan_id)
+    end
+
+    def mapped_vni=(vni)
+      Feature.vn_segment_vlan_based_enable
+      # Remove the existing mapping first as cli doesn't support overwriting.
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                         state: 'no', vni: vni)
+      # Configure the new mapping
+      state = vni == default_mapped_vni ? 'no' : ''
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                          state: state, vni: vni)
+    end
+
+    def default_mapped_vni
+      config_get_default('vlan', 'mapped_vni')
     end
   end # class
 end # module

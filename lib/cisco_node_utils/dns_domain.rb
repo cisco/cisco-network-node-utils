@@ -3,7 +3,7 @@
 #
 # September 2015, Hunter Haugen
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,8 +43,6 @@ module Cisco
       else
         domains = config_get('dnsclient', 'domain_list_vrf', vrf: vrf)
       end
-      return {} if domains.nil?
-
       hash = {}
       domains.each do |name|
         hash[name] = DnsDomain.new(name, vrf, false)
@@ -61,8 +59,24 @@ module Cisco
         config_set('dnsclient', 'domain_list',
                    state: '', name: @name)
       else
-        config_set('dnsclient', 'domain_list_vrf',
-                   state: '', name: @name, vrf: @vrf)
+        # On some platforms attempts to create a new domain-list results
+        # in the error. 'ERROR: Deletion of VRF test in progresswait
+        # for it to complete'.  We handle this by trying up to 10 times
+        # with a 1 second delay between attempts before giving up.
+        tries = 10
+        begin
+          config_set('dnsclient', 'domain_list_vrf',
+                     state: '', name: @name, vrf: @vrf)
+        rescue Cisco::CliError => e
+          if /ERROR: Deletion of VRF .* in progress/.match(e.to_s)
+            sleep 1
+            tries -= 1
+            # rubocop:disable Metrics/BlockNesting
+            retry if tries > 0
+            # rubocop:enable Metrics/BlockNesting
+          end
+          raise
+        end
       end
     end
 

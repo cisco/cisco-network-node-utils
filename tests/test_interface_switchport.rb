@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,6 +47,11 @@ class TestInterfaceSwitchport < CiscoTestCase
       value = block.call
       assert_equal(expected_result, value, err_msg)
     end
+  end
+
+  def platform_supports_vtp_switchport_access?
+    skip('Platform does not support VTP when switchport mode is access') if
+      node.product_id =~ /N(5|6|7)/
   end
 
   def system_default_switchport(state='')
@@ -100,6 +105,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_switchport_vtp_enabled_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -147,6 +153,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_default_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
@@ -188,6 +195,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def test_set_switchport_vtp_true_access
+    platform_supports_vtp_switchport_access?
     vtp = Vtp.new(true)
     interface = Interface.new(interfaces[0])
 
@@ -304,7 +312,7 @@ class TestInterfaceSwitchport < CiscoTestCase
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set
+    if cmd_ref.config_set?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
@@ -333,7 +341,7 @@ class TestInterfaceSwitchport < CiscoTestCase
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set
+    if cmd_ref.config_set?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
@@ -715,7 +723,7 @@ class TestInterfaceSwitchport < CiscoTestCase
   #   end
 
   def test_system_default_switchport_on_off
-    interface = Interface.new('Eth1/1')
+    interface = Interface.new(interfaces[0])
 
     system_default_switchport('')
     assert(interface.system_default_switchport,
@@ -725,10 +733,14 @@ class TestInterfaceSwitchport < CiscoTestCase
     system_default_switchport('no ')
     refute(interface.system_default_switchport,
            'Test for disabled - failed')
+  rescue RuntimeError => e
+    skip('NX-OS defect: system default switchport nvgens twice') if
+      e.message[/Expected zero.one value/]
+    flunk(e.message)
   end
 
   def test_system_default_switchport_shutdown_on_off
-    interface = Interface.new('Eth1/1')
+    interface = Interface.new(interfaces[0])
 
     system_default_switchport_shutdown('no ')
     refute(interface.system_default_switchport_shutdown,

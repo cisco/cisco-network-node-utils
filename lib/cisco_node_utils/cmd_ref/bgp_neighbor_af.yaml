@@ -1,0 +1,179 @@
+# bgp_neighbor_af.yaml
+---
+_template:
+  config_get: 'show running bgp all'
+  config_get_token: '/^router bgp <asnum>$/'
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+    - '/^neighbor <nbr>$/'
+    - '/^address-family <afi> <safi>$/'
+  config_set: 'router bgp <asnum>'
+  config_set_append:
+    - 'vrf <vrf>'
+    - 'neighbor <nbr>'
+    - 'address-family <afi> <safi>'
+
+additional_paths_receive:
+  auto_default: false
+  config_get_token_append: '/^capability additional-paths receive(?: disable)?/'
+  config_set_append: '<state> capability additional-paths receive <disable>'
+  default_value: 'inherit'
+
+additional_paths_send:
+  auto_default: false
+  config_get_token_append: '/^capability additional-paths send(?: disable)?/'
+  config_set_append: '<state> capability additional-paths send <disable>'
+  default_value: 'inherit'
+
+advertise_map_exist:
+  config_get_token_append: '/^advertise-map (\S+) exist-map (\S+)$/'
+  config_set_append: '<state> advertise-map <map1> exist-map <map2>'
+  default_value: ''
+
+advertise_map_non_exist:
+  config_get_token_append: '/^advertise-map (\S+) non-exist-map (\S+)$/'
+  config_set_append: '<state> advertise-map <map1> non-exist-map <map2>'
+  default_value: ''
+
+all_afs:
+  multiple: true
+  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+allowas_in:
+  auto_default: false
+  config_get_token_append: '/^allowas-in(?: \d+)?/'
+  config_set_append: '<state> allowas-in <max>'
+  default_value: false
+
+allowas_in_max:
+  default_value: 3
+
+as_override:
+  kind: boolean
+  config_get_token_append: '/^as-override$/'
+  config_set_append: '<state> as-override'
+  default_value: false
+
+default_originate:
+  config_get_token_append: '/^default-originate(?: route-map .*)?/'
+  config_set_append: '<state> default-originate <map>'
+  default_value: false
+
+default_originate_route_map:
+  default_value: ~
+
+disable_peer_as_check:
+  kind: boolean
+  config_get_token_append: '/^disable-peer-as-check$/'
+  config_set_append: '<state> disable-peer-as-check'
+  default_value: false
+
+filter_list_in:
+  kind: string
+  config_get_token_append: '/^filter-list (\S+) in$/'
+  config_set_append: '<state> filter-list <str> in'
+  default_value: ''
+
+filter_list_out:
+  kind: string
+  config_get_token_append: '/^filter-list (\S+) out$/'
+  config_set_append: '<state> filter-list <str> out'
+  default_value: ''
+
+max_prefix:
+  config_get_token_append: '/^maximum-prefix .*$/'
+  config_set_append: '<state> maximum-prefix <limit> <threshold> <opt>'
+
+max_prefix_interval:
+  default_value: ~
+
+max_prefix_limit:
+  default_value: ~
+
+max_prefix_threshold:
+  default_value: ~
+
+max_prefix_warning:
+  default_value: ~
+
+next_hop_self:
+  kind: boolean
+  config_get_token_append: '/^next-hop-self$/'
+  config_set_append: '<state> next-hop-self'
+  default_value: false
+
+next_hop_third_party:
+  kind: boolean
+  config_get_token_append: '/^(no ?)next-hop-third-party$/'
+  config_set_append: '<state> next-hop-third-party'
+  default_value: true
+
+prefix_list_in:
+  kind: string
+  config_get_token_append: '/^prefix-list (\S+) in$/'
+  config_set_append: '<state> prefix-list <str> in'
+  default_value: ''
+
+prefix_list_out:
+  kind: string
+  config_get_token_append: '/^prefix-list (\S+) out$/'
+  config_set_append: '<state> prefix-list <str> out'
+  default_value: ''
+
+route_map_in:
+  kind: string
+  config_get_token_append: '/^route-map (\S+) in$/'
+  config_set_append: '<state> route-map <str> in'
+  default_value: ''
+
+route_map_out:
+  kind: string
+  config_get_token_append: '/^route-map (\S+) out$/'
+  config_set_append: '<state> route-map <str> out'
+  default_value: ''
+
+route_reflector_client:
+  kind: boolean
+  config_get_token_append: '/^route-reflector-client$/'
+  config_set_append: '<state> route-reflector-client'
+  default_value: false
+
+send_community:
+  auto_default: false
+  config_get_token_append: '/^send-community(?: .*)?/'
+  config_set_append: '<state> send-community <attr>'
+  default_value: 'none'
+
+soft_reconfiguration_in:
+  auto_default: false
+  default_value: 'inherit'
+  /(N3K|N9K)/:
+    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
+    config_set_append: '<state> soft-reconfiguration inbound <always>'
+  else:
+    config_get_token_append: '/^soft-reconfiguration inbound/'
+    config_set_append: '<state> soft-reconfiguration inbound'
+
+soo:
+  kind: string
+  config_get_token_append: '/^soo (.*)$/'
+  config_set_append: '<state> soo <str>'
+  default_value: ''
+
+suppress_inactive:
+  kind: boolean
+  config_get_token_append: '/^suppress-inactive$/'
+  config_set_append: '<state> suppress-inactive'
+  default_value: false
+
+unsuppress_map:
+  kind: string
+  config_get_token_append: '/^unsuppress-map (.*)$/'
+  config_set_append: '<state> unsuppress-map <str>'
+  default_value: ''
+
+weight:
+  kind: int
+  config_get_token_append: '/^weight (\d+)$/'
+  config_set_append: '<state> weight <int>'
+  default_value: false

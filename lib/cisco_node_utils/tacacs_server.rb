@@ -1,6 +1,6 @@
 # Mike Wiebe, January 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +30,7 @@ module Cisco
 
     # Check feature enablement
     def self.enabled
-      feat = config_get('tacacs_server', 'feature')
-      return !(feat.nil? || feat.empty?)
+      config_get('tacacs_server', 'feature')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
@@ -61,8 +60,7 @@ module Cisco
 
     # Get timeout
     def timeout
-      match = config_get('tacacs_server', 'timeout')
-      match.nil? ? TacacsServer.default_timeout : match.first.to_i
+      config_get('tacacs_server', 'timeout')
     end
 
     # Get default timeout
@@ -79,8 +77,7 @@ module Cisco
 
     # Get deadtime
     def deadtime
-      match = config_get('tacacs_server', 'deadtime')
-      match.nil? ? TacacsServer.default_deadtime : match.first.to_i
+      config_get('tacacs_server', 'deadtime')
     end
 
     # Get default deadtime
@@ -100,9 +97,7 @@ module Cisco
 
     # Check if directed request is enabled
     def directed_request?
-      match = config_get('tacacs_server', 'directed_request')
-      return TacacsServer.default_directed_request if match.nil?
-      match.first[/^no/] ? false : true
+      config_get('tacacs_server', 'directed_request')
     end
 
     # Get default directed_request
@@ -126,10 +121,10 @@ module Cisco
       # ip tacacs source-interface Ethernet1/1
       # no tacacs source-interface
       match = config_get('tacacs_server', 'source_interface')
-      return TacacsServer.default_source_interface if match.nil?
+      return TacacsServer.default_source_interface if match.empty?
       # match_data will contain one of the following
       # [nil, " Ethernet1/1"] or ["no", nil]
-      match[0][0] == 'no' ? TacacsServer.default_source_interface : match[0][1]
+      match[0] == 'no' ? TacacsServer.default_source_interface : match[1]
     end
 
     # Get default source interface
@@ -140,7 +135,7 @@ module Cisco
     # Get encryption type used for the key
     def encryption_type
       match = config_get('tacacs_server', 'encryption_type')
-      match.nil? ? TACACS_SERVER_ENC_UNKNOWN : match[0][0].to_i
+      match.nil? ? TACACS_SERVER_ENC_UNKNOWN : match[0].to_i
     end
 
     # Get default encryption type
@@ -151,7 +146,7 @@ module Cisco
     # Get encryption password
     def encryption_password
       match = config_get('tacacs_server', 'encryption_password')
-      match.nil? ? TacacsServer.default_encryption_password : match[0][1]
+      match.empty? ? TacacsServer.default_encryption_password : match[1]
     end
 
     # Get default encryption password

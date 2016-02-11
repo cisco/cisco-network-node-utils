@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,5 +14,8 @@
 
 # Container module for version number only.
 module CiscoNodeUtils
-  VERSION = '1.1.0'
+  VERSION = '1.2.0'
+  gem_version = Gem::Version.new(Gem::VERSION)
+  min_gem_version = Gem::Version.new('2.1.0')
+  fail 'Required rubygems version >= 2.1.0' if gem_version < min_gem_version
 end

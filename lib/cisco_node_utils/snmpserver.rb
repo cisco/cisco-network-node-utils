@@ -1,6 +1,6 @@
 # November 2014, Alex Hunsberger
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ module Cisco
   # SnmpServer - node utility class for SNMP server management
   class SnmpServer < NodeUtil
     def aaa_user_cache_timeout
-      match = config_get('snmp_server', 'aaa_user_cache_timeout')
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_aaa_user_cache_timeout : match.first.to_i
+      config_get('snmp_server', 'aaa_user_cache_timeout')
     end
 
     def aaa_user_cache_timeout=(timeout)
@@ -75,9 +73,7 @@ module Cisco
     end
 
     def packet_size
-      match = config_get('snmp_server', 'packet_size')
-      # regex in yaml returns an array result, use .first to get match
-      match.nil? ? default_packet_size : match.first.to_i
+      config_get('snmp_server', 'packet_size')
     end
 
     def packet_size=(size)
@@ -94,7 +90,7 @@ module Cisco
     end
 
     def global_enforce_priv?
-      !config_get('snmp_server', 'global_enforce_priv').nil?
+      config_get('snmp_server', 'global_enforce_priv')
     end
 
     def global_enforce_priv=(enforce)
@@ -110,16 +106,12 @@ module Cisco
     end
 
     def protocol?
-      match = config_get('snmp_server', 'protocol')
-      !match.nil? && match.include?('Enable')
+      config_get('snmp_server', 'protocol')
     end
 
     def protocol=(enable)
-      if enable
-        config_set('snmp_server', 'protocol', '')
-      else
-        config_set('snmp_server', 'protocol', 'no')
-      end
+      no_cmd = (enable ? '' : 'no')
+      config_set('snmp_server', 'protocol', no_cmd)
     end
 
     def default_protocol
@@ -127,8 +119,7 @@ module Cisco
     end
 
     def tcp_session_auth?
-      match = config_get('snmp_server', 'tcp_session_auth')
-      !match.nil? && match.include?('Enabled')
+      config_get('snmp_server', 'tcp_session_auth')
     end
 
     def tcp_session_auth=(enable)

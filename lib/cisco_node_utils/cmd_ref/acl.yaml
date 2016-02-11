@@ -1,0 +1,43 @@
+# Command Reference Common ACL
+#
+# For documentation please see:
+#   - README_YAML.md
+#
+---
+_template:
+  config_get: 'show run aclmgr'
+  config_get_token: '/^<afi> access-list <acl_name>$/'
+  config_set: '<afi> access-list <acl_name>'
+
+ace:
+  config_get_token_append: '/^<seqno> .+$/'
+  config_set_append: '<state> <seqno> <action> <proto> <src_addr> <src_port> <dst_addr> <dst_port>'
+
+ace_destroy:
+  config_set_append: 'no <seqno>'
+
+ace_remark:
+  config_set_append: '<state> <seqno> remark <remark>'
+
+acl:
+  config_get_token: '/^<afi> access-list (\S+)$/'
+  config_set: '<state> <afi> access-list <acl_name>'
+                      
+all_aces:
+  multiple:
+  config_get_token_append: '/^(\d+) .+$/'
+
+all_acls:
+  multiple:
+  config_get_token: '/^<afi> access-list (\S+)$/'
+
+fragments:
+  config_get_token_append: '/fragments (\S+)$/'
+  config_set_append: '<state> fragments <action>'
+  default_value: ~
+
+stats_per_entry:
+  kind: boolean
+  config_get_token_append: '/statistics per-entry$/'
+  config_set_append: '<state> statistics per-entry'
+  default_value: false

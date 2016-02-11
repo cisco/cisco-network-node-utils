@@ -1,0 +1,39 @@
+# vxlan_vtep_vni
+---
+_exclude: [/N(3|5|6)/]
+
+_template:
+  config_get: "show running-config interface all | section 'interface nve'"
+  config_get_token: '/^interface <name>$/i'
+  config_get_token_append:
+    - '/^member vni <vni> ?(associate-vrf)?$/'
+  config_set: 'interface <name>'
+  config_set_append:
+    - 'member vni <vni> <assoc_vrf>'
+
+all_vnis:
+  multiple:
+  config_get_token_append: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
+
+ingress_replication:
+  kind: string
+  config_get_token_append: '/^ingress-replication protocol (\S+)$/'
+  config_set_append: '<state> ingress-replication protocol <protocol>'
+  default_value: ''
+
+multicast_group:
+  config_get_token_append: '/^mcast-group (\S+)\s?(\S+)?$/'
+  config_set_append: '<state> mcast-group <ip_start> <ip_end>'
+  default_value: ''
+
+peer_list:
+  multiple:
+  config_get_token_append: ['/^ingress-replication protocol static$/', '/^peer-ip (\S+)$/']
+  config_set_append: ['ingress-replication protocol static', '<state> peer-ip <peer>']
+  default_value: []
+
+suppress_arp:
+  kind: boolean
+  config_get_token_append: '/^suppress-arp$/'
+  config_set_append: '<state> suppress-arp'
+  default_value: false

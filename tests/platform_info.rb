@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ class PlatformInfo
   # @param[in] device_name      hostname of device on which
   #                             UTs are to be run
   #
-  def initialize(device_name)
+  def initialize(device_name, platform)
     if device_name.nil? || device_name.empty?
       fail 'device name must be specified in PlatformInfo constructor.'
     end
@@ -41,6 +41,7 @@ class PlatformInfo
     end
 
     @platform_info_hash = project_info_hash[device_name]
+    @platform_info_hash ||= project_info_hash['default'][platform.to_s]
     fail "Error - could not find #{device_name} device specific information " \
          'in platform_info.yaml' if @platform_info_hash.nil?
   end

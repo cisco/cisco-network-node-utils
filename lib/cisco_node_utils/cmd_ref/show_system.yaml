@@ -1,0 +1,5 @@
+# show_system
+---
+uptime:
+  config_get: 'show system uptime'
+  config_get_token: '/.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/'

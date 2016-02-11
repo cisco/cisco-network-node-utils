@@ -1,6 +1,6 @@
 # Alex Hunsberger, Mar 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,9 +58,9 @@ module Cisco
         total.nil? || used.nil? || free.nil?
 
       {
-        'total' => total.first,
-        'used'  => used.first,
-        'free'  => free.first,
+        'total' => total,
+        'used'  => used,
+        'free'  => free,
       }
     end
 
@@ -73,13 +73,12 @@ module Cisco
     def self.uptime
       u = config_get('show_version', 'uptime')
       fail 'failed to retrieve platform uptime' if u.nil?
-      u.first
+      u
     end
 
     # Ex: '23113 usecs after  Mon Jul  1 15:24:29 2013'
     def self.last_reset
-      r = config_get('show_version', 'last_reset_time')
-      r.nil? ? nil : r.strip
+      config_get('show_version', 'last_reset_time')
     end
 
     # Ex: 'Reset Requested by CLI command reload'
@@ -165,7 +164,7 @@ module Cisco
       # convert to expected format
       virts_hsh = {}
       virts.each do |serv|
-        # rubocop:disable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:disable Style/AlignHash
         virts_hsh[serv['name']] = {
           'package_info' => { 'name'     => serv['package_name'],
                               'path'     => serv['ova_path'],
@@ -185,7 +184,7 @@ module Cisco
                               'cpu'      => serv['cpu_reservation'],
           },
         }
-        # rubocop:enable Style/AlignHash, Style/ExtraSpacing
+        # rubocop:enable Style/AlignHash
       end
       virts_hsh
     end

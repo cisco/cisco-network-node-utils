@@ -1,0 +1,131 @@
+# bgp_neighbor.yaml
+---
+_template:
+  config_get: "show running bgp all"
+  config_get_token: '/^router bgp <asnum>$/'
+  config_get_token_append:
+    - '/^vrf <vrf>$/'
+    - '/^neighbor <nbr>$/'
+  config_set: "router bgp <asnum>"
+  config_set_append:
+    - "vrf <vrf>"
+    - "neighbor <nbr>"
+
+af:
+  config_set_append: '<state> address-family <afi> <safi>'
+
+all_neighbors:
+  multiple: true
+  config_get_token_append: '/^neighbor (\S+)$/'
+
+capability_negotiation:
+  auto_default: false
+  kind: boolean
+  config_get_token_append: '/^dont-capability-negotiate$/'
+  config_set_append: '<state> dont-capability-negotiate'
+  default_value: true
+
+connected_check:
+  auto_default: false
+  kind: boolean
+  config_get_token_append: '/^disable-connected-check$/'
+  config_set_append: '<state> disable-connected-check'
+  default_value: true
+
+description:
+  kind: string
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: '<state> description <desc>'
+  default_value: ""
+
+dynamic_capability:
+  kind: boolean
+  config_get_token_append: '/^(no )?dynamic-capability$/'
+  config_set_append: '<state> dynamic-capability'
+  default_value: true
+
+ebgp_multihop:
+  auto_default: false
+  config_get_token_append: '/^ebgp-multihop (\d+)$/'
+  config_set_append: '<state> ebgp-multihop <ttl>'
+  default_value: false
+
+local_as:
+  config_get_token_append: '/^local-as (\d*?.?\d+?)$/'
+  config_set_append: '<state> local-as <local_as>'
+  default_value: 0
+
+log_neighbor_changes:
+  _exclude: [/N(5|6|7)/]
+  multiple: true # not actually, but we get an array of matches
+  auto_default: false
+  config_get_token_append: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'
+  config_set_append: '<state> log-neighbor-changes <disable>'
+  default_value: "inherit"
+
+low_memory_exempt:
+  kind: boolean
+  config_get_token_append: '/^low-memory exempt$/'
+  config_set_append: '<state> low-memory exempt'
+  default_value: false
+
+maximum_peers:
+  kind: int
+  config_get_token_append: '/^maximum-peers (\d+)$/'
+  config_set_append: '<state> maximum-peers <num>'
+  default_value: 0
+
+password:
+  config_get_token_append: '/^password \d+ (\S+)$/'
+  config_set_append: '<state> password <type> <passwd>'
+  default_value: ""
+
+password_type:
+  kind: int
+  config_get_token_append: '/^password (\d+)/'
+  default_value: 0
+
+remote_as:
+  config_get_token_append: '/^remote-as (\d*?.?\d+?)$/'
+  config_set_append: '<state> remote-as <remote_as>'
+  default_value: 0
+
+remove_private_as:
+  multiple: true # not actually, but we get an array of matches
+  auto_default: false
+  config_get_token_append: '/^remove-private-as\s+??(\S+)?\s+??$/'
+  config_set_append: '<state> remove-private-as <option>'
+  default_value: "disable"
+
+shutdown:
+  kind: boolean
+  config_get_token_append: '/^shutdown$/'
+  config_set_append: '<state> shutdown'
+  default_value: false
+
+suppress_4_byte_as:
+  kind: boolean
+  config_get_token_append: '/^capability suppress 4-byte-as$/'
+  config_set_append: '<state> capability suppress 4-byte-as'
+  default_value: false
+
+timers_holdtime:
+  default_value: 180
+
+timers_keepalive:
+  default_value: 60
+
+timers_keepalive_hold:
+  config_get_token_append: '/^timers (\d+) (\d+)$/'
+  config_set_append: '<state> timers <keepalive> <hold>'
+
+transport_passive_only:
+  kind: boolean
+  config_get_token_append: '/^transport connection-mode passive$/'
+  config_set_append: '<state> transport connection-mode passive'
+  default_value: false
+
+update_source:
+  config_get_token_append: '/^update-source (\S+)$/'
+  config_set_append: '<state> update-source <interface>'
+  default_value: ""

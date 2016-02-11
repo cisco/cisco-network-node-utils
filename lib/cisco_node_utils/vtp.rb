@@ -1,6 +1,6 @@
 # Mike Wiebe, November 2014
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,11 @@ module Cisco
     end
 
     def self.enabled
-      !config_get('vtp', 'feature').nil?
+      config_get('vtp', 'feature')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
     end
 
     def enable
@@ -99,8 +103,7 @@ module Cisco
 
     # Get vtp filename
     def filename
-      match = config_get('vtp', 'filename')
-      match.nil? ? default_filename : match.first
+      config_get('vtp', 'filename')
     end
 
     # Set vtp filename
@@ -121,8 +124,7 @@ module Cisco
 
     # Get vtp version
     def version
-      match = config_get('vtp', 'version') if Vtp.enabled
-      match.nil? ? default_version : match.first.to_i
+      Vtp.enabled ? config_get('vtp', 'version') : default_version
     end
 
     # Set vtp version

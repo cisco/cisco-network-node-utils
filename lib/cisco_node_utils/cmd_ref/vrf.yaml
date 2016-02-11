@@ -1,0 +1,88 @@
+# vrf.yaml
+---
+_template:
+  config_get: "show running all | section '^vrf context'"
+  config_get_token: '/^vrf context <vrf>$/'
+  config_get_token_append:
+    - '/^address-family <afi> <safi>$/'
+  config_set: 'vrf context <vrf>'
+  config_set_append:
+    - 'address-family <afi> <safi>'
+
+address_family:
+  config_set: ['vrf context <vrf>', '<state> address-family <afi> <safi>']
+
+all_vrf_afs:
+  multiple: true
+  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+
+all_vrfs:
+  multiple: true
+  config_get_token: '/^vrf context (.*)/'
+
+create:
+  config_set:  'vrf context <vrf>'
+
+description:
+  config_get_token_append: '/^description (.*)/'
+  config_set_append: '<state> description <desc>'
+  kind: string
+  default_value: ''
+
+destroy:
+  config_set: 'no vrf context <vrf>'
+
+route_distinguisher:
+  config_get_token_append: '/^rd (\S+)$/'
+  config_set_append: '<state> rd <rd>'
+  default_value: ''
+
+route_target_both_auto:
+  kind: boolean
+  config_get_token_append: '/^route-target both auto$/'
+  config_set_append: '<state> route-target both auto'
+  default_value: false
+
+route_target_both_auto_evpn:
+  kind: boolean
+  config_get_token_append: '/^route-target both auto evpn$/'
+  config_set_append: '<state> route-target both auto evpn'
+  default_value: false
+
+route_target_export:
+  multiple: true
+  config_get_token_append: '/^route-target export (\S+)$/'
+  config_set_append: '<state> route-target export <community>'
+  default_value: []
+
+route_target_export_evpn:
+  multiple: true
+  config_get_token_append: '/^route-target export (\S+) evpn$/'
+  config_set_append: '<state> route-target export <community> evpn'
+  default_value: []
+
+route_target_import:
+  multiple: true
+  config_get_token_append: '/^route-target import (\S+)$/'
+  config_set_append: '<state> route-target import <community>'
+  default_value: []
+
+route_target_import_evpn:
+  multiple: true
+  config_get_token_append: '/^route-target import (\S+) evpn$/'
+  config_set_append: '<state> route-target import <community> evpn'
+  default_value: []
+
+shutdown:
+  kind: boolean
+  config_get_token_append: '/^shutdown$/'
+  config_set_append: '<state> shutdown'
+  default_value: false
+
+vni: # TBD Should this move to the vni provider as vrf_vni?
+  # MT-lite only
+  /N9/:
+    kind: int
+    config_get_token_append: '/^vni (\d+)$/'
+    config_set_append: '<state> vni <id>'
+    default_value: false
