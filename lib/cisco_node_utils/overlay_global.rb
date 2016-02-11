@@ -131,7 +131,9 @@ module Cisco
     def anycast_gateway_mac=(mac_addr)
       fail TypeError unless mac_addr.is_a?(String)
 
-      Feature.nv_overlay_evpn_enable
+      Feature.nv_overlay_evpn_enable unless Feature.nv_overlay_evpn_enabled?
+      Feature.fabric_forwarding_enable unless
+        Feature.fabric_forwarding_enabled?
       if mac_addr == default_anycast_gateway_mac
         state = 'no'
         mac_addr = ''
