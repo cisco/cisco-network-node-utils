@@ -221,7 +221,7 @@ module Cisco
         'configured on a vlan interface' unless /vlan/.match(@name)
       anycast_gateway_mac = OverlayGlobal.new.anycast_gateway_mac
       if anycast_gateway_mac.nil? || anycast_gateway_mac.empty?
-        raise "#{info} Anycast gateway mac must to be configured " \
+        raise "#{info} Anycast gateway mac must be configured " \
                'before configuring forwarding mode under interface'
       end
       raise info
