@@ -26,7 +26,9 @@ mode:
     - /N(3|9)/
   kind: string
   config_get: "show vlan"
-  config_get_token: '/^%d\s+enet\s+(\S+)\s/'
+  # TBD: 'show vlan' is problematic and should be converted to use show run
+  # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
+  config_get_token: '/^%d\s+.+net\s+(\S+)/'
   config_set: ["vlan %d" , "%s mode %s", "end"]
   default_value: "ce"
 
