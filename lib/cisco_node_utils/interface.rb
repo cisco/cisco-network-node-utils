@@ -19,7 +19,7 @@ require_relative 'node_util'
 require_relative 'pim'
 require_relative 'vrf'
 require_relative 'vni'
-require_relative 'vxlan_global'
+require_relative 'overlay_global'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -211,17 +211,13 @@ module Cisco
     end
 
     def fabric_forwarding_anycast_gateway=(state)
-      begin
-        Feature.fabric_forwarding_enable
-        no_cmd = (state ? '' : 'no')
-        config_set('interface',
-                   'fabric_forwarding_anycast_gateway', @name, no_cmd)
-        expected_state = state
-        fail if fabric_forwarding_anycast_gateway.to_s != expected_state.to_s
-      end
+      no_cmd = (state ? '' : 'no')
+      config_set('interface',
+                 'fabric_forwarding_anycast_gateway', @name, no_cmd)
+      fail if fabric_forwarding_anycast_gateway.to_s != state.to_s
     rescue Cisco::CliError => e
-      vxlan_global = VxlanGlobal.new
-      if vxlan_global.anycast_gateway_mac == ''
+      anycast_gateway_mac = OverlayGlobal.new.anycast_gateway_mac
+      if anycast_gateway_mac.nil? || anycast_gateway_mac.empty?
         raise "[#{@name}] '#{e.command}' : #{e.clierror}
                Anycast gateway mac needs to be configured
                before configuring forwarding mode under interface"

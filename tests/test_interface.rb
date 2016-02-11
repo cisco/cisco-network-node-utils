@@ -15,7 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
-require_relative '../lib/cisco_node_utils/vxlan_global'
+require_relative '../lib/cisco_node_utils/overlay_global'
 
 include Cisco
 
@@ -963,24 +963,22 @@ class TestInterface < CiscoTestCase
     # Setup
     config('no interface vlan11')
     int = Interface.new('vlan11')
-    config('feature fabric forwarding')
-    foo = VxlanGlobal.new
+    foo = OverlayGlobal.new
     foo.anycast_gateway_mac = '1223.3445.5668'
 
     # 1. Testing default
-    int.fabric_forwarding_anycast_gateway = false
-    assert_equal(int.default_fabric_forwarding_anycast_gateway,
-                 int.fabric_forwarding_anycast_gateway)
-
-    # 2. Testing non-default
-    int.fabric_forwarding_anycast_gateway = true
-    assert_equal(true, int.fabric_forwarding_anycast_gateway)
-
-    # 3. Setting back to default
     int.fabric_forwarding_anycast_gateway =
       int.default_fabric_forwarding_anycast_gateway
     assert_equal(int.default_fabric_forwarding_anycast_gateway,
                  int.fabric_forwarding_anycast_gateway)
+
+    # 2. Testing non-default:true
+    int.fabric_forwarding_anycast_gateway = true
+    assert(int.fabric_forwarding_anycast_gateway)
+
+    # 3. Setting back to false
+    int.fabric_forwarding_anycast_gateway = false
+    refute(int.fabric_forwarding_anycast_gateway)
 
     # 4. Removing fabric forwarding anycast gateway mac
     foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
