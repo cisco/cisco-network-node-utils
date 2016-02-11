@@ -134,5 +134,12 @@ module Cisco
       end
       delta
     end # delta_add_remove
+
+    # Helper to 0-pad a mac address.
+    def self.zero_pad_macaddr(mac)
+      return nil if mac.nil? || mac.empty?
+      o1, o2, o3 = mac.split('.').map { |o| o.to_i(16).to_s(10) }
+      sprintf('%04x.%04x.%04x', o1, o2, o3)
+    end
   end # class Utils
 end   # module Cisco
