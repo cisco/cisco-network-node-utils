@@ -1,14 +1,14 @@
-# vxlan_global
+# overlay_global
 ---
 anycast_gateway_mac:
   kind: string
-  get_command: 'show running fabric forwarding all'
+  get_command: "show running all | inc 'fabric forwarding'"
   get_value: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
   set_value: "<state> fabric forwarding anycast-gateway-mac <mac_addr>"
   default_value: ""
 
 dup_host_ip_addr_detection:
-  get_command: 'show running fabric forwarding all'
+  get_command: "show running all | inc 'fabric forwarding'"
   get_value: '/^fabric forwarding dup-host-ip-addr-detection (\d+) (\d+)$/'
   set_value: "<state> fabric forwarding dup-host-ip-addr-detection <host_moves> <timeout>"
 

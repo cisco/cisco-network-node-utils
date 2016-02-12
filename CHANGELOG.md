@@ -1,44 +1,119 @@
 Changelog
 =========
 
+## [Unreleased]
+
+### Added
+
+* Added client support for gRPC on IOS XR.
+* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+* Add IOS XR support for the following classes:
+  * bgp
+  * bgp_af
+  * bgp_neighbor
+  * bgp_neighbor_af
+  * interface
+  * command_config
+
+### Changed
+
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Filtering by platform is now by platform name only (`nexus`, `ios_xr`)
+  - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
+  - Replaced `config_set(_append)?` with `set_context`, and `set_value`
+  - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
+  - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
+* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
+
+### Fixed
+
+* Interface:
+  - Correctly restore IP address when changing VRF membership
+  - MTU is not supported on loopback interfaces
+
 ## [v1.2.0]
 
 ### New feature support
-* ACL
+* ACL (platforms: Nexus 3k and Nexus 9k)
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
-* EVPN
+* EVPN (platforms: Nexus 3k and Nexus 9k)
   * evpn_vni (@andish)
-* Fabric Path
+* Fabric Path (platforms: Nexus 7k)
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Feature
   * feature (@robert-w-gries)
-* Interface
+* Interface (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
-* PIM
+* PIM (platforms: Nexus 3k and Nexus 9k)
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
-* Port Channel
+* Port Channel (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-* SNMP
+* SNMP (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * snmpnotification (@tphoney)
-* VDC
+* VDC (platforms: Nexus 7k)
   * vdc (@chrisvanheuveln)
-* VPC
+* VPC (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vpc (@dcheriancisco)
-* VRF
+* VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vrf_af (@chrisvanheuveln)
-* VXLAN
-  * vxlan_global (@alok-aggarwal)
+* VXLAN (platforms: Nexus 9k)
+  * overlay_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
+
+
+### Additional platform support added to existing classes
+#### Cisco Nexus 56xx, 60xx and 7xxx
+* AAA
+  * aaa_authentication_login
+  * aaa_authentication_login_service
+  * aaa_authentication_service
+* BGP
+  * bgp
+  * bgp_af
+  * bgp_af_neighobr
+  * bgp_neighbor_af
+* COMMAND_CONFIG
+  * command_config (config_parser)
+* DOMAIN
+  * dns_domain
+  * domain_name
+  * name_server
+* INTERFACE
+  * interface
+* NTP
+  * ntp_config
+  * ntp_server
+* OSPF
+  * interface_ospf
+  * ospf
+  * ospf_vrf
+* RADIUS
+  * radius_global
+* SNMP
+  * snmp_community
+  * snmp_group
+  * snmp_notification_receiver
+  * snmp_server
+  * snmp_user
+* SYSLOG
+  * syslog_server
+  * syslog_setting
+* TACACS
+  * tacacs_server
+  * tacacs_server_group
+  * tacacs_server_host
+* VLAN
+  * vlan
 
 ### Added
 
@@ -58,6 +133,7 @@ Changelog
   * `suppress_inactive`
   * `table_map`
 * Extend interface with attributes:
+  * `fabric_forwarding_anycast_gateway`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `vlan_mapping`
@@ -68,32 +144,12 @@ Changelog
 * Extend vlan with attribute:
   * `mode`
 
-* Added client support for gRPC on IOS XR.
-* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
-* Add IOS XR support for the following classes:
-  * bgp
-  * bgp_af
-  * bgp_neighbor
-  * bgp_neighbor_af
-  * interface
-  * command_config
-
 ### Changed
 
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
-  - Added filtering by product ID (`/N7K/`) and by platform (`nexus`, `ios_xr`)
-  - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
-  - Replaced `config_set(_append)?` with `set_context`, and `set_value`
-  - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
-  - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
-* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
-
-### Fixed
-
-* Interface:
-  - Correctly restore IP address when changing VRF membership
-  - MTU is not supported on loopback interfaces
+  - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied).
 
 ## [v1.1.0]
 
@@ -190,6 +246,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

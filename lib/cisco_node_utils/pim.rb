@@ -3,7 +3,7 @@
 #
 # Smitha Gopalan, November 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,6 +94,14 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
+    # This destroy method is different than most because pim does not have a
+    # "container" for properties, they simply exist in a given vrf context.
+    # For that reason destroy needs to explicitly set each property
+    # to its default state.
+    def destroy
+      self.ssm_range = ''
+    end
+
     #-----------
     # Properties
     #-----------
@@ -105,6 +113,7 @@ module Cisco
       if range.empty?
         state = 'no'
         range = ssm_range
+        return if range.nil?
       else
         state = ''
       end

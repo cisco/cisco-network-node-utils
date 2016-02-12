@@ -1,6 +1,6 @@
 # Jie Yang, November 2014
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,7 +59,13 @@ module Cisco
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       fail result[2]['body'] if
+        result[2].is_a?(Hash) &&
         /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
+
+      # Some test environments get result[2] as a string instead of a hash
+      fail result[2] if
+        result[2].is_a?(String) &&
+        /(ERROR:|Warning:)/.match(result[2])
     end
 
     def fabricpath_feature

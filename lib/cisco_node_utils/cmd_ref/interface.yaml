@@ -46,13 +46,20 @@ encapsulation_dot1q:
   get_value: '/^encapsulation dot1q (.*)/i'
   set_value: "<state> encapsulation dot1q <vlan>"
 
+fabric_forwarding_anycast_gateway:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^fabric forwarding mode anycast-gateway$/'
+  set_value: "<state> fabric forwarding mode anycast-gateway"
+  default_value: false
+
 feature_lacp:
   kind: boolean
   nexus:
     get_command: "show running | i ^feature"
     context: ~
     get_value: '/^feature lacp$/'
-    set_value: "%s feature lacp"
+    set_value: "<state> feature lacp"
   ios_xr:
     default_only: true
 
@@ -63,7 +70,7 @@ feature_vlan:
     get_command: "show running | i ^feature"
     context: ~
     get_value: '/^feature interface-vlan$/'
-    set_value: "%s feature interface-vlan"
+    set_value: "<state> feature interface-vlan"
 
 ipv4_acl_in:
   ios_xr:

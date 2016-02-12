@@ -1,6 +1,6 @@
 # November 2015, Chris Van Heuveln
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ require_relative 'node_util'
 require_relative 'pim'
 require_relative 'vrf'
 require_relative 'vni'
+require_relative 'overlay_global'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -221,6 +222,32 @@ module Cisco
 
     def fabricpath_feature_set(fabricpath_set)
       FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
+    end
+
+    def fabric_forwarding_anycast_gateway
+      config_get('interface', 'fabric_forwarding_anycast_gateway', name: @name)
+    end
+
+    def fabric_forwarding_anycast_gateway=(state)
+      no_cmd = (state ? '' : 'no')
+      config_set('interface',
+                 'fabric_forwarding_anycast_gateway',
+                 name: @name, state: no_cmd)
+      fail if fabric_forwarding_anycast_gateway.to_s != state.to_s
+    rescue Cisco::CliError => e
+      info = "[#{@name}] '#{e.command}' : #{e.clierror}"
+      raise "#{info} 'fabric_forwarding_anycast_gateway' can only be " \
+        'configured on a vlan interface' unless /vlan/.match(@name)
+      anycast_gateway_mac = OverlayGlobal.new.anycast_gateway_mac
+      if anycast_gateway_mac.nil? || anycast_gateway_mac.empty?
+        raise "#{info} Anycast gateway mac must be configured " \
+               'before configuring forwarding mode under interface'
+      end
+      raise info
+    end
+
+    def default_fabric_forwarding_anycast_gateway
+      config_get_default('interface', 'fabric_forwarding_anycast_gateway')
     end
 
     def fex_feature

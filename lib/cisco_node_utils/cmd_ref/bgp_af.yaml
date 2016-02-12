@@ -40,7 +40,7 @@ additional_paths_send:
   default_value: false
 
 advertise_l2vpn_evpn:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N3k, N6k]
   kind: boolean
   get_value: '/^advertise l2vpn evpn$/'
   set_value: '<state> advertise l2vpn evpn'

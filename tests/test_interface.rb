@@ -17,6 +17,7 @@ require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_channel_group'
 require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
+require_relative '../lib/cisco_node_utils/overlay_global'
 
 include Cisco
 
@@ -1029,6 +1030,45 @@ class TestInterface < CiscoTestCase
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+  end
+
+  def test_interface_fabric_forwarding_anycast_gateway
+    unless platform == :ios_xr
+      # Setup
+      config('no interface vlan11')
+      int = Interface.new('vlan11')
+      foo = OverlayGlobal.new
+      foo.anycast_gateway_mac = '1223.3445.5668'
+
+      # 1. Testing default for newly created vlan
+      assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                   int.fabric_forwarding_anycast_gateway)
+
+      # 2. Testing non-default:true
+      int.fabric_forwarding_anycast_gateway = true
+      assert(int.fabric_forwarding_anycast_gateway)
+
+      # 3. Setting back to false
+      int.fabric_forwarding_anycast_gateway = false
+      refute(int.fabric_forwarding_anycast_gateway)
+    end
+
+    # 4. Attempt to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) do
+      nonvlanint.fabric_forwarding_anycast_gateway = true
+    end
+
+    unless platform == :ios_xr # rubocop:disable Style/GuardClause
+      # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+      #    overlay gateway mac is not set.
+      int = Interface.new('vlan11')
+      foo = OverlayGlobal.new
+      foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+      assert_raises(RuntimeError) do
+        int.fabric_forwarding_anycast_gateway = true
+      end
+    end
   end
 
   def test_interface_ipv4_proxy_arp

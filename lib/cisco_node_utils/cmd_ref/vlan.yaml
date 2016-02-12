@@ -30,7 +30,9 @@ mode:
     - N9k
   kind: string
   get_command: "show vlan"
-  get_value: '/^%d\s+enet\s+(\S+)\s/'
+  # TBD: 'show vlan' is problematic and should be converted to use show run
+  # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
+  get_value: '/^%d\s+.+net\s+(\S+)/'
   set_context: ["vlan %d"]
   set_value: "%s mode %s"
   default_value: "ce"
