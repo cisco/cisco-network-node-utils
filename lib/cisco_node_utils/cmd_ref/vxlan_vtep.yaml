@@ -46,6 +46,12 @@ source_intf:
   set_value: '<state> source-interface <lpbk_intf>'
   default_value: ''
 
+source_intf_hold_down_time:
+  kind: int
+  get_value: '/^source-interface hold-down-time (\d+)$/'
+  set_value: '<state> source-interface hold-down-time <time>'
+  default_value: ''
+
 vni:
   set_value: '<state> member vni <vni> <assoc_vrf>'
 

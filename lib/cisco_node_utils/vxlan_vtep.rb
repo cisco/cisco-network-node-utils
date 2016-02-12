@@ -135,6 +135,30 @@ module Cisco
       config_get_default('vxlan_vtep', 'source_intf')
     end
 
+    def source_interface_hold_down_time
+      config_get('vxlan_vtep', 'source_intf_hold_down_time', name: @name)
+    end
+
+    def source_interface_hold_down_time=(time)
+      state = time == default_source_interface_hold_down_time ? 'no' : ''
+      # Cli rejects removing hold-down-time without an argument, so make
+      # sure it is configured before attempting to remove it
+      if state == 'no'
+        time = source_interface_hold_down_time
+        unless time == default_source_interface_hold_down_time
+          config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                             state: state, time: time)
+        end
+      else
+        config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                               state: state, time: time)
+      end
+    end
+
+    def default_source_interface_hold_down_time
+      config_get_default('vxlan_vtep', 'source_intf_hold_down_time')
+    end
+
     def shutdown
       config_get('vxlan_vtep', 'shutdown', name: @name)
     end
