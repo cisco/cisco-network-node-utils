@@ -656,8 +656,13 @@ module Cisco
       config_set('interface', 'stp_mst_cost',
                  @name, 'no', Cisco.get_reset_range('0-4094', list), '')
       list.each do |inst, pri|
-        config_set('interface', 'stp_mst_cost',
-                   @name, '', inst, pri)
+        if pri == 'default'
+          config_set('interface', 'stp_mst_cost',
+                     @name, 'no', inst, '')
+        else
+          config_set('interface', 'stp_mst_cost',
+                     @name, '', inst, pri)
+        end
       end
     end
 
@@ -680,8 +685,13 @@ module Cisco
       config_set('interface', 'stp_mst_port_priority',
                  @name, 'no', Cisco.get_reset_range('0-4094', list), '')
       list.each do |inst, pri|
-        config_set('interface', 'stp_mst_port_priority',
-                   @name, '', inst, pri)
+        if pri == 'default'
+          config_set('interface', 'stp_mst_port_priority',
+                     @name, 'no', inst, '')
+        else
+          config_set('interface', 'stp_mst_port_priority',
+                     @name, '', inst, pri)
+        end
       end
     end
 
@@ -722,8 +732,13 @@ module Cisco
       config_set('interface', 'stp_vlan_cost',
                  @name, 'no', Cisco.get_reset_range('1-3967', list), '')
       list.each do |range, pri|
-        config_set('interface', 'stp_vlan_cost',
-                   @name, '', range, pri)
+        if pri == 'default'
+          config_set('interface', 'stp_vlan_cost',
+                     @name, 'no', range, '')
+        else
+          config_set('interface', 'stp_vlan_cost',
+                     @name, '', range, pri)
+        end
       end
     end
 
@@ -746,8 +761,13 @@ module Cisco
       config_set('interface', 'stp_vlan_port_priority',
                  @name, 'no', Cisco.get_reset_range('1-3967', list), '')
       list.each do |range, pri|
-        config_set('interface', 'stp_vlan_port_priority',
-                   @name, '', range, pri)
+        if pri == 'default'
+          config_set('interface', 'stp_vlan_port_priority',
+                     @name, 'no', range, '')
+        else
+          config_set('interface', 'stp_vlan_port_priority',
+                     @name, '', range, pri)
+        end
       end
     end
 
