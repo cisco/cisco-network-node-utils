@@ -414,15 +414,15 @@ module Cisco
         elem[0] = tmp
       end
       reset_list = Cisco.get_reset_range('1-4094', llist)
-      config_set('stp_global', 'mst_inst_vlan_map',
-                 '0', reset_list)
+      config_set('stp_global', 'mst_inst_vlan_map', '',
+                 '0', 'vlan', reset_list)
       list.each do |inst, range|
         if range == 'default'
-          config_set('stp_global', 'mst_inst_vlan_map',
-                     '0', range)
+          config_set('stp_global', 'mst_inst_vlan_map', 'no',
+                     inst, '', '')
         else
-          config_set('stp_global', 'mst_inst_vlan_map',
-                     inst, range)
+          config_set('stp_global', 'mst_inst_vlan_map', '',
+                     inst, 'vlan', range)
         end
       end
     end

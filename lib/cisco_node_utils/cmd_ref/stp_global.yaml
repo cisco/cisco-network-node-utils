@@ -114,7 +114,7 @@ mst_hello_time:
 mst_inst_vlan_map:
   multiple:
   config_get_token: ['/^spanning-tree mst configuration$/', '/^instance (.*) vlan (.*)$/']
-  config_set: ["spanning-tree mst configuration", "instance %s vlan %s"]
+  config_set: ["spanning-tree mst configuration", "%s instance %s %s %s"]
   default_value: []
 
 mst_max_age:
