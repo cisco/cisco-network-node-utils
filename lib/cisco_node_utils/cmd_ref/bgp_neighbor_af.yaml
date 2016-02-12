@@ -147,6 +147,9 @@ send_community:
 soft_reconfiguration_in:
   auto_default: false
   default_value: 'inherit'
+  N3k:
+    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
+    config_set_append: '<state> soft-reconfiguration inbound <always>'
   N9k:
     config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
     config_set_append: '<state> soft-reconfiguration inbound <always>'

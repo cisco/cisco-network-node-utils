@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class TestAcl < CiscoTestCase
     # set to false
     rtr.stats_per_entry = false
     refute_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to disnable stats')
+                      msg:     'failed to disable stats')
     refute(rtr.stats_per_entry)
 
     # default getter function

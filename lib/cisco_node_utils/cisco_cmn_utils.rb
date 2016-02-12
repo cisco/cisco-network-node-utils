@@ -1,6 +1,6 @@
 # Common Utilities for Puppet Resources.
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -134,5 +134,12 @@ module Cisco
       end
       delta
     end # delta_add_remove
+
+    # Helper to 0-pad a mac address.
+    def self.zero_pad_macaddr(mac)
+      return nil if mac.nil? || mac.empty?
+      o1, o2, o3 = mac.split('.').map { |o| o.to_i(16).to_s(10) }
+      sprintf('%04x.%04x.%04x', o1, o2, o3)
+    end
   end # class Utils
 end   # module Cisco

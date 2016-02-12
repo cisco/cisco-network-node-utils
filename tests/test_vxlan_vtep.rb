@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -210,5 +210,27 @@ class TestVxlanVtep < CiscoTestCase
     val = vtep.default_source_interface
     vtep.source_interface = val
     assert_equal(val, vtep.source_interface)
+  end
+
+  def test_source_interface_hold_down_time
+    mt_full_env_setup if VxlanVtep.mt_full_support
+    mt_lite_env_setup if VxlanVtep.mt_lite_support
+
+    vtep = VxlanVtep.new('nve1')
+
+    # Set source_interface to non-default value
+    val = 'loopback55'
+    vtep.source_interface = val
+    assert_equal(val, vtep.source_interface)
+
+    # Set source_interface_hold_down_time
+    time = 50
+    vtep.source_interface_hold_down_time = time
+    assert_equal(time, vtep.source_interface_hold_down_time)
+
+    # Set source_interface_hold_down_time to default value
+    val = vtep.default_source_interface_hold_down_time
+    vtep.source_interface_hold_down_time = val
+    assert_equal(val, vtep.source_interface_hold_down_time)
   end
 end

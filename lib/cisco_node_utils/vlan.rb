@@ -1,6 +1,6 @@
 # Jie Yang, November 2014
 #
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,7 +58,14 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].empty?
+      fail result[2]['body'] if
+        result[2].is_a?(Hash) &&
+        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
+
+      # Some test environments get result[2] as a string instead of a hash
+      fail result[2] if
+        result[2].is_a?(String) &&
+        /(ERROR:|Warning:)/.match(result[2])
     end
 
     def fabricpath_feature
@@ -182,6 +189,25 @@ module Cisco
         interfaces[name] = i
       end
       interfaces
+    end
+
+    def mapped_vni
+      config_get('vlan', 'mapped_vni', vlan: @vlan_id)
+    end
+
+    def mapped_vni=(vni)
+      Feature.vn_segment_vlan_based_enable
+      # Remove the existing mapping first as cli doesn't support overwriting.
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                         state: 'no', vni: vni)
+      # Configure the new mapping
+      state = vni == default_mapped_vni ? 'no' : ''
+      config_set('vlan', 'mapped_vni', vlan: @vlan_id,
+                          state: state, vni: vni)
+    end
+
+    def default_mapped_vni
+      config_get_default('vlan', 'mapped_vni')
     end
   end # class
 end # module

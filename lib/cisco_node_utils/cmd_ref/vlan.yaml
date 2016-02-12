@@ -11,19 +11,32 @@ create:
 destroy:
   config_set: "no vlan %s"
 
+mapped_vni:
+  N3k: &mapped_vni_n3k_n9k
+    kind: int
+    config_get: 'show running vlan'
+    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
+    # In the cli 'vn-segment' config is not applied untill the 'end'
+    # statement is issued.
+    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
+    default_value: ''
+  N9k: *mapped_vni_n3k_n9k
+
 mode:
   _exclude:
     - N3k
     - N9k
   kind: string
   config_get: "show vlan"
-  config_get_token: '/^%d+\s+enet\s+(\S+)\s/'
+  # TBD: 'show vlan' is problematic and should be converted to use show run
+  # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
+  config_get_token: '/^%d\s+.+net\s+(\S+)/'
   config_set: ["vlan %d" , "%s mode %s", "end"]
   default_value: "ce"
-  
+
 name:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+(\S+)\s/'
   config_set: ["vlan %d", "%s name %s", "end"]
   N9k:
     test_config_result:
@@ -34,12 +47,12 @@ name:
 
 shutdown:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
   config_set: ["vlan %d", "%s shutdown", "end"]
   default_value: false
 
 state:
   config_get: "show vlan brief"
-  config_get_token: '/^%d+\s+\S+\s+(\S+)\s/'
+  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
   config_set: ["vlan %d", "%s state %s", "end"]
   default_value: "active"
