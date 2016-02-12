@@ -1,41 +1,91 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.2.0]
 
 ### New feature support
-* ACL
+* ACL (platforms: Nexus 3k and Nexus 9k)
   * acl (@saqibraza)
   * ace (@yjyongz)
   * remark ace (@bansalpradeep)
-* EVPN
+* EVPN (platforms: Nexus 3k and Nexus 9k)
   * evpn_vni (@andish)
-* Fabric Path
+* Fabric Path (platforms: Nexus 7k)
   * fabricpath_global (@dcheriancisco)
   * fabricpath_topology (@dcheriancisco)
 * Feature
   * feature (@robert-w-gries)
-* Interface
+* Interface (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * interface_channel_group (@chrisvanheuveln)
+  * interface_portchannel (@saichint)
   * interface_service_vni (@chrisvanheuveln)
-* PIM
+* PIM (platforms: Nexus 3k and Nexus 9k)
   * pim (@smigopal)
   * pim_group_list (@smigopal)
   * pim_rp_address (@smigopal)
-* Port Channel
+* Port Channel (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-* SNMP
-  * snmpnotification (@tphoney)
 * Spanning Tree
   * stp_global (@saichint)
-* VDC
+* SNMP (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * snmpnotification (@tphoney)
+* VDC (platforms: Nexus 7k)
   * vdc (@chrisvanheuveln)
-* VRF
+* VPC (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
+  * vpc (@dcheriancisco)
+* VRF (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * vrf_af (@chrisvanheuveln)
-* VXLAN
-  * vxlan_global (@alok-aggarwal)
+* VXLAN (platforms: Nexus 9k)
+  * overlay_global (@alok-aggarwal)
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
+
+  
+### Additional platform support added to existing classes
+#### Cisco Nexus 56xx, 60xx and 7xxx
+* AAA
+  * aaa_authentication_login
+  * aaa_authentication_login_service
+  * aaa_authentication_service
+* BGP
+  * bgp
+  * bgp_af
+  * bgp_af_neighobr
+  * bgp_neighbor_af
+* COMMAND_CONFIG
+  * command_config (config_parser)
+* DOMAIN
+  * dns_domain
+  * domain_name
+  * name_server
+* INTERFACE
+  * interface
+* NTP
+  * ntp_config
+  * ntp_server
+* OSPF
+  * interface_ospf
+  * ospf
+  * ospf_vrf
+* RADIUS
+  * radius_global
+* SNMP
+  * snmp_community
+  * snmp_group
+  * snmp_notification_receiver
+  * snmp_server
+  * snmp_user
+* SYSLOG
+  * syslog_server
+  * syslog_setting
+* TACACS
+  * tacacs_server
+  * tacacs_server_group
+  * tacacs_server_host
+* VLAN
+  * vlan
 
 ### Added
 
@@ -55,12 +105,13 @@ Changelog
   * `suppress_inactive`
   * `table_map`
 * Extend interface with attributes:
-  * `channel_group`
+  * `fabric_forwarding_anycast_gateway`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
   * `vlan_mapping`
+  * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
   * `vni`
@@ -169,7 +220,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0

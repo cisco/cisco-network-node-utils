@@ -3,7 +3,7 @@
 #
 # August 2015 Chris Van Heuveln
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp'
 
 module Cisco
@@ -62,7 +63,6 @@ module Cisco
     end
 
     def validate_args(asn, vrf, nbr, af)
-      asn = RouterBgp.process_asnum(asn)
       fail ArgumentError unless
         vrf.is_a?(String) && (vrf.length > 0)
       fail ArgumentError unless
@@ -71,7 +71,7 @@ module Cisco
         af.is_a?(Array) || af.length == 2
 
       nbr = Utils.process_network_mask(nbr)
-      @asn = asn
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @nbr = nbr
       @afi, @safi = af
@@ -92,6 +92,7 @@ module Cisco
     # rubocop:enable Style/AccessorMethodNamefor
 
     def create
+      Feature.bgp_enable
       set_args_keys(state: '')
       config_set('bgp_neighbor', 'af', @set_args)
     end

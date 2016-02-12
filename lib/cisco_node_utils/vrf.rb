@@ -2,7 +2,7 @@
 #
 # Jie Yang, July 2015
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,6 +67,10 @@ module Cisco
       raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
+    def default_description
+      config_get_default('vrf', 'description')
+    end
+
     def shutdown
       config_get('vrf', 'shutdown', vrf: @name)
     end
@@ -76,6 +80,10 @@ module Cisco
       config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
     rescue Cisco::CliError => e
       raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_shutdown
+      config_get_default('vrf', 'shutdown')
     end
 
     # route_distinguisher

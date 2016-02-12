@@ -7,7 +7,8 @@ Gem::Specification.new do |spec|
   spec.name          = 'cisco_node_utils'
   spec.version       = CiscoNodeUtils::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
-                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
+                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang',
+                        'Rob Gries']
   spec.email         = 'cisco_agent_gem@cisco.com'
   spec.summary       = 'Utilities for management of Cisco network nodes'
   spec.description   = <<-EOF
@@ -34,5 +35,5 @@ Currently supports NX-OS nodes.
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '= 0.35.1'
   spec.add_development_dependency 'simplecov', '~> 0.9'
-  spec.add_runtime_dependency 'cisco_nxapi', '~> 1.0'
+  spec.add_runtime_dependency 'cisco_nxapi', '~> 1.0', '>= 1.0.1'
 end
