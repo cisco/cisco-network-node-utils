@@ -46,6 +46,12 @@ source_intf:
   config_set_append: '<state> source-interface <lpbk_intf>'
   default_value: ''
 
+source_intf_hold_down_time:
+  kind: int
+  config_get_token_append: '/^source-interface hold-down-time (\d+)$/'
+  config_set_append: '<state> source-interface hold-down-time <time>'
+  default_value: ''
+
 vni:
   config_set_append: '<state> member vni <vni> <assoc_vrf>'
 
