@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/overlay_global'
 
 include Cisco
 
@@ -956,6 +957,37 @@ class TestInterface < CiscoTestCase
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+  end
+
+  def test_interface_fabric_forwarding_anycast_gateway
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+    foo = OverlayGlobal.new
+    foo.anycast_gateway_mac = '1223.3445.5668'
+
+    # 1. Testing default for newly created vlan
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
+
+    # 2. Testing non-default:true
+    int.fabric_forwarding_anycast_gateway = true
+    assert(int.fabric_forwarding_anycast_gateway)
+
+    # 3. Setting back to false
+    int.fabric_forwarding_anycast_gateway = false
+    refute(int.fabric_forwarding_anycast_gateway)
+
+    # 4. Attempt to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) do
+      nonvlanint.fabric_forwarding_anycast_gateway = true
+    end
+
+    # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+    #    overlay gateway mac is not set.
+    foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+    assert_raises(RuntimeError) { int.fabric_forwarding_anycast_gateway = true }
   end
 
   def test_interface_ipv4_proxy_arp
