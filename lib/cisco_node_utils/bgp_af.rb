@@ -300,8 +300,11 @@ module Cisco
         Cisco::Logger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       else
         # 'dampening route-map WORD' command
-        route_map = "route-map #{damp_array}"    if platform == :nexus
-        route_map = "route-policy #{damp_array}" if platform == :ios_xr
+        if platform == :ios_xr
+          route_map = "route-policy #{damp_array}"
+        else
+          route_map = "route-map #{damp_array}"
+        end
         route_map.strip!
         Cisco::Logger.debug("Dampening 'dampening route-map #{route_map}'")
       end
@@ -428,8 +431,11 @@ module Cisco
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
           unless route_map.nil?
-            route_map = "route-map #{route_map}"    if platform == :nexus
-            route_map = "route-policy #{route_map}" if platform == :ios_xr
+            if platform == :ios_xr
+              route_map = "route-policy #{route_map}"
+            else
+              route_map = "route-map #{route_map}"
+            end
           end
           set_args_keys(state: state, network: network, route_map: route_map)
           config_set('bgp_af', 'networks', @set_args)
