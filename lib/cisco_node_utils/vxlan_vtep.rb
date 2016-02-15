@@ -3,7 +3,7 @@
 #
 # November 2015, Deepak Cherian
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -133,6 +133,30 @@ module Cisco
 
     def default_source_interface
       config_get_default('vxlan_vtep', 'source_intf')
+    end
+
+    def source_interface_hold_down_time
+      config_get('vxlan_vtep', 'source_intf_hold_down_time', name: @name)
+    end
+
+    def source_interface_hold_down_time=(time)
+      state = time == default_source_interface_hold_down_time ? 'no' : ''
+      # Cli rejects removing hold-down-time without an argument, so make
+      # sure it is configured before attempting to remove it
+      if state == 'no'
+        time = source_interface_hold_down_time
+        unless time == default_source_interface_hold_down_time
+          config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                             state: state, time: time)
+        end
+      else
+        config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                               state: state, time: time)
+      end
+    end
+
+    def default_source_interface_hold_down_time
+      config_get_default('vxlan_vtep', 'source_intf_hold_down_time')
     end
 
     def shutdown

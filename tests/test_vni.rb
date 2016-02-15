@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,32 +102,5 @@ class TestVni < CiscoTestCase
 
     vni.shutdown = vni.default_shutdown
     assert_equal(vni.default_shutdown, vni.shutdown)
-  end
-
-  def test_mt_lite_mapped_vlan
-    mt_lite_env_setup
-    # Set the vni vlan mapping
-    v = Vni.new(10_000)
-    v.mapped_vlan = 100
-    assert_equal(100, v.mapped_vlan,
-                 'Error: mapped-vlan mismatch')
-    # Now clear the vni vlan mapping
-    v.mapped_vlan = v.default_mapped_vlan
-    assert_nil(v.mapped_vlan, 'Error: cannot clear vni vlan mapping')
-    v.destroy
-
-    # Multiples: Set vni to vlan mappings
-    vni_to_vlan_map = { 10_000 => 100, 20_000 => 200, 30_000 => 300 }
-    vni_to_vlan_map.each do |vni, vlan|
-      v = Vni.new(vni)
-      v.mapped_vlan = vlan
-      assert_equal(vlan, v.mapped_vlan, 'Error: mapped-vlan mismatch')
-    end
-    # Clear all mappings
-    vni_to_vlan_map.each do |vni, _|
-      v = Vni.new(vni)
-      v.mapped_vlan = v.default_mapped_vlan
-      assert_nil(v.mapped_vlan, 'Error: cannot clear vni vlan mapping')
-    end
   end
 end

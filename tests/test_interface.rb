@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 Cisco and/or its affiliates.
+# Copyright (c) 2013-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/acl'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/overlay_global'
 
 include Cisco
 
@@ -40,7 +41,6 @@ class TestInterface < CiscoTestCase
   DEFAULT_IF_IP_PROXY_ARP = false
   DEFAULT_IF_IP_REDIRECTS = true
   DEFAULT_IF_VRF = ''
-  IF_DESCRIPTION_SIZE = 243 # SIZE = VSH Max 255 - "description " keyword
   IF_VRF_MAX_LENGTH = 32
 
   def interface_ipv4_config(ifname, address, length,
@@ -63,7 +63,8 @@ class TestInterface < CiscoTestCase
   end
 
   def show_cmd(name)
-    "show run interface #{name} all | no-more"
+    all = (name =~ /port-channel\d/ && node.product_id =~ /N7/) ? '' : 'all'
+    "show run interface #{name} #{all} | no-more"
   end
 
   def interface_count
@@ -78,11 +79,12 @@ class TestInterface < CiscoTestCase
 
   # Helper to check for misc speed change disallowed error messages.
   def speed_change_disallowed(message)
-    pattern = Regexp.new('(port doesn t support this speed|' \
-                         'Changing interface speed is not permitted|' \
-                         'requested config change not allowed)')
+    patterns = ['port doesn t support this speed',
+                'Changing interface speed is not permitted',
+                'requested config change not allowed',
+                /does not match the (transceiver speed|port capability)/]
     skip('Skip test: Interface type does not allow config change') if
-         message[pattern]
+         message[Regexp.union(patterns)]
     flunk(message)
   end
 
@@ -398,24 +400,11 @@ class TestInterface < CiscoTestCase
     assert_equal('', interface.description)
   end
 
-  def test_interface_description_too_long
-    interface = Interface.new(interfaces[0])
-    description = 'a' * (IF_DESCRIPTION_SIZE + 1)
-    assert_raises(RuntimeError) { interface.description = description }
-    interface_ethernet_default(interfaces_id[0])
-  end
-
   def test_interface_description_valid
     interface = Interface.new(interfaces[0])
-    alphabet = 'abcdefghijklmnopqrstuvwxyz 0123456789'
-    description = ''
-    1.upto(IF_DESCRIPTION_SIZE) do |i|
-      description += alphabet[i % alphabet.size, 1]
-      next unless i == IF_DESCRIPTION_SIZE
-      # puts("description (#{i}): #{description}")
-      interface.description = description
-      assert_equal(description.rstrip, interface.description)
-    end
+    description = 'This is a test description ! '
+    interface.description = description
+    assert_equal(description.rstrip, interface.description)
     interface_ethernet_default(interfaces_id[0])
   end
 
@@ -452,6 +441,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_change
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1520
     assert_equal(1520, interface.mtu)
     interface.mtu = 1580
@@ -461,11 +451,13 @@ class TestInterface < CiscoTestCase
 
   def test_interface_mtu_invalid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     assert_raises(RuntimeError) { interface.mtu = 'hello' }
   end
 
   def test_interface_mtu_valid
     interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :disabled
     interface.mtu = 1550
     assert_equal(1550, interface.mtu)
     interface_ethernet_default(interfaces_id[0])
@@ -714,7 +706,7 @@ class TestInterface < CiscoTestCase
     # Some platforms/interfaces/versions do not support negotiation changes
     begin
       interface.negotiate_auto = false
-    rescue RuntimeError => e
+    rescue CliError => e
       skip('Skip test: Interface type does not allow config change') if
         e.message[/requested config change not allowed/]
       flunk(e.message)
@@ -892,6 +884,10 @@ class TestInterface < CiscoTestCase
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
                                  secondary)
     interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
+    # unconfigure should be safely idempotent
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length,
+                                 secondary)
+    interface.ipv4_addr_mask_set(interface.default_ipv4_address, length)
     pattern = (/^\s+ip address (.*)/)
     refute_show_match(pattern: pattern,
                       msg:     'Error: ipv4 address still present in CLI')
@@ -961,6 +957,37 @@ class TestInterface < CiscoTestCase
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+  end
+
+  def test_interface_fabric_forwarding_anycast_gateway
+    # Setup
+    config('no interface vlan11')
+    int = Interface.new('vlan11')
+    foo = OverlayGlobal.new
+    foo.anycast_gateway_mac = '1223.3445.5668'
+
+    # 1. Testing default for newly created vlan
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
+
+    # 2. Testing non-default:true
+    int.fabric_forwarding_anycast_gateway = true
+    assert(int.fabric_forwarding_anycast_gateway)
+
+    # 3. Setting back to false
+    int.fabric_forwarding_anycast_gateway = false
+    refute(int.fabric_forwarding_anycast_gateway)
+
+    # 4. Attempt to configure on a non-vlan interface
+    nonvlanint = create_interface
+    assert_raises(RuntimeError) do
+      nonvlanint.fabric_forwarding_anycast_gateway = true
+    end
+
+    # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+    #    overlay gateway mac is not set.
+    foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+    assert_raises(RuntimeError) { int.fabric_forwarding_anycast_gateway = true }
   end
 
   def test_interface_ipv4_proxy_arp
@@ -1204,15 +1231,6 @@ class TestInterface < CiscoTestCase
     interface.vrf = vrf
     assert_equal(vrf, interface.vrf)
     interface.destroy
-  end
-
-  def test_interface_channel_group_add_delete
-    interface = Interface.new(interfaces[0])
-    pc = 100
-    interface.channel_group = pc
-    assert_equal(pc.to_i, interface.channel_group)
-    interface.channel_group = interface.default_channel_group
-    assert_equal(interface.default_channel_group, interface.channel_group)
   end
 
   def test_ipv4_pim_sparse_mode

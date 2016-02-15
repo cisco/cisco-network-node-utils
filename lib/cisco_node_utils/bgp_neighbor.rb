@@ -2,7 +2,7 @@
 #
 # August 2015, Jie Yang
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 require 'ipaddr'
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
+require_relative 'feature'
 require_relative 'bgp'
 
 module Cisco
@@ -32,7 +33,7 @@ module Cisco
       # we need to mask the address using prefix length, so that it becomes
       # something like "1.1.1.0/24" or "2000:123:38::/64"
       @nbr = Utils.process_network_mask(nbr)
-      @asn = asn
+      @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @get_args = @set_args = { asnum: @asn, nbr: @nbr }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'
@@ -66,6 +67,7 @@ module Cisco
     end
 
     def create
+      Feature.bgp_enable
       set_args_keys(state: '')
       config_set('bgp', 'create_destroy_neighbor', @set_args)
     end
@@ -164,8 +166,7 @@ module Cisco
     end
 
     def local_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_local_as
+      if val == default_local_as
         set_args_keys(state: 'no', local_as: '')
       else
         set_args_keys(state: '', local_as: val)
@@ -174,13 +175,11 @@ module Cisco
     end
 
     def local_as
-      result = config_get('bgp_neighbor', 'local_as', @get_args)
-      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
-      result
+      config_get('bgp_neighbor', 'local_as', @get_args).to_s
     end
 
     def default_local_as
-      config_get_default('bgp_neighbor', 'local_as')
+      config_get_default('bgp_neighbor', 'local_as').to_s
     end
 
     def log_neighbor_changes=(val)
@@ -269,8 +268,7 @@ module Cisco
     end
 
     def remote_as=(val)
-      asnum = RouterBgp.process_asnum(val)
-      if asnum == default_remote_as
+      if val == default_remote_as
         set_args_keys(state: 'no', remote_as: '')
       else
         set_args_keys(state: '', remote_as: val)
@@ -279,13 +277,11 @@ module Cisco
     end
 
     def remote_as
-      result = config_get('bgp_neighbor', 'remote_as', @get_args)
-      result = result.to_i unless /\d+\.\d+$/.match(result.to_s)
-      result
+      config_get('bgp_neighbor', 'remote_as', @get_args).to_s
     end
 
     def default_remote_as
-      config_get_default('bgp_neighbor', 'remote_as')
+      config_get_default('bgp_neighbor', 'remote_as').to_s
     end
 
     def remove_private_as=(val)

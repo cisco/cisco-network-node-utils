@@ -1,6 +1,6 @@
 # June 2015, Michael G Wiebe
 #
-# Copyright (c) 2015 Cisco and/or its affiliates.
+# Copyright (c) 2015-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,27 +26,10 @@ module Cisco
     def initialize(asnum, vrf='default', instantiate=true)
       fail ArgumentError unless vrf.is_a? String
       fail ArgumentError unless vrf.length > 0
-      @asnum = RouterBgp.process_asnum(asnum)
+      @asnum = RouterBgp.validate_asnum(asnum)
       @vrf = vrf
-      if @vrf == 'default'
-        @get_args = @set_args = { asnum: @asnum }
-      else
-        @get_args = @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      set_args_keys_default
       create if instantiate
-    end
-
-    def self.process_asnum(asnum)
-      err_msg = "BGP asnum must be either a 'String' or an" \
-                " 'Integer' object"
-      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
-                                         asnum.is_a?(String)
-      if asnum.is_a? String
-        # Match ASDOT '1.5' or ASPLAIN '55' strings
-        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
-        asnum = RouterBgp.dot_to_big(asnum) if /\d+\.\d+/.match(asnum)
-      end
-      asnum.to_i
     end
 
     # Create a hash of all router bgp default and non-default
@@ -74,18 +57,15 @@ module Cisco
       return {}
     end
 
-    # Convert BGP ASN ASDOT+ to ASPLAIN
-    def self.dot_to_big(dot_str)
-      fail ArgumentError unless dot_str.is_a? String
-      return dot_str unless /\d+\.\d+/.match(dot_str)
-      mask = 0b1111111111111111
-      high = dot_str.to_i
-      low = 0
-      low_match = dot_str.match(/\.(\d+)/)
-      low = low_match[1].to_i if low_match
-      high_bits = (mask & high) << 16
-      low_bits = mask & low
-      high_bits + low_bits
+    def self.validate_asnum(asnum)
+      err_msg = 'BGP asnum must be type String or Integer'
+      fail ArgumentError, err_msg unless asnum.is_a?(Integer) ||
+                                         asnum.is_a?(String)
+      if asnum.is_a? String
+        # Match ASDOT '1.5' or ASPLAIN '55' strings
+        fail ArgumentError unless /^(\d+|\d+\.\d+)$/.match(asnum)
+      end
+      asnum.to_s
     end
 
     def router_bgp(state='')
@@ -111,11 +91,9 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      if @vrf == 'default'
-        @set_args = { asnum: @asnum }
-      else
-        @set_args = { asnum: @asnum, vrf: @vrf }
-      end
+      @set_args = { asnum: @asnum }
+      @set_args[:vrf] = @vrf unless @vrf == 'default'
+      @get_args = @set_args
     end
 
     # Attributes:
@@ -360,8 +338,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_cli
     end
 
@@ -381,8 +361,11 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
-      return 'false' if match.nil?
-      return 'size_' + match[1] if match[1]
+      # This property requires auto_default=false
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_detail
     end
 
@@ -402,8 +385,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_events
     end
 
@@ -423,8 +408,10 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
-      return 'false' if match[0] == 'no '
-      return 'size_' + match[1] if match[1]
+      if match.is_a?(Array)
+        return 'false' if match[0] == 'no '
+        return 'size_' + match[1] if match[1]
+      end
       default_event_history_periodic
     end
 
@@ -660,7 +647,6 @@ module Cisco
     end
 
     def route_distinguisher=(rd)
-      Feature.nv_overlay_enable
       Feature.nv_overlay_evpn_enable
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
@@ -684,11 +670,13 @@ module Cisco
 
     def router_id=(id)
       # In order to remove a bgp router-id you cannot simply issue
-      # 'no bgp router-id'. Dummy-id specified to work around this.
-      dummy_id = '1.2.3.4'
+      # 'no bgp router-id'. On some platforms you can specify a dummy
+      # value, but on N7K at least you need the current router_id.
       if id == default_router_id
+        # Nothing to do if router_id is already set to default.
+        return if router_id == default_router_id
         @set_args[:state] = 'no'
-        @set_args[:id] = dummy_id
+        @set_args[:id] = router_id
       else
         @set_args[:state] = ''
         @set_args[:id] = id

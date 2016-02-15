@@ -36,6 +36,7 @@ additional_paths_send:
   default_value: false
 
 advertise_l2vpn_evpn:
+  _exclude: [N3k, N6k]
   kind: boolean
   config_get_token_append: '/^advertise l2vpn evpn$/'
   config_set_append: '<state> advertise l2vpn evpn'
@@ -46,14 +47,13 @@ all_afs:
   config_get_token_append: '/^address-family (\S+) (\S+)$/'
 
 client_to_client:
-  config_get_token_append: '/^client-to-client reflection$/'
+  kind: boolean
+  config_get_token_append: '/^(no )?client-to-client reflection$/'
   config_set_append: '<state> client-to-client reflection'
   default_value: true
 
 dampen_igp_metric:
-  auto_default: false
-  kind: int
-  config_get_token_append: '/^dampen-igp-metric (\d+)$/'
+  config_get_token_append: '/^(no )?dampen-igp-metric *(\d+)?$/'
   config_set_append: '<state> dampen-igp-metric <num>'
   default_value: 600
 
