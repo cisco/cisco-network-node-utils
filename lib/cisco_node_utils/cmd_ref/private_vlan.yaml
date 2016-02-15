@@ -1,0 +1,8 @@
+# private-vlan
+---
+feature:
+  kind: boolean
+  config_get: 'show running'
+  config_get_token: '/^feature private-vlan$/'
+  config_set: '<state> feature private-vlan'
+  default_value: false
