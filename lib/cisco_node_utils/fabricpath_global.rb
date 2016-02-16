@@ -59,16 +59,18 @@ module Cisco
       curr = FabricpathGlobal.fabricpath_feature
       return if curr == fabricpath_set
 
-      if Vdc.vdc_support
-        # For modular platforms, make sure to limit the feature to
-        # modules which support this feature
-        if fabricpath_set == :installed || fabricpath_set == :enabled
-          v = Vdc.new('default')
-          v.limit_resource_module_type =
-            config_get('fabricpath', 'supported_modules')
-          # exception will be raised for un-supported platforms/modules
-        end
-      end
+      # NOTE: Add this in future if we want to automatically move only supported
+      # interfaces into the VDC
+      #if Vdc.vdc_support
+      #  # For modular platforms, make sure to limit the feature to
+      #  # modules which support this feature
+      #  if fabricpath_set == :installed || fabricpath_set == :enabled
+      #    v = Vdc.new('default')
+      #    v.limit_resource_module_type =
+      #      config_get('fabricpath', 'supported_modules')
+      #    # exception will be raised for un-supported platforms/modules
+      #  end
+      #end
 
       case fabricpath_set
       when :enabled
