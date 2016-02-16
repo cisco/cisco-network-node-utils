@@ -69,6 +69,15 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # For range based attributes, a new attribute purge will
+    # be added in future. When purge is set to true, all the
+    # ranges which are specified in the manifest will be set
+    # to the desired values and those which are not specified
+    # in the manifest will be set to default. When purge is
+    # false, only the ranges specified in the manifest will
+    # be set to the values given in the manifest and others
+    # are left untouched.
+
     def access_vlan
       config_get('interface', 'access_vlan', @name)
     end

@@ -460,14 +460,18 @@ module Cisco
         end
       end
     end
-    # At this stage, the array is built with the reset range,
-    # and the string needs to be built.
-    # for ex: the tarray has 1, 2 to 10, 83 to 2014, 3022
-    # and the string has to be "1,2-10,83-2014,3022"
-    farray = tarray.compact.uniq.sort
+    Cisco.array_to_str(tarray)
+  end
+  module_function :get_reset_range
+
+  # This method converts an array to string form
+  # for ex: if the array has 1, 2 to 10, 83 to 2014, 3022
+  # and the string will be "1,2-10,83-2014,3022"
+  def array_to_str(array)
+    farray = array.compact.uniq.sort
     lranges = []
     unless farray.empty?
-      l = tarray.first
+      l = array.first
       r = nil
       farray.each do |aelem|
         if r && aelem != r.succ
@@ -484,5 +488,5 @@ module Cisco
     end
     lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
   end
-  module_function :get_reset_range
+  module_function :array_to_str
 end
