@@ -21,13 +21,9 @@ module Cisco
   class PrivateVlan < NodeUtil
     attr_reader :name
 
-    # Constructor for PrivateVlan
-    def initialize(instantiate=true)
-      enable if instantiate && !PrivateVlan.enabled
-    end
-
     def feature_enabled
-      config_get('private-vlan', 'feature')
+      result = config_get('private-vlan', 'feature')
+      return !(result.nil? || result.empty?)
     rescue Cisco::CliError => e
       # This cmd will syntax reject if feature is not
       # enabled. Just catch the reject and return false.
