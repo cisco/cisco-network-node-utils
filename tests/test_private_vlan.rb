@@ -38,7 +38,7 @@ class TestPrivateVlan < CiscoTestCase
     privatevlan.feature_enable
     assert(PrivateVlan.feature_enabled)
 
-    #Vtp.new.destroy
-    #refute(Vtp.enabled, 'Error: vtp is not disabled')
+    # Vtp.new.destroy
+    # refute(Vtp.enabled, 'Error: vtp is not disabled')
   end
 end
