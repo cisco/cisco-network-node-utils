@@ -299,9 +299,13 @@ module Cisco
     def ipv4_addr_mask
       val = config_get('interface', 'ipv4_addr_mask', name: @name)
       if val && platform == :ios_xr
-        # IOS XR reports address as <address> <bitmask> but we
-        # want <address>/<length>
-        val[0][1] = Utils.bitmask_to_length(val[0][1])
+        # IOS XR reports address as <address> <bitmask> [secondary] but we
+        # want <address>/<length> [secondary]
+        val.each_with_index do |entry, i|
+          mask = entry[1].split(' ')
+          mask[0] = Utils.bitmask_to_length(mask[0])
+          val[i][1] = mask.join(' ')
+        end
       end
       val
     end
@@ -912,16 +916,22 @@ module Cisco
       fail TypeError unless v.is_a?(String)
       return if v == vrf
       # Changing the VRF can result in loss of IP address, so cache it
-      addr_mask = ipv4_addr_mask
-      addr_mask = addr_mask[0] unless addr_mask.nil?
+      addr_1 = ipv4_address
+      mask_1 = ipv4_netmask_length
+      addr_2 = ipv4_address_secondary
+      mask_2 = ipv4_netmask_length_secondary
       # XR actually blocks you from changing the VRF if IP addr is present
-      ipv4_addr_mask_set(nil, nil) unless addr_mask.nil? || platform == :nexus
+      unless platform == :nexus
+        ipv4_addr_mask_set(nil, nil, false) unless addr_1.nil?
+        ipv4_addr_mask_set(nil, nil, true) unless addr_2.nil?
+      end
       if v.empty?
         config_set('interface', 'vrf', name: @name, state: 'no', vrf: '')
       else
         config_set('interface', 'vrf', name: @name, state: '', vrf: v)
       end
-      ipv4_addr_mask_set(*addr_mask) unless addr_mask.nil?
+      ipv4_addr_mask_set(addr_1, mask_1, false) unless addr_1.nil?
+      ipv4_addr_mask_set(addr_2, mask_2, true) unless addr_2.nil?
     end
 
     def default_vrf

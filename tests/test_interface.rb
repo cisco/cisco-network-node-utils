@@ -940,7 +940,7 @@ class TestInterface < CiscoTestCase
                       msg:     'Error: ipv4 address missing in CLI')
     assert_equal(sec_addr, interface.ipv4_address_secondary,
                  'Error: ipv4 address get value mismatch')
-    assert_equal(length, interface.ipv4_netmask_length,
+    assert_equal(length, interface.ipv4_netmask_length_secondary,
                  'Error: ipv4 netmask length get value mismatch')
 
     # get default

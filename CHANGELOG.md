@@ -14,6 +14,9 @@ Changelog
   * bgp_neighbor_af
   * interface
   * command_config
+  * platform (@glennmatthews)
+  * ntp_config (@jonnytpuppet)
+  * ntp_server (@jonnytpuppet)
 
 ### Changed
 
