@@ -19,11 +19,9 @@ require_relative 'node_util'
 module Cisco
   # PrivateVlan - node utility class for private-vlan config mgmt.
   class PrivateVlan < NodeUtil
-    attr_reader :name
-
-    def feature_enabled
-      result = config_get('private-vlan', 'feature')
-      return !(result.nil? || result.empty?)
+    def self.feature_enabled
+      feat = config_get('private_vlan', 'feature')
+      return !(feat.nil?)
     rescue Cisco::CliError => e
       # This cmd will syntax reject if feature is not
       # enabled. Just catch the reject and return false.
@@ -32,11 +30,11 @@ module Cisco
     end
 
     def feature_enable
-      config_set('private-vlan', 'feature', state: '')
+      config_set('private_vlan', 'feature', '')
     end
 
     def feature_disable
-      config_set('private-vlan', 'feature', state: 'no')
+      config_set('private_vlan', 'feature', 'no')
     end
   end
 end
