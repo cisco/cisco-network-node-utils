@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/fabricpath_global'
+require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
 
@@ -187,9 +188,6 @@ class TestFabricpathGlobal < CiscoTestCase
 
   def test_mode
     @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_mode, @global.mode,
-                 "default mode should be normal but is #{@global.mode}")
     @global.mode = 'transit'
     assert_equal('transit', @global.mode,
                  'mode not getting set to transit')
@@ -239,5 +237,16 @@ class TestFabricpathGlobal < CiscoTestCase
     @global.ttl_unicast = 40
     assert_equal(40, @global.ttl_unicast,
                  'unicast ttl not getting set to 40')
+  end
+
+  def test_interface_switchport_mode
+    interface = Interface.new(interfaces[0])
+    interface.switchport_mode = :fabricpath
+    assert_equal(:fabricpath, interface.switchport_mode,
+                 'switchport mode must be set to fabricpath')
+    # clean up
+    interface.switchport_mode = :trunk
+    assert_equal(:trunk, interface.switchport_mode,
+                 'switchport mode must be set to trunk')
   end
 end
