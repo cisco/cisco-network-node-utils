@@ -18,14 +18,18 @@ require_relative '../lib/cisco_node_utils/platform'
 # TestPlatform - Minitest for Platform class
 class TestPlatform < CiscoTestCase
   def test_system_image
-    s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
-    assert_equal(s, Platform.system_image)
+    if platform == :ios_xr
+      assert_nil(Platform.system_image)
+    elsif platform == :nexus
+      s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
+      assert_equal(s, Platform.system_image)
+    end
   end
 
   def test_packages
     # [['pack1', 'state1'], ['pack2', 'state2'], ...]
     # 'state' should always be a variant of Active or Inactive
-    pkgs = @device.cmd('sh inst patch | no-more')
+    pkgs = @device.cmd('sh inst patch')
            .scan(/\n(\S+)\s+(\S*[aA]ctive.*)\n/)
     # convert to hash with key pkg_name and value pkg_state
     pkg_hsh = {}
@@ -34,7 +38,13 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_hardware_type
-    s = @device.cmd('sh ver | no-m').scan(/Hardware\n\s+(.*)\n/).flatten.first
+    if platform == :ios_xr
+      s = @device.cmd('show inv | inc "Rack 0"').scan(/DESCR: "(.*)"/)
+    elsif platform == :nexus
+      s = @device.cmd('sh ver').scan(/Hardware\n\s+(.*)\n/)
+    end
+    s = s.flatten.first
+    refute_empty(Platform.hardware_type)
     # hardware type returns a different value depending on whether you use the
     # ascii or show output of nxapi, but show appears to be substring of ascii
     assert(s.include?(Platform.hardware_type),
@@ -42,45 +52,55 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_cpu
-    s = @device.cmd('sh ver | no-m').scan(
+    s = @device.cmd('sh ver').scan(
       /Hardware\n\s+.*\n\s+(.*) with/).flatten.first
     assert_equal(s, Platform.cpu)
   end
 
   def test_memory
-    arr = @device.cmd('sh sys reso').scan(
-      /(\S+) total.* (\S+) used.* (\S+) free/).flatten
-    mem_hsh = { 'total' => arr[0],
-                'used'  => arr[1],
-                'free'  => arr[2] }
-    # used and free memory change rapidly, compare total and sums of free + used
+    if platform == :ios_xr
+      arr = @device.cmd('sh mem summ').scan(
+        /Physical Memory: (\S+) total.*\((\S+) available/).flatten
+      mem_hsh = { 'total' => arr[0],
+                  'used'  => nil,
+                  'free'  => arr[1] }
+    elsif platform == :nexus
+      arr = @device.cmd('sh sys reso').scan(
+        /(\S+) total.* (\S+) used.* (\S+) free/).flatten
+      mem_hsh = { 'total' => arr[0],
+                  'used'  => arr[1],
+                  'free'  => arr[2] }
+    end
     assert_equal(mem_hsh['total'], Platform.memory['total'])
-    assert_equal(mem_hsh['used'].to_i + mem_hsh['free'].to_i,
-                 Platform.memory['used'].to_i + Platform.memory['free'].to_i)
-    # assert(Platform.memory.has_key?('used'),
-    #        "Platform memory has no key 'used'")
-    # assert(Platform.memory.has_key?('free'),
-    #        "Platform memory has no key 'free'")
+    if platform == :nexus
+      # used and free mem change rapidly, compare total and sums of free + used
+      assert_equal(mem_hsh['used'].to_i + mem_hsh['free'].to_i,
+                   Platform.memory['used'].to_i + Platform.memory['free'].to_i)
+    end
+    assert(Platform.memory.key?('used'),
+           "Platform memory has no key 'used'")
+    assert(Platform.memory.key?('free'),
+           "Platform memory has no key 'free'")
   end
 
   def test_board
-    s = @device.cmd('sh ver | no-m').scan(/Board ID (\S+)/).flatten.first
+    s = @device.cmd('sh ver').scan(/Board ID (\S+)/).flatten.first
     assert_equal(s, Platform.board)
   end
 
   def test_uptime
-    s = @device.cmd('sh ver | no-m').scan(/uptime is (.*)/).flatten.first
+    s = @device.cmd('sh ver').scan(/uptime is (.*)/).flatten.first
     # compare without seconds
     assert_equal(s.gsub(/\d+ sec/, ''), Platform.uptime.gsub(/\d+ sec/, ''))
   end
 
   def test_last_reset
-    s = @device.cmd('sh ver | no-m').scan(/usecs after\s+(.*)/).flatten.first
+    s = @device.cmd('sh ver').scan(/usecs after\s+(.*)/).flatten.first
     assert_equal(s, Platform.last_reset)
   end
 
   def test_reset_reason
-    s = @device.cmd('sh ver | no-m').scan(/Reason: (.*)/).flatten.first
+    s = @device.cmd('sh ver').scan(/Reason: (.*)/).flatten.first
     assert_equal(s, Platform.reset_reason)
   end
 
@@ -108,19 +128,19 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_chassis
-    arr = @device.cmd('sh inv | no-m').scan(/NAME:\s+"Chassis"#{inv_cmn_re}/)
+    arr = @device.cmd('sh inv').scan(/NAME:\s+"Chassis"#{inv_cmn_re}/)
     arr = arr.flatten
     # convert to hash
     chas_hsh = { 'descr' => arr[0],
                  'pid'   => arr[1],
                  'vid'   => arr[2],
                  'sn'    => arr[3],
-    }
+    } unless arr.empty?
     assert_equal(chas_hsh, Platform.chassis)
   end
 
   def test_slots
-    slots_arr_arr = @device.cmd('sh inv | no-m')
+    slots_arr_arr = @device.cmd('sh inv')
                     .scan(/NAME:\s+"(Slot \d+)"#{inv_cmn_re}/)
     # convert to array of slot hashes
     slots_hsh_hsh = {}
@@ -135,10 +155,8 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_power_supplies
-    pwr_arr_arr = @device.cmd('sh inv | no-m')
+    pwr_arr_arr = @device.cmd('sh inv')
                   .scan(/NAME:\s+"(Power Supply \d+)"#{inv_cmn_re}/)
-    refute_empty(pwr_arr_arr,
-                 'Regex scan failed to match show inventory output')
 
     # convert to array of power supply hashes
     pwr_hsh_hsh = {}
@@ -153,10 +171,8 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_fans
-    fan_arr_arr = @device.cmd('sh inv | no-m')
+    fan_arr_arr = @device.cmd('sh inv')
                   .scan(/NAME:\s+"(Fan \d+)"#{inv_cmn_re}/)
-    refute_empty(fan_arr_arr,
-                 'Regex scan failed to match show inventory output')
 
     # convert to array of fan hashes
     fan_hsh_hsh = {}
@@ -171,9 +187,6 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_virtual_services
-    skip('Skip test: No virtual-services installed') unless
-      @device.cmd('show virtual-service list')[/Name\s+Status\s+Package Name/]
-
     # this would be beyond ugly to parse from ascii, utilize config_get
     vir_arr = node.config_get('virtual_service', 'services')
     vir_arr = [vir_arr] if vir_arr.is_a? Hash

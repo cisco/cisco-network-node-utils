@@ -50,17 +50,10 @@ module Cisco
     #       'used'  => '5909004K',
     #       'free'  => '10493248K' }
     def self.memory
-      total = config_get('memory', 'total')
-      used = config_get('memory', 'used')
-      free = config_get('memory', 'free')
-
-      fail 'failed to retrieve platform memory information' if
-        total.nil? || used.nil? || free.nil?
-
       {
-        'total' => total,
-        'used'  => used,
-        'free'  => free,
+        'total' => config_get('memory', 'total'),
+        'used'  => config_get('memory', 'used'),
+        'free'  => config_get('memory', 'free'),
       }
     end
 
@@ -114,16 +107,34 @@ module Cisco
     def self.inventory_of(type)
       node.cache_flush # TODO: investigate why this is needed
       inv = config_get('inventory', 'all')
-      return {} if inv.nil?
-      inv.select! { |x| x['name'].include? type }
-      return {} if inv.empty?
-      # match desired output format
       inv_hsh = {}
-      inv.each do |s|
-        inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
-                                           'pid'   => s['productid'],
-                                           'vid'   => s['vendorid'],
-                                           'sn'    => s['serialnum'] }
+      return inv_hsh if inv.nil?
+      if platform == :ios_xr
+        # XR gets a string so we have to process it directly
+        inv_arr = inv.scan(
+          /NAME:\s+"(#{type}[^"]*)",\s+
+           DESCR:\s+"([^"]*)"\s*
+           \n
+           PID:\s+(\S+)\s*,\s+
+           VID:\s+(\S+)\s*,\s+
+           SN:\s+(\S+)\s*/x).flatten
+        inv_arr.each do |entry|
+          inv_hsh[entry[0]] = { 'descr' => entry[1],
+                                'pid'   => entry[2],
+                                'vid'   => entry[3],
+                                'sn'    => entry[4] }
+        end
+      else
+        # Nexus gets structured output
+        inv.select! { |x| x['name'].include? type }
+        return inv_hsh if inv.empty?
+        # match desired output format
+        inv.each do |s|
+          inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
+                                             'pid'   => s['productid'],
+                                             'vid'   => s['vendorid'],
+                                             'sn'    => s['serialnum'] }
+        end
       end
       inv_hsh
     end
