@@ -148,6 +148,8 @@ module Cisco
       # Convert bitmask to a 32-bit integer,
       # convert that to binary, and count the 1s
       IPAddr.new(bitmask).to_i.to_s(2).count('1')
+    rescue IPAddr::InvalidAddressError => e
+      raise ArgumentError, "bitmask '#{bitmask}' is not valid: #{e}"
     end
 
     # Helper to 0-pad a mac address.
