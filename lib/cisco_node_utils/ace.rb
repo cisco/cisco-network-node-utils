@@ -247,7 +247,7 @@ module Cisco
     def tcp_flags
       match = ace_get
       return nil if match.nil?
-      match.names.include?('tcp_flags') ? match[:tcp_flags].strip: nil
+      match.names.include?('tcp_flags') ? match[:tcp_flags].strip : nil
     end
 
     def tcp_flags=(tcp_flags)
@@ -258,7 +258,7 @@ module Cisco
       match = ace_get
       return nil if match.nil?
       return nil unless match.names.include?('established')
-      match[:established] == 'established' ? true : nil 
+      match[:established] == 'established' ? true : nil
     end
 
     def established=(established)
