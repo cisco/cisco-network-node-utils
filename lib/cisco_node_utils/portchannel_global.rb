@@ -156,11 +156,6 @@ module Cisco
       port_channel_load_balance[:hash_poly]
     end
 
-    def default_hash_poly
-      config_get_default('portchannel_global',
-                         'hash_poly')
-    end
-
     def rotate
       port_channel_load_balance[:rotate]
     end
