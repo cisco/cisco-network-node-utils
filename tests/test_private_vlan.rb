@@ -25,7 +25,7 @@ class TestPrivateVlan < CiscoTestCase
   end
 
   def teardown
-    # no_feature_private_vlan
+    no_feature_private_vlan
     super
   end
 
@@ -33,7 +33,12 @@ class TestPrivateVlan < CiscoTestCase
     Feature.private_vlan_enable
   end
 
+  def no_feature_private_vlan
+    Feature.private_vlan_enable
+  end
+
   def test_private_vlan_feature_enable_disable
     assert(Feature.private_vlan_enabled?)
+    assert(Feature.private_vlan_disabled?)
   end
 end

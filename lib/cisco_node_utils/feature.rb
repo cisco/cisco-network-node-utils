@@ -102,7 +102,16 @@ module Cisco
       config_set('feature', 'private_vlan')
     end
 
+    def self.private_vlan_disable
+      return if private_vlan_disabled?
+      config_set('feature', 'private_vlan', 'no')
+    end
+
     def self.private_vlan_enabled?
+      config_get('feature', 'private_vlan')
+    end
+
+    def self.private_vlan_disabled?
       config_get('feature', 'private_vlan')
     end
 
