@@ -17,7 +17,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/feature'
 
-# TestVtp - Minitest for PrivateVlan node utility class
+# Minitest for PrivateVlan node utility class
 class TestPrivateVlan < CiscoTestCase
   def setup
     super
@@ -25,7 +25,7 @@ class TestPrivateVlan < CiscoTestCase
   end
 
   def teardown
-    no_feature_private_vlan
+    config('no feature private-vlan')
     super
   end
 
@@ -33,12 +33,7 @@ class TestPrivateVlan < CiscoTestCase
     Feature.private_vlan_enable
   end
 
-  def no_feature_private_vlan
-    Feature.private_vlan_enable
-  end
-
   def test_private_vlan_feature_enable_disable
     assert(Feature.private_vlan_enabled?)
-    assert(Feature.private_vlan_disabled?)
   end
 end
