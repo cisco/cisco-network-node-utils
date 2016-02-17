@@ -64,7 +64,26 @@ route_distinguisher:
   _exclude: [ios_xr]
   get_value: '/^rd (\S+)$/'
   set_value: '<state> rd <rd>'
+  context: ['vrf context <vrf>']
   default_value: ''
+
+route_policy_export:
+  default_value: ~
+  nexus:
+    get_value: '/^export map (\S+)$/'
+    set_value: '<state> export map <policy_name>'
+  ios_xr:
+    get_value: '/^export route-policy (\S+)$/'
+    set_value: '<state> export route-policy <policy_name>'
+
+route_policy_import:
+  default_value: ~
+  nexus:
+    get_value: '/^import map (\S+)$/'
+    set_value: '<state> import map <policy_name>'
+  ios_xr:
+    get_value: '/^import route-policy (\S+)$/'
+    set_value: '<state> import route-policy <policy_name>'
 
 route_target_both_auto:
   _exclude: [ios_xr]
@@ -101,6 +120,17 @@ route_target_export_evpn:
   set_value: '<state> route-target export <community> evpn'
   default_value: []
 
+route_target_export_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^export route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> export route-target <community> stitching'
+  default_value: []
+
 route_target_import:
   multiple: true
   default_value: []
@@ -122,12 +152,24 @@ route_target_import_evpn:
   set_value: '<state> route-target import <community> evpn'
   default_value: []
 
+route_target_import_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^import route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> import route-target <community> stitching'
+  default_value: []
+
 shutdown:
   _exclude: [ios_xr]
   kind: boolean
 
   get_value: '/^shutdown$/'
   set_value: '<state> shutdown'
+  context: ['vrf context <vrf>']
   default_value: false
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
@@ -136,4 +178,5 @@ vni: # TBD Should this move to the vni provider as vrf_vni?
     kind: int
     get_value: '/^vni (\d+)$/'
     set_value: '<state> vni <id>'
+    context: ['vrf context <vrf>']
     default_value: false

@@ -83,6 +83,46 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def route_policy_export
+      config_get('vrf', 'route_policy_export', @get_args)
+    end
+
+    def route_policy_export=(name)
+      # Nexus requires passing in <policy_name> in "no export map" command.
+      if name
+        set_args_keys(state: '', policy_name: name)
+      else
+        remove_name = config_get('vrf', 'route_policy_export', @get_args)
+        return nil if remove_name.nil?
+        set_args_keys(state: 'no', policy_name: remove_name)
+      end
+      config_set('vrf', 'route_policy_export', @set_args)
+    end
+
+    def default_route_policy_export
+      config_get_default('vrf', 'route_policy_export')
+    end
+
+    def route_policy_import
+      config_get('vrf', 'route_policy_import', @get_args)
+    end
+
+    def route_policy_import=(name)
+      # Nexus requires passing in <policy_name> in "no import map" command.
+      if name
+        set_args_keys(state: '', policy_name: name)
+      else
+        remove_name = config_get('vrf', 'route_policy_import', @get_args)
+        return nil if remove_name.nil?
+        set_args_keys(state: 'no', policy_name: remove_name)
+      end
+      config_set('vrf', 'route_policy_import', @set_args)
+    end
+
+    def default_route_policy_import
+      config_get_default('vrf', 'route_policy_import')
+    end
+
     def route_target_both_auto
       config_get('vrf', 'route_target_both_auto', @get_args)
     end
@@ -142,6 +182,21 @@ module Cisco
     end
 
     # --------------------------
+    def route_target_export_stitching
+      cmds = config_get('vrf', 'route_target_export_stitching', @get_args)
+      cmds.nil? ? nil : cmds.sort
+    end
+
+    def route_target_export_stitching=(should)
+      route_target_delta(should, route_target_export_stitching,
+                         'route_target_export_stitching')
+    end
+
+    def default_route_target_export_stitching
+      config_get_default('vrf', 'route_target_export_stitching')
+    end
+
+    # --------------------------
     def route_target_import
       cmds = config_get('vrf', 'route_target_import', @get_args)
       cmds.nil? ? nil : cmds.sort
@@ -168,6 +223,21 @@ module Cisco
 
     def default_route_target_import_evpn
       config_get_default('vrf', 'route_target_import_evpn')
+    end
+
+    # --------------------------
+    def route_target_import_stitching
+      cmds = config_get('vrf', 'route_target_import_stitching', @get_args)
+      cmds.nil? ? nil : cmds.sort
+    end
+
+    def route_target_import_stitching=(should)
+      route_target_delta(should, route_target_import_stitching,
+                         'route_target_import_stitching')
+    end
+
+    def default_route_target_import_stitching
+      config_get_default('vrf', 'route_target_import_stitching')
     end
 
     # --------------------------

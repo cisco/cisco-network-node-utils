@@ -169,6 +169,45 @@ class TestVrf < CiscoTestCase
     assert_equal(0, VrfAF.afs['blue'].keys.count)
   end
 
+  #-----------------------------------------
+  # test_route_policy
+  def test_route_policy
+    [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_policy(af) }
+  end
+
+  def route_policy(af)
+    vrf = 'blue'
+    v = VrfAF.new(vrf, af)
+
+    assert_nil(v.default_route_policy_import,
+               "Test1.1 : #{af} : route_policy_import")
+    assert_nil(v.default_route_policy_export,
+               "Test1.2 : #{af} : route_policy_export")
+    opts = [:import, :export]
+    # test route_target_import
+    # test route_target_export
+    opts.each do |opt|
+      # test route_policy set, from nil to name
+      policy_name = 'abc'
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_equal(policy_name, result,
+                   "Test2.1 : #{af} : route_policy_#{opt}")
+
+      # test route_policy remove, from name to nil
+      policy_name = nil
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_nil(result, "Test2.2 : #{af} : route_policy_#{opt}")
+
+      # test route_policy remove, from nil to nil
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_nil(result, "Test2.3 : #{af} : route_policy_#{opt}")
+    end
+    v.destroy
+  end
+
   def test_route_target
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_target(af) }
   end
@@ -238,6 +277,7 @@ class TestVrf < CiscoTestCase
     # Test 4: 'default'
     should = v.default_route_target_import
     route_target_tester(v, af, opts, should, 'Test 4')
+    v.destroy
   end
 
   def route_target_tester(v, af, opts, should, test_id)
@@ -252,6 +292,15 @@ class TestVrf < CiscoTestCase
         assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_evpn=") do
           v.send("route_target_#{opt}_evpn=", should)
         end
+      end
+      # stitching
+      if platform == :nexus
+        assert_raises(Cisco::UnsupportedError,
+                      "route_target_#{opt}_stitching=") do
+          v.send("route_target_#{opt}_stitching=", should)
+        end
+      else
+        v.send("route_target_#{opt}_stitching=", should)
       end
     end
 
@@ -268,6 +317,14 @@ class TestVrf < CiscoTestCase
                      "#{test_id} : #{af} : route_target_#{opt}_evpn")
       else
         assert_nil(result)
+      end
+      # stitching
+      result = v.send("route_target_#{opt}_stitching")
+      if platform == :nexus
+        assert_nil(result)
+      else
+        assert_equal(should, result,
+                     "#{test_id} : #{af} : route_target_#{opt}_stitching")
       end
     end
   end
