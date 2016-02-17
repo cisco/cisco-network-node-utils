@@ -88,11 +88,14 @@ module Cisco
     end
 
     def route_policy_export=(name)
-      if platform == :nexus
-        fail Cisco::UnsupportedError.new('vrf_af', route_policy_export)
+      # Nexus requires passing in <policy_name> in "no export map" command.
+      if name
+        set_args_keys(state: '', policy_name: name)
+      else
+        remove_name = config_get('vrf', 'route_policy_export', @get_args)
+        return nil if remove_name.nil?
+        set_args_keys(state: 'no', policy_name: remove_name)
       end
-      state = name ? '' : 'no'
-      set_args_keys(state: state, policy_name: name)
       config_set('vrf', 'route_policy_export', @set_args)
     end
 
@@ -105,11 +108,14 @@ module Cisco
     end
 
     def route_policy_import=(name)
-      if platform == :nexus
-        fail Cisco::UnsupportedError.new('vrf_af', route_policy_import)
+      # Nexus requires passing in <policy_name> in "no import map" command.
+      if name
+        set_args_keys(state: '', policy_name: name)
+      else
+        remove_name = config_get('vrf', 'route_policy_import', @get_args)
+        return nil if remove_name.nil?
+        set_args_keys(state: 'no', policy_name: remove_name)
       end
-      state = name ? '' : 'no'
-      set_args_keys(state: state, policy_name: name)
       config_set('vrf', 'route_policy_import', @set_args)
     end
 

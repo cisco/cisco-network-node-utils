@@ -68,22 +68,25 @@ route_distinguisher:
   default_value: ''
 
 route_policy_export:
-  _exclude: [nexus]
   default_value: ~
-  get_context:
-    - '/^vrf <vrf>$/i'
-    - '/^address-family <afi> <safi>$/'
-  get_value: '/^export route-policy (\S+)$/'
-  set_value: '<state> export route-policy <policy_name>'
+  nexus:
+    get_value: '/^export map (\S+)$/'
+    set_value: '<state> export map <policy_name>'
+  ios_xr:
+    get_value: '/^export route-policy (\S+)$/'
+    set_value: '<state> export route-policy <policy_name>'
 
 route_policy_import:
-  _exclude: [nexus]
   default_value: ~
-  get_context:
-    - '/^vrf <vrf>$/i'
-    - '/^address-family <afi> <safi>$/'
-  get_value: '/^import route-policy (\S+)$/'
-  set_value: '<state> import route-policy <policy_name>'
+  nexus:
+    get_value: '/^import map (\S+)$/'
+    set_value: '<state> import map <policy_name>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+    get_value: '/^import route-policy (\S+)$/'
+    set_value: '<state> import route-policy <policy_name>'
 
 route_target_both_auto:
   _exclude: [ios_xr]

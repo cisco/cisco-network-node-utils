@@ -179,37 +179,31 @@ class TestVrf < CiscoTestCase
     vrf = 'blue'
     v = VrfAF.new(vrf, af)
 
-    if platform == :nexus
-      assert_nil(v.route_policy_export)
-      assert_nil(v.route_policy_import)
-      assert_nil(v.default_route_policy_export)
-      assert_nil(v.default_route_policy_import)
-      assert_raises(Cisco::UnsupportedError) { v.route_policy_export = 'abc' }
-      assert_raises(Cisco::UnsupportedError) { v.route_policy_import = 'abc' }
-      v.destroy
-      return
-    end
-    assert_equal(nil, v.default_route_policy_import,
-                 "Test1.1 : #{af} : route_policy_import")
-    assert_equal(nil, v.default_route_policy_export,
-                 "Test1.2 : #{af} : route_policy_export")
+    assert_nil(v.default_route_policy_import,
+               "Test1.1 : #{af} : route_policy_import")
+    assert_nil(v.default_route_policy_export,
+               "Test1.2 : #{af} : route_policy_export")
     opts = [:import, :export]
     # test route_target_import
     # test route_target_export
     opts.each do |opt|
-      # test route_policy set
+      # test route_policy set, from nil to name
       policy_name = 'abc'
       v.send("route_policy_#{opt}=", policy_name)
       result = v.send("route_policy_#{opt}")
       assert_equal(policy_name, result,
                    "Test2.1 : #{af} : route_policy_#{opt}")
 
-      # test route_policy remove
+      # test route_policy remove, from name to nil
       policy_name = nil
       v.send("route_policy_#{opt}=", policy_name)
       result = v.send("route_policy_#{opt}")
-      assert_equal(policy_name, result,
-                   "Test2.2 : #{af} : route_policy_#{opt}")
+      assert_nil(result, "Test2.2 : #{af} : route_policy_#{opt}")
+
+      # test route_policy remove, from nil to nil
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_nil(result, "Test2.3 : #{af} : route_policy_#{opt}")
     end
     v.destroy
   end
@@ -301,7 +295,8 @@ class TestVrf < CiscoTestCase
       end
       # stitching
       if platform == :nexus
-        assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_stitching=") do
+        assert_raises(Cisco::UnsupportedError,
+                      "route_target_#{opt}_stitching=") do
           v.send("route_target_#{opt}_stitching=", should)
         end
       else
