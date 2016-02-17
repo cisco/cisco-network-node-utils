@@ -82,9 +82,6 @@ route_policy_import:
     get_value: '/^import map (\S+)$/'
     set_value: '<state> import map <policy_name>'
   ios_xr:
-    get_context:
-      - '/^vrf <vrf>$/i'
-      - '/^address-family <afi> <safi>$/'
     get_value: '/^import route-policy (\S+)$/'
     set_value: '<state> import route-policy <policy_name>'
 
