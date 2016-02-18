@@ -123,12 +123,22 @@ class TestPlatform < CiscoTestCase
   # Everything from DESCR onwards follows the same general format so we
   # can define a single base regexp and extend it as needed for Chassis, Slot,
   # Power Supply, and Fan inventory entries.
-  def inv_cmn_re
-    /.*DESCR:\s+"(.*)"\s*\nPID:\s+(\S+).*VID:\s+(\S+).*SN:\s+(\S+)/
+  #
+  # On some platforms, some fields may be empty:
+  # NAME: "Chassis",  DESCR: "NX-OSv Chassis"
+  # PID: N9K-NXOSV           ,  VID:     ,  SN:
+  def inv_cmn_re(name_expr)
+    /NAME:\s+"#{name_expr}",\s+
+     DESCR:\s+"(.*)"\s*
+     \n
+     PID:\s+(\S*)\s*,\s*
+     VID:\s+(\S*)\s*,\s*
+     SN:\s+(\S*)\s*
+     $/x
   end
 
   def test_chassis
-    arr = @device.cmd('sh inv').scan(/NAME:\s+"Chassis"#{inv_cmn_re}/)
+    arr = @device.cmd('sh inv').scan(inv_cmn_re('Chassis'))
     arr = arr.flatten
     # convert to hash
     chas_hsh = { 'descr' => arr[0],
@@ -140,8 +150,7 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_slots
-    slots_arr_arr = @device.cmd('sh inv')
-                    .scan(/NAME:\s+"(Slot \d+)"#{inv_cmn_re}/)
+    slots_arr_arr = @device.cmd('sh inv').scan(inv_cmn_re('(Slot\s+\d+)'))
     # convert to array of slot hashes
     slots_hsh_hsh = {}
     slots_arr_arr.each do |slot|
@@ -156,7 +165,7 @@ class TestPlatform < CiscoTestCase
 
   def test_power_supplies
     pwr_arr_arr = @device.cmd('sh inv')
-                  .scan(/NAME:\s+"(Power Supply \d+)"#{inv_cmn_re}/)
+                  .scan(inv_cmn_re('(Power\s+Supply\s+\d+)'))
 
     # convert to array of power supply hashes
     pwr_hsh_hsh = {}
@@ -171,8 +180,7 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_fans
-    fan_arr_arr = @device.cmd('sh inv')
-                  .scan(/NAME:\s+"(Fan \d+)"#{inv_cmn_re}/)
+    fan_arr_arr = @device.cmd('sh inv').scan(inv_cmn_re('(Fan\s+\d+)'))
 
     # convert to array of fan hashes
     fan_hsh_hsh = {}

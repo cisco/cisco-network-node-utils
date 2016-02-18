@@ -60,6 +60,10 @@ module Cisco
     # Ex: 'Processor Board ID FOC15430TEY'
     def self.board
       config_get('show_version', 'board')
+    rescue RuntimeError => e
+      # Some Nexus platforms may fail to report this value.
+      return nil if /No key/ =~ e.message
+      raise
     end
 
     # Ex: '1 day(s), 21 hour(s), 46 minute(s), 54 second(s)'
@@ -72,6 +76,10 @@ module Cisco
     # Ex: '23113 usecs after  Mon Jul  1 15:24:29 2013'
     def self.last_reset
       config_get('show_version', 'last_reset_time')
+    rescue RuntimeError => e
+      # Some Nexus platforms may fail to report this value.
+      return nil if /No key/ =~ e.message
+      raise
     end
 
     # Ex: 'Reset Requested by CLI command reload'
