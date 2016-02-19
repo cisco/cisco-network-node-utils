@@ -1,0 +1,57 @@
+# itd_device_group
+---
+_template:
+  config_get: "show running-config all | section itd"
+  config_get_token: '/^itd device-group %s/i'
+  config_set: ["itd device-group %s"]
+
+all_itd_device_groups:
+  multiple:
+  config_get_token: '/^itd device-group (.*)/'
+
+create:
+  config_set: "itd device-group %s"
+
+destroy:
+  config_set: "no itd device-group %s"
+
+feature_itd:
+  kind: boolean
+  config_get_token: '/^feature itd$/'
+  config_set: "%s feature itd"
+  default: false
+
+probe:
+  config_get_token_append: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
+  config_set_append: "probe %s %s %s %s frequency %s timeout %s retry-down-count %s retry-up-count %s"
+
+probe_control:
+  kind: boolean
+  default_value: false
+
+probe_dns_host:
+  kind: String
+
+probe_frequency:
+  kind: int
+  default_value: 10
+
+probe_port:
+  kind: int
+
+probe_retry_down:
+  kind: int
+  default_value: 3
+
+probe_retry_up:
+  kind: int
+  default_value: 3
+
+probe_timeout:
+  kind: int
+  default_value: 5
+
+probe_type:
+  kind: String
+  config_set_append: "%s probe icmp"
+  default_value: false
