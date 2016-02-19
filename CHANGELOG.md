@@ -4,14 +4,19 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
+
 #### Cisco Resources
-*
+* Spanning Tree
+  * stp_global (@saichint)
 
 #### NetDev Resources
 *
 
 ### Added
-*
+* Extend interface with attributes:
+  * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
+  * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+
 
 ### Removed
 *
@@ -42,8 +47,6 @@ Changelog
   * interface_channel_group (@chrisvanheuveln)
   * interface_portchannel (@saichint)
   * portchannel_global (@saichint)
-* Spanning Tree
-  * stp_global (@saichint)
 * SNMP (platforms: Nexus 3k, Nexus 5k, Nexus 6k, Nexus 7k and Nexus 9k)
   * snmpnotification (@tphoney)
 * VDC (platforms: Nexus 7k)
