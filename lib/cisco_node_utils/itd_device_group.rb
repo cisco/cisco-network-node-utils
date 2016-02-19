@@ -41,9 +41,22 @@ module Cisco
       hash
     end
 
+    # feature itd
+    def self.feature_itd_enabled
+      config_get('itd_device_group', 'feature')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.feature_itd_enable
+      config_set('itd_device_group', 'feature')
+    end
+
     def create
-      config_set('itd_device_group', 'feature_itd', '') unless
-        config_get('itd_device_group', 'feature_itd') == true
+      ItdDeviceGroup.feature_itd_enable unless
+        ItdDeviceGroup.feature_itd_enabled
       config_set('itd_device_group', 'create', @name)
     end
 
@@ -56,14 +69,21 @@ module Cisco
     ########################################################
 
     def probe
-      params = config_get('itd_device_group', 'probe')
+      params = config_get('itd_device_group', 'probe', @name)
       hash = {}
-      return hash if params.nil?
-      hash[:probe_frequency] = params[1]
-      hash[:probe_timeout] = params[2]
-      hash[:probe_retry_down] = params[3]
-      hash[:probe_retry_up] = params[4]
-      hash[:probe_control] = false
+      hash[:probe_control] = default_probe_control
+      if params.nil?
+        hash[:probe_frequency] = default_probe_frequency
+        hash[:probe_timeout] = default_probe_timeout
+        hash[:probe_retry_down] = default_probe_retry_down
+        hash[:probe_retry_up] = default_probe_retry_up
+        hash[:probe_type] = default_probe_type
+        return hash
+      end
+      hash[:probe_frequency] = params[1].to_i
+      hash[:probe_timeout] = params[2].to_i
+      hash[:probe_retry_down] = params[3].to_i
+      hash[:probe_retry_up] = params[4].to_i
 
       lparams = params[0].split
       hash[:probe_type] = lparams[0]
@@ -71,10 +91,10 @@ module Cisco
       when :dns
         hash[:probe_dns_host] = lparams[2]
       when :tcp
-        hash[:probe_port] = lparams[2]
+        hash[:probe_port] = lparams[2].to_i
         hash[:probe_control] = true unless lparams[3].nil?
       when :udp
-        hash[:probe_port] = lparams[2]
+        hash[:probe_port] = lparams[2].to_i
         hash[:probe_control] = true unless lparams[3].nil?
       end
       hash
@@ -146,31 +166,31 @@ module Cisco
 
     def probe=(type, host, control, freq, ret_up, ret_down, port, timeout)
       if type == false
-        config_set('itd_device_group', 'probe_type', 'no')
+        config_set('itd_device_group', 'probe_type', @name, 'no')
         return
       end
       case type.to_sym
       when :dns
-        config_set('itd_device_group', 'probe', type, 'host', host, '',
+        config_set('itd_device_group', 'probe', @name, type, 'host', host, '',
                    freq, timeout, ret_down, ret_up)
       when :tcp
         if control
-          config_set('itd_device_group', 'probe', type, 'port', port,
+          config_set('itd_device_group', 'probe', @name, type, 'port', port,
                      'control enable', freq, timeout, ret_down, ret_up)
         else
-          config_set('itd_device_group', 'probe', type, 'port', port, '',
+          config_set('itd_device_group', 'probe', @name, type, 'port', port, '',
                      freq, timeout, ret_down, ret_up)
         end
       when :udp
         if control
-          config_set('itd_device_group', 'probe', type, 'port', port,
+          config_set('itd_device_group', 'probe', @name, type, 'port', port,
                      'control enable', freq, timeout, ret_down, ret_up)
         else
-          config_set('itd_device_group', 'probe', type, 'port', port, '',
+          config_set('itd_device_group', 'probe', @name, type, 'port', port, '',
                      freq, timeout, ret_down, ret_up)
         end
       when :icmp
-        config_set('itd_device_group', 'probe', type, '', '', '',
+        config_set('itd_device_group', 'probe', @name, type, '', '', '',
                    freq, timeout, ret_down, ret_up)
       end
     end

@@ -15,11 +15,11 @@ create:
 destroy:
   config_set: "no itd device-group %s"
 
-feature_itd:
-  kind: boolean
+feature:
+  config_get: 'show running | i ^feature'
   config_get_token: '/^feature itd$/'
-  config_set: "%s feature itd"
-  default: false
+  config_set: 'feature itd'
+  default_value: false
 
 probe:
   config_get_token_append: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
@@ -30,7 +30,7 @@ probe_control:
   default_value: false
 
 probe_dns_host:
-  kind: String
+  kind: string
 
 probe_frequency:
   kind: int
@@ -52,6 +52,6 @@ probe_timeout:
   default_value: 5
 
 probe_type:
-  kind: String
+  kind: string
   config_set_append: "%s probe icmp"
   default_value: false

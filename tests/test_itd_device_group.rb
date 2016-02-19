@@ -13,7 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
-require_relative '../lib/cisco_node_utils/itd_device_global'
+require_relative '../lib/cisco_node_utils/itd_device_group'
 
 include Cisco
 # TestInterface - Minitest for general functionality
@@ -33,6 +33,10 @@ class TestItdDeviceGroup < CiscoTestCase
     super
   end
 
+  def test_create
+    @idg = ItdDeviceGroup.new(DEFAULT_NAME)
+  end
+
   def test_probe_icmp
     @idg = ItdDeviceGroup.new(DEFAULT_NAME)
     type = 'icmp'
@@ -40,25 +44,25 @@ class TestItdDeviceGroup < CiscoTestCase
     rd = 5
     ru = 5
     to = 6
-    @itg.send(:probe=, type, nil, nil, freq, ru, rd, nil, to)
-    assert_equal(type, @itg.probe_type)
-    assert_equal(freq, @itg.probe_frequency)
-    assert_equal(to, @itg.probe_timeout)
-    assert_equal(ru, @itg.probe_retry_up)
-    assert_equal(rd, @itg.probe_retry_down)
-    @itg.send(:probe=, type, nil, nil,
-              @itg.default_probe_frequency,
-              @itg.default_probe_retry_up,
-              @itg.default_probe_retry_down,
+    @idg.send(:probe=, type, nil, nil, freq, ru, rd, nil, to)
+    assert_equal(type, @idg.probe_type)
+    assert_equal(freq, @idg.probe_frequency)
+    assert_equal(to, @idg.probe_timeout)
+    assert_equal(ru, @idg.probe_retry_up)
+    assert_equal(rd, @idg.probe_retry_down)
+    @idg.send(:probe=, type, nil, nil,
+              @idg.default_probe_frequency,
+              @idg.default_probe_retry_up,
+              @idg.default_probe_retry_down,
               nil,
-              @itg.default_probe_timeout)
-    assert_equal(@itg.default_probe_frequency, @itg.probe_frequency)
-    assert_equal(@itg.default_probe_timeout, @itg.probe_timeout)
-    assert_equal(@itg.default_probe_retry_up, @itg.probe_retry_up)
-    assert_equal(@itg.default_probe_retry_down, @itg.probe_retry_down)
-    @itg.send(:probe=, @itg.default_probe_type,
+              @idg.default_probe_timeout)
+    assert_equal(@idg.default_probe_frequency, @idg.probe_frequency)
+    assert_equal(@idg.default_probe_timeout, @idg.probe_timeout)
+    assert_equal(@idg.default_probe_retry_up, @idg.probe_retry_up)
+    assert_equal(@idg.default_probe_retry_down, @idg.probe_retry_down)
+    @idg.send(:probe=, @idg.default_probe_type,
               nil, nil, nil, nil, nil, nil, nil)
-    assert_equal(@itg.default_probe_type, @itg.probe_type)
+    assert_equal(@idg.default_probe_type, @idg.probe_type)
     @idg.destroy
   end
 end
