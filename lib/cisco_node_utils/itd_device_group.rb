@@ -29,11 +29,17 @@ module Cisco
       create if instantiate
     end
 
-    def self.groups
+    def self.itds
       hash = {}
-      # sometimes the name has extra stuff which needs to be removed
-      group_list = config_get('interface', 'all_itd_device_groups').split[0]
-      return hash if group_list.nil?
+      group_list = []
+      groups = config_get('itd_device_group',
+                          'all_itd_device_groups')
+      return hash if groups.nil?
+
+      groups.each do |group|
+        # sometimes the name has extra stuff which needs to be removed
+        group_list << group.split[0]
+      end
 
       group_list.each do |id|
         hash[id] = ItdDeviceGroup.new(id, false)
