@@ -26,10 +26,12 @@ probe:
   config_set_append: "probe %s %s %s %s frequency %s timeout %s retry-down-count %s retry-up-count %s"
 
 probe_control:
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: boolean
   default_value: false
 
 probe_dns_host:
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: string
 
 probe_frequency:
@@ -37,6 +39,7 @@ probe_frequency:
   default_value: 10
 
 probe_port:
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: int
 
 probe_retry_down:

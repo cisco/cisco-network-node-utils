@@ -33,6 +33,14 @@ class TestItdDeviceGroup < CiscoTestCase
     super
   end
 
+  def n9k_platform?
+    /N(3|9)/ =~ node.product_id
+  end
+
+  def n6k_platform?
+    /N(5|6)/ =~ node.product_id
+  end
+
   def test_itd_device_group_create_destroy
     @i1 = ItdDeviceGroup.new('abc')
     @i2 = ItdDeviceGroup.new('BCD')
@@ -77,6 +85,8 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_dns
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @idg = ItdDeviceGroup.new(DEFAULT_NAME)
     type = 'dns'
     host = 'resolver1.opendns.com'
@@ -115,6 +125,8 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_tcp
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @idg = ItdDeviceGroup.new(DEFAULT_NAME)
     type = 'tcp'
     port = 11_111
@@ -147,6 +159,8 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_udp
+    skip('Platform does not support this property') if n6k_platform? ||
+                                                       n9k_platform?
     @idg = ItdDeviceGroup.new(DEFAULT_NAME)
     type = 'udp'
     port = 22_222

@@ -37,7 +37,9 @@ module Cisco
       return hash if groups.nil?
 
       groups.each do |group|
-        # sometimes the name has extra stuff which needs to be removed
+        # The show cmd shows more than name if the probe is not confgured yet
+        # itd device-group abc frequency 10 timeout 5 retry-down-count 3 ...
+        # so filter it out to just get the name
         group_list << group.split[0]
       end
 
@@ -60,6 +62,10 @@ module Cisco
       config_set('itd_device_group', 'feature')
     end
 
+    ########################################################
+    #                      PROPERTIES                      #
+    ########################################################
+
     def create
       ItdDeviceGroup.feature_itd_enable unless
         ItdDeviceGroup.feature_itd_enabled
@@ -70,10 +76,13 @@ module Cisco
       config_set('itd_device_group', 'destroy', @name)
     end
 
-    ########################################################
-    #                      PROPERTIES                      #
-    ########################################################
-
+    # proble configuration is all done in a single line (like below)
+    # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
+    # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
+    # probe icmp frequency 10 timeout 5 retry-down-count 3 retry-up-count 3
+    # probe dns host 8.8.8.8 frequency 10 timeout 5 retry-down-count 3 ...
+    # also the 'control enable' can be set if the type is tcp or udp only
+    # probe udp port 23 control enable frequency 10 timeout 5 ...
     def probe
       params = config_get('itd_device_group', 'probe', @name)
       hash = {}
