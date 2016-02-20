@@ -126,8 +126,6 @@ Changelog
   * `fabric_forwarding_anycast_gateway`
   * `ipv4_acl_in`, `ipv4_acl_out`, `ipv6_acl_in`, `ipv6_acl_out`
   * `ipv4_address_secondary`, `ipv4_arp_timeout`
-  * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
-  * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
   * `vlan_mapping`
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
