@@ -3,6 +3,14 @@ Changelog
 
 ## [Unreleased]
 
+### New feature support
+
+#### Cisco Resources
+*
+
+#### NetDev Resources
+*
+
 ### Added
 
 * Added client support for gRPC on IOS XR.
@@ -17,6 +25,7 @@ Changelog
   * platform (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
+* `test_feature` minitest
 
 ### Changed
 
@@ -33,6 +42,9 @@ Changelog
 * Interface:
   - Correctly restore IP address when changing VRF membership
   - MTU is not supported on loopback interfaces
+
+### Removed
+*
 
 ## [v1.2.0]
 

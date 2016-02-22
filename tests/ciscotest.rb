@@ -92,6 +92,18 @@ class CiscoTestCase < TestCase
     int_ip == convert_dns_name(address.split(':')[0])
   end
 
+  # Some NXOS hardware is not capable of supporting certain features even
+  # though the platform family in general includes support. In these cases
+  # the NU feature setter will raise a RuntimeError.
+  def hardware_supports_feature?(message)
+    patterns = ['Hardware is not capable of supporting',
+                'is unsupported on this node',
+               ]
+    skip('Skip test: Feature is unsupported on this device') if
+      message[Regexp.union(patterns)]
+    flunk(message)
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup

@@ -38,12 +38,12 @@ graceful_merge:
   get_command: "show run fabricpath all"
   get_value: '/^fabricpath graceful\-merge disable\s*$/'
   set_value: "<state> fabricpath graceful-merge disable"
-  default_value: true
+  default_value: enable
 
 linkup_delay:
   kind: int
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath timers linkup-delay (\d+)\s*$/'
+  get_value: '/^fabricpath timers linkup\-delay (\d+)\s*$/'
   set_value: "<state> fabricpath timers linkup-delay <delay>"
   default_value: 10
 
@@ -51,7 +51,7 @@ linkup_delay_always:
   _exclude: [N5k, N6k]
   kind: boolean
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath timers linkup-delay always\s*$/'
+  get_value: '/^fabricpath timers linkup\-delay always\s*$/'
   set_value: "<state> fabricpath timers linkup-delay always"
   default_value: false
   
@@ -60,14 +60,14 @@ linkup_delay_enable:
   auto_default: false
   kind: boolean
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath linkup-delay\s*$/'
+  get_value: '/^fabricpath linkup\-delay\s*$/'
   set_value: "<state> fabricpath linkup-delay"
   default_value: true
   
 loadbalance_algorithm:
   kind: string
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath load-balance (\S+)\s*$/'
+  get_value: '/^fabricpath load\-balance (\S+)\s*$/'
   set_value: "<state> fabricpath load-balance <algo>"
   N5k:
     default_value: "source-destination"
@@ -135,16 +135,22 @@ loadbalance_unicast_support:
     default_only: "combined"
 
 mode:
+  _exclude:
+    - N5k
   kind: string
   get_command: "show run fabricpath all"
   get_value: '/^fabricpath mode (\S+)/'
   set_value: "<state> fabricpath mode transit"
   default_value: "normal"
 
+supported_modules:
+  _exclude: [N5k, N6k]
+  default_only: "f2e f3"
+
 switch_id:
   kind: int
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath switch-id (\d+)\s*$/'
+  get_value: '/^fabricpath switch\-id (\d+)\s*$/'
   set_value: "fabricpath switch-id <swid>"
 
 transition_delay:

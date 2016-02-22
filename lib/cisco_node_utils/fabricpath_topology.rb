@@ -26,7 +26,6 @@ module Cisco
 
     def initialize(topo_id, instantiate=true)
       @topo_id = topo_id.to_s
-      @set_params = {}
       fail ArgumentError, "Invalid value(non-numeric
                           Topo id #{@topo_id})" unless @topo_id[/^\d+$/]
 
@@ -35,8 +34,8 @@ module Cisco
 
     def self.topos
       hash = {}
-      fabricpath = config_get('fabricpath', 'feature')
-      return hash if (:enabled != fabricpath.to_sym)
+      feature = config_get('fabricpath', 'feature')
+      return hash if feature.nil? || feature.to_sym != :enabled
       topo_list = config_get('fabricpath_topology', 'all_topos')
       return hash if topo_list.nil?
 
@@ -44,24 +43,20 @@ module Cisco
         hash[id] = FabricpathTopo.new(id, false)
       end
       hash
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
 
     def create
       fabricpath_feature_set(:enabled) unless :enabled == fabricpath_feature
       config_set('fabricpath_topology', 'create',
-                 topo: @topo_id) unless @topo_id == '0'
-    end
-
-    def cli_error_check(result)
-      # The NXOS vlan cli does not raise an exception in some conditions and
-      # instead just displays a STDOUT error message; thus NXAPI does not detect
-      # the failure and we must catch it by inspecting the "body" hash entry
-      # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] unless result[2]['body'].empty?
+                 topo_id: @topo_id) unless @topo_id == '0'
     end
 
     def destroy
-      config_set('fabricpath_topology', 'destroy', topo: @topo_id)
+      config_set('fabricpath_topology', 'destroy', topo_id: @topo_id)
     end
 
     def fabricpath_feature
@@ -72,54 +67,50 @@ module Cisco
       FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
     end
 
-    def state
-      result = config_get('fabricpath_topology', 'state', @topo_id)
-      return default_state if result.nil?
-      case result
-      when /Up/
-        return 'up'
-      when /Down/
-        return 'default'
-      end
-    end
-
-    def default_state
-      config_get_default('fabricpath_topology', 'state')
-    end
-
     def member_vlans
-      str = config_get('fabricpath_topology', 'member_vlans', @topo_id)
-      return [] if str == '--'
-      str.gsub!('-', '..')
-      if /,/.match(str)
-        str.split(/\s*,\s*/)
-      else
-        str.lines.to_a
-      end
+      config_get('fabricpath_topology', 'member_vlans',
+                 @topo_id).gsub(/\s+/, '')
     end
 
     def member_vlans=(str)
-      debug "str is #{str} whose class is #{str.class}"
-      @set_params = {}
-      str = str.join(',') unless str.empty?
       if str.empty?
-        @set_params[:topo] = @topo_id
-        @set_params[:state] = 'no'
-        @set_params[:vlan_range] = ''
+        state = 'no'
+        range = ''
       else
-        str.gsub!('..', '-')
-        @set_params[:topo] = @topo_id
-        @set_params[:state] = ''
-        @set_params[:vlan_range] = str
+        state = ''
+        range = str
+        # reset existing range since we don't want incremental sets
+        config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id,
+                   state: 'no', vlan_range: '') if member_vlans != ''
       end
-      result = config_set('fabricpath_topology', 'member_vlans', @set_params)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[topo #{@topo_id}] '#{e.command}' : #{e.clierror}"
+      config_set('fabricpath_topology', 'member_vlans', topo_id: @topo_id,
+                 state: state, vlan_range: range)
     end
 
     def default_member_vlans
-      []
+      config_get_default('fabricpath_topology', 'member_vlans')
+    end
+
+    def member_vnis
+      config_get('fabricpath_topology', 'member_vnis', @topo_id).gsub(/\s+/, '')
+    end
+
+    def member_vnis=(str)
+      debug "str is #{str} whose class is #{str.class}"
+      str = str.join(',') unless str.empty?
+      if str.empty?
+        state = 'no'
+        range = ''
+      else
+        state = ''
+        range = str
+      end
+      config_set('fabricpath_topology', 'member_vnis', topo_id: @topo_id,
+                 state: state, vni_range: range)
+    end
+
+    def default_member_vnis
+      config_get_default('fabricpath_topology', 'member_vlans')
     end
 
     def topo_name
@@ -128,19 +119,15 @@ module Cisco
 
     def topo_name=(desc)
       fail TypeError unless desc.is_a?(String)
-      @set_params = {}
       if desc.empty?
-        @set_params[:topo] = @topo_id
-        @set_params[:state] = 'no'
-        @set_params[:name] = ''
+        state = 'no'
+        name = ''
       else
-        @set_params[:topo] = @topo_id
-        @set_params[:state] = ''
-        @set_params[:name] = desc
+        state = ''
+        name = desc
       end
-      config_set('fabricpath_topology', 'description', @set_params)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('fabricpath_topology', 'description', topo_id: @topo_id,
+                 state: state, name: name)
     end
 
     def default_topo_name

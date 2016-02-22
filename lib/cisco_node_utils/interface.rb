@@ -93,88 +93,6 @@ module Cisco
       config_set('interface', 'access_vlan', name: @name, vlan: vlan)
     end
 
-    def ipv4_acl_in
-      config_get('interface', 'ipv4_acl_in', name: @name)
-    end
-
-    def ipv4_acl_in=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv4_acl_in
-      end
-
-      return unless val && val != ''
-      config_set('interface', 'ipv4_acl_in',
-                 name: @name, state: state, acl: val)
-    end
-
-    def default_ipv4_acl_in
-      config_get_default('interface', 'ipv4_acl_in')
-    end
-
-    def ipv4_acl_out
-      config_get('interface', 'ipv4_acl_out', name: @name)
-    end
-
-    def ipv4_acl_out=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv4_acl_out
-      end
-
-      return unless val && val != ''
-      config_set('interface', 'ipv4_acl_out',
-                 name: @name, state: state, acl: val)
-    end
-
-    def default_ipv4_acl_out
-      config_get_default('interface', 'ipv4_acl_out')
-    end
-
-    def ipv6_acl_in
-      config_get('interface', 'ipv6_acl_in', name: @name)
-    end
-
-    def ipv6_acl_in=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv6_acl_in
-      end
-      return unless val && val != ''
-      config_set('interface', 'ipv6_acl_in',
-                 name: @name, state: state, acl: val)
-    end
-
-    def default_ipv6_acl_in
-      config_get_default('interface', 'ipv6_acl_in')
-    end
-
-    def ipv6_acl_out
-      config_get('interface', 'ipv6_acl_out', name: @name)
-    end
-
-    def ipv6_acl_out=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv6_acl_out
-      end
-      return unless val && val != ''
-      config_set('interface', 'ipv6_acl_out',
-                 name: @name, state: state, acl: val)
-    end
-
-    def default_ipv6_acl_out
-      config_get_default('interface', 'ipv6_acl_out')
-    end
-
     def default_access_vlan
       config_get_default('interface', 'access_vlan')
     end
@@ -273,6 +191,48 @@ module Cisco
         config_set('fex', 'feature', 'no') if curr == :enabled
         config_set('fex', 'feature_install', 'no')
       end
+    end
+
+    def ipv4_acl_in
+      config_get('interface', 'ipv4_acl_in', name: @name)
+    end
+
+    def ipv4_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_in
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_in',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv4_acl_in
+      config_get_default('interface', 'ipv4_acl_in')
+    end
+
+    def ipv4_acl_out
+      config_get('interface', 'ipv4_acl_out', name: @name)
+    end
+
+    def ipv4_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_out
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_out',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv4_acl_out
+      config_get_default('interface', 'ipv4_acl_out')
     end
 
     def ipv4_addr_mask_set(addr, mask, secondary=false)
@@ -438,6 +398,46 @@ module Cisco
 
     def default_ipv4_redirects
       config_get_default('interface', ipv4_redirects_lookup_string)
+    end
+
+    def ipv6_acl_in
+      config_get('interface', 'ipv6_acl_in', name: @name)
+    end
+
+    def ipv6_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_in
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_in',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv6_acl_in
+      config_get_default('interface', 'ipv6_acl_in')
+    end
+
+    def ipv6_acl_out
+      config_get('interface', 'ipv6_acl_out', name: @name)
+    end
+
+    def ipv6_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_out
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_out',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv6_acl_out
+      config_get_default('interface', 'ipv6_acl_out')
     end
 
     def feature_lacp?
@@ -727,7 +727,7 @@ module Cisco
     end
 
     def vlan_mapping=(should_list)
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
 
       # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must
@@ -737,8 +737,8 @@ module Cisco
       return if delta_hash.values.flatten.empty?
       # Process :remove first to ensure "update" commands will not fail.
       [:remove, :add].each do |action|
-        CiscoLogger.debug("vlan_mapping delta #{@get_args}\n"\
-                          "#{action}: #{delta_hash[action]}")
+        Cisco::Logger.debug("vlan_mapping delta #{@get_args}\n"\
+                            "#{action}: #{delta_hash[action]}")
         delta_hash[action].each do |original, translated|
           state = (action == :add) ? '' : 'no'
           config_set('interface', 'vlan_mapping', name: @name,

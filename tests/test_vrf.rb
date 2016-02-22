@@ -118,6 +118,8 @@ class TestVrf < CiscoTestCase
     assert_equal(vrf.default_vni, vrf.vni,
                  'vrf vni should be set to default value')
     vrf.destroy
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_route_distinguisher

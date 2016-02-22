@@ -18,8 +18,7 @@ mapped_vni:
     get_context: ['/^vlan <vlan>$/']
     get_value: '/^vn-segment (\d+)$/'
     set_context: ['vlan <vlan>']
-    # In the cli 'vn-segment' config is not applied untill the 'end'
-    # statement is issued.
+    # The 'vn-segment' config is not applied until the 'end' statement is processed
     set_value:  '<state> vn-segment <vni> ; end'
     default_value: ''
   N9k: *mapped_vni_n3k_n9k
@@ -34,8 +33,8 @@ mode:
   # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
   get_value: '/^%d\s+.+net\s+(\S+)/'
   set_context: ["vlan %d"]
-  set_value: "%s mode %s"
-  default_value: "ce"
+  set_value: "%s mode %s ; end"
+  default_value: 'CE'
 
 name:
   get_command: "show vlan brief"

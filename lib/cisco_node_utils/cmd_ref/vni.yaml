@@ -43,18 +43,6 @@ encap_dot1q:
   set_value: "%s dot1q %s vni %s"
   default_value: ~
 
-feature:
-  get_command: 'show running | i ^feature'
-  N7k:
-    # MT-Full only
-    get_value: '/^feature vni$/'
-    set_value: 'feature vni'
-  N3k: &feature_mt_lite
-    # MT-lite only
-    get_value: '/^feature vn-segment-vlan-based$/'
-    set_value: 'feature vn-segment-vlan-based'
-  N9k: *feature_mt_lite
-
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean

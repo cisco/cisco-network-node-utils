@@ -99,7 +99,8 @@ module Cisco
     # ---------------------------
     def self.vn_segment_vlan_based_enable
       return if vn_segment_vlan_based_enabled?
-      config_set('feature', 'vn_segment_vlan_based')
+      result = config_set('feature', 'vn_segment_vlan_based')
+      cli_error_check(result)
     end
 
     def self.vn_segment_vlan_based_enabled?
@@ -107,5 +108,30 @@ module Cisco
     end
 
     # ---------------------------
+    def self.vni_enable
+      return if vni_enabled?
+      result = config_set('feature', 'vni')
+      cli_error_check(result)
+    end
+
+    def self.vni_enabled?
+      config_get('feature', 'vni')
+    end
+
+    # ---------------------------
+    def self.cli_error_check(result)
+      # The NXOS feature cli may not raise an exception in some conditions and
+      # instead just displays a STDOUT error message; thus NXAPI does not detect
+      # the failure and we must catch it by inspecting the "body" hash entry
+      # returned by NXAPI. This cli behavior is unlikely to change soon.
+      fail result[2]['body'] if
+        result[2].is_a?(Hash) &&
+        /Hardware is not capable of supporting/.match(result[2]['body'].to_s)
+
+      # Some test environments get result as a string instead of a hash
+      fail result if
+        result.is_a?(String) &&
+        /Hardware is not capable of supporting/.match(result)
+    end
   end
 end

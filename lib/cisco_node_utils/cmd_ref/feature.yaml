@@ -2,7 +2,7 @@
 ---
 bgp:
   kind: boolean
-  get_command: "show running | i feature"
+  get_command: "show running | i ^feature"
   get_value: '/^feature bgp$/'
   set_value: "feature bgp"
 
@@ -21,7 +21,7 @@ fabric_forwarding:
 nv_overlay:
   _exclude: [N3k, N5k, N6k]
   kind: boolean
-  get_command: 'show running nv overlay'
+  get_command: "show running | i ^feature"
   get_value: '/^feature nv overlay$/'
   set_value: "feature nv overlay"
 
@@ -35,9 +35,25 @@ nv_overlay_evpn:
 vn_segment_vlan_based:
   # MT-lite only
   N3k: &vn_segment_vlan_based_mt_lite
+    # Note: Some N3k are not hardware-capable
     kind: boolean
-    get_command: 'show running section feature'
+    get_command: "show running | i ^feature"
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
   N9k: *vn_segment_vlan_based_mt_lite
+
+vni:
+  kind: boolean
+  N7k:
+    # MT-Full only
+    get_command: "show running | i ^feature"
+    get_value: '/^feature vni$/'
+    set_value: 'feature vni'
+  N3k: &feature_mt_lite
+    # MT-lite only
+    # Note: Some N3k are not hardware-capable
+    get_command: "show running | i ^feature"
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
+  N9k: *feature_mt_lite
