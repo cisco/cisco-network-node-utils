@@ -97,6 +97,14 @@ class TestInterface < CiscoTestCase
     config("default interface ethernet #{ethernet_id}")
   end
 
+  def interface_supports_property?(intf, message)
+    patterns = ['requested config change not allowed',
+                '% Invalid command']
+    skip("Interface '#{intf}' does not support property") if
+      message[Regexp.union(patterns)]
+    flunk(message)
+  end
+
   def validate_interfaces_not_empty
     interfaces = Interface.interfaces
     refute_empty(interfaces, 'Error: interfaces collection empty')
@@ -957,6 +965,30 @@ class TestInterface < CiscoTestCase
     # Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+  end
+
+  def test_interface_ipv4_forwarding
+    intf = interfaces[0]
+    interface_ethernet_default(intf)
+
+    i = Interface.new(intf)
+    begin
+      i.switchport_mode = :disabled
+      i.ipv4_forwarding = true
+    rescue RuntimeError, CliError => e
+      # RuntimeError when switchport_mode fails (some lc's, e.g. N7K-F248XP-25E)
+      # CliError when ipv4_forwarding fails
+      interface_supports_property?(intf, e.message)
+    end
+    assert(i.ipv4_forwarding)
+
+    i.ipv4_forwarding = false
+    refute(i.ipv4_forwarding)
+
+    i.ipv4_forwarding = true
+    assert(i.ipv4_forwarding)
+    i.ipv4_forwarding = i.default_ipv4_forwarding
+    refute(i.ipv4_forwarding)
   end
 
   def test_interface_fabric_forwarding_anycast_gateway

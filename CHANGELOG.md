@@ -11,7 +11,8 @@ Changelog
 *
 
 ### Added
-*
+* Extend interface with attributes:
+  * `ipv4_forwarding`
 
 ### Removed
 *
