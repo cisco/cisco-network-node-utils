@@ -11,6 +11,7 @@ Changelog
 *
 
 ### Added
+* `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
 

@@ -38,18 +38,6 @@ encap_dot1q:
   config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
   default_value: ~
 
-feature:
-  config_get: 'show running | i ^feature'
-  N7k:
-    # MT-Full only
-    config_get_token: '/^feature vni$/'
-    config_set: 'feature vni'
-  N3k: &feature_mt_lite
-    # MT-lite only
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
-  N9k: *feature_mt_lite
-
 mt_full_support:
   # This is only used for determining support for Multi-Tenancy Full
   kind: boolean

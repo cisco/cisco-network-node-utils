@@ -95,8 +95,8 @@ module Cisco
     def route_distinguisher=(rd)
       # feature bgp and nv overlay required for rd cli in NXOS
       Feature.bgp_enable
-      Feature.nv_overlay_enable
-      Feature.nv_overlay_evpn_enable
+      Feature.nv_overlay_enable      # TBD: Only req'd for n7k?
+      Feature.nv_overlay_evpn_enable # TBD: Only req'd for n7k?
       if rd == default_route_distinguisher
         state = 'no'
         rd = ''
