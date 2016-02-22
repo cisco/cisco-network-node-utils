@@ -113,6 +113,8 @@ class TestFeature < CiscoTestCase
     config('no feature nv overlay')
     feature('vni')
     vdc_lc_state(vdc_current) if vdc_current
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   #####################
