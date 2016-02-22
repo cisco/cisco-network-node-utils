@@ -55,20 +55,6 @@ module Cisco
       hash
     end
 
-    # feature vni
-    def self.feature_vni_enabled
-      config_get('vni', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_vni_enable # TBD: move this to feature.rb
-      Feature.nv_overlay_enable
-      config_set('vni', 'feature')
-    end
-
     def self.mt_full_support
       config_get('vni', 'mt_full_support')
     end
@@ -78,7 +64,7 @@ module Cisco
     end
 
     def create
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
       config_set('vni', 'create', vni: @vni_id) if Vni.mt_full_support
     end
 

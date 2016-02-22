@@ -704,7 +704,7 @@ module Cisco
     end
 
     def vlan_mapping=(should_list)
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
 
       # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must

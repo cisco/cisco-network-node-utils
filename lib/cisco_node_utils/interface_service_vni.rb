@@ -16,6 +16,7 @@
 
 require_relative 'node_util'
 require_relative 'vni'
+require_relative 'feature'
 
 module Cisco
   # InterfaceServiceVni - node utility class for Service VNI Instance commands
@@ -49,7 +50,7 @@ module Cisco
     end
 
     def create
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
       @set_args[:state] = ''
       config_set('interface_service_vni', 'create_destroy', @set_args)
     end
@@ -87,7 +88,7 @@ module Cisco
     end
 
     def encapsulation_profile_vni=(profile)
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
       state = profile.empty? ? 'no' : ''
       current = encapsulation_profile_vni
 
