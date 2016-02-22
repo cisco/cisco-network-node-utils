@@ -34,9 +34,15 @@ class TestSyslogServer < CiscoTestCase
 
   def no_syslogserver
     # Turn the feature off for a clean test.
-    config('no logging server 1.2.3.4',
-           'no logging server 2003::2',
-           'no vrf context red')
+    if platform == :ios_xr
+      config('no logging 1.2.3.4',
+             'no logging 2003::2',
+             'no vrf red')
+    else
+      config('no logging server 1.2.3.4',
+             'no logging server 2003::2',
+             'no vrf context red')
+    end
   end
 
   # TESTS
@@ -48,6 +54,7 @@ class TestSyslogServer < CiscoTestCase
     server = Cisco::SyslogServer.new(id, 2, 'default', true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
+    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
@@ -60,6 +67,7 @@ class TestSyslogServer < CiscoTestCase
     server = Cisco::SyslogServer.new(id, 2, 'default', true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
+    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
@@ -72,11 +80,13 @@ class TestSyslogServer < CiscoTestCase
     refute_includes(Cisco::SyslogServer.syslogservers, id2)
 
     server = Cisco::SyslogServer.new(id, 2, 'default', true)
-    server2 = Cisco::SyslogServer.new(id2, 2, 'default', true)
+    server2 = Cisco::SyslogServer.new(id2, 3, 'default', true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
+    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
     assert_includes(Cisco::SyslogServer.syslogservers, id2)
     assert_equal(server2, Cisco::SyslogServer.syslogservers[id2])
+    assert_equal(3, Cisco::SyslogServer.syslogservers[id2].level)
 
     server.destroy
     server2.destroy
@@ -85,28 +95,40 @@ class TestSyslogServer < CiscoTestCase
   end
 
   def test_create_destroy_single_vrf_ipv4
-    config('vrf context red')
+    if platform == :ios_xr
+      config('vrf red')
+    else
+      config('vrf context red')
+    end
+
     id = '1.2.3.4'
 
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
-    server = Cisco::SyslogServer.new(id, 2, 'red', true)
+    server = Cisco::SyslogServer.new(id, 4, 'red', true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
+    assert_equal(4, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
   end
 
   def test_create_destroy_single_vrf_ipv6
-    config('vrf context red')
+    if platform == :ios_xr
+      config('vrf red')
+    else
+      config('vrf context red')
+    end
+
     id = '2003::2'
 
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
-    server = Cisco::SyslogServer.new(id, 2, 'red', true)
+    server = Cisco::SyslogServer.new(id, 5, 'red', true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
+    assert_equal(5, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)

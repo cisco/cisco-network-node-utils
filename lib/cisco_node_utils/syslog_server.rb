@@ -23,6 +23,16 @@ module Cisco
   class SyslogServer < NodeUtil
     attr_reader :name, :level, :vrf
 
+    LEVEL_TO_NUM = { 'emergencies'   => 0,
+                     'alerts'        => 1,
+                     'critical'      => 2,
+                     'error'         => 3,
+                     'warning'       => 4,
+                     'notifications' => 5,
+                     'info'          => 6,
+                     'debugging'     => 7 }.freeze
+    NUM_TO_LEVEL = LEVEL_TO_NUM.invert.freeze
+
     def initialize(name,
                    level=nil,
                    vrf=nil,
@@ -42,12 +52,20 @@ module Cisco
 
     def self.syslogservers
       hash = {}
-
       syslogservers_list = config_get('syslog_server', 'server')
       return hash if syslogservers_list.nil?
 
       syslogservers_list.each do |id|
+        # The YAML regex isn't specific enough for some platforms,
+        # so we have to do further checking.
+        begin
+          IPAddr.new(id)
+        rescue
+          next
+        end
+
         level = config_get('syslog_server', 'level', id)
+        level = LEVEL_TO_NUM[level] if platform == :ios_xr
 
         vrf = config_get('syslog_server', 'vrf', id)
 
@@ -62,18 +80,26 @@ module Cisco
     end
 
     def create
-      # Set timestamp units
-      config_set('syslog_server',
-                 'server',
-                 state: '',
-                 ip:    "#{name}",
-                 level: level.nil? ? '' : "#{level}",
-                 vrf:   vrf.nil? ? '' : "use-vrf #{vrf}",
-                )
+      if platform == :ios_xr
+        config_set('syslog_server',
+                   'server',
+                   state: '',
+                   ip:    "#{name}",
+                   level: level.nil? ? '' : "severity #{NUM_TO_LEVEL[level]}",
+                   vrf:   vrf.nil? ? '' : "vrf #{vrf}",
+                  )
+      else
+        config_set('syslog_server',
+                   'server',
+                   state: '',
+                   ip:    "#{name}",
+                   level: level.nil? ? '' : "#{level}",
+                   vrf:   vrf.nil? ? '' : "use-vrf #{vrf}",
+                  )
+      end
     end
 
     def destroy
-      # Set timestamp units
       config_set('syslog_server',
                  'server',
                  state: 'no',
