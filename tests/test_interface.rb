@@ -972,6 +972,7 @@ class TestInterface < CiscoTestCase
     interface_ethernet_default(intf)
 
     i = Interface.new(intf)
+    assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
     begin
       i.switchport_mode = :disabled
       i.ipv4_forwarding = true
@@ -988,7 +989,7 @@ class TestInterface < CiscoTestCase
     i.ipv4_forwarding = true
     assert(i.ipv4_forwarding)
     i.ipv4_forwarding = i.default_ipv4_forwarding
-    refute(i.ipv4_forwarding)
+    assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
   end
 
   def test_interface_fabric_forwarding_anycast_gateway
