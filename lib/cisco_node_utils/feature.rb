@@ -108,6 +108,17 @@ module Cisco
     end
 
     # ---------------------------
+    def self.vni_enable
+      return if vni_enabled?
+      result = config_set('feature', 'vni')
+      cli_error_check(result)
+    end
+
+    def self.vni_enabled?
+      config_get('feature', 'vni')
+    end
+
+    # ---------------------------
     def self.cli_error_check(result)
       # The NXOS feature cli may not raise an exception in some conditions and
       # instead just displays a STDOUT error message; thus NXAPI does not detect
