@@ -348,11 +348,12 @@ module Cisco
     end
 
     def ipv4_forwarding
-      config_get('interface', 'ipv4_forwarding', @name)
+      config_get('interface', 'ipv4_forwarding', name: @name)
     end
 
     def ipv4_forwarding=(state)
-      config_set('interface', 'ipv4_forwarding', @name, state ? '' : 'no')
+      config_set('interface', 'ipv4_forwarding', name: @name,
+                 state: state ? '' : 'no')
     end
 
     def default_ipv4_forwarding
