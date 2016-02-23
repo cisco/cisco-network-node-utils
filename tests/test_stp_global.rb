@@ -50,83 +50,111 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_bd_forward_time_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     global = StpGlobal.new('default')
-    config 'system bridge-domain all'
-    global.bd_forward_time = global.default_bd_forward_time
-    assert_equal(global.default_bd_forward_time,
-                 global.bd_forward_time)
     bdft = [%w(2-4,6,8-12 4), %w(14 30)]
-    global.bd_forward_time = bdft
-    assert_equal(bdft, global.bd_forward_time)
-    global.bd_forward_time = global.default_bd_forward_time
-    assert_equal(global.default_bd_forward_time,
-                 global.bd_forward_time)
+    if node.product_id =~ /N(3|5|6|9)/
+      assert_nil(global.bd_forward_time)
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_forward_time = bdft
+      end
+    else
+      config 'system bridge-domain all'
+      global.bd_forward_time = global.default_bd_forward_time
+      assert_equal(global.default_bd_forward_time,
+                   global.bd_forward_time)
+      global.bd_forward_time = bdft
+      assert_equal(bdft, global.bd_forward_time)
+      global.bd_forward_time = global.default_bd_forward_time
+      assert_equal(global.default_bd_forward_time,
+                   global.bd_forward_time)
+    end
   end
 
   def test_bd_hello_time_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     global = StpGlobal.new('default')
-    config 'system bridge-domain all'
-    global.bd_hello_time = global.default_bd_hello_time
-    assert_equal(global.default_bd_hello_time,
-                 global.bd_hello_time)
     bdft = [%w(2-4,6,8-12 1), %w(14 10)]
-    global.bd_hello_time = bdft
-    assert_equal(bdft, global.bd_hello_time)
-    global.bd_hello_time = global.default_bd_hello_time
-    assert_equal(global.default_bd_hello_time,
-                 global.bd_hello_time)
+    if node.product_id =~ /N(3|5|6|9)/
+      assert_nil(global.bd_hello_time)
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_hello_time = bdft
+      end
+    else
+      config 'system bridge-domain all'
+      global.bd_hello_time = global.default_bd_hello_time
+      assert_equal(global.default_bd_hello_time,
+                   global.bd_hello_time)
+      global.bd_hello_time = bdft
+      assert_equal(bdft, global.bd_hello_time)
+      global.bd_hello_time = global.default_bd_hello_time
+      assert_equal(global.default_bd_hello_time,
+                   global.bd_hello_time)
+    end
   end
 
   def test_bd_max_age_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     global = StpGlobal.new('default')
-    config 'system bridge-domain all'
-    global.bd_max_age = global.default_bd_max_age
-    assert_equal(global.default_bd_max_age,
-                 global.bd_max_age)
     bdft = [%w(2-4,6,8-12 10), %w(14 40)]
-    global.bd_max_age = bdft
-    assert_equal(bdft, global.bd_max_age)
-    global.bd_max_age = global.default_bd_max_age
-    assert_equal(global.default_bd_max_age,
-                 global.bd_max_age)
+    if node.product_id =~ /N(3|5|6|9)/
+      assert_nil(global.bd_max_age)
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_max_age = bdft
+      end
+    else
+      config 'system bridge-domain all'
+      global.bd_max_age = global.default_bd_max_age
+      assert_equal(global.default_bd_max_age,
+                   global.bd_max_age)
+      global.bd_max_age = bdft
+      assert_equal(bdft, global.bd_max_age)
+      global.bd_max_age = global.default_bd_max_age
+      assert_equal(global.default_bd_max_age,
+                   global.bd_max_age)
+    end
   end
 
   def test_bd_priorities_change
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
     global = StpGlobal.new('default')
-    config 'system bridge-domain all'
-    global.bd_priority = global.default_bd_priority
-    global.bd_root_priority = global.default_bd_root_priority
-    global.bd_designated_priority = global.default_bd_designated_priority
-    assert_equal(global.default_bd_priority,
-                 global.bd_priority)
-    assert_equal(global.default_bd_root_priority,
-                 global.bd_root_priority)
-    assert_equal(global.default_bd_designated_priority,
-                 global.bd_designated_priority)
     bdft = [%w(2-4,6,8-12 4096), %w(14 8192)]
-    global.bd_priority = bdft
-    global.bd_root_priority = bdft
-    global.bd_designated_priority = bdft
-    assert_equal(bdft, global.bd_priority)
-    assert_equal(bdft, global.bd_root_priority)
-    assert_equal(bdft, global.bd_designated_priority)
-    global.bd_priority = global.default_bd_priority
-    global.bd_root_priority = global.default_bd_root_priority
-    global.bd_designated_priority = global.default_bd_designated_priority
-    assert_equal(global.default_bd_priority,
-                 global.bd_priority)
-    assert_equal(global.default_bd_root_priority,
-                 global.bd_root_priority)
-    assert_equal(global.default_bd_designated_priority,
-                 global.bd_designated_priority)
+    if node.product_id =~ /N(3|5|6|9)/
+      assert_nil(global.bd_priority)
+      assert_nil(global.bd_root_priority)
+      assert_nil(global.bd_designated_priority)
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_priority = bdft
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_root_priority = bdft
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        global.bd_designated_priority = bdft
+      end
+    else
+      config 'system bridge-domain all'
+      global.bd_priority = global.default_bd_priority
+      global.bd_root_priority = global.default_bd_root_priority
+      global.bd_designated_priority = global.default_bd_designated_priority
+      assert_equal(global.default_bd_priority,
+                   global.bd_priority)
+      assert_equal(global.default_bd_root_priority,
+                   global.bd_root_priority)
+      assert_equal(global.default_bd_designated_priority,
+                   global.bd_designated_priority)
+      global.bd_priority = bdft
+      global.bd_root_priority = bdft
+      global.bd_designated_priority = bdft
+      assert_equal(bdft, global.bd_priority)
+      assert_equal(bdft, global.bd_root_priority)
+      assert_equal(bdft, global.bd_designated_priority)
+      global.bd_priority = global.default_bd_priority
+      global.bd_root_priority = global.default_bd_root_priority
+      global.bd_designated_priority = global.default_bd_designated_priority
+      assert_equal(global.default_bd_priority,
+                   global.bd_priority)
+      assert_equal(global.default_bd_root_priority,
+                   global.bd_root_priority)
+      assert_equal(global.default_bd_designated_priority,
+                   global.bd_designated_priority)
+    end
   end
 
   def test_get_set_bpdufilter
@@ -160,26 +188,37 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_get_set_domain
-    skip('Platform does not support this property') if n9k_platform?
     global = StpGlobal.new('default')
-    global.domain = 100
-    assert_equal(100, global.domain)
-    global.domain =
-      global.default_domain
-    assert_equal(global.default_domain,
-                 global.domain)
+    if node.product_id =~ /N(3|9)/
+      assert_nil(global.domain)
+      assert_raises(Cisco::UnsupportedError) do
+        global.domain = 200
+      end
+    else
+      global.domain = 100
+      assert_equal(100, global.domain)
+      global.domain =
+        global.default_domain
+      assert_equal(global.default_domain,
+                   global.domain)
+    end
   end
 
   def test_get_set_fcoe
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n7k_platform?
     global = StpGlobal.new('default')
-    global.fcoe = false
-    assert_equal(false, global.fcoe)
-    global.fcoe =
-      global.default_fcoe
-    assert_equal(global.default_fcoe,
-                 global.fcoe)
+    if node.product_id =~ /N(5|6|7)/
+      assert_nil(global.fcoe)
+      assert_raises(Cisco::UnsupportedError) do
+        global.fcoe = false
+      end
+    else
+      global.fcoe = false
+      assert_equal(false, global.fcoe)
+      global.fcoe =
+        global.default_fcoe
+      assert_equal(global.default_fcoe,
+                   global.fcoe)
+    end
   end
 
   def test_get_set_loopguard
