@@ -13,7 +13,6 @@ Changelog
 *
 
 ### Added
-<<<<<<< HEAD
 * `test_feature` minitest
 * Extend interface with attributes:
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
