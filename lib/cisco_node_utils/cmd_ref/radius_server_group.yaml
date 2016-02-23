@@ -3,12 +3,14 @@
 _template:
   multiple: true
   default_value: []
-  config_get: "show running-config radius all"
+  get_command: "show running-config radius all"
 
 group:
-  config_get_token: '/^aaa group server radius (\S+)/'
-  config_set: '<state> aaa group server radius <name>'
+  get_value: '/^aaa group server radius (\S+)/'
+  set_value: '<state> aaa group server radius <name>'
 
 servers:
-  config_get_token: ['/^aaa group server radius %s $/i', '/server (\S+)/']
-  config_set: ['aaa group server radius <group>', '<state> server <ip>']
+  get_context: ['/^aaa group server radius %s $/i']
+  get_value: '/server (\S+)/'
+  set_context: ['aaa group server radius <group>']
+  set_value: '<state> server <ip>'

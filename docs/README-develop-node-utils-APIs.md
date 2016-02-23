@@ -22,47 +22,76 @@ There are multiple components involved when creating new resources. This documen
 
 ## <a name="prerequisites">Before You Begin</a>
 
-Please note: A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+### <a name="prereq_git">Git Configuration</a>
 
-This development guide uses tools that are packaged as gems that need to be installed on your server.
+Any code commits must be associated with your github account and email address.  If you intend to commit code to this repository then you must configure `git` with your identity.  If you have not already done so, use the following commands to configure the default identity that `git` will use for all projects on your system:
 
 ```bash
-gem install cisco_nxapi
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
+If you do not wish to change the global configuration on your system, you can set your identity for a single local repository by using the above commands without the ``--global`` flag.
+
+### <a name="prereq_ruby">Ruby Prerequisites</a>
+
+This project requires Ruby 2.0 or later.
+
+This development guide uses tools that are packaged as gems that need to be installed in your development environment.
+
+```bash
 gem install rake
 gem install rubocop
 gem install simplecov
 gem install minitest
 ```
 
-**NOTE:** If you are working from a server where you don't have admin/root privilages, use the following commands to install the gems and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`
+**NOTE:** If you are working from a server where you don't have admin/root privileges, use the following commands to install the gems 
 
 ```bash
-gem install --user-install cisco_nxapi
 gem install --user-install rake
 gem install --user-install rubocop
 gem install --user-install simplecov
 gem install --user-install minitest
 ```
+or add `--user-install` to your `.gemrc` to make this the default behavior:
+
+```bash
+echo 'gem: --user-install' >> ~/.gemrc
+```
+and then update the `PATH` to include `~/.gem/ruby/x.x.x/bin`.  For example, you could add this to your `.bashrc` or `.profile`:
+
+```bash
+if which ruby >/dev/null && which gem >/dev/null; then
+    PATH="$(ruby -rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+```
+
+### <a name="prereq_vm">Nexus VM (optional)</a>
+
+A virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+
 
 ## <a name="clone">Start here: Fork and Clone the Repo</a>
 
-First [fork](https://help.github.com/articles/fork-a-repo) the [cisco-network-node-utils](https://github.com/cisco/cisco-network-node-utils) git repository 
+First [fork](https://help.github.com/articles/fork-a-repo) the [cisco-network-node-utils](https://github.com/cisco/cisco-network-node-utils) repository on GitHub.
 
-Next install the code base. Clone the cisco-network-node-utils repo from your fork into a workspace:
+Next create your local repository. Clone the cisco-network-node-utils repo from your fork into a workspace:
 
 ```bash
 git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
 ```
 
-Please note that any code commits must be associated with your github account and email address. If you intend to commit code to this repository then use the following commands to update your workspace with your credentials:
+If you intend to contribute your code back to the project then you should install the git hooks that are checked in with the project source code.  These hooks check your commits for conformance with various style guidelines.  To install them in your local repository (or to update them to match the files currently in the repository, in case they are out of sync), simply run the `update-hooks` script:
 
 ```bash
-git config --global user.name "John Doe"
-git config --global user.email johndoe@example.com
+bin/git/update-hooks
 ```
 
-As a best practice create a topic/feature branch for your feature work using the `git branch feature/<feature_name>` command.
+
+## <a name="complex">Example: router eigrp</a>
+
+As a best practice, create a topic branch (also sometimes called a feature branch) for your feature work using the `git branch feature/<feature_name>` command.
 
 ```bash
 git branch feature/eigrp
@@ -71,10 +100,7 @@ git branch
   feature/eigrp
 ```
 
-
-## <a name="complex">Example: router eigrp</a>
-
-Before you start working on the eigrp feature, checkout the feature branch you created earlier.
+Before you start working on the eigrp feature, checkout its topic branch, `feature/eigrp`.
 
 ```bash
 git checkout feature/eigrp
@@ -111,15 +137,15 @@ YAML files in the `/cmd_ref/` subdirectory are automatically discovered at runti
 
 The following basic command_reference parameters will be defined for each resource property:
 
- 1. `config_get:` This defines the NX-OS CLI command (usually a 'show...' command) used to retrieve the property's current configuration state. Note that some commands may not be present until a feature is enabled.
- 2. `config_get_token:` A regexp pattern for extracting state values from the config_get output.
- 3. `config_set:` The NX-OS CLI configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
+ 1. `get_command:` This defines the CLI command (usually a 'show...' command) or similar request string used to retrieve the property's current configuration state. Note that some commands may not be present on NX-OS until a pre-requisite feature is enabled.
+ 2. `get_value:` A regexp pattern for extracting state values from the get_command output.
+ 3. `set_value:` The configuration command(s) used to set the property configuration. May contain wildcards for variable parameters.
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
  5. `kind:` The data type of this property. If omitted, the property will be a string by default. Commonly used values for this property are `int` and `boolean`.
- 6. `multiple:` By default a property is assumed to be found once or not at all by the `config_get`/`config_get_token` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
+ 6. `multiple:` By default a property is assumed to be found once or not at all by the `get_command`/`get_value` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
 
 There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md) document for more information on the structure and semantics of these files.
-The properties in this example require additional context for their config_get_token values because they need to differentiate between different eigrp instances. Most properties will also have a default value.
+The properties in this example require additional context for their `get_value` and `set_value` because they need to differentiate between different eigrp instances. This is done with the `context` parameter. (For more complex properties, you can define `get_context` and `set_context` separately if needed.) Most properties will also have a default value.
 
 *Note: Eigrp also has vrf and address-family contexts. These contexts require additional coding and are beyond the scope of this document.*
 
@@ -135,31 +161,35 @@ The properties in this example require additional context for their config_get_t
 feature:
   # feature eigrp must be enabled before configuring router eigrp
   kind: boolean
-  config_get: 'show running eigrp all'
-  config_get_token: '/^feature eigrp$/'
-  config_set: '<state> feature eigrp'
+  get_command: 'show running eigrp all'
+  get_value: 'feature eigrp'
+  set_value: '<state> feature eigrp'
 
 maximum_paths:
   # This is an integer property
   kind: int
-  config_get: 'show running eigrp all'
-  config_get_token: ['/^router eigrp <name>$/', '/^maximum-paths (\d+)/']
-  config_set: ['router eigrp <name>', 'maximum-paths <val>']
+  context: 
+    - 'router eigrp <name>'
+  get_command: 'show running eigrp all'
+  get_value: 'maximum-paths (\d+)'
+  set_value: 'maximum-paths <val>'
   default_value: 8
 
 router:
   # There can be multiple eigrp instances
   multiple: true
-  config_get: 'show running eigrp all'         # all eigrp-related configs
-  config_get_token: '/^router eigrp (\S+)$/'   # Match instance name
-  config_set: '<state> router eigrp <name>'    # config to add or remove
+  get_command: 'show running eigrp all'         # all eigrp-related configs
+  get_value: 'router eigrp (\S+)'   # Match instance name
+  set_value: '<state> router eigrp <name>'    # config to add or remove
 
 shutdown:
   # This is a boolean property
   kind: boolean
-  config_get: 'show running eigrp all'
-  config_get_token: ['/^router eigrp <name>$/', '/^shutdown$/']
-  config_set: ['router eigrp <name>', '<state> shutdown']
+  context:
+    - 'router eigrp <name>'
+  get_command: 'show running eigrp all'
+  get_value: 'shutdown'
+  set_value: '<state> shutdown'
   default_value: false
 ```
 

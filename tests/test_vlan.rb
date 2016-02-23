@@ -249,11 +249,9 @@ class TestVlan < CiscoTestCase
   def test_vlan_add_interface_invalid
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
-    begin
-      interface.switchport_mode = :disabled
-      assert_raises(RuntimeError) { v.add_interface(interface) }
-      v.destroy
-    end
+    interface.switchport_mode = :disabled
+    assert_raises(RuntimeError) { v.add_interface(interface) }
+    v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
@@ -263,11 +261,10 @@ class TestVlan < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     v.add_interface(interface)
-    begin
-      interface.switchport_mode = :disabled
-      assert_raises(RuntimeError) { v.remove_interface(interface) }
-      v.destroy
-    end
+    interface.switchport_mode = :disabled
+    assert_raises(RuntimeError) { v.remove_interface(interface) }
+
+    v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
