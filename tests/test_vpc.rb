@@ -231,7 +231,8 @@ class TestVpc < CiscoTestCase
   end
 
   def test_self_isolation
-    skip('Only supported on N7K') unless node.product_id[/N7/]
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'self_isolation').default_value.nil?
 
     @vpc = Vpc.new(100)
     @vpc.self_isolation = true
@@ -288,6 +289,9 @@ class TestVpc < CiscoTestCase
     assert_equal(44, @vpc.track, 'track should be 44')
   end
 
+  ##############################################################################
+  # Test interface properties for vPC
+  #
   def test_interface_vpc_id
     @vpc = Vpc.new(100)
     # test phy port vpc
@@ -341,6 +345,98 @@ class TestVpc < CiscoTestCase
     interface.channel_group = 100
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :trunk
+    refute(interface_pc.vpc_peer_link,
+           'vpc_peer_link should not be set by default')
+    interface_pc.vpc_peer_link = true
+    assert(interface_pc.vpc_peer_link, 'vpc_peer_link should be set')
+    interface_pc.vpc_peer_link = false
+    refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
+    # clean up
+    interface.channel_group = false
+    refute(interface.channel_group, 'channel group should be unset')
+    # try with a phy port
+    interface = Interface.new(interfaces[1])
+    # negative - cannot config peer link on this
+    e = assert_raises(CliError) do
+      interface.vpc_peer_link = true
+    end
+    assert_match(/Invalid/i, e.message)
+  end
+
+  ##############################################################################
+  # Test vPC+ properties
+  #
+  def test_fabricpath_emulated_switch_id
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'fabricpath_emulated_switch_id').default_value.nil?
+    @vpc = Vpc.new(100)
+    refute(@vpc.fabricpath_emulated_switch_id,
+           'vPC+ (fabricpath switch-id) should not be enabled by default')
+    @vpc.fabricpath_emulated_switch_id = 1000
+    assert_equal(1000, @vpc.fabricpath_emulated_switch_id,
+                 'fabricpath emulated switch-id/ESWID should be 1000')
+    @vpc.fabricpath_emulated_switch_id = false
+    refute(@vpc.fabricpath_emulated_switch_id,
+           'vPC+ (fabricpath switch-id) not getting disabled')
+  end
+
+  def test_fabricpath_multicast_load_balance
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc',
+                     'fabricpath_multicast_load_balance').default_value.nil?
+    @vpc = Vpc.new(100)
+    refute(@vpc.fabricpath_multicast_load_balance,
+           'fabricpath multicast loadbalance should not be enabled by default')
+    e = assert_raises(RuntimeError) do
+      @vpc.fabricpath_multicast_load_balance = true
+    end
+    assert_match(/fabricpath_switch_id configuration is required/, e.message)
+    @vpc.fabricpath_emulated_switch_id = 1000
+    @vpc.fabricpath_multicast_load_balance = true
+    assert(@vpc.fabricpath_multicast_load_balance,
+           'fabricpath multicast loadbalance not getting enabled')
+    @vpc.fabricpath_multicast_load_balance = false
+    refute(@vpc.fabricpath_multicast_load_balance,
+           'fabricpath multicast loadbalance not getting disabled')
+  end
+
+  def test_port_channel_limit
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'port_channel_limit').default_value.nil?
+    @vpc = Vpc.new(100)
+    assert(@vpc.port_channel_limit,
+           'port_channel_limit should be enabled by default')
+    e = assert_raises(RuntimeError) do
+      @vpc.port_channel_limit = false
+    end
+    assert_match(/fabricpath_switch_id configuration is required/, e.message)
+    @vpc.fabricpath_emulated_switch_id = 1000
+    @vpc.fabricpath_multicast_load_balance = true
+    @vpc.port_channel_limit = false
+    refute(@vpc.port_channel_limit,
+           'port_channel_limit not getting disabled')
+    e = assert_raises(CliError) do
+      @vpc.fabricpath_multicast_load_balance = false
+    end
+    assert_match(/ERROR: Configure port-channel limit first/, e.message)
+    @vpc.port_channel_limit = true
+    assert(@vpc.port_channel_limit,
+           'port_channel_limit not getting re-enabled')
+  end
+
+  def test_interface_vpc_plus_peer_link
+    skip("Test not supported on #{node.product_id}") if
+      cmd_ref.lookup('vpc', 'fabricpath_emulated_switch_id').default_value.nil?
+    @vpc = Vpc.new(100)
+    # make it vpc plus by setting a fabricpath switch-id
+    @vpc.fabricpath_emulated_switch_id = 1000
+    # Make sure PKA is set
+    @vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
+                            6, 3)
+    interface = InterfaceChannelGroup.new(interfaces[1])
+    interface.channel_group = 100
+    interface_pc = Interface.new('port-channel100')
+    interface_pc.switchport_mode = :fabricpath
     refute(interface_pc.vpc_peer_link,
            'vpc_peer_link should not be set by default')
     interface_pc.vpc_peer_link = true

@@ -53,20 +53,27 @@ dual_active_exclude_interface_vlan_bridge_domain:
     config_set_append: "<state> dual-active exclude interface-vlan <range>"
   default_value: 'none'
 
-#vPC+ CLIs
+fabricpath_emulated_switch_id: 
+  _exclude: [N3k, N9k]
+  kind: int
+  config_get:  'show running-config vpc all'
+  config_get_token:  ['/^vpc domain\s*(\d+)$/', '/^fabricpath switch\-id\s+(\d+)/']
+  config_set:  ['terminal dont-ask persist', 'vpc domain <domain>', '<state> fabricpath switch-id <swid>', 'no terminal dont-ask persist']
+  default_value: false
+
+# fabricpath_emulated_switch_id: 
+#   _exclude: [N3k, N9k]
+#   kind: int
+#   config_get_token_append: '/^fabricpath switch\-id\s+(\d+)/'
+#   config_set_append: ["terminal dont-ask persist", "<state> fabricpath switch-id <swid>"]
+#   default_value: false
+
 fabricpath_multicast_load_balance: 
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: boolean
-  config_get_token_append: '/^fabricpath multicast load-balance'
+  config_get_token_append: '/^fabricpath multicast load\-balance/'
   config_set_append: "<state> fabricpath multicast load-balance"
   default_value: false
-
-fabricpath_switch_id: 
-  kind: int
-  config_get_token_append: '/^fabricpath switch\-id\s+(\d+)/'
-  config_set_append: "<state> fabricpath switch-id <swid>"
-  default_value: false
-
-#END vPC+ CLIs
 
 feature: 
   kind: boolean
@@ -152,10 +159,12 @@ peer_keepalive_vrf:
   default_value: 'management'
 
 port_channel_limit: 
-  _exclude: [N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k]
+  auto_default: false
   kind: boolean    
   config_get_token_append: '/^port\-channel limit/'
   config_set_append: "<state> port-channel limit"
+  default_value: true
 
 role_priority: 
   kind: int
