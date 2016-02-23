@@ -590,8 +590,7 @@ module Cisco
 
     def stp_cost
       cost = config_get('interface', 'stp_cost', @name)
-      cost = cost.to_i unless cost == 'auto'
-      cost
+      cost == 'auto' ? cost : cost.to_i
     end
 
     def stp_cost=(val)
@@ -654,19 +653,10 @@ module Cisco
       config_get('interface', 'stp_mst_cost', @name)
     end
 
-    # need to reset range which is not being set
     def stp_mst_cost=(list)
       config_set('interface', 'stp_mst_cost',
-                 @name, 'no', Cisco.get_reset_range('0-4094', list), '')
-      list.each do |inst, pri|
-        if pri == 'default'
-          config_set('interface', 'stp_mst_cost',
-                     @name, 'no', inst, '')
-        else
-          config_set('interface', 'stp_mst_cost',
-                     @name, '', inst, pri)
-        end
-      end
+                 @name, 'no', '0-4094', '') if list.empty?
+      set_range_based_params(list, 'stp_mst_cost')
     end
 
     def default_stp_mst_cost
@@ -683,19 +673,10 @@ module Cisco
       config_get('interface', 'stp_mst_port_priority', @name)
     end
 
-    # need to reset range which is not being set
     def stp_mst_port_priority=(list)
       config_set('interface', 'stp_mst_port_priority',
-                 @name, 'no', Cisco.get_reset_range('0-4094', list), '')
-      list.each do |inst, pri|
-        if pri == 'default'
-          config_set('interface', 'stp_mst_port_priority',
-                     @name, 'no', inst, '')
-        else
-          config_set('interface', 'stp_mst_port_priority',
-                     @name, '', inst, pri)
-        end
-      end
+                 @name, 'no', '0-4094', '') if list.empty?
+      set_range_based_params(list, 'stp_mst_port_priority')
     end
 
     def default_stp_mst_port_priority
@@ -730,19 +711,10 @@ module Cisco
       config_get('interface', 'stp_vlan_cost', @name)
     end
 
-    # need to reset range which is not being set
     def stp_vlan_cost=(list)
       config_set('interface', 'stp_vlan_cost',
-                 @name, 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, pri|
-        if pri == 'default'
-          config_set('interface', 'stp_vlan_cost',
-                     @name, 'no', range, '')
-        else
-          config_set('interface', 'stp_vlan_cost',
-                     @name, '', range, pri)
-        end
-      end
+                 @name, 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'stp_vlan_cost')
     end
 
     def default_stp_vlan_cost
@@ -759,19 +731,10 @@ module Cisco
       config_get('interface', 'stp_vlan_port_priority', @name)
     end
 
-    # need to reset range which is not being set
     def stp_vlan_port_priority=(list)
       config_set('interface', 'stp_vlan_port_priority',
-                 @name, 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, pri|
-        if pri == 'default'
-          config_set('interface', 'stp_vlan_port_priority',
-                     @name, 'no', range, '')
-        else
-          config_set('interface', 'stp_vlan_port_priority',
-                     @name, '', range, pri)
-        end
-      end
+                 @name, 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'stp_vlan_port_priority')
     end
 
     def default_stp_vlan_port_priority
@@ -1138,6 +1101,19 @@ module Cisco
 
     def default_vrf
       config_get_default('interface', 'vrf')
+    end
+
+    def set_range_based_params(list, param_name)
+      list.each do |range, property_value|
+        # if a particular range is set to default, use 'no' cmd
+        if property_value == 'default'
+          config_set('interface', param_name,
+                     @name, 'no', range, '')
+        else
+          config_set('interface', param_name,
+                     @name, '', range, property_value)
+        end
+      end
     end
   end  # Class
 end    # Module

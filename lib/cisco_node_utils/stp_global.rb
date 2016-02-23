@@ -16,6 +16,7 @@
 
 require_relative 'node_util'
 require_relative 'interface'
+require_relative 'vlan'
 
 module Cisco
   # node_utils class for stp_global
@@ -46,20 +47,11 @@ module Cisco
       config_get('stp_global', 'bd_designated_priority')
     end
 
-    # need to reset range which is not being set
     def bd_designated_priority=(list)
-      config_set('stp_global', 'bd_designated_priority',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'bd_designated_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_designated_priority',
-                     '', range, pri)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_designated_priority', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_designated_priority')
     end
 
     def default_bd_designated_priority
@@ -76,20 +68,11 @@ module Cisco
       config_get('stp_global', 'bd_forward_time')
     end
 
-    # need to reset range which is not being set
     def bd_forward_time=(list)
-      config_set('stp_global', 'bd_forward_time',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, ft|
-        # if a particular range is set to default, use 'no' cmd
-        if ft == 'default'
-          config_set('stp_global', 'bd_forward_time',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_forward_time',
-                     '', range, ft)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_forward_time', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_forward_time')
     end
 
     def default_bd_forward_time
@@ -106,20 +89,11 @@ module Cisco
       config_get('stp_global', 'bd_hello_time')
     end
 
-    # need to reset range which is not being set
     def bd_hello_time=(list)
-      config_set('stp_global', 'bd_hello_time',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, ht|
-        # if a particular range is set to default, use 'no' cmd
-        if ht == 'default'
-          config_set('stp_global', 'bd_hello_time',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_hello_time',
-                     '', range, ht)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_hello_time', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_hello_time')
     end
 
     def default_bd_hello_time
@@ -136,20 +110,11 @@ module Cisco
       config_get('stp_global', 'bd_max_age')
     end
 
-    # need to reset range which is not being set
     def bd_max_age=(list)
-      config_set('stp_global', 'bd_max_age',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, ma|
-        # if a particular range is set to default, use 'no' cmd
-        if ma == 'default'
-          config_set('stp_global', 'bd_max_age',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_max_age',
-                     '', range, ma)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_max_age', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_max_age')
     end
 
     def default_bd_max_age
@@ -166,20 +131,11 @@ module Cisco
       config_get('stp_global', 'bd_priority')
     end
 
-    # need to reset range which is not being set
     def bd_priority=(list)
-      config_set('stp_global', 'bd_priority',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'bd_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_priority',
-                     '', range, pri)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_priority', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_priority')
     end
 
     def default_bd_priority
@@ -196,20 +152,11 @@ module Cisco
       config_get('stp_global', 'bd_root_priority')
     end
 
-    # need to reset range which is not being set
     def bd_root_priority=(list)
-      config_set('stp_global', 'bd_root_priority',
-                 'no', Cisco.get_reset_range('2-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'bd_root_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'bd_root_priority',
-                     '', range, pri)
-        end
-      end
+      vlans = bd_total_range_with_vlans
+      config_set('stp_global', 'bd_root_priority', 'no',
+                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      set_range_based_params(list, 'bd_root_priority')
     end
 
     def default_bd_root_priority
@@ -331,21 +278,11 @@ module Cisco
       config_get('stp_global', 'mst_designated_priority')
     end
 
-    # need to reset range which is not being set
     def mst_designated_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_designated_priority',
-                 'no', Cisco.get_reset_range('0-4094', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'mst_designated_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'mst_designated_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '0-4094', '') if list.empty?
+      set_range_based_params(list, 'mst_designated_priority')
     end
 
     def default_mst_designated_priority
@@ -402,27 +339,10 @@ module Cisco
       config_get('stp_global', 'mst_inst_vlan_map')
     end
 
-    # need to reset range which is not being set
-    # however, in this case, the range is the 2nd value
-    # in the array unlike the other range based paramaters
-    # where range is the first and so, reverse the array
-    # first and get the required reset range and reset
     def mst_inst_vlan_map=(list)
       check_stp_mode_mst
-      # do a deep copy of the array first
-      llist = []
-      list.each do |element|
-        llist << element.dup
-      end
-      # swap elements of the new array
-      llist.each do |elem|
-        tmp = elem[1]
-        elem[1] = elem[0]
-        elem[0] = tmp
-      end
-      reset_list = Cisco.get_reset_range('1-4094', llist)
       config_set('stp_global', 'mst_inst_vlan_map', '',
-                 '0', 'vlan', reset_list)
+                 '0', 'vlan', '1-4094') if list.empty?
       list.each do |inst, range|
         # if a particular range is set to default, use 'no' cmd
         if range == 'default'
@@ -509,21 +429,11 @@ module Cisco
       config_get('stp_global', 'mst_priority')
     end
 
-    # need to reset range which is not being set
     def mst_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_priority',
-                 'no', Cisco.get_reset_range('0-4094', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'mst_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'mst_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '0-4094', '') if list.empty?
+      set_range_based_params(list, 'mst_priority')
     end
 
     def default_mst_priority
@@ -560,21 +470,11 @@ module Cisco
       config_get('stp_global', 'mst_root_priority')
     end
 
-    # need to reset range which is not being set
     def mst_root_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_root_priority',
-                 'no', Cisco.get_reset_range('0-4094', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'mst_root_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'mst_root_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '0-4094', '') if list.empty?
+      set_range_based_params(list, 'mst_root_priority')
     end
 
     def default_mst_root_priority
@@ -607,20 +507,10 @@ module Cisco
       config_get('stp_global', 'vlan_designated_priority')
     end
 
-    # need to reset range which is not being set
     def vlan_designated_priority=(list)
       config_set('stp_global', 'vlan_designated_priority',
-                 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'vlan_designated_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_designated_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_designated_priority')
     end
 
     def default_vlan_designated_priority
@@ -637,20 +527,10 @@ module Cisco
       config_get('stp_global', 'vlan_forward_time')
     end
 
-    # need to reset range which is not being set
     def vlan_forward_time=(list)
       config_set('stp_global', 'vlan_forward_time',
-                 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, ft|
-        # if a particular range is set to default, use 'no' cmd
-        if ft == 'default'
-          config_set('stp_global', 'vlan_forward_time',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_forward_time',
-                     '', range, ft)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_forward_time')
     end
 
     def default_vlan_forward_time
@@ -667,22 +547,10 @@ module Cisco
       config_get('stp_global', 'vlan_hello_time')
     end
 
-    # need to reset range which is not being set
-    # the 'no' cmd does not work for this due to some
-    # issue so we need to reset it differently
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
-                 '', Cisco.get_reset_range('1-3967', list), '2')
-      list.each do |range, ht|
-        # if a particular range is set to default, use 'no' cmd
-        if ht == 'default'
-          config_set('stp_global', 'vlan_hello_time',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_hello_time',
-                     '', range, ht)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_hello_time')
     end
 
     def default_vlan_hello_time
@@ -699,20 +567,10 @@ module Cisco
       config_get('stp_global', 'vlan_max_age')
     end
 
-    # need to reset range which is not being set
     def vlan_max_age=(list)
       config_set('stp_global', 'vlan_max_age',
-                 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, ma|
-        # if a particular range is set to default, use 'no' cmd
-        if ma == 'default'
-          config_set('stp_global', 'vlan_max_age',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_max_age',
-                     '', range, ma)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_max_age')
     end
 
     def default_vlan_max_age
@@ -729,20 +587,10 @@ module Cisco
       config_get('stp_global', 'vlan_priority')
     end
 
-    # need to reset range which is not being set
     def vlan_priority=(list)
       config_set('stp_global', 'vlan_priority',
-                 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'vlan_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_priority')
     end
 
     def default_vlan_priority
@@ -759,20 +607,10 @@ module Cisco
       config_get('stp_global', 'vlan_root_priority')
     end
 
-    # need to reset range which is not being set
     def vlan_root_priority=(list)
       config_set('stp_global', 'vlan_root_priority',
-                 'no', Cisco.get_reset_range('1-3967', list), '')
-      list.each do |range, pri|
-        # if a particular range is set to default, use 'no' cmd
-        if pri == 'default'
-          config_set('stp_global', 'vlan_root_priority',
-                     'no', range, '')
-        else
-          config_set('stp_global', 'vlan_root_priority',
-                     '', range, pri)
-        end
-      end
+                 'no', '1-3967', '') if list.empty?
+      set_range_based_params(list, 'vlan_root_priority')
     end
 
     def default_vlan_root_priority
@@ -782,6 +620,33 @@ module Cisco
     def check_stp_mode_mst
       fail "#{caller[0][/`.*'/][1..-2]} cannot be set unless spanning-tree" \
         ' mode is mst' unless mode == 'mst'
+    end
+
+    # bridge-domain and vlans are mutually exclusive
+    # so when there are vlans, we need to remove them
+    # from the bd range while restting
+    def bd_total_range_with_vlans
+      hash = Vlan.vlans
+      arr = []
+      hash.keys.each do |id|
+        arr << id.to_i
+      end
+      Utils.array_to_str(arr)
+      ret_arr = []
+      ret_arr << Utils.array_to_str(arr)
+    end
+
+    def set_range_based_params(list, param_name)
+      list.each do |range, property_value|
+        # if a particular range is set to default, use 'no' cmd
+        if property_value == 'default'
+          config_set('stp_global', param_name,
+                     'no', range, '')
+        else
+          config_set('stp_global', param_name,
+                     '', range, property_value)
+        end
+      end
     end
   end # class
 end # module
