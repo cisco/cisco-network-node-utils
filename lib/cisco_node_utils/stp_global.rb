@@ -565,8 +565,16 @@ module Cisco
 
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
-                 state: 'no', range: @vr, val: '') if list.empty?
-      set_range_based_params(list, 'vlan_hello_time')
+                 state: '', range: @vr, val: '2') if list.empty?
+      list.each do |range, property_value|
+        if property_value == 'default'
+          config_set('stp_global', 'vlan_hello_time',
+                     state: '', range: range, val: '2')
+        else
+          config_set('stp_global', 'vlan_hello_time',
+                     state: '', range: range, val: property_value)
+        end
+      end
     end
 
     def default_vlan_hello_time
