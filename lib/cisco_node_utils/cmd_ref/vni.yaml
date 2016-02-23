@@ -5,37 +5,42 @@ all_vnis:
   multiple:
   N7k:
     # MT-full only
-    config_get: 'show vni'
-    config_get_token: '/^(\d+)\s/'
+    get_command: 'show vni'
+    get_value: '/^(\d+)\s/'
   N3k: &all_vnis_mt_lite
     # MT-lite only
-    config_get: 'show running vlan'
-    config_get_token: '/vn-segment (\d+)/'
+    get_command: 'show running vlan'
+    get_value: '/vn-segment (\d+)/'
   N9k: *all_vnis_mt_lite
 
 bridge_domain:
   # MT-full only
-  config_get: 'show vni'
-  config_get_token: [ '/^%d\s+\S+\s+(\d+)/' ]
-  config_set: ['bridge-domain <domain>', '<state> member vni <vni>', 'end']
+  get_command: 'show vni'
+  get_value: '/^%d\s+\S+\s+(\d+)/'
+  set_context: ['bridge-domain <domain>']
+  set_value: '<state> member vni <vni>'
   default_value: ~
 
 bridge_domain_activate:
-  config_set: ['<state> system bridge-domain add <domain>', 'end']
+  set_value: '<state> system bridge-domain add <domain>'
 
 create:
-  config_set: ['vni <vni>' , 'end']
+  set_value: 'vni <vni>'
 
 destroy:
   N7k:
     # MT-full only
-    config_set: 'no vni <vni>'
+    set_value: 'no vni <vni>'
   N3k: &destroy_mt_lite
     # MT-lite only
-    config_set: ['vlan <vlan>', 'no vn-segment <vni> ; end']
+    set_context: ['vlan <vlan>']
+    set_value: 'no vn-segment <vni>'
   N9k: *destroy_mt_lite
+
 encap_dot1q:
-  config_set: ["encapsulation profile vni %s", "%s dot1q %s vni %s", "end"]
+  set_context:
+    - "encapsulation profile vni %s"
+  set_value: "%s dot1q %s vni %s"
   default_value: ~
 
 mt_full_support:
@@ -61,7 +66,8 @@ shutdown:
   # MT-Full only
   N7k:
     kind: boolean
-    config_get: 'show vni'
-    config_get_token: '/^<vni> +Down/'
-    config_set: ['vni <vni>', '<state> shutdown', 'end']
+    get_command: 'show vni'
+    get_value: '/^<vni> +Down/'
+    set_context: ['vni <vni>']
+    set_value: '<state> shutdown'
     default_value: false

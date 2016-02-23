@@ -143,7 +143,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
+        Cisco::Logger.debug("#{prop}" \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |community|
           state = (action == :add) ? '' : 'no'

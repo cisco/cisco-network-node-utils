@@ -35,10 +35,14 @@ class TestVrf < CiscoTestCase
     remove_all_vrfs
   end
 
-  def test_collection_not_empty
+  def test_collection_default
     vrfs = Vrf.vrfs
-    refute_empty(vrfs, 'VRF collection is empty')
-    assert(vrfs.key?('management'), 'VRF management does not exist')
+    if platform == :nexus
+      refute_empty(vrfs, 'VRF collection is empty')
+      assert(vrfs.key?('management'), 'VRF management does not exist')
+    else
+      assert_empty(vrfs, 'VRF collection is not empty')
+    end
   end
 
   def test_create_and_destroy
@@ -73,6 +77,13 @@ class TestVrf < CiscoTestCase
 
   def test_shutdown
     v = Vrf.new('test_shutdown')
+    if platform == :ios_xr
+      assert_nil(v.shutdown)
+      assert_nil(v.default_shutdown)
+      assert_raises(Cisco::UnsupportedError) { v.shutdown = true }
+      v.destroy
+      return
+    end
     v.shutdown = true
     assert(v.shutdown)
     v.shutdown = false
@@ -113,6 +124,14 @@ class TestVrf < CiscoTestCase
 
   def test_route_distinguisher
     v = Vrf.new('blue')
+    if platform == :ios_xr
+      # Must be configured under BGP in IOS XR
+      assert_nil(v.route_distinguisher)
+      assert_nil(v.default_route_distinguisher)
+      assert_raises(Cisco::UnsupportedError) { v.route_distinguisher = 'auto' }
+      v.destroy
+      return
+    end
     v.route_distinguisher = 'auto'
     assert_equal('auto', v.route_distinguisher)
 
@@ -152,6 +171,45 @@ class TestVrf < CiscoTestCase
     assert_equal(0, VrfAF.afs['blue'].keys.count)
   end
 
+  #-----------------------------------------
+  # test_route_policy
+  def test_route_policy
+    [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_policy(af) }
+  end
+
+  def route_policy(af)
+    vrf = 'blue'
+    v = VrfAF.new(vrf, af)
+
+    assert_nil(v.default_route_policy_import,
+               "Test1.1 : #{af} : route_policy_import")
+    assert_nil(v.default_route_policy_export,
+               "Test1.2 : #{af} : route_policy_export")
+    opts = [:import, :export]
+    # test route_target_import
+    # test route_target_export
+    opts.each do |opt|
+      # test route_policy set, from nil to name
+      policy_name = 'abc'
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_equal(policy_name, result,
+                   "Test2.1 : #{af} : route_policy_#{opt}")
+
+      # test route_policy remove, from name to nil
+      policy_name = nil
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_nil(result, "Test2.2 : #{af} : route_policy_#{opt}")
+
+      # test route_policy remove, from nil to nil
+      v.send("route_policy_#{opt}=", policy_name)
+      result = v.send("route_policy_#{opt}")
+      assert_nil(result, "Test2.3 : #{af} : route_policy_#{opt}")
+    end
+    v.destroy
+  end
+
   def test_route_target
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_target(af) }
   end
@@ -174,21 +232,31 @@ class TestVrf < CiscoTestCase
     refute(v.default_route_target_both_auto_evpn,
            'default value for route target both auto evpn should be false')
 
-    v.route_target_both_auto = true
-    assert(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'v route-target both auto should be enabled')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
+    else
+      v.route_target_both_auto = true
+      assert(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto should be enabled')
 
-    v.route_target_both_auto = false
-    refute(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-           'v route-target both auto should be disabled')
+      v.route_target_both_auto = false
+      refute(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto should be disabled')
+    end
 
-    v.route_target_both_auto_evpn = true
-    assert(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'v route-target both auto evpn should be enabled')
+    if platform == :ios_xr
+      assert_raises(Cisco::UnsupportedError) do
+        v.route_target_both_auto_evpn = true
+      end
+    else
+      v.route_target_both_auto_evpn = true
+      assert(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto evpn should be enabled')
 
-    v.route_target_both_auto_evpn = false
-    refute(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-           'v route-target both auto evpn should be disabled')
+      v.route_target_both_auto_evpn = false
+      refute(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto evpn should be disabled')
+    end
 
     opts = [:import, :export]
 
@@ -211,6 +279,7 @@ class TestVrf < CiscoTestCase
     # Test 4: 'default'
     should = v.default_route_target_import
     route_target_tester(v, af, opts, should, 'Test 4')
+    v.destroy
   end
 
   def route_target_tester(v, af, opts, should, test_id)
@@ -219,7 +288,22 @@ class TestVrf < CiscoTestCase
       # non-evpn
       v.send("route_target_#{opt}=", should)
       # evpn
-      v.send("route_target_#{opt}_evpn=", should)
+      if platform == :nexus
+        v.send("route_target_#{opt}_evpn=", should)
+      else
+        assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_evpn=") do
+          v.send("route_target_#{opt}_evpn=", should)
+        end
+      end
+      # stitching
+      if platform == :nexus
+        assert_raises(Cisco::UnsupportedError,
+                      "route_target_#{opt}_stitching=") do
+          v.send("route_target_#{opt}_stitching=", should)
+        end
+      else
+        v.send("route_target_#{opt}_stitching=", should)
+      end
     end
 
     # Now check the results
@@ -230,8 +314,20 @@ class TestVrf < CiscoTestCase
                    "#{test_id} : #{af} : route_target_#{opt}")
       # evpn
       result = v.send("route_target_#{opt}_evpn")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}_evpn")
+      if platform == :nexus
+        assert_equal(should, result,
+                     "#{test_id} : #{af} : route_target_#{opt}_evpn")
+      else
+        assert_nil(result)
+      end
+      # stitching
+      result = v.send("route_target_#{opt}_stitching")
+      if platform == :nexus
+        assert_nil(result)
+      else
+        assert_equal(should, result,
+                     "#{test_id} : #{af} : route_target_#{opt}_stitching")
+      end
     end
   end
 end

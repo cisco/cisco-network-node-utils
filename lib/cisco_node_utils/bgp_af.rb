@@ -19,6 +19,7 @@ require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'feature'
 require_relative 'bgp'
+require_relative 'logger'
 
 module Cisco
   # RouterBgpAF - node utility class for BGP address-family config management
@@ -58,7 +59,7 @@ module Cisco
     end
 
     def create
-      Feature.bgp_enable
+      Feature.bgp_enable if platform == :nexus
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
@@ -86,49 +87,34 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def fail_unsupported(callee)
+      fail Cisco::UnsupportedError.new('bgp_af', callee.to_s)
+    end
+
     #
     # Client to client (Getter/Setter/Default)
     #
-    def client_to_client
-      state = config_get('bgp_af', 'client_to_client', @get_args)
-      state ? true : false
-    end
 
     def client_to_client=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
+      # IOS XR uses "client-to-client reflection disable",
+      #     so turning it "on" means disabling it.
+      # Thus we invert the desired state before telling the CLI what to do:
+      state = !state if ios_xr?
+      set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'client_to_client', @set_args)
-    end
-
-    def default_client_to_client
-      config_get_default('bgp_af', 'client_to_client')
     end
 
     #
     # Default Information (Getter/Setter/Default)
     #
+
     def default_information_originate
-      state = config_get('bgp_af', 'default_information', @get_args)
-      state ? true : false
-    end
-
-    def default_information_originate=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'default_information', @set_args)
-    end
-
-    def default_default_information_originate
-      config_get_default('bgp_af', 'default_information')
+      config_get('bgp_af', 'default_information_originate', @get_args)
     end
 
     #
     # Next Hop route map (Getter/Setter/Default)
     #
-    def next_hop_route_map
-      config_get('bgp_af', 'next_hop_route_map', @get_args)
-    end
-
     def next_hop_route_map=(route_map)
       route_map.strip!
       if route_map.empty?
@@ -144,67 +130,9 @@ module Cisco
       config_set('bgp_af', 'next_hop_route_map', @set_args)
     end
 
-    def default_next_hop_route_map
-      config_get_default('bgp_af', 'next_hop_route_map')
-    end
-
     #
     # additional paths (Getter/Setter/Default)
     #
-
-    # additional_paths_send
-    def additional_paths_send
-      state = config_get('bgp_af', 'additional_paths_send', @get_args)
-      state ? true : false
-    end
-
-    def additional_paths_send=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_send', @set_args)
-    end
-
-    def default_additional_paths_send
-      config_get_default('bgp_af', 'additional_paths_send')
-    end
-
-    # additional_paths_receive
-    def additional_paths_receive
-      state = config_get('bgp_af', 'additional_paths_receive', @get_args)
-      state ? true : false
-    end
-
-    def additional_paths_receive=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_receive', @set_args)
-    end
-
-    def default_additional_paths_receive
-      config_get_default('bgp_af', 'additional_paths_receive')
-    end
-
-    # additional_paths_install
-    def additional_paths_install
-      state = config_get('bgp_af', 'additional_paths_install', @get_args)
-      state ? true : false
-    end
-
-    def additional_paths_install=(state)
-      state = (state ? '' : 'no')
-      set_args_keys(state: state)
-      config_set('bgp_af', 'additional_paths_install', @set_args)
-    end
-
-    def default_additional_paths_install
-      config_get_default('bgp_af', 'additional_paths_install')
-    end
-
-    # additional_paths_selection
-    def additional_paths_selection
-      config_get('bgp_af', 'additional_paths_selection', @get_args)
-    end
-
     def additional_paths_selection=(route_map)
       route_map.strip!
       if route_map.empty?
@@ -216,12 +144,8 @@ module Cisco
           route_map = additional_paths_selection
         end
       end
-      set_args_keys(state: state, route_map: route_map)
+      set_args_keys(state: state, route_map: route_map, route_policy: route_map)
       config_set('bgp_af', 'additional_paths_selection', @set_args)
-    end
-
-    def default_additional_paths_selection
-      config_get_default('bgp_af', 'additional_paths_selection')
     end
 
     # advertise_l2vpn_evpn
@@ -230,13 +154,9 @@ module Cisco
     end
 
     def advertise_l2vpn_evpn=(state)
-      Feature.nv_overlay_evpn_enable
+      Feature.nv_overlay_evpn_enable if platform == :nexus
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_af', 'advertise_l2vpn_evpn', @set_args)
-    end
-
-    def default_advertise_l2vpn_evpn
-      config_get_default('bgp_af', 'advertise_l2vpn_evpn')
     end
 
     #
@@ -259,10 +179,6 @@ module Cisco
       config_set('bgp_af', 'dampen_igp_metric', @set_args)
     end
 
-    def default_dampen_igp_metric
-      config_get_default('bgp_af', 'dampen_igp_metric')
-    end
-
     #
     # dampening (Getter/Setter/Default)
     #
@@ -273,21 +189,17 @@ module Cisco
     # Value                     Meaning
     # -----                     -------
     # nil                       Dampening is not configured
-    # '' || []                  Dampening is configured with no options
+    # []                        Dampening is configured with no options
     # [1,3,4,5,nil]             Dampening + decay, reuse, suppress, suppress_max
-    # [nil,nil,nil,'route-map'] Dampening + routemap
+    # [nil,nil,nil,nil,'route-map'] Dampening + routemap
     def dampening
       data = config_get('bgp_af', 'dampening', @get_args)
-
-      if data.nil?
-        # no dampening
-        return nil
-      end
+      return nil if data.nil? # no dampening
 
       data = data.flatten
 
       # dampening nil nil nil nil nil
-      val = ''
+      val = []
 
       if !data[4].nil?
         # dampening nil nil nil nil route-map
@@ -311,7 +223,7 @@ module Cisco
     # is configured because they are mutually exclusive.
     def dampening_half_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[0].to_i
       else
         default_dampening_half_time
@@ -320,7 +232,7 @@ module Cisco
 
     def dampening_reuse_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[1].to_i
       else
         default_dampening_reuse_time
@@ -329,7 +241,7 @@ module Cisco
 
     def dampening_suppress_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[2].to_i
       else
         default_dampening_suppress_time
@@ -338,7 +250,7 @@ module Cisco
 
     def dampening_max_suppress_time
       return nil if dampening.nil? || dampening_routemap_configured?
-      if dampening.is_a?(Array)
+      if dampening.is_a?(Array) && !dampening.empty?
         dampening[3].to_i
       else
         default_dampening_max_suppress_time
@@ -376,10 +288,10 @@ module Cisco
       if damp_array.nil?
         # 'no dampening ...' command - no dampening handles all cases
         state = 'no'
-        CiscoLogger.debug("Dampening 'no dampening'")
+        Cisco::Logger.debug("Dampening 'no dampening'")
       elsif damp_array.empty?
         # 'dampening' command - nothing to do here
-        CiscoLogger.debug("Dampening 'dampening'")
+        Cisco::Logger.debug("Dampening 'dampening'")
       elsif damp_array.size == 4
         # 'dampening dampening_decay dampening_reuse \
         #   dampening_suppress dampening_suppress_max' command
@@ -387,15 +299,13 @@ module Cisco
         reuse =        damp_array[1]
         suppress =     damp_array[2]
         suppress_max = damp_array[3]
-        CiscoLogger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
-      elsif route_map.is_a? String
-        # 'dampening route-map WORD' command
-        route_map = "route-map #{damp_array}"
-        route_map.strip!
-        CiscoLogger.debug("Dampening 'dampening #{route_map}'")
+        Cisco::Logger.debug("Dampening 'dampening #{damp_array.join(' ')}''")
       else
-        # Array not in a valid format
-        fail ArgumentError
+        # 'dampening route-map WORD' command
+        route_map = "route-map #{damp_array}"    if platform == :nexus
+        route_map = "route-policy #{damp_array}" if platform == :ios_xr
+        route_map.strip!
+        Cisco::Logger.debug("Dampening 'dampening route-map #{route_map}'")
       end
 
       # Set final args
@@ -407,36 +317,9 @@ module Cisco
         suppress:     suppress,
         suppress_max: suppress_max,
       )
-      CiscoLogger.debug("Dampening args=#{@set_args}")
+
+      Cisco::Logger.debug("Dampening args=#{@set_args}")
       config_set('bgp_af', 'dampening', @set_args)
-    end
-
-    def default_dampening
-      config_get_default('bgp_af', 'dampening')
-    end
-
-    def default_dampening_state
-      config_get_default('bgp_af', 'dampening_state')
-    end
-
-    def default_dampening_max_suppress_time
-      config_get_default('bgp_af', 'dampening_max_suppress_time')
-    end
-
-    def default_dampening_half_time
-      config_get_default('bgp_af', 'dampening_half_time')
-    end
-
-    def default_dampening_reuse_time
-      config_get_default('bgp_af', 'dampening_reuse_time')
-    end
-
-    def default_dampening_routemap
-      config_get_default('bgp_af', 'dampening_routemap')
-    end
-
-    def default_dampening_suppress_time
-      config_get_default('bgp_af', 'dampening_suppress_time')
     end
 
     #
@@ -465,33 +348,10 @@ module Cisco
       local.to_i
     end
 
-    def distance
-      match = config_get('bgp_af', 'distance', @get_args)
-      match.nil? ? default_distance : match
-    end
-
-    def default_distance_ebgp
-      config_get_default('bgp_af', 'distance_ebgp')
-    end
-
-    def default_distance_ibgp
-      config_get_default('bgp_af', 'distance_ibgp')
-    end
-
-    def default_distance_local
-      config_get_default('bgp_af', 'distance_local')
-    end
-
-    def default_distance
-      ["#{default_distance_ebgp}", "#{default_distance_ibgp}",
-       "#{default_distance_local}"]
-    end
-
     #
     # default_metric (Getter/Setter/Default)
     #
 
-    # default_metric
     def default_metric
       config_get('bgp_af', 'default_metric', @get_args)
     end
@@ -505,25 +365,23 @@ module Cisco
       config_set('bgp_af', 'default_metric', @set_args)
     end
 
-    def default_default_metric
-      config_get_default('bgp_af', 'default_metric')
-    end
-
     #
     # inject_map (Getter/Setter/Default)
     #
 
     def inject_map
-      cmds = config_get('bgp_af', 'inject_map', @get_args).each(&:compact!)
-      cmds.sort
+      cmds = config_get('bgp_af', 'inject_map', @get_args)
+      cmds.nil? ? nil : cmds.each(&:compact!).sort
     end
 
     def inject_map=(should_list)
-      delta_hash = Utils.delta_add_remove(should_list, inject_map)
+      c = inject_map
+      fail_unsupported(__callee__) if c.nil?
+      delta_hash = Utils.delta_add_remove(should_list, c)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("inject_map delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        Cisco::Logger.debug("inject_map delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |inject, exist, copy|
           # inject & exist are mandatory, copy is optional
           state = (action == :add) ? '' : 'no'
@@ -534,36 +392,14 @@ module Cisco
       end
     end
 
-    def default_inject_map
-      config_get_default('bgp_af', 'inject_map')
-    end
-
     #
     # maximum_paths (Getter/Setter/Default)
     #
-
-    # maximum_paths
-    def maximum_paths
-      config_get('bgp_af', 'maximum_paths', @get_args)
-    end
 
     def maximum_paths=(val)
       set_args_keys(state: (val == default_maximum_paths) ? 'no' : '',
                     num:   (val == default_maximum_paths) ? '' : val)
       config_set('bgp_af', 'maximum_paths', @set_args)
-    end
-
-    def default_maximum_paths
-      config_get_default('bgp_af', 'maximum_paths')
-    end
-
-    #
-    # maximum_paths_ibgp (Getter/Setter/Default)
-    #
-
-    # maximum_paths_ibgp
-    def maximum_paths_ibgp
-      config_get('bgp_af', 'maximum_paths_ibgp', @get_args)
     end
 
     def maximum_paths_ibgp=(val)
@@ -572,17 +408,14 @@ module Cisco
       config_set('bgp_af', 'maximum_paths_ibgp', @set_args)
     end
 
-    def default_maximum_paths_ibgp
-      config_get_default('bgp_af', 'maximum_paths_ibgp')
-    end
-
     #
     # Networks (Getter/Setter/Default)
     #
 
     # Build an array of all network commands currently on the device
     def networks
-      config_get('bgp_af', 'network', @get_args).each(&:compact!)
+      c = config_get('bgp_af', 'networks', @get_args)
+      c.nil? ? nil : c.each(&:compact!)
     end
 
     # networks setter.
@@ -591,20 +424,20 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should_list, networks)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("networks delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
-        delta_hash[action].each do |network, route_map|
+        Cisco::Logger.debug("networks delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
+        delta_hash[action].each do |network, route_map_policy|
           state = (action == :add) ? '' : 'no'
           network = Utils.process_network_mask(network)
-          route_map = "route-map #{route_map}" unless route_map.nil?
-          set_args_keys(state: state, network: network, route_map: route_map)
-          config_set('bgp_af', 'network', @set_args)
+          unless route_map_policy.nil?
+            route_map = "route-map #{route_map_policy}"
+            route_policy = "route-policy #{route_map_policy}"
+          end
+          set_args_keys(state: state, network: network, route_map: route_map,
+                        route_policy: route_policy)
+          config_set('bgp_af', 'networks', @set_args)
         end
       end
-    end
-
-    def default_networks
-      config_get_default('bgp_af', 'network')
     end
 
     #
@@ -613,7 +446,8 @@ module Cisco
 
     # Build an array of all redistribute commands currently on the device
     def redistribute
-      config_get('bgp_af', 'redistribute', @get_args).each(&:compact!)
+      c = config_get('bgp_af', 'redistribute', @get_args)
+      c.nil? ? nil : c.each(&:compact!)
     end
 
     # redistribute setter.
@@ -622,8 +456,8 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, redistribute)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("redistribute delta #{@get_args}\n #{action}: " \
-                          "#{delta_hash[action]}")
+        Cisco::Logger.debug("redistribute delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
         delta_hash[action].each do |protocol, policy|
           state = (action == :add) ? '' : 'no'
           set_args_keys(state: state, protocol: protocol, policy: policy)
@@ -640,32 +474,8 @@ module Cisco
     end
 
     #
-    # Suppress Inactive (Getter/Setter/Default)
-    #
-    def suppress_inactive
-      config_get('bgp_af', 'suppress_inactive', @get_args)
-    end
-
-    def suppress_inactive=(state)
-      set_args_keys(state: state ? '' : 'no')
-      config_set('bgp_af', 'suppress_inactive', @set_args)
-    end
-
-    def default_suppress_inactive
-      config_get_default('bgp_af', 'suppress_inactive')
-    end
-
-    #
     # Table Map (Getter/Setter/Default)
     #
-
-    def table_map
-      config_get('bgp_af', 'table_map', @get_args)
-    end
-
-    def table_map_filter
-      config_get('bgp_af', 'table_map_filter', @get_args)
-    end
 
     def table_map_set(map, filter=false)
       # To remove table map we can not use 'no table-map'
@@ -687,12 +497,44 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_table_map
-      config_get_default('bgp_af', 'table_map')
+    ##########################################
+    # Universal Getter, Default Getter, and Setter
+    #
+    def method_missing(*args)
+      name = args[0].to_s
+      if args.length == 1 # Getter
+        if name =~ /^default_(.*)$/
+          config_get_default('bgp_af', Regexp.last_match(1))
+        else
+          config_get('bgp_af', name, @get_args)
+        end
+      elsif args.length == 2 && name =~ /^(.*)=$/ # Setter
+        set_args_keys(state: args[1] ? '' : 'no')
+        config_set('bgp_af', Regexp.last_match(1), @set_args)
+      else
+        super
+      end
     end
 
-    def default_table_map_filter
-      config_get_default('bgp_af', 'table_map_filter')
+    # Is the given name available in the YAML?
+    def respond_to?(method_sym, _include_private=false)
+      name = method_sym.to_s
+      key = :getter?
+      if name =~ /^(.*)=$/
+        name = Regexp.last_match(1)
+        # Use table_map_set() to set these properties
+        return false if name == 'table_map' || name == 'table_map_filter'
+        key = :setter?
+      elsif name =~ /^default_(.*)$/
+        name = Regexp.last_match(1)
+        key = :default_value?
+      end
+      begin
+        ref = node.cmd_ref.lookup('bgp_af', name)
+        ref.send(key)
+      rescue IndexError
+        super
+      end
     end
   end
 end

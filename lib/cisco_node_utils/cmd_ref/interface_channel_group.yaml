@@ -1,28 +1,38 @@
 # interface_channel_group
 ---
 _template:
-  config_get: "show running interface all"
-  config_get_token: '/^interface <name>$/i'
-  config_set: 'interface <name>'
+  context: ['interface <name>']
+  ios_xr:
+    get_command: "show running interface"
+  nexus:
+    get_command: "show running interface all"
 
 all_interfaces:
   multiple:
-  config_get_token: '/^interface (Ethernet.*)/i'
+  get_context: ~
+  get_value: '/^interface (Ethernet.*)/i'
 
 channel_group:
   kind: int
-  config_get_token_append: '/^channel-group (\d+)$/'
-  config_set_append: '<state> channel-group <group> <force>'
   default_value: false
+  nexus:
+    get_value: '/^channel-group (\d+)$/'
+    set_value: '<state> channel-group <group> <force>'
+  ios_xr:
+    get_value: '/^bundle id (\d+).*$/'
+    set_value: '<state> bundle id <group>'
 
 description:
   kind: string
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: '<state> description <desc>'
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <desc>'
   default_value: ''
 
 shutdown:
   kind: boolean
-  config_get_token_append: '/^(?:no )?shutdown$/'
-  config_set_append: '<state> shutdown'
-  default_value: true
+  get_value: '/^(?:no )?shutdown$/'
+  set_value: '<state> shutdown'
+  nexus:
+    default_value: true
+  ios_xr:
+    default_value: false

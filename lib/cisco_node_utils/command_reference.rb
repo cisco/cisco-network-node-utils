@@ -1,5 +1,3 @@
-# CommandReference module for testing.
-#
 # Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,16 +24,16 @@ module Cisco
     alias_method :multiple?, :multiple
 
     KEYS = %w(default_value default_only
-              config_set config_set_append
-              config_get config_get_token config_get_token_append
-              auto_default multiple kind
-              test_config_get test_config_get_regex test_config_result)
+              data_format context value
+              get_data_format get_command get_context get_value
+              set_data_format set_context set_value
+              auto_default multiple kind)
 
     def self.keys
       KEYS
     end
 
-    KINDS = %w(boolean int string)
+    KINDS = %w(boolean int string symbol)
 
     # Construct a CmdRef describing the given (feature, name) pair.
     # Param "values" is a hash with keys as described in KEYS.
@@ -45,46 +43,113 @@ module Cisco
 
       @feature = feature
       @name = name
-      @hash = {}
       @auto_default = true
       @default_only = false
       @multiple = false
       @kind = nil
 
+      values_to_hash(values, file)
+
+      if @hash['get_value'] || @hash['get_command']
+        define_helper('getter',
+                      data_format: @hash['get_data_format'] || :cli,
+                      command:     @hash['get_command'],
+                      context:     @hash['get_context'] || [],
+                      value:       @hash['get_value'])
+      end
+      if @hash['set_value'] # rubocop:disable Style/GuardClause
+        define_helper('setter',
+                      data_format: @hash['set_data_format'] || :cli,
+                      context:     @hash['set_context'] || [],
+                      values:      @hash['set_value'])
+      end
+    end
+
+    def values_to_hash(values, file)
+      @hash = {}
       values.each do |key, value|
         unless KEYS.include?(key)
           fail "Unrecognized key #{key} for #{feature}, #{name} in #{file}"
         end
-        if key == 'config_get_token' || key == 'config_set'
-          # For simplicity, these are ALWAYS arrays
-          value = [value] unless value.is_a?(Array)
-          define_getter(key, value)
-          # We intentionally do this *after* the define_getter() call
-          @hash[key] = preprocess_value(value)
-        elsif key == 'auto_default'
+        case key
+        when 'auto_default'
           @auto_default = value ? true : false
-        elsif key == 'default_only'
+        when 'data_format', 'get_data_format', 'set_data_format'
+          @hash[key] = value.to_sym
+        when 'default_only'
           @default_only = true
           # default_value overrides default_only
-          @hash['default_value'] ||= preprocess_value(value)
-        elsif key == 'multiple'
+          @hash['default_value'] ||= value
+        when 'multiple'
           @multiple = boolean_default_true(value)
-        elsif key == 'kind'
+        when 'kind'
           fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
           @kind = value.to_sym
         else
           # default_value overrides default_only
           @default_only = false if key == 'default_value'
-          @hash[key] = preprocess_value(value)
+          @hash[key] = value
         end
       end
 
-      if @default_only # rubocop:disable Style/GuardClause
-        %w(config_get_token config_set).each do |key|
-          instance_eval "undef #{key}" if @hash.key?(key)
-        end
-        @hash.delete_if { |key, _| key != 'default_value' }
+      # Inherit general to specific if needed
+      if @hash.key?('data_format')
+        @hash['get_data_format'] = @hash['data_format'] \
+          unless @hash.key?('get_data_format')
+        @hash['set_data_format'] = @hash['data_format'] \
+          unless @hash.key?('set_data_format')
       end
+      if @hash.key?('context')
+        @hash['get_context'] = @hash['context'] unless @hash.key?('get_context')
+        @hash['set_context'] = @hash['context'] unless @hash.key?('set_context')
+      end
+      if @hash.key?('value')
+        @hash['get_value'] = @hash['value'] unless @hash.key?('get_value')
+        @hash['set_value'] = @hash['value'] unless @hash.key?('set_value')
+      end
+
+      @hash.delete_if { |key, _| key != 'default_value' } if @default_only
+    end
+
+    # Does this instance have a valid getter() function?
+    # Will be overridden at initialization if so.
+    def getter?
+      !@hash['getter'].nil?
+    end
+
+    # Does this instance have a valid setter() function?
+    # Will be overridden at initialization if so.
+    def setter?
+      !@hash['setter'].nil?
+    end
+
+    # Default getter method.
+    # Will be overridden at initialization if the relevant parameters are set.
+    #
+    # A non-trivial implementation of this method will take args *or* kwargs,
+    # and will return a hash of the form:
+    # {
+    #   data_format: :cli,
+    #   command:     string or nil,
+    #   context:     array<string> or array<regexp>, perhaps empty
+    #   value:       string or regexp,
+    # }
+    def getter(*args, **kwargs) # rubocop:disable Lint/UnusedMethodArgument
+      fail UnsupportedError.new(@feature, @name, 'getter')
+    end
+
+    # Default setter method.
+    # Will be overridden at initialization if the relevant parameters are set.
+    #
+    # A non-trivial implementation of this method will take args *or* kwargs,
+    # and will return a hash of the form:
+    # {
+    #   data_format: :cli,
+    #   context:     array<string>, perhaps empty
+    #   values:      array<string>,
+    # }
+    def setter(*args, **kwargs) # rubocop:disable Lint/UnusedMethodArgument
+      fail UnsupportedError.new(@feature, @name, 'setter')
     end
 
     # Property with an implicit value of 'true' if no value is given
@@ -92,78 +157,119 @@ module Cisco
       value.nil? || value
     end
 
-    # Create a getter method for the given key.
-    # This getter method will automatically handle wildcard arguments.
-    def define_getter(key, value)
-      return unless value.is_a?(Array)
-      if value.any? { |item| item.is_a?(String) && /<\S+>/ =~ item }
-        # Key-value substitution
-        define_singleton_method(key.to_sym, key_substitutor(key, value))
-      elsif value.any? { |item| item.is_a?(String) && /%/ =~ item }
-        # printf-style substitution
-        define_singleton_method(key.to_sym, printf_substitutor(key, value))
+    def key_substitutor(item, kwargs)
+      result = item
+      kwargs.each do |key, value|
+        result = result.sub("<#{key}>", value.to_s)
+      end
+      unsub = result[/<(\S+)>/, 1]
+      fail ArgumentError, \
+           "No value specified for '#{unsub}' in '#{result}'" if unsub
+      result
+    end
+
+    def printf_substitutor(item, args)
+      item = sprintf(item, *args.shift(item.scan(/%/).length))
+      [item, args]
+    end
+
+    # Create a helper method for generating the getter/setter values.
+    # This method will automatically handle wildcard arguments.
+    def define_helper(method_name, base_hash)
+      # Which kind of wildcards (if any) do we need to support?
+      combined = []
+      base_hash.each_value do |v|
+        combined += v if v.is_a?(Array)
+        combined << v if v.is_a?(String)
+      end
+      key_value = combined.any? { |i| i.is_a?(String) && /<\S+>/ =~ i }
+      printf = combined.any? { |i| i.is_a?(String) && /%/ =~ i }
+
+      if key_value && printf
+        fail 'Invalid mixture of key-value and printf wildcards ' \
+             "in #{method_name}: #{combined}"
+      elsif key_value
+        define_key_value_helper(method_name, base_hash)
+      elsif printf
+        arg_count = combined.join.scan(/%/).length
+        define_printf_helper(method_name, base_hash, arg_count)
       else
         # simple static token(s)
-        value = preprocess_value(value)
-        define_singleton_method key.to_sym, -> { value }
+        define_static_helper(method_name, base_hash)
       end
+      @hash[method_name] = true
     end
 
-    # curried function to define a getter method body that performs key-value
-    # substitution
-    def key_substitutor(config_key, value)
-      lambda do |**args|
-        result = []
-        value.each do |line|
-          replace = line.scan(/<(\S+)>/).flatten.map(&:to_sym)
-          replace.each do |item|
-            line = line.sub("<#{item}>", args[item].to_s) if args.key?(item)
+    def define_key_value_helper(method_name, base_hash)
+      # Key-value substitution
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        unless args.empty?
+          fail ArgumentError, "#{method_name} requires keyword args, not "\
+            'positional args'
+        end
+        result = {}
+        base_hash.each do |k, v|
+          if v.is_a?(String)
+            v = key_substitutor(v, kwargs)
+          elsif v.is_a?(Array)
+            output = []
+            v.each do |line|
+              # Check for (?) flag indicating optional param
+              optional_line = line[/^\(\?\)(.*)/, 1]
+              if optional_line
+                begin
+                  line = key_substitutor(optional_line, kwargs)
+                rescue ArgumentError # Unsubstituted key - OK to skip this line
+                  next
+                end
+              else
+                line = key_substitutor(line, kwargs)
+              end
+              output.push(line)
+            end
+            v = output
           end
-          result.push(line) unless /<\S+>/.match(line)
+          result[k] = v
         end
-        if result.empty?
-          fail ArgumentError,
-               "Arguments given to #{config_key} yield empty result"
-        end
-        preprocess_value(result)
+        result
       end
     end
 
-    # curried function to define a getter method body that performs
-    # printf-style substitution
-    def printf_substitutor(config_key, value)
-      arg_c = value.join.scan(/%/).length
-      lambda do |*args|
-        unless args.length == arg_c
-          fail ArgumentError,
-               "Given #{args.length} args, but #{config_key} requires #{arg_c}"
+    def define_printf_helper(method_name, base_hash, arg_count)
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        unless kwargs.empty?
+          fail ArgumentError, "#{method_name} requires positional args, not " \
+            'keyword args'
         end
-        # Fill in the parameters
-        result = value.map do |line|
-          sprintf(line, *args.shift(line.scan(/%/).length))
+        unless args.length == arg_count
+          fail ArgumentError, 'wrong number of arguments ' \
+            "(#{args.length} for #{arg_count})"
         end
-        preprocess_value(result)
+
+        result = {}
+        base_hash.each do |k, v|
+          if v.is_a?(String)
+            v, args = printf_substitutor(v, args)
+          elsif v.is_a?(Array)
+            output = []
+            v.each do |line|
+              line, args = printf_substitutor(line, args)
+              output.push(line)
+            end
+            v = output
+          end
+          result[k] = v
+        end
+        result
       end
     end
 
-    # Helper method.
-    # Converts a regexp-like string (or array thereof) into a proper
-    # Regexp object (or array thereof)
-    def preprocess_value(value)
-      if value.is_a?(Array)
-        # Recurse!
-        return value.map { |item| preprocess_value(item) }
-      elsif value.is_a?(String)
-        # Some 'Strings' in YAML are actually intended to be regexps
-        if value[0] == '/' && value[-1] == '/'
-          # '/foo/' => %r{foo}
-          return Regexp.new(value[1..-2])
-        elsif value[0] == '/' && value[-2..-1] == '/i'
-          # '/foo/i' => %r{foo}i
-          return Regexp.new(value[1..-3], Regexp::IGNORECASE)
-        end
+    def define_static_helper(method_name, base_hash)
+      # rubocop:disable Lint/UnusedBlockArgument
+      define_singleton_method method_name.to_sym do |*args, **kwargs|
+        base_hash
       end
-      value
+      # rubocop:enable Lint/UnusedBlockArgument
     end
 
     def convert_to_constant(value)
@@ -185,11 +291,6 @@ module Cisco
         end
       end
       value
-    end
-
-    def test_config_result(value)
-      result = @hash['test_config_result'][value]
-      convert_to_constant(result)
     end
 
     def method_missing(method_name, *args, &block)
@@ -257,21 +358,21 @@ module Cisco
       @@debug = value # rubocop:disable Style/ClassVars
     end
 
-    attr_reader :cli, :files, :platform, :product_id
+    attr_reader :data_formats, :files, :platform, :product_id
 
     # Constructor.
-    # Normal usage is to pass product, platform, cli, in which case usual YAML
-    # files will be located then the list will be filtered down to only those
-    # matching the given settings.
+    # Normal usage is to pass product, platform, data_formats,
+    # in which case usual YAML files will be located then the list
+    # will be filtered down to only those matching the given settings.
     # For testing purposes (only!) you can pass an explicit list of files to
     # load instead. This list will NOT be filtered further by product_id.
-    def initialize(product:  nil,
-                   platform: nil,
-                   cli:      false,
-                   files:    nil)
+    def initialize(product:      nil,
+                   platform:     nil,
+                   data_formats: [],
+                   files:        nil)
       @product_id = product
       @platform = platform
-      @cli = cli
+      @data_formats = data_formats
       @hash = {}
       if files
         @files = files
@@ -285,7 +386,6 @@ module Cisco
     # Build complete reference hash.
     def build_cmd_ref
       # Example id's: N3K-C3048TP-1GE, N3K-C3064PQ-10GE, N7K-C7009, N7K-C7009
-
       debug "Product: #{@product_id}"
       debug "Files being used: #{@files.join(', ')}"
 
@@ -297,7 +397,11 @@ module Cisco
           debug "Feature #{feature} is empty"
           next
         end
-        feature_hash = filter_hash(feature_hash)
+        begin
+          feature_hash = filter_hash(feature_hash)
+        rescue RuntimeError => e
+          raise "#{file}: #{e}"
+        end
         if feature_hash.empty?
           debug "Feature #{feature} is excluded"
           @hash[feature] = UnsupportedCmdRef.new(feature, nil, file)
@@ -362,14 +466,15 @@ module Cisco
       end
     end
 
-    KNOWN_FILTERS = %w(cli_nexus)
+    KNOWN_FILTERS = %w(nexus ios_xr cli nxapi_structured)
 
-    def self.key_match(key, platform, product_id, cli)
+    def self.key_match(key, platform, product_id, data_formats)
       if KNOWN_PLATFORMS.include?(key)
         return platform_to_filter(key) =~ product_id ? true : false
       elsif KNOWN_FILTERS.include?(key)
-        return false if key.match(/cli/) && !cli
-        return Regexp.new(platform.to_s) =~ key ? true : false
+        return true if data_formats && data_formats.include?(key.to_sym)
+        return true if key == platform.to_s
+        return false
       else
         return :unknown
       end
@@ -377,20 +482,22 @@ module Cisco
 
     # Helper method
     # Given a Hash of command reference data as read from YAML, does:
-    # - Filter out any API-specific data not applicable to this API
-    # - Filter any platform-specific data not applicable to this product_id
+    # - Delete any platform-specific data not applicable to this platform
+    # - Delete any product-specific data not applicable to this product_id
+    # - Delete any data-model-specific data not supported by this node
     # Returns the filtered hash (possibly empty)
     def self.filter_hash(hash,
                          platform:           nil,
                          product_id:         nil,
-                         cli:                false,
+                         data_formats:       nil,
                          allow_unknown_keys: true)
       result = {}
 
-      exclude = hash.delete('_exclude') || []
+      exclude = hash['_exclude'] || []
       exclude.each do |value|
-        if key_match(value, platform, product_id, cli) == true
-          debug 'Exclude this product (#{product_id}, #{value})'
+        # We don't allow exclusion by data_format - just platform/product
+        if key_match(value, platform, product_id, nil) == true
+          debug "Exclude this product (#{product_id}, #{value})"
           return result
         end
       end
@@ -401,10 +508,11 @@ module Cisco
       regexp_match = false
 
       hash.each do |key, value|
+        next if key == '_exclude'
         if CmdRef.keys.include?(key)
           result[key] = value
         elsif key != 'else'
-          match = key_match(key, platform, product_id, cli)
+          match = key_match(key, platform, product_id, data_formats)
           next if match == false
           if match == :unknown
             fail "Unrecognized key '#{key}'" unless allow_unknown_keys
@@ -426,9 +534,10 @@ module Cisco
           result[key] = filter_hash(hash[key],
                                     platform:           platform,
                                     product_id:         product_id,
-                                    cli:                cli,
+                                    data_formats:       data_formats,
                                     allow_unknown_keys: false)
         rescue RuntimeError => e
+          # Recursively wrap the error as needed to provide context
           raise "[#{key}]: #{e}"
         end
       end
@@ -437,18 +546,17 @@ module Cisco
 
     def filter_hash(input_hash)
       CommandReference.filter_hash(input_hash,
-                                   platform:   platform,
-                                   product_id: product_id,
-                                   cli:        cli)
+                                   platform:     platform,
+                                   product_id:   product_id,
+                                   data_formats: data_formats)
     end
 
     # Helper method
     # Given a suitably filtered Hash of command reference data, does:
     # - Inherit data from the given base_hash (if any) and extend/override it
     #   with the given input data.
-    # - Append 'config_set_append' data to any existing 'config_set' data
-    # - Append 'config_get_token_append' data to 'config_get_token', ditto
     def self.hash_merge(input_hash, base_hash=nil)
+      return base_hash if input_hash.nil?
       result = base_hash
       result ||= {}
       # to_inspect: sub-hashes we want to recurse into
@@ -456,16 +564,11 @@ module Cisco
 
       input_hash.each do |key, value|
         if CmdRef.keys.include?(key)
-          if key == 'config_set_append'
-            result['config_set'] = value_append(result['config_set'], value)
-          elsif key == 'config_get_token_append'
-            result['config_get_token'] = value_append(
-              result['config_get_token'], value)
-          else
-            result[key] = value
-          end
+          result[key] = value
         elsif value.is_a?(Hash)
           to_inspect << value
+        elsif value.nil?
+          next
         else
           fail "Unexpected non-hash data: #{value}"
         end
@@ -601,7 +704,18 @@ module Cisco
     end
 
     def to_s
-      @hash.each_value { |names| names.each_value(&:to_s) }
+      @num_features ||= @hash.values.length
+      @num_attributes ||= @hash.values.inject(0) do |sum, n|
+        sum + (n.is_a?(Hash) ? n.values.length : 1)
+      end
+      "CommandReference describing #{@num_features} features " \
+        "with #{@num_attributes} attributes in total"
+    end
+
+    def inspect
+      "CommandReference for '#{product_id}' " \
+        "(platform:'#{platform}', data formats:#{data_formats}) " \
+        "based on #{files.length} files"
     end
   end
 end

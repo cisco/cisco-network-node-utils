@@ -63,7 +63,7 @@ module Cisco
       begin
         config_set('feature', 'fabric_forwarding')
       rescue Cisco::CliError
-        CiscoLogger.debug '"feature fabric forwarding" CLI was rejected'
+        Cisco::Logger.debug '"feature fabric forwarding" CLI was rejected'
       end
     end
 
