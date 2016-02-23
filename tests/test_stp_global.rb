@@ -52,342 +52,342 @@ class TestStpGlobal < CiscoTestCase
   def test_bd_forward_time_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
-    @global = StpGlobal.new('default')
+    global = StpGlobal.new('default')
     config 'system bridge-domain all'
-    @global.bd_forward_time = @global.default_bd_forward_time
-    assert_equal(@global.default_bd_forward_time,
-                 @global.bd_forward_time)
+    global.bd_forward_time = global.default_bd_forward_time
+    assert_equal(global.default_bd_forward_time,
+                 global.bd_forward_time)
     bdft = [%w(2-4,6,8-12 4), %w(14 30)]
-    @global.bd_forward_time = bdft
-    assert_equal(bdft, @global.bd_forward_time)
-    @global.bd_forward_time = @global.default_bd_forward_time
-    assert_equal(@global.default_bd_forward_time,
-                 @global.bd_forward_time)
+    global.bd_forward_time = bdft
+    assert_equal(bdft, global.bd_forward_time)
+    global.bd_forward_time = global.default_bd_forward_time
+    assert_equal(global.default_bd_forward_time,
+                 global.bd_forward_time)
   end
 
   def test_bd_hello_time_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
-    @global = StpGlobal.new('default')
+    global = StpGlobal.new('default')
     config 'system bridge-domain all'
-    @global.bd_hello_time = @global.default_bd_hello_time
-    assert_equal(@global.default_bd_hello_time,
-                 @global.bd_hello_time)
+    global.bd_hello_time = global.default_bd_hello_time
+    assert_equal(global.default_bd_hello_time,
+                 global.bd_hello_time)
     bdft = [%w(2-4,6,8-12 1), %w(14 10)]
-    @global.bd_hello_time = bdft
-    assert_equal(bdft, @global.bd_hello_time)
-    @global.bd_hello_time = @global.default_bd_hello_time
-    assert_equal(@global.default_bd_hello_time,
-                 @global.bd_hello_time)
+    global.bd_hello_time = bdft
+    assert_equal(bdft, global.bd_hello_time)
+    global.bd_hello_time = global.default_bd_hello_time
+    assert_equal(global.default_bd_hello_time,
+                 global.bd_hello_time)
   end
 
   def test_bd_max_age_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
-    @global = StpGlobal.new('default')
+    global = StpGlobal.new('default')
     config 'system bridge-domain all'
-    @global.bd_max_age = @global.default_bd_max_age
-    assert_equal(@global.default_bd_max_age,
-                 @global.bd_max_age)
+    global.bd_max_age = global.default_bd_max_age
+    assert_equal(global.default_bd_max_age,
+                 global.bd_max_age)
     bdft = [%w(2-4,6,8-12 10), %w(14 40)]
-    @global.bd_max_age = bdft
-    assert_equal(bdft, @global.bd_max_age)
-    @global.bd_max_age = @global.default_bd_max_age
-    assert_equal(@global.default_bd_max_age,
-                 @global.bd_max_age)
+    global.bd_max_age = bdft
+    assert_equal(bdft, global.bd_max_age)
+    global.bd_max_age = global.default_bd_max_age
+    assert_equal(global.default_bd_max_age,
+                 global.bd_max_age)
   end
 
   def test_bd_priorities_change
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n9k_platform?
-    @global = StpGlobal.new('default')
+    global = StpGlobal.new('default')
     config 'system bridge-domain all'
-    @global.bd_priority = @global.default_bd_priority
-    @global.bd_root_priority = @global.default_bd_root_priority
-    @global.bd_designated_priority = @global.default_bd_designated_priority
-    assert_equal(@global.default_bd_priority,
-                 @global.bd_priority)
-    assert_equal(@global.default_bd_root_priority,
-                 @global.bd_root_priority)
-    assert_equal(@global.default_bd_designated_priority,
-                 @global.bd_designated_priority)
+    global.bd_priority = global.default_bd_priority
+    global.bd_root_priority = global.default_bd_root_priority
+    global.bd_designated_priority = global.default_bd_designated_priority
+    assert_equal(global.default_bd_priority,
+                 global.bd_priority)
+    assert_equal(global.default_bd_root_priority,
+                 global.bd_root_priority)
+    assert_equal(global.default_bd_designated_priority,
+                 global.bd_designated_priority)
     bdft = [%w(2-4,6,8-12 4096), %w(14 8192)]
-    @global.bd_priority = bdft
-    @global.bd_root_priority = bdft
-    @global.bd_designated_priority = bdft
-    assert_equal(bdft, @global.bd_priority)
-    assert_equal(bdft, @global.bd_root_priority)
-    assert_equal(bdft, @global.bd_designated_priority)
-    @global.bd_priority = @global.default_bd_priority
-    @global.bd_root_priority = @global.default_bd_root_priority
-    @global.bd_designated_priority = @global.default_bd_designated_priority
-    assert_equal(@global.default_bd_priority,
-                 @global.bd_priority)
-    assert_equal(@global.default_bd_root_priority,
-                 @global.bd_root_priority)
-    assert_equal(@global.default_bd_designated_priority,
-                 @global.bd_designated_priority)
+    global.bd_priority = bdft
+    global.bd_root_priority = bdft
+    global.bd_designated_priority = bdft
+    assert_equal(bdft, global.bd_priority)
+    assert_equal(bdft, global.bd_root_priority)
+    assert_equal(bdft, global.bd_designated_priority)
+    global.bd_priority = global.default_bd_priority
+    global.bd_root_priority = global.default_bd_root_priority
+    global.bd_designated_priority = global.default_bd_designated_priority
+    assert_equal(global.default_bd_priority,
+                 global.bd_priority)
+    assert_equal(global.default_bd_root_priority,
+                 global.bd_root_priority)
+    assert_equal(global.default_bd_designated_priority,
+                 global.bd_designated_priority)
   end
 
   def test_get_set_bpdufilter
-    @global = StpGlobal.new('default')
-    @global.bpdufilter = true
-    assert_equal(true, @global.bpdufilter)
-    @global.bpdufilter =
-      @global.default_bpdufilter
-    assert_equal(@global.default_bpdufilter,
-                 @global.bpdufilter)
+    global = StpGlobal.new('default')
+    global.bpdufilter = true
+    assert_equal(true, global.bpdufilter)
+    global.bpdufilter =
+      global.default_bpdufilter
+    assert_equal(global.default_bpdufilter,
+                 global.bpdufilter)
   end
 
   def test_get_set_bpduguard
-    @global = StpGlobal.new('default')
-    @global.bpduguard = true
-    assert_equal(true, @global.bpduguard)
-    @global.bpduguard =
-      @global.default_bpduguard
-    assert_equal(@global.default_bpduguard,
-                 @global.bpduguard)
+    global = StpGlobal.new('default')
+    global.bpduguard = true
+    assert_equal(true, global.bpduguard)
+    global.bpduguard =
+      global.default_bpduguard
+    assert_equal(global.default_bpduguard,
+                 global.bpduguard)
   end
 
   def test_get_set_bridge_assurance
-    @global = StpGlobal.new('default')
-    @global.bridge_assurance = false
-    assert_equal(false, @global.bridge_assurance)
-    @global.bridge_assurance =
-      @global.default_bridge_assurance
-    assert_equal(@global.default_bridge_assurance,
-                 @global.bridge_assurance)
+    global = StpGlobal.new('default')
+    global.bridge_assurance = false
+    assert_equal(false, global.bridge_assurance)
+    global.bridge_assurance =
+      global.default_bridge_assurance
+    assert_equal(global.default_bridge_assurance,
+                 global.bridge_assurance)
   end
 
   def test_get_set_domain
     skip('Platform does not support this property') if n9k_platform?
-    @global = StpGlobal.new('default')
-    @global.domain = 100
-    assert_equal(100, @global.domain)
-    @global.domain =
-      @global.default_domain
-    assert_equal(@global.default_domain,
-                 @global.domain)
+    global = StpGlobal.new('default')
+    global.domain = 100
+    assert_equal(100, global.domain)
+    global.domain =
+      global.default_domain
+    assert_equal(global.default_domain,
+                 global.domain)
   end
 
   def test_get_set_fcoe
     skip('Platform does not support this property') if n6k_platform? ||
                                                        n7k_platform?
-    @global = StpGlobal.new('default')
-    @global.fcoe = false
-    assert_equal(false, @global.fcoe)
-    @global.fcoe =
-      @global.default_fcoe
-    assert_equal(@global.default_fcoe,
-                 @global.fcoe)
+    global = StpGlobal.new('default')
+    global.fcoe = false
+    assert_equal(false, global.fcoe)
+    global.fcoe =
+      global.default_fcoe
+    assert_equal(global.default_fcoe,
+                 global.fcoe)
   end
 
   def test_get_set_loopguard
-    @global = StpGlobal.new('default')
-    @global.loopguard = true
-    assert_equal(true, @global.loopguard)
-    @global.loopguard =
-      @global.default_loopguard
-    assert_equal(@global.default_loopguard,
-                 @global.loopguard)
+    global = StpGlobal.new('default')
+    global.loopguard = true
+    assert_equal(true, global.loopguard)
+    global.loopguard =
+      global.default_loopguard
+    assert_equal(global.default_loopguard,
+                 global.loopguard)
   end
 
   def test_get_set_mode
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    assert_equal('mst', @global.mode)
-    @global.mode =
-      @global.default_mode
-    assert_equal(@global.default_mode,
-                 @global.mode)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    assert_equal('mst', global.mode)
+    global.mode =
+      global.default_mode
+    assert_equal(global.default_mode,
+                 global.mode)
   end
 
   def test_get_set_mst_priorities
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_priority = @global.default_mst_priority
-    @global.mst_root_priority = @global.default_mst_root_priority
-    @global.mst_designated_priority = @global.default_mst_designated_priority
-    assert_equal(@global.default_mst_priority,
-                 @global.mst_priority)
-    assert_equal(@global.default_mst_root_priority,
-                 @global.mst_root_priority)
-    assert_equal(@global.default_mst_designated_priority,
-                 @global.mst_designated_priority)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_priority = global.default_mst_priority
+    global.mst_root_priority = global.default_mst_root_priority
+    global.mst_designated_priority = global.default_mst_designated_priority
+    assert_equal(global.default_mst_priority,
+                 global.mst_priority)
+    assert_equal(global.default_mst_root_priority,
+                 global.mst_root_priority)
+    assert_equal(global.default_mst_designated_priority,
+                 global.mst_designated_priority)
     bddp = [%w(0-4,6,8-12 4096), %w(14 8192)]
-    @global.mst_priority = bddp
-    @global.mst_root_priority = bddp
-    @global.mst_designated_priority = bddp
-    assert_equal(bddp, @global.mst_priority)
-    assert_equal(bddp, @global.mst_root_priority)
-    assert_equal(bddp, @global.mst_designated_priority)
-    @global.mst_priority = @global.default_mst_priority
-    @global.mst_root_priority = @global.default_mst_root_priority
-    @global.mst_designated_priority = @global.default_mst_designated_priority
-    assert_equal(@global.default_mst_priority,
-                 @global.mst_priority)
-    assert_equal(@global.default_mst_root_priority,
-                 @global.mst_root_priority)
-    assert_equal(@global.default_mst_designated_priority,
-                 @global.mst_designated_priority)
+    global.mst_priority = bddp
+    global.mst_root_priority = bddp
+    global.mst_designated_priority = bddp
+    assert_equal(bddp, global.mst_priority)
+    assert_equal(bddp, global.mst_root_priority)
+    assert_equal(bddp, global.mst_designated_priority)
+    global.mst_priority = global.default_mst_priority
+    global.mst_root_priority = global.default_mst_root_priority
+    global.mst_designated_priority = global.default_mst_designated_priority
+    assert_equal(global.default_mst_priority,
+                 global.mst_priority)
+    assert_equal(global.default_mst_root_priority,
+                 global.mst_root_priority)
+    assert_equal(global.default_mst_designated_priority,
+                 global.mst_designated_priority)
   end
 
   def test_get_set_mst_forward_time
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_forward_time = 25
-    assert_equal(25, @global.mst_forward_time)
-    @global.mst_forward_time =
-      @global.default_mst_forward_time
-    assert_equal(@global.default_mst_forward_time,
-                 @global.mst_forward_time)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_forward_time = 25
+    assert_equal(25, global.mst_forward_time)
+    global.mst_forward_time =
+      global.default_mst_forward_time
+    assert_equal(global.default_mst_forward_time,
+                 global.mst_forward_time)
   end
 
   def test_get_set_mst_hello_time
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_hello_time = 5
-    assert_equal(5, @global.mst_hello_time)
-    @global.mst_hello_time =
-      @global.default_mst_hello_time
-    assert_equal(@global.default_mst_hello_time,
-                 @global.mst_hello_time)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_hello_time = 5
+    assert_equal(5, global.mst_hello_time)
+    global.mst_hello_time =
+      global.default_mst_hello_time
+    assert_equal(global.default_mst_hello_time,
+                 global.mst_hello_time)
   end
 
   def test_get_set_mst_inst_vlan_map
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_inst_vlan_map = @global.default_mst_inst_vlan_map
-    assert_equal(@global.default_mst_inst_vlan_map,
-                 @global.mst_inst_vlan_map)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_inst_vlan_map = global.default_mst_inst_vlan_map
+    assert_equal(global.default_mst_inst_vlan_map,
+                 global.mst_inst_vlan_map)
     bddp = [%w(8 2-65), %w(14 200-300)]
-    @global.mst_inst_vlan_map = bddp
-    assert_equal(bddp, @global.mst_inst_vlan_map)
-    @global.mst_inst_vlan_map = @global.default_mst_inst_vlan_map
-    assert_equal(@global.default_mst_inst_vlan_map,
-                 @global.mst_inst_vlan_map)
+    global.mst_inst_vlan_map = bddp
+    assert_equal(bddp, global.mst_inst_vlan_map)
+    global.mst_inst_vlan_map = global.default_mst_inst_vlan_map
+    assert_equal(global.default_mst_inst_vlan_map,
+                 global.mst_inst_vlan_map)
   end
 
   def test_get_set_mst_max_age
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_max_age = 35
-    assert_equal(35, @global.mst_max_age)
-    @global.mst_max_age =
-      @global.default_mst_max_age
-    assert_equal(@global.default_mst_max_age,
-                 @global.mst_max_age)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_max_age = 35
+    assert_equal(35, global.mst_max_age)
+    global.mst_max_age =
+      global.default_mst_max_age
+    assert_equal(global.default_mst_max_age,
+                 global.mst_max_age)
   end
 
   def test_get_set_mst_max_hops
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_max_hops = 200
-    assert_equal(200, @global.mst_max_hops)
-    @global.mst_max_hops =
-      @global.default_mst_max_hops
-    assert_equal(@global.default_mst_max_hops,
-                 @global.mst_max_hops)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_max_hops = 200
+    assert_equal(200, global.mst_max_hops)
+    global.mst_max_hops =
+      global.default_mst_max_hops
+    assert_equal(global.default_mst_max_hops,
+                 global.mst_max_hops)
   end
 
   def test_get_set_mst_name
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_name = 'nexus'
-    assert_equal('nexus', @global.mst_name)
-    @global.mst_name =
-      @global.default_mst_name
-    assert_equal(@global.default_mst_name,
-                 @global.mst_name)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_name = 'nexus'
+    assert_equal('nexus', global.mst_name)
+    global.mst_name =
+      global.default_mst_name
+    assert_equal(global.default_mst_name,
+                 global.mst_name)
   end
 
   def test_get_set_mst_revision
-    @global = StpGlobal.new('default')
-    @global.mode = 'mst'
-    @global.mst_revision = 34
-    assert_equal(34, @global.mst_revision)
-    @global.mst_revision =
-      @global.default_mst_revision
-    assert_equal(@global.default_mst_revision,
-                 @global.mst_revision)
+    global = StpGlobal.new('default')
+    global.mode = 'mst'
+    global.mst_revision = 34
+    assert_equal(34, global.mst_revision)
+    global.mst_revision =
+      global.default_mst_revision
+    assert_equal(global.default_mst_revision,
+                 global.mst_revision)
   end
 
   def test_get_set_pathcost
-    @global = StpGlobal.new('default')
-    @global.pathcost = 'long'
-    assert_equal('long', @global.pathcost)
-    @global.pathcost =
-      @global.default_pathcost
-    assert_equal(@global.default_pathcost,
-                 @global.pathcost)
+    global = StpGlobal.new('default')
+    global.pathcost = 'long'
+    assert_equal('long', global.pathcost)
+    global.pathcost =
+      global.default_pathcost
+    assert_equal(global.default_pathcost,
+                 global.pathcost)
   end
 
   def test_get_set_vlan_forward_time
-    @global = StpGlobal.new('default')
-    @global.vlan_forward_time = @global.default_vlan_forward_time
-    assert_equal(@global.default_vlan_forward_time,
-                 @global.vlan_forward_time)
+    global = StpGlobal.new('default')
+    global.vlan_forward_time = global.default_vlan_forward_time
+    assert_equal(global.default_vlan_forward_time,
+                 global.vlan_forward_time)
     bddp = [%w(1-4,6,8-12 10), %w(14 8)]
-    @global.vlan_forward_time = bddp
-    assert_equal(bddp, @global.vlan_forward_time)
-    @global.vlan_forward_time = @global.default_vlan_forward_time
-    assert_equal(@global.default_vlan_forward_time,
-                 @global.vlan_forward_time)
+    global.vlan_forward_time = bddp
+    assert_equal(bddp, global.vlan_forward_time)
+    global.vlan_forward_time = global.default_vlan_forward_time
+    assert_equal(global.default_vlan_forward_time,
+                 global.vlan_forward_time)
   end
 
   def test_get_set_vlan_hello_time
-    @global = StpGlobal.new('default')
-    @global.vlan_hello_time = @global.default_vlan_hello_time
-    assert_equal(@global.default_vlan_hello_time,
-                 @global.vlan_hello_time)
+    global = StpGlobal.new('default')
+    global.vlan_hello_time = global.default_vlan_hello_time
+    assert_equal(global.default_vlan_hello_time,
+                 global.vlan_hello_time)
     bddp = [%w(1-4,6,8-12 5), %w(14 8)]
-    @global.vlan_hello_time = bddp
-    assert_equal(bddp, @global.vlan_hello_time)
-    @global.vlan_hello_time = @global.default_vlan_hello_time
-    assert_equal(@global.default_vlan_hello_time,
-                 @global.vlan_hello_time)
+    global.vlan_hello_time = bddp
+    assert_equal(bddp, global.vlan_hello_time)
+    global.vlan_hello_time = global.default_vlan_hello_time
+    assert_equal(global.default_vlan_hello_time,
+                 global.vlan_hello_time)
   end
 
   def test_get_set_vlan_max_age
-    @global = StpGlobal.new('default')
-    @global.vlan_max_age = @global.default_vlan_max_age
-    assert_equal(@global.default_vlan_max_age,
-                 @global.vlan_max_age)
+    global = StpGlobal.new('default')
+    global.vlan_max_age = global.default_vlan_max_age
+    assert_equal(global.default_vlan_max_age,
+                 global.vlan_max_age)
     bddp = [%w(1-4,6,8-12 40), %w(14 35)]
-    @global.vlan_max_age = bddp
-    assert_equal(bddp, @global.vlan_max_age)
-    @global.vlan_max_age = @global.default_vlan_max_age
-    assert_equal(@global.default_vlan_max_age,
-                 @global.vlan_max_age)
+    global.vlan_max_age = bddp
+    assert_equal(bddp, global.vlan_max_age)
+    global.vlan_max_age = global.default_vlan_max_age
+    assert_equal(global.default_vlan_max_age,
+                 global.vlan_max_age)
   end
 
   def test_get_set_vlan_priorities
-    @global = StpGlobal.new('default')
-    @global.vlan_priority = @global.default_vlan_priority
-    @global.vlan_root_priority = @global.default_vlan_root_priority
-    @global.vlan_designated_priority = @global.default_vlan_designated_priority
-    assert_equal(@global.default_vlan_priority,
-                 @global.vlan_priority)
-    assert_equal(@global.default_vlan_root_priority,
-                 @global.vlan_root_priority)
-    assert_equal(@global.default_vlan_designated_priority,
-                 @global.vlan_designated_priority)
+    global = StpGlobal.new('default')
+    global.vlan_priority = global.default_vlan_priority
+    global.vlan_root_priority = global.default_vlan_root_priority
+    global.vlan_designated_priority = global.default_vlan_designated_priority
+    assert_equal(global.default_vlan_priority,
+                 global.vlan_priority)
+    assert_equal(global.default_vlan_root_priority,
+                 global.vlan_root_priority)
+    assert_equal(global.default_vlan_designated_priority,
+                 global.vlan_designated_priority)
     bddp = [%w(1-4,6,8-12 4096), %w(14 8192)]
-    @global.vlan_priority = bddp
-    @global.vlan_root_priority = bddp
-    @global.vlan_designated_priority = bddp
-    assert_equal(bddp, @global.vlan_priority)
-    assert_equal(bddp, @global.vlan_root_priority)
-    assert_equal(bddp, @global.vlan_designated_priority)
-    @global.vlan_priority = @global.default_vlan_priority
-    @global.vlan_root_priority = @global.default_vlan_root_priority
-    @global.vlan_designated_priority = @global.default_vlan_designated_priority
-    assert_equal(@global.default_vlan_priority,
-                 @global.vlan_priority)
-    assert_equal(@global.default_vlan_root_priority,
-                 @global.vlan_root_priority)
-    assert_equal(@global.default_vlan_designated_priority,
-                 @global.vlan_designated_priority)
+    global.vlan_priority = bddp
+    global.vlan_root_priority = bddp
+    global.vlan_designated_priority = bddp
+    assert_equal(bddp, global.vlan_priority)
+    assert_equal(bddp, global.vlan_root_priority)
+    assert_equal(bddp, global.vlan_designated_priority)
+    global.vlan_priority = global.default_vlan_priority
+    global.vlan_root_priority = global.default_vlan_root_priority
+    global.vlan_designated_priority = global.default_vlan_designated_priority
+    assert_equal(global.default_vlan_priority,
+                 global.vlan_priority)
+    assert_equal(global.default_vlan_root_priority,
+                 global.vlan_root_priority)
+    assert_equal(global.default_vlan_designated_priority,
+                 global.vlan_designated_priority)
   end
 
   def test_interface_stp_bpdufilter_change

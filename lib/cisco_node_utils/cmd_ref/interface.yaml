@@ -250,74 +250,82 @@ speed:
 
 stp_bpdufilter:
   kind: string
-  get_value: ['/^spanning-tree bpdufilter (.*)$/']
-  set_value: ["%s spanning-tree bpdufilter %s"]
+  get_value: '/^spanning-tree bpdufilter (.*)$/'
+  set_value: "<state> spanning-tree bpdufilter <filter>"
   default_value: false
 
 stp_bpduguard:
   kind: string
-  get_value: ['/^spanning-tree bpduguard (.*)$/']
-  set_value: ["%s spanning-tree bpduguard %s"]
+  get_value: '/^spanning-tree bpduguard (.*)$/'
+  set_value: "<state> spanning-tree bpduguard <guard>"
   default_value: false
 
 stp_cost:
   kind: string
-  get_value: ['/^spanning-tree cost (.*)$/']
-  set_value: ["spanning-tree cost %s"]
+  get_value: '/^spanning-tree cost (.*)$/'
+  set_value: "spanning-tree cost <cost>"
   default_value: 'auto'
 
 stp_guard:
   kind: string
-  get_value: ['/^spanning-tree guard (.*)$/']
-  set_value: ["%s spanning-tree guard %s"]
+  get_value: '/^spanning-tree guard (.*)$/'
+  set_value: "<state> spanning-tree guard <guard>"
   default_value: false
 
 stp_link_type:
   kind: string
-  get_value: ['/^spanning-tree link-type (.*)$/']
-  set_value: ["spanning-tree link-type %s"]
+  get_value: '/^spanning-tree link-type (.*)$/'
+  set_value: "spanning-tree link-type <type>"
   default_value: 'auto'
 
 stp_mst_cost:
   multiple:
   get_command: "show running interface"
-  get_value: ['/^spanning-tree mst (.*) cost (.*)$/']
-  set_value: ["%s spanning-tree mst %s cost %s"]
+  get_value: '/^spanning-tree mst (.*) cost (.*)$/'
+  set_value: "<state> spanning-tree mst <range> cost <val>"
   default_value: []
 
 stp_mst_port_priority:
   multiple:
   get_command: "show running interface"
-  get_value: ['/^spanning-tree mst (.*) port-priority (.*)$/']
-  set_value: ["%s spanning-tree mst %s port-priority %s"]
+  get_value: '/^spanning-tree mst (.*) port-priority (.*)$/'
+  set_value: "<state> spanning-tree mst <range> port-priority <val>"
   default_value: []
+
+stp_mst_range:
+  kind: string
+  default_only: "0-4094"
 
 stp_port_priority:
   kind: int
-  get_value: ['/^spanning-tree port-priority (\d+)$/']
-  set_value: ["spanning-tree port-priority %s"]
+  get_value: '/^spanning-tree port-priority (\d+)$/'
+  set_value: "spanning-tree port-priority <pp>"
   default_value: 128
 
 stp_port_type:
   kind: string
   get_command: "show running interface"
-  get_value: ['/^spanning-tree port type (.*)$/']
-  set_value: ["%s spanning-tree port type %s"]
+  get_value: '/^spanning-tree port type (.*)$/'
+  set_value: "<state> spanning-tree port type <type>"
   default_value: false
 
 stp_vlan_cost:
   multiple:
   get_command: "show running interface"
-  get_value: ['/^spanning-tree vlan (.*) cost (.*)$/']
-  set_value: ["%s spanning-tree vlan %s cost %s"]
+  get_value: '/^spanning-tree vlan (.*) cost (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> cost <val>"
   default_value: []
 
 stp_vlan_port_priority:
   multiple:
   get_command: "show running interface"
-  get_value: ['/^spanning-tree vlan (.*) port-priority (.*)$/']
-  set_value: ["%s spanning-tree vlan %s port-priority %s"]
+  get_value: '/^spanning-tree vlan (.*) port-priority (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> port-priority <val>"
   default_value: []
+
+stp_vlan_range:
+  kind: string
+  default_only: "1-3967"
 
 svi_autostate:
   _exclude: [ios_xr, N5k, N6k]

@@ -50,6 +50,8 @@ module Cisco
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       @name = name.downcase
+      @smr = config_get('interface', 'stp_mst_range')
+      @svr = config_get('interface', 'stp_vlan_range')
 
       create if instantiate
     end
@@ -579,7 +581,7 @@ module Cisco
     end
 
     def stp_bpdufilter
-      config_get('interface', 'stp_bpdufilter', @name)
+      config_get('interface', 'stp_bpdufilter', name: @name)
     end
 
     def stp_bpdufilter=(val)
@@ -590,7 +592,7 @@ module Cisco
         val = ''
       end
       config_set('interface',
-                 'stp_bpdufilter', @name, state, val)
+                 'stp_bpdufilter', name: @name, state: state, filter: val)
     end
 
     def default_stp_bpdufilter
@@ -598,7 +600,7 @@ module Cisco
     end
 
     def stp_bpduguard
-      config_get('interface', 'stp_bpduguard', @name)
+      config_get('interface', 'stp_bpduguard', name: @name)
     end
 
     def stp_bpduguard=(val)
@@ -609,7 +611,7 @@ module Cisco
         val = ''
       end
       config_set('interface',
-                 'stp_bpduguard', @name, state, val)
+                 'stp_bpduguard', name: @name, state: state, guard: val)
     end
 
     def default_stp_bpduguard
@@ -617,12 +619,12 @@ module Cisco
     end
 
     def stp_cost
-      cost = config_get('interface', 'stp_cost', @name)
+      cost = config_get('interface', 'stp_cost', name: @name)
       cost == 'auto' ? cost : cost.to_i
     end
 
     def stp_cost=(val)
-      config_set('interface', 'stp_cost', @name, val)
+      config_set('interface', 'stp_cost', name: @name, cost: val)
     end
 
     def default_stp_cost
@@ -630,7 +632,7 @@ module Cisco
     end
 
     def stp_guard
-      config_get('interface', 'stp_guard', @name)
+      config_get('interface', 'stp_guard', name: @name)
     end
 
     def stp_guard=(val)
@@ -640,7 +642,8 @@ module Cisco
         state = 'no'
         val = ''
       end
-      config_set('interface', 'stp_guard', @name, state, val)
+      config_set('interface', 'stp_guard', name: @name, state: state,
+                 guard: val)
     end
 
     def default_stp_guard
@@ -648,11 +651,11 @@ module Cisco
     end
 
     def stp_link_type
-      config_get('interface', 'stp_link_type', @name)
+      config_get('interface', 'stp_link_type', name: @name)
     end
 
     def stp_link_type=(val)
-      config_set('interface', 'stp_link_type', @name, val)
+      config_set('interface', 'stp_link_type', name: @name, type: val)
     end
 
     def default_stp_link_type
@@ -660,11 +663,11 @@ module Cisco
     end
 
     def stp_port_priority
-      config_get('interface', 'stp_port_priority', @name)
+      config_get('interface', 'stp_port_priority', name: @name)
     end
 
     def stp_port_priority=(val)
-      config_set('interface', 'stp_port_priority', @name, val)
+      config_set('interface', 'stp_port_priority', name: @name, pp: val)
     end
 
     def default_stp_port_priority
@@ -678,12 +681,13 @@ module Cisco
     # array: [['0,2-4,6,8-12', '1000'], ['4000-4020', '2568']]
     #
     def stp_mst_cost
-      config_get('interface', 'stp_mst_cost', @name)
+      config_get('interface', 'stp_mst_cost', name: @name)
     end
 
     def stp_mst_cost=(list)
       config_set('interface', 'stp_mst_cost',
-                 @name, 'no', '0-4094', '') if list.empty?
+                 name: @name, state: 'no', range: @smr,
+                 val: '') if list.empty?
       set_range_based_params(list, 'stp_mst_cost')
     end
 
@@ -698,12 +702,13 @@ module Cisco
     # array: [['0,2-4,6,8-12', '64'], ['4000-4020', '160']]
     #
     def stp_mst_port_priority
-      config_get('interface', 'stp_mst_port_priority', @name)
+      config_get('interface', 'stp_mst_port_priority', name: @name)
     end
 
     def stp_mst_port_priority=(list)
       config_set('interface', 'stp_mst_port_priority',
-                 @name, 'no', '0-4094', '') if list.empty?
+                 name: @name, state: 'no', range: @smr,
+                 val: '') if list.empty?
       set_range_based_params(list, 'stp_mst_port_priority')
     end
 
@@ -712,7 +717,7 @@ module Cisco
     end
 
     def stp_port_type
-      config_get('interface', 'stp_port_type', @name)
+      config_get('interface', 'stp_port_type', name: @name)
     end
 
     def stp_port_type=(val)
@@ -722,7 +727,8 @@ module Cisco
         state = 'no'
         val = ''
       end
-      config_set('interface', 'stp_port_type', @name, state, val)
+      config_set('interface', 'stp_port_type', name: @name,
+                 state: state, type: val)
     end
 
     def default_stp_port_type
@@ -736,12 +742,13 @@ module Cisco
     # array: [['1-4,6,8-12', '1000'], ['3000-3960', '2568']]
     #
     def stp_vlan_cost
-      config_get('interface', 'stp_vlan_cost', @name)
+      config_get('interface', 'stp_vlan_cost', name: @name)
     end
 
     def stp_vlan_cost=(list)
       config_set('interface', 'stp_vlan_cost',
-                 @name, 'no', '1-3967', '') if list.empty?
+                 name: @name, state: 'no',
+                 range: @svr, val: '') if list.empty?
       set_range_based_params(list, 'stp_vlan_cost')
     end
 
@@ -756,12 +763,13 @@ module Cisco
     # array: [['1-4,6,8-12', '64'], ['3000-3960', '160']]
     #
     def stp_vlan_port_priority
-      config_get('interface', 'stp_vlan_port_priority', @name)
+      config_get('interface', 'stp_vlan_port_priority', name: @name)
     end
 
     def stp_vlan_port_priority=(list)
       config_set('interface', 'stp_vlan_port_priority',
-                 @name, 'no', '1-3967', '') if list.empty?
+                 name: @name, state: 'no',
+                 range: @svr, val: '') if list.empty?
       set_range_based_params(list, 'stp_vlan_port_priority')
     end
 
@@ -1143,10 +1151,12 @@ module Cisco
         # if a particular range is set to default, use 'no' cmd
         if property_value == 'default'
           config_set('interface', param_name,
-                     @name, 'no', range, '')
+                     name: @name, state: 'no',
+                     range: range, val: '')
         else
           config_set('interface', param_name,
-                     @name, '', range, property_value)
+                     name: @name, state: '',
+                     range: range, val: property_value)
         end
       end
     end

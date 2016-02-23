@@ -27,6 +27,10 @@ module Cisco
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name == 'default'
       @name = name.downcase
+      @bdr = config_get('stp_global', 'bd_range')
+      @mr = config_get('stp_global', 'mst_range')
+      @mir = config_get('stp_global', 'mst_inst_range')
+      @vr = config_get('stp_global', 'vlan_range')
     end
 
     def self.globals
@@ -49,8 +53,10 @@ module Cisco
 
     def bd_designated_priority=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_designated_priority', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_designated_priority',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_designated_priority')
     end
 
@@ -70,8 +76,10 @@ module Cisco
 
     def bd_forward_time=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_forward_time', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_forward_time',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_forward_time')
     end
 
@@ -91,8 +99,10 @@ module Cisco
 
     def bd_hello_time=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_hello_time', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_hello_time',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_hello_time')
     end
 
@@ -112,8 +122,10 @@ module Cisco
 
     def bd_max_age=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_max_age', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_max_age',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_max_age')
     end
 
@@ -133,8 +145,10 @@ module Cisco
 
     def bd_priority=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_priority', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_priority',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_priority')
     end
 
@@ -154,8 +168,10 @@ module Cisco
 
     def bd_root_priority=(list)
       vlans = bd_total_range_with_vlans
-      config_set('stp_global', 'bd_root_priority', 'no',
-                 Utils.get_reset_range('2-3967', vlans), '') if list.empty?
+      config_set('stp_global', 'bd_root_priority',
+                 state: 'no',
+                 range: Utils.get_reset_range(@bdr, vlans),
+                 val:   '') if list.empty?
       set_range_based_params(list, 'bd_root_priority')
     end
 
@@ -170,7 +186,7 @@ module Cisco
     def bpdufilter=(state)
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
-      config_set('stp_global', 'bpdufilter', no_cmd)
+      config_set('stp_global', 'bpdufilter', state: no_cmd)
     end
 
     def default_bpdufilter
@@ -184,7 +200,7 @@ module Cisco
     def bpduguard=(state)
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
-      config_set('stp_global', 'bpduguard', no_cmd)
+      config_set('stp_global', 'bpduguard', state: no_cmd)
     end
 
     def default_bpduguard
@@ -198,7 +214,7 @@ module Cisco
     def bridge_assurance=(state)
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
-      config_set('stp_global', 'bridge_assurance', no_cmd)
+      config_set('stp_global', 'bridge_assurance', state: no_cmd)
     end
 
     def default_bridge_assurance
@@ -217,7 +233,7 @@ module Cisco
         val = '1' # dummy val to satisfy the CLI
       end
       config_set('stp_global',
-                 'domain', state, val)
+                 'domain', state: state, domain: val)
     end
 
     def default_domain
@@ -231,7 +247,7 @@ module Cisco
     def fcoe=(state)
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
-      config_set('stp_global', 'fcoe', no_cmd)
+      config_set('stp_global', 'fcoe', state: no_cmd)
     end
 
     def default_fcoe
@@ -245,7 +261,7 @@ module Cisco
     def loopguard=(state)
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
-      config_set('stp_global', 'loopguard', no_cmd)
+      config_set('stp_global', 'loopguard', state: no_cmd)
     end
 
     def default_loopguard
@@ -258,9 +274,9 @@ module Cisco
 
     def mode=(val)
       if val == default_mode
-        config_set('stp_global', 'mode', 'no', '')
+        config_set('stp_global', 'mode', state: 'no', mode: '')
       else
-        config_set('stp_global', 'mode', '', val)
+        config_set('stp_global', 'mode', state: '', mode: val)
       end
     end
 
@@ -281,7 +297,7 @@ module Cisco
     def mst_designated_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_designated_priority',
-                 'no', '0-4094', '') if list.empty?
+                 state: 'no', range: @mr, val: '') if list.empty?
       set_range_based_params(list, 'mst_designated_priority')
     end
 
@@ -302,7 +318,7 @@ module Cisco
         state = ''
       end
       config_set('stp_global',
-                 'mst_forward_time', state, val)
+                 'mst_forward_time', state: state, ft: val)
     end
 
     def default_mst_forward_time
@@ -322,7 +338,7 @@ module Cisco
         state = ''
       end
       config_set('stp_global',
-                 'mst_hello_time', state, val)
+                 'mst_hello_time', state: state, ht: val)
     end
 
     def default_mst_hello_time
@@ -341,16 +357,16 @@ module Cisco
 
     def mst_inst_vlan_map=(list)
       check_stp_mode_mst
-      config_set('stp_global', 'mst_inst_vlan_map', '',
-                 '0', 'vlan', '1-4094') if list.empty?
+      config_set('stp_global', 'mst_inst_vlan_map', state: '',
+                 instance: '0', vlan: 'vlan', range: @mir) if list.empty?
       list.each do |inst, range|
         # if a particular range is set to default, use 'no' cmd
         if range == 'default'
-          config_set('stp_global', 'mst_inst_vlan_map', 'no',
-                     inst, '', '')
+          config_set('stp_global', 'mst_inst_vlan_map', state: 'no',
+                     instance: inst, vlan: '', range: '')
         else
-          config_set('stp_global', 'mst_inst_vlan_map', '',
-                     inst, 'vlan', range)
+          config_set('stp_global', 'mst_inst_vlan_map', state: '',
+                     instance: inst, vlan: 'vlan', range: range)
         end
       end
     end
@@ -372,7 +388,7 @@ module Cisco
         state = ''
       end
       config_set('stp_global',
-                 'mst_max_age', state, val)
+                 'mst_max_age', state: state, ma: val)
     end
 
     def default_mst_max_age
@@ -392,7 +408,7 @@ module Cisco
         state = ''
       end
       config_set('stp_global',
-                 'mst_max_hops', state, val)
+                 'mst_max_hops', state: state, mh: val)
     end
 
     def default_mst_max_hops
@@ -412,7 +428,7 @@ module Cisco
         val = ''
       end
       config_set('stp_global',
-                 'mst_name', state, val)
+                 'mst_name', state: state, name: val)
     end
 
     def default_mst_name
@@ -432,7 +448,7 @@ module Cisco
     def mst_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_priority',
-                 'no', '0-4094', '') if list.empty?
+                 state: 'no', range: @mr, val: '') if list.empty?
       set_range_based_params(list, 'mst_priority')
     end
 
@@ -453,7 +469,7 @@ module Cisco
         state = ''
       end
       config_set('stp_global',
-                 'mst_revision', state, val)
+                 'mst_revision', state: state, rev: val)
     end
 
     def default_mst_revision
@@ -473,7 +489,7 @@ module Cisco
     def mst_root_priority=(list)
       check_stp_mode_mst
       config_set('stp_global', 'mst_root_priority',
-                 'no', '0-4094', '') if list.empty?
+                 state: 'no', range: @mr, val: '') if list.empty?
       set_range_based_params(list, 'mst_root_priority')
     end
 
@@ -487,9 +503,9 @@ module Cisco
 
     def pathcost=(val)
       if val == default_pathcost
-        config_set('stp_global', 'pathcost', 'no', '')
+        config_set('stp_global', 'pathcost', state: 'no', method: '')
       else
-        config_set('stp_global', 'pathcost', '', val)
+        config_set('stp_global', 'pathcost', state: '', method: val)
       end
     end
 
@@ -509,7 +525,7 @@ module Cisco
 
     def vlan_designated_priority=(list)
       config_set('stp_global', 'vlan_designated_priority',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_designated_priority')
     end
 
@@ -529,7 +545,7 @@ module Cisco
 
     def vlan_forward_time=(list)
       config_set('stp_global', 'vlan_forward_time',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_forward_time')
     end
 
@@ -549,7 +565,7 @@ module Cisco
 
     def vlan_hello_time=(list)
       config_set('stp_global', 'vlan_hello_time',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_hello_time')
     end
 
@@ -569,7 +585,7 @@ module Cisco
 
     def vlan_max_age=(list)
       config_set('stp_global', 'vlan_max_age',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_max_age')
     end
 
@@ -589,7 +605,7 @@ module Cisco
 
     def vlan_priority=(list)
       config_set('stp_global', 'vlan_priority',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_priority')
     end
 
@@ -609,7 +625,7 @@ module Cisco
 
     def vlan_root_priority=(list)
       config_set('stp_global', 'vlan_root_priority',
-                 'no', '1-3967', '') if list.empty?
+                 state: 'no', range: @vr, val: '') if list.empty?
       set_range_based_params(list, 'vlan_root_priority')
     end
 
@@ -641,10 +657,10 @@ module Cisco
         # if a particular range is set to default, use 'no' cmd
         if property_value == 'default'
           config_set('stp_global', param_name,
-                     'no', range, '')
+                     state: 'no', range: range, val: '')
         else
           config_set('stp_global', param_name,
-                     '', range, property_value)
+                     state: '', range: range, val: property_value)
         end
       end
     end
