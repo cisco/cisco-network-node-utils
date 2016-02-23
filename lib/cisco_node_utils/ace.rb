@@ -154,7 +154,7 @@ module Cisco
       return nil unless ace_match.names.include?(prop)
 
       # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.\S+)")
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
       value_match = regexp.match(ace_match[prop])
       return nil if value_match.nil?
       value_match[:extracted]
@@ -247,21 +247,22 @@ module Cisco
     def tcp_flags
       match = ace_get
       return nil if match.nil?
-      match.names.include?('tcp_flags') ? match[:tcp_flags] : nil
+      match.names.include?('tcp_flags') ? match[:tcp_flags].strip : nil
     end
 
     def tcp_flags=(tcp_flags)
-      @set_args[:tcp_flags] = tcp_flags
+      @set_args[:tcp_flags] = tcp_flags.strip
     end
 
     def established
       match = ace_get
       return nil if match.nil?
-      match.names.include?('established') ? true : false
+      return nil unless match.names.include?('established')
+      match[:established] == 'established' ? true : nil
     end
 
     def established=(established)
-      @set_args[:established] = established == true ? 'established' : ''
+      @set_args[:established] = established.to_s == 'true' ? 'established' : ''
     end
 
     def precedence
@@ -331,11 +332,12 @@ module Cisco
     def log
       match = ace_get
       return nil if match.nil?
-      match.names.include?('log') ? true : false
+      return nil unless match.names.include?('log')
+      match[:log] == 'log' ? true : nil
     end
 
     def log=(log)
-      @set_args[:log] = log == true ? 'log' : ''
+      @set_args[:log] = log.to_s == 'true' ? 'log' : ''
     end
   end
 end

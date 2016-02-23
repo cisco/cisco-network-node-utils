@@ -11,7 +11,7 @@ Changelog
 *
 
 ### Added
-*
+* `test_feature` minitest
 
 ### Removed
 *
