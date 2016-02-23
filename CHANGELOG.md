@@ -26,6 +26,7 @@ Changelog
   * platform (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
+
 * `test_feature` minitest
 * Extend interface with attributes:
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
