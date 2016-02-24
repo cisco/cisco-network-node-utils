@@ -46,9 +46,9 @@ class CiscoTestCase < TestCase
     return super if skip_unless_supported.nil?
     return super if node.cmd_ref.supports?(skip_unless_supported)
     # If the entire feature under test is unsupported,
-    # undefine the setup/teardown methods and skip the whole test case
-    remove_method :setup
-    remove_method :teardown
+    # undefine the setup/teardown methods (if any) and skip the whole test case
+    remove_method :setup if instance_methods(false).include?(:setup)
+    remove_method :teardown if instance_methods(false).include?(:teardown)
     [:all_skipped]
   end
 
