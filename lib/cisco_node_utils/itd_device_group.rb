@@ -69,11 +69,11 @@ module Cisco
     def create
       ItdDeviceGroup.feature_itd_enable unless
         ItdDeviceGroup.feature_itd_enabled
-      config_set('itd_device_group', 'create', @name)
+      config_set('itd_device_group', 'create', name: @name)
     end
 
     def destroy
-      config_set('itd_device_group', 'destroy', @name)
+      config_set('itd_device_group', 'destroy', name: @name)
     end
 
     # proble configuration is all done in a single line (like below)
@@ -84,7 +84,7 @@ module Cisco
     # also the 'control enable' can be set if the type is tcp or udp only
     # probe udp port 23 control enable frequency 10 timeout 5 ...
     def probe
-      params = config_get('itd_device_group', 'probe', @name)
+      params = config_get('itd_device_group', 'probe', name: @name)
       hash = {}
       hash[:probe_control] = default_probe_control
       if params.nil?
@@ -181,32 +181,42 @@ module Cisco
 
     def probe=(type, host, control, freq, ret_up, ret_down, port, timeout)
       if type == false
-        config_set('itd_device_group', 'probe_type', @name, 'no')
+        config_set('itd_device_group', 'probe_type', name: @name, state: 'no')
         return
       end
       case type.to_sym
       when :dns
-        config_set('itd_device_group', 'probe', @name, type, 'host', host, '',
-                   freq, timeout, ret_down, ret_up)
+        config_set('itd_device_group', 'probe',
+                   name: @name, type: type, hps: 'host', hpv: host, control: '',
+                   freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
       when :tcp
         if control
-          config_set('itd_device_group', 'probe', @name, type, 'port', port,
-                     'control enable', freq, timeout, ret_down, ret_up)
+          config_set('itd_device_group', 'probe',
+                     name: @name, type: type, hps: 'port', hpv: port,
+                     control: 'control enable', freq: freq, to: timeout,
+                     rdc: ret_down, ruc: ret_up)
         else
-          config_set('itd_device_group', 'probe', @name, type, 'port', port, '',
-                     freq, timeout, ret_down, ret_up)
+          config_set('itd_device_group', 'probe',
+                     name: @name, type: type, hps: 'port', hpv: port,
+                     control: '', freq: freq, to: timeout, rdc: ret_down,
+                     ruc: ret_up)
         end
       when :udp
         if control
-          config_set('itd_device_group', 'probe', @name, type, 'port', port,
-                     'control enable', freq, timeout, ret_down, ret_up)
+          config_set('itd_device_group', 'probe',
+                     name: @name, type: type, hps: 'port', hpv: port,
+                     control: 'control enable', freq: freq, to: timeout,
+                     rdc: ret_down, ruc: ret_up)
         else
-          config_set('itd_device_group', 'probe', @name, type, 'port', port, '',
-                     freq, timeout, ret_down, ret_up)
+          config_set('itd_device_group', 'probe',
+                     name: @name, type: type, hps: 'port', hpv: port,
+                     control: '', freq: freq, to: timeout, rdc: ret_down,
+                     ruc: ret_up)
         end
       when :icmp
-        config_set('itd_device_group', 'probe', @name, type, '', '', '',
-                   freq, timeout, ret_down, ret_up)
+        config_set('itd_device_group', 'probe',
+                   name: @name, type: type, hps: '', hpv: '', control: '',
+                   freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
       end
     end
   end  # Class

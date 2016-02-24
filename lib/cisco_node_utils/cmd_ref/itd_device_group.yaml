@@ -1,29 +1,33 @@
 # itd_device_group
 ---
 _template:
-  config_get: "show running-config all | section itd"
-  config_get_token: '/^itd device-group %s/i'
-  config_set: ["itd device-group %s"]
+  get_command: "show running-config all | section itd"
+  get_context: '/^itd device-group (.*)/'
+  set_context: "itd device-group <name>"
 
 all_itd_device_groups:
   multiple:
-  config_get_token: '/^itd device-group (.*)/'
+  get_context: ~
+  get_value: '/^itd device-group (.*)/'
 
 create:
-  config_set: "itd device-group %s"
+  set_value: "itd device-group <name>"
 
 destroy:
-  config_set: "no itd device-group %s"
+  set_context: ~
+  set_value: "no itd device-group <name>"
 
 feature:
-  config_get: 'show running | i ^feature'
-  config_get_token: '/^feature itd$/'
-  config_set: 'feature itd'
+  get_command: 'show running | i ^feature'
+  get_context: ~
+  get_value: '/^feature itd$/'
+  set_context: ~
+  set_value: 'feature itd'
   default_value: false
 
 probe:
-  config_get_token_append: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
-  config_set_append: "probe %s %s %s %s frequency %s timeout %s retry-down-count %s retry-up-count %s"
+  get_value: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
+  set_value: "probe <type> <hps> <hpv> <control> frequency <freq> timeout <to> retry-down-count <rdc> retry-up-count <ruc>"
 
 probe_control:
   _exclude: [N3k, N5k, N6k, N9k]
@@ -56,5 +60,5 @@ probe_timeout:
 
 probe_type:
   kind: string
-  config_set_append: "%s probe icmp"
+  set_value: "<state> probe icmp"
   default_value: false
