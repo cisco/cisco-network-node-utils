@@ -31,7 +31,32 @@ class CiscoTestCase < TestCase
   @@interfaces_id = nil
   # rubocop:enable Style/ClassVars
 
-  def node
+  # The feature (lib/cisco_node_utils/cmd_ref/<feature>.yaml) that this
+  # test case is primarily focused on exercising, if applicable.
+  # If the YAML file excludes this entire feature for this platform
+  # (top-level _exclude statement, not individual attributes), then
+  # this entire test case will be skipped.
+  @feature = nil
+
+  class << self
+    attr_reader :feature
+  end
+
+  def self.runnable_methods
+    return super if feature.nil? || node.cmd_ref.supports?(feature)
+    # If the entire feature under test is unsupported,
+    # undefine the setup/teardown methods and skip the whole test case
+    remove_method :setup
+    remove_method :teardown
+    [:all_skipped]
+  end
+
+  def all_skipped
+    skip("Skipping #{self.class}; feature '#{self.class.feature}' " \
+         'is unsupported on this node')
+  end
+
+  def self.node
     unless @@node
       @@node = Node.instance # rubocop:disable Style/ClassVars
       @@node.connect(address, username, password)
@@ -48,6 +73,10 @@ class CiscoTestCase < TestCase
     abort "Unauthorized to connect as #{username}:#{password}@#{address}"
   rescue Cisco::Client::ClientError, TypeError, ArgumentError => e
     abort "Error in establishing connection: #{e}"
+  end
+
+  def node
+    self.class.node
   end
 
   def setup

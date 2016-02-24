@@ -1,5 +1,7 @@
 # interface_ospf
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: 'show running interface all'
   context: ["interface %s"]

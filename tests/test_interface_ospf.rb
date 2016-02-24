@@ -21,6 +21,8 @@ include Cisco
 
 # TestInterfaceOspf - Minitest for InterfaceOspf node utility class.
 class TestInterfaceOspf < CiscoTestCase
+  @feature = 'interface_ospf'
+
   def setup
     super
     config 'no feature ospf'
