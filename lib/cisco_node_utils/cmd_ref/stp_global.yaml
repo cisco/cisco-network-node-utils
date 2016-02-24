@@ -48,9 +48,10 @@ bd_range:
 bd_root_priority:
   _exclude: [N3k, N5k, N6k, N9k]
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) root priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> bridge-domain <range> root priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> bridge-domain <range> root priority <val>"
   default_value: []
 
 bpdufilter:
@@ -103,9 +104,10 @@ mode:
 
 mst_designated_priority:
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^mst (.*) designated priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> mst <range> designated priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> mst <range> designated priority <val>"
   default_value: []
 
 mst_forward_time:
@@ -126,9 +128,10 @@ mst_inst_range:
 
 mst_inst_vlan_map:
   multiple:
-  get_context: '/^spanning-tree mst configuration$/'
+  get_context: ['/^spanning-tree mst configuration$/']
   get_value: '/^instance (.*) vlan (.*)$/'
-  set_value: ["spanning-tree mst configuration", "<state> instance <instance> <vlan> <range>"]
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> instance <instance> <vlan> <range>"
   default_value: []
 
 mst_max_age:
@@ -145,9 +148,10 @@ mst_max_hops:
 
 mst_name:
   kind: string
-  get_context: '/^spanning-tree mst configuration$/'
+  get_context: ['/^spanning-tree mst configuration$/']
   get_value: '/^name (.*)$/'
-  set_value: ["spanning-tree mst configuration", "<state> name <name>"]
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> name <name>"
   default_value: false
 
 mst_priority:
@@ -162,16 +166,18 @@ mst_range:
 
 mst_revision:
   kind: int
-  get_context: '/^spanning-tree mst configuration$/'
+  get_context: ['/^spanning-tree mst configuration$/']
   get_value: '/^revision (\d+)$/'
-  set_value: ["spanning-tree mst configuration", "<state> revision <rev>"]
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> revision <rev>"
   default_value: 0
 
 mst_root_priority:
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^mst (.*) root priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> mst <range> root priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> mst <range> root priority <val>"
   default_value: []
 
 pathcost:
@@ -182,9 +188,10 @@ pathcost:
 
 vlan_designated_priority:
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^vlan (.*) designated priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> vlan <range> designated priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> vlan <range> designated priority <val>"
   default_value: []
 
 vlan_forward_time:
@@ -217,7 +224,8 @@ vlan_range:
 
 vlan_root_priority:
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^vlan (.*) root priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> vlan <range> root priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> vlan <range> root priority <val>"
   default_value: []
