@@ -17,6 +17,7 @@
 require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
+require_relative 'feature'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
@@ -209,5 +210,29 @@ module Cisco
     def default_mapped_vni
       config_get_default('vlan', 'mapped_vni')
     end
+
+    def private_vlan_set_type
+      config_get('vlan', 'private_vlan_type', vlan: @vlan_id)
+    end
+
+    def private_vlan_set_type=(pv_type)
+      Feature.private_vlan_enable
+      fail TypeError unless pv_type && pv_type.is_a?(String)
+      if pv_type == default_private_vlan_set_type
+        @set_args[:state] = 'no'
+        @set_args[:type] = pv_type
+      else
+        @set_args[:state] = ''
+        @set_args[:type] = pv_type
+      end
+      config_set('vlan', 'private_vlan_type', @vlan_id, @set_args)
+    rescue CliError => e
+      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_private_vlan_set_type
+      config_get_default('vlan', 'private_vlan_type')
+    end
+
   end # class
 end # module
