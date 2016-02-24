@@ -6,9 +6,10 @@ _template:
 bd_designated_priority:
   _exclude: [N3k, N5k, N6k, N9k]
   multiple:
-  get_context: '/^spanning-tree pseudo-information$/'
+  get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) designated priority (.*)$/'
-  set_value: ["spanning-tree pseudo-information", "<state> bridge-domain <range> designated priority <val>"]
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> bridge-domain <range> designated priority <val>"
   default_value: []
 
 bd_forward_time:
