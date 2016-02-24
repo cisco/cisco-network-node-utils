@@ -152,4 +152,13 @@ class Cisco::Client
     end
     data
   end
+
+  # Helper method for require - suppress Ruby warnings for the given block
+  def self.silence_warnings(&block)
+    warn_level = $VERBOSE
+    $VERBOSE = nil
+    result = block.call
+    $VERBOSE = warn_level
+    result
+  end
 end
