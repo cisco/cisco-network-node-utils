@@ -14,7 +14,6 @@ create:
   set_value: "itd device-group <name>"
 
 destroy:
-  set_context: ~
   set_value: "no itd device-group <name>"
 
 feature:
