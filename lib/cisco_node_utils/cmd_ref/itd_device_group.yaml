@@ -2,8 +2,8 @@
 ---
 _template:
   get_command: "show running-config all | section itd"
-  get_context: '/^itd device-group (.*)/'
-  set_context: "itd device-group <name>"
+  get_context: ['/^itd device-group (.*)/']
+  set_context: ["itd device-group <name>"]
 
 all_itd_device_groups:
   multiple:
