@@ -32,18 +32,19 @@ class CiscoTestCase < TestCase
   # rubocop:enable Style/ClassVars
 
   # The feature (lib/cisco_node_utils/cmd_ref/<feature>.yaml) that this
-  # test case is primarily focused on exercising, if applicable.
+  # test case is associated with, if applicable.
   # If the YAML file excludes this entire feature for this platform
   # (top-level _exclude statement, not individual attributes), then
-  # this entire test case will be skipped.
-  @feature = nil
+  # all tests in this test case will be skipped.
+  @skip_unless_supported = nil
 
   class << self
-    attr_reader :feature
+    attr_reader :skip_unless_supported
   end
 
   def self.runnable_methods
-    return super if feature.nil? || node.cmd_ref.supports?(feature)
+    return super if skip_unless_supported.nil?
+    return super if node.cmd_ref.supports?(skip_unless_supported)
     # If the entire feature under test is unsupported,
     # undefine the setup/teardown methods and skip the whole test case
     remove_method :setup
@@ -52,8 +53,8 @@ class CiscoTestCase < TestCase
   end
 
   def all_skipped
-    skip("Skipping #{self.class}; feature '#{self.class.feature}' " \
-         'is unsupported on this node')
+    skip("Skipping #{self.class}; feature " \
+         "'#{self.class.skip_unless_supported}' is unsupported on this node")
   end
 
   def self.node
