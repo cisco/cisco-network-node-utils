@@ -21,6 +21,7 @@ include Cisco
 # TestVpc - Minitest for Vpc node utility class
 class TestVpc < CiscoTestCase
   def setup
+    puts "#{__callee__}"
     super
     no_feature_vpc
   end

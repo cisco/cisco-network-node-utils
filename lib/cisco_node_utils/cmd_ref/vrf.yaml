@@ -1,88 +1,182 @@
 # vrf.yaml
 ---
 _template:
-  config_get: "show running all | section '^vrf context'"
-  config_get_token: '/^vrf context <vrf>$/'
-  config_get_token_append:
-    - '/^address-family <afi> <safi>$/'
-  config_set: 'vrf context <vrf>'
-  config_set_append:
-    - 'address-family <afi> <safi>'
+  nexus:
+    get_command: "show running all | section '^vrf context'"
+    context:
+      - 'vrf context <vrf>'
+      - 'address-family <afi> <safi>'
+  ios_xr:
+    get_command: "show run vrf"
+    context:
+      - 'vrf <vrf>'
+      - 'address-family <afi> <safi>'
 
 address_family:
-  config_set: ['vrf context <vrf>', '<state> address-family <afi> <safi>']
+  set_value: '<state> address-family <afi> <safi>'
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
 
 all_vrf_afs:
   multiple: true
-  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+  get_value: '/^address-family (\S+) (\S+)$/'
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
 
 all_vrfs:
   multiple: true
-  config_get_token: '/^vrf context (.*)/'
+  context: ~
+  nexus:
+    get_value: '/^vrf context (.*)/'
+  ios_xr:
+    get_value: '/^vrf (.*)/'
 
 create:
-  config_set:  'vrf context <vrf>'
+  context: ~
+  nexus:
+    set_value:  'vrf context <vrf>'
+  ios_xr:
+    set_value:  'vrf <vrf>'
 
 description:
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: '<state> description <desc>'
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <desc>'
   kind: string
   default_value: ''
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
 
 destroy:
-  config_set: 'no vrf context <vrf>'
+  context: ~
+  nexus:
+    set_value: 'no vrf context <vrf>'
+  ios_xr:
+    set_value: 'no vrf <vrf>'
 
 route_distinguisher:
-  config_get_token_append: '/^rd (\S+)$/'
-  config_set_append: '<state> rd <rd>'
+  # Only configurable under BGP in IOS XR, not under VRF context
+  _exclude: [ios_xr]
+  get_value: '/^rd (\S+)$/'
+  set_value: '<state> rd <rd>'
+  context: ['vrf context <vrf>']
   default_value: ''
 
+route_policy_export:
+  default_value: ~
+  nexus:
+    get_value: '/^export map (\S+)$/'
+    set_value: '<state> export map <policy_name>'
+  ios_xr:
+    get_value: '/^export route-policy (\S+)$/'
+    set_value: '<state> export route-policy <policy_name>'
+
+route_policy_import:
+  default_value: ~
+  nexus:
+    get_value: '/^import map (\S+)$/'
+    set_value: '<state> import map <policy_name>'
+  ios_xr:
+    get_value: '/^import route-policy (\S+)$/'
+    set_value: '<state> import route-policy <policy_name>'
+
 route_target_both_auto:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^route-target both auto$/'
-  config_set_append: '<state> route-target both auto'
+  get_value: '/^route-target both auto$/'
+  set_value: '<state> route-target both auto'
   default_value: false
 
 route_target_both_auto_evpn:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^route-target both auto evpn$/'
-  config_set_append: '<state> route-target both auto evpn'
+  get_value: '/^route-target both auto evpn$/'
+  set_value: '<state> route-target both auto evpn'
   default_value: false
 
 route_target_export:
   multiple: true
-  config_get_token_append: '/^route-target export (\S+)$/'
-  config_set_append: '<state> route-target export <community>'
   default_value: []
+  nexus:
+    get_value: '/^route-target export (\S+)$/'
+    set_value: '<state> route-target export <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^export route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> export route-target <community>'
 
 route_target_export_evpn:
+  _exclude: [ios_xr]
   multiple: true
-  config_get_token_append: '/^route-target export (\S+) evpn$/'
-  config_set_append: '<state> route-target export <community> evpn'
+  get_value: '/^route-target export (\S+) evpn$/'
+  set_value: '<state> route-target export <community> evpn'
+  default_value: []
+
+route_target_export_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^export route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> export route-target <community> stitching'
   default_value: []
 
 route_target_import:
   multiple: true
-  config_get_token_append: '/^route-target import (\S+)$/'
-  config_set_append: '<state> route-target import <community>'
   default_value: []
+  nexus:
+    get_value: '/^route-target import (\S+)$/'
+    set_value: '<state> route-target import <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^import route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> import route-target <community>'
 
 route_target_import_evpn:
+  _exclude: [ios_xr]
   multiple: true
-  config_get_token_append: '/^route-target import (\S+) evpn$/'
-  config_set_append: '<state> route-target import <community> evpn'
+  get_value: '/^route-target import (\S+) evpn$/'
+  set_value: '<state> route-target import <community> evpn'
+  default_value: []
+
+route_target_import_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^import route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> import route-target <community> stitching'
   default_value: []
 
 shutdown:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^shutdown$/'
-  config_set_append: '<state> shutdown'
+
+  get_value: '/^shutdown$/'
+  set_value: '<state> shutdown'
+  context: ['vrf context <vrf>']
   default_value: false
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
   # MT-lite only
   N9k:
     kind: int
-    config_get_token_append: '/^vni (\d+)$/'
-    config_set_append: '<state> vni <id>'
+    get_value: '/^vni (\d+)$/'
+    set_value: '<state> vni <id>'
+    context: ['vrf context <vrf>']
     default_value: false

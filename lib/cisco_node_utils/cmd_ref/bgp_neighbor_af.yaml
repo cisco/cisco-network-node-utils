@@ -1,48 +1,55 @@
 # bgp_neighbor_af.yaml
 ---
 _template:
-  config_get: 'show running bgp all'
-  config_get_token: '/^router bgp <asnum>$/'
-  config_get_token_append:
-    - '/^vrf <vrf>$/'
-    - '/^neighbor <nbr>$/'
-    - '/^address-family <afi> <safi>$/'
-  config_set: 'router bgp <asnum>'
-  config_set_append:
-    - 'vrf <vrf>'
+  nexus:
+    get_command: 'show running bgp all'
+  ios_xr:
+    get_command: 'show run router bgp'
+  context:
+    - 'router bgp <asnum>'
+    - '(?)vrf <vrf>'
     - 'neighbor <nbr>'
     - 'address-family <afi> <safi>'
 
 additional_paths_receive:
+  _exclude: [ios_xr]
+  kind: symbol
   auto_default: false
-  config_get_token_append: '/^capability additional-paths receive(?: disable)?/'
-  config_set_append: '<state> capability additional-paths receive <disable>'
+  get_value: '/^capability additional-paths receive(?: disable)?/'
+  set_value: '<state> capability additional-paths receive <disable>'
   default_value: 'inherit'
 
 additional_paths_send:
+  _exclude: [ios_xr]
   auto_default: false
-  config_get_token_append: '/^capability additional-paths send(?: disable)?/'
-  config_set_append: '<state> capability additional-paths send <disable>'
+  get_value: '/^capability additional-paths send(?: disable)?/'
+  set_value: '<state> capability additional-paths send <disable>'
   default_value: 'inherit'
 
 advertise_map_exist:
-  config_get_token_append: '/^advertise-map (\S+) exist-map (\S+)$/'
-  config_set_append: '<state> advertise-map <map1> exist-map <map2>'
+  _exclude: [ios_xr]
+  get_value: '/^advertise-map (\S+) exist-map (\S+)$/'
+  set_value: '<state> advertise-map <map1> exist-map <map2>'
   default_value: ''
 
 advertise_map_non_exist:
-  config_get_token_append: '/^advertise-map (\S+) non-exist-map (\S+)$/'
-  config_set_append: '<state> advertise-map <map1> non-exist-map <map2>'
+  _exclude: [ios_xr]
+  get_value: '/^advertise-map (\S+) non-exist-map (\S+)$/'
+  set_value: '<state> advertise-map <map1> non-exist-map <map2>'
   default_value: ''
 
 all_afs:
   multiple: true
-  config_get_token_append: '/^address-family (\S+) (\S+)$/'
+  context:
+    - 'router bgp <asnum>'
+    - '(?)vrf <vrf>'
+    - 'neighbor <nbr>'
+  get_value: '/^address-family (\S+) (\S+)$/'
 
 allowas_in:
   auto_default: false
-  config_get_token_append: '/^allowas-in(?: \d+)?/'
-  config_set_append: '<state> allowas-in <max>'
+  get_value: '/^allowas-in(?: \d+)?/'
+  set_value: '<state> allowas-in <max>'
   default_value: false
 
 allowas_in_max:
@@ -50,39 +57,47 @@ allowas_in_max:
 
 as_override:
   kind: boolean
-  config_get_token_append: '/^as-override$/'
-  config_set_append: '<state> as-override'
+  get_value: '/^as-override$/'
+  set_value: '<state> as-override'
   default_value: false
 
 default_originate:
-  config_get_token_append: '/^default-originate(?: route-map .*)?/'
-  config_set_append: '<state> default-originate <map>'
   default_value: false
+  ios_xr:
+    get_value: '/^default-originate(?: route-policy .*)?/'
+    set_value: '<state> default-originate <map>'
+  nexus:
+    get_value: '/^default-originate(?: route-map .*)?/'
+    set_value: '<state> default-originate <map>'
 
 default_originate_route_map:
+  _exclude: [ios_xr]
   default_value: ~
 
 disable_peer_as_check:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^disable-peer-as-check$/'
-  config_set_append: '<state> disable-peer-as-check'
+  get_value: '/^disable-peer-as-check$/'
+  set_value: '<state> disable-peer-as-check'
   default_value: false
 
 filter_list_in:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^filter-list (\S+) in$/'
-  config_set_append: '<state> filter-list <str> in'
+  get_value: '/^filter-list (\S+) in$/'
+  set_value: '<state> filter-list <str> in'
   default_value: ''
 
 filter_list_out:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^filter-list (\S+) out$/'
-  config_set_append: '<state> filter-list <str> out'
+  get_value: '/^filter-list (\S+) out$/'
+  set_value: '<state> filter-list <str> out'
   default_value: ''
 
 max_prefix:
-  config_get_token_append: '/^maximum-prefix .*$/'
-  config_set_append: '<state> maximum-prefix <limit> <threshold> <opt>'
+  get_value: '/^maximum-prefix .*$/'
+  set_value: '<state> maximum-prefix <limit> <threshold> <opt>'
 
 max_prefix_interval:
   default_value: ~
@@ -91,92 +106,121 @@ max_prefix_limit:
   default_value: ~
 
 max_prefix_threshold:
-  default_value: ~
+  ios_xr:
+    default_value: 75
+  nexus:
+    default_value: ~
 
 max_prefix_warning:
   default_value: ~
 
 next_hop_self:
   kind: boolean
-  config_get_token_append: '/^next-hop-self$/'
-  config_set_append: '<state> next-hop-self'
+  get_value: '/^next-hop-self$/'
+  set_value: '<state> next-hop-self'
   default_value: false
 
 next_hop_third_party:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^(no ?)next-hop-third-party$/'
-  config_set_append: '<state> next-hop-third-party'
+  get_value: '/^(no ?)next-hop-third-party$/'
+  set_value: '<state> next-hop-third-party'
   default_value: true
 
 prefix_list_in:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^prefix-list (\S+) in$/'
-  config_set_append: '<state> prefix-list <str> in'
+  get_value: '/^prefix-list (\S+) in$/'
+  set_value: '<state> prefix-list <str> in'
   default_value: ''
 
 prefix_list_out:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^prefix-list (\S+) out$/'
-  config_set_append: '<state> prefix-list <str> out'
+  get_value: '/^prefix-list (\S+) out$/'
+  set_value: '<state> prefix-list <str> out'
   default_value: ''
 
 route_map_in:
   kind: string
-  config_get_token_append: '/^route-map (\S+) in$/'
-  config_set_append: '<state> route-map <str> in'
   default_value: ''
+  nexus:
+    get_value: '/^route-map (\S+) in$/'
+    set_value: '<state> route-map <str> in'
+  ios_xr:
+    get_value: '/^route-policy (\S+) in$/'
+    set_value: '<state> route-policy <str> in'
 
 route_map_out:
   kind: string
-  config_get_token_append: '/^route-map (\S+) out$/'
-  config_set_append: '<state> route-map <str> out'
   default_value: ''
+  nexus:
+    get_value: '/^route-map (\S+) out$/'
+    set_value: '<state> route-map <str> out'
+  ios_xr:
+    get_value: '/^route-policy (\S+) out$/'
+    set_value: '<state> route-policy <str> out'
 
 route_reflector_client:
   kind: boolean
-  config_get_token_append: '/^route-reflector-client$/'
-  config_set_append: '<state> route-reflector-client'
+  get_value: '/^route-reflector-client$/'
+  set_value: '<state> route-reflector-client'
   default_value: false
 
 send_community:
   auto_default: false
-  config_get_token_append: '/^send-community(?: .*)?/'
-  config_set_append: '<state> send-community <attr>'
   default_value: 'none'
+  nexus:
+    get_value: '/^send-community(?: .*)?/'
+    set_value: '<state> send-community <attr>'
+  ios_xr:
+    multiple:
+    # XR three seperate commands: send-community-ebgp  send-community-gshut-ebgp
+    # and send-extended-community-ebgp
+    # send-community-ebgp' and 'send-extended-community-ebgp' are the equivalents
+    # of the NXOS: standard | extended functionality
+    get_value: '/^(send-community-ebgp|send-extended-community-ebgp)/'
+    set_value: '<state> <attr>'
 
 soft_reconfiguration_in:
   auto_default: false
   default_value: 'inherit'
+  ios_xr:
+    get_value: '/^soft-reconfiguration inbound(?: always)?/'
+    set_value: '<state> soft-reconfiguration inbound <always>'
   N3k:
-    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
-    config_set_append: '<state> soft-reconfiguration inbound <always>'
+    get_value: '/^soft-reconfiguration inbound(?: always)?/'
+    set_value: '<state> soft-reconfiguration inbound <always>'
   N9k:
-    config_get_token_append: '/^soft-reconfiguration inbound(?: always)?/'
-    config_set_append: '<state> soft-reconfiguration inbound <always>'
+    get_value: '/^soft-reconfiguration inbound(?: always)?/'
+    set_value: '<state> soft-reconfiguration inbound <always>'
   else:
-    config_get_token_append: '/^soft-reconfiguration inbound/'
-    config_set_append: '<state> soft-reconfiguration inbound'
+    get_value: '/^soft-reconfiguration inbound/'
+    set_value: '<state> soft-reconfiguration inbound'
 
 soo:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^soo (.*)$/'
-  config_set_append: '<state> soo <str>'
+  get_value: '/^soo (.*)$/'
+  set_value: '<state> soo <str>'
   default_value: ''
 
 suppress_inactive:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^suppress-inactive$/'
-  config_set_append: '<state> suppress-inactive'
+  get_value: '/^suppress-inactive$/'
+  set_value: '<state> suppress-inactive'
   default_value: false
 
 unsuppress_map:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^unsuppress-map (.*)$/'
-  config_set_append: '<state> unsuppress-map <str>'
+  get_value: '/^unsuppress-map (.*)$/'
+  set_value: '<state> unsuppress-map <str>'
   default_value: ''
 
 weight:
   kind: int
-  config_get_token_append: '/^weight (\d+)$/'
-  config_set_append: '<state> weight <int>'
+  get_value: '/^weight (\d+)$/'
+  set_value: '<state> weight <int>'
   default_value: false

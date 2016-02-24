@@ -27,7 +27,9 @@ require 'rubygems'
 gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-require 'cisco_nxapi'
+require_relative '../lib/cisco_node_utils/client'
+require_relative '../lib/cisco_node_utils/command_reference'
+require_relative '../lib/cisco_node_utils/logger'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared
@@ -38,9 +40,9 @@ require 'cisco_nxapi'
 class TestCase < Minitest::Test
   # These variables can be set in one of three ways:
   # 1) ARGV:
-  #   $ ruby basetest.rb -- address username password
+  #   $ ruby basetest.rb -- address[:port] username password
   # 2) NODE environment variable
-  #   $ export NODE="address username password"
+  #   $ export NODE="address[:port] username password"
   #   $ rake test
   # 3) At run time:
   #   $ rake test
@@ -80,29 +82,46 @@ class TestCase < Minitest::Test
   end
 
   def setup
-    @device = Net::Telnet.new('Host' => address, 'Timeout' => 240)
-    @device.login(username, password)
-    CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
+    @device = Net::Telnet.new('Host'    => address.split(':')[0],
+                              'Timeout' => 240,
+                              # NX-OS has a space after '#', IOS XR does not
+                              'Prompt'  => /[$%#>] *\z/n,
+                             )
+    begin
+      @device.login('Name'        => username,
+                    'Password'    => password,
+                    # NX-OS uses 'login:' while IOS XR uses 'Username:'
+                    'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
+                   )
+    rescue Errno::ECONNRESET
+      @device.close
+      # TODO
+      puts 'Connection reset by peer? Try again'
+      sleep 1
+      @device = Net::Telnet.new('Host'    => address.split(':')[0],
+                                'Timeout' => 240,
+                                # NX-OS has a space after '#', IOS XR does not
+                                'Prompt'  => /[$%#>] *\z/n,
+                               )
+      @device.login('Name'        => username,
+                    'Password'    => password,
+                    # NX-OS uses 'login:' while IOS XR uses 'Username:'
+                    'LoginPrompt' => /(?:[Ll]ogin|[Uu]sername)[: ]*\z/n,
+                   )
+    end
+    @device.cmd('term len 0')
+    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
-    puts "  and that you have enabled 'feature telnet' on the UUT"
+    puts "  and that you have configured 'feature telnet' (NX-OS) or "
+    puts "  'telnet ipv4 server...' (IOS XR) on the UUT"
     exit
   end
 
   def teardown
     @device.close unless @device.nil?
+    @device = nil
     GC.start
-  end
-
-  # Extend standard Minitest error handling to report UnsupportedError as skip
-  def capture_exceptions
-    super do
-      begin
-        yield
-      rescue Cisco::UnsupportedError => e
-        skip(e.to_s)
-      end
-    end
   end
 
   def config(*args)
@@ -110,7 +129,8 @@ class TestCase < Minitest::Test
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
     @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
-                'Match'  => /^[^()]+[$%#>] \z/n)
+                # NX-OS has a space after '#', IOS XR does not
+                'Match'  => /^[^()]+[$%#>] *\z/n)
   rescue Net::ReadTimeout => e
     raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end
@@ -118,6 +138,7 @@ class TestCase < Minitest::Test
   def assert_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 
@@ -133,6 +154,7 @@ class TestCase < Minitest::Test
   def refute_show_match(pattern: nil, command: nil, msg: nil)
     pattern ||= @default_output_pattern
     refute_nil(pattern)
+    pattern = Cisco::Client.to_regexp(pattern)
     command ||= @default_show_command
     refute_nil(command)
 

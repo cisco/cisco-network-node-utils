@@ -34,6 +34,16 @@ module Cisco
 
   # Interface - node utility class for general interface config management
   class Interface < NodeUtil
+    # Regexp to match various Ethernet interface variants:
+    #                       Ethernet
+    #                GigabitEthernet
+    #                             TenGigE
+    #                         HundredGigE
+    #                                     MgmtEth
+    ETHERNET = Regexp.new('(Ethernet|GigE|MgmtEth)', Regexp::IGNORECASE)
+    # Regexp to match various link bundle interface variants
+    PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
+
     attr_reader :name
 
     def initialize(name, instantiate=true)
@@ -58,11 +68,17 @@ module Cisco
 
     def create
       feature_vlan_set(true) if @name[/vlan/i]
-      config_set('interface', 'create', @name)
+      config_set('interface', 'create', name: @name)
+    rescue Cisco::CliError
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless PORTCHANNEL =~ @name && platform == :ios_xr
+      raise Cisco::UnsupportedError.new('interface', @name, 'create')
     end
 
     def destroy
-      config_set('interface', 'destroy', @name)
+      config_set('interface', 'destroy', name: @name)
     end
 
     ########################################################
@@ -70,91 +86,11 @@ module Cisco
     ########################################################
 
     def access_vlan
-      config_get('interface', 'access_vlan', @name)
+      config_get('interface', 'access_vlan', name: @name)
     end
 
     def access_vlan=(vlan)
-      config_set('interface', 'access_vlan', @name, vlan)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def ipv4_acl_in
-      config_get('interface', 'ipv4_acl_in', @name)
-    end
-
-    def ipv4_acl_in=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv4_acl_in
-      end
-
-      return unless val && val != ''
-      config_set('interface', 'ipv4_acl_in', @name, state, val)
-    end
-
-    def default_ipv4_acl_in
-      config_get_default('interface', 'ipv4_acl_in')
-    end
-
-    def ipv4_acl_out
-      config_get('interface', 'ipv4_acl_out', @name)
-    end
-
-    def ipv4_acl_out=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv4_acl_out
-      end
-
-      return unless val && val != ''
-      config_set('interface', 'ipv4_acl_out', @name, state, val)
-    end
-
-    def default_ipv4_acl_out
-      config_get_default('interface', 'ipv4_acl_out')
-    end
-
-    def ipv6_acl_in
-      config_get('interface', 'ipv6_acl_in', @name)
-    end
-
-    def ipv6_acl_in=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv6_acl_in
-      end
-      return unless val && val != ''
-      config_set('interface', 'ipv6_acl_in', @name, state, val)
-    end
-
-    def default_ipv6_acl_in
-      config_get_default('interface', 'ipv6_acl_in')
-    end
-
-    def ipv6_acl_out
-      config_get('interface', 'ipv6_acl_out', @name)
-    end
-
-    def ipv6_acl_out=(val)
-      if val != ''
-        state = ''
-      else
-        state = 'no'
-        val = ipv6_acl_out
-      end
-      return unless val && val != ''
-      config_set('interface', 'ipv6_acl_out', @name, state, val)
-    end
-
-    def default_ipv6_acl_out
-      config_get_default('interface', 'ipv6_acl_out')
+      config_set('interface', 'access_vlan', name: @name, vlan: vlan)
     end
 
     def default_access_vlan
@@ -162,18 +98,18 @@ module Cisco
     end
 
     def description
-      config_get('interface', 'description', @name)
+      config_get('interface', 'description', name: @name)
     end
 
     def description=(desc)
       fail TypeError unless desc.is_a?(String)
       if desc.strip.empty?
-        config_set('interface', 'description', @name, 'no', '')
+        config_set('interface', 'description',
+                   name: @name, state: 'no', desc: '')
       else
-        config_set('interface', 'description', @name, '', desc)
+        config_set('interface', 'description',
+                   name: @name, state: '', desc: desc)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
@@ -181,17 +117,17 @@ module Cisco
     end
 
     def encapsulation_dot1q
-      config_get('interface', 'encapsulation_dot1q', @name)
+      config_get('interface', 'encapsulation_dot1q', name: @name)
     end
 
     def encapsulation_dot1q=(val)
       if val.to_s.empty?
-        config_set('interface', 'encapsulation_dot1q', @name, 'no', '')
+        config_set('interface', 'encapsulation_dot1q',
+                   name: @name, state: 'no', vlan: '')
       else
-        config_set('interface', 'encapsulation_dot1q', @name, '', val)
+        config_set('interface', 'encapsulation_dot1q',
+                   name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encapsulation_dot1q
@@ -207,13 +143,14 @@ module Cisco
     end
 
     def fabric_forwarding_anycast_gateway
-      config_get('interface', 'fabric_forwarding_anycast_gateway', @name)
+      config_get('interface', 'fabric_forwarding_anycast_gateway', name: @name)
     end
 
     def fabric_forwarding_anycast_gateway=(state)
       no_cmd = (state ? '' : 'no')
       config_set('interface',
-                 'fabric_forwarding_anycast_gateway', @name, no_cmd)
+                 'fabric_forwarding_anycast_gateway',
+                 name: @name, state: no_cmd)
       fail if fabric_forwarding_anycast_gateway.to_s != state.to_s
     rescue Cisco::CliError => e
       info = "[#{@name}] '#{e.command}' : #{e.clierror}"
@@ -254,8 +191,48 @@ module Cisco
         config_set('fex', 'feature', 'no') if curr == :enabled
         config_set('fex', 'feature_install', 'no')
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def ipv4_acl_in
+      config_get('interface', 'ipv4_acl_in', name: @name)
+    end
+
+    def ipv4_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_in
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_in',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv4_acl_in
+      config_get_default('interface', 'ipv4_acl_in')
+    end
+
+    def ipv4_acl_out
+      config_get('interface', 'ipv4_acl_out', name: @name)
+    end
+
+    def ipv4_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv4_acl_out
+      end
+
+      return unless val && val != ''
+      config_set('interface', 'ipv4_acl_out',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv4_acl_out
+      config_get_default('interface', 'ipv4_acl_out')
     end
 
     def ipv4_addr_mask_set(addr, mask, secondary=false)
@@ -275,13 +252,22 @@ module Cisco
         state = ''
         am = "#{addr}/#{mask}"
       end
-      config_set('interface', 'ipv4_addr_mask', @name, state, am, sec)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', 'ipv4_addr_mask',
+                 name: @name, state: state, addr: am, secondary: sec)
     end
 
     def ipv4_addr_mask
-      config_get('interface', 'ipv4_addr_mask', @name)
+      val = config_get('interface', 'ipv4_addr_mask', name: @name)
+      if val && platform == :ios_xr
+        # IOS XR reports address as <address> <bitmask> [secondary] but we
+        # want <address>/<length> [secondary]
+        val.each_with_index do |entry, i|
+          mask = entry[1].split(' ')
+          mask[0] = Utils.bitmask_to_length(mask[0])
+          val[i][1] = mask.join(' ')
+        end
+      end
+      val
     end
 
     def select_ipv4_attribute(attribute)
@@ -346,14 +332,15 @@ module Cisco
     end
 
     def ipv4_arp_timeout
-      config_get('interface', ipv4_arp_timeout_lookup_string, @name)
+      config_get('interface', ipv4_arp_timeout_lookup_string, name: @name)
     end
 
     def ipv4_arp_timeout=(timeout)
       fail "'ipv4 arp timeout' can ony be configured on a vlan interface" unless
         /vlan/.match(@name)
       state = (timeout == default_ipv4_arp_timeout) ? 'no' : ''
-      config_set('interface', 'ipv4_arp_timeout', @name, state, timeout)
+      config_set('interface', 'ipv4_arp_timeout',
+                 name: @name, state: state, timeout: timeout)
     end
 
     def default_ipv4_arp_timeout
@@ -361,16 +348,14 @@ module Cisco
     end
 
     def ipv4_pim_sparse_mode
-      config_get('interface', 'ipv4_pim_sparse_mode', @name)
+      config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
     end
 
     def ipv4_pim_sparse_mode=(state)
       check_switchport_disabled
-      Pim.feature_enable unless Pim.feature_enabled
-      config_set('interface', 'ipv4_pim_sparse_mode', @name,
-                 state ? '' : 'no')
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      Pim.feature_enable unless platform == :ios_xr || Pim.feature_enabled
+      config_set('interface', 'ipv4_pim_sparse_mode',
+                 name: @name, state: state ? '' : 'no')
     end
 
     def default_ipv4_pim_sparse_mode
@@ -378,13 +363,13 @@ module Cisco
     end
 
     def ipv4_proxy_arp
-      config_get('interface', 'ipv4_proxy_arp', @name)
+      config_get('interface', 'ipv4_proxy_arp', name: @name)
     end
 
     def ipv4_proxy_arp=(proxy_arp)
       check_switchport_disabled
       no_cmd = (proxy_arp ? '' : 'no')
-      config_set('interface', 'ipv4_proxy_arp', @name, no_cmd)
+      config_set('interface', 'ipv4_proxy_arp', name: @name, state: no_cmd)
     end
 
     def default_ipv4_proxy_arp
@@ -401,17 +386,58 @@ module Cisco
     end
 
     def ipv4_redirects
-      config_get('interface', ipv4_redirects_lookup_string, @name)
+      config_get('interface', ipv4_redirects_lookup_string, name: @name)
     end
 
     def ipv4_redirects=(redirects)
       check_switchport_disabled
       no_cmd = (redirects ? '' : 'no')
-      config_set('interface', ipv4_redirects_lookup_string, @name, no_cmd)
+      config_set('interface', ipv4_redirects_lookup_string,
+                 name: @name, state: no_cmd)
     end
 
     def default_ipv4_redirects
       config_get_default('interface', ipv4_redirects_lookup_string)
+    end
+
+    def ipv6_acl_in
+      config_get('interface', 'ipv6_acl_in', name: @name)
+    end
+
+    def ipv6_acl_in=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_in
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_in',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv6_acl_in
+      config_get_default('interface', 'ipv6_acl_in')
+    end
+
+    def ipv6_acl_out
+      config_get('interface', 'ipv6_acl_out', name: @name)
+    end
+
+    def ipv6_acl_out=(val)
+      if val != ''
+        state = ''
+      else
+        state = 'no'
+        val = ipv6_acl_out
+      end
+      return unless val && val != ''
+      config_set('interface', 'ipv6_acl_out',
+                 name: @name, state: state, acl: val)
+    end
+
+    def default_ipv6_acl_out
+      config_get_default('interface', 'ipv6_acl_out')
     end
 
     def feature_lacp?
@@ -420,35 +446,41 @@ module Cisco
 
     def feature_lacp_set(val)
       return if feature_lacp? == val
-      config_set('interface', 'feature_lacp', val ? '' : 'no')
+      config_set('interface', 'feature_lacp', state: val ? '' : 'no')
+    end
+
+    def mtu_lookup_string
+      case @name
+      when /loopback/i
+        return 'mtu_loopback'
+      else
+        return 'mtu_other_interfaces'
+      end
     end
 
     def mtu
-      config_get('interface', 'mtu', @name)
+      config_get('interface', mtu_lookup_string, name: @name)
     end
 
     def mtu=(val)
       check_switchport_disabled
-      config_set('interface', 'mtu', @name, '', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', mtu_lookup_string,
+                 name: @name, state: '', mtu: val)
     end
 
     def default_mtu
-      config_get_default('interface', 'mtu')
+      config_get_default('interface', mtu_lookup_string)
     end
 
     def speed
-      config_get('interface', 'speed', @name)
+      config_get('interface', 'speed', name: @name)
     end
 
     def speed=(val)
       if node.product_id =~ /C31\d\d/
         fail 'Changing interface speed is not permitted on this platform'
       end
-      config_set('interface', 'speed', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', 'speed', name: @name, speed: val)
     end
 
     def default_speed
@@ -456,16 +488,14 @@ module Cisco
     end
 
     def duplex
-      config_get('interface', 'duplex', @name)
+      config_get('interface', 'duplex', name: @name)
     end
 
     def duplex=(val)
       if node.product_id =~ /C31\d\d/
         fail 'Changing interface duplex is not permitted on this platform'
       end
-      config_set('interface', 'duplex', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', 'duplex', name: @name, duplex: val)
     end
 
     def default_duplex
@@ -474,9 +504,9 @@ module Cisco
 
     def negotiate_auto_lookup_string
       case @name
-      when /Ethernet/i
+      when ETHERNET
         return 'negotiate_auto_ethernet'
-      when /port-channel/i # Ether-channel
+      when PORTCHANNEL
         return 'negotiate_auto_portchannel'
       else
         return 'negotiate_auto_other_interfaces'
@@ -484,13 +514,13 @@ module Cisco
     end
 
     def negotiate_auto
-      config_get('interface', negotiate_auto_lookup_string, @name)
+      config_get('interface', negotiate_auto_lookup_string, name: @name)
     end
 
     def negotiate_auto=(negotiate_auto)
       lookup = negotiate_auto_lookup_string
       no_cmd = (negotiate_auto ? '' : 'no')
-      config_set('interface', lookup, @name, no_cmd)
+      config_set('interface', lookup, name: @name, state: no_cmd)
     end
 
     def default_negotiate_auto
@@ -498,19 +528,17 @@ module Cisco
     end
 
     def shutdown
-      config_get('interface', 'shutdown', @name)
+      config_get('interface', 'shutdown', name: @name)
     end
 
     def shutdown=(state)
       no_cmd = (state ? '' : 'no')
-      config_set('interface', 'shutdown', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', 'shutdown', name: @name, state: no_cmd)
     end
 
     def default_shutdown
       case @name
-      when /Ethernet/i
+      when ETHERNET
         def_sw = system_default_switchport
         def_shut = system_default_switchport_shutdown
 
@@ -529,7 +557,7 @@ module Cisco
       when /loopback/i
         lookup = 'shutdown_loopback'
 
-      when /port-channel/i # EtherChannel
+      when PORTCHANNEL
         lookup = 'shutdown_ether_channel'
 
       when /Vlan/i
@@ -543,26 +571,28 @@ module Cisco
 
     def switchport
       # This is "switchport", not "switchport mode"
-      config_get('interface', 'switchport', @name)
+      config_get('interface', 'switchport', name: @name)
     end
 
     def switchport_enable(val=true)
-      config_set('interface', 'switchport', @name, val ? '' : 'no')
+      config_set('interface', 'switchport', name: @name, state: val ? '' : 'no')
     end
 
     # switchport_autostate_exclude is exclusive to switchport interfaces
     def switchport_autostate_exclude
       config_get('interface',
-                 'switchport_autostate_exclude', @name)
+                 'switchport_autostate_exclude', name: @name)
     end
 
     def switchport_autostate_exclude=(val)
-      # cannot configure autostate unless feature vlan is enabled
-      fail('switchport mode must be configured before ' \
-           'switchport autostate') unless switchport
-      feature_vlan_set(true)
+      if platform == :nexus
+        # cannot configure autostate unless feature vlan is enabled
+        fail('switchport mode must be configured before ' \
+             'switchport autostate') unless switchport
+        feature_vlan_set(true)
+      end
       config_set('interface', 'switchport_autostate_exclude',
-                 @name, val ? '' : 'no')
+                 name: @name, state: val ? '' : 'no')
     end
 
     def default_switchport_autostate_exclude
@@ -571,9 +601,9 @@ module Cisco
 
     def switchport_mode_lookup_string
       case @name
-      when /Ethernet/i
+      when ETHERNET
         return 'switchport_mode_ethernet'
-      when /port-channel/i
+      when PORTCHANNEL
         return 'switchport_mode_port_channel'
       else
         return 'switchport_mode_other_interfaces'
@@ -581,7 +611,8 @@ module Cisco
     end
 
     def switchport_mode
-      mode = config_get('interface', switchport_mode_lookup_string, @name)
+      return nil if platform == :ios_xr
+      mode = config_get('interface', switchport_mode_lookup_string, name: @name)
 
       return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
 
@@ -589,6 +620,7 @@ module Cisco
       # Assume this is an interface that doesn't support switchport.
       # Do not raise exception since the providers will prefetch this property
       # regardless of interface type.
+      # TODO: this should probably be nil instead
       return :disabled
     end
 
@@ -600,11 +632,8 @@ module Cisco
       elsif :fex_fabric == mode_set
         fex_feature_set(:enabled) unless :enabled == fex_feature
       end
-      config_set('interface', switchport_mode_lookup_string, @name, '',
-                 IF_SWITCHPORT_MODE[mode_set])
-
-    rescue RuntimeError
-      raise "[#{@name}] switchport_mode is not supported on this interface"
+      config_set('interface', switchport_mode_lookup_string,
+                 name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
     end
 
     def switchport_mode=(mode_set)
@@ -617,13 +646,13 @@ module Cisco
       when :disabled
         if switchport
           # Note: turn off switchport command, not switchport mode
-          config_set('interface', 'switchport', @name, 'no')
+          config_set('interface', 'switchport', name: @name, state: 'no')
         end
 
       when :default
         if :disabled == default_switchport_mode
           config_set('interface', switchport_mode_lookup_string,
-                     @name, 'no', '')
+                     name: @name, state: 'no', mode: '')
         else
           switchport_enable_and_mode(mode_set)
         end
@@ -631,31 +660,27 @@ module Cisco
       else
         switchport_enable_and_mode(mode_set)
       end # case
-
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_mode
+      return nil if platform == :ios_xr
       return :disabled unless system_default_switchport
       IF_SWITCHPORT_MODE.key(
         config_get_default('interface', switchport_mode_lookup_string))
     end
 
     def switchport_trunk_allowed_vlan
-      config_get('interface', 'switchport_trunk_allowed_vlan', @name)
+      config_get('interface', 'switchport_trunk_allowed_vlan', name: @name)
     end
 
     def switchport_trunk_allowed_vlan=(val)
       if val.nil?
-        config_set(
-          'interface', 'switchport_trunk_allowed_vlan', @name, 'no', '')
+        config_set('interface', 'switchport_trunk_allowed_vlan',
+                   name: @name, state: 'no', vlan: '')
       else
-        config_set(
-          'interface', 'switchport_trunk_allowed_vlan', @name, '', val)
+        config_set('interface', 'switchport_trunk_allowed_vlan',
+                   name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_switchport_trunk_allowed_vlan
@@ -663,19 +688,17 @@ module Cisco
     end
 
     def switchport_trunk_native_vlan
-      config_get('interface', 'switchport_trunk_native_vlan', @name)
+      config_get('interface', 'switchport_trunk_native_vlan', name: @name)
     end
 
     def switchport_trunk_native_vlan=(val)
       if val.nil?
-        config_set(
-          'interface', 'switchport_trunk_native_vlan', @name, 'no', '')
+        config_set('interface', 'switchport_trunk_native_vlan',
+                   name: @name, state: 'no', vlan: '')
       else
-        config_set(
-          'interface', 'switchport_trunk_native_vlan', @name, '', val)
+        config_set('interface', 'switchport_trunk_native_vlan',
+                   name: @name, state: '', vlan: val)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     # vlan_mapping & vlan_mapping_enable
@@ -698,13 +721,13 @@ module Cisco
     end
 
     def vlan_mapping
-      match = config_get('interface', 'vlan_mapping', @name)
+      match = config_get('interface', 'vlan_mapping', name: @name)
       match.each(&:compact!) unless match.nil?
       match
     end
 
     def vlan_mapping=(should_list)
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
 
       # Process a hash of vlan_mapping cmds from delta_add_remove().
       # The vlan_mapping cli does not allow commands to be updated, they must
@@ -714,12 +737,12 @@ module Cisco
       return if delta_hash.values.flatten.empty?
       # Process :remove first to ensure "update" commands will not fail.
       [:remove, :add].each do |action|
-        CiscoLogger.debug("vlan_mapping delta #{@get_args}\n"\
-                          "#{action}: #{delta_hash[action]}")
+        Cisco::Logger.debug("vlan_mapping delta #{@get_args}\n"\
+                            "#{action}: #{delta_hash[action]}")
         delta_hash[action].each do |original, translated|
           state = (action == :add) ? '' : 'no'
-          config_set('interface', 'vlan_mapping', @name,
-                     state, original, translated)
+          config_set('interface', 'vlan_mapping', name: @name,
+                     state: state, original: original, translated: translated)
         end
       end
     rescue Cisco::CliError => e
@@ -732,12 +755,12 @@ module Cisco
     end
 
     def vlan_mapping_enable
-      config_get('interface', 'vlan_mapping_enable', @name)
+      config_get('interface', 'vlan_mapping_enable', name: @name)
     end
 
     def vlan_mapping_enable=(state)
-      config_set('interface', 'vlan_mapping_enable', @name,
-                 state ? '' : 'no')
+      config_set('interface', 'vlan_mapping_enable',
+                 name: @name, state: state ? '' : 'no')
     end
 
     def default_switchport_trunk_native_vlan
@@ -782,16 +805,14 @@ module Cisco
     end
 
     def switchport_vtp
-      return false unless switchport_vtp_mode_capable?
-      config_get('interface', 'vtp', @name)
+      return nil unless switchport_vtp_mode_capable?
+      config_get('interface', 'vtp', name: @name)
     end
 
     def switchport_vtp=(vtp_set)
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
-      config_set('interface', 'vtp', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      config_set('interface', 'vtp', name: @name, state: no_cmd)
     end
 
     def svi_cmd_allowed?(cmd)
@@ -802,13 +823,14 @@ module Cisco
     # svi_autostate is exclusive to svi interfaces
     def svi_autostate
       return nil unless @name[/^vlan/i]
-      config_get('interface', 'svi_autostate', @name)
+      config_get('interface', 'svi_autostate', name: @name)
     end
 
     def svi_autostate=(val)
       check_switchport_disabled
       svi_cmd_allowed?('autostate')
-      config_set('interface', 'svi_autostate', @name, val ? '' : 'no')
+      config_set('interface', 'svi_autostate',
+                 name: @name, state: val ? '' : 'no')
     end
 
     def default_svi_autostate
@@ -821,19 +843,20 @@ module Cisco
 
     def feature_vlan_set(val)
       return if feature_vlan? == val
-      config_set('interface', 'feature_vlan', val ? '' : 'no')
+      config_set('interface', 'feature_vlan', state: val ? '' : 'no')
     end
 
     # svi_management is exclusive to svi interfaces
     def svi_management
       return nil unless @name[/^vlan/i]
-      config_get('interface', 'svi_management', @name)
+      config_get('interface', 'svi_management', name: @name)
     end
 
     def svi_management=(val)
       check_switchport_disabled
       svi_cmd_allowed?('management')
-      config_set('interface', 'svi_management', @name, val ? '' : 'no')
+      config_set('interface', 'svi_management',
+                 name: @name, state: val ? '' : 'no')
     end
 
     def default_svi_management
@@ -849,21 +872,22 @@ module Cisco
     end
 
     def check_switchport_disabled
-      fail "#{caller[0][/`.*'/][1..-2]} cannot be set unless switchport mode" \
-        ' is disabled' unless switchport_mode == :disabled
+      return if switchport_mode == :disabled || switchport_mode.nil?
+      fail("#{caller[0][/`.*'/][1..-2]} cannot be set unless " \
+           'switchport mode is disabled')
     end
 
     def vpc_id
-      config_get('interface', 'vpc_id', @name)
+      config_get('interface', 'vpc_id', name: @name)
     end
 
     def vpc_id=(num)
       if num
-        config_set('interface', 'vpc_id', @name, '', num)
+        config_set('interface', 'vpc_id', name: @name, state: '', id: num)
       else
         # 'no vpc' doesn't work for phy ports, so do a get
         num = vpc_id
-        config_set('interface', 'vpc_id', @name, 'no', num)
+        config_set('interface', 'vpc_id', name: @name, state: 'no', id: num)
       end
     end
 
@@ -872,12 +896,12 @@ module Cisco
     end
 
     def vpc_peer_link
-      config_get('interface', 'vpc_peer_link', @name)
+      config_get('interface', 'vpc_peer_link', name: @name)
     end
 
     def vpc_peer_link=(state)
       no_cmd = (state ? '' : 'no')
-      config_set('interface', 'vpc_peer_link', @name, no_cmd)
+      config_set('interface', 'vpc_peer_link', name: @name, state: no_cmd)
     end
 
     def default_vpc_peer_link
@@ -885,18 +909,29 @@ module Cisco
     end
 
     def vrf
-      config_get('interface', 'vrf', @name)
+      config_get('interface', 'vrf', name: @name)
     end
 
-    def vrf=(vrf)
-      fail TypeError unless vrf.is_a?(String)
-      if vrf.empty?
-        config_set('interface', 'vrf', @name, 'no', '')
-      else
-        config_set('interface', 'vrf', @name, '', vrf)
+    def vrf=(v)
+      fail TypeError unless v.is_a?(String)
+      return if v == vrf
+      # Changing the VRF can result in loss of IP address, so cache it
+      addr_1 = ipv4_address
+      mask_1 = ipv4_netmask_length
+      addr_2 = ipv4_address_secondary
+      mask_2 = ipv4_netmask_length_secondary
+      # XR actually blocks you from changing the VRF if IP addr is present
+      unless platform == :nexus
+        ipv4_addr_mask_set(nil, nil, false) unless addr_1.nil?
+        ipv4_addr_mask_set(nil, nil, true) unless addr_2.nil?
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
+      if v.empty?
+        config_set('interface', 'vrf', name: @name, state: 'no', vrf: '')
+      else
+        config_set('interface', 'vrf', name: @name, state: '', vrf: v)
+      end
+      ipv4_addr_mask_set(addr_1, mask_1, false) unless addr_1.nil?
+      ipv4_addr_mask_set(addr_2, mask_2, true) unless addr_2.nil?
     end
 
     def default_vrf

@@ -4,6 +4,7 @@ Changelog
 ## [Unreleased]
 
 ### New feature support
+
 #### Cisco Resources
 *
 
@@ -11,7 +12,36 @@ Changelog
 *
 
 ### Added
-*
+
+* Added client support for gRPC on IOS XR.
+* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+* Add IOS XR support for the following classes:
+  * bgp
+  * bgp_af
+  * bgp_neighbor
+  * bgp_neighbor_af
+  * interface
+  * command_config
+  * platform (@glennmatthews)
+  * ntp_config (@jonnytpuppet)
+  * ntp_server (@jonnytpuppet)
+* `test_feature` minitest
+
+### Changed
+
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Filtering by platform is now by platform name only (`nexus`, `ios_xr`)
+  - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
+  - Replaced `config_set(_append)?` with `set_context`, and `set_value`
+  - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
+  - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
+* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
+
+### Fixed
+
+* Interface:
+  - Correctly restore IP address when changing VRF membership
+  - MTU is not supported on loopback interfaces
 
 ### Removed
 *
@@ -55,7 +85,7 @@ Changelog
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
 
-  
+
 ### Additional platform support added to existing classes
 #### Cisco Nexus 56xx, 60xx and 7xxx
 * AAA
@@ -134,7 +164,7 @@ Changelog
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
-  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied). 
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied).
 
 ## [v1.1.0]
 
@@ -231,7 +261,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[unreleased]: https://github.com/cisco/cisco-network-puppet-module/compare/master...develop
+[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

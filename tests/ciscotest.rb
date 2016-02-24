@@ -41,12 +41,12 @@ class CiscoTestCase < TestCase
       puts "\nNode under test:"
       puts "  - name  - #{@@node.host_name}"
       puts "  - type  - #{@@node.product_id}"
-      puts "  - image - #{@@node.system}\n\n"
+      # puts "  - image - #{@@node.system}\n\n"
     end
     @@node
-  rescue CiscoNxapi::HTTPUnauthorized
+  rescue Cisco::Client::AuthenticationFailed
     abort "Unauthorized to connect as #{username}:#{password}@#{address}"
-  rescue StandardError => e
+  rescue Cisco::Client::ClientError, TypeError, ArgumentError => e
     abort "Error in establishing connection: #{e}"
   end
 
@@ -59,8 +59,16 @@ class CiscoTestCase < TestCase
     node.cmd_ref
   end
 
+  def platform
+    node.client.platform
+  end
+
   def config(*args)
-    result = super
+    if node.client.platform == :ios_xr
+      result = super(*args, 'commit best-effort')
+    else
+      result = super
+    end
     node.cache_flush
     result
   end
@@ -81,7 +89,19 @@ class CiscoTestCase < TestCase
     # Compare the interface address with the current session address.
     # and return true if they match.
     return false if int_ip.nil?
-    int_ip == convert_dns_name(address)
+    int_ip == convert_dns_name(address.split(':')[0])
+  end
+
+  # Some NXOS hardware is not capable of supporting certain features even
+  # though the platform family in general includes support. In these cases
+  # the NU feature setter will raise a RuntimeError.
+  def hardware_supports_feature?(message)
+    patterns = ['Hardware is not capable of supporting',
+                'is unsupported on this node',
+               ]
+    skip('Skip test: Feature is unsupported on this device') if
+      message[Regexp.union(patterns)]
+    flunk(message)
   end
 
   def interfaces

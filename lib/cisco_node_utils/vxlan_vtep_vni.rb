@@ -191,7 +191,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should_list, peer_list)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug('peer_list' \
+        Cisco::Logger.debug('peer_list' \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |peer|
           state = (action == :add) ? '' : 'no'
