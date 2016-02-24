@@ -13,6 +13,7 @@ This workflow map aids *users*, *developers* and *maintainers* of the CiscoNodeU
   * [CONTRIBUTING.md](CONTRIBUTING.md) : Contribution guidelines
   * [README-develop-node-utils-APIs.md](docs/README-develop-node-utils-APIs.md) : Developing new CiscoNodeUtils APIs
   * [README-develop-best-practices.md](docs/README-develop-best-practices.md) : Development best practices
+  * [README-develop-add-XR-support.md](docs/README-develop-add-XR-support.md) : How To Update node_utils APIs to Support IOS XR
 * Maintainers Guides
   * [README-maintainers.md](docs/README-maintainers.md) : Guidelines for core maintainers of the CiscoNodeUtils project
   * All developer guides apply to maintainers as well
@@ -24,8 +25,8 @@ Please see [Learning Resources](#resources) for additional references.
 
 1. [Overview](#overview)
 2. [Installation](#installation)
-3. [Examples](#examples)
-4. [Documentation](#documentation)
+3. [Documentation](#documentation)
+4. [Examples](#examples)
 5. [Changelog](#changelog)
 6. [Learning Resources](#resources)
 7. [License Information](#license_info)
@@ -64,49 +65,20 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## <a name="examples">Examples</a>
-
-
-These utilities can be used directly on a Cisco device (as used by Puppet
-and Chef) or can run on a workstation and point to a Cisco device (as used
-by the included minitest suite).
-
-### Usage on a Cisco device
-
-```ruby
-require 'cisco_node_utils'
-
-# get a connection to the local device
-node = Cisco::Node.instance()
-
-version = node.config_get("show_version", "system_image")
-
-node.config_set("vtp", "domain", "mycompany.com")
-```
-
-### Remote usage
-
-```ruby
-require 'cisco_node_utils'
-
-Cisco::Node.lazy_connect = true
-
-node = Cisco::Node.instance()
-node.connect("n3k.mycompany.com", "username", "password")
-
-version = node.config_get("show_version", "system_image")
-
-node.config_set("vtp", "domain", "mycompany.com")
-```
-
 ## <a name="documentation">Documentation</a>
 
+### Client
+
+The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`. Currently there are two subclasses:
+
+* `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
+* `Cisco::Client::GRPC` - client for communicating with IOS XR 6.0.0 and later, using gRPC.
+
+For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
 ### Node
 
-The `Node` class is a singleton which provides for management of a given Cisco
-network node. It provides the base APIs `config_set`, `config_get`, and
-`config_get_default`.
+The `Node` class is a singleton which wraps around the `Client` class to provide for management of a given Cisco network node. It provides the base APIs `config_set`, `config_get`, and `config_get_default`.
 
 ### CommandReference
 
@@ -131,6 +103,69 @@ code duplication between the Cisco Puppet modules and the Cisco Chef cookbooks.
 
 Generally speaking, Puppet and Chef should only interact with the feature
 provider classes, and not directly call into `CommandReference` or `Node`.
+
+## <a name="examples">Examples</a>
+
+
+These utilities can be used directly on a Cisco device (as used by Puppet
+and Chef) or can run on a workstation and point to a Cisco device (as used
+by the included minitest suite).
+
+### Usage on a Cisco device
+
+#### Low-level Client API
+
+```ruby
+require 'cisco_node_utils'
+
+# get a connection to the local device
+client = Cisco::Client.create()
+
+client.get(command: 'show version')
+client.set(values: 'vtp domain mycompany.com')
+```
+
+#### High-level Node API
+
+```ruby
+require 'cisco_node_utils'
+
+# get a connection to the local device
+node = Cisco::Node.instance()
+
+version = node.config_get("show_version", "system_image")
+
+node.config_set("vtp", "domain", "mycompany.com")
+```
+
+### Remote usage
+
+#### Low-level Client API
+
+```ruby
+require 'cisco_node_utils'
+
+client = Cisco::Client.create('n3k.mycompany.com', 'username', 'password')
+
+client.get(command: 'show version')
+client.set(values: 'vtp domain mycompany.com')
+```
+
+#### High-level Node API
+
+```ruby
+require 'cisco_node_utils'
+
+Cisco::Node.lazy_connect = true
+
+node = Cisco::Node.instance()
+node.connect("n3k.mycompany.com", "username", "password")
+
+version = node.config_get("show_version", "system_image")
+
+node.config_set("vtp", "domain", "mycompany.com")
+```
+
 
 ## <a name="changelog">Changelog</a>
 

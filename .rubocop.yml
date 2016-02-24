@@ -1,4 +1,11 @@
 # Rubocop configuration
+AllCops:
+  Exclude:
+    # Auto-generated files
+    - lib/cisco_node_utils/client/grpc/ems.rb
+    - lib/cisco_node_utils/client/grpc/ems_services.rb
+    # Files we don't own
+    - vendor/**/*
 
 # Code complexity metrics are tracked separately for lib/ vs. tests/
 # See lib/.rubocop.yml and tests/.rubocop.yml
@@ -40,6 +47,9 @@ Style/AlignHash:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
 
+Style/ClassAndModuleChildren:
+  Enabled: false
+
 # Template files have wildcard strings in class names
 Style/ClassAndModuleCamelCase:
   Exclude:
@@ -74,6 +84,9 @@ Style/SpaceAroundEqualsInParameterDefault:
 # Make it neater to extend multi-line arrays and hashes
 Style/TrailingComma:
   EnforcedStyleForMultiline: comma
+
+Style/TrivialAccessors:
+  AllowPredicates: true
 
 # Because an SnmpServer cannot be destroyed, we end most of the SnmpServer
 # test cases by explicitly returning the configuration to default.

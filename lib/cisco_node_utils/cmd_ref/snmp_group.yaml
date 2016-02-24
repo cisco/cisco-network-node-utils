@@ -2,6 +2,6 @@
 ---
 group:
   multiple: true
-  config_get: "show snmp group"
-  config_get_token: "/^Role: (.*)$/"
+  get_command: "show snmp group"
+  get_value: "/^Role: (.*)$/"
   default_value: ""

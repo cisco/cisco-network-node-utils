@@ -44,6 +44,9 @@ class TestInterfaceChannelGroup < CiscoTestCase
     group = i.default_channel_group
     i.channel_group = group
     assert_equal(group, i.channel_group)
+  rescue Cisco::UnsupportedError => e
+    # Some platforms only support channel-group with certain software versions
+    skip(e.to_s)
   end
 
   def test_description
@@ -69,6 +72,6 @@ class TestInterfaceChannelGroup < CiscoTestCase
     refute(i.shutdown)
 
     i.shutdown = i.default_shutdown
-    assert(i.shutdown)
+    assert_equal(i.default_shutdown, i.shutdown)
   end
 end

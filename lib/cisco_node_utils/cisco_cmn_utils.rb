@@ -24,11 +24,11 @@ module Cisco
     # password encryption types
     def self.cli_to_symbol(cli)
       case cli
-      when '0', 0
+      when '0', 0, 'clear'
         :cleartext
       when '3', 3
         :"3des" # yuck :-(
-      when '5', 5
+      when '5', 5, 'encrypted'
         :md5
       when '6', 6
         :aes
@@ -117,6 +117,9 @@ module Cisco
     end
 
     def self.delta_add_remove(should, current=[], opt=nil)
+      current = [] if current.nil?
+      should = [] if should.nil?
+
       # Remove nil entries from array
       should.each(&:compact!) if depth(should) > 1
       delta = { add: should - current, remove: current - should }
@@ -126,6 +129,8 @@ module Cisco
 
       # Delete entries from :remove if f1 is an update to an existing command
       delta[:add].each do |id, _|
+        # Differentiate between comparing nested and unnested arrays by
+        # checking the depth of the array.
         if depth(should) == 1
           delta[:remove].delete_if { |f1| [f1] if f1.to_s == id.to_s }
         else
@@ -134,6 +139,18 @@ module Cisco
       end
       delta
     end # delta_add_remove
+
+    def self.length_to_bitmask(length)
+      IPAddr.new('255.255.255.255').mask(length).to_s
+    end
+
+    def self.bitmask_to_length(bitmask)
+      # Convert bitmask to a 32-bit integer,
+      # convert that to binary, and count the 1s
+      IPAddr.new(bitmask).to_i.to_s(2).count('1')
+    rescue IPAddr::InvalidAddressError => e
+      raise ArgumentError, "bitmask '#{bitmask}' is not valid: #{e}"
+    end
 
     # Helper to 0-pad a mac address.
     def self.zero_pad_macaddr(mac)

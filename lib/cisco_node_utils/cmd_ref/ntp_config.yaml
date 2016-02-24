@@ -1,7 +1,14 @@
 # ntp_config
 ---
+_template:
+  get_command: "show running-config ntp"
+
 source_interface:
-  config_get: "show running-config ntp"
-  config_get_token: '/^ntp source-interface\s+(.*)$/'
-  config_set: '<state> ntp source-interface <source_interface>'
   default_value: ~
+  nexus:
+    get_value: '/^ntp source-interface\s+(.*)$/'
+    set_value: '<state> ntp source-interface <source_interface>'
+  ios_xr:
+    context: ["ntp"]
+    get_value: '/source\s+(.*)$/'
+    set_value: '<state> source <source_interface>'

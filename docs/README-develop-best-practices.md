@@ -14,17 +14,16 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 
 * [Y1](#yaml1): One feature per YAML file
 * [Y2](#yaml2): All attribute entries must be kept in alphabetical order.
-* [Y3](#yaml3): Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
+* [Y3](#yaml3): Use *regexp* anchors where needed for CLI `get_context` and `get_value` entries.
 * [Y4](#yaml4): Avoid nested optional matches.
 * [Y5](#yaml5): Use the `_template` feature when getting/setting the same property value at multiple levels.
 * [Y6](#yaml6): When possible include a `default_value` that represents the system default value.
-* [Y7](#yaml7): When possible, use the same `config_get` show command for all properties and document any anomalies.
+* [Y7](#yaml7): When possible, use the same `get_command` for all properties and document any anomalies.
 * [Y8](#yaml8): Use Key-value wildcards instead of Printf-style wildcards.
-* [Y9](#yaml9): Selection of `show` commands for `config_get`.
+* [Y9](#yaml9): Selection of `show` commands for `get_command`.
 * [Y10](#yaml10): Use `true` and `false` for boolean values.
 * [Y11](#yaml11): Use YAML anchors and aliases to avoid redundant entries.
-
-
+* [Y12](#yaml12): Use `_exclude` to return `nil` for unsupported properties.
 
 ## <a name="odbp">Common Object Development Best Practices</a>
 
@@ -41,7 +40,7 @@ This document is intended to assist in developing cisco_node_utils API's that ar
 * [MT3](#mt3): Do not hardcode interface names.
 * [MT4](#mt4): Make use of the `config` helper method for device configuration instead of `@device.cmd`.
 * [MT5](#mt5): Make use of the `assert_show_match` and `refute_show_match` helper methods to validate expected outcomes in the CLI instead of `@device.cmd("show...")`.
-
+* [MT6](#mt6): Unsupported properties must include negative test cases.
 
 
 ## YAML Best Practices:
@@ -56,16 +55,18 @@ All attribute entries in a given YAML file must be kept in alphabetical order. A
 
 This rule is enforced by the `Cisco::CommandReference` class itself - it will raise an exception if it detects any out-of-order entries.
 
-### <a name="yaml3">Y3: Use *regexp* anchors where needed for `config_get` and `config_get_token` entries.
+### <a name="yaml3">Y3: Use *regexp* anchors where needed for CLI `get_context` and `get_value` entries.
 
-Please use *regexp* anchors `^$` to ensure you match the correct feature information in the `show` output.
+By default, CLI clients assume that `get_context` and `get_value` are to be treated as Regexps, and implicitly add regexp anchors and case-insensitivity (i.e., a `get_value` of `'router bgp 100'` becomes the regexp `/^router bgp 100$/i`). If you want to explicitly specify a regexp (perhaps because the default behavior does not meet your needs for a specific property), be sure to add the `^` and `$` anchors to ensure you match the correct feature information in the `show` output and do not unexpectedly match similar but undesired CLI strings.
 
 ```yaml
 # syslog_settings.yaml
 timestamp:
-  config_get: "show running-config all | include '^logging timestamp'"
-  config_get_token: '/^logging timestamp (.*)$/'
-  config_set: '<state> logging timestamp <units>'
+  get_command: "show running-config all | include '^logging timestamp'"
+  get_value: 'logging timestamp (.*)'
+  # this is equivalent to:
+  # get_value: '/^logging timestamp (.*)$/'
+  set_value: '<state> logging timestamp <units>'
   default_value: 'seconds'
 ```
 
@@ -78,18 +79,20 @@ One case where this may crop up is in trying to match both affirmative and
 negative variants of a config command:
 
 ```yaml
-config_get_token: ['/^interface <name>$/i', '/^((no )?switchport)$/']
+get_context: ['interface <name>']
+get_value: '((no )?switchport)'
 
-config_get_token: '/^(no)? ?ip tacacs source-interface ?(\S+)?$/'
+get_value: '(no)? ?ip tacacs source-interface ?(\S+)?'
 ```
 
 Instead, match the affirmative form of a command and treat its absence as
 confirmation of the negative form:
 
 ```yaml
-config_get_token: ['/^interface <name>$/i', '/^switchport$/']
+get_context: ['interface <name>']
+get_value: 'switchport'
 
-config_get_token: '/^tacacs-server source-interface (\S+)$/'
+get_value: 'tacacs-server source-interface (\S+)'
 ```
 
 ### <a name="yaml5">Y5: Use the `_template` feature when getting/setting the same property value at multiple levels.
@@ -99,22 +102,19 @@ Using the template below, `auto_cost` and `default_metric` can be set under `rou
 ```yaml
 # ospf.yaml
 _template:
-  config_get: "show running ospf all"
-  config_get_token: '/^router ospf <name>$/'
-  config_get_token_append:
-    - '/^vrf <vrf>$/'
-  config_set: "router ospf <name>"
-  config_set_append:
-    - "vrf <vrf>"
+  get_command: "show running ospf all"
+  context:
+    - 'router ospf <name>'
+    - '(?)vrf <vrf>'
 
 auto_cost:
-  config_get_token_append: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
-  config_set_append: "auto-cost reference-bandwidth <cost> <type>"
+  get_value: 'auto-cost reference-bandwidth (\d+)\s*(\S+)?'
+  set_value: "auto-cost reference-bandwidth <cost> <type>"
   default_value: [40, "Gbps"]
 
 default_metric:
-  config_get_token_append: '/^default-metric (\d+)?$/'
-  config_set_append: "<state> default-metric <metric>"
+  get_value: 'default-metric (\d+)?'
+  set_value: "<state> default-metric <metric>"
   default_value: 0
 ```
 
@@ -127,8 +127,9 @@ Default value for `message_digest_alg_type` is `md5`
 
 ```yaml
 message_digest_alg_type:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  get_command: 'show running interface all'
+  get_context: 'interface <name>'
+  get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   default_value: 'md5'
 ```
 
@@ -138,8 +139,9 @@ If the `default_value` differs between cisco platforms, use per-API or per-platf
 
 ```yaml
 message_digest_alg_type:
-  config_get: 'show running interface all'
-  config_get_token: ['/^interface <name>$/i', '/^\s*ip ospf message-digest-key \d+ (\S+)/']
+  get_command: 'show running interface all'
+  get_context: 'interface <name>'
+  get_value: '/^\s*ip ospf message-digest-key \d+ (\S+)/'
   N9k:
     default_value: 'sha2'
   else:
@@ -148,33 +150,33 @@ message_digest_alg_type:
 
 See [README_YAML](../lib/cisco_node_utils/cmd_ref/README_YAML.md) for more details about this advanced feature.
 
-### <a name="yaml7">Y7: When possible, use the same `config_get` show command for all properties and document any anomalies.
+### <a name="yaml7">Y7: When possible, use the same `get_command` for all properties and document any anomalies.
 
 All properties below use the `show run tacacs all` command except `directed_request` which is documented.
 
 ```yaml
 # tacacs_server.yaml
+_template:
+  get_command: "show run tacacs all"
+
 deadtime:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
-  config_set: "<state> tacacs-server deadtime <time>"
+  get_value: '/^tacacs-server deadtime\s+(\d+)/'
+  set_value: "<state> tacacs-server deadtime <time>"
   default_value: 0
 
 directed_request:
   # oddly, directed request must be retrieved from aaa output
-  config_get: "show running aaa all"
-  config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
-  config_set: "<state> tacacs-server directed-request"
+  get_command: "show running aaa all"
+  get_value: '/(?:no)?\s*tacacs-server directed-request/'
+  set_value: "<state> tacacs-server directed-request"
   default_value: false
 
 encryption_type:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: 0
 
 encryption_password:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: ""
 ```
 
@@ -185,7 +187,7 @@ Key-value wildcards are moderately more complex to implement than Printf-style w
 **Key-value wildcards**
 
 ```yaml
-config_set_append: "<state> log-adjacency-changes <type>"
+get_value: "<state> log-adjacency-changes <type>"
 ```
 
 This following approach is quick to implement and concise, but less flexible - in particular it cannot handle a case where different platforms take parameters in a different order - and less readable in the ruby code.
@@ -193,10 +195,10 @@ This following approach is quick to implement and concise, but less flexible - i
 **Printf-style wildcards**
 
 ```yaml
-config_set_append: "%s log-adjacency-changes %s"
+get_value: "%s log-adjacency-changes %s"
 ```
 
-### <a name="yaml9">Y9: Selection of `show` commands for `config_get`.
+### <a name="yaml9">Y9: Selection of `show` commands for `get_command`.
 
 The following commands should be preferred over `show [feature]` commands since not all `show [feature]` commands behave in the same manner across cisco platforms.
 
@@ -242,6 +244,12 @@ instead you can do:
      default_value: false
    N9k: *vn_segment_vlan_based_mt_lite
 ```
+
+### <a name="yaml12">Y12: Use `_exclude` to return `nil` for unsupported properties.
+
+Some properties are only applicable to specific platforms. Rather than using `default_only` to specify an 'unconfigured' default like `''` or `false`, it is more accurate to return `nil` for a property that is not applicable at all. By returning `nil`, the property will not even appear in commands like `puppet resource`, which is the desired outcome.
+
+Rather than specifying `default_only: nil`, the most straightforward and self-evident way to mark a property as unsupported is to use the `_exclude: [my_platform]` YAML tag. See [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md#_exclude) for more details about the `_exclude` tag.
 
 ## Common Object Best Practices:
 
@@ -397,6 +405,16 @@ See [TacacsServer](../lib/cisco_node_utils/tacacs_server.rb) and [SnmpServer](..
 
 ### <a name="mt1">MT1: Ensure that *all new API's* have minitest coverage.
 
+Running minitest will automatically produce code coverage results using the [SimpleCov](http://www.rubydoc.info/gems/simplecov) Gem:
+
+```
+test_interface:
+39 runs, 316 assertions, 0 failures, 0 errors, 2 skips
+Coverage report generated for MiniTest to cisco-network-node-utils/coverage. 602 / 814 LOC (73.96%) covered.
+```
+
+If you are adding new APIs, after running the tests, you should inspect the coverage results (open `coverage/index.html` with a web browser) to ensure that your new APIs are being exercised appropriately by your new tests.
+
 ### <a name="mt2">MT2: Use appropriate `assert_foo` and `refute_foo` statements rather than `assert_equal`.
 
 
@@ -456,4 +474,19 @@ assert_output_match(pattern: /interface port-channel 10/)
 refute_output_match(pattern: /interface port-channel 11/)
 refute_output_match(pattern: /interface port-channel 12/)
 assert_output_match(pattern: /interface port-channel 13/)
+```
+
+### <a name="mt6">MT6: Unsupported properties must include negative test cases.
+
+Some properties are only applicable to a particular platform and are unsupported on other platforms. To ensure that this lack of support is properly validated, at least one of the test cases for this property should include tests of the getter and default methods and a negative test for the setter method. If you followed [Y11](#yaml11), this means checking that the getter and default methods return `nil` and the setter method raises a `Cisco::UnsupportedError`:
+
+```ruby
+def test_foo_bar
+  if platform == :platform_not_supporting_bar
+    assert_nil(foo.bar)
+    assert_nil(foo.default_bar)
+    assert_raises(Cisco::UnsupportedError) { foo.bar = baz }
+  else
+    # tests for foo.bar on a platform that supports this
+    ...
 ```

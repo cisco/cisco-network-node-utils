@@ -1,72 +1,74 @@
 # show_version
 ---
 _template:
-  config_get: 'sh version'
-  cli_nexus:
-    test_config_get: "sh version | no-more"
+  get_command: 'sh version'
+  nexus:
+    data_format: nxapi_structured
+  ios_xr:
+    data_format: cli
 
 board:
-  config_get_token: 'proc_board_id'
+  nexus:
+    get_value: 'proc_board_id'
 
 boot_image:
-  config_get_token: "kick_file_name"
-  test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+  _exclude: [ios_xr]
+  nexus:
+    get_value: "kick_file_name"
 
 cpu:
-  config_get_token: 'cpu_name'
+  nexus:
+    get_value: 'cpu_name'
 
 description:
-  config_get_token: "chassis_id"
-  cli_nexus:
-    N7k:
-      test_config_get_regex: '/.*Hardware\n  cisco (\w+ \w+ \(\w+ \w+\) \w+).*/'
-    else:
-      # Hardware
-      #   cisco Nexus9000 C9396PX Chassis
-      #
-      # Other variants for the line of interest:
-      #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
-      #                                          ^-module_id-ignore!-^
-      #   cisco Nexus3000 C3132Q Chassis
-      #   cisco N3K-C3048TP-1GE
-      test_config_get_regex: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
+  nexus:
+    get_value: "chassis_id"
+  ios_xr:
+    get_command: 'show inventory | inc "Rack 0"'
+    get_value: '/DESCR: "(.*)"/'
 
 full:
-  config_get: "sh version"
+  get_command: "sh version"
 
 header:
-  config_get_token: "header_str"
+  nexus:
+    get_value: "header_str"
+  ios_xr:
+    get_value: '/Cisco.*Software/'
 
 host_name:
-  cli_nexus:
-    config_get_token: "host_name"
+  nexus:
+    get_value: "host_name"
+  ios_xr:
+    # not displayed in 'show version' on IOS XR
+    get_command: "show running | i hostname"
+    get_value: '/^hostname (.*)$/'
+    default_value: 'ios'
 
 last_reset_reason:
-  config_get_token: "rr_reason"
-  test_config_get_regex: '/.*\nLast reset.*\n\n?  Reason: (.*)\n/'
+  _exclude: [ios_xr]
+  get_value: "rr_reason"
 
 last_reset_time:
+  _exclude: [ios_xr]
   kind: string
   default_value: ''
-  config_get_token: "rr_ctime"
-  test_config_get_regex: '/.*\nLast reset at \d+ usecs after  (.*)\n/'
+  get_value: "rr_ctime"
 
 system_image:
-  cli_nexus:
-    N7k:
-      config_get_token: "isan_file_name"
-      test_config_get_regex: '/.*system image file is:    (.*)$.*/'
-    else:
-      config_get_token: "kick_file_name"
-      test_config_get_regex: '/.*NXOS image file is: (.*)$.*/'
+  _exclude: [ios_xr]
+  N7k:
+    get_value: "isan_file_name"
+  else:
+    get_value: "kick_file_name"
 
 uptime:
-  config_get_token: '/uptime is (.*)/'
+  # TODO: redundant with show_system, uptime?
+  get_data_format: cli
+  get_value: '/uptime is (.*)/'
 
 version:
-  cli_nexus:
-    config_get_token: "kickstart_ver_str"
-    test_config_get_regex: [
-    /\nkickstart_ver_str\s+(.+)\n/,
-    '/.*NXOS:\s+version (.*)\n/'
-    ]
+  nexus:
+    get_value: "kickstart_ver_str"
+  ios_xr:
+    get_value: '/IOS XR.*Version (.*)$/'
