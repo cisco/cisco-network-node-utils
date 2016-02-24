@@ -1,10 +1,12 @@
 # ospf
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show running ospf all"
   context:
     - "router ospf <name>"
-    - "vrf <vrf>"
+    - "(?)vrf <vrf>"
 
 auto_cost:
   get_value: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'

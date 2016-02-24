@@ -18,6 +18,8 @@ require_relative '../lib/cisco_node_utils/router_ospf_vrf'
 
 # TestRouterOspfVrf - Minitest for RouterOspfVrf node utility class
 class TestRouterOspfVrf < CiscoTestCase
+  @skip_unless_supported = 'ospf'
+
   def setup
     # Disable feature ospf before each test to ensure we
     # are starting with a clean slate for each test.
