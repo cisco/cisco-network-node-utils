@@ -17,7 +17,9 @@
 # limitations under the License.
 
 require_relative '../client'
-require 'grpc'
+Cisco::Client.silence_warnings do
+  require 'grpc'
+end
 require 'json'
 require_relative 'ems_services'
 require_relative 'client_errors'
@@ -142,19 +144,20 @@ class Cisco::Client::GRPC < Cisco::Client
     if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
       debug "  with cli: '#{args.cli}'"
     end
-    response = stub.send(type, args,
-                         timeout:  @timeout,
-                         username: @username,
-                         password: @password)
-    output = ''
-    # gRPC server may split the response into multiples
-    response = response.is_a?(Enumerator) ? response.to_a : [response]
-    debug "Got responses: #{response.map(&:class).join(', ')}"
-    # Check for errors first
-    handle_errors(args, response.select { |r| !r.errors.empty? })
+    output = Cisco::Client.silence_warnings do
+      response = stub.send(type, args,
+                           timeout:  @timeout,
+                           username: @username,
+                           password: @password)
+      # gRPC server may split the response into multiples
+      response = response.is_a?(Enumerator) ? response.to_a : [response]
+      debug "Got responses: #{response.map(&:class).join(', ')}"
+      # Check for errors first
+      handle_errors(args, response.select { |r| !r.errors.empty? })
 
-    # If we got here, no errors occurred
-    output = handle_response(args, response)
+      # If we got here, no errors occurred
+      handle_response(args, response)
+    end
 
     @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
     return output

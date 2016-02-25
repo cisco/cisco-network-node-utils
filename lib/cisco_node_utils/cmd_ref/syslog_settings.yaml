@@ -1,5 +1,7 @@
 # syslog_settings
 ---
+_exclude: [ios_xr]
+
 timestamp:
   get_command: "show running-config all | include '^logging timestamp'"
   get_value: '/^logging timestamp (.*)$/'

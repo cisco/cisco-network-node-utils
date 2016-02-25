@@ -50,6 +50,8 @@ module Cisco
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       @name = name.downcase
+      @smr = config_get('interface', 'stp_mst_range')
+      @svr = config_get('interface', 'stp_vlan_range')
 
       create if instantiate
     end
@@ -84,6 +86,15 @@ module Cisco
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
+
+    # For range based attributes, a new attribute purge will
+    # be added in future. When purge is set to true, all the
+    # ranges which are specified in the manifest will be set
+    # to the desired values and those which are not specified
+    # in the manifest will be set to default. When purge is
+    # false, only the ranges specified in the manifest will
+    # be set to the values given in the manifest and others
+    # are left untouched.
 
     def access_vlan
       config_get('interface', 'access_vlan', name: @name)
@@ -569,6 +580,203 @@ module Cisco
       config_get_default('interface', lookup)
     end
 
+    def stp_bpdufilter
+      config_get('interface', 'stp_bpdufilter', name: @name)
+    end
+
+    def stp_bpdufilter=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpdufilter', name: @name, state: state, filter: val)
+    end
+
+    def default_stp_bpdufilter
+      config_get_default('interface', 'stp_bpdufilter')
+    end
+
+    def stp_bpduguard
+      config_get('interface', 'stp_bpduguard', name: @name)
+    end
+
+    def stp_bpduguard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface',
+                 'stp_bpduguard', name: @name, state: state, guard: val)
+    end
+
+    def default_stp_bpduguard
+      config_get_default('interface', 'stp_bpduguard')
+    end
+
+    def stp_cost
+      cost = config_get('interface', 'stp_cost', name: @name)
+      cost == 'auto' ? cost : cost.to_i
+    end
+
+    def stp_cost=(val)
+      config_set('interface', 'stp_cost', name: @name, cost: val)
+    end
+
+    def default_stp_cost
+      config_get_default('interface', 'stp_cost')
+    end
+
+    def stp_guard
+      config_get('interface', 'stp_guard', name: @name)
+    end
+
+    def stp_guard=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_guard', name: @name, state: state,
+                 guard: val)
+    end
+
+    def default_stp_guard
+      config_get_default('interface', 'stp_guard')
+    end
+
+    def stp_link_type
+      config_get('interface', 'stp_link_type', name: @name)
+    end
+
+    def stp_link_type=(val)
+      config_set('interface', 'stp_link_type', name: @name, type: val)
+    end
+
+    def default_stp_link_type
+      config_get_default('interface', 'stp_link_type')
+    end
+
+    def stp_port_priority
+      config_get('interface', 'stp_port_priority', name: @name)
+    end
+
+    def stp_port_priority=(val)
+      config_set('interface', 'stp_port_priority', name: @name, pp: val)
+    end
+
+    def default_stp_port_priority
+      config_get_default('interface', 'stp_port_priority')
+    end
+
+    # Getter: Builds an array of mst cost commands currently
+    # on the device.
+    #   cli: spanning-tree mst 0,2-4,6,8-12 cost 1000
+    #        spanning-tree mst 4000-4020 cost 2568
+    # array: [['0,2-4,6,8-12', '1000'], ['4000-4020', '2568']]
+    #
+    def stp_mst_cost
+      config_get('interface', 'stp_mst_cost', name: @name)
+    end
+
+    def stp_mst_cost=(list)
+      config_set('interface', 'stp_mst_cost',
+                 name: @name, state: 'no', range: @smr,
+                 val: '') if list.empty?
+      set_range_based_params(list, 'stp_mst_cost')
+    end
+
+    def default_stp_mst_cost
+      config_get_default('interface', 'stp_mst_cost')
+    end
+
+    # Getter: Builds an array of mst port-priority commands
+    # currently on the device.
+    #   cli: spanning-tree mst 0,2-4,6,8-12 port-priority 64
+    #        spanning-tree mst 4000-4020 port-priority 160
+    # array: [['0,2-4,6,8-12', '64'], ['4000-4020', '160']]
+    #
+    def stp_mst_port_priority
+      config_get('interface', 'stp_mst_port_priority', name: @name)
+    end
+
+    def stp_mst_port_priority=(list)
+      config_set('interface', 'stp_mst_port_priority',
+                 name: @name, state: 'no', range: @smr,
+                 val: '') if list.empty?
+      set_range_based_params(list, 'stp_mst_port_priority')
+    end
+
+    def default_stp_mst_port_priority
+      config_get_default('interface', 'stp_mst_port_priority')
+    end
+
+    def stp_port_type
+      config_get('interface', 'stp_port_type', name: @name)
+    end
+
+    def stp_port_type=(val)
+      if val
+        state = ''
+      else
+        state = 'no'
+        val = ''
+      end
+      config_set('interface', 'stp_port_type', name: @name,
+                 state: state, type: val)
+    end
+
+    def default_stp_port_type
+      config_get_default('interface', 'stp_port_type')
+    end
+
+    # Getter: Builds an array of vlan cost commands currently
+    # on the device.
+    #   cli: spanning-tree vlan 1-4,6,8-12 cost 1000
+    #        spanning-tree vlan 3000-3960 cost 2568
+    # array: [['1-4,6,8-12', '1000'], ['3000-3960', '2568']]
+    #
+    def stp_vlan_cost
+      config_get('interface', 'stp_vlan_cost', name: @name)
+    end
+
+    def stp_vlan_cost=(list)
+      config_set('interface', 'stp_vlan_cost',
+                 name: @name, state: 'no',
+                 range: @svr, val: '') if list.empty?
+      set_range_based_params(list, 'stp_vlan_cost')
+    end
+
+    def default_stp_vlan_cost
+      config_get_default('interface', 'stp_vlan_cost')
+    end
+
+    # Getter: Builds an array of vlan port-priority commands
+    # currently on the device.
+    #   cli: spanning-tree vlan 1-4,6,8-12 port-priority 64
+    #        spanning-tree vlan 3000-3960 port-priority 160
+    # array: [['1-4,6,8-12', '64'], ['3000-3960', '160']]
+    #
+    def stp_vlan_port_priority
+      config_get('interface', 'stp_vlan_port_priority', name: @name)
+    end
+
+    def stp_vlan_port_priority=(list)
+      config_set('interface', 'stp_vlan_port_priority',
+                 name: @name, state: 'no',
+                 range: @svr, val: '') if list.empty?
+      set_range_based_params(list, 'stp_vlan_port_priority')
+    end
+
+    def default_stp_vlan_port_priority
+      config_get_default('interface', 'stp_vlan_port_priority')
+    end
+
     def switchport
       # This is "switchport", not "switchport mode"
       config_get('interface', 'switchport', name: @name)
@@ -936,6 +1144,21 @@ module Cisco
 
     def default_vrf
       config_get_default('interface', 'vrf')
+    end
+
+    def set_range_based_params(list, param_name)
+      list.each do |range, property_value|
+        # if a particular range is set to default, use 'no' cmd
+        if property_value == 'default'
+          config_set('interface', param_name,
+                     name: @name, state: 'no',
+                     range: range, val: '')
+        else
+          config_set('interface', param_name,
+                     name: @name, state: '',
+                     range: range, val: property_value)
+        end
+      end
     end
   end  # Class
 end    # Module
