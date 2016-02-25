@@ -12,5 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Declare module here as files referenced in glob-order below may assume
+# module already exists.
+module Cisco
+end
+
 # Automatically load all Ruby files in the cisco_node_utils subdirectory
 Dir.glob(__dir__ + '/cisco_node_utils/*.rb') { |file| require file }
