@@ -26,6 +26,10 @@ Changelog
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
 * `test_feature` minitest
+* Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
+  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_multicast_load_balance` (only on Nexus 7k)
+  * `port_channel_limit` (only on Nexus 7k)
 
 ### Changed
 
