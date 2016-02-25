@@ -51,7 +51,7 @@ class TestCase < Minitest::Test
   @@username = nil
   @@password = nil
 
-  def address
+  def self.address
     @@address ||= ARGV[0]
     @@address ||= ENV['NODE'].split(' ')[0] if ENV['NODE']
     unless @@address
@@ -61,7 +61,11 @@ class TestCase < Minitest::Test
     @@address
   end
 
-  def username
+  def address
+    self.class.address
+  end
+
+  def self.username
     @@username ||= ARGV[1]
     @@username ||= ENV['NODE'].split(' ')[1] if ENV['NODE']
     unless @@username
@@ -71,7 +75,11 @@ class TestCase < Minitest::Test
     @@username
   end
 
-  def password
+  def username
+    self.class.username
+  end
+
+  def self.password
     @@password ||= ARGV[2]
     @@password ||= ENV['NODE'].split(' ')[2] if ENV['NODE']
     unless @@password
@@ -79,6 +87,10 @@ class TestCase < Minitest::Test
       @@password = gets.chomp
     end
     @@password
+  end
+
+  def password
+    self.class.password
   end
 
   def setup

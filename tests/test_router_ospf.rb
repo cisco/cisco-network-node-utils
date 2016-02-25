@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/router_ospf'
 
 # TestRouterOspf - Minitest for the RouterOspf node utility class.
 class TestRouterOspf < CiscoTestCase
+  @skip_unless_supported = 'ospf'
+
   def setup
     super
     @default_show_command = "show run | include '^router ospf .*'"

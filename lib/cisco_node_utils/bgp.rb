@@ -17,7 +17,6 @@
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'feature'
-require_relative 'bgp_af'
 require_relative 'logger'
 
 module Cisco

@@ -6,7 +6,8 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
-*
+* Spanning Tree
+  * stp_global (@saichint)
 
 #### NetDev Resources
 *
@@ -15,6 +16,7 @@ Changelog
 
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+* Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
 * Add IOS XR support for the following classes:
   * bgp
   * bgp_af
@@ -25,7 +27,11 @@ Changelog
   * platform (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
+
 * `test_feature` minitest
+* Extend interface with attributes:
+  * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
+  * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
 
 ### Changed
 

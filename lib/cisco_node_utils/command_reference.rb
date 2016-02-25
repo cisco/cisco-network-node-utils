@@ -426,6 +426,11 @@ module Cisco
       end
     end
 
+    def supports?(feature)
+      value = @hash[feature]
+      !(value.is_a?(UnsupportedCmdRef) || value.nil?)
+    end
+
     # Get the command reference
     def lookup(feature, name)
       value = @hash[feature]
