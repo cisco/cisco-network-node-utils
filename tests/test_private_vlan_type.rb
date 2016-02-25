@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vlan'
+require_relative '../lib/cisco_node_utils/interface'
 
 include Cisco
 
@@ -42,7 +43,7 @@ class TestVlan < CiscoTestCase
   def test_private_vlan_type_primary
     v1 = Vlan.new(100)
     pv_type = 'primary'
-    v1.private_vlan_set_type = pv_type
-    #assert_equal(pv_type, v1.private_vlan_set_type)
+    v1.private_vlan_type = pv_type
+    #assert_equal(pv_type, v1.private_vlan_type)
   end
 end

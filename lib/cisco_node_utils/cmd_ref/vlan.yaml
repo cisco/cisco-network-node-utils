@@ -47,14 +47,14 @@ name:
 
 private_vlan_association:
   config_get: 'show running vlan'
-  config_get_token: ['/^vlan <vlan>$/', '/^private-vlan association\s+(\d+\D*\d+\D*\d+)$/']
+  config_get_token: ['/^vlan <vlan>$/i', '/^private-vlan association\s+(\d+\D*\d+\D*\d+)$/']
   config_set: ["vlan %d", "%s private-vlan association %s", "end"]
 
 private_vlan_type:
   kind: string
   config_get: 'show running vlan'
   config_get_token: ['/^vlan <vlan>$/i', '/^private-vlan\s(\S+)$/']
-  config_set: ["vlan <vlan_id>", "<state> private-vlan <type>", "end"]
+  config_set: ["vlan <vlan>", "<state> private-vlan <type>", "end"]
   default_value: ""
 
 shutdown:

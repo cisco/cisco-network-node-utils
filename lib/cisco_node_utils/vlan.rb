@@ -211,28 +211,52 @@ module Cisco
       config_get_default('vlan', 'mapped_vni')
     end
 
-    def private_vlan_set_type
+    def private_vlan_type
       config_get('vlan', 'private_vlan_type', vlan: @vlan_id)
     end
 
-    def private_vlan_set_type=(pv_type)
+    # Helper method to delete @set_args hash keys
+    def set_args_keys_default
+      @set_args = {} 
+      @set_args[:state] = ''
+      @set_args[:type] = ''
+    end
+
+=begin
+    def private_vlan_type=(pv_type)
       Feature.private_vlan_enable
       fail TypeError unless pv_type && pv_type.is_a?(String)
-      if pv_type == default_private_vlan_set_type
-        @set_args[:state] = 'no'
-        @set_args[:type] = pv_type
+      if pv_type == default_private_vlan_type
+       config_set('vlan', 'private_vlan_type', vlan: @vlan_id, state: 'no', type: pv_type)
       else
-        @set_args[:state] = ''
-        @set_args[:type] = pv_type
+       config_set('vlan', 'private_vlan_type', vlan: @vlan_id, state: '', type: pv_type)
       end
-      config_set('vlan', 'private_vlan_type', @vlan_id, @set_args)
+    rescue CliError => e
+      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
+    end
+=end
+    def private_vlan_type=(pv_type)
+      Feature.private_vlan_enable
+      fail TypeError unless pv_type && pv_type.is_a?(String)
+      set_args_keys_default
+      if pv_type == default_private_vlan_type
+       @set_args[:vlan] = @vlan_id
+       @set_args[:state] = 'no'
+       @set_args[:type] = pv_type
+      else
+       @set_args[:vlan] = @vlan_id
+       @set_args[:state] = ''
+       @set_args[:type] = pv_type
+      end
+      puts @set_args 
+      puts @vlan_id
+      config_set('vlan', 'private_vlan_type', @set_args)
     rescue CliError => e
       raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
-    def default_private_vlan_set_type
+    def default_private_vlan_type
       config_get_default('vlan', 'private_vlan_type')
     end
-
   end # class
 end # module
