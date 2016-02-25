@@ -158,7 +158,7 @@ class TestVpc < CiscoTestCase
     assert_equal(3, hold_timeout, 'hold timeout should be 3')
 
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
-                            6, 3)
+                           6, 3)
     dest = vpc.peer_keepalive_dest
     assert_equal('1.1.1.2', dest, 'destination should be 1.1.1.2')
     source = vpc.peer_keepalive_src
@@ -190,8 +190,8 @@ class TestVpc < CiscoTestCase
 
   def test_peer_gateway_exclude_bridge_domain
     skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'peer_gateway_exclude_bridge_domain').default_value
-      .nil?
+      cmd_ref.lookup('vpc',
+                     'peer_gateway_exclude_bridge_domain').default_value.nil?
     vpc = Vpc.new(100)
     default_val = vpc.default_peer_gateway_exclude_bridge_domain
     assert_equal(default_val, vpc.peer_gateway_exclude_bridge_domain,
@@ -293,7 +293,7 @@ class TestVpc < CiscoTestCase
                  'default vpc_id should be null')
     # Make sure PKA is set
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
-                            6, 3)
+                           6, 3)
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
       interface.switchport_mode = :trunk
@@ -333,7 +333,7 @@ class TestVpc < CiscoTestCase
     vpc = Vpc.new(100)
     # Make sure PKA is set
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
-                            6, 3)
+                           6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
     interface.channel_group = 100
     interface_pc = Interface.new('port-channel100')
@@ -425,7 +425,7 @@ class TestVpc < CiscoTestCase
     vpc.fabricpath_emulated_switch_id = 1000
     # Make sure PKA is set
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
-                            6, 3)
+                           6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
     interface.channel_group = 100
     interface_pc = Interface.new('port-channel100')
