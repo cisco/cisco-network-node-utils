@@ -144,7 +144,7 @@ class Cisco::Client::GRPC < Cisco::Client
     if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
       debug "  with cli: '#{args.cli}'"
     end
-    output = Client.silence_warnings do
+    output = Cisco::Client.silence_warnings do
       response = stub.send(type, args,
                            timeout:  @timeout,
                            username: @username,
