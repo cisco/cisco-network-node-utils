@@ -22,11 +22,11 @@ include Cisco
 class TestVlan < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
   def cleanup
-    Vlan.vlans.each do |vlan, obj|
+    Vlan.vlans.each do |vlan, _obj|
       # skip reserved vlans
       next if vlan == '1'
       next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
-      #obj.destroy
+      # obj.destroy
     end
   end
 
@@ -44,6 +44,6 @@ class TestVlan < CiscoTestCase
     v1 = Vlan.new(100)
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    #assert_equal(pv_type, v1.private_vlan_type)
+    # assert_equal(pv_type, v1.private_vlan_type)
   end
 end
