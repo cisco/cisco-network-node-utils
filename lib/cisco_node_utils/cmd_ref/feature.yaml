@@ -2,35 +2,35 @@
 ---
 bgp:
   kind: boolean
-  config_get: "show running | i feature"
-  config_get_token: '/^feature bgp$/'
-  config_set: "feature bgp"
+  get_command: "show running | i ^feature"
+  get_value: '/^feature bgp$/'
+  set_value: "feature bgp"
 
 fabric:
   _exclude: [N3k, N9k]
-  config_get: "show feature-set"
-  config_get_token: '/^fabric[\s\d]+(\w+)/'
-  config_set: "<state> feature-set fabric"
+  get_command: "show feature-set"
+  get_value: '/^fabric[\s\d]+(\w+)/'
+  set_value: "<state> feature-set fabric"
 
 fabric_forwarding:
   _exclude: [N3k]
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature fabric forwarding$/'
-  config_set: "feature fabric forwarding"
+  get_command: "show running | i ^feature"
+  get_value: '/^feature fabric forwarding$/'
+  set_value: "feature fabric forwarding"
 
 nv_overlay:
   _exclude: [N3k, N5k, N6k]
   kind: boolean
-  config_get: 'show running nv overlay'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: "feature nv overlay"
+  get_command: "show running | i ^feature"
+  get_value: '/^feature nv overlay$/'
+  set_value: "feature nv overlay"
 
 nv_overlay_evpn:
   _exclude: [N3k]
   kind: boolean
-  config_get: "show running | section nv"
-  config_get_token: '/^nv overlay evpn$/'
-  config_set: "nv overlay evpn"
+  get_command: "show running | section nv"
+  get_value: '/^nv overlay evpn$/'
+  set_value: "nv overlay evpn"
 
 private_vlan:
   kind: boolean
@@ -41,9 +41,25 @@ private_vlan:
 vn_segment_vlan_based:
   # MT-lite only
   N3k: &vn_segment_vlan_based_mt_lite
+    # Note: Some N3k are not hardware-capable
     kind: boolean
-    config_get: 'show running section feature'
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
+    get_command: "show running | i ^feature"
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
     default_value: false
   N9k: *vn_segment_vlan_based_mt_lite
+
+vni:
+  kind: boolean
+  N7k:
+    # MT-Full only
+    get_command: "show running | i ^feature"
+    get_value: '/^feature vni$/'
+    set_value: 'feature vni'
+  N3k: &feature_mt_lite
+    # MT-lite only
+    # Note: Some N3k are not hardware-capable
+    get_command: "show running | i ^feature"
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
+  N9k: *feature_mt_lite

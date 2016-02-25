@@ -249,11 +249,9 @@ class TestVlan < CiscoTestCase
   def test_vlan_add_interface_invalid
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
-    begin
-      interface.switchport_mode = :disabled
-      assert_raises(RuntimeError) { v.add_interface(interface) }
-      v.destroy
-    end
+    interface.switchport_mode = :disabled
+    assert_raises(RuntimeError) { v.add_interface(interface) }
+    v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
@@ -263,19 +261,16 @@ class TestVlan < CiscoTestCase
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     v.add_interface(interface)
-    begin
-      interface.switchport_mode = :disabled
-      assert_raises(RuntimeError) { v.remove_interface(interface) }
-      v.destroy
-    end
+    interface.switchport_mode = :disabled
+    assert_raises(RuntimeError) { v.remove_interface(interface) }
+
+    v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
 
   def test_vlan_mapped_vnis
     # Map
-    skip('Feature vn-segment-vlan-based is not supported on this platform.') if
-      node.product_id =~ /N3K-C3048/
     v1 = Vlan.new(100)
     vni1 = 10_000
     v1.mapped_vni = vni1
@@ -299,5 +294,7 @@ class TestVlan < CiscoTestCase
 
     v3.mapped_vni = v3.default_mapped_vni
     assert_equal(v3.default_mapped_vni, v3.mapped_vni)
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 end

@@ -9,7 +9,8 @@ mapping:
       - type: str
         enum: &filters # Things we can filter by
           # Platform classes
-          - 'cli_nexus'
+          - 'ios_xr'
+          - 'nexus'
           # Product IDs
           - 'N3k'
           - 'N5k'
@@ -22,7 +23,8 @@ mapping:
     mapping:
       _exclude: *exclude
       # Platform and product filters
-      cli_nexus: *base
+      ios_xr: *base
+      nexus: *base
       C3064: *base
       N3k: *base
       N5k: *base
@@ -32,6 +34,15 @@ mapping:
       # 'else' case if not matching any filter above
       else: *base
       # Generally applicable attributes
+      data_format: &data_format
+        type: str
+        enum: [cli, nxapi_structured]
+      context: &context
+        type: seq
+        sequence:
+          - type: str
+      value:
+        type: str
       default_only:
         type: any
       # Getter-specific attributes
@@ -39,26 +50,19 @@ mapping:
         type: bool
       default_value:
         type: any
-      config_get:
+      get_command:
         type: str
-      config_get_token:
-        type: any
-      config_get_token_append:
-        type: any
+      get_data_format: *data_format
+      get_context: *context
+      get_value:
+        type: str
       kind:
         type: str
         enum: [boolean, int, string, symbol]
       multiple:
         type: bool
       # Setter-specific attributes
-      config_set:
-        type: any
-      config_set_append:
-        type: any
-      # Test attributes
-      test_config_get:
-        type: any
-      test_config_get_regex:
-        type: any
-      test_config_result:
-        type: any
+      set_data_format: *data_format
+      set_context: *context
+      set_value:
+        type: str

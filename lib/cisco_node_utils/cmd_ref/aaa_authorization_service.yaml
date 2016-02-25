@@ -1,22 +1,22 @@
 # aaa_authorization_service
 ---
 groups:
-  config_get: "show aaa authorization all"
-  config_get_token: ["TABLE_cmd_methods", "ROW_cmd_methods"]
+  get_command: "show aaa authorization all"
+  get_context: ["TABLE_cmd_methods", "ROW_cmd_methods"]
   # this set is only used when there are groups to configure
-  config_set: "%s aaa authorization %s %s group %s %s"
+  set_value: "%s aaa authorization %s %s group %s %s"
   default_value: []
   multiple:
 
 method:
   auto_default: false
-  config_get: "show aaa authorization all"
-  config_get_token: '/^\s+%s authorization for %s:.*(local) ?$/'
+  get_command: "show aaa authorization all"
+  get_value: '/^\s+%s authorization for %s:.*(local) ?$/'
   # this set is only used when there are no groups to configure
-  config_set: "%s aaa authorization %s %s local"
+  set_value: "%s aaa authorization %s %s local"
   default_value: :local
 
 services:
-  config_get: "show run aaa all"
-  config_get_token: '/^aaa authorization (\S+) (\S+) .*(?:local)? ?$/'
+  get_command: "show run aaa all"
+  get_value: '/^aaa authorization (\S+) (\S+) .*(?:local)? ?$/'
   multiple:

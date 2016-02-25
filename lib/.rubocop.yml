@@ -3,13 +3,13 @@ inherit_from: ../.rubocop.yml
 # Baseline code complexity metrics for the lib/ subdirectory:
 
 Metrics/AbcSize:
-  Max: 45
+  Max: 49
 
 Metrics/CyclomaticComplexity:
   Max: 23
 
 Metrics/MethodLength:
-  Max: 48
+  Max: 50
 
 Metrics/ParameterLists:
   Max: 9

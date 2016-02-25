@@ -50,23 +50,20 @@ module Cisco
     #       'used'  => '5909004K',
     #       'free'  => '10493248K' }
     def self.memory
-      total = config_get('memory', 'total')
-      used = config_get('memory', 'used')
-      free = config_get('memory', 'free')
-
-      fail 'failed to retrieve platform memory information' if
-        total.nil? || used.nil? || free.nil?
-
       {
-        'total' => total,
-        'used'  => used,
-        'free'  => free,
+        'total' => config_get('memory', 'total'),
+        'used'  => config_get('memory', 'used'),
+        'free'  => config_get('memory', 'free'),
       }
     end
 
     # Ex: 'Processor Board ID FOC15430TEY'
     def self.board
       config_get('show_version', 'board')
+    rescue RuntimeError => e
+      # Some Nexus platforms may fail to report this value.
+      return nil if /No key/ =~ e.message
+      raise
     end
 
     # Ex: '1 day(s), 21 hour(s), 46 minute(s), 54 second(s)'
@@ -79,6 +76,10 @@ module Cisco
     # Ex: '23113 usecs after  Mon Jul  1 15:24:29 2013'
     def self.last_reset
       config_get('show_version', 'last_reset_time')
+    rescue RuntimeError => e
+      # Some Nexus platforms may fail to report this value.
+      return nil if /No key/ =~ e.message
+      raise
     end
 
     # Ex: 'Reset Requested by CLI command reload'
@@ -93,7 +94,9 @@ module Cisco
     #       'sn'    => 'SAL1812NTBP' }
     def self.chassis
       node.cache_flush # TODO: investigate why this is needed
-      chas = config_get('inventory', 'chassis')
+      all = config_get('inventory', 'chassis')
+      return nil if all.nil?
+      chas = all.find { |item| item['name'] == '"Chassis"' }
       return nil if chas.nil?
       {
         'descr' => chas['desc'].tr('"', ''),
@@ -112,16 +115,34 @@ module Cisco
     def self.inventory_of(type)
       node.cache_flush # TODO: investigate why this is needed
       inv = config_get('inventory', 'all')
-      return {} if inv.nil?
-      inv.select! { |x| x['name'].include? type }
-      return {} if inv.empty?
-      # match desired output format
       inv_hsh = {}
-      inv.each do |s|
-        inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
-                                           'pid'   => s['productid'],
-                                           'vid'   => s['vendorid'],
-                                           'sn'    => s['serialnum'] }
+      return inv_hsh if inv.nil?
+      if platform == :ios_xr
+        # XR gets a string so we have to process it directly
+        inv_arr = inv.scan(
+          /NAME:\s+"(#{type}[^"]*)",\s+
+           DESCR:\s+"([^"]*)"\s*
+           \n
+           PID:\s+(\S+)\s*,\s+
+           VID:\s+(\S+)\s*,\s+
+           SN:\s+(\S+)\s*/x).flatten
+        inv_arr.each do |entry|
+          inv_hsh[entry[0]] = { 'descr' => entry[1],
+                                'pid'   => entry[2],
+                                'vid'   => entry[3],
+                                'sn'    => entry[4] }
+        end
+      else
+        # Nexus gets structured output
+        inv.select! { |x| x['name'].include? type }
+        return inv_hsh if inv.empty?
+        # match desired output format
+        inv.each do |s|
+          inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
+                                             'pid'   => s['productid'],
+                                             'vid'   => s['vendorid'],
+                                             'sn'    => s['serialnum'] }
+        end
       end
       inv_hsh
     end
@@ -158,7 +179,7 @@ module Cisco
     #      { ... }}
     def self.virtual_services
       virts = config_get('virtual_service', 'services')
-      return [] if virts.nil?
+      return {} if virts.nil?
       # NXAPI returns hash instead of array if there's only 1
       virts = [virts] if virts.is_a? Hash
       # convert to expected format

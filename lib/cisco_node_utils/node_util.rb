@@ -34,6 +34,14 @@ module Cisco
       self.class.node
     end
 
+    def self.client
+      node.client
+    end
+
+    def client
+      node.client
+    end
+
     def self.config_get(*args)
       node.config_get(*args)
     end
@@ -58,8 +66,32 @@ module Cisco
       node.config_set(*args)
     end
 
-    def show(*args)
-      node.show(*args)
+    def self.supports?(api)
+      client.supports?(api)
+    end
+
+    def supports?(api)
+      client.supports?(api)
+    end
+
+    def self.platform
+      client.platform
+    end
+
+    def platform
+      client.platform
+    end
+
+    def get(**kwargs)
+      node.get(**kwargs)
+    end
+
+    def ios_xr?
+      platform == :ios_xr
+    end
+
+    def nexus?
+      platform == :nexus
     end
   end
 end

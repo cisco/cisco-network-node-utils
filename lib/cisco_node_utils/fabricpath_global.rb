@@ -18,6 +18,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'vdc'
 
 module Cisco
   # node_utils class for fabricpath_global
@@ -33,10 +34,14 @@ module Cisco
 
     def self.globals
       hash = {}
-      is_fabricpath_feature = config_get('fabricpath', 'feature')
-      return hash if (:enabled != is_fabricpath_feature.to_sym)
+      feature = config_get('fabricpath', 'feature')
+      return hash if feature.nil? || feature.to_sym != :enabled
       hash['default'] = FabricpathGlobal.new('default', false)
       hash
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return {}
     end
 
     def self.fabricpath_feature
@@ -44,11 +49,28 @@ module Cisco
       fail 'fabricpath_feature not found' if fabricpath.nil?
       return :disabled if fabricpath.nil?
       fabricpath.to_sym
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled
+      raise unless e.clierror =~ /Syntax error/
+      return :disabled
     end
 
     def self.fabricpath_feature_set(fabricpath_set)
       curr = FabricpathGlobal.fabricpath_feature
       return if curr == fabricpath_set
+
+      # NOTE: Add this in future if we want to automatically move only supported
+      # interfaces into the VDC
+      # if Vdc.vdc_support
+      #   # For modular platforms, make sure to limit the feature to
+      #   # modules which support this feature
+      #   if fabricpath_set == :installed || fabricpath_set == :enabled
+      #     v = Vdc.new('default')
+      #     v.limit_resource_module_type =
+      #        config_get('fabricpath', 'supported_modules')
+      #     # exception will be raised for un-supported platforms/modules
+      #   end
+      # end
 
       case fabricpath_set
       when :enabled
@@ -91,7 +113,8 @@ module Cisco
         if val == false || set_val == ''
           ''
         else
-          "rotate-amount 0x#{set_val.to_s(16)}"
+          int_val = set_val.to_i
+          "rotate-amount 0x#{int_val.to_s(16)}"
         end
       else
         set_val
@@ -321,9 +344,6 @@ module Cisco
         state = 'no'
       else
         state = ''
-        vdc = config_get('limit_resource', 'vdc')
-        # for vdc unsupported platforms, this will be nil
-        config_set('limit_resource', 'fabricpath_transit', vdc) unless vdc.nil?
       end
       config_set('fabricpath', 'mode', state: state)
     end

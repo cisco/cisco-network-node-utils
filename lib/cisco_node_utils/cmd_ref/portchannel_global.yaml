@@ -1,7 +1,7 @@
 # portchannel_global
 ---
 _template:
-  config_get: "show running all"
+  get_command: "show running all"
 
 asymmetric:
   _exclude: [N6k, N5k, N3k, N9k]
@@ -28,13 +28,12 @@ concatenation:
 
 hash_distribution:
   _exclude: [N6k, N5k, N3k, N9k]
-  config_get_token: ['/^port.channel hash.distribution (.*)$/']
-  config_set: ["terminal dont-ask", "port-channel hash-distribution %s", "end"]
+  get_value: '/^port.channel hash.distribution (.*)$/'
+  set_value: "port-channel hash-distribution %s"
   default_value: 'adaptive'
 
 hash_poly:
   _exclude: [N7k, N3k, N9k]
-  default_value: 'CRC10b'
 
 load_balance_type:
   kind: string
@@ -52,21 +51,20 @@ load_balance_type:
 load_defer:
   _exclude: [N6k, N5k, N3k, N9k]
   kind: int
-  config_get_token: ['/^port.channel load.defer (\d+)$/']
-  config_set: ["port-channel load-defer %s"]
+  get_value: '/^port.channel load.defer (\d+)$/'
+  set_value: "port-channel load-defer %s"
   default_value: 120
 
 port_channel_load_balance:
   multiple:
-  config_get_token: '/^port-channel load-balance (.*)$/'
-  config_set: "port-channel load-balance %s %s %s %s %s %s"
+  get_value: '/^port-channel load-balance (.*)$/'
+  set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
   _exclude: [N6k, N5k, N7k]
   kind: boolean
-  config_get: "show running-config all"
-  config_get_token: '/^port-channel load-balance resilient$/'
-  config_set: "%s port-channel load-balance resilient"
+  get_value: '/^port-channel load-balance resilient$/'
+  set_value: "%s port-channel load-balance resilient"
   default_value: false
 
 rotate:
@@ -75,5 +73,5 @@ rotate:
   default_value: 0
 
 symmetry:
-  _exclude: [N7k, N3k, N5k, N6k]
+  _exclude: [N7k, N5k, N6k]
   default_value: false
