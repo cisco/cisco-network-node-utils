@@ -2,8 +2,7 @@
 ---
 _template:
   get_command: "show running-config all | section itd"
-  get_context: ['/^itd device-group (.*)/']
-  set_context: ["itd device-group <name>"]
+  context: ["itd device-group <name>"]
 
 all_itd_device_groups:
   multiple:
@@ -11,9 +10,11 @@ all_itd_device_groups:
   get_value: '/^itd device-group (.*)/'
 
 create:
+  set_context: ~
   set_value: "itd device-group <name>"
 
 destroy:
+  set_context: ~
   set_value: "no itd device-group <name>"
 
 feature:
