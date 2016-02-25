@@ -17,7 +17,7 @@ require_relative 'node_util'
 module Cisco
   # Ace - node utility class for Ace Configuration
   class Ace < NodeUtil
-    attr_reader :afi, :acl_name, :seqno
+    attr_reader :afi, :acl_name
 
     def initialize(afi, acl_name, seqno)
       @afi = Acl.afi_cli(afi)

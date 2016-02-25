@@ -49,7 +49,7 @@ module Cisco
     def timestamp=(val)
       fail TypeError unless val.is_a?(String)
       fail TypeError \
-        unless %w(seconds milliseconds).include?(timestamp)
+        unless %w(seconds milliseconds).include?(val)
 
       # There is no unset version as timestamp has a default value
       config_set('syslog_settings',

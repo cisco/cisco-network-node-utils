@@ -17,7 +17,9 @@ require_relative 'client_errors'
 
 # Fail gracefully if submodule dependencies are not met
 begin
-  require 'grpc'
+  Cisco::Client.silence_warnings do
+    require 'grpc'
+  end
 rescue LoadError => e
   raise unless e.message =~ /-- grpc/
   # If grpc is not installed, raise an error that client understands.
