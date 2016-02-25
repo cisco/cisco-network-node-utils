@@ -51,14 +51,17 @@ class TestSyslogSettings < CiscoTestCase
       end
     else
       assert_includes(Cisco::SyslogSettings.syslogsettings, 'default')
-      assert_equal(Cisco::SyslogSettings.syslogsettings['default'],
-                   syslog_setting)
+      assert_equal(syslog_setting,
+                   Cisco::SyslogSettings.syslogsettings['default'],
+                  )
 
       syslog_setting.timestamp = 'milliseconds'
-      assert_equal(Cisco::SyslogSettings.syslogsettings['default'].timestamp,
-                   'milliseconds')
-      assert_equal(syslog_setting.timestamp,
-                   'milliseconds')
+      assert_equal('milliseconds',
+                   Cisco::SyslogSettings.syslogsettings['default'].timestamp,
+                  )
+      assert_equal('milliseconds',
+                   syslog_setting.timestamp,
+                  )
     end
   end
 end
