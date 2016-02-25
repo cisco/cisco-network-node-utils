@@ -1044,6 +1044,13 @@ class TestInterface < CiscoTestCase
     intf = interfaces[0]
     interface_ethernet_default(intf)
 
+    if platform == :ios_xr
+      assert_nil(intf.default_ipv4_forwarding)
+      assert_nil(intf.ipv4_forwarding)
+      assert_raises(Cisco::UnsupportedError) { intf.ipv4_forwarding = false }
+      return
+    end
+
     i = Interface.new(intf)
     assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
     begin

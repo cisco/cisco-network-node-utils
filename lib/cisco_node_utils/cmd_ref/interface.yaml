@@ -116,9 +116,8 @@ ipv4_forwarding:
   _exclude: [ios_xr]
   kind: boolean
   default_value: false
-  nexus:
-    get_value: '/^ip forward$/'
-    set_value: '<state> ip forward'
+  get_value: '/^ip forward$/'
+  set_value: '<state> ip forward'
 
 ipv4_netmask_length:
   default_value: ~
