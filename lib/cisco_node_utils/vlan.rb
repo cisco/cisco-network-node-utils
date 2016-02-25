@@ -218,8 +218,8 @@ module Cisco
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
       @set_args = {}
-      @set_args[:state] = ''
-      @set_args[:type] = ''
+      # @set_args[:state] = ''
+      # @set_args[:type] = ''
     end
 
     def private_vlan_type=(pv_type)
@@ -235,8 +235,6 @@ module Cisco
         @set_args[:state] = ''
         @set_args[:type] = pv_type
       end
-      puts @set_args
-      puts @vlan_id
       config_set('vlan', 'private_vlan_type', @set_args)
     rescue CliError => e
       raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"

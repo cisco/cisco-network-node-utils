@@ -44,6 +44,6 @@ class TestVlan < CiscoTestCase
     v1 = Vlan.new(100)
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    # assert_equal(pv_type, v1.private_vlan_type)
+    assert_equal(pv_type, v1.private_vlan_type)
   end
 end
