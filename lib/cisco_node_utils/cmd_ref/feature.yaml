@@ -34,9 +34,9 @@ nv_overlay_evpn:
 
 private_vlan:
   kind: boolean
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature private-vlan$/'
-  config_set: "feature private-vlan"
+  get_command: "show running | i ^feature"
+  get_value: '/^feature private-vlan$/'
+  set_value: "feature private-vlan"
 
 vn_segment_vlan_based:
   # MT-lite only

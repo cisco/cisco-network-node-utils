@@ -215,8 +215,6 @@ module Cisco
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
       @set_args = {}
-      # @set_args[:state] = ''
-      # @set_args[:type] = ''
     end
 
     def private_vlan_type=(pv_type)

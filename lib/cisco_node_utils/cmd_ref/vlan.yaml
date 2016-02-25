@@ -43,15 +43,21 @@ name:
   set_value: "%s name %s"
 
 private_vlan_association:
-  config_get: 'show running vlan'
-  config_get_token: ['/^vlan <vlan>$/i', '/^private-vlan association\s+(\d+\D*\d+\D*\d+)$/']
-  config_set: ["vlan %d", "%s private-vlan association %s", "end"]
+  kind: string
+  get_command: "show running vlan"
+  get_context: ['/^vlan <vlan>$/']
+  get_value: '/^private-vlan association\s+(\d+\D*\d+\D*\d+)$/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan association <vlans>"
+  default_value: ""
 
 private_vlan_type:
   kind: string
-  config_get: 'show running vlan'
-  config_get_token: ['/^vlan <vlan>$/i', '/^private-vlan\s(\S+)$/']
-  config_set: ["vlan <vlan>", "<state> private-vlan <type>", "end"]
+  get_command: 'show running vlan'
+  get_context: ['/^vlan <vlan>$/']
+  get_value: '/^private-vlan\s(\S+)$/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan <type>"
   default_value: ""
 
 shutdown:
