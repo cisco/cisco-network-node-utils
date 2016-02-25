@@ -105,10 +105,7 @@ module Cisco
       case hash[:probe_type].to_sym
       when :dns
         hash[:probe_dns_host] = lparams[2]
-      when :tcp
-        hash[:probe_port] = lparams[2].to_i
-        hash[:probe_control] = true unless lparams[3].nil?
-      when :udp
+      when :tcp, :udp
         hash[:probe_port] = lparams[2].to_i
         hash[:probe_control] = true unless lparams[3].nil?
       end
@@ -189,19 +186,7 @@ module Cisco
         config_set('itd_device_group', 'probe',
                    name: @name, type: type, hps: 'host', hpv: host, control: '',
                    freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
-      when :tcp
-        if control
-          config_set('itd_device_group', 'probe',
-                     name: @name, type: type, hps: 'port', hpv: port,
-                     control: 'control enable', freq: freq, to: timeout,
-                     rdc: ret_down, ruc: ret_up)
-        else
-          config_set('itd_device_group', 'probe',
-                     name: @name, type: type, hps: 'port', hpv: port,
-                     control: '', freq: freq, to: timeout, rdc: ret_down,
-                     ruc: ret_up)
-        end
-      when :udp
+      when :tcp, :udp
         if control
           config_set('itd_device_group', 'probe',
                      name: @name, type: type, hps: 'port', hpv: port,
