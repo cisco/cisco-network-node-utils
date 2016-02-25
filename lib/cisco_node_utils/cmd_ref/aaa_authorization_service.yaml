@@ -1,6 +1,7 @@
 # aaa_authorization_service
 ---
 groups:
+  get_data_format: nxapi_structured
   get_command: "show aaa authorization all"
   get_context: ["TABLE_cmd_methods", "ROW_cmd_methods"]
   # this set is only used when there are groups to configure

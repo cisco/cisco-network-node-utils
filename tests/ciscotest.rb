@@ -67,7 +67,7 @@ class CiscoTestCase < TestCase
       puts "\nNode under test:"
       puts "  - name  - #{@@node.host_name}"
       puts "  - type  - #{@@node.product_id}"
-      # puts "  - image - #{@@node.system}\n\n"
+      puts "  - image - #{@@node.system}\n\n"
     end
     @@node
   rescue Cisco::Client::AuthenticationFailed
