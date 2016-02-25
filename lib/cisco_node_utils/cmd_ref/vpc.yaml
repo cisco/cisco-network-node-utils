@@ -1,5 +1,7 @@
 # vpc
 ---
+_exclude: [ios_xr]
+
 _template: 
   get_command:  'show running-config vpc all'
   get_context:  ['/^vpc domain\s*(\d+)$/']
@@ -56,12 +58,9 @@ dual_active_exclude_interface_vlan_bridge_domain:
   default_value: 'none'
 
 fabricpath_emulated_switch_id: 
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: int
-  get_command: 'show running-config vpc all'
-  get_context: ['/^vpc domain\s*(\d+)$/']
   get_value: '/^fabricpath switch\-id\s+(\d+)/'
-  set_context: ['vpc domain <domain>']
   set_value: '<state> fabricpath switch-id <swid>'
   default_value: false
 
