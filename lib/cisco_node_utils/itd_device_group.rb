@@ -187,17 +187,11 @@ module Cisco
                    name: @name, type: type, hps: 'host', hpv: host, control: '',
                    freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
       when :tcp, :udp
-        if control
-          config_set('itd_device_group', 'probe',
-                     name: @name, type: type, hps: 'port', hpv: port,
-                     control: 'control enable', freq: freq, to: timeout,
-                     rdc: ret_down, ruc: ret_up)
-        else
-          config_set('itd_device_group', 'probe',
-                     name: @name, type: type, hps: 'port', hpv: port,
-                     control: '', freq: freq, to: timeout, rdc: ret_down,
-                     ruc: ret_up)
-        end
+        control_str = control ? 'control enable' : ''
+        config_set('itd_device_group', 'probe',
+                   name: @name, type: type, hps: 'port', hpv: port,
+                   control: control_str, freq: freq, to: timeout,
+                   rdc: ret_down, ruc: ret_up)
       when :icmp
         config_set('itd_device_group', 'probe',
                    name: @name, type: type, hps: '', hpv: '', control: '',
