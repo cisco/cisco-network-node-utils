@@ -1,5 +1,7 @@
 # portchannel_global
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show running all"
 

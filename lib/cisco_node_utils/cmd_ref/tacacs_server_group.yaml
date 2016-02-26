@@ -1,5 +1,7 @@
 # tacacs_server_group
 ---
+_exclude: [ios_xr]
+
 deadtime:
   get_command: "show run tacacs all"
   get_context: ['/^aaa group server tacacs\+ %s/']

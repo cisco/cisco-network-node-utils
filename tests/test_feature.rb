@@ -20,10 +20,7 @@ include Cisco
 
 # TestFeature - Minitest for feature class
 class TestFeature < CiscoTestCase
-  def setup
-    super
-    # skip("Platform does not support 'feature' cli") if platform == :ios_xr
-  end
+  @skip_unless_supported = 'feature'
 
   ###########
   # Helpers #

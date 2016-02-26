@@ -1,5 +1,7 @@
 # radius_global.yaml
 ---
+_exclude: [ios_xr]
+
 key:
   get_command: "show running-config radius all"
   get_value: '/^radius-server key \d+\s+(\S+)/'

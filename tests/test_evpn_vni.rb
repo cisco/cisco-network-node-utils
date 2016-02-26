@@ -21,6 +21,8 @@ require_relative '../lib/cisco_node_utils/evpn_vni'
 
 # TestEvpnVni - Minitest for EvpnVni class
 class TestEvpnVni < CiscoTestCase
+  @skip_unless_supported = 'evpn_vni'
+
   def setup
     # Disable feature bgp and no overlay evpn before each test to
     # ensure we are starting with a clean slate for each test.

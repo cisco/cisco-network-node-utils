@@ -21,6 +21,8 @@ include Cisco
 
 # TestFabricpathGlobal - Minitest for Fabricpath Global node utils
 class TestFabricpathGlobal < CiscoTestCase
+  @skip_unless_supported = 'fabricpath'
+
   def setup
     # setup runs at the beginning of each test
     super

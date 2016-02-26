@@ -22,9 +22,20 @@ class TestSvi < CiscoTestCase
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   attr_reader :svi
 
+  def self.runnable_methods
+    # We don't have a separate YAML file to key off, so we check platform
+    return super unless platform == :ios_xr
+    remove_method :setup
+    remove_method :teardown
+    [:xr_unsupported]
+  end
+
+  def xr_unsupported
+    skip("Skipping #{self.class}; Vlan interfaces are not supported on IOS XR")
+  end
+
   def setup
     super
-    skip('No support for Vlan interfaces on IOS XR') if platform == :ios_xr
     remove_all_svis if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
     @svi = Interface.new('Vlan23')

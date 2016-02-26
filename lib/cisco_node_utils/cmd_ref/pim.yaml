@@ -1,5 +1,7 @@
 # pim
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show run pim all"
   get_context:

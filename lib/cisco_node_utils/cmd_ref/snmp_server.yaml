@@ -1,5 +1,7 @@
 # snmp_server
 ---
+_exclude: [ios_xr]
+
 aaa_user_cache_timeout:
   nexus:
     kind: int

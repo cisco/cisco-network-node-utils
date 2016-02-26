@@ -18,8 +18,10 @@ require_relative '../lib/cisco_node_utils/vxlan_vtep_vni'
 
 include Cisco
 
-# TestVxlanGlobal - Minitest for VxlanGlobal node utility
+# TestVxlanVtepVni - Minitest for VxlanVtepVni node utility
 class TestVxlanVtepVni < CiscoTestCase
+  @skip_unless_supported = 'vxlan_vtep_vni'
+
   def setup
     super
     config('no feature nv overlay')

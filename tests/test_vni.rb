@@ -21,6 +21,8 @@ include Cisco
 
 # TestVni - Minitest for Vni node utility
 class TestVni < CiscoTestCase
+  @skip_unless_supported = 'vni'
+
   def setup
     super
     skip('Platform does not support MT-full or MT-lite') unless

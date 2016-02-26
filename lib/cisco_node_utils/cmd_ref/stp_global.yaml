@@ -1,5 +1,7 @@
 # stp_global
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show running-config spanning-tree"
 

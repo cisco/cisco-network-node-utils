@@ -1,5 +1,7 @@
 # aaa_authentication_login
 ---
+_exclude: [ios_xr]
+
 ascii_authentication:
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login ascii-authentication/'

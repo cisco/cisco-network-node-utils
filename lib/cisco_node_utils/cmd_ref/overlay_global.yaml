@@ -1,5 +1,7 @@
 # overlay_global
 ---
+_exclude: [ios_xr]
+
 anycast_gateway_mac:
   kind: string
   get_command: "show running all | inc 'fabric forwarding'"

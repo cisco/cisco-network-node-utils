@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/tacacs_server'
 
 # TestTacacsServer - Minitest for TacacsServer node utility
 class TestTacacsServer < CiscoTestCase
+  @skip_unless_supported = 'tacacs_server'
+
   def assert_tacacsserver_feature
     assert_show_match(command: 'show run all | no-more',
                       pattern: /feature tacacs\+/)
