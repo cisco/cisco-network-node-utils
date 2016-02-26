@@ -1,6 +1,7 @@
 # aaa_auth_login_service
 ---
 groups:
+  get_data_format: nxapi_structured
   get_command: "show aaa authentication"
   get_context: ["TABLE_AuthenMethods", "ROW_AuthenMethods"]
   # this set is only used when there are groups to configure
