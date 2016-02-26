@@ -27,9 +27,9 @@ Changelog
   * platform (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
-
 * `test_feature` minitest
 * Extend interface with attributes:
+  * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
 

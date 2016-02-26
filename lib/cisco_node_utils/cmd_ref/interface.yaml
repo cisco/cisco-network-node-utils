@@ -112,6 +112,13 @@ ipv4_arp_timeout:
 ipv4_arp_timeout_non_vlan_interfaces:
   default_only: ~
 
+ipv4_forwarding:
+  _exclude: [ios_xr]
+  kind: boolean
+  default_value: false
+  get_value: '/^ip forward$/'
+  set_value: '<state> ip forward'
+
 ipv4_netmask_length:
   default_value: ~
 
