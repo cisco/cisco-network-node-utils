@@ -21,11 +21,11 @@ include Cisco
 class TestVlan < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
   def cleanup
-    Vlan.vlans.each do |vlan, _obj|
+    Vlan.vlans.each do |vlan, obj|
       # skip reserved vlans
       next if vlan == '1'
       next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
-      # obj.destroy
+      obj.destroy
     end
   end
 
@@ -37,6 +37,7 @@ class TestVlan < CiscoTestCase
 
   def teardown
     cleanup
+    config('no feature private-vlan')
   end
 
   def test_private_vlan_type_primary
@@ -44,5 +45,58 @@ class TestVlan < CiscoTestCase
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
     assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_no_private_vlan_type_primary
+    v1 = Vlan.new(200)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.private_vlan_type = ''
+    v1.destroy
+  end
+
+  def test_multi_private_vlan_type_primary
+    v1 = Vlan.new(100)
+    v2 = Vlan.new(101)
+    v3 = Vlan.new(200)
+    v4 = Vlan.new(201)
+    v5 = Vlan.new(203)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    v2.private_vlan_type = pv_type
+    v3.private_vlan_type = pv_type
+    v4.private_vlan_type = pv_type
+    v5.private_vlan_type = pv_type
+
+    assert_equal(pv_type, v1.private_vlan_type)
+    assert_equal(pv_type, v2.private_vlan_type)
+    assert_equal(pv_type, v3.private_vlan_type)
+    assert_equal(pv_type, v4.private_vlan_type)
+    assert_equal(pv_type, v5.private_vlan_type)
+    v1.destroy
+    v2.destroy
+    v3.destroy
+    v4.destroy
+    v5.destroy
+  end
+
+  def test_private_vlan_type_unknown
+    v1 = Vlan.new(400)
+    pv_type = 'unknown'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_vtp
+    v1 = Vlan.new(400)
+    config('feature vtp')
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+    config('no feature vtp')
   end
 end
