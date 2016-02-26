@@ -4,6 +4,8 @@
 #   - README_YAML.md
 #
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: 'show run aclmgr'
   context: ['<afi> access-list <acl_name>']
