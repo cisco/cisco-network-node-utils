@@ -20,6 +20,17 @@ require_relative 'basetest'
 class TestNxapi < TestCase
   @@client = nil # rubocop:disable Style/ClassVars
 
+  def self.runnable_methods
+    # If we're pointed to a gRPC node (as evidenced by presence of a port num)
+    # then these tests don't apply
+    return [:all_skipped] if address[/:/]
+    super
+  end
+
+  def all_skipped
+    skip 'Node under test appears to be gRPC, not NXAPI'
+  end
+
   def client
     unless @@client
       client = Cisco::Client::NXAPI.new(address, username, password)
