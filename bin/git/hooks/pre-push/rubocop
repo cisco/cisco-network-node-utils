@@ -3,7 +3,7 @@
 [ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
 . "$GIT_DIR"/hooks/hook_lib
 
-staged_ruby_files=$(git diff --name-only --staged | grep .*.rb)
+staged_ruby_files=$(get_staged_ruby_files)
 if [ -z "$staged_ruby_files" ]; then
   # quit since there are no ruby files to check
   exit 0

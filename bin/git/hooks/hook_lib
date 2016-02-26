@@ -86,6 +86,13 @@ get_last_version() {
 }
 export -f get_last_version
 
+get_staged_ruby_files() {
+  hooks_regexp="git/hooks/.*"
+  ruby_regexp=".*\.rb"
+  return $(git diff --name-only --staged | grep "$hooks_regexp\|$ruby_regexp")
+}
+export -f get_staged_ruby_files
+
 add_changelog_diff_link() {
     local OLD_VERSION=$1
     local NEW_VERSION=$2

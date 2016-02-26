@@ -9,7 +9,7 @@
 # rubocop run of all checks as part of the pre-push hook
 
 step_name "Running RuboCop lint checks"
-staged_ruby_files=$(git diff --name-only --staged | grep .*.rb)
+staged_ruby_files=$(get_staged_ruby_files)
 if [ -z "$staged_ruby_files" ]; then
   # quit since there are no ruby files to check
   exit 0
