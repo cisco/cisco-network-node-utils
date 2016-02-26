@@ -27,6 +27,8 @@ class TestVlan < CiscoTestCase
       next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
       obj.destroy
     end
+    config('no feature vtp')
+    config('no feature private-vlan')
   end
 
   def setup
@@ -53,7 +55,9 @@ class TestVlan < CiscoTestCase
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
     assert_equal(pv_type, v1.private_vlan_type)
-    v1.private_vlan_type = ''
+    pv_type = ''
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
     v1.destroy
   end
 
@@ -95,8 +99,121 @@ class TestVlan < CiscoTestCase
     config('feature vtp')
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    assert_equal('', v1.private_vlan_type)
     v1.destroy
     config('no feature vtp')
+  end
+
+  def test_private_vlan_type_isolated
+    v1 = Vlan.new(100)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_community
+    v1 = Vlan.new(100)
+    pv_type = 'community'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_isolated_primary
+    v1 = Vlan.new(100)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v2 = Vlan.new(200)
+    pv_type = 'primary'
+    v2.private_vlan_type = pv_type
+    assert_equal(pv_type, v2.private_vlan_type)
+    v2.destroy
+    v1.destroy
+  end
+
+  def test_private_vlan_type_isolated_community_primary
+    v1 = Vlan.new(100)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v2 = Vlan.new(200)
+    pv_type = 'primary'
+    v2.private_vlan_type = pv_type
+    assert_equal(pv_type, v2.private_vlan_type)
+    v3 = Vlan.new(300)
+    pv_type = 'community'
+    v3.private_vlan_type = pv_type
+    assert_equal(pv_type, v3.private_vlan_type)
+    v2.destroy
+    v1.destroy
+    v3.destroy
+  end
+
+  def test_private_vlan_type_change_isolated_to_primary
+    v1 = Vlan.new(100)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_change_isolated_to_community
+    v1 = Vlan.new(100)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'community'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_change_community_to_isolated
+    v1 = Vlan.new(100)
+    pv_type = 'community'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_change_community_to_primary
+    v1 = Vlan.new(100)
+    pv_type = 'community'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_change_primary_to_isolated
+    v1 = Vlan.new(100)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'isolated'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
+  end
+
+  def test_private_vlan_type_change_primary_to_community
+    v1 = Vlan.new(100)
+    pv_type = 'primary'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    pv_type = 'community'
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+    v1.destroy
   end
 end
