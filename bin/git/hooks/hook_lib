@@ -87,9 +87,9 @@ get_last_version() {
 export -f get_last_version
 
 get_staged_ruby_files() {
-  hooks_regexp="git/hooks/.*"
-  ruby_regexp=".*\.rb"
-  return $(git diff --name-only --staged | grep "$hooks_regexp\|$ruby_regexp")
+  rubocop_target=$(rubocop --list-target-files)
+  staged_files=$(git diff --name-only --staged)
+  echo $(printf "$rubocop_target $staged_files " | tr ' ' '\n' | sort | uniq -d)
 }
 export -f get_staged_ruby_files
 
