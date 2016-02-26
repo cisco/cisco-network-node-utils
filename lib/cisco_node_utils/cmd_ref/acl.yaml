@@ -35,6 +35,8 @@ all_acls:
   get_value: '/^<afi> access-list (\S+)$/'
 
 fragments:
+  # Note: The ACL 'fragments' keyword is independent of ACE 'fragments'
+  _exclude: [N5k, N6k]
   get_value: '/fragments (\S+)$/'
   set_value: '<state> fragments <action>'
   default_value: ~

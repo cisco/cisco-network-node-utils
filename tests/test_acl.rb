@@ -166,6 +166,10 @@ class TestAcl < CiscoTestCase
     rtr.destroy
     refute_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
+  rescue UnsupportedError
+    assert_nil(rtr.fragments)
+    assert_nil(rtr.default_fragments)
+    skip('Platform does not support this property')
   end
 
   def test_fragments
