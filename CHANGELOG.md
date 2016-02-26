@@ -22,11 +22,14 @@ Changelog
   * bgp_af
   * bgp_neighbor
   * bgp_neighbor_af
-  * interface
   * command_config
-  * platform (@glennmatthews)
+  * dns_domain (@glennmatthews)
+  * domain_name (@glennmatthews)
+  * interface
+  * name_server (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
+  * platform (@glennmatthews)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`

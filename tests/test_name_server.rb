@@ -20,6 +20,8 @@ require_relative '../lib/cisco_node_utils/name_server'
 
 # TestNameServer - Minitest for NameServer node utility.
 class TestNameServer < CiscoTestCase
+  @skip_unless_supported = 'dnsclient'
+
   def setup
     # setup runs at the beginning of each test
     super
@@ -34,8 +36,13 @@ class TestNameServer < CiscoTestCase
 
   def no_nameserver_google
     # Turn the feature off for a clean test.
-    config('no ip name-server 7.7.7.7',
-           'no ip name-server 2001:4860:4860::7777')
+    if platform == :ios_xr
+      config('no domain name-server 7.7.7.7',
+             'no domain name-server 2001:4860:4860::7777')
+    else
+      config('no ip name-server 7.7.7.7',
+             'no ip name-server 2001:4860:4860::7777')
+    end
   end
 
   # TESTS
