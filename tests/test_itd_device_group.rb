@@ -121,6 +121,7 @@ class TestItdDeviceGroup < CiscoTestCase
     port = 11_111
     if node.product_id =~ /N(3|5|6|9)/
       assert_nil(idg.probe_port)
+      assert_nil(idg.probe_control)
     else
       type = 'tcp'
       freq = 9
