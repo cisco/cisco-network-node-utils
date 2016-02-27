@@ -60,14 +60,14 @@ dual_active_exclude_interface_vlan_bridge_domain:
 fabricpath_emulated_switch_id: 
   _exclude: [N3k, N5k, N6k, N9k]
   kind: int
-  get_value: '/^fabricpath switch\-id\s+(\d+)/'
+  get_value: '/^fabricpath switch-id\s+(\d+)$/'
   set_value: '<state> fabricpath switch-id <swid>'
   default_value: false
 
 fabricpath_multicast_load_balance: 
   _exclude: [N3k, N5k, N6k, N9k]
   kind: boolean
-  get_value: '/^fabricpath multicast load\-balance/'
+  get_value: '/^fabricpath multicast load-balance$/'
   set_value: "<state> fabricpath multicast load-balance"
   default_value: false
 

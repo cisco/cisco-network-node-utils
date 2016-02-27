@@ -29,7 +29,6 @@ module Cisco
     # Constructor for Vpc
     def initialize(domain_id, instantiate=true)
       @domain = domain_id
-      @set_params = {}
 
       create if instantiate
     end
@@ -64,14 +63,6 @@ module Cisco
 
     def enable
       config_set('vpc', 'feature', state: '')
-    end
-
-    def fabricpath_feature
-      FabricpathGlobal.fabricpath_feature
-    end
-
-    def fabricpath_feature_set(fabricpath_set)
-      FabricpathGlobal.fabricpath_feature_set(fabricpath_set)
     end
 
     def set_args_keys_default
@@ -164,8 +155,8 @@ module Cisco
 
     def fabricpath_emulated_switch_id=(switch_id)
       # automatically enable fabricpath if it is not already enabled
-      fabricpath_feature_set(:enabled) if
-        switch_id && :enabled != fabricpath_feature
+      FabricpathGlobal.fabricpath_feature_set(:enabled) if
+        switch_id && :enabled != FabricpathGlobal.fabricpath_feature
       set_args_keys(state: switch_id ? '' : 'no',
                     swid:  switch_id ? switch_id : '')
       config_set('vpc', 'fabricpath_emulated_switch_id', @set_args)

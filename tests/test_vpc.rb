@@ -21,7 +21,7 @@ include Cisco
 # TestVpc - Minitest for Vpc node utility class
 class TestVpc < CiscoTestCase
   def setup
-    skip("Test not supported on #{node.product_id}") if platform != :nexus
+    @skip_unless_supported = 'vpc'
     super
     no_feature_vpc
   end
@@ -32,7 +32,8 @@ class TestVpc < CiscoTestCase
   end
 
   def no_feature_vpc
-    config('terminal dont-ask ; no feature vpc')
+    domains = Vpc.domains
+    domains.each { |_key, elem| elem.destroy } unless domains.empty?
   end
 
   # TESTS
