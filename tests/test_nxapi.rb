@@ -28,7 +28,7 @@ class TestNxapi < TestCase
   end
 
   def all_skipped
-    skip 'Node under test appears to be gRPC, not NXAPI'
+    skip 'Node under test does not appear to use the NXAPI client'
   end
 
   def client
