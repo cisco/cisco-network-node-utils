@@ -1,0 +1,44 @@
+# bridge_domain
+# bridge_domain feature is available only on n7k
+---
+_exclude: [N3k, N5k, N6k, N9k]
+
+all_bds:
+  multiple: true
+  get_command: "show bridge-domain"
+  get_value: '/^Bridge-domain (\d+) /'
+
+create:
+  set_value: "system bridge-domain add %s ; bridge-domain %s"
+
+destroy:
+  set_value: "no bridge-domain %s ; system bridge-domain remove %s"
+
+fabric_control:
+  get_command: "show bridge-domain summary"
+  get_value: '/^\w+ fabric-control [a-zA-Z0-9-_\/\s]+:\s+(\d+)/'
+  set_value: "bridge-domain %s ; %s fabric-control"
+  default_value: "0" 
+
+member_vni:
+  get_command: "show running-config bridge-domain | inc 'member vni'"
+  get_value: '/^  member vni (.*)/'
+  set_value: "%s vni %s ; bridge-domain %s ; %s member vni %s"
+  default_value: '' 
+
+member_vni_bd:
+  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
+  get_value: '/^bridge-domain (.*)/'
+
+name:
+  get_command: "show bridge-domain"
+  get_value: '/^Bridge-domain %s\s+\([a-zA-Z0-9\s:-]+\)\sName::\s+([A-Za-z0-9-]+)/'
+  set_context: ["bridge-domain %s"]
+  set_value: "%s name %s"
+
+shutdown:
+  get_command: "show bridge-domain"
+  get_value: '/^Bridge-domain %s\s+\([a-zA-Z0-9\s:-]+\)\sName::\s+[A-Za-z0-9-]+\s Administrative State: (\w+)/'
+  set_context: ["bridge-domain %s"]
+  set_value: "%s shutdown"
+  default_value: false
