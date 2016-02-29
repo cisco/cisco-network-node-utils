@@ -8,7 +8,6 @@ nexus:
             feature bgp
             feature pim
             feature msdp
-            feature private-vlan
             feature udld
             feature interface-vlan
             feature hsrp
@@ -23,7 +22,6 @@ nexus:
             no feature bgp
             no feature pim
             no feature msdp
-            no feature private-vlan
             no feature udld
             no feature interface-vlan
             no feature hsrp
