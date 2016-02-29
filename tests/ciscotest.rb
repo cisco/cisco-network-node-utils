@@ -156,7 +156,7 @@ class CiscoTestCase < TestCase
       # rubocop:disable Style/ClassVars
       @@interfaces_id = []
       interfaces.each do |interface|
-        id = interface.split('Ethernet')[1]
+        id = interface.split('ethernet')[1]
         @@interfaces_id << id
       end
       # rubocop:enable Style/ClassVars

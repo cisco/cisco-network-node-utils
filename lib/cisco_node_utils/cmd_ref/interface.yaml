@@ -339,7 +339,7 @@ svi_autostate:
   kind: boolean
   get_value: '/^(?:no )?autostate$/'
   set_value: "<state> autostate"
-  default_value: true
+  default_value: false
 
 svi_management:
   _exclude: [ios_xr]

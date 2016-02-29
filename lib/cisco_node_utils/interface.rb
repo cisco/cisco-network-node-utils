@@ -1026,11 +1026,12 @@ module Cisco
     end
 
     def switchport_vtp
-      return nil unless switchport_vtp_mode_capable?
+      return default_switchport_vtp unless switchport_vtp_mode_capable?
       config_get('interface', 'vtp', name: @name)
     end
 
     def switchport_vtp=(vtp_set)
+      # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', name: @name, state: no_cmd)

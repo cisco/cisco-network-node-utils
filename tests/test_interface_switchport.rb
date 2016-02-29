@@ -23,6 +23,11 @@ include Cisco
 class TestInterfaceSwitchport < CiscoTestCase
   attr_reader :interface
 
+  def platform_supports_vtp_switchport_access?
+    skip('Platform does not support VTP when switchport mode is access') if
+      node.product_id =~ /N(5|6|7)/
+  end
+
   def setup
     super
     config('no feature vtp', 'no feature interface-vlan')
@@ -48,11 +53,6 @@ class TestSwitchport < TestInterfaceSwitchport
   DEFAULT_IF_ACCESS_VLAN = 1
   DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = '1-4094'
   DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
-
-  def platform_supports_vtp_switchport_access?
-    skip('Platform does not support VTP when switchport mode is access') if
-      node.product_id =~ /N(5|6|7)/
-  end
 
   def system_default_switchport(state='')
     config("#{state} system default switchport")
@@ -427,7 +427,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set?
+    if cmd_ref.setter?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
@@ -448,7 +448,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
-    if cmd_ref.config_set?
+    if cmd_ref.setter?
       assert(interface.switchport_autostate_exclude,
              'Error: interface, access, autostate exclude not enabled')
     else
