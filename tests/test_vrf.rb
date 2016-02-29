@@ -174,7 +174,9 @@ class TestVrf < CiscoTestCase
   #-----------------------------------------
   # test_route_policy
   def test_route_policy
+    config('route-policy abc', 'end-policy') if platform == :ios_xr
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_policy(af) }
+    config('no route-policy abc') if platform == :ios_xr
   end
 
   def route_policy(af)
