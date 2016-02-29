@@ -35,6 +35,10 @@ Changelog
   * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+* Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
+  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_multicast_load_balance` (only on Nexus 7k)
+  * `port_channel_limit` (only on Nexus 7k)
 
 ### Changed
 
