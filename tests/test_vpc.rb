@@ -20,14 +20,14 @@ include Cisco
 
 # TestVpc - Minitest for Vpc node utility class
 class TestVpc < CiscoTestCase
+  @skip_unless_supported = 'vpc'
+
   def setup
-    @skip_unless_supported = 'vpc'
     super
     no_feature_vpc
   end
 
   def teardown
-    no_feature_vpc if platform == :nexus
     super
   end
 
