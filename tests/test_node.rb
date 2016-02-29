@@ -24,10 +24,19 @@ Node.lazy_connect = true # we'll specify the connection info later
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
+    # Load parameters for login
+    address
+    username
+    password
+    # Clear out the environment so we have control over which parameters
+    # we provide to Node to connect with.
+    @env_node = ENV['NODE']
+    ENV['NODE'] = nil
   end
 
   def teardown
-    GC.start
+    # Restore the environment
+    ENV['NODE'] = @env_node
   end
 
   # As Node is now a singleton, we cannot instantiate it.

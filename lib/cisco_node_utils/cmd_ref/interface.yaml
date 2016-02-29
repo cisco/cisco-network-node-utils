@@ -16,6 +16,8 @@ access_vlan:
 
 all_interfaces:
   multiple:
+  ios_xr:
+    get_command: 'show running all-interfaces'
   get_context: ~
   get_value: '/^interface (.*)/'
 

@@ -1,5 +1,7 @@
 # tacacs_server_host
 ---
+_exclude: [ios_xr]
+
 encryption:
   set_value: "%s tacacs-server host %s key %s %s"
 

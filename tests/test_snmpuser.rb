@@ -21,6 +21,8 @@ DEFAULT_SNMP_USER_GROUP_NAME = 'network-operator'
 
 # TestSnmpUser - Minitest for SnmpUser node utility class
 class TestSnmpUser < CiscoTestCase
+  @skip_unless_supported = 'snmp_user'
+
   @@existing_users = nil # rubocop:disable Style/ClassVars
 
   def setup

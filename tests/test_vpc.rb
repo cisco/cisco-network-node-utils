@@ -20,6 +20,8 @@ include Cisco
 
 # TestVpc - Minitest for Vpc node utility class
 class TestVpc < CiscoTestCase
+  @skip_unless_supported = 'vpc'
+
   def setup
     super
     no_feature_vpc

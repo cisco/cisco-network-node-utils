@@ -20,6 +20,8 @@ require_relative '../lib/cisco_node_utils/radius_server'
 
 # TestRadiusServer - Minitest for RadiusServer node utility.
 class TestRadiusServer < CiscoTestCase
+  @skip_unless_supported = 'radius_server'
+
   def setup
     # setup runs at the beginning of each test
     super

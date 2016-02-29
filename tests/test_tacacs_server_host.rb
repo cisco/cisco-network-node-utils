@@ -23,6 +23,8 @@ DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD = ''
 
 # TestTacacsServerHost - Minitest for TacacsServerHost node utility
 class TestTacacsServerHost < CiscoTestCase
+  @skip_unless_supported = 'tacacs_server_host'
+
   def setup
     super
     @host_name = 'testhost'

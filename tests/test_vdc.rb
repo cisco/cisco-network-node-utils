@@ -23,6 +23,7 @@ class TestVdc < CiscoTestCase
   #  a) VDC support is limited to a narrow list of platforms.
   #  b) License restrictions may limit platforms to a single vdc
   #  c) Linecard restrictions may limit some tests to specific linecards
+  @skip_unless_supported = 'vdc'
 
   def setup
     super

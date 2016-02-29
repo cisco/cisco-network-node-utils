@@ -20,6 +20,8 @@ include Cisco
 
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
+  @skip_unless_supported = 'vlan'
+
   @@cleaned = false # rubocop:disable Style/ClassVars
   def cleanup
     Vlan.vlans.each do |vlan, obj|

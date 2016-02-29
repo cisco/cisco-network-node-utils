@@ -18,6 +18,7 @@ require_relative '../lib/cisco_node_utils/interface_portchannel'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestInterfacePortChannel < CiscoTestCase
+  @skip_unless_supported = 'interface_portchannel'
   # TESTS
 
   DEFAULT_NAME = 'port-channel134'

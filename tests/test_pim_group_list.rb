@@ -32,6 +32,8 @@ include Cisco
 
 # TestPim - Minitest for PimGrouplist
 class TestPimGroupList < CiscoTestCase
+  @skip_unless_supported = 'pim'
+
   # Enables feature pim
   #--------------------
   def setup

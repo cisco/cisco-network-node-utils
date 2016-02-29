@@ -1,5 +1,7 @@
 # snmp_community
 ---
+_exclude: [ios_xr]
+
 acl:
   get_command: "show running snmp all"
   get_value: '/^snmp-server community %s use-acl (.*)$/'

@@ -716,6 +716,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     # Create interface member of this group (required for XR)
+    interface_ethernet_default(interfaces_id[0])
     member = InterfaceChannelGroup.new(interfaces[0])
     begin
       member.channel_group = 10

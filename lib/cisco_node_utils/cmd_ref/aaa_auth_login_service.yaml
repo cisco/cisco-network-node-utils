@@ -1,5 +1,7 @@
 # aaa_auth_login_service
 ---
+_exclude: [ios_xr]
+
 groups:
   get_data_format: nxapi_structured
   get_command: "show aaa authentication"

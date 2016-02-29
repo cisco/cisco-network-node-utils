@@ -1,5 +1,7 @@
 # vpc
 ---
+_exclude: [ios_xr]
+
 _template: 
   get_command:  'show running-config vpc all'
   get_context:  ['/^vpc domain\s*(\d+)$/']

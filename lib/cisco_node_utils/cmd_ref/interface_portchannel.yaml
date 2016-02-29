@@ -1,5 +1,7 @@
 # interface_portchannel
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show running interface all"
   get_context: ['/^interface %s$/i']

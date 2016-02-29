@@ -1,5 +1,7 @@
 # feature
 ---
+_exclude: [ios_xr]
+
 bgp:
   kind: boolean
   get_command: "show running | i ^feature"
