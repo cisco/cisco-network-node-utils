@@ -5,9 +5,9 @@ _exclude: [ios_xr]
 _template:
   get_command: "show run pim all"
   get_context:
-    - '/^vrf context <vrf>$/'
+    - '(?)/^vrf context <vrf>$/'
   set_context:
-    - "vrf context <vrf>"
+    - '(?)vrf context <vrf>'
 
 all_group_lists:
   multiple:
