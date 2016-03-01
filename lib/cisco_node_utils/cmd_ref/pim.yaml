@@ -21,13 +21,6 @@ all_ssm_ranges:
   multiple:
   get_value : '/^<afi> pim ssm range (.*)$/'
 
-feature:
-  get_command: 'show running | section feature'
-  get_context: ~
-  get_value: '/^feature pim$/' # TBD pim6
-  set_context: ~
-  set_value: 'feature pim'
-
 group_list:
   default_value: ~
   get_value: '/^<afi> pim rp-address (\S+) group-list (\S+)/'
