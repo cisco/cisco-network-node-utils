@@ -44,17 +44,21 @@ name:
 
 private_vlan_association:
   kind: string
-  get_command: "show running vlan"
-  get_context: ['/^vlan <vlan>$/']
-  get_value: '/^private-vlan association\s+(\d+\D*\d+\D*\d+)$/'
+  get_command: "show vlan private-vlan"
+  get_value: '/^([\s0-9][^\n]*\w)/'
   set_context: ['vlan <vlan>']
-  set_value: "<state> private-vlan association <vlans>"
-  default_value: ""
+  set_value: "<state> private-vlan association <operation> <vlans> ; end"
+  default_value: "default"
+
+private_vlan_association_all:
+  multiple: true
+  context: ~
+  get_command: 'show vlan private-vlan'
+  get_value: '/^([\s0-9][^\n]*\w)/'
 
 private_vlan_type:
   kind: string
   get_command: 'show vlan private-vlan type'
-  #get_context: ['/^<vlan>/']
   get_value: '/^\d+\s+([a-z]+)$/'
   set_context: ['vlan <vlan>']
   set_value: "<state> private-vlan <type> ; end"

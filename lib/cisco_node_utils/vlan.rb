@@ -22,6 +22,13 @@ require_relative 'feature'
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
   VLAN_NAME_SIZE = 33
+  # rubocop:disable LineLength
+  SAFE_WARNING_MESSAGE = ['Warning: Private-VLAN CLI entered...
+Please disable multicast on this Private-VLAN by removing Multicast related config(IGMP, PIM, etc.)
+Please remove any VACL related config on Private-VLANs. VLAN QOS needs to have atleast one port per ASIC instance.
+', 'Warning: Private-VLAN CLI removed. Multicast related config (IGMP, PIM, etc.) can now be entered
+']
+  # rubocop:enable LineLength
 
   # Vlan - node utility class for VLAN configuration management
   class Vlan < NodeUtil
@@ -54,19 +61,33 @@ module Cisco
       config_set('vlan', 'destroy', @vlan_id)
     end
 
-    def cli_error_check(result)
+    def cli_error_check(result, ignore_message=nil)
       # The NXOS vlan cli does not raise an exception in some conditions and
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
+      # Check for messages that can be safely ignored.
+      unless ignore_message.nil?
+        # Add logic to check results against ignore_message here
+        # Return if results == ignore_message
+        return if
+             result[2].is_a?(Hash) &&
+             ignore_message[0] == result[2]['body'].to_s ||
+             ignore_message[1] == result[2]['body'].to_s
+        return if
+             result[2].is_a?(String) &&
+             ignore_message[0] == result[2]['body'].to_s ||
+             ignore_message[1] == result[2]['body'].to_s
+      end
+
       fail result[2]['body'] if
         result[2].is_a?(Hash) &&
-        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
+        /(ERROR:|Warning:|VLAN:)/.match(result[2]['body'].to_s)
 
       # Some test environments get result[2] as a string instead of a hash
       fail result[2] if
         result[2].is_a?(String) &&
-        /(ERROR:|Warning:)/.match(result[2])
+        /(ERROR:|Warning:|VLAN:)/.match(result[2])
     end
 
     def fabricpath_feature
@@ -239,13 +260,52 @@ module Cisco
         @set_args[:type] = pv_type
       end
       result = config_set('vlan', 'private_vlan_type', @set_args)
-      cli_error_check(result)
+      cli_error_check(result, SAFE_WARNING_MESSAGE)
     rescue Cisco::CliError => e
       raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_private_vlan_type
       config_get_default('vlan', 'private_vlan_type')
+    end
+
+    def private_vlan_association
+      match_entries = {}
+      result = config_get('vlan', 'private_vlan_association_all')
+      return match_entries if result.nil?
+      result.each do |elem|
+        vlan = elem.match(@vlan_id)
+        next if vlan.nil?
+        assoc_operational = elem.match(/\d+\s+(\d+)\s+(\S+)/)
+        match_entries.store(assoc_operational[1], assoc_operational[2])
+      end
+      match_entries
+    end
+
+    def private_vlan_association=(config)
+      fail TypeError unless config[:vlan_list] &&
+                            config[:vlan_list].is_a?(String)
+      Feature.private_vlan_enable
+      set_args_keys_default
+      if config[:oper] == default_private_vlan_association
+        @set_args[:vlan] = @vlan_id
+        @set_args[:state] = 'no'
+        @set_args[:operation] = ''
+        @set_args[:vlans] = config[:vlan_list]
+      else
+        @set_args[:vlan] = @vlan_id
+        @set_args[:state] = ''
+        @set_args[:operation] = config[:oper]
+        @set_args[:vlans] = config[:vlan_list]
+      end
+      result = config_set('vlan', 'private_vlan_association', @set_args)
+      cli_error_check(result)
+    rescue Cisco::CliError => e
+      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
+    end
+
+    def default_private_vlan_association
+      config_get_default('vlan', 'private_vlan_association')
     end
   end # class
 end # module

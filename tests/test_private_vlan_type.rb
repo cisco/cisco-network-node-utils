@@ -40,6 +40,7 @@ class TestVlan < CiscoTestCase
   def teardown
     cleanup
     config('no feature private-vlan')
+    config('no feature vtp')
   end
 
   def test_private_vlan_type_primary
@@ -84,24 +85,6 @@ class TestVlan < CiscoTestCase
     v3.destroy
     v4.destroy
     v5.destroy
-  end
-
-  def test_private_vlan_type_unknown
-    v1 = Vlan.new(400)
-    pv_type = 'unknown'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
-  end
-
-  def test_private_vlan_vtp
-    v1 = Vlan.new(400)
-    config('feature vtp')
-    pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal('', v1.private_vlan_type)
-    v1.destroy
-    config('no feature vtp')
   end
 
   def test_private_vlan_type_isolated
