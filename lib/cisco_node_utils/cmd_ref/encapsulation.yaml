@@ -1,0 +1,22 @@
+# encapsulation profile
+# encapsulation profile feature is available only on n7k
+---
+_exclude: [N3k, N5k, N6k, N9k]
+
+all_encaps:
+  multiple: true
+  get_command: "show encapsulation profile"
+  get_value: '/^encapsulation profile vni (\S+)/'
+
+create:
+  set_value: "encapsulation profile vni %s"
+
+destroy:
+  set_value: "no encapsulation profile vni %s"
+
+dot1q_map:
+  get_command: "show encapsulation profile"
+  get_value: '/^[a-zA-Z\s]+ vni %s\s+dot1q ([0-9,-]+) vni ([0-9,-]+)/'
+  set_context: ['encapsulation profile vni %s']
+  set_value: '%s dot1q %s vni %s'
+  default_value: ~ 

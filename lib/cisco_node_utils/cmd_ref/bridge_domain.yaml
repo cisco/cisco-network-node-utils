@@ -32,7 +32,7 @@ member_vni_bd:
 
 name:
   get_command: "show bridge-domain"
-  get_value: '/^Bridge-domain %s\s+\([a-zA-Z0-9\s:-]+\)\sName::\s+([A-Za-z0-9-]+)/'
+  get_value: '/^Bridge-domain %s\s+\([a-zA-Z0-9\s:-]+\)\sName::\s+(\S+)/'
   set_context: ["bridge-domain %s"]
   set_value: "%s name %s"
 

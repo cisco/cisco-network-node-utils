@@ -83,10 +83,10 @@ module Cisco
       farray = bd_list.compact
       lranges = []
       unless farray.empty?
-        left = array.first
+        left = bd_list.first
         right = nil
         farray.each do |aelem|
-          if right && aelem != r.succ
+          if right && aelem != right.succ
             if left == right
               lranges << left
             else
@@ -96,7 +96,11 @@ module Cisco
           end
           right = aelem
         end
-        lranges << Range.new(left, right)
+        if left == right
+          lranges << left
+        else
+          lranges << Range.new(left, right)
+        end
       end
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
@@ -210,9 +214,9 @@ module Cisco
       curr_bd_vni = config_get('bridge_domain', 'member_vni_bd')
       return '' if curr_vni.empty? || curr_bd_vni.empty?
 
-      curr_vni_list = Bridge_Domain.bd_ids_to_array(curr_vni)
-      curr_bd_vni_list = Bridge_Domain.bd_ids_to_array(curr_bd_vni)
-      input_bds = Bridge_Domain.bd_ids_to_array(@bd_ids)
+      curr_vni_list = BridgeDomain.bd_ids_to_array(curr_vni)
+      curr_bd_vni_list = BridgeDomain.bd_ids_to_array(curr_bd_vni)
+      input_bds = BridgeDomain.bd_ids_to_array(@bd_ids)
 
       hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
       input_bds.each do |bd|
@@ -220,7 +224,7 @@ module Cisco
       end
       return '' unless vni_list.any?
 
-      Bridge_domain.bd_list_to_string(vni_list)
+      BridgeDomain.bd_list_to_string(vni_list)
     end
 
     def set_member_vni=(cmd, val)

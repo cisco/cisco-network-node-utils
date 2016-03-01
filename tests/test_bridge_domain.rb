@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bridge_domain'
+require_relative '../lib/cisco_node_utils/vlan'
 
 include Cisco
 
@@ -45,6 +46,15 @@ class TestBridgeDomain < CiscoTestCase
     bd.destroy
     bds = BridgeDomain.allbds
     refute(bds.key?('100'), 'Error: failed to destroy bridge-domain 100')
+  end
+
+  def test_bd_create_if_vlan_exists
+    vlan = Vlan.new(100)
+    assert_raises(RuntimeError,
+                  'Vlan already exist did not raise RuntimeError') do
+      BridgeDomain.new(100)
+    end
+    vlan.destroy
   end
 
   def test_multiple_bd_create_destroy
@@ -112,5 +122,38 @@ class TestBridgeDomain < CiscoTestCase
                  'Error: Bridge-Domain is mapped to different vnis')
 
     bd.destroy
+  end
+
+  def test_mapped_bd_member_vni
+    bd = BridgeDomain.new(100)
+    assert_equal(bd.default_member_vni, bd.member_vni,
+                 'Error: Bridge-Domain is mapped to different vnis')
+
+    vni = '5000'
+    bd.send(:set_member_vni=, true, vni)
+    assert_equal(vni, bd.member_vni,
+                 'Error: Bridge-Domain is mapped to different vnis')
+    vni = '6000'
+    assert_raises(RuntimeError,
+                  'Should raise RuntimeError as BD already mapped to vni ') do
+      bd.send(:set_member_vni=, true, vni)
+    end
+    bd.destroy
+  end
+
+  def test_another_bd_as_fabric_control
+    bd = BridgeDomain.new(100)
+    assert_equal(bd.default_fabric_control, bd.fabric_control,
+                 'Error: Bridge-Domain fabric-control is not matching')
+    bd.fabric_control = true
+    assert(bd.fabric_control)
+    another_bd = BridgeDomain.new(101)
+
+    assert_raises(RuntimeError,
+                  'BD misconfig did not raise RuntimeError') do
+      another_bd.fabric_control = true
+    end
+    bd.destroy
+    another_bd.destroy
   end
 end
