@@ -43,6 +43,7 @@ vn_segment_vlan_based:
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
+  N8k: *vn_segment_vlan_based_mt_lite
   N9k: *vn_segment_vlan_based_mt_lite
 
 vni:
@@ -58,4 +59,5 @@ vni:
     get_command: "show running | i ^feature"
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
+  N8k: *feature_mt_lite
   N9k: *feature_mt_lite

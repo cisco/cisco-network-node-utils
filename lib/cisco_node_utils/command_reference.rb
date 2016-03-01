@@ -448,7 +448,7 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N9k XRv9k)
+    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N8k N9k XRv9k)
 
     def self.platform_to_filter(platform)
       case platform
@@ -462,6 +462,9 @@ module Cisco
         /N6/
       when 'N7k'
         /N7/
+      when 'N8k'
+        # TBD: This platform currently reports the chassis as N9K
+        /N8/
       when 'N9k'
         /N9/
       when 'XRv9k'
