@@ -57,7 +57,7 @@ Changelog
   - MTU is not supported on loopback interfaces
 
 ### Removed
-*
+* Removed `Node.lazy_connect` internal API.
 
 ## [v1.2.0]
 

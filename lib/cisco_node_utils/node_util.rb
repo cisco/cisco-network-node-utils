@@ -19,15 +19,8 @@ require_relative 'node'
 module Cisco
   # NodeUtil - generic functionality for node utility subclasses to use
   class NodeUtil
-    # rubocop:disable Style/ClassVars
-    # We want this to be inherited to all child classes, it's a singleton.
-    @@node = nil
-    # rubocop:enable Style/ClassVars
-
     def self.node
-      # rubocop:disable Style/ClassVars
-      @@node ||= Cisco::Node.instance
-      # rubocop:enable Style/ClassVars
+      @node ||= Cisco::Node.instance
     end
 
     def node

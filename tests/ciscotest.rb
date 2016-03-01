@@ -21,8 +21,6 @@ require_relative '../lib/cisco_node_utils/node'
 
 include Cisco
 
-Node.lazy_connect = true # we'll specify the connection info later
-
 # CiscoTestCase - base class for all node utility minitests
 class CiscoTestCase < TestCase
   # rubocop:disable Style/ClassVars
@@ -59,8 +57,9 @@ class CiscoTestCase < TestCase
 
   def self.node
     unless @@node
-      @@node = Node.instance # rubocop:disable Style/ClassVars
-      @@node.connect(address, username, password)
+      # rubocop:disable Style/ClassVars
+      @@node = Node.instance(address, username, password)
+      # rubocop:enable Style/ClassVars
       @@node.cache_enable = true
       @@node.cache_auto = true
       # Record the platform we're running on

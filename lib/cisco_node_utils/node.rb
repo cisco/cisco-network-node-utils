@@ -49,8 +49,6 @@ module Cisco
   # running this code. The singleton is lazily instantiated, meaning that
   # it doesn't exist until some client requests it (with Node.instance())
   class Node
-    include Singleton
-
     # Convenience wrapper for get()
     # Uses CommandReference to look up the given show command and key
     # of interest, executes that command, and returns the value corresponding
@@ -70,7 +68,6 @@ module Cisco
     # @example config_get("ospf", "router_id",
     #                     {name: "green", vrf: "one"})
     def config_get(feature, property, *args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
 
       # If we have a default value but no getter, just return the default
@@ -132,7 +129,6 @@ module Cisco
     # @return [nil] if this feature/name pair is marked as unsupported
     # @example config_get_default("vtp", "file")
     def config_get_default(feature, property)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
       ref.default_value
     end
@@ -153,7 +149,6 @@ module Cisco
     #  {:name => "green", :vrf => "one", :state => "",
     #   :router_id => "192.0.0.1"})
     def config_set(feature, property, *args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
       set_args = ref.setter(*args)
       set(**set_args)
@@ -173,21 +168,21 @@ module Cisco
 
     attr_reader :cmd_ref, :client
 
-    # For unit testing - we won't know the node connection info at load time.
-    @lazy_connect = false
-
-    class << self
-      attr_reader :lazy_connect
+    def self.instance(*args)
+      if @instance && !args.empty? && args != @args
+        fail "Can't change existing instance (#{@args} -> #{args})"
+      end
+      @args ||= args
+      @instance ||= new(*args)
     end
 
-    class << self
-      attr_writer :lazy_connect
-    end
-
-    def initialize
-      @client = nil
+    def initialize(*args)
+      @client = Cisco::Client.create(*args)
       @cmd_ref = nil
-      connect unless self.class.lazy_connect
+      @cmd_ref = CommandReference.new(product:      product_id,
+                                      platform:     @client.platform,
+                                      data_formats: @client.data_formats)
+      cache_flush
     end
 
     def to_s
@@ -196,20 +191,6 @@ module Cisco
 
     def inspect
       "Node: client:'#{client.inspect}' cmd_ref:'#{cmd_ref.inspect}'"
-    end
-
-    # "hidden" API - used for UT but shouldn't be used elsewhere
-    def connect(*args)
-      @client = Cisco::Client.create(*args)
-      @cmd_ref = CommandReference.new(product:      product_id,
-                                      platform:     @client.platform,
-                                      data_formats: @client.data_formats)
-      cache_flush
-    end
-
-    # TODO: remove me
-    def reload
-      @client.reload
     end
 
     def cache_enable?
