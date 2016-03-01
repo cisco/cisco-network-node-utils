@@ -36,7 +36,7 @@ nv_overlay_evpn:
 
 pim:
   kind: boolean
-  get_command: 'show running | section feature'
+  get_command: "show running | i ^feature"
   get_value: '/^feature pim$/' # TBD pim6
   set_value: 'feature pim'
 
