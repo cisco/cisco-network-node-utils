@@ -166,13 +166,17 @@ class TestAcl < CiscoTestCase
     rtr.destroy
     refute_show_match(pattern: /^#{afi_cli} access-list #{acl_name}$/,
                       msg:     "failed to destroy acl #{acl_name}")
-  rescue UnsupportedError
-    assert_nil(rtr.fragments)
-    assert_nil(rtr.default_fragments)
-    skip('Platform does not support this property')
   end
 
   def test_fragments
+    if node.product_id[/N(5|6)/]
+      a = Acl.new('ipv4', 'acl_fragments')
+      assert_nil(a.fragments)
+      assert_nil(a.default_fragments)
+      assert_raises(Cisco::UnsupportedError) { a.fragments = 'permit-all' }
+      return
+    end
+
     %w(ipv4 ipv6).each do |afi|
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       fragments(afi, acl_name)
