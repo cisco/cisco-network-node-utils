@@ -129,6 +129,10 @@ class TestFeature < CiscoTestCase
     vdc_lc_state(vdc_current) if vdc_current
   end
 
+  def test_pim
+    feature('pim')
+  end
+
   def test_vn_segment_vlan_based
     if node.product_id[/N(5|6|7)/]
       assert_nil(Feature.vn_segment_vlan_based_enabled?)

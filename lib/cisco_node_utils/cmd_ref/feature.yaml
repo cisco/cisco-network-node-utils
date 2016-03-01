@@ -34,6 +34,12 @@ nv_overlay_evpn:
   get_value: '/^nv overlay evpn$/'
   set_value: "nv overlay evpn"
 
+pim:
+  kind: boolean
+  get_command: 'show running | section feature'
+  get_value: '/^feature pim$/' # TBD pim6
+  set_value: 'feature pim'
+
 vn_segment_vlan_based:
   # MT-lite only
   N3k: &vn_segment_vlan_based_mt_lite
