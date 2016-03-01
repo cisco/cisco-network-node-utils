@@ -79,16 +79,33 @@ class TestFeature < CiscoTestCase
   end
 
   def test_fabric_forwarding
+    if node.product_id[/N(3)/]
+      assert_nil(Feature.fabric_forwarding_enabled?)
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.fabric_forwarding_enable
+      end
+      return
+    end
     skip('This feature is only supported on 7.0(3)I2 images') unless
       node.os_version[/7.0\(3\)I2\(/]
     feature('fabric_forwarding')
   end
 
   def test_nv_overlay
+    if node.product_id[/N(3|5|6)/]
+      assert_nil(Feature.nv_overlay_enabled?)
+      assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
+      return
+    end
     feature('nv_overlay')
   end
 
   def test_nv_overlay_evpn
+    if node.product_id[/N(3)/]
+      assert_nil(Feature.nv_overlay_evpn_enabled?)
+      assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_evpn_enable }
+      return
+    end
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
 
@@ -97,12 +114,26 @@ class TestFeature < CiscoTestCase
   end
 
   def test_vn_segment_vlan_based
+    if node.product_id[/N(5|6|7)/]
+      assert_nil(Feature.vn_segment_vlan_based_enabled?)
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.vn_segment_vlan_based_enable
+      end
+      return
+    end
     feature('vn_segment_vlan_based')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
 
   def test_vni
+    if node.product_id[/N(5|6)/]
+      assert_nil(Feature.vn_segment_vlan_based_enabled?)
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.vn_segment_vlan_based_enable
+      end
+      return
+    end
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
 
@@ -119,6 +150,11 @@ class TestFeature < CiscoTestCase
   #####################
 
   def test_feature_set_fabric
+    if node.product_id[/N(3|9)/]
+      assert_nil(Feature.fabric_enabled?)
+      assert_raises(Cisco::UnsupportedError) { Feature.fabric_enable }
+      return
+    end
     fs = 'feature-set fabric'
     # Get current state of the feature-set
     feature_set_installed = Feature.fabric_installed?
