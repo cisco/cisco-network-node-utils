@@ -127,8 +127,7 @@ module Cisco
     def anycast_gateway_mac
       return nil unless Feature.nv_overlay_evpn_enabled?
       mac = config_get('overlay_global', 'anycast_gateway_mac')
-      # This value gets 0-padded when nvgened, so we need to convert it.
-      Utils.zero_pad_macaddr(mac).nil? ? default_anycast_gateway_mac : mac
+      mac.nil? || mac.empty? ? default_anycast_gateway_mac : mac.downcase
     end
 
     def anycast_gateway_mac=(mac_addr)
