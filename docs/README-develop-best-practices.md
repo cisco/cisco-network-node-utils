@@ -411,7 +411,20 @@ Cisco::CliError: [#<Cisco::Bgp:0x007f1b3b7af5a0>] The command 'foobar shutdown' 
 ...
 ```
 
-But by implementing the `to_s` method, the error output can clearly identify the instance that failed:
+But by implementing the `to_s` method:
+
+```ruby
+module Cisco
+  # RouterBgp - node utility class for BGP general config management
+  class RouterBgp < NodeUtil
+    attr_reader :asnum, :vrf
+...
+    def to_s
+      "BGP #{asnum} VRF '#{vrf}'"
+    end
+```
+
+The error output can now clearly identify the instance that failed:
 
 ```
 Cisco::CliError: [BGP 100 VRF 'red'] The command 'foobar shutdown' was rejected with error:
