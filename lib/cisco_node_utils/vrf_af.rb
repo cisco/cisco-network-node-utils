@@ -23,7 +23,6 @@ require_relative 'feature'
 module Cisco
   # VrfAF - node utility class for VRF Address-Family configuration
   class VrfAF < NodeUtil
-
     def initialize(vrf, af, instantiate=true)
       validate_args(vrf, af)
       create if instantiate
