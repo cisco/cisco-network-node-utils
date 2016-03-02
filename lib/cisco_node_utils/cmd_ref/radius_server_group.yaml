@@ -1,5 +1,7 @@
 # radius_server_group
 ---
+_exclude: [ios_xr]
+
 _template:
   multiple: true
   default_value: []

@@ -1,5 +1,7 @@
 # snmp_user
 ---
+_exclude: [ios_xr]
+
 _template:
   multiple: true
 

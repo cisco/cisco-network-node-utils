@@ -39,7 +39,7 @@ class CiscoTestCase < TestCase
   @skip_unless_supported = nil
 
   class << self
-    attr_reader :skip_unless_supported
+    attr_accessor :skip_unless_supported
   end
 
   def self.runnable_methods
@@ -67,7 +67,7 @@ class CiscoTestCase < TestCase
       puts "\nNode under test:"
       puts "  - name  - #{@@node.host_name}"
       puts "  - type  - #{@@node.product_id}"
-      # puts "  - image - #{@@node.system}\n\n"
+      puts "  - image - #{@@node.system}\n\n"
     end
     @@node
   rescue Cisco::Client::AuthenticationFailed
@@ -89,8 +89,12 @@ class CiscoTestCase < TestCase
     node.cmd_ref
   end
 
-  def platform
+  def self.platform
     node.client.platform
+  end
+
+  def platform
+    self.class.platform
   end
 
   def config(*args)

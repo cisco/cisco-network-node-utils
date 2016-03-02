@@ -21,6 +21,8 @@ require_relative '../lib/cisco_node_utils/snmp_notification_receiver'
 # TestSnmpNotificationReceiver - Minitest for SnmpNotificationReceiver
 # node utility.
 class TestSnmpNotificationReceiver < CiscoTestCase
+  @skip_unless_supported = 'snmp_notification_receiver'
+
   def setup
     # setup runs at the beginning of each test
     super

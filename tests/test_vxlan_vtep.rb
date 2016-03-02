@@ -19,8 +19,10 @@ require_relative '../lib/cisco_node_utils/vdc'
 
 include Cisco
 
-# TestVxlanGlobal - Minitest for VxlanGlobal node utility
+# TestVxlanVtep - Minitest for VxlanVtep node utility
 class TestVxlanVtep < CiscoTestCase
+  @skip_unless_supported = 'vxlan_vtep'
+
   def setup
     super
     skip('Platform does not support MT-full or MT-lite') unless

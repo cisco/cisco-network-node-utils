@@ -1,5 +1,7 @@
 # vpc
 ---
+_exclude: [ios_xr]
+
 _template: 
   get_command:  'show running-config vpc all'
   get_context:  ['/^vpc domain\s*(\d+)$/']
@@ -55,20 +57,19 @@ dual_active_exclude_interface_vlan_bridge_domain:
     set_value: "<state> dual-active exclude interface-vlan <range>"
   default_value: 'none'
 
-#vPC+ CLIs
+fabricpath_emulated_switch_id: 
+  _exclude: [N3k, N5k, N6k, N9k]
+  kind: int
+  get_value: '/^fabricpath switch-id\s+(\d+)$/'
+  set_value: '<state> fabricpath switch-id <swid>'
+  default_value: false
+
 fabricpath_multicast_load_balance: 
+  _exclude: [N3k, N5k, N6k, N9k]
   kind: boolean
-  get_value: '/^fabricpath multicast load-balance'
+  get_value: '/^fabricpath multicast load-balance$/'
   set_value: "<state> fabricpath multicast load-balance"
   default_value: false
-
-fabricpath_switch_id: 
-  kind: int
-  get_value: '/^fabricpath switch\-id\s+(\d+)/'
-  set_value: "<state> fabricpath switch-id <swid>"
-  default_value: false
-
-#END vPC+ CLIs
 
 feature: 
   kind: boolean
@@ -156,10 +157,12 @@ peer_keepalive_vrf:
   default_value: 'management'
 
 port_channel_limit: 
-  _exclude: [N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k]
+  auto_default: false
   kind: boolean    
   get_value: '/^port\-channel limit/'
   set_value: "<state> port-channel limit"
+  default_value: true
 
 role_priority: 
   kind: int

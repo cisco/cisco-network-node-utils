@@ -1,6 +1,7 @@
 # vni
 ---
-_exclude: [N5k, N6k]
+_exclude: [N5k, N6k, ios_xr]
+
 all_vnis:
   multiple:
   N7k:

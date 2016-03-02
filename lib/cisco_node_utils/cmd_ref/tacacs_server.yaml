@@ -1,5 +1,7 @@
 # tacacs_server
 ---
+_exclude: [ios_xr]
+
 deadtime:
   kind: int
   get_command: "show run tacacs all"

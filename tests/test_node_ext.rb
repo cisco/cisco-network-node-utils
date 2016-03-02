@@ -43,7 +43,7 @@ class TestNodeExt < CiscoTestCase
 
   def test_config_get_invalid
     assert_raises IndexError do # no entry
-      node.config_get('feature', 'name')
+      node.config_get('foobar', 'name')
     end
     assert_raises IndexError do # entry but no config_get
       node.config_get('show_system', 'resources')
@@ -60,7 +60,7 @@ class TestNodeExt < CiscoTestCase
       node.config_get_default('show_version', 'foobar')
     end
     assert_raises IndexError do # no feature entry
-      node.config_get_default('feature', 'name')
+      node.config_get_default('foobar', 'name')
     end
     assert_raises IndexError do # no default_value defined
       node.config_get_default('show_version', 'version')
@@ -81,7 +81,7 @@ class TestNodeExt < CiscoTestCase
 
   def test_config_set_invalid
     assert_raises IndexError do
-      node.config_set('feature', 'name')
+      node.config_set('foobar', 'name')
     end
     assert_raises(IndexError, Cisco::UnsupportedError) do
       # feature exists but no config_set

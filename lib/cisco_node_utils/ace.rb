@@ -206,8 +206,11 @@ module Cisco
 
     def src_addr
       match = ace_get
-      return nil if match.nil?
-      match.names.include?('src_addr') ? match[:src_addr] : nil
+      return nil if match.nil? || !match.names.include?('src_addr')
+      addr = match[:src_addr]
+      # Normalize addr. Some platforms zero_pad ipv6 addrs.
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr
     end
 
     def src_addr=(src_addr)
@@ -226,8 +229,11 @@ module Cisco
 
     def dst_addr
       match = ace_get
-      return nil if match.nil?
-      match.names.include?('dst_addr') ? match[:dst_addr] : nil
+      return nil if match.nil? || !match.names.include?('dst_addr')
+      addr = match[:dst_addr]
+      # Normalize addr. Some platforms zero_pad ipv6 addrs.
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr
     end
 
     def dst_addr=(dst_addr)

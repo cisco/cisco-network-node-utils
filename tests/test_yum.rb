@@ -28,6 +28,8 @@ class TestYum < CiscoTestCase
     'This test may fail with other versions.'
   # rubocop:enable Style/ClassVars
 
+  @skip_unless_supported = 'yum'
+
   def setup
     super
     # only run check once (can't use initialize because @device isn't ready)

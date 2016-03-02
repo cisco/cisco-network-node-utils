@@ -1,5 +1,7 @@
 # feature
 ---
+_exclude: [ios_xr]
+
 bgp:
   kind: boolean
   get_command: "show running | i ^feature"
@@ -32,6 +34,12 @@ nv_overlay_evpn:
   get_value: '/^nv overlay evpn$/'
   set_value: "nv overlay evpn"
 
+pim:
+  kind: boolean
+  get_command: "show running | i ^feature"
+  get_value: '/^feature pim$/' # TBD pim6
+  set_value: 'feature pim'
+
 private_vlan:
   kind: boolean
   get_command: "show running | i ^feature"
@@ -47,6 +55,7 @@ vn_segment_vlan_based:
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
+  N8k: *vn_segment_vlan_based_mt_lite
   N9k: *vn_segment_vlan_based_mt_lite
 
 vni:
@@ -62,4 +71,5 @@ vni:
     get_command: "show running | i ^feature"
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
+  N8k: *feature_mt_lite
   N9k: *feature_mt_lite

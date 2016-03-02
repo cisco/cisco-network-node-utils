@@ -18,6 +18,8 @@ require_relative '../lib/cisco_node_utils/tacacs_server_host'
 
 # Test class for Tacacs Server Group
 class TestTacacsServerGroup < CiscoTestCase
+  @skip_unless_supported = 'tacacs_server_group'
+
   def clean_tacacs_config
     config('no feature tacacs',
            'feature tacacs')

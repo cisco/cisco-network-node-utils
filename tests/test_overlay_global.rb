@@ -21,6 +21,8 @@ include Cisco
 
 # TestOverlayGlobal - Minitest for OverlayGlobal node utility
 class TestOverlayGlobal < CiscoTestCase
+  @skip_unless_supported = 'overlay_global'
+
   def setup
     super
     config('no feature fabric forwarding')

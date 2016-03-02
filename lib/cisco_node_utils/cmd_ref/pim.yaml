@@ -1,11 +1,13 @@
 # pim
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show run pim all"
   get_context:
-    - '/^vrf context <vrf>$/'
+    - '(?)/^vrf context <vrf>$/'
   set_context:
-    - "vrf context <vrf>"
+    - '(?)vrf context <vrf>'
 
 all_group_lists:
   multiple:
@@ -18,13 +20,6 @@ all_rp_addresses:
 all_ssm_ranges:
   multiple:
   get_value : '/^<afi> pim ssm range (.*)$/'
-
-feature:
-  get_command: 'show running | section feature'
-  get_context: ~
-  get_value: '/^feature pim$/' # TBD pim6
-  set_context: ~
-  set_value: 'feature pim'
 
 group_list:
   default_value: ~

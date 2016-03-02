@@ -358,6 +358,19 @@ module Cisco
       config_get_default('interface', ipv4_arp_timeout_lookup_string)
     end
 
+    def ipv4_forwarding
+      config_get('interface', 'ipv4_forwarding', name: @name)
+    end
+
+    def ipv4_forwarding=(state)
+      config_set('interface', 'ipv4_forwarding',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_forwarding
+      config_get_default('interface', 'ipv4_forwarding')
+    end
+
     def ipv4_pim_sparse_mode
       config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
     end
