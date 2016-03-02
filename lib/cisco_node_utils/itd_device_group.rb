@@ -26,6 +26,7 @@ module Cisco
       fail ArgumentError unless name.length > 0
       @name = name
 
+      set_args_keys_default
       create if instantiate
     end
 
@@ -76,6 +77,17 @@ module Cisco
       config_set('itd_device_group', 'destroy', name: @name)
     end
 
+    # Helper method to delete @set_args hash keys
+    def set_args_keys_default
+      @set_args = { name: @name }
+      @get_args = @set_args
+    end
+
+    def probe_params
+      params = config_get('itd_device_group', 'probe', @get_args)
+      params
+    end
+
     # proble configuration is all done in a single line (like below)
     # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
     # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
@@ -84,7 +96,7 @@ module Cisco
     # also the 'control enable' can be set if the type is tcp or udp only
     # probe udp port 23 control enable frequency 10 timeout 5 ...
     def probe
-      params = config_get('itd_device_group', 'probe', name: @name)
+      params = probe_params
       hash = {}
       hash[:probe_control] = default_probe_control
       if params.nil?
@@ -178,25 +190,35 @@ module Cisco
 
     def probe=(type, host, control, freq, ret_up, ret_down, port, timeout)
       if type == false
-        config_set('itd_device_group', 'probe_type', name: @name, state: 'no')
+        @set_args[:state] = 'no'
+        config_set('itd_device_group', 'probe_type', @set_args)
+        set_args_keys_default
         return
       end
+      @set_args[:type] = type
+      @set_args[:freq] = freq
+      @set_args[:to] = timeout
+      @set_args[:rdc] = ret_down
+      @set_args[:ruc] = ret_up
       case type.to_sym
       when :dns
-        config_set('itd_device_group', 'probe',
-                   name: @name, type: type, hps: 'host', hpv: host, control: '',
-                   freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
+        @set_args[:hps] = 'host'
+        @set_args[:hpv] = host
+        @set_args[:control] = ''
+        config_set('itd_device_group', 'probe', @set_args)
       when :tcp, :udp
         control_str = control ? 'control enable' : ''
-        config_set('itd_device_group', 'probe',
-                   name: @name, type: type, hps: 'port', hpv: port,
-                   control: control_str, freq: freq, to: timeout,
-                   rdc: ret_down, ruc: ret_up)
+        @set_args[:hps] = 'port'
+        @set_args[:hpv] = port
+        @set_args[:control] = control_str
+        config_set('itd_device_group', 'probe', @set_args)
       when :icmp
-        config_set('itd_device_group', 'probe',
-                   name: @name, type: type, hps: '', hpv: '', control: '',
-                   freq: freq, to: timeout, rdc: ret_down, ruc: ret_up)
+        @set_args[:hps] = ''
+        @set_args[:hpv] = ''
+        @set_args[:control] = ''
+        config_set('itd_device_group', 'probe', @set_args)
       end
+      set_args_keys_default
     end
   end  # Class
 end    # Module

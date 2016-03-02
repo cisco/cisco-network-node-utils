@@ -2,7 +2,15 @@
 ---
 _template:
   get_command: "show running-config all | section itd"
-  context: ["itd device-group <name>"]
+  get_context:
+      - '/^itd device-group <name>/'
+      - '(?)/^node <ntype> <nname>/'
+  set_context: ["itd device-group <name>", "(?)node <ntype> <nname>"]
+
+all_itd_device_group_nodes:
+  multiple:
+  get_context: ["itd device-group <name> (.*)"]
+  get_value: '/^node (.*)/'
 
 all_itd_device_groups:
   multiple:
@@ -13,9 +21,17 @@ create:
   set_context: ~
   set_value: "itd device-group <name>"
 
+create_node:
+  set_context: ["itd device-group <name>"]
+  set_value: "node <ntype> <nname>"
+
 destroy:
   set_context: ~
   set_value: "no itd device-group <name>"
+
+destroy_node:
+  set_context: ["itd device-group <name>"]
+  set_value: "no node <ntype> <nname>"
 
 feature:
   get_command: 'show running | i ^feature'
@@ -23,6 +39,12 @@ feature:
   get_value: '/^feature itd$/'
   set_context: ~
   set_value: 'feature itd'
+  default_value: false
+
+hot_standby:
+  kind: boolean
+  get_value: '/^mode hot-standby/'
+  set_value: "<state> mode hot-standby"
   default_value: false
 
 probe:
@@ -62,3 +84,9 @@ probe_type:
   kind: string
   set_value: "<state> probe icmp"
   default_value: false
+
+weight:
+  kind: int
+  get_value: '/^weight (\d+)/'
+  set_value: "weight <weight>"
+  default_value: 1
