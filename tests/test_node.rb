@@ -50,7 +50,7 @@ class TestNode < TestCase
   def test_node_connect_zero_arguments
     node = Node.instance
     # No UDS present on the test host, so default logic fails to connect
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::Client::ConnectionRefused) do
       node.connect
     end
   end
