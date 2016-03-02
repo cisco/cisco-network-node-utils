@@ -96,6 +96,13 @@ module Cisco
   # General utility class
   class Utils
     require 'ipaddr'
+
+    # Helper utility to check for older Nexus I2 images
+    def self.nexus_i2_image
+      require_relative 'platform'
+      true if Platform.image_version[/7.0.3.I2.*/]
+    end
+
     # Helper utility method for ip/prefix format networks.
     # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
     # we need to mask the address using the prefix length so that they
