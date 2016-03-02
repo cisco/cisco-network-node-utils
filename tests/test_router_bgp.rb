@@ -479,6 +479,10 @@ class TestRouterBgp < CiscoTestCase
       return
     end
     bgp = setup_default
+    default = bgp.default_disable_policy_batching_ipv4
+    assert_equal(default, bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 not set to default')
+
     bgp.disable_policy_batching_ipv4 = 'xx'
     assert_equal('xx', bgp.disable_policy_batching_ipv4,
                  "bgp disable_policy_batching_ipv4 should be set to 'xx'")
@@ -487,7 +491,7 @@ class TestRouterBgp < CiscoTestCase
     assert_empty(bgp.disable_policy_batching_ipv4,
                  'bgp disable_policy_batching_ipv4 should be empty')
 
-    default = bgp.default_disable_policy_batching_ipv4
+    bgp.disable_policy_batching_ipv4 = default
     assert_equal(default, bgp.disable_policy_batching_ipv4,
                  'bgp disable_policy_batching_ipv4 not set to default')
     bgp.destroy
@@ -504,6 +508,10 @@ class TestRouterBgp < CiscoTestCase
       return
     end
     bgp = setup_default
+    default = bgp.default_disable_policy_batching_ipv6
+    assert_equal(default, bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 not set to default')
+
     bgp.disable_policy_batching_ipv6 = 'xx'
     assert_equal('xx', bgp.disable_policy_batching_ipv6,
                  "bgp disable_policy_batching_ipv6 should be set to 'xx'")
@@ -512,9 +520,9 @@ class TestRouterBgp < CiscoTestCase
     assert_empty(bgp.disable_policy_batching_ipv6,
                  'bgp disable_policy_batching_ipv6 should be empty')
 
-    default = bgp.default_disable_policy_batching_ipv4
-    assert_equal(default, bgp.disable_policy_batching_ipv4,
-                 'bgp disable_policy_batching_ipv4 not set to default')
+    bgp.disable_policy_batching_ipv6 = default
+    assert_equal(default, bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 not set to default')
     bgp.destroy
   end
 
