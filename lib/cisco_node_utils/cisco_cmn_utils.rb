@@ -100,7 +100,7 @@ module Cisco
     # Helper utility to check for older Nexus I2 images
     def self.nexus_i2_image
       require_relative 'platform'
-      true if Platform.image_version[/7.0.3.I2.*/]
+      true if Platform.image_version[/7.0.3.I2/]
     end
 
     # Helper utility method for ip/prefix format networks.
