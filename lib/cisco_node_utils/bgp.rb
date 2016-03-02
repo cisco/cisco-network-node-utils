@@ -779,7 +779,7 @@ module Cisco
                                          'configurable on a default VRF')
       end
 
-      # NX I2 images require 'nv overlay evpn' for rd and also require
+      # N3k I2 images require 'nv overlay evpn' for rd and also require
       # explicit values when removing the rd command. These restrictions are
       # not not needed in I3 and newer images.
       Feature.nv_overlay_evpn_enable if Utils.nexus_i2_image
