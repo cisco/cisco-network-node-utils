@@ -1049,6 +1049,9 @@ class TestRouterBgp < CiscoTestCase
     remove_all_vrfs
 
     bgp = setup_vrf
+    assert_empty(bgp.route_distinguisher,
+                 'bgp route_distinguisher should *NOT* be configured')
+
     bgp.route_distinguisher = 'auto'
     assert_equal('auto', bgp.route_distinguisher)
 
