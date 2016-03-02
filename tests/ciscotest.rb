@@ -185,4 +185,20 @@ class CiscoTestCase < TestCase
       obj.destroy
     end
   end
+
+  # Remove all configurations from an interface.
+  def interface_cleanup(intf_name)
+    cfg = get_interface_cleanup_config(intf_name)
+    config(*cfg)
+  end
+
+  # Returns an array of commands to remove all configurations from
+  # an interface.
+  def get_interface_cleanup_config(intf_name)
+    if platform == :ios_xr
+      ["no interface #{intf_name}", "interface #{intf_name} shutdown"]
+    else
+      ["default interface #{intf_name}"]
+    end
+  end
 end
