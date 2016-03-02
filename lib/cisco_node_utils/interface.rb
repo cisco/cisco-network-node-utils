@@ -1026,7 +1026,7 @@ module Cisco
     end
 
     def switchport_vtp
-      return default_switchport_vtp unless switchport_vtp_mode_capable?
+      return nil unless switchport_vtp_mode_capable?
       config_get('interface', 'vtp', name: @name)
     end
 
@@ -1086,6 +1086,7 @@ module Cisco
     end
 
     def default_switchport_vtp
+      return nil unless switchport_vtp_mode_capable?
       config_get_default('interface', 'vtp')
     end
 

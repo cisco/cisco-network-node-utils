@@ -658,4 +658,14 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
     refute(interface.switchport_vtp,
            'Error: mode :disabled, vtp should be false')
   end
+
+  def test_default_switchport_vtp
+    [:access, :disabled].each do |mode|
+      interface.switchport_mode = mode
+      interface.switchport_vtp = interface.default_switchport_vtp
+      assert_equal(interface.switchport_vtp, interface.default_switchport_vtp,
+                   "Error: mode :#{mode}, "\
+                   'switchport_vtp should equal default_switchport_vtp')
+    end
+  end
 end
