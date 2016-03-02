@@ -18,37 +18,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'singleton'
-
 require_relative 'client'
 require_relative 'command_reference'
+require_relative 'exceptions'
 require_relative 'logger'
 
 # Add node management classes and APIs to the Cisco namespace.
 module Cisco
-  # Error class raised by the config_set and config_get APIs if the
-  # device encounters an issue trying to act on the requested CLI.
-  #
-  # command - the specific CLI that was rejected
-  # clierror - any error string from the device
-  class CliError < RuntimeError
-    attr_reader :command, :clierror, :previous
-    def initialize(command, clierror, previous)
-      @command = command
-      @clierror = clierror.rstrip if clierror.kind_of? String
-      @previous = previous
-    end
-
-    def to_s
-      "CliError: '#{@command}' rejected with message:\n'#{@clierror}'"
-    end
-  end
-
   # class Cisco::Node
   # Singleton representing the network node (switch/router) that is
   # running this code. The singleton is lazily instantiated, meaning that
   # it doesn't exist until some client requests it (with Node.instance())
   class Node
+    @instance = nil
+
     # Convenience wrapper for get()
     # Uses CommandReference to look up the given show command and key
     # of interest, executes that command, and returns the value corresponding
@@ -59,7 +42,7 @@ module Cisco
     #        for the 'get_command' and (optional) 'get_value' fields.
     # @raise [Cisco::UnsupportedError] if the (feature, name) pair is flagged
     #        in the YAML as unsupported on this device.
-    # @raise [Cisco::CliError] if the given command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if the command is rejected by the device.
     #
     # @param feature [String]
     # @param name [String]
@@ -139,7 +122,7 @@ module Cisco
     # @raise [IndexError] if no relevant cmd_ref config_set exists
     # @raise [ArgumentError] if too many or too few args are provided.
     # @raise [Cisco::UnsupportedError] if this feature/name is unsupported
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     #
     # @param feature [String]
     # @param name [String]
@@ -213,28 +196,18 @@ module Cisco
     # In general, clients should use config_set() rather than calling
     # this function directly.
     #
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     def set(**kwargs)
       @client.set(**kwargs)
-    rescue Cisco::Client::RequestFailed => e
-      raise Cisco::CliError.new(
-        e.rejected_input,
-        e.respond_to?(:clierror) ? e.clierror : e.message,
-        e.successful_input)
     end
 
     # Send a show command to the device.
     # In general, clients should use config_get() rather than calling
     # this function directly.
     #
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     def get(**kwargs)
       @client.get(**kwargs)
-    rescue Cisco::Client::RequestFailed => e
-      raise Cisco::CliError.new(
-        e.rejected_input,
-        e.respond_to?(:clierror) ? e.clierror : e.message,
-        e.successful_input)
     end
 
     # @return [String] such as "Cisco Nexus Operating System (NX-OS) Software"

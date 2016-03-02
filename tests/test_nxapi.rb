@@ -58,11 +58,10 @@ class TestNxapi < TestCase
   end
 
   def test_cli_set_invalid
-    e = assert_raises Cisco::Client::NXAPI::CliError do
+    e = assert_raises Cisco::CliError do
       client.set(values: ['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
     assert_equal("The command 'plover' was rejected with error:
-CLI execution error
 % Invalid command
 ", e.message)
     assert_equal('plover', e.rejected_input)
@@ -80,13 +79,13 @@ CLI execution error
   end
 
   def test_get_cli_invalid
-    assert_raises Cisco::Client::NXAPI::CliError do
+    assert_raises Cisco::CliError do
       client.get(command: 'show plugh')
     end
   end
 
   def test_element_get_cli_incomplete
-    assert_raises Cisco::Client::NXAPI::CliError do
+    assert_raises Cisco::CliError do
       client.get(command: 'show ')
     end
   end
@@ -111,7 +110,7 @@ CLI execution error
   end
 
   def test_get_nxapi_structured_invalid
-    assert_raises Cisco::Client::NXAPI::CliError do
+    assert_raises Cisco::CliError do
       client.get(command: 'show frobozz', data_format: :nxapi_structured)
     end
   end
@@ -119,7 +118,7 @@ CLI execution error
   def test_get_nxapi_structured_unsupported
     # TBD: n3k DOES support structured for this command,
     #  n9k DOES NOT support structured for this command
-    assert_raises Cisco::Client::RequestNotSupported do
+    assert_raises Cisco::RequestNotSupported do
       client.get(command:     'show snmp internal globals',
                  data_format: :nxapi_structured)
     end
@@ -129,23 +128,23 @@ CLI execution error
     @device.cmd('configure terminal')
     @device.cmd('no feature nxapi')
     @device.cmd('end')
-    client.cache_flush
-    assert_raises Cisco::Client::ConnectionRefused do
+    assert_raises Cisco::ConnectionRefused do
+      client.cache_flush
       client.get(command: 'show version')
     end
-    assert_raises Cisco::Client::ConnectionRefused do
+    assert_raises Cisco::ConnectionRefused do
       client.set(values: 'interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
     @@client = nil # rubocop:disable Style/ClassVars
-    assert_raises Cisco::Client::ConnectionRefused do
+    assert_raises Cisco::ConnectionRefused do
       client.get(command: 'show version')
     end
-    assert_raises Cisco::Client::ConnectionRefused do
+    assert_raises Cisco::ConnectionRefused do
       client.set(values: 'interface Et1/1')
     end
-
+  ensure
     @device.cmd('configure terminal')
     @device.cmd('feature nxapi')
     @device.cmd('end')
@@ -157,12 +156,13 @@ CLI execution error
     end
     client.password = 'wrong_password'
     client.cache_flush
-    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
+    assert_raises Cisco::AuthenticationFailed do
       client.get(command: 'show version')
     end
-    assert_raises Cisco::Client::NXAPI::HTTPUnauthorized do
+    assert_raises Cisco::AuthenticationFailed do
       client.set(values: 'interface Et1/1')
     end
+  ensure
     client.password = password
   end
 
@@ -172,7 +172,7 @@ CLI execution error
       req('hello', 'world')
     end
 
-    assert_raises Cisco::Client::RequestNotSupported do
+    assert_raises Cisco::RequestNotSupported do
       client.hello
     end
   end

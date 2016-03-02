@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node'
+require_relative 'exceptions'
 
 module Cisco
   # NodeUtil - generic functionality for node utility subclasses to use
@@ -37,10 +38,18 @@ module Cisco
 
     def self.config_get(*args)
       node.config_get(*args)
+    rescue Cisco::RequestFailed => e
+      e2 = e.class.new("[#{self}] #{e}", **e.kwargs)
+      e2.set_backtrace(e.backtrace)
+      raise e2
     end
 
     def config_get(*args)
       node.config_get(*args)
+    rescue Cisco::RequestFailed => e
+      e2 = e.class.new("[#{self}] #{e}", **e.kwargs)
+      e2.set_backtrace(e.backtrace)
+      raise e2
     end
 
     def self.config_get_default(*args)
@@ -53,10 +62,18 @@ module Cisco
 
     def self.config_set(*args)
       node.config_set(*args)
+    rescue Cisco::RequestFailed => e
+      e2 = e.class.new("[#{self}] #{e}", **e.kwargs)
+      e2.set_backtrace(e.backtrace)
+      raise e2
     end
 
     def config_set(*args)
       node.config_set(*args)
+    rescue Cisco::RequestFailed => e
+      e2 = e.class.new("[#{self}] #{e}", **e.kwargs)
+      e2.set_backtrace(e.backtrace)
+      raise e2
     end
 
     def self.supports?(api)
@@ -77,6 +94,10 @@ module Cisco
 
     def get(**kwargs)
       node.get(**kwargs)
+    rescue Cisco::RequestFailed => e
+      e2 = e.class.new("[#{self}] #{e}", **e.kwargs)
+      e2.set_backtrace(e.backtrace)
+      raise e2
     end
 
     def ios_xr?
