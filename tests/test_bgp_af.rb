@@ -192,12 +192,9 @@ class TestBgpAF < CiscoTestCase
           # l2vpn evpn is not supported in a vrf
           next if vrf != 'default' && af == %w(l2vpn evpn)
 
-          puts '**************************************'
           bgp_af = RouterBgpAF.new(asn, vrf, af)
 
           values.each do |test, test_values|
-            puts "******** #{test}, #{asn}, #{vrf}, #{af}"
-
             # What result do we expect from this test?
             expect = check_test_exceptions(test, platform, vrf, af)
 

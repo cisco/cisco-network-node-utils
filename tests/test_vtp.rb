@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/vtp'
 
 # TestVtp - Minitest for Vtp node utility class
 class TestVtp < CiscoTestCase
+  @skip_unless_supported = 'vtp'
+
   def setup
     super
     no_feature_vtp

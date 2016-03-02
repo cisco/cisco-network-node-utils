@@ -16,6 +16,8 @@ access_vlan:
 
 all_interfaces:
   multiple:
+  ios_xr:
+    get_command: 'show running all-interfaces'
   get_context: ~
   get_value: '/^interface (.*)/'
 
@@ -111,6 +113,13 @@ ipv4_arp_timeout:
 
 ipv4_arp_timeout_non_vlan_interfaces:
   default_only: ~
+
+ipv4_forwarding:
+  _exclude: [ios_xr]
+  kind: boolean
+  default_value: false
+  get_value: '/^ip forward$/'
+  set_value: '<state> ip forward'
 
 ipv4_netmask_length:
   default_value: ~

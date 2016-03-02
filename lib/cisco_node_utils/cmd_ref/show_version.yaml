@@ -56,11 +56,12 @@ last_reset_time:
   get_value: "rr_ctime"
 
 system_image:
-  _exclude: [ios_xr]
+  nexus:
+    get_value: "kick_file_name"
+  ios_xr:
+    get_value: '/IOS XR.*Version (.*)$/' 
   N7k:
     get_value: "isan_file_name"
-  else:
-    get_value: "kick_file_name"
 
 uptime:
   # TODO: redundant with show_system, uptime?

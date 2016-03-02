@@ -21,6 +21,7 @@ AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED = :unselected
 
 # Test class for AAA Authentication Login Service
 class TestAaaAuthenticationLoginService < CiscoTestCase
+  @skip_unless_supported = 'aaa_auth_login_service'
   def unconfig_tacacs
     config('no feature tacacs+')
   end

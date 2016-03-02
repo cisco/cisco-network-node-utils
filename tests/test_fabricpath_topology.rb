@@ -20,6 +20,8 @@ include Cisco
 
 # TestFabricpathTopo - Minitest for Fabricpath Topo node utils
 class TestFabricpathTopo < CiscoTestCase
+  @skip_unless_supported = 'fabricpath_topology'
+
   def setup
     # setup runs at the beginning of each test
     super

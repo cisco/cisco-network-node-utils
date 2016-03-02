@@ -358,6 +358,19 @@ module Cisco
       config_get_default('interface', ipv4_arp_timeout_lookup_string)
     end
 
+    def ipv4_forwarding
+      config_get('interface', 'ipv4_forwarding', name: @name)
+    end
+
+    def ipv4_forwarding=(state)
+      config_set('interface', 'ipv4_forwarding',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_forwarding
+      config_get_default('interface', 'ipv4_forwarding')
+    end
+
     def ipv4_pim_sparse_mode
       config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
     end
@@ -1018,6 +1031,7 @@ module Cisco
     end
 
     def switchport_vtp=(vtp_set)
+      # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', name: @name, state: no_cmd)
@@ -1072,6 +1086,7 @@ module Cisco
     end
 
     def default_switchport_vtp
+      return nil unless switchport_vtp_mode_capable?
       config_get_default('interface', 'vtp')
     end
 

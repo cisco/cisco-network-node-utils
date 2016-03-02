@@ -1,5 +1,7 @@
 # snmp_group
 ---
+_exclude: [ios_xr]
+
 group:
   multiple: true
   get_command: "show snmp group"

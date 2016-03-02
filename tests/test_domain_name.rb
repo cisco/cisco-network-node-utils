@@ -20,6 +20,8 @@ require_relative '../lib/cisco_node_utils/domain_name'
 
 # TestDomainName - Minitest for DomainName node utility.
 class TestDomainName < CiscoTestCase
+  @skip_unless_supported = 'dnsclient'
+
   def setup
     # setup runs at the beginning of each test
     super
@@ -34,9 +36,15 @@ class TestDomainName < CiscoTestCase
 
   def no_domainname_test_xyz
     # Turn the feature off for a clean test.
-    config('no ip domain-name test.abc',
-           'no ip domain-name test.xyz',
-           'no vrf context test')
+    if platform == :ios_xr
+      config('no domain name test.abc',
+             'no domain name test.xyz',
+             'no vrf test')
+    else
+      config('no ip domain-name test.abc',
+             'no ip domain-name test.xyz',
+             'no vrf context test')
+    end
   end
 
   # TESTS

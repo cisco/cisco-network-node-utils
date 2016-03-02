@@ -17,6 +17,7 @@ require_relative '../lib/cisco_node_utils/portchannel_global'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestPortchannelGlobal < CiscoTestCase
+  @skip_unless_supported = 'portchannel_global'
   # TESTS
 
   DEFAULT_NAME = 'default'

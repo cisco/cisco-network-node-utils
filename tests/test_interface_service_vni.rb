@@ -33,6 +33,8 @@ include Cisco
 #      encapsulation profile vni_600_6000 default
 #
 class TestInterfaceServiceVni < CiscoTestCase
+  @skip_unless_supported = 'interface_service_vni'
+
   def setup
     super
   end

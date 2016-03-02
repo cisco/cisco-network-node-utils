@@ -24,10 +24,19 @@ Node.lazy_connect = true # we'll specify the connection info later
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
+    # Load parameters for login
+    address
+    username
+    password
+    # Clear out the environment so we have control over which parameters
+    # we provide to Node to connect with.
+    @env_node = ENV['NODE']
+    ENV['NODE'] = nil
   end
 
   def teardown
-    GC.start
+    # Restore the environment
+    ENV['NODE'] = @env_node
   end
 
   # As Node is now a singleton, we cannot instantiate it.
@@ -41,7 +50,7 @@ class TestNode < TestCase
   def test_node_connect_zero_arguments
     node = Node.instance
     # No UDS present on the test host, so default logic fails to connect
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::Client::ConnectionRefused) do
       node.connect
     end
   end

@@ -1,5 +1,7 @@
 # radius_server.yaml
 ---
+_exclude: [ios_xr]
+
 accounting:
   auto_default: false
   kind: boolean

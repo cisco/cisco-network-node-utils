@@ -778,10 +778,16 @@ module Cisco
                                          'route_distinguisher is not ' \
                                          'configurable on a default VRF')
       end
-      Feature.nv_overlay_evpn_enable if platform == :nexus
+
+      # N3k I2 images require 'nv overlay evpn' for rd and also require
+      # explicit values when removing the rd command. These restrictions are
+      # not not needed in I3 and newer images.
+      Feature.nv_overlay_evpn_enable if Utils.nexus_i2_image
+
       if rd == default_route_distinguisher
+        return if route_distinguisher.empty?
         @set_args[:state] = 'no'
-        @set_args[:rd] = ''
+        @set_args[:rd] = route_distinguisher
       else
         @set_args[:state] = ''
         @set_args[:rd] = rd

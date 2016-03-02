@@ -97,6 +97,16 @@ module Cisco
     end
 
     # ---------------------------
+    def self.pim_enable
+      return if pim_enabled?
+      config_set('feature', 'pim')
+    end
+
+    def self.pim_enabled?
+      config_get('feature', 'pim')
+    end
+
+    # ---------------------------
     def self.vn_segment_vlan_based_enable
       return if vn_segment_vlan_based_enabled?
       result = config_set('feature', 'vn_segment_vlan_based')

@@ -39,7 +39,7 @@ class CiscoTestCase < TestCase
   @skip_unless_supported = nil
 
   class << self
-    attr_reader :skip_unless_supported
+    attr_accessor :skip_unless_supported
   end
 
   def self.runnable_methods
@@ -67,7 +67,7 @@ class CiscoTestCase < TestCase
       puts "\nNode under test:"
       puts "  - name  - #{@@node.host_name}"
       puts "  - type  - #{@@node.product_id}"
-      # puts "  - image - #{@@node.system}\n\n"
+      puts "  - image - #{@@node.system}\n\n"
     end
     @@node
   rescue Cisco::Client::AuthenticationFailed
@@ -89,8 +89,12 @@ class CiscoTestCase < TestCase
     node.cmd_ref
   end
 
-  def platform
+  def self.platform
     node.client.platform
+  end
+
+  def platform
+    self.class.platform
   end
 
   def config(*args)
@@ -156,7 +160,7 @@ class CiscoTestCase < TestCase
       # rubocop:disable Style/ClassVars
       @@interfaces_id = []
       interfaces.each do |interface|
-        id = interface.split('Ethernet')[1]
+        id = interface.split('ethernet')[1]
         @@interfaces_id << id
       end
       # rubocop:enable Style/ClassVars
@@ -183,6 +187,22 @@ class CiscoTestCase < TestCase
     Vrf.vrfs.each do |vrf, obj|
       next if vrf[/management/]
       obj.destroy
+    end
+  end
+
+  # Remove all configurations from an interface.
+  def interface_cleanup(intf_name)
+    cfg = get_interface_cleanup_config(intf_name)
+    config(*cfg)
+  end
+
+  # Returns an array of commands to remove all configurations from
+  # an interface.
+  def get_interface_cleanup_config(intf_name)
+    if platform == :ios_xr
+      ["no interface #{intf_name}", "interface #{intf_name} shutdown"]
+    else
+      ["default interface #{intf_name}"]
     end
   end
 end

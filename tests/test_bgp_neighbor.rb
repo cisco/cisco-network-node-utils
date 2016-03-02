@@ -295,22 +295,23 @@ class TestBgpNeighbor < CiscoTestCase
   end
 
   def test_log_neighbor_changes
+    if node.product_id[/ios_xr|N(5|6|7)/]
+      b = create_neighbor('blue')
+      assert_nil(b.log_neighbor_changes)
+      assert_nil(b.default_log_neighbor_changes)
+      assert_raises(Cisco::UnsupportedError) do
+        b.log_neighbor_changes = :enable
+      end
+      return
+    end
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      if platform == :ios_xr
-        assert_nil(neighbor.log_neighbor_changes)
-        assert_nil(neighbor.default_log_neighbor_changes)
-        assert_raises(Cisco::UnsupportedError) do
-          neighbor.log_neighbor_changes = :enable
-        end
-      else
-        check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-                 neighbor.default_log_neighbor_changes]
+      check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
+               neighbor.default_log_neighbor_changes]
 
-        check.each do |value|
-          neighbor.log_neighbor_changes = value
-          assert_equal(value.to_sym, neighbor.log_neighbor_changes)
-        end
+      check.each do |value|
+        neighbor.log_neighbor_changes = value
+        assert_equal(value.to_sym, neighbor.log_neighbor_changes)
       end
       neighbor.destroy
     end

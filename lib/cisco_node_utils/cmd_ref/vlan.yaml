@@ -1,5 +1,7 @@
 # vlan
 ---
+_exclude: [ios_xr]
+
 all_vlans:
   multiple: true
   get_command: "show vlan brief"

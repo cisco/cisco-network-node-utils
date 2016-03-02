@@ -15,8 +15,9 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/stp_global'
 
-# TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
+# TestStpGlobal - Minitest for StpGlobal node utility class
 class TestStpGlobal < CiscoTestCase
+  @skip_unless_supported = 'stp_global'
   # TESTS
 
   @@clean = false # rubocop:disable Style/ClassVars
