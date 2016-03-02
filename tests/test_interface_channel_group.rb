@@ -23,7 +23,6 @@ class TestInterfaceChannelGroup < CiscoTestCase
     @intf = InterfaceChannelGroup.new(interfaces[1])
 
     # Only pre-clean interface on initial setup
-
     interface_cleanup(@intf.name) unless @@clean
     @@clean = true # rubocop:disable Style/ClassVars
   end
