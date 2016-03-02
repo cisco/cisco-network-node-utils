@@ -469,66 +469,60 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv4
-    bgp = setup_default
-    if platform == :ios_xr
-      assert_nil(bgp.disable_policy_batching_ipv4)
+    if node.product_id[/ios_xr|N(5|6|7)/]
+      b = RouterBgp.new(1)
+      assert_nil(b.disable_policy_batching_ipv4)
+      assert_nil(b.default_disable_policy_batching_ipv4)
       assert_raises(Cisco::UnsupportedError) do
-        bgp.disable_policy_batching_ipv4 = 'xx'
+        b.disable_policy_batching_ipv4 = 'xx'
       end
-    else
-      bgp.disable_policy_batching_ipv4 = 'xx'
-      assert_equal('xx', bgp.disable_policy_batching_ipv4,
-                   "bgp disable_policy_batching_ipv4 should be set to 'xx'")
-      bgp.disable_policy_batching_ipv4 = \
-        bgp.default_disable_policy_batching_ipv4
-      assert_empty(bgp.disable_policy_batching_ipv4,
-                   'bgp disable_policy_batching_ipv4 should be empty')
+      return
     end
-    bgp.destroy
-  end
-
-  def test_default_disable_policy_batching_ipv4
     bgp = setup_default
-    if platform == :ios_xr
-      assert_nil(bgp.default_disable_policy_batching_ipv4,
-                 'disable_policy_batching_ipv4 default value should be nil')
-    else
-      assert_equal(bgp.default_disable_policy_batching_ipv4,
-                   bgp.disable_policy_batching_ipv4,
-                   'disable_policy_batching_ipv4 default value should be empty')
-    end
+    default = bgp.default_disable_policy_batching_ipv4
+    assert_equal(default, bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 not set to default')
+
+    bgp.disable_policy_batching_ipv4 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv4,
+                 "bgp disable_policy_batching_ipv4 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv4 = \
+      bgp.default_disable_policy_batching_ipv4
+    assert_empty(bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 should be empty')
+
+    bgp.disable_policy_batching_ipv4 = default
+    assert_equal(default, bgp.disable_policy_batching_ipv4,
+                 'bgp disable_policy_batching_ipv4 not set to default')
     bgp.destroy
   end
 
   def test_disable_policy_batching_ipv6
-    bgp = setup_default
-    if platform == :ios_xr
-      assert_nil(bgp.disable_policy_batching_ipv6)
+    if node.product_id[/ios_xr|N(5|6|7)/]
+      b = RouterBgp.new(1)
+      assert_nil(b.disable_policy_batching_ipv6)
+      assert_nil(b.default_disable_policy_batching_ipv6)
       assert_raises(Cisco::UnsupportedError) do
-        bgp.disable_policy_batching_ipv6 = 'xx'
+        b.disable_policy_batching_ipv6 = 'xx'
       end
-    else
-      bgp.disable_policy_batching_ipv6 = 'xx'
-      assert_equal('xx', bgp.disable_policy_batching_ipv6,
-                   "bgp disable_policy_batching_ipv6 should be set to 'xx'")
-      bgp.disable_policy_batching_ipv6 = \
-        bgp.default_disable_policy_batching_ipv6
-      assert_empty(bgp.disable_policy_batching_ipv6,
-                   'bgp disable_policy_batching_ipv6 should be empty')
+      return
     end
-    bgp.destroy
-  end
-
-  def test_default_disable_policy_batching_ipv6
     bgp = setup_default
-    if platform == :ios_xr
-      assert_nil(bgp.default_disable_policy_batching_ipv6,
-                 'disable_policy_batching_ipv6 default value should be empty')
-    else
-      assert_equal(bgp.default_disable_policy_batching_ipv6,
-                   bgp.disable_policy_batching_ipv6,
-                   'disable_policy_batching_ipv6 default value should be empty')
-    end
+    default = bgp.default_disable_policy_batching_ipv6
+    assert_equal(default, bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 not set to default')
+
+    bgp.disable_policy_batching_ipv6 = 'xx'
+    assert_equal('xx', bgp.disable_policy_batching_ipv6,
+                 "bgp disable_policy_batching_ipv6 should be set to 'xx'")
+    bgp.disable_policy_batching_ipv6 = \
+      bgp.default_disable_policy_batching_ipv6
+    assert_empty(bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 should be empty')
+
+    bgp.disable_policy_batching_ipv6 = default
+    assert_equal(default, bgp.disable_policy_batching_ipv6,
+                 'bgp disable_policy_batching_ipv6 not set to default')
     bgp.destroy
   end
 
@@ -972,45 +966,51 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_neighbor_down_fib_accelerate
+    if node.product_id[/ios_xr|N(5|6|7)/]
+      b = RouterBgp.new(1)
+      assert_nil(b.neighbor_down_fib_accelerate)
+      assert_nil(b.default_neighbor_down_fib_accelerate)
+      assert_raises(Cisco::UnsupportedError) do
+        b.neighbor_down_fib_accelerate = true
+      end
+      return
+    end
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
       else
         bgp = setup_vrf
       end
-      if platform == :ios_xr
-        assert_raises(Cisco::UnsupportedError) do
-          bgp.neighbor_down_fib_accelerate = true
-        end
-      else
-        bgp.neighbor_down_fib_accelerate = true
-        assert(bgp.neighbor_down_fib_accelerate,
-               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
-               'should be enabled')
-        bgp.neighbor_down_fib_accelerate = false
-        refute(bgp.neighbor_down_fib_accelerate,
-               "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
-               'should be disabled')
-      end
+      default = bgp.default_neighbor_down_fib_accelerate
+      assert_equal(default, bgp.neighbor_down_fib_accelerate,
+                   'bgp neighbor_fib_down_accelerate not set to default value')
+
+      bgp.neighbor_down_fib_accelerate = true
+      assert(bgp.neighbor_down_fib_accelerate,
+             "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
+             'should be enabled')
+      bgp.neighbor_down_fib_accelerate = false
+      refute(bgp.neighbor_down_fib_accelerate,
+             "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
+             'should be disabled')
+
+      bgp.neighbor_down_fib_accelerate = default
+      assert_equal(default, bgp.neighbor_down_fib_accelerate,
+                   'bgp neighbor_fib_down_accelerate not set to default value')
       bgp.destroy
     end
   end
 
-  def test_neighbor_down_fib_accelerate_not_configured
-    bgp = setup_default
-    refute(bgp.neighbor_down_fib_accelerate,
-           'bgp neighbor_fib_down_accelerate should be disabled')
-    bgp.destroy
-  end
-
-  def test_default_neighbor_down_fib_accelerate
-    bgp = setup_default
-    refute(bgp.default_neighbor_down_fib_accelerate,
-           'bgp neighbor_fib_down_accelerate default value should be false')
-    bgp.destroy
-  end
-
   def test_reconnect_interval
+    if node.product_id[/ios_xr|N(5|6|7)/]
+      b = RouterBgp.new(1)
+      assert_nil(b.reconnect_interval)
+      assert_nil(b.default_reconnect_interval)
+      assert_raises(Cisco::UnsupportedError) do
+        b.reconnect_interval = 34
+      end
+      return
+    end
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
