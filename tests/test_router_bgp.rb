@@ -981,6 +981,10 @@ class TestRouterBgp < CiscoTestCase
       else
         bgp = setup_vrf
       end
+      default = bgp.default_neighbor_down_fib_accelerate
+      assert_equal(default, bgp.neighbor_down_fib_accelerate,
+                   'bgp neighbor_fib_down_accelerate not set to default value')
+
       bgp.neighbor_down_fib_accelerate = true
       assert(bgp.neighbor_down_fib_accelerate,
              "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
@@ -990,7 +994,6 @@ class TestRouterBgp < CiscoTestCase
              "vrf #{@vrf}: bgp neighbor_down_fib_accelerate "\
              'should be disabled')
 
-      default = bgp.default_neighbor_down_fib_accelerate
       bgp.neighbor_down_fib_accelerate = default
       assert_equal(default, bgp.neighbor_down_fib_accelerate,
                    'bgp neighbor_fib_down_accelerate not set to default value')
