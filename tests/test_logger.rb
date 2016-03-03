@@ -30,11 +30,14 @@ class TestLogger < TestCase
   # will never fail. But it will print out all the messages that the tested
   # functions are supposed to print. So I still keep this test here
   def test_default_logger_output
-    Cisco::Logger.debug_enable
+    level = Cisco::Logger.level
+    Cisco::Logger.level = Logger::DEBUG
+    assert_equal(Logger::DEBUG, Cisco::Logger.level)
     assert_output { Cisco::Logger.debug('Test default debug output') }
     assert_output { Cisco::Logger.info('Test default info output') }
     assert_output { Cisco::Logger.warn('Test default warn output') }
     assert_output { Cisco::Logger.error('Test default error output') }
-    Cisco::Logger.debug_disable
+    Cisco::Logger.level = level
+    assert_equal(level, Cisco::Logger.level)
   end
 end
