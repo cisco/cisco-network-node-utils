@@ -60,8 +60,6 @@ dual_active_exclude_interface_vlan_bridge_domain:
 fabricpath_emulated_switch_id: 
   _exclude: [N3k, N5k, N6k, N9k]
   kind: int
-  get_command:  'show running-config vpc all'
-  get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^fabricpath switch-id\s+(\d+)$/'
   set_value: '<state> fabricpath switch-id <swid>'
@@ -109,7 +107,6 @@ peer_gateway:
 peer_gateway_exclude_bridge_domain: 
   kind: string
   _exclude: [N3k, N5k, N6k, N7k, N9k]
-  get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude bridge-domain\s+(\S+)/'
   set_value: "peer-gateway exclude-bridge-domain <range>"
@@ -118,7 +115,6 @@ peer_gateway_exclude_bridge_domain:
 peer_gateway_exclude_vlan: 
   _exclude: [N3k, N9k]
   kind: string
-  get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude-vlan\s(\S+)/'
   set_value: "peer-gateway exclude-vlan <range>"
