@@ -22,13 +22,6 @@ require_relative 'feature'
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
   VLAN_NAME_SIZE = 33
-  # rubocop:disable LineLength
-  SAFE_WARNING_MESSAGE = ['Warning: Private-VLAN CLI entered...
-Please disable multicast on this Private-VLAN by removing Multicast related config(IGMP, PIM, etc.)
-Please remove any VACL related config on Private-VLANs. VLAN QOS needs to have atleast one port per ASIC instance.
-', 'Warning: Private-VLAN CLI removed. Multicast related config (IGMP, PIM, etc.) can now be entered
-']
-  # rubocop:enable LineLength
 
   # Vlan - node utility class for VLAN configuration management
   class Vlan < NodeUtil
@@ -67,17 +60,20 @@ Please remove any VACL related config on Private-VLANs. VLAN QOS needs to have a
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       # Check for messages that can be safely ignored.
+
       unless ignore_message.nil?
-        # Add logic to check results against ignore_message here
-        # Return if results == ignore_message
-        return if
-             result[2].is_a?(Hash) &&
-             ignore_message[0] == result[2]['body'].to_s ||
-             ignore_message[1] == result[2]['body'].to_s
-        return if
-             result[2].is_a?(String) &&
-             ignore_message[0] == result[2]['body'].to_s ||
-             ignore_message[1] == result[2]['body'].to_s
+        # Check result against ignore_message
+        # Return if  ignore_message is included in result
+        fail result[2]['body'] if
+          result[2].is_a?(Hash) &&
+          /(ERROR:|VLAN:)/.match(result[2]['body'].to_s)
+        fail result[2] if
+          result[2].is_a?(String) &&
+          /(ERROR:|VLAN:)/.match(result[2])
+        return result[2].is_a?(Hash) &&
+          result[2]['body'].to_s[ignore_message] ||
+          result[2].is_a?(String) &&
+            result[2]['body'].to_s[ignore_message]
       end
 
       fail result[2]['body'] if
@@ -254,13 +250,15 @@ Please remove any VACL related config on Private-VLANs. VLAN QOS needs to have a
         @set_args[:vlan] = @vlan_id
         @set_args[:state] = 'no'
         @set_args[:type] = pv_type
+        ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
         @set_args[:vlan] = @vlan_id
         @set_args[:state] = ''
         @set_args[:type] = pv_type
+        ignore_msg = 'Warning: Private-VLAN CLI entered'
       end
       result = config_set('vlan', 'private_vlan_type', @set_args)
-      cli_error_check(result, SAFE_WARNING_MESSAGE)
+      cli_error_check(result, ignore_msg)
     rescue Cisco::CliError => e
       raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end

@@ -2,6 +2,8 @@ Changelog
 =========
 
 ## [Unreleased]
+* PRIVATE-VLAN
+  * Extension of vlan (@davidefdl)
 
 ### New feature support
 
@@ -193,9 +195,6 @@ Changelog
 * RADIUS
   * radius_global (@jonnytpuppet)
   * radius_server (@jonnytpuppet)
-
-* PRIAVATE-VLAN
-  * Part of feature and vlan (@davidefdl)
 * SNMP
   * snmp_notification_receiver (@jonnytpuppet)
 * SYSLOG
