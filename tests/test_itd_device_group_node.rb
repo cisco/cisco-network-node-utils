@@ -36,18 +36,21 @@ class TestItdDeviceGroupNode < CiscoTestCase
     n1 = ItdDeviceGroupNode.new(itddg1.name, '1.1.1.1', 'ip')
     n2 = ItdDeviceGroupNode.new(itddg1.name, '2.2.2.2', 'ip')
     n3 = ItdDeviceGroupNode.new(itddg1.name, '3.3.3.3', 'ip')
+    assert_includes(ItdDeviceGroupNode.itd_nodes['abc'], '1.1.1.1')
+    assert_includes(ItdDeviceGroupNode.itd_nodes['abc'], '2.2.2.2')
+    assert_includes(ItdDeviceGroupNode.itd_nodes['abc'], '3.3.3.3')
     itddg2 = ItdDeviceGroup.new('xyz')
     n4 = ItdDeviceGroupNode.new(itddg2.name, '2000::1', 'IPv6')
-    assert_equal(4, ItdDeviceGroupNode.itd_nodes.keys.count)
-
-    n2.destroy
-    assert_equal(3, ItdDeviceGroupNode.itd_nodes.keys.count)
+    assert_includes(ItdDeviceGroupNode.itd_nodes['xyz'], '2000::1')
+    itddg3 = ItdDeviceGroup.new('efg')
+    n5 = ItdDeviceGroupNode.new(itddg3.name, '1.1.1.1', 'ip')
+    assert_includes(ItdDeviceGroupNode.itd_nodes['efg'], '1.1.1.1')
 
     n1.destroy
+    n2.destroy
     n3.destroy
-    assert_equal(1, ItdDeviceGroupNode.itd_nodes.keys.count)
     n4.destroy
-    assert_equal(0, ItdDeviceGroupNode.itd_nodes.keys.count)
+    n5.destroy
   end
 
   def test_probe_icmp

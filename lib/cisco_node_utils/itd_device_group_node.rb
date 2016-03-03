@@ -48,6 +48,7 @@ module Cisco
       itd_list = ItdDeviceGroup.itds
       return itd_nodes if itd_list.nil?
       itd_list.keys.each do |name|
+        itd_nodes[name] = {}
         match = config_get('itd_device_group',
                            'all_itd_device_group_nodes', name: name)
         next if match.nil?
@@ -56,8 +57,8 @@ module Cisco
           ntype = local[0]
           nname = local[1].strip
           next unless node_name.nil? || nname == node_name
-          hkey = name + '_' + nname
-          itd_nodes[hkey] = ItdDeviceGroupNode.new(name, nname, ntype, false)
+          itd_nodes[name][nname] =
+              ItdDeviceGroupNode.new(name, nname, ntype, false)
         end
       end
       itd_nodes
