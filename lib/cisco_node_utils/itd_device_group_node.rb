@@ -54,7 +54,7 @@ module Cisco
         match.each do |line|
           local = line.split
           ntype = local[0]
-          nname = local[1]
+          nname = local[1].strip
           next unless node_name.nil? || nname == node_name
           hkey = name + '_' + nname
           itd_nodes[hkey] = ItdDeviceGroupNode.new(name, nname, ntype, false)
@@ -85,7 +85,7 @@ module Cisco
     end
 
     # DO NOT call this directly
-    def hot_standby=(state)
+    def lhot_standby=(state)
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
       config_set('itd_device_group', 'hot_standby', @set_args)
@@ -101,7 +101,7 @@ module Cisco
     end
 
     # DO NOT call this directly
-    def weight=(val)
+    def lweight=(val)
       @set_args[:state] = val == default_weight ? 'no' : ''
       @set_args[:weight] = val
       config_set('itd_device_group', 'weight', @set_args)
@@ -113,15 +113,15 @@ module Cisco
     # order is followed
     def hs_weight=(hs, wt)
       if hs != hot_standby && hot_standby == default_hot_standby
-        self.weight = wt unless weight == wt
-        self.hot_standby = hs
+        self.lweight = wt unless weight == wt
+        self.lhot_standby = hs
       elsif hs != hot_standby && hot_standby != default_hot_standby
-        self.hot_standby = hs
-        self.weight = wt unless weight == wt
+        self.lhot_standby = hs
+        self.lweight = wt unless weight == wt
       elsif wt != weight && weight == default_weight
-        self.weight = wt
+        self.lweight = wt
       elsif wt != weight && weight != default_weight
-        self.weight = wt
+        self.lweight = wt
       end
       set_args_keys_default
     end
