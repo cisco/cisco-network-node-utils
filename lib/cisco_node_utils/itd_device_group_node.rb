@@ -20,7 +20,7 @@ require_relative 'itd_device_group'
 module Cisco
   # node_utils class for itd_device_group_node
   class ItdDeviceGroupNode < ItdDeviceGroup
-    attr_reader :name
+    attr_reader :itd_device_group_name, :name, :node_type
 
     def initialize(itd_dg_name, node_name, node_type, create=true)
       fail TypeError unless itd_dg_name.is_a?(String)
@@ -28,9 +28,9 @@ module Cisco
       fail ArgumentError unless itd_dg_name.length > 0
       fail ArgumentError unless node_name.length > 0
 
-      itd_device_group_name = itd_dg_name
-      @itddg = ItdDeviceGroup.itds[itd_device_group_name]
-      fail "itd device-group #{itd_device_group_name} does not exist" if
+      @itd_device_group_name = itd_dg_name
+      @itddg = ItdDeviceGroup.itds[itd_dg_name]
+      fail "itd device-group #{itd_dg_name} does not exist" if
       @itddg.nil?
       @name = node_name
       @node_type = node_type
@@ -67,6 +67,11 @@ module Cisco
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
+
+    def ==(other)
+      (itd_device_group_name == other.itd_device_group_name) &&
+        (name == other.name) && (node_type == other.node_type)
+    end
 
     def destroy
       config_set('itd_device_group', 'destroy_node', name: @itddg.name,
