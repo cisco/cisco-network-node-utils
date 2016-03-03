@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Minitest needs to have this path in order to discover our logging plugin
+$LOAD_PATH.push File.expand_path('../../lib', __FILE__)
+
 require 'simplecov'
 SimpleCov.start do
   # Don't calculate coverage of our test code itself!
@@ -122,7 +125,6 @@ class TestCase < Minitest::Test
                    )
     end
     @device.cmd('term len 0')
-    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have configured 'feature telnet' (NX-OS) or "
