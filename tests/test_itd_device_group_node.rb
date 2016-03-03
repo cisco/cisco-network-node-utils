@@ -166,28 +166,42 @@ class TestItdDeviceGroupNode < CiscoTestCase
     itddg.destroy
   end
 
-  def test_hot_standby
+  def test_hot_standby_weight
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
-    idg.hot_standby = true
+    hot_standby = true
+    weight = idg.default_weight
+    idg.send(:hs_weight=, hot_standby, weight)
     assert_equal(true, idg.hot_standby)
-    idg.hot_standby =
-      idg.default_hot_standby
-    assert_equal(idg.default_hot_standby,
-                 idg.hot_standby)
-    idg.destroy
-    itddg.destroy
-  end
-
-  def test_weight
-    itddg = ItdDeviceGroup.new('new_group')
-    idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
-    idg.weight = 150
-    assert_equal(150, idg.weight)
-    idg.weight =
-      idg.default_weight
     assert_equal(idg.default_weight,
                  idg.weight)
+    hot_standby = idg.default_hot_standby
+    weight = idg.default_weight
+    idg.send(:hs_weight=, hot_standby, weight)
+    assert_equal(idg.default_hot_standby, idg.hot_standby)
+    assert_equal(idg.default_weight,
+                 idg.weight)
+    hot_standby = idg.default_hot_standby
+    weight = 150
+    idg.send(:hs_weight=, hot_standby, weight)
+    assert_equal(idg.default_hot_standby, idg.hot_standby)
+    assert_equal(150, idg.weight)
+    hot_standby = idg.default_hot_standby
+    weight = 200
+    idg.send(:hs_weight=, hot_standby, weight)
+    assert_equal(idg.default_hot_standby, idg.hot_standby)
+    assert_equal(200, idg.weight)
+    hot_standby = true
+    weight = idg.default_weight
+    idg.send(:hs_weight=, hot_standby, weight)
+    assert_equal(true, idg.hot_standby)
+    assert_equal(idg.default_weight,
+                 idg.weight)
+    hot_standby = idg.default_hot_standby
+    weight = 200
+    idg.send(:hs_weight=, hot_standby, weight)
+    assert_equal(idg.default_hot_standby, idg.hot_standby)
+    assert_equal(200, idg.weight)
     idg.destroy
     itddg.destroy
   end

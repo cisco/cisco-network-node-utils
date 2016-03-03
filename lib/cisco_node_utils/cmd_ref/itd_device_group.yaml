@@ -88,5 +88,5 @@ probe_type:
 weight:
   kind: int
   get_value: '/^weight (\d+)/'
-  set_value: "weight <weight>"
+  set_value: "<state> weight <weight>"
   default_value: 1

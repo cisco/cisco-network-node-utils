@@ -84,6 +84,7 @@ module Cisco
       config_get('itd_device_group', 'hot_standby', @get_args)
     end
 
+    # DO NOT call this directly
     def hot_standby=(state)
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
@@ -99,9 +100,29 @@ module Cisco
       config_get('itd_device_group', 'weight', @get_args)
     end
 
+    # DO NOT call this directly
     def weight=(val)
+      @set_args[:state] = val == default_weight ? 'no' : ''
       @set_args[:weight] = val
       config_set('itd_device_group', 'weight', @set_args)
+    end
+
+    # Call this for setting hot_standby and weight together because
+    # the CLI is pretty weird and it accepts these params in a very
+    # particular way and they cannot even be reset unless proper
+    # order is followed
+    def hs_weight=(hs, wt)
+      if hs != hot_standby && hot_standby == default_hot_standby
+        self.weight = wt unless weight == wt
+        self.hot_standby = hs
+      elsif hs != hot_standby && hot_standby != default_hot_standby
+        self.hot_standby = hs
+        self.weight = wt unless weight == wt
+      elsif wt != weight && weight == default_weight
+        self.weight = wt
+      elsif wt != weight && weight != default_weight
+        self.weight = wt
+      end
       set_args_keys_default
     end
 
