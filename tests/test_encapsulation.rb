@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ require_relative '../lib/cisco_node_utils/encapsulation'
 
 # TestEncapsulation - Minitest for Encapsulation node utility class
 class TestEncapsulation < CiscoTestCase
+  @skip_unless_supported = 'encapsulation'
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
@@ -34,6 +35,7 @@ class TestEncapsulation < CiscoTestCase
 
   def teardown
     # teardown runs at the end of each test
+    super
     cleanup
   end
 

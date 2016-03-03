@@ -1,4 +1,8 @@
-# Copyright (c) 2014-2015 Cisco and/or its affiliates.
+# NXAPI implementation of encapsulation profile class
+#
+# March 2016, Rohan Gandhi Korlepara
+#
+# Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +18,6 @@
 
 require_relative 'node_util'
 require_relative 'feature'
-require_relative 'vdc'
 
 module Cisco
   # Encapsulation - node utility class for Encapsulation config mgmt.
@@ -40,6 +43,27 @@ module Cisco
       hash
     end
 
+    # Enable feature and create encap instance
+    def create
+      Feature.vni_enable
+      result = config_set('encapsulation', 'create', profile: @encap_name)
+      cli_error_check(result)
+    rescue CliError => e
+      encap_error(e)
+    end
+
+    # Destroy a encap instance; disable feature on last instance
+    def destroy
+      result = config_set('encapsulation', 'destroy', profile: @encap_name)
+      cli_error_check(result)
+    rescue CliError => e
+      encap_error(e)
+    end
+
+    def encap_error(e)
+      fail "[encapsulation #{@encap_name}] '#{e.command}' : #{e.clierror}"
+    end
+
     def cli_error_check(result)
       # The NXOS encap profile cli does not raise an exception in some
       # conditions and instead just displays a STDOUT error message;
@@ -56,41 +80,21 @@ module Cisco
         /(ERROR:|Warning:)/.match(result[2])
     end
 
-    # Enable feature and create encap instance
-    def create
-      vdc = Vdc.new('default')
-      vdc.limit_resource_module_type = 'f3' unless
-        vdc.limit_resource_module_type == 'f3'
-      Feature.vni_enable unless Feature.vni_enabled?
-      result = config_set('encapsulation', 'create', @encap_name)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[encapsulation #{@encap_name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    # Destroy a encap instance; disable feature on last instance
-    def destroy
-      result = config_set('encapsulation', 'destroy', @encap_name)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[encapsulation #{@encap_name}] '#{e.command}' : #{e.clierror}"
-    end
-
     # ----------
     # PROPERTIES
     # ----------
 
     def dot1q_map
-      config_get('encapsulation', 'dot1q_map', @encap_name)
+      config_get('encapsulation', 'dot1q_map', profile: @encap_name)
     end
 
     def set_dot1q_map=(cmd, dot1q, vni)
       no_cmd = (cmd) ? '' : 'no'
-      result = config_set('encapsulation', 'dot1q_map', @encap_name,
-                          no_cmd, dot1q, vni)
+      result = config_set('encapsulation', 'dot1q_map', profile: @encap_name,
+                          state: no_cmd, vlans: dot1q, vnis: vni)
       cli_error_check(result)
     rescue CliError => e
-      raise "[encapsulation #{@encap_name}] '#{e.command}' : #{e.clierror}"
+      encap_error(e)
     end
 
     def default_dot1q_map

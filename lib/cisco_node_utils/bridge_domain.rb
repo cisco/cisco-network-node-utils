@@ -1,3 +1,5 @@
+# NXAPI implementation of BridgeDomain class
+#
 # February 2016, Rohan Gandhi Korlepara
 #
 # Copyright (c) 2015-2016 Cisco and/or its affiliates.
@@ -16,7 +18,6 @@
 
 require_relative 'node_util'
 require_relative 'feature'
-require_relative 'vdc'
 
 module Cisco
   # node_utils class for bridge_domain
@@ -24,38 +25,12 @@ module Cisco
     attr_reader :name, :bd_ids
 
     def initialize(bds, instantiate=true)
-      @bd_ids = bds.to_s
+      # Spaces are removed as bridge-domain cli doesn't accept value with
+      # space
+      @bd_ids = bds.to_s.gsub(/\s+/, '')
       fail 'bridge-domain value is empty' if @bd_ids.empty? # no empty strings
-      fail 'bridge-domain value has spaces' if @bd_ids.include?(' ') # no spaces
-
-      # Check if the given input bd_ids does contain only numeric value or range
-      # of numeric values
-      # Also bd_ids need to fall in range of 2-2967
-      narray = @bd_ids.split(',')
-      narray.each do |elem|
-        if elem.include?('-')
-          earray = elem.split('-')
-          earray.each do |temp_elem|
-            fail 'bridge-domain cannot be a string' unless
-                                    BridgeDomain.number?(temp_elem)
-            fail 'Invalid bridge-domain value' unless
-                                    temp_elem.to_i > 1 && temp_elem.to_i < 3968
-          end
-        else
-          fail 'bridge-domain cannot be a string' unless
-                                    BridgeDomain.number?(elem)
-          fail 'Invalid bridge-domain value' unless
-                                    elem.to_i > 1 && elem.to_i < 3968
-        end
-      end
 
       create if instantiate
-    end
-
-    def self.number?(string)
-      true if Integer(string)
-    rescue
-      false
     end
 
     # This will expand the string to a list of bds as integers
@@ -105,6 +80,45 @@ module Cisco
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
 
+    def self.allbds
+      hash = {}
+      bd_list = config_get('bridge_domain', 'all_bds')
+      return hash if bd_list.nil?
+
+      final_bd_list =
+          bd_list.map { |elem| BridgeDomain.bd_ids_to_array(elem) }.flatten.uniq.sort
+      final_bd_list.each do |id|
+        hash[id] = BridgeDomain.new(id, false)
+      end
+      hash
+    end
+
+    # This function will first add bds to the system bridge-domain and then
+    # create the bds. If bds already existing then just create. Else add the
+    # non added bds to system range first then create all. This is to avoid the
+    # idempotency issue as system add command throws error if a bd is already
+    # present in the system range.
+    def create
+      sys_bds_array = BridgeDomain.bd_ids_to_array(system_bd_add)
+      inp_bds_array = BridgeDomain.bd_ids_to_array(@bd_ids)
+      if (inp_bds_array - sys_bds_array).any?
+        add_bds = BridgeDomain.bd_list_to_string(inp_bds_array - sys_bds_array)
+        config_set('bridge_domain', 'system_bd_add', addbd: add_bds)
+      end
+      result = config_set('bridge_domain', 'create', crbd: @bd_ids)
+      cli_error_check(result)
+    rescue CliError => e
+      bd_raise(e)
+    end
+
+    def destroy
+      result = config_set('bridge_domain', 'destroy',
+                          delbd: @bd_ids, rembd: @bd_ids)
+      cli_error_check(result)
+    rescue CliError => e
+      bd_raise(e)
+    end
+
     def cli_error_check(result)
       # The NXOS bridge-domain cli does not raise an exception in some
       # conditions and instead just displays a STDOUT error message;
@@ -121,86 +135,29 @@ module Cisco
         /(ERROR:|Warning:)/.match(result[2])
     end
 
-    def create
-      result = config_set('bridge_domain', 'create', @bd_ids, @bd_ids)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def destroy
-      result = config_set('bridge_domain', 'destroy', @bd_ids, @bd_ids)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def self.allbds
-      hash = {}
-      bd_list = config_get('bridge_domain', 'all_bds')
-      return hash if bd_list.nil?
-
-      bd_list.each do |id|
-        hash[id] = BridgeDomain.new(id, false)
-      end
-      hash
+    def bd_raise(e)
+      fail "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
     end
 
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
 
-    # Bridge-Domain Shutdown case
-    def shutdown
-      result = config_get('bridge_domain', 'shutdown', @bd_ids)
-      # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result[/DOWN/] ? true : false
-    end
-
-    def shutdown=(val)
-      no_cmd = (val) ? '' : 'no'
-      result = config_set('bridge_domain', 'shutdown', @bd_ids, no_cmd)
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_shutdown
-      config_get_default('bridge_domain', 'shutdown')
-    end
-
-    # Bridge-Domain name assigning case
-    def name
-      config_get('bridge_domain', 'name', @bd_ids)
-    end
-
-    def name=(str)
-      fail TypeError unless str.is_a?(String)
-      if str.empty?
-        result = config_set('bridge_domain', 'name', @bd_ids, 'no', '')
-      else
-        result = config_set('bridge_domain', 'name', @bd_ids, '', str)
-      end
-      cli_error_check(result)
-    rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def default_name
-      sprintf('Bridge-Domain%s', @bd_ids)
-    end
-
     # Bridge-Domain type change to fabric-control
+    # bridge-domain 100
+    #   fabric-control
+    # This type property can be defined only for one bd
     def fabric_control
       config_get('bridge_domain', 'fabric_control')
     end
 
     def fabric_control=(val)
-      no_cmd = (val) ? '' : 'no'
-      result = config_set('bridge_domain', 'fabric_control', @bd_ids, no_cmd)
+      state = (val) ? '' : 'no'
+      result = config_set('bridge_domain', 'fabric_control',
+                          bd: @bd_ids, state: state)
       cli_error_check(result)
     rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
+      bd_raise(e)
     end
 
     def default_fabric_control
@@ -208,11 +165,20 @@ module Cisco
     end
 
     # Bridge-Domain member vni assigning case
+    # Not all the bds created or initialized in this class context can have the
+    # member vni's mapped. So will get the vnis of the ones which are mapped to
+    # the bds.
+    # Eg: Suppose the bd mapping is as below on the switch
+    # bridge-domain 100,105,107-109,150
+    #   member vni 5000, 8000, 5007-5008, 7000, 5050
+    # If puppet layer tries to get values of 100-107 bds the final_bd_vni map
+    # which is returned will contain only these mappings as
+    # {100=>5000,101=>0,102=>0,103>0,104=>0,105=>8000,106=>0,107=>5007}
     def member_vni
-      vni_list = []
+      final_bd_vni = {}
       curr_vni = config_get('bridge_domain', 'member_vni')
       curr_bd_vni = config_get('bridge_domain', 'member_vni_bd')
-      return '' if curr_vni.empty? || curr_bd_vni.empty?
+      return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
 
       curr_vni_list = BridgeDomain.bd_ids_to_array(curr_vni)
       curr_bd_vni_list = BridgeDomain.bd_ids_to_array(curr_bd_vni)
@@ -220,28 +186,90 @@ module Cisco
 
       hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
       input_bds.each do |bd|
-        vni_list << hash_map[bd]
+        final_bd_vni[bd.to_i] =
+            hash_map.key?(bd.to_i) ? hash_map[bd.to_i] : 0
       end
-      return '' unless vni_list.any?
-
-      BridgeDomain.bd_list_to_string(vni_list)
+      final_bd_vni
     end
 
-    def set_member_vni=(cmd, val)
-      no_cmd = (cmd) ? '' : 'no'
-      vdc = Vdc.new('default')
-      vdc.limit_resource_module_type = 'f3' unless
-        vdc.limit_resource_module_type == 'f3'
-      Feature.vni_enable unless Feature.vni_enabled?
-      result = config_set('bridge_domain', 'member_vni', no_cmd, val, @bd_ids,
-                          no_cmd, val)
+    # This member_vni mapping will be executed only when the val is not empty
+    # else it will be treated as a 'no' cli and executed as required.
+    # If the mappings do not match in any fashion then cli normally returns a
+    # failure which will be handled.
+    def member_vni=(val)
+      val = val.to_s
+      Feature.vni_enable
+      if val.empty?
+        bd_val = member_vni.keys.join(',')
+        vni_val = member_vni.values.join(',')
+        return '' if vni_val.empty?
+        result = config_set('bridge_domain', 'member_vni', vnistate: 'no',
+                            vni: vni_val, bd: bd_val, membstate: 'no',
+                            membvni: vni_val)
+      else
+        result = config_set('bridge_domain', 'member_vni', vnistate: '',
+                            vni: val.to_s, bd: @bd_ids, membstate: '',
+                            membvni: val.to_s)
+      end
       cli_error_check(result)
     rescue CliError => e
-      raise "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
+      bd_raise(e)
     end
 
     def default_member_vni
       config_get_default('bridge_domain', 'member_vni')
+    end
+
+    # Bridge-Domain name assigning case
+    # bridge-domain 100
+    #   name PepsiCo
+    def name
+      config_get('bridge_domain', 'name', bd: @bd_ids)
+    end
+
+    def name=(str)
+      fail TypeError unless str.is_a?(String)
+      if str.empty?
+        result = config_set('bridge_domain', 'name',
+                            bd: @bd_ids, state: 'no', name: '')
+      else
+        result = config_set('bridge_domain', 'name',
+                            bd: @bd_ids, state: '', name: str)
+      end
+      cli_error_check(result)
+    rescue CliError => e
+      bd_raise(e)
+    end
+
+    def default_name
+      sprintf('Bridge-Domain%s', @bd_ids)
+    end
+
+    # Bridge-Domain Shutdown case
+    # bridge-domain 100
+    #   shutdown
+    def shutdown
+      result = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
+      # Valid result is either: "active"(aka no shutdown) or "shutdown"
+      result[/DOWN/] ? true : false
+    end
+
+    def shutdown=(val)
+      state = (val) ? '' : 'no'
+      result = config_set('bridge_domain', 'shutdown',
+                          bd: @bd_ids, state: state)
+      cli_error_check(result)
+    rescue CliError => e
+      bd_raise(e)
+    end
+
+    def default_shutdown
+      config_get_default('bridge_domain', 'shutdown')
+    end
+
+    # getter for system bridge-domain
+    def system_bd_add
+      config_get('bridge_domain', 'system_bd_add')
     end
   end  # Class
 end    # Module
