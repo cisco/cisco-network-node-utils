@@ -45,6 +45,8 @@ include Cisco
 
 # TestPim - Minitest for Pim Feature
 class TestPim < CiscoTestCase
+  @skip_unless_supported = 'pim'
+
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   # Enables feature pim

@@ -26,6 +26,10 @@ module Cisco
       validate_args(name)
     end
 
+    def to_s
+      "interface_channel_group #{name}"
+    end
+
     def self.interfaces
       hash = {}
       all = config_get('interface_channel_group', 'all_interfaces')
@@ -50,10 +54,6 @@ module Cisco
     def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
       @get_args = { name: @name }
       @set_args = @get_args.merge!(hash) unless hash.empty?
-    end
-
-    def fail_cli(e)
-      fail "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     ########################################################
@@ -102,8 +102,6 @@ module Cisco
       state = desc.strip.empty? ? 'no' : ''
       config_set('interface_channel_group', 'description',
                  set_args_keys(state: state, desc: desc))
-    rescue Cisco::CliError => e
-      fail_cli(e)
     end
 
     def default_description
@@ -118,8 +116,6 @@ module Cisco
     def shutdown=(state)
       config_set('interface_channel_group', 'shutdown',
                  set_args_keys(state: state ? '' : 'no'))
-    rescue Cisco::CliError => e
-      fail_cli(e)
     end
 
     def default_shutdown

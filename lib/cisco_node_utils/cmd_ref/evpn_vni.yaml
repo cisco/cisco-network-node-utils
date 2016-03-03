@@ -1,5 +1,7 @@
 # evpn_vni.yaml
 ---
+_exclude: [ios_xr]
+
 _template:
   get_command: "show running bgp all"
   get_context:

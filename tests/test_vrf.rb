@@ -123,7 +123,7 @@ class TestVrf < CiscoTestCase
   end
 
   def test_route_distinguisher
-    v = Vrf.new('blue')
+    v = Vrf.new('green')
     if platform == :ios_xr
       # Must be configured under BGP in IOS XR
       assert_nil(v.route_distinguisher)
@@ -174,12 +174,13 @@ class TestVrf < CiscoTestCase
   #-----------------------------------------
   # test_route_policy
   def test_route_policy
+    config('route-policy abc', 'end-policy') if platform == :ios_xr
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_policy(af) }
+    config('no route-policy abc') if platform == :ios_xr
   end
 
   def route_policy(af)
-    vrf = 'blue'
-    v = VrfAF.new(vrf, af)
+    v = VrfAF.new('black', af)
 
     assert_nil(v.default_route_policy_import,
                "Test1.1 : #{af} : route_policy_import")
@@ -222,7 +223,7 @@ class TestVrf < CiscoTestCase
     #   route_target_export_evpn
     #   route_target_import
     #   route_target_import_evpn
-    vrf = 'red'
+    vrf = 'orange'
     v = VrfAF.new(vrf, af)
 
     # test route target both auto and route target both auto evpn

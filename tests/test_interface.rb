@@ -151,6 +151,14 @@ class TestInterface < CiscoTestCase
     config("default interface ethernet #{ethernet_id}")
   end
 
+  def interface_supports_property?(intf, message)
+    patterns = ['requested config change not allowed',
+                '% Invalid command']
+    skip("Interface '#{intf}' does not support property") if
+      message[Regexp.union(patterns)]
+    flunk(message)
+  end
+
   def validate_interfaces_not_empty
     interfaces = Interface.interfaces
     refute_empty(interfaces, 'Error: interfaces collection empty')
@@ -708,6 +716,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     # Create interface member of this group (required for XR)
+    interface_ethernet_default(interfaces_id[0])
     member = InterfaceChannelGroup.new(interfaces[0])
     begin
       member.channel_group = 10
@@ -1032,6 +1041,38 @@ class TestInterface < CiscoTestCase
     assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
   end
 
+  def test_interface_ipv4_forwarding
+    intf = interfaces[0]
+    interface_ethernet_default(intf)
+    i = Interface.new(intf)
+
+    if platform == :ios_xr
+      assert_nil(i.default_ipv4_forwarding)
+      assert_nil(i.ipv4_forwarding)
+      assert_raises(Cisco::UnsupportedError) { i.ipv4_forwarding = false }
+      return
+    end
+
+    assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
+    begin
+      i.switchport_mode = :disabled
+      i.ipv4_forwarding = true
+    rescue RuntimeError, CliError => e
+      # RuntimeError when switchport_mode fails (some lc's, e.g. N7K-F248XP-25E)
+      # CliError when ipv4_forwarding fails
+      interface_supports_property?(intf, e.message)
+    end
+    assert(i.ipv4_forwarding)
+
+    i.ipv4_forwarding = false
+    refute(i.ipv4_forwarding)
+
+    i.ipv4_forwarding = true
+    assert(i.ipv4_forwarding)
+    i.ipv4_forwarding = i.default_ipv4_forwarding
+    assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
+  end
+
   def test_interface_fabric_forwarding_anycast_gateway
     unless platform == :ios_xr
       # Setup
@@ -1184,9 +1225,7 @@ class TestInterface < CiscoTestCase
     inttype_h
   end
 
-  # NOTE - Changes to this method may require new validation methods
-  #        to be created or existing ones to be modified.
-  def test_interface_ipv4_all_interfaces
+  def interface_test_data
     inttype_h = {}
     inttype_h[interfaces[0]] = {
       address_len:         '8.7.1.1/15',
@@ -1259,6 +1298,13 @@ class TestInterface < CiscoTestCase
     }
     # Skipping mgmt0 interface since that interface is our 'path' to
     # master should revisit this later
+    inttype_h
+  end
+
+  # NOTE - Changes to this method may require new validation methods
+  #        to be created or existing ones to be modified.
+  def test_interface_ipv4_all_interfaces
+    inttype_h = interface_test_data
 
     # Set system defaults to "factory" values prior to initial test.
     config(*
@@ -1278,9 +1324,15 @@ class TestInterface < CiscoTestCase
     # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
-      cfg << "#{/^Ethernet/.match(k) ? 'default' : 'no'} interface #{k}"
+      if /ethernet/.match(k)
+        # leave interface there, but unconfigure it
+        cfg.push(*get_interface_cleanup_config(k))
+      else
+        # remove interface
+        cfg << "no interface #{k}"
+      end
     end
-    cfg << 'no feature interface-vlan'
+    cfg << 'no feature interface-vlan' unless platform == :ios_xr
 
     begin
       # Validate the collection
@@ -1294,6 +1346,7 @@ class TestInterface < CiscoTestCase
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
       config(*cfg)
+      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)

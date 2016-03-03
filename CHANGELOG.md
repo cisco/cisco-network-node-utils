@@ -17,21 +17,29 @@ Changelog
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
+* CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
 * Add IOS XR support for the following classes:
   * bgp
   * bgp_af
   * bgp_neighbor
   * bgp_neighbor_af
-  * interface
   * command_config
-  * platform (@glennmatthews)
+  * dns_domain (@glennmatthews)
+  * domain_name (@glennmatthews)
+  * interface
+  * name_server (@glennmatthews)
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
-
+  * platform (@glennmatthews)
 * `test_feature` minitest
 * Extend interface with attributes:
+  * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+* Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
+  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_multicast_load_balance` (only on Nexus 7k)
+  * `port_channel_limit` (only on Nexus 7k)
 
 ### Changed
 
@@ -50,7 +58,7 @@ Changelog
   - MTU is not supported on loopback interfaces
 
 ### Removed
-*
+* Removed `Node.lazy_connect` internal API.
 
 ## [v1.2.0]
 

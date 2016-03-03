@@ -30,6 +30,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "VRF #{name}"
+    end
+
     def self.vrfs
       hash = {}
       vrf_list = config_get('vrf', 'all_vrfs')
@@ -63,8 +67,6 @@ module Cisco
       desc.strip!
       no_cmd = desc.empty? ? 'no' : ''
       config_set('vrf', 'description', vrf: @name, state: no_cmd, desc: desc)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
@@ -78,8 +80,6 @@ module Cisco
     def shutdown=(val)
       no_cmd = (val) ? '' : 'no'
       config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
-    rescue Cisco::CliError => e
-      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
@@ -122,8 +122,6 @@ module Cisco
       no_cmd = (id) ? '' : 'no'
       id = (id) ? id : vni
       config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)
-    rescue Cisco::CliError => e
-      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_vni

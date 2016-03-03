@@ -36,22 +36,24 @@ If you do not wish to change the global configuration on your system, you can se
 
 This project requires Ruby 2.0 or later.
 
-This development guide uses tools that are packaged as gems that need to be installed in your development environment.
+This development guide uses tools that are packaged as gems that need to be installed in your development environment. You can install the gems manually but it's recommended to use [Bundler](https://rubygems.org/gems/bundler) to guarantee the dependencies are all present.
 
 ```bash
-gem install rake
-gem install rubocop
-gem install simplecov
-gem install minitest
+gem install bundler
+```
+At present the following gems are needed to work on this code base - if you wish to install them all manually instead of through Bundler, you can run:
+
+```bash
+gem install grpc kwalify minitest net_http_unix rake rspec simplecov
+gem install rubocop --version 0.35.1
 ```
 
-**NOTE:** If you are working from a server where you don't have admin/root privileges, use the following commands to install the gems 
+**NOTE:** If you are working from a server where you don't have admin/root privileges, use the following commands to install the gems:
 
 ```bash
-gem install --user-install rake
-gem install --user-install rubocop
-gem install --user-install simplecov
-gem install --user-install minitest
+gem install --user-install bundler
+gem install --user-install grpc kwalify minitest net_http_unix rake rspec simplecov
+gem install --user-install rubocop --version 0.35.1
 ```
 or add `--user-install` to your `.gemrc` to make this the default behavior:
 
@@ -80,6 +82,18 @@ Next create your local repository. Clone the cisco-network-node-utils repo from 
 ```bash
 git clone https://github.com/YOUR-USERNAME/cisco-network-node-utils.git
 cd cisco-network-node-utils/
+```
+
+If you're using Bundler, invoke it to ensure all of the development dependencies are installed on your system:
+
+```bash
+bundle install
+```
+
+or (if you don't have admin/root privileges and have used `--user-install` to install Bundler):
+
+```bash
+~/.gem/ruby/$RUBY_VERSION/bin/bundle install --path ~/.gem
 ```
 
 If you intend to contribute your code back to the project then you should install the git hooks that are checked in with the project source code.  These hooks check your commits for conformance with various style guidelines.  To install them in your local repository (or to update them to match the files currently in the repository, in case they are out of sync), simply run the `update-hooks` script:
@@ -246,6 +260,10 @@ module Cisco
       fail ArgumentError unless name.length > 0
       @name = name
       create if instantiate
+    end
+
+    def to_s
+      "RouterEigrp '#{name}'"
     end
 
     # Create a hash of all current router instances.

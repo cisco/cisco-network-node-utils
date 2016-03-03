@@ -1,4 +1,7 @@
-# David Chuck, November 2015
+#
+# NXAPI implementation of vpc domain class
+#
+# November 2015, Deepak Cherian
 #
 # Copyright (c) 2014-2016 Cisco and/or its affiliates.
 #
@@ -16,6 +19,7 @@
 
 require_relative 'node_util'
 require_relative 'interface'
+require_relative 'fabricpath_global'
 
 # Add vpc-specific constants to Cisco namespace
 module Cisco
@@ -25,7 +29,6 @@ module Cisco
     # Constructor for Vpc
     def initialize(domain_id, instantiate=true)
       @domain = domain_id
-      @set_params = {}
 
       create if instantiate
     end
@@ -144,6 +147,39 @@ module Cisco
     def default_dual_active_exclude_interface_vlan_bridge_domain
       config_get_default('vpc',
                          'dual_active_exclude_interface_vlan_bridge_domain')
+    end
+
+    def fabricpath_emulated_switch_id
+      config_get('vpc', 'fabricpath_emulated_switch_id')
+    end
+
+    def fabricpath_emulated_switch_id=(switch_id)
+      # automatically enable fabricpath if it is not already enabled
+      FabricpathGlobal.fabricpath_feature_set(:enabled) if
+        switch_id && :enabled != FabricpathGlobal.fabricpath_feature
+      set_args_keys(state: switch_id ? '' : 'no',
+                    swid:  switch_id ? switch_id : '')
+      config_set('vpc', 'fabricpath_emulated_switch_id', @set_args)
+    end
+
+    def default_fabricpath_emulated_switch_id
+      config_get_default('vpc', 'fabricpath_emulated_switch_id')
+    end
+
+    def fabricpath_multicast_load_balance
+      config_get('vpc', 'fabricpath_multicast_load_balance')
+    end
+
+    def fabricpath_multicast_load_balance=(val)
+      set_args_keys(state: val ? '' : 'no')
+      # This requires fabricpath_emulated_switch_id to be set first
+      fail 'fabricpath_switch_id configuration is required in the vPC domain' if
+        !fabricpath_emulated_switch_id && val
+      config_set('vpc', 'fabricpath_multicast_load_balance', @set_args)
+    end
+
+    def default_fabricpath_multicast_load_balance
+      config_get_default('vpc', 'fabricpath_multicast_load_balance')
     end
 
     def graceful_consistency_check
@@ -290,6 +326,23 @@ module Cisco
       config_get_default('vpc', 'peer_gateway_exclude_vlan')
     end
 
+    def port_channel_limit
+      val = config_get('vpc', 'port_channel_limit')
+      val.nil? ? false : val
+    end
+
+    def port_channel_limit=(val)
+      set_args_keys(state: val ? '' : 'no')
+      # This requires fabricpath_emulated_switch_id to be set first
+      fail 'fabricpath_switch_id configuration is required in the vPC domain' if
+        !fabricpath_emulated_switch_id && !val
+      config_set('vpc', 'port_channel_limit', @set_args)
+    end
+
+    def default_port_channel_limit
+      config_get_default('vpc', 'port_channel_limit')
+    end
+
     def role_priority
       config_get('vpc', 'role_priority')
     end
@@ -362,7 +415,7 @@ module Cisco
 
     def track=(val)
       unless val.nil?
-        fail ArgumentError, 'retransmit_count must be an Integer' unless
+        fail ArgumentError, 'track must be an Integer' unless
           val.is_a?(Integer)
       end
 

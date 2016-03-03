@@ -5,15 +5,23 @@ _template:
 
 domain_list:
   multiple: true
-  get_value: '/^ip domain-list (\S+)$/'
-  set_value: '<state> ip domain-list <name>'
+  nexus:
+    get_value: '/^ip domain-list (\S+)$/'
+    set_value: '<state> ip domain-list <name>'
+  ios_xr:
+    get_value: '/^domain list (\S+)$/'
+    set_value: '<state> domain list <name>'
   default_value: []
 
 domain_list_vrf:
   multiple: true
-  context: ['vrf context <vrf>']
-  get_value: '/ip domain-list (\S+)/'
-  set_value: '<state> ip domain-list <name>'
+  nexus:
+    context: ['vrf context <vrf>']
+    get_value: '/ip domain-list (\S+)/'
+    set_value: '<state> ip domain-list <name>'
+  ios_xr:
+    get_value: '/^domain vrf <vrf> list (\S+)/'
+    set_value: '<state> domain vrf <vrf> list <name>'
   default_value: []
 
 domain_name:
@@ -26,14 +34,22 @@ domain_name:
     get_value: '/^domain name (\S+)$/'
 
 domain_name_vrf:
-  context: ['vrf context <vrf>']
-  get_value: '/ip domain-name (\S+)/'
-  set_value: '<state> ip domain-name <name>'
+  nexus:
+    context: ['vrf context <vrf>']
+    get_value: '/ip domain-name (\S+)/'
+    set_value: '<state> ip domain-name <name>'
+  ios_xr:
+    get_value: '/^domain vrf <vrf> name (\S+)$/'
+    set_value: '<state> domain vrf <vrf> name <name>'
   default_value: ''
 
 name_server:
   multiple: true
   default_value: []
-  get_command: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
-  get_value: '/^ip name-server ([\s\d\.:]+)$/'
-  set_value: '<state> ip name-server <ip>'
+  nexus:
+    get_command: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+    get_value: '/^ip name-server ([\s\d\.:]+)$/'
+    set_value: '<state> ip name-server <ip>'
+  ios_xr:
+    get_value: '/^domain name-server (\S+)$/'
+    set_value: '<state> domain name-server <ip>'

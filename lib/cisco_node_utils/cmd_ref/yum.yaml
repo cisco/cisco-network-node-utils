@@ -1,5 +1,7 @@
 # yum
 ---
+_exclude: [ios_xr]
+
 install:
   set_value: "install add %s %s activate"
 

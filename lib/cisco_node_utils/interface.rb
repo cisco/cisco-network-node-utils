@@ -56,6 +56,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "interface #{name}"
+    end
+
     def self.interfaces
       hash = {}
       intf_list = config_get('interface', 'all_interfaces')
@@ -164,15 +168,14 @@ module Cisco
                  name: @name, state: no_cmd)
       fail if fabric_forwarding_anycast_gateway.to_s != state.to_s
     rescue Cisco::CliError => e
-      info = "[#{@name}] '#{e.command}' : #{e.clierror}"
-      raise "#{info} 'fabric_forwarding_anycast_gateway' can only be " \
+      raise "#{e} 'fabric_forwarding_anycast_gateway' can only be " \
         'configured on a vlan interface' unless /vlan/.match(@name)
       anycast_gateway_mac = OverlayGlobal.new.anycast_gateway_mac
       if anycast_gateway_mac.nil? || anycast_gateway_mac.empty?
-        raise "#{info} Anycast gateway mac must be configured " \
+        raise "#{e} Anycast gateway mac must be configured " \
                'before configuring forwarding mode under interface'
       end
-      raise info
+      raise
     end
 
     def default_fabric_forwarding_anycast_gateway
@@ -356,6 +359,19 @@ module Cisco
 
     def default_ipv4_arp_timeout
       config_get_default('interface', ipv4_arp_timeout_lookup_string)
+    end
+
+    def ipv4_forwarding
+      config_get('interface', 'ipv4_forwarding', name: @name)
+    end
+
+    def ipv4_forwarding=(state)
+      config_set('interface', 'ipv4_forwarding',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_forwarding
+      config_get_default('interface', 'ipv4_forwarding')
     end
 
     def ipv4_pim_sparse_mode
@@ -953,8 +969,6 @@ module Cisco
                      state: state, original: original, translated: translated)
         end
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     # cli: switchport vlan mapping enable
@@ -1018,6 +1032,7 @@ module Cisco
     end
 
     def switchport_vtp=(vtp_set)
+      # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', name: @name, state: no_cmd)
@@ -1072,6 +1087,7 @@ module Cisco
     end
 
     def default_switchport_vtp
+      return nil unless switchport_vtp_mode_capable?
       config_get_default('interface', 'vtp')
     end
 

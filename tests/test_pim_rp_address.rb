@@ -31,6 +31,8 @@ include Cisco
 
 # TestPimRpAddress - Minitest for PimRpAddress
 class TestPimRpAddress < CiscoTestCase
+  @skip_unless_supported = 'pim'
+
   # Enables feature pim
   #--------------------
   def setup

@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/snmpserver'
 
 # TestSnmpServer - Minitest for SnmpServer node utility
 class TestSnmpServer < CiscoTestCase
+  @skip_unless_supported = 'snmp_server'
+
   DEFAULT_SNMP_SERVER_AAA_USER_CACHE_TIMEOUT = 3600
   DEFAULT_SNMP_SERVER_LOCATION = ''
   DEFAULT_SNMP_SERVER_CONTACT = ''

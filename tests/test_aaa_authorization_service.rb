@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
 # TestAaaAuthorizationService - Minitest for AaaAuthorizationService util
 class TestAaaAuthorizationService < CiscoTestCase
+  @skip_unless_supported = 'aaa_authorization_service'
+
   def setup
     super
     feature_tacacs

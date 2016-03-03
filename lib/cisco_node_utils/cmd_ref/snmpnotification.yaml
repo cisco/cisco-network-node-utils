@@ -1,5 +1,7 @@
 # snmpnotification
 ---
+_exclude: [ios_xr]
+
 enable:
   get_command: "sh run snmp all | include 'snmp-server enable traps'"
   get_value: '/^snmp-server enable traps <trap_name> ?$/'

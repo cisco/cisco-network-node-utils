@@ -17,6 +17,8 @@ require_relative '../lib/cisco_node_utils/snmpgroup'
 
 # TestSnmpGroup - Minitest for SnmpGroup node utility.
 class TestSnmpGroup < CiscoTestCase
+  @skip_unless_supported = 'snmp_group'
+
   # NXOS snmp groups will not be empty
   def test_snmpgroup_collection_not_empty
     snmpgroups = SnmpGroup.groups

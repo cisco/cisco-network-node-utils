@@ -18,8 +18,9 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/snmpnotification'
 
-# TestRadiusGlobal - Minitest for RadiusGlobal node utility.
+# TestSnmpNotification - Minitest for SnmpNotification node utility.
 class TestSnmpNotification < CiscoTestCase
+  @skip_unless_supported = 'snmpnotification'
   def setup
     # setup runs at the beginning of each test
     super

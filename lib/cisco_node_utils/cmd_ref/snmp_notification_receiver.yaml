@@ -1,5 +1,7 @@
 # snmp_notification_receiver
 ---
+_exclude: [ios_xr]
+
 port:
   get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.*version.* udp-port (\d+).*$/'

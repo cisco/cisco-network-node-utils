@@ -93,7 +93,7 @@ module Cisco
     # Create pim grouplist instance
     # ---------------------------------
     def create
-      Pim.feature_enable unless Pim.feature_enabled
+      Feature.pim_enable
       set_args_keys(state: '')
       config_set('pim', 'group_list', @set_args)
     end
