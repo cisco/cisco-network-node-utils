@@ -156,10 +156,7 @@ client.set(values: 'vtp domain mycompany.com')
 ```ruby
 require 'cisco_node_utils'
 
-Cisco::Node.lazy_connect = true
-
-node = Cisco::Node.instance()
-node.connect("n3k.mycompany.com", "username", "password")
+node = Cisco::Node.new("n3k.mycompany.com", "username", "password")
 
 version = node.config_get("show_version", "system_image")
 

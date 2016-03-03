@@ -19,7 +19,6 @@
 require_relative '../client'
 require 'json'
 require 'net/http'
-require_relative 'client_errors'
 
 include Cisco::Logger
 
@@ -48,7 +47,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     # Default: connect to unix domain socket on localhost, if available
     if address.nil?
       unless File.socket?(NXAPI_UDS)
-        fail Cisco::Client::ConnectionRefused, \
+        fail Cisco::ConnectionRefused, \
              "No address specified but no UDS found at #{NXAPI_UDS} either"
       end
       # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
@@ -115,7 +114,7 @@ class Cisco::Client::NXAPI < Cisco::Client
           context: nil,
           values: nil)
     # we don't currently support nxapi_structured for configuration
-    fail RequestNotSupported if data_format == :nxapi_structured
+    fail Cisco::RequestNotSupported if data_format == :nxapi_structured
     context = munge_to_array(context)
     values = munge_to_array(values)
     super
@@ -128,9 +127,9 @@ class Cisco::Client::NXAPI < Cisco::Client
   # multiple calls with the same parameters may return cached data
   # rather than querying the device repeatedly.
   #
-  # @raise [RequestNotSupported] if
+  # @raise [Cisco::RequestNotSupported] if
   #   structured output is requested but the given command can't provide it.
-  # @raise [CliError] if the command is rejected by the device
+  # @raise [Cisco::CliError] if the command is rejected by the device
   #
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param command [String] the show command to execute
@@ -159,11 +158,11 @@ class Cisco::Client::NXAPI < Cisco::Client
 
   # Sends a request to the NX API and returns the body of the request or
   # handles errors that happen.
-  # @raise ConnectionRefused if NXAPI is disabled
-  # @raise HTTPUnauthorized if username/password are invalid
-  # @raise HTTPBadRequest (should never occur)
-  # @raise RequestNotSupported
-  # @raise CliError if any command is rejected as invalid
+  # @raise Cisco::ConnectionRefused if NXAPI is disabled
+  # @raise Cisco::AuthenticationFailed if username/password are invalid
+  # @raise Cisco::ClientError (should never occur)
+  # @raise Cisco::RequestNotSupported
+  # @raise Cisco::RequestFailed if any command is rejected as invalid
   #
   # @param type ["cli_show", "cli_show_ascii"] Specifies the type of command
   #             to be executed.
@@ -195,7 +194,7 @@ class Cisco::Client::NXAPI < Cisco::Client
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
-      raise Cisco::Client::ConnectionRefused, emsg
+      raise Cisco::ConnectionRefused, emsg
     end
     handle_http_response(response)
     output = parse_response(response)
@@ -247,10 +246,10 @@ class Cisco::Client::NXAPI < Cisco::Client
     case response
     when Net::HTTPUnauthorized
       emsg = 'HTTP 401 Unauthorized. Are your NX-API credentials correct?'
-      fail HTTPUnauthorized, emsg
+      fail Cisco::AuthenticationFailed, emsg
     when Net::HTTPBadRequest
       emsg = "HTTP 400 Bad Request\n#{response.body}"
-      fail HTTPBadRequest, emsg
+      fail Cisco::ClientError, emsg
     end
   end
   private :handle_http_response
@@ -262,15 +261,13 @@ class Cisco::Client::NXAPI < Cisco::Client
     # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
     # could throw an error otherwise.
     output = body['ins_api']
-    if output.nil?
-      fail Cisco::Client::ClientError, "unexpected JSON output:\n#{body}"
-    end
+    fail Cisco::ClientError, "unexpected JSON output:\n#{body}" if output.nil?
     output = output['outputs'] if output['outputs']
     output = output['output'] if output['output']
 
     output
   rescue JSON::ParserError
-    raise Cisco::Client::ClientError, "response is not JSON:\n#{response.body}"
+    raise Cisco::ClientError, "response is not JSON:\n#{response.body}"
   end
   private :parse_response
 
@@ -278,16 +275,21 @@ class Cisco::Client::NXAPI < Cisco::Client
     if output['code'] == '400'
       # CLI error.
       # Examples: "Invalid input", "Incomplete command", etc.
-      fail CliError.new(command, output['msg'], output['code'],
-                        output['clierror'], prev_cmds)
+      fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
+        rejected_input:   command,
+        clierror:         output['clierror'],
+        msg:              output['msg'],
+        code:             output['code'],
+        successful_input: prev_cmds,
+      )
     elsif output['code'] == '413'
       # Request too large
-      fail Cisco::Client::RequestNotSupported, "Error 413: #{output['msg']}"
+      fail Cisco::RequestNotSupported, "Error 413: #{output['msg']}"
     elsif output['code'] == '501'
       # if structured output is not supported for this command,
       # raise an exception so that the calling function can
       # handle accordingly
-      fail Cisco::Client::RequestNotSupported, \
+      fail Cisco::RequestNotSupported, \
            "Structured output not supported for #{command}"
     else
       debug("Result for '#{command}': #{output['msg']}")

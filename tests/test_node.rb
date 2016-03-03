@@ -19,8 +19,6 @@ require_relative '../lib/cisco_node_utils/command_reference'
 
 include Cisco
 
-Node.lazy_connect = true # we'll specify the connection info later
-
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
@@ -32,6 +30,7 @@ class TestNode < TestCase
     # we provide to Node to connect with.
     @env_node = ENV['NODE']
     ENV['NODE'] = nil
+    Node.instance_variable_set(:@instance, nil)
   end
 
   def teardown
@@ -39,80 +38,94 @@ class TestNode < TestCase
     ENV['NODE'] = @env_node
   end
 
-  # As Node is now a singleton, we cannot instantiate it.
-
-  def test_node_create_not_allowed
-    assert_raises(NoMethodError) do
+  def test_connect_zero_arguments
+    # No UDS present on the test host, so default logic fails to connect
+    assert_raises(Cisco::ConnectionRefused) do
       Node.new
     end
-  end
-
-  def test_node_connect_zero_arguments
-    node = Node.instance
-    # No UDS present on the test host, so default logic fails to connect
-    assert_raises(Cisco::Client::ConnectionRefused) do
-      node.connect
+    assert_raises(RuntimeError) do
+      Node.instance
     end
   end
 
-  def test_node_connect_one_argument
-    node = Node.instance
+  def test_connect_one_argument
     assert_raises(TypeError, ArgumentError) do
-      node.connect(address)
+      Node.new(address)
     end
-  end
-
-  def test_node_connect_two_arguments
-    node = Node.instance
     assert_raises(TypeError, ArgumentError) do
-      node.connect(username, password)
+      Node.instance(address)
     end
   end
 
-  def test_node_connect_nil_username
-    node = Node.instance
+  def test_connect_two_arguments
     assert_raises(TypeError, ArgumentError) do
-      node.connect(address, nil, password)
+      Node.new(username, password)
     end
-  end
-
-  def test_node_connect_invalid_username
-    node = Node.instance
     assert_raises(TypeError, ArgumentError) do
-      node.connect(address, node, password)
+      Node.instance(username, password)
     end
   end
 
-  def test_node_connect_username_zero_length
-    node = Node.instance
+  def test_connect_nil_username
+    assert_raises(TypeError, ArgumentError) do
+      Node.new(address, nil, password)
+    end
+    assert_raises(TypeError, ArgumentError) do
+      Node.instance(address, nil, password)
+    end
+  end
+
+  def test_connect_invalid_username
+    assert_raises(TypeError, ArgumentError) do
+      Node.new(address, self, password)
+    end
+    assert_raises(TypeError, ArgumentError) do
+      Node.instance(address, self, password)
+    end
+  end
+
+  def test_connect_username_zero_length
     assert_raises(ArgumentError) do
-      node.connect(address, '', password)
+      Node.new(address, '', password)
     end
-  end
-
-  def test_node_connect_nil_password
-    node = Node.instance
-    assert_raises(TypeError, ArgumentError) do
-      node.connect(address, username, nil)
-    end
-  end
-
-  def test_node_connect_invalid_password
-    node = Node.instance
-    assert_raises(TypeError, ArgumentError) do
-      node.connect(address, username, node)
-    end
-  end
-
-  def test_node_connect_password_zero_length
-    node = Node.instance
     assert_raises(ArgumentError) do
-      node.connect(address, username, '')
+      Node.instance(address, '', password)
     end
   end
 
-  def test_node_connect
-    node = Node.instance
-    node.connect(address, username, password)
+  def test_connect_nil_password
+    assert_raises(TypeError, ArgumentError) do
+      Node.new(address, username, nil)
+    end
+    assert_raises(TypeError, ArgumentError) do
+      Node.instance(address, username, nil)
+    end
+  end
+
+  def test_connect_invalid_password
+    assert_raises(TypeError, ArgumentError) do
+      Node.new(address, username, self)
+    end
+    assert_raises(TypeError, ArgumentError) do
+      Node.instance(address, username, self)
+    end
+  end
+
+  def test_connect_password_zero_length
+    assert_raises(ArgumentError) do
+      Node.new(address, username, '')
+    end
+    assert_raises(ArgumentError) do
+      Node.instance(address, username, '')
+    end
+  end
+
+  def test_connect
+    node = Node.instance(address, username, password)
+    node2 = Node.instance
+    assert_equal(node, node2)
+    assert_raises(RuntimeError) do
+      Node.instance(address, 'hello', 'goodbye')
+    end
   end
 end

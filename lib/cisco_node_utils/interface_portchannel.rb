@@ -32,6 +32,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "interface_port_channel #{name}"
+    end
+
     def self.interfaces
       hash = {}
       intf_list = config_get('interface', 'all_interfaces')
@@ -65,8 +69,6 @@ module Cisco
       no_cmd = (state ? '' : 'no')
       config_set('interface_portchannel',
                  'lacp_graceful_convergence', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_lacp_graceful_convergence
@@ -79,8 +81,6 @@ module Cisco
 
     def lacp_max_bundle=(val)
       config_set('interface_portchannel', 'lacp_max_bundle', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_lacp_max_bundle
@@ -93,8 +93,6 @@ module Cisco
 
     def lacp_min_links=(val)
       config_set('interface_portchannel', 'lacp_min_links', @name, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_lacp_min_links
@@ -109,8 +107,6 @@ module Cisco
       no_cmd = (state ? '' : 'no')
       config_set('interface_portchannel',
                  'lacp_suspend_individual', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_lacp_suspend_individual
@@ -130,8 +126,6 @@ module Cisco
       end
       config_set('interface_portchannel',
                  'port_hash_distribution', @name, state, val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_port_hash_distribution
@@ -146,8 +140,6 @@ module Cisco
       no_cmd = (state ? '' : 'no')
       config_set('interface_portchannel',
                  'port_load_defer', @name, no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_port_load_defer
