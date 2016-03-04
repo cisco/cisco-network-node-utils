@@ -92,42 +92,38 @@ class TestItdDeviceGroupNode < CiscoTestCase
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     host = 'resolver1.opendns.com'
-    if node.product_id =~ /N(5|6)/
-      assert_nil(idg.probe_dns_host)
-    else
-      type = 'dns'
-      freq = 9
-      rd = 5
-      ru = 5
-      to = 6
-      idg.send(:probe=, type, host, nil, freq, ru, rd, nil, to)
-      assert_equal(type, idg.probe_type)
-      assert_equal(host, idg.probe_dns_host)
-      assert_equal(freq, idg.probe_frequency)
-      assert_equal(to, idg.probe_timeout)
-      assert_equal(ru, idg.probe_retry_up)
-      assert_equal(rd, idg.probe_retry_down)
-      host = '208.67.220.222'
-      idg.send(:probe=, type, host, nil,
-               idg.default_probe_frequency,
-               idg.default_probe_retry_up,
-               idg.default_probe_retry_down,
-               nil,
-               idg.default_probe_timeout)
-      assert_equal(host, idg.probe_dns_host)
-      assert_equal(idg.default_probe_frequency, idg.probe_frequency)
-      assert_equal(idg.default_probe_timeout, idg.probe_timeout)
-      assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
-      assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
-      host = '2620:0:ccd::2'
-      idg.send(:probe=, type, host, nil,
-               idg.default_probe_frequency,
-               idg.default_probe_retry_up,
-               idg.default_probe_retry_down,
-               nil,
-               idg.default_probe_timeout)
-      assert_equal(host, idg.probe_dns_host)
-    end
+    type = 'dns'
+    freq = 9
+    rd = 5
+    ru = 5
+    to = 6
+    idg.send(:probe=, type, host, nil, freq, ru, rd, nil, to)
+    assert_equal(type, idg.probe_type)
+    assert_equal(host, idg.probe_dns_host)
+    assert_equal(freq, idg.probe_frequency)
+    assert_equal(to, idg.probe_timeout)
+    assert_equal(ru, idg.probe_retry_up)
+    assert_equal(rd, idg.probe_retry_down)
+    host = '208.67.220.222'
+    idg.send(:probe=, type, host, nil,
+             idg.default_probe_frequency,
+             idg.default_probe_retry_up,
+             idg.default_probe_retry_down,
+             nil,
+             idg.default_probe_timeout)
+    assert_equal(host, idg.probe_dns_host)
+    assert_equal(idg.default_probe_frequency, idg.probe_frequency)
+    assert_equal(idg.default_probe_timeout, idg.probe_timeout)
+    assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
+    assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
+    host = '2620:0:ccd::2'
+    idg.send(:probe=, type, host, nil,
+             idg.default_probe_frequency,
+             idg.default_probe_retry_up,
+             idg.default_probe_retry_down,
+             nil,
+             idg.default_probe_timeout)
+    assert_equal(host, idg.probe_dns_host)
     idg.destroy
     itddg.destroy
   end
@@ -136,39 +132,34 @@ class TestItdDeviceGroupNode < CiscoTestCase
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     port = 11_111
-    if node.product_id =~ /N(5|6)/
-      assert_nil(idg.probe_port)
-      assert_nil(idg.probe_control)
-    else
-      type = 'tcp'
-      freq = 9
-      rd = 5
-      ru = 5
-      to = 6
-      control = true
-      idg.send(:probe=, type, nil, control, freq, ru, rd, port, to)
-      assert_equal(type, idg.probe_type)
-      assert_equal(port, idg.probe_port)
-      assert_equal(control, idg.probe_control)
-      assert_equal(freq, idg.probe_frequency)
-      assert_equal(to, idg.probe_timeout)
-      assert_equal(ru, idg.probe_retry_up)
-      assert_equal(rd, idg.probe_retry_down)
-      type = 'udp'
-      idg.send(:probe=, type, nil,
-               idg.default_probe_control,
-               idg.default_probe_frequency,
-               idg.default_probe_retry_up,
-               idg.default_probe_retry_down,
-               port,
-               idg.default_probe_timeout)
-      assert_equal(type, idg.probe_type)
-      assert_equal(idg.default_probe_control, idg.probe_control)
-      assert_equal(idg.default_probe_frequency, idg.probe_frequency)
-      assert_equal(idg.default_probe_timeout, idg.probe_timeout)
-      assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
-      assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
-    end
+    type = 'tcp'
+    freq = 9
+    rd = 5
+    ru = 5
+    to = 6
+    control = true
+    idg.send(:probe=, type, nil, control, freq, ru, rd, port, to)
+    assert_equal(type, idg.probe_type)
+    assert_equal(port, idg.probe_port)
+    assert_equal(control, idg.probe_control)
+    assert_equal(freq, idg.probe_frequency)
+    assert_equal(to, idg.probe_timeout)
+    assert_equal(ru, idg.probe_retry_up)
+    assert_equal(rd, idg.probe_retry_down)
+    type = 'udp'
+    idg.send(:probe=, type, nil,
+             idg.default_probe_control,
+             idg.default_probe_frequency,
+             idg.default_probe_retry_up,
+             idg.default_probe_retry_down,
+             port,
+             idg.default_probe_timeout)
+    assert_equal(type, idg.probe_type)
+    assert_equal(idg.default_probe_control, idg.probe_control)
+    assert_equal(idg.default_probe_frequency, idg.probe_frequency)
+    assert_equal(idg.default_probe_timeout, idg.probe_timeout)
+    assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
+    assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
     idg.destroy
     itddg.destroy
   end

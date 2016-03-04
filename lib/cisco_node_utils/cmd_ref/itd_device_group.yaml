@@ -1,6 +1,6 @@
 # itd_device_group
 ---
-_exclude: [N3k, ios_xr]
+_exclude: [N3k, N5k, N6k, ios_xr]
 
 _template:
   get_command: "show running-config all | section itd"
@@ -54,12 +54,10 @@ probe:
   set_value: "probe <type> <hps> <hpv> <control> frequency <freq> timeout <to> retry-down-count <rdc> retry-up-count <ruc>"
 
 probe_control:
-  _exclude: [N5k, N6k]
   kind: boolean
   default_value: false
 
 probe_dns_host:
-  _exclude: [N5k, N6k]
   kind: string
 
 probe_frequency:
@@ -67,7 +65,6 @@ probe_frequency:
   default_value: 10
 
 probe_port:
-  _exclude: [N5k, N6k]
   kind: int
 
 probe_retry_down:
