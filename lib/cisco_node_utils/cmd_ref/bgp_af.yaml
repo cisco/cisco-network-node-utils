@@ -53,6 +53,29 @@ all_afs:
     - '(?)vrf <vrf>'
   get_value: '/^address-family (\S+) (\S+)$/'
 
+allocate_label_all:
+  _exclude: [nexus]
+  kind: boolean
+  default_value: false
+  ios_xr:
+    set_value: '<state> allocate-label all'
+    get_value: '^allocate-label\s+all$'
+    # where:
+    #   Allocate label for selected prefixes
+    #     all: Allocate labels for all prefixes
+
+as_path_loopcheck_out:
+  _exclude: [nexus]
+  kind: boolean
+  default_value: true
+  ios_xr:
+    set_value: '<state> as-path-loopcheck out disable'
+    get_value: '^as-path-loopcheck\s+out\s+disable$'
+    # where:
+    #   Configure AS Path loop checking
+    #     out: For outbound updates
+    #     disable: Disable
+
 client_to_client:
   kind: boolean
   default_value: true

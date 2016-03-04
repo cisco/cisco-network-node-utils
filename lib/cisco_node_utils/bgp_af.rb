@@ -104,6 +104,15 @@ module Cisco
       config_set('bgp_af', 'client_to_client', @set_args)
     end
 
+    def as_path_loopcheck_out=(state)
+      # IOS XR uses "as-path-loopcheck out disable",
+      #     so turning it "on" means disabling it.
+      # Thus we invert the desired state before telling the CLI what to do:
+      state = !state if ios_xr?
+      set_args_keys(state: (state ? '' : 'no'))
+      config_set('bgp_af', 'as_path_loopcheck_out', @set_args)
+    end
+
     #
     # Default Information (Getter/Setter/Default)
     #

@@ -100,6 +100,8 @@ class TestBgpAF < CiscoTestCase
     [:additional_paths_receive,       [:toggle]],
     [:additional_paths_install,       [:toggle]],
     [:advertise_l2vpn_evpn,           [:toggle]],
+    [:allocate_label_all,             [:toggle]],
+    [:as_path_loopcheck_out,          [:toggle]],
 
     [:next_hop_route_map,             ['drop_all']],
     [:additional_paths_selection,     ['drop_all']],
@@ -143,6 +145,8 @@ class TestBgpAF < CiscoTestCase
     [:next_hop_route_map,            :ios_xr, :VRF,      :any,                 :CliError],
 
     # Nexus Unsupported
+    [:allocate_label_all,            :nexus,  :any,      :any,                 :unsupported],
+    [:as_path_loopcheck_out,         :nexus,  :any,      :any,                 :unsupported],
 
     # Nexus CLI Errors
     [:any,                           :nexus,  'default', %w(l2vpn evpn),       :CliError],
@@ -155,8 +159,8 @@ class TestBgpAF < CiscoTestCase
   # rubocop:disable Style/SpaceAroundOperators
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def check_test_exceptions(test_, os_, vrf_, af_)
-    ret = nil
-    amb = nil
+    ret = []
+    amb = []
     TEST_EXCEPTIONS.each do |test, os, vrf, af, expect|
       next unless (test_ == test || test == :any) &&
                   (os_   == os   || os   == :any) &&
@@ -169,16 +173,25 @@ class TestBgpAF < CiscoTestCase
                     (af == :ipv6      && (af_.include? 'ipv6')))
       return expect if expect == :success || expect == :skip
 
-      # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
-      if !ret.nil? && ret != expect
-        assert('TEST ERROR: Exceptions matrix has ambiguous entries! ' \
-               "#{amb} and [#{test}, #{os}, #{vrf}, #{af}]")
-      end
-      ret = expect
-      amb = [test, os, vrf, af, expect]
+      ret.push(expect)
+      amb.push([test, os, vrf, af, expect])
     end
+
+    # The currently defined errors have a hierarchy; "unsupported" is stronger.
+    return :unsupported if (ret.include?(:unsupported))
+    return :success     if ret.empty?
+
+    # In case future errors are defined, make sure there is no ambiguity.
+    ret.uniq!
+
+    # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
+    if ret.length > 1
+      assert(false, 'TEST ERROR: Exceptions matrix has ambiguous entries! ' \
+             "#{amb}")
+    end
+
     # Return the expected test result
-    ret.nil? ? :success : ret
+    ret[0]
   end
   # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   # rubocop:enable Style/SpaceAroundOperators
