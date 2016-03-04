@@ -178,7 +178,7 @@ class TestBgpAF < CiscoTestCase
     end
 
     # The currently defined errors have a hierarchy; "unsupported" is stronger.
-    return :unsupported if (ret.include?(:unsupported))
+    return :unsupported if ret.include?(:unsupported)
     return :success     if ret.empty?
 
     # In case future errors are defined, make sure there is no ambiguity.
