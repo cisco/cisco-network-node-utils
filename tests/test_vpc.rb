@@ -293,7 +293,7 @@ class TestVpc < CiscoTestCase
                            6, 3)
     # init channel group as none first, to test phy-port vPC link
     interface = InterfaceChannelGroup.new(interfaces[0])
-    interface.channel_group = false
+    interface.channel_group = false if interface.channel_group
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
       phy_interface = Interface.new(interfaces[0])
