@@ -141,7 +141,7 @@ class TestCase < Minitest::Test
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
-   result = @device.cmd(
+    result = @device.cmd(
       'String' => "configure terminal\n" + args.join("\n") + "\nend",
       # NX-OS has a space after '#', IOS XR does not
       'Match'  => /^[^()]+[$%#>] *\z/n)
