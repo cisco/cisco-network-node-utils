@@ -1,0 +1,60 @@
+# itd_service
+---
+_exclude: [N3k, N5k, N6k, ios_xr]
+
+_template:
+  get_command: "show running-config all | section itd"
+  get_context:
+      - '/^itd <name>/'
+  set_context: ["itd <name>"]
+
+access_list:
+  kind: string
+  get_value: '/^access-list (.*)$/'
+  set_value: "<state> access-list <al>"
+  default_value: false
+
+all_itds:
+  multiple:
+  get_context: ~
+  get_value: '/^itd <name>/'
+
+create:
+  set_context: ~
+  set_value: "itd <name>"
+
+destroy:
+  set_context: ~
+  set_value: "no itd <name>"
+
+device_group:
+  kind: string
+  get_value: '/^device-group (.*)$/'
+  set_value: "<state> device-group <dg>"
+  default_value: false
+
+exclude_access_list:
+  kind: string
+  get_value: '/^exclude access-list (.*)$/'
+  set_value: "<state> exclude access-list <al>"
+  default_value: false
+
+failaction:
+  kind: boolean
+  get_value: '/^failaction node reassign$/'
+  set_value: "<state> failaction node reassign"
+  default_value: false
+
+feature:
+  get_command: 'show running | i ^feature'
+  get_context: ~
+  get_value: '/^feature itd$/'
+  set_context: ~
+  set_value: 'feature itd'
+  default_value: false
+
+vrf:
+  kind: string
+  get_value: '/^vrf (.*)$/'
+  set_value: "<state> vrf <vrf>"
+  default_value: false
