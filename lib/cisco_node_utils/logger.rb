@@ -43,12 +43,12 @@ module Cisco::Logger
       @@logger = Logger.new(STDOUT) # rubocop:disable Style/ClassVars
       @@logger.level = Logger::INFO
 
-      def debug_enable
-        @@logger.level = Logger::DEBUG
+      def level
+        @@logger.level
       end
 
-      def debug_disable
-        @@logger.level = Logger::INFO
+      def level=(level)
+        @@logger.level = level
       end
     end
 

@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Minitest needs to have this path in order to discover our logging plugin
+$LOAD_PATH.push File.expand_path('../../lib', __FILE__)
+
 require 'simplecov'
 SimpleCov.start do
   # Don't calculate coverage of our test code itself!
@@ -122,7 +125,6 @@ class TestCase < Minitest::Test
                    )
     end
     @device.cmd('term len 0')
-    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have configured 'feature telnet' (NX-OS) or "
@@ -139,9 +141,16 @@ class TestCase < Minitest::Test
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
-    @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
-                # NX-OS has a space after '#', IOS XR does not
-                'Match'  => /^[^()]+[$%#>] *\z/n)
+    result = @device.cmd(
+      'String' => "configure terminal\n" + args.join("\n") + "\nend",
+      # NX-OS has a space after '#', IOS XR does not
+      'Match'  => /^[^()]+[$%#>] *\z/n)
+
+    if /invalid|^%/i.match(result)
+      Cisco::Logger.warn("Config result:\n#{result}")
+    else
+      Cisco::Logger.debug("Config result:\n#{result}")
+    end
   rescue Net::ReadTimeout => e
     raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end
