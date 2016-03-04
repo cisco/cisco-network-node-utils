@@ -77,7 +77,7 @@ class TestItdDeviceGroup < CiscoTestCase
   def test_probe_dns
     idg = ItdDeviceGroup.new('new_group')
     host = 'resolver1.opendns.com'
-    if node.product_id =~ /N(3|5|6|9)/
+    if node.product_id =~ /N(5|6)/
       assert_nil(idg.probe_dns_host)
     else
       type = 'dns'
@@ -119,7 +119,7 @@ class TestItdDeviceGroup < CiscoTestCase
   def test_probe_tcp_udp
     idg = ItdDeviceGroup.new('new_group')
     port = 11_111
-    if node.product_id =~ /N(3|5|6|9)/
+    if node.product_id =~ /N(5|6)/
       assert_nil(idg.probe_port)
       assert_nil(idg.probe_control)
     else

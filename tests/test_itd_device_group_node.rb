@@ -47,10 +47,14 @@ class TestItdDeviceGroupNode < CiscoTestCase
     assert_includes(ItdDeviceGroupNode.itd_nodes['efg'], '1.1.1.1')
 
     n1.destroy
+    refute_includes(ItdDeviceGroupNode.itd_nodes['abc'], '1.1.1.1')
     n2.destroy
     n3.destroy
+    assert_empty(ItdDeviceGroupNode.itd_nodes['abc'])
     n4.destroy
+    assert_empty(ItdDeviceGroupNode.itd_nodes['xyz'])
     n5.destroy
+    assert_empty(ItdDeviceGroupNode.itd_nodes['efg'])
   end
 
   def test_probe_icmp
@@ -88,7 +92,7 @@ class TestItdDeviceGroupNode < CiscoTestCase
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     host = 'resolver1.opendns.com'
-    if node.product_id =~ /N(3|5|6|9)/
+    if node.product_id =~ /N(5|6)/
       assert_nil(idg.probe_dns_host)
     else
       type = 'dns'
@@ -132,7 +136,7 @@ class TestItdDeviceGroupNode < CiscoTestCase
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     port = 11_111
-    if node.product_id =~ /N(3|5|6|9)/
+    if node.product_id =~ /N(5|6)/
       assert_nil(idg.probe_port)
       assert_nil(idg.probe_control)
     else
