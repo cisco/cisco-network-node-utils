@@ -97,7 +97,6 @@ layer3_peer_routing:
 
 peer_gateway: 
   kind: boolean
-  get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway/'
   set_value: "<state> peer-gateway"
