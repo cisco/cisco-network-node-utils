@@ -288,31 +288,32 @@ class TestVpc < CiscoTestCase
   #
   def test_interface_vpc_id
     vpc = Vpc.new(100)
-    # test phy port vpc
-    interface = Interface.new(interfaces[0])
-    assert_equal(interface.vpc_id, interface.default_vpc_id,
-                 'default vpc_id should be null')
     # Make sure PKA is set
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                            6, 3)
+    # init channel group as none first, to test phy-port vPC link
+    interface = InterfaceChannelGroup.new(interfaces[0])
+    interface.channel_group = false if interface.channel_group
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
-      interface.switchport_mode = :trunk
-      interface.vpc_id = 10
-      assert_equal(10, interface.vpc_id, 'vpc_id should be 10')
+      phy_interface = Interface.new(interfaces[0])
+      assert_equal(phy_interface.vpc_id, phy_interface.default_vpc_id,
+                   'default vpc_id should be null')
+      phy_interface.switchport_mode = :trunk
+      phy_interface.vpc_id = 10
+      assert_equal(10, phy_interface.vpc_id, 'vpc_id should be 10')
 
       # negative - cannot config peer link on this
       e = assert_raises(CliError) do
-        interface.vpc_peer_link = true
+        phy_interface.vpc_peer_link = true
       end
       assert_match(/Invalid number/i, e.message)
 
       # turn off vpc id
-      interface.vpc_id = false
-      refute(interface.vpc_id, 'vpc_id should be unset')
+      phy_interface.vpc_id = false
+      refute(phy_interface.vpc_id, 'vpc_id should be unset')
     end
     # test port-channel vpc
-    interface = InterfaceChannelGroup.new(interfaces[0])
     interface.channel_group = 10
     interface_pc = Interface.new('port-channel10')
     interface_pc.switchport_mode = :trunk
