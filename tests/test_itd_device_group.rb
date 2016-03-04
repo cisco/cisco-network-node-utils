@@ -23,15 +23,27 @@ class TestItdDeviceGroup < CiscoTestCase
 
   def setup
     super
-    config 'no feature itd'
+    config 'no feature itd' if n79k_platform?
   end
 
   def teardown
-    config 'no feature itd'
+    config 'no feature itd' if n79k_platform?
     super
   end
 
+  def n79k_platform?
+    /N(7|9)/ =~ node.product_id
+  end
+
   def test_itd_device_group_create_destroy
+    if node.product_id =~ /N(3|5|6)/ || platform == :ios_xr
+      itd = ItdDeviceGroup.new('dummy', false)
+      assert_nil(itd.probe_type)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.send(:probe=, 'icmp', nil, nil, 9, 5, 5, nil, 6)
+      end
+      return
+    end
     i1 = ItdDeviceGroup.new('abc')
     i2 = ItdDeviceGroup.new('BCD')
     i3 = ItdDeviceGroup.new('xyzABC')
@@ -46,6 +58,14 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_icmp
+    if node.product_id =~ /N(3|5|6)/ || platform == :ios_xr
+      itd = ItdDeviceGroup.new('dummy', false)
+      assert_nil(itd.probe_type)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.send(:probe=, 'icmp', nil, nil, 9, 5, 5, nil, 6)
+      end
+      return
+    end
     idg = ItdDeviceGroup.new('new_group')
     type = 'icmp'
     freq = 9
@@ -75,6 +95,14 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_dns
+    if node.product_id =~ /N(3|5|6)/ || platform == :ios_xr
+      itd = ItdDeviceGroup.new('dummy', false)
+      assert_nil(itd.probe_type)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.send(:probe=, 'dns', '8.8.8.8', nil, 9, 5, 5, nil, 6)
+      end
+      return
+    end
     idg = ItdDeviceGroup.new('new_group')
     host = 'resolver1.opendns.com'
     type = 'dns'
@@ -113,6 +141,14 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_tcp_udp
+    if node.product_id =~ /N(3|5|6)/ || platform == :ios_xr
+      itd = ItdDeviceGroup.new('dummy', false)
+      assert_nil(itd.probe_type)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.send(:probe=, 'tcp', nil, true, 9, 5, 5, 112, 6)
+      end
+      return
+    end
     idg = ItdDeviceGroup.new('new_group')
     port = 11_111
     type = 'tcp'
