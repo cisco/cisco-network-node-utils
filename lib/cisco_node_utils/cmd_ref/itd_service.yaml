@@ -53,6 +53,11 @@ feature:
   set_value: 'feature itd'
   default_value: false
 
+peer:
+  get_value: '/^peer vdc (.*) service (.*)$/'
+  set_value: "<state> peer vdc <vdc> service <service>"
+  default_value: []
+
 vrf:
   kind: string
   get_value: '/^vrf (.*)$/'

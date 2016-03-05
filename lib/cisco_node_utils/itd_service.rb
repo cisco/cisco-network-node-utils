@@ -164,6 +164,31 @@ module Cisco
       config_get_default('itd_service', 'failaction')
     end
 
+    # peer is an array of vdc and service
+    def peer
+      config_get('itd_service', 'peer', @get_args)
+    end
+
+    # peer is an array of vdc and service
+    # ex: ['switch', 'myservice']
+    def peer=(parray)
+      if parray.empty?
+        @set_args[:state] = 'no'
+        current_peer = peer
+        @set_args[:vdc] = current_peer[0]
+        @set_args[:service] = current_peer[1]
+      else
+        @set_args[:state] = ''
+        @set_args[:vdc] = parray[0]
+        @set_args[:service] = parray[1]
+      end
+      config_set('itd_service', 'peer', @set_args)
+    end
+
+    def default_peer
+      config_get_default('itd_service', 'peer')
+    end
+
     def vrf
       config_get('itd_service', 'vrf', @get_args)
     end

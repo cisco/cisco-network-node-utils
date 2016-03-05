@@ -97,6 +97,17 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
+  def test_peer
+    itd = ItdService.new('new_group')
+    parray = %w(vdc1 ser1)
+    itd.peer = parray
+    assert_equal(parray, itd.peer)
+    itd.peer = itd.default_peer
+    assert_equal(itd.default_peer,
+                 itd.peer)
+    itd.destroy
+  end
+
   # no vrf <vrf> does not work and so this test will fail
   def test_vrf
     itd = ItdService.new('new_group')
