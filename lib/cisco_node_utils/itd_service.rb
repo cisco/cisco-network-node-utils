@@ -87,17 +87,17 @@ module Cisco
     end
 
     def access_list
-      config_get('itd_service', 'access_list')
+      config_get('itd_service', 'access_list', @get_args)
     end
 
     def access_list=(val)
       if val
         @set_args[:state] = ''
+        @set_args[:al] = val
       else
         @set_args[:state] = 'no'
-        val = ''
+        @set_args[:al] = access_list
       end
-      @set_args[:al] = val
       config_set('itd_service',
                  'access_list', @set_args)
       set_args_keys_default
@@ -108,17 +108,17 @@ module Cisco
     end
 
     def device_group
-      config_get('itd_service', 'device_group')
+      config_get('itd_service', 'device_group', @get_args)
     end
 
     def device_group=(val)
       if val
         @set_args[:state] = ''
+        @set_args[:dg] = val
       else
         @set_args[:state] = 'no'
-        val = ''
+        @set_args[:dg] = device_group
       end
-      @set_args[:dg] = val
       config_set('itd_service',
                  'device_group', @set_args)
       set_args_keys_default
@@ -129,17 +129,17 @@ module Cisco
     end
 
     def exclude_access_list
-      config_get('itd_service', 'exclude_access_list')
+      config_get('itd_service', 'exclude_access_list', @get_args)
     end
 
     def exclude_access_list=(val)
       if val
         @set_args[:state] = ''
+        @set_args[:al] = val
       else
         @set_args[:state] = 'no'
-        val = ''
+        @set_args[:al] = exclude_access_list
       end
-      @set_args[:al] = val
       config_set('itd_service',
                  'exclude_access_list', @set_args)
       set_args_keys_default
@@ -165,17 +165,17 @@ module Cisco
     end
 
     def vrf
-      config_get('itd_service', 'vrf')
+      config_get('itd_service', 'vrf', @get_args)
     end
 
     def vrf=(val)
       if val
         @set_args[:state] = ''
+        @set_args[:vrf] = val
       else
         @set_args[:state] = 'no'
-        val = ''
+        @set_args[:vrf] = vrf
       end
-      @set_args[:vrf] = val
       config_set('itd_service',
                  'vrf', @set_args)
       set_args_keys_default

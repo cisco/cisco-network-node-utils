@@ -17,7 +17,7 @@ access_list:
 all_itds:
   multiple:
   get_context: ~
-  get_value: '/^itd <name>/'
+  get_value: '/^itd (.*)/'
 
 create:
   set_context: ~
@@ -41,7 +41,7 @@ exclude_access_list:
 
 failaction:
   kind: boolean
-  get_value: '/^failaction node reassign$/'
+  get_value: '/^failaction node reassign/'
   set_value: "<state> failaction node reassign"
   default_value: false
 
