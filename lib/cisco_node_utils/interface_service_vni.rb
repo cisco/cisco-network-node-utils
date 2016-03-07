@@ -30,6 +30,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "interface_service_vni #{name} #{@sid}"
+    end
+
     def self.svc_vni_ids
       hash = {}
       intf_list = config_get('interface', 'all_interfaces')
@@ -103,8 +107,6 @@ module Cisco
         config_set('interface_service_vni', 'encapsulation_profile_vni',
                    set_args_keys(state: state, profile: profile))
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encapsulation_profile_vni
@@ -121,8 +123,6 @@ module Cisco
     def shutdown=(state)
       config_set('interface_service_vni', 'shutdown',
                  set_args_keys(state: state ? '' : 'no'))
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown

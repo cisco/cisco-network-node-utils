@@ -20,7 +20,6 @@ module Cisco
 end
 
 require_relative 'client/client'
-require_relative 'client/client_errors'
 
 # Try to load known extensions
 extensions = ['client/nxapi',

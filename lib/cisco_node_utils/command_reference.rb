@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'exceptions'
 require 'yaml'
 
 module Cisco
@@ -324,22 +325,6 @@ module Cisco
     end
   end
 
-  # Exception class raised when a particular feature/attribute
-  # is explicitly excluded on the given node.
-  class UnsupportedError < RuntimeError
-    def initialize(feature, name, oper=nil, msg=nil)
-      @feature = feature
-      @name = name
-      @oper = oper
-      message = "Feature '#{feature}'"
-      message += ", attribute '#{name}'" unless name.nil?
-      message += ", operation '#{oper}'" unless oper.nil?
-      message += ' is unsupported on this node'
-      message += ": #{msg}" unless msg.nil?
-      super(message)
-    end
-  end
-
   # Placeholder for known but explicitly excluded entry
   # For these, we have an implied default_only value of nil.
   class UnsupportedCmdRef < CmdRef
@@ -448,7 +433,7 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N9k XRv9k)
+    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N8k N9k XRv9k)
 
     def self.platform_to_filter(platform)
       case platform
@@ -462,6 +447,9 @@ module Cisco
         /N6/
       when 'N7k'
         /N7/
+      when 'N8k'
+        # TBD: This platform currently reports the chassis as N9K
+        /N8/
       when 'N9k'
         /N9/
       when 'XRv9k'

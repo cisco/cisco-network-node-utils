@@ -262,6 +262,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "RouterEigrp '#{name}'"
+    end
+
     # Create a hash of all current router instances.
     def self.routers
       instances = config_get('eigrp', 'router')

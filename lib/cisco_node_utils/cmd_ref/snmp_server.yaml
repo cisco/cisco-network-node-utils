@@ -11,6 +11,7 @@ aaa_user_cache_timeout:
     default_value: 3600
 
 contact:
+  get_data_format: nxapi_structured
   get_command: "show snmp"
   get_value: "sys_contact"
   set_value: "%s snmp-server contact %s"
@@ -24,6 +25,7 @@ global_enforce_priv:
   default_value: false
 
 location:
+  get_data_format: nxapi_structured
   get_command: "show snmp"
   get_value: "sys_location"
   set_value: "%s snmp-server location %s"
