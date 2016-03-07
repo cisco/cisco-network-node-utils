@@ -86,7 +86,8 @@ module Cisco
       return hash if bd_list.nil?
 
       final_bd_list =
-          bd_list.map { |elem| BridgeDomain.bd_ids_to_array(elem) }.flatten.uniq.sort
+          bd_list.map { |elem| BridgeDomain.bd_ids_to_array(elem) }
+          .flatten.uniq.sort
       final_bd_list.each do |id|
         hash[id] = BridgeDomain.new(id, false)
       end

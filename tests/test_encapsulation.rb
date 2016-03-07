@@ -53,8 +53,9 @@ class TestEncapsulation < CiscoTestCase
     dot1q = '100-110'
     vni = '5000-5010'
     encap.send(:set_dot1q_map=, true, dot1q, vni)
-    assert_equal(dot1q, encap.dot1q_map[0], 'Error: dot1q is not matching')
-    assert_equal(vni, encap.dot1q_map[1],
+    assert_equal(dot1q, encap.dot1q_map[0].gsub(/\s+/, ''),
+                 'Error: dot1q is not matching')
+    assert_equal(vni, encap.dot1q_map[1].gsub(/\s+/, ''),
                  'Error: vni to dot1q mapping is not matchin')
     encap.destroy
   end
