@@ -35,14 +35,6 @@ destroy_node:
   set_context: ["itd device-group <name>"]
   set_value: "no node <ntype> <nname>"
 
-feature:
-  get_command: 'show running | i ^feature'
-  get_context: ~
-  get_value: '/^feature itd$/'
-  set_context: ~
-  set_value: 'feature itd'
-  default_value: false
-
 hot_standby:
   kind: boolean
   get_value: '/^mode hot-standby/'

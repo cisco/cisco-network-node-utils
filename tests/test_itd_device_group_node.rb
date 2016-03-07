@@ -19,24 +19,20 @@ include Cisco
 # TestInterface - Minitest for general functionality
 # of the ItdDeviceGroup class.
 class TestItdDeviceGroupNode < CiscoTestCase
+  @skip_unless_supported = 'itd_device_group'
   # Tests
 
   def setup
     super
-    config 'no feature itd' if n79k_platform?
+    config 'no feature itd'
   end
 
   def teardown
-    config 'no feature itd' if n79k_platform?
+    config 'no feature itd'
     super
   end
 
-  def n79k_platform?
-    /N(7|9)/ =~ node.product_id
-  end
-
   def test_itd_device_group_node_create_destroy
-    skip('Platform does not support this feature') unless n79k_platform?
     itddg1 = ItdDeviceGroup.new('abc')
     n1 = ItdDeviceGroupNode.new(itddg1.name, '1.1.1.1', 'ip')
     n2 = ItdDeviceGroupNode.new(itddg1.name, '2.2.2.2', 'ip')
@@ -63,7 +59,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_icmp
-    skip('Platform does not support this feature') unless n79k_platform?
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     type = 'icmp'
@@ -95,7 +90,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_dns
-    skip('Platform does not support this feature') unless n79k_platform?
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     host = 'resolver1.opendns.com'
@@ -136,7 +130,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_tcp_udp
-    skip('Platform does not support this feature') unless n79k_platform?
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     port = 11_111
@@ -173,7 +166,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_hot_standby_weight
-    skip('Platform does not support this feature') unless n79k_platform?
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     hot_standby = true

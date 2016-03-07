@@ -20,6 +20,12 @@ fabric_forwarding:
   get_value: '/^feature fabric forwarding$/'
   set_value: "feature fabric forwarding"
 
+itd:
+  _exclude: [N3k, N5k, N6k]
+  get_command: "show running | i ^feature"
+  get_value: '/^feature itd$/'
+  set_value: "feature itd"
+
 nv_overlay:
   _exclude: [N3k, N5k, N6k]
   kind: boolean
