@@ -53,6 +53,42 @@ feature:
   set_value: 'feature itd'
   default_value: false
 
+load_bal_buckets:
+  kind: int
+  default_value: false
+
+load_bal_enable:
+  kind: boolean
+  default_value: false
+
+load_bal_mask_pos:
+  kind: int
+  default_value: false
+
+load_bal_method_bundle_hash:
+  kind: string
+  default_value: false
+
+load_bal_method_bundle_select:
+  kind: string
+  default_value: false
+
+load_bal_method_end_port:
+  kind: int
+  default_value: false
+
+load_bal_method_proto:
+  kind: string
+  default_value: false
+
+load_bal_method_start_port:
+  kind: int
+  default_value: false
+
+load_balance:
+  get_value: '/^load-balance (.*)$/'
+  set_value: "<state> load-balance <method> <bs> <bh> <proto> <range> <start> <end> <buck> <buckets> <mpos> <mask>"
+
 peer:
   get_value: '/^peer vdc (.*) service (.*)$/'
   set_value: "<state> peer vdc <vdc> service <service>"

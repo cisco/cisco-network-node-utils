@@ -164,6 +164,148 @@ module Cisco
       config_get_default('itd_service', 'failaction')
     end
 
+    # the load-balance command can take several forms like:
+    # load-balance method dst ip
+    # load-balance method dst ip-l4port tcp range 3 6
+    # load-balance method dst ip-l4port tcp range 3 6 buckets 8 mask-position 2
+    # load-balance buckets 8
+    # load-balance mask-position 2
+    def load_balance
+      hash = {}
+      hash[:state] = false
+      hash[:buckets] = false
+      hash[:mask] = false
+      hash[:bundle_select] = false
+      hash[:bundle_hash] = false
+      hash[:proto] = false
+      hash[:start_port] = false
+      hash[:end_port] = false
+      lb = config_get('itd_service', 'load_balance', @get_args)
+      return hash if lb.nil?
+      hash[:state] = true
+      params = lb.split
+      bi = params.index('buckets')
+      hash[:buckets] = params[bi + 1].to_i unless bi.nil?
+      mi = params.index('mask-position')
+      hash[:mask] = params[mi + 1].to_i unless mi.nil?
+      mei = params.index('method')
+      unless mei.nil?
+        hash[:bundle_select] = params[mei + 1]
+        hash[:bundle_hash] = params[mei + 2]
+      end
+      ri = params.index('range')
+      unless ri.nil?
+        hash[:proto] = params[ri - 1]
+        hash[:start_port] = params[ri + 1].to_i
+        hash[:end_port] = params[ri + 2].to_i
+      end
+      hash
+    end
+
+    def load_bal_buckets
+      load_balance[:buckets]
+    end
+
+    def default_load_bal_buckets
+      config_get_default('itd_service', 'load_bal_buckets')
+    end
+
+    def load_bal_mask_pos
+      load_balance[:mask]
+    end
+
+    def default_load_bal_mask_pos
+      config_get_default('itd_service', 'load_bal_mask_pos')
+    end
+
+    def load_bal_method_bundle_hash
+      load_balance[:bundle_hash]
+    end
+
+    def default_load_bal_method_bundle_hash
+      config_get_default('itd_service', 'load_bal_method_bundle_hash')
+    end
+
+    def load_bal_method_bundle_select
+      load_balance[:bundle_select]
+    end
+
+    def default_load_bal_method_bundle_select
+      config_get_default('itd_service', 'load_bal_method_bundle_select')
+    end
+
+    def load_bal_method_end_port
+      load_balance[:end_port]
+    end
+
+    def default_load_bal_method_end_port
+      config_get_default('itd_service', 'load_bal_method_end_port')
+    end
+
+    def load_bal_method_start_port
+      load_balance[:start_port]
+    end
+
+    def default_load_bal_method_start_port
+      config_get_default('itd_service', 'load_bal_method_start_port')
+    end
+
+    def load_bal_method_proto
+      load_balance[:proto]
+    end
+
+    def default_load_bal_method_proto
+      config_get_default('itd_service', 'load_bal_method_proto')
+    end
+
+    def load_bal_enable
+      load_balance[:state]
+    end
+
+    def default_load_bal_enable
+      config_get_default('itd_service', 'load_bal_enable')
+    end
+
+    def load_balance=(enable, bs, bh, buck, mask, proto, stport, enport)
+      no_cmd = (enable ? '' : 'no')
+      @set_args[:state] = no_cmd
+      if bs == false
+        @set_args[:method] = ''
+        @set_args[:bs] = ''
+        @set_args[:bh] = ''
+      else
+        @set_args[:method] = 'method'
+        @set_args[:bs] = bs
+        @set_args[:bh] = bh
+      end
+      if proto == false
+        @set_args[:range] = ''
+        @set_args[:proto] = ''
+        @set_args[:start] = ''
+        @set_args[:end] = ''
+      else
+        @set_args[:range] = 'range'
+        @set_args[:proto] = proto
+        @set_args[:start] = stport
+        @set_args[:end] = enport
+      end
+      if buck == false
+        @set_args[:buck] = ''
+        @set_args[:buckets] = ''
+      else
+        @set_args[:buck] = 'buckets'
+        @set_args[:buckets] = buck
+      end
+      if mask == false
+        @set_args[:mpos] = ''
+        @set_args[:mask] = ''
+      else
+        @set_args[:mpos] = 'mask-position'
+        @set_args[:mask] = mask
+      end
+      config_set('itd_service', 'load_balance', @set_args)
+    end
+
     # peer is an array of vdc and service
     def peer
       config_get('itd_service', 'peer', @get_args)

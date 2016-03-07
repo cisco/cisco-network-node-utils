@@ -19,31 +19,20 @@ include Cisco
 # TestInterface - Minitest for general functionality
 # of the ItdService class.
 class TestItdService < CiscoTestCase
+  @skip_unless_supported = 'itd_service'
   # Tests
 
   def setup
     super
-    config 'no feature itd' if n79k_platform?
+    config 'no feature itd'
   end
 
   def teardown
-    config 'no feature itd' if n79k_platform?
+    config 'no feature itd'
     super
   end
 
-  def n79k_platform?
-    /N(7|9)/ =~ node.product_id
-  end
-
   def test_itd_device_group_create_destroy
-    if node.product_id =~ /N(3|5|6)/ || platform == :ios_xr
-      itd = ItdService.new('dummy', false)
-      assert_nil(itd.device_group)
-      assert_raises(Cisco::UnsupportedError) do
-        itd.device_group = 'new_dummy'
-      end
-      return
-    end
     i1 = ItdService.new('abc')
     i2 = ItdService.new('BCD')
     i3 = ItdService.new('xyzABC')
@@ -94,6 +83,89 @@ class TestItdService < CiscoTestCase
     itd.failaction = itd.default_failaction
     assert_equal(itd.default_failaction,
                  itd.failaction)
+    itd.destroy
+  end
+
+  def test_load_balance
+    itd = ItdService.new('new_group')
+    bs = 'src'
+    bh = 'ip'
+    buckets = 16
+    mask = 4
+    proto = false
+    start = false
+    enport = false
+    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(true, itd.load_bal_enable)
+    assert_equal(buckets, itd.load_bal_buckets)
+    assert_equal(mask, itd.load_bal_mask_pos)
+    assert_equal(bh, itd.load_bal_method_bundle_hash)
+    assert_equal(bs, itd.load_bal_method_bundle_select)
+    assert_equal(proto, itd.load_bal_method_end_port)
+    assert_equal(start, itd.load_bal_method_start_port)
+    assert_equal(enport, itd.load_bal_method_proto)
+    bs = 'dst'
+    bh = 'ip-l4port'
+    buckets = 128
+    mask = 100
+    proto = 'tcp'
+    start = 200
+    enport = 700
+    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(buckets, itd.load_bal_buckets)
+    assert_equal(mask, itd.load_bal_mask_pos)
+    assert_equal(bh, itd.load_bal_method_bundle_hash)
+    assert_equal(bs, itd.load_bal_method_bundle_select)
+    assert_equal(enport, itd.load_bal_method_end_port)
+    assert_equal(start, itd.load_bal_method_start_port)
+    assert_equal(proto, itd.load_bal_method_proto)
+    bs = false
+    bh = false
+    buckets = false
+    mask = 50
+    proto = false
+    start = false
+    enport = false
+    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(buckets, itd.load_bal_buckets)
+    assert_equal(mask, itd.load_bal_mask_pos)
+    assert_equal(bh, itd.load_bal_method_bundle_hash)
+    assert_equal(bs, itd.load_bal_method_bundle_select)
+    assert_equal(enport, itd.load_bal_method_end_port)
+    assert_equal(start, itd.load_bal_method_start_port)
+    assert_equal(proto, itd.load_bal_method_proto)
+    bs = false
+    bh = false
+    buckets = 256
+    mask = false
+    proto = false
+    start = false
+    enport = false
+    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(buckets, itd.load_bal_buckets)
+    assert_equal(mask, itd.load_bal_mask_pos)
+    assert_equal(bh, itd.load_bal_method_bundle_hash)
+    assert_equal(bs, itd.load_bal_method_bundle_select)
+    assert_equal(enport, itd.load_bal_method_end_port)
+    assert_equal(start, itd.load_bal_method_start_port)
+    assert_equal(proto, itd.load_bal_method_proto)
+    buckets = false
+    itd.send(:load_balance=, itd.default_load_bal_enable,
+             bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(itd.load_bal_enable,
+                 itd.default_load_bal_enable)
+    assert_equal(itd.load_bal_buckets, itd.default_load_bal_buckets)
+    assert_equal(itd.load_bal_mask_pos, itd.default_load_bal_mask_pos)
+    assert_equal(itd.load_bal_method_bundle_hash,
+                 itd.default_load_bal_method_bundle_hash)
+    assert_equal(itd.load_bal_method_bundle_select,
+                 itd.default_load_bal_method_bundle_select)
+    assert_equal(itd.load_bal_method_end_port,
+                 itd.default_load_bal_method_end_port)
+    assert_equal(itd.load_bal_method_start_port,
+                 itd.default_load_bal_method_start_port)
+    assert_equal(itd.load_bal_method_proto,
+                 itd.default_load_bal_method_proto)
     itd.destroy
   end
 
