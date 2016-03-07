@@ -58,6 +58,13 @@ peer:
   set_value: "<state> peer vdc <vdc> service <service>"
   default_value: []
 
+shutdown:
+  kind: boolean
+  auto_default: false
+  get_value: '/^no shut$/'
+  set_value: "<state> shutdown"
+  default_value: true
+
 vrf:
   kind: string
   get_value: '/^vrf (.*)$/'

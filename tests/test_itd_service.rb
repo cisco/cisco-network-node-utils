@@ -108,6 +108,18 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
+  def test_shutdown
+    itd = ItdService.new('new_group')
+    # need to configure a lot before doing this test
+    # also there is a delay after shutdown, please take care
+    itd.shutdown = false
+    assert_equal(false, itd.shutdown)
+    itd.shutdown = itd.default_shutdown
+    assert_equal(itd.default_shutdown,
+                 itd.shutdown)
+    itd.destroy
+  end
+
   # no vrf <vrf> does not work and so this test will fail
   def test_vrf
     itd = ItdService.new('new_group')

@@ -189,6 +189,20 @@ module Cisco
       config_get_default('itd_service', 'peer')
     end
 
+    def shutdown
+      config_get('itd_service', 'shutdown', @get_args)
+    end
+
+    def shutdown=(state)
+      no_cmd = (state ? '' : 'no')
+      @set_args[:state] = no_cmd
+      config_set('itd_service', 'shutdown', @set_args)
+    end
+
+    def default_shutdown
+      config_get_default('itd_service', 'shutdown')
+    end
+
     def vrf
       config_get('itd_service', 'vrf', @get_args)
     end
