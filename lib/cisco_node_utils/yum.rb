@@ -66,27 +66,76 @@ module Cisco
     end
 
     def self.install(pkg, vrf=nil)
-      vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
-      config_set('yum', 'install', pkg, vrf)
+      if "#{platform}" == "nexus"
+        vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
+        config_set('yum', 'install', pkg, vrf)
 
-      # HACK: The current nxos host installer is a multi-part command
-      # which may fail at a later stage yet return a false positive;
-      # therefore a post-validation check is needed here to verify the
-      # actual outcome.
-      validate(pkg)
+        # HACK: The current nxos host installer is a multi-part command
+        # which may fail at a later stage yet return a false positive;
+        # therefore a post-validation check is needed here to verify the
+        # actual outcome.
+        validate(pkg)
+
+      elsif "#{platform}" == "ios_xr"
+        filename = pkg.strip.tr(':', '/').split('/').last
+        name_var_arch_regex_xr = /^(.*\d.*-[\d.]*-r\d\d\d\d*.).(\w{4,}).rpm/
+      	if filename =~ name_var_arch_regex_xr
+          pkg_name = Regexp.last_match(1)
+          debug "Installing package #{pkg_name}"
+          rc = %x(ip netns exec default sdr_instcmd install activate pkg 0x0 #{pkg_name})
+          %x(ip netns exec default sdr_instcmd install commit sdr)
+          debug "#{rc}"
+        else
+          fail "Failed to install the requested rpm."
+        end
+      end
     end
 
     # returns version of package, or false if package doesn't exist
-    def self.query(pkg)
-      fail TypeError unless pkg.is_a? String
-      fail ArgumentError if pkg.empty?
-      b = config_get('yum', 'query', pkg)
-      fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
+    def self.query(pkg, src)
+      if "#{platform}" == "nexus"
+        fail TypeError unless pkg.is_a? String
+        fail ArgumentError if pkg.empty?
+        b = config_get('yum', 'query', pkg)
+        fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
+
+      elsif "#{platform}" == "ios_xr"
+        filename = src.strip.tr(':', '/').split('/').last
+        name_var_arch_regex_xr = /^(.*\d.*-[\d.]*-r\d\d\d\d*.).(\w{4,}).rpm/
+      	if filename =~ name_var_arch_regex_xr
+          pkg_name = Regexp.last_match(1) 
+          platform = Regexp.last_match(2)
+          pkg_name_platform = "#{pkg_name}.#{platform}"
+          version = %x(ip netns exec default sdr_instcmd show install package #{pkg_name_platform} none | grep -E Version)
+          version_var_regex_xr = /^(\s*Version\s*):\s*(\d.*)$/
+          if version =~ version_var_regex_xr
+            ver = Regexp.last_match(2)
+            is_active_regex = /^\s*#{pkg_name}/
+            is_active = %x(ip netns exec default sdr_instcmd show install active)
+            if is_active =~ is_active_regex
+              debug "Package #{pkg_name_platform} version #{ver} is present."
+              b = ["#{ver}",]
+            end
+          end
+        end
+      end
       b.nil? ? nil : b.first
     end
 
-    def self.remove(pkg)
-      config_set('yum', 'remove', pkg)
+    def self.remove(pkg, src)
+      if "#{platform}" == "nexus"
+        config_set('yum', 'remove', pkg)
+      elsif "#{platform}" == "ios_xr"
+        filename = src.strip.tr(':', '/').split('/').last
+        name_var_arch_regex_xr = /^(.*\d.*-[\d.]*-r\d\d\d\d*.).(\w{4,}).rpm-(.*)$/
+      	if filename =~ name_var_arch_regex_xr
+          pkg_name = Regexp.last_match(1)
+          debug "Removing package #{pkg_name}"
+          rc = %x(ip netns exec default sdr_instcmd install deactivate pkg 0x0 #{pkg_name})
+          %x(ip netns exec default sdr_instcmd install commit sdr)
+          debug "#{rc}"
+        end
+      end
     end
   end
 end
