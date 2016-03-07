@@ -31,7 +31,7 @@ module Cisco
     end
 
     def to_s
-      "VRF #{name}"
+      "VRF #{@name}"
     end
 
     def self.vrfs
@@ -71,6 +71,47 @@ module Cisco
 
     def default_description
       config_get_default('vrf', 'description')
+    end
+
+    def mhost_ipv4
+      config_get('vrf', 'mhost_ipv4', vrf: @name)
+    end
+
+    def mhost_ipv4=(val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'mhost_ipv4', vrf: @name, state: no_cmd, intf: val)
+    end
+
+    def default_mhost_ipv4
+      config_get_default('vrf', 'mhost_ipv4')
+    end
+
+    def mhost_ipv6
+      config_get('vrf', 'mhost_ipv6', vrf: @name)
+    end
+
+    def mhost_ipv6=(val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'mhost_ipv6', vrf: @name, state: no_cmd, intf: val)
+    end
+
+    def default_mhost_ipv6
+      config_get_default('vrf', 'mhost_ipv6')
+    end
+
+    def remote_route_filtering
+      config_get('vrf', 'remote_route_filtering', vrf: @name)
+    end
+
+    def remote_route_filtering=(val)
+      no_cmd = val ? 'no' : ''
+      config_set('vrf', 'remote_route_filtering', vrf: @name, state: no_cmd, remote_route_filtering: val)
+    end
+
+    def default_remote_route_filtering
+      config_get_default('vrf', 'remote_route_filtering')
     end
 
     def shutdown
@@ -126,6 +167,20 @@ module Cisco
 
     def default_vni
       config_get_default('vrf', 'vni')
+    end
+
+    def vpn_id
+      config_get('vrf', 'vpn_id', vrf: @name)
+    end
+
+    def vpn_id=(val)
+      val.strip!
+      no_cmd = val.empty?? 'no' : ''
+      config_set('vrf', 'vpn_id', vrf: @name, state: no_cmd, vpnid: val)
+    end
+
+    def default_vpn_id
+      config_get_default('vrf', 'vpn_id')
     end
   end # class
 end # module
