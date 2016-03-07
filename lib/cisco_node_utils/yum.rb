@@ -32,9 +32,9 @@ module Cisco
 
       # ex: b+z-ip2.x64_64
       name_arch_regex = /^([\w\-\+]+)\.(\w+)$/
-      
+
       # xrv9k-k9sec-1.0.0.0-r61102I.x86_64.rpm-XR-DEV-16.02.22C
-      name_arch_regex_xr = /^(.*\d.*)-([\d.]*)-(r\d\d\d\d*.).(\w{4,}).rpm/ 
+      name_arch_regex_xr = /^(.*\d.*)-([\d.]*)-(r\d\d\d\d*.).(\w{4,}).rpm/
 
       if platform == :nexus
         file_name.match(name_ver_arch_regex) ||
@@ -82,7 +82,7 @@ module Cisco
 
       elsif platform == :ios_xr
         filename = pkg.strip.tr(':', '/').split('/').last
-        pkg_info = Yum.decompose_name(filename) 
+        pkg_info = Yum.decompose_name(filename)
         if pkg_info
           pkg_name = "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}"
           debug "Installing package #{pkg_name}"
@@ -97,7 +97,6 @@ module Cisco
       # therefore a post-validation check is needed here to verify the
       # actual outcome.
       validate(pkg)
-
     end
 
     # returns version of package, or false if package doesn't exist
