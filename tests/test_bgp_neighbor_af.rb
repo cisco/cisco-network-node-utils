@@ -89,57 +89,72 @@ class TestBgpNeighborAF < CiscoTestCase
     vpn   = 'vpnv4 unicast'
     evpn  = 'l2vpn evpn'
 
+    cfg = []
+
     # Global requirements
     # route policies
     str1 = 'route-map-in-name'
     str2 = 'route-map-out-name'
-    config("route-policy #{str1}", 'end-policy')
-    config("route-policy #{str2}", 'end-policy')
-    config("route-policy #{str1.reverse}", 'end-policy')
-    config("route-policy #{str2.reverse}", 'end-policy')
-    config('route-policy foo_bar', 'end-policy')
-    config('route-policy baz_inga', 'end-policy')
+    cfg << "route-policy #{str1}" << 'end-policy'
+    cfg << "route-policy #{str2}" << 'end-policy'
+    cfg << "route-policy #{str1.reverse}" << 'end-policy'
+    cfg << "route-policy #{str2.reverse}" << 'end-policy'
+    cfg << 'route-policy foo_bar' << 'end-policy'
+    cfg << 'route-policy baz_inga' << 'end-policy'
 
     # vpn stuff - possibly not needed
-    config("vrf #{vrf} address-family #{af_v4}")
-    config('rd-set auto', 'end-set')
+    cfg << "vrf #{vrf} address-family #{af_v4}"
+    cfg << 'rd-set auto' << 'end-set'
 
     # router-id and address-family under the global bgp
     # remote-as under the neighbor
     # VRF statements
-    config("router bgp #{asn}")
-    config("router bgp #{asn} bgp router-id 1.1.1.1")
-    config("router bgp #{asn} neighbor #{nbr} remote-as #{asn}")
-    config("router bgp #{asn} address-family #{af_v4}")
-    config("router bgp #{asn} address-family #{af_v6}")
-    config("router bgp #{asn} address-family #{vpn}")
-    config("router bgp #{asn} address-family #{evpn}")
-    config("router bgp #{asn} vrf #{vrf} rd auto")
-    config("router bgp #{asn} vrf #{vrf} address-family #{af_v4}")
-    config("router bgp #{asn} vrf #{vrf} address-family #{af_v6}")
-    config("router bgp #{asn} vrf #{vrf} address-family #{evpn}")
-    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}")
-    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
-           "address-family #{af_v4}")
+    cfg << "router bgp #{asn}"
+    cfg << "router bgp #{asn} bgp router-id 1.1.1.1"
+    cfg << "router bgp #{asn} neighbor #{nbr} remote-as #{asn}"
+    cfg << "router bgp #{asn} address-family #{af_v4}"
+    cfg << "router bgp #{asn} address-family #{af_v6}"
+    cfg << "router bgp #{asn} address-family #{vpn}"
+    cfg << "router bgp #{asn} address-family #{evpn}"
+    cfg << "router bgp #{asn} vrf #{vrf} rd auto"
+    cfg << "router bgp #{asn} vrf #{vrf} address-family #{af_v4}"
+    cfg << "router bgp #{asn} vrf #{vrf} address-family #{af_v6}"
+    cfg << "router bgp #{asn} vrf #{vrf} address-family #{evpn}"
+    cfg << "router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}"
+    cfg << "router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
+           "address-family #{af_v4}"
+
+    config_no_warn(*cfg)
   end
 
   def cleanup
+    cfg = []
     if platform == :nexus
-      config('no feature bgp', 'feature bgp')
-      config('no nv overlay evpn', 'nv overlay evpn')
+      cfg << 'no feature bgp' << 'feature bgp'
+      cfg << 'no nv overlay evpn' << 'nv overlay evpn'
     else
-      config('no router bgp')
-      config('no vrf aa address-family ipv4 unicast')
-      config('no vrf aa')
+      cfg << 'no router bgp'
+      cfg << 'no vrf aa address-family ipv4 unicast'
+      cfg << 'no vrf aa'
 
       str1 = 'route-map-in-name'
       str2 = 'route-map-out-name'
-      config("no route-policy #{str1}")
-      config("no route-policy #{str2}")
-      config("no route-policy #{str1.reverse}")
-      config("no route-policy #{str2.reverse}")
-      config('no route-policy foo_bar')
-      config('no route-policy baz_inga')
+      cfg << "no route-policy #{str1}"
+      cfg << "no route-policy #{str2}"
+      cfg << "no route-policy #{str1.reverse}"
+      cfg << "no route-policy #{str2.reverse}"
+      cfg << 'no route-policy foo_bar'
+      cfg << 'no route-policy baz_inga'
+    end
+
+    config(*cfg)
+  end
+
+  def cleanup_bgp
+    if platform == :ios_xr
+      config('no router bgp')
+    else
+      config('no feature bgp', 'feature bgp')
     end
   end
 
@@ -196,7 +211,8 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbrs_with_masks
-    config('no feature bgp', 'feature bgp')
+
+    cleanup_bgp
 
     # Creates
     obj = {}

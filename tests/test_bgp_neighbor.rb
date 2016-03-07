@@ -133,7 +133,7 @@ class TestBgpNeighbor < CiscoTestCase
       test_data_hash[d[:vrf]] = d[:neighbors]
       cmds << "vrf #{d[:vrf]}" unless d[:vrf] == 'default'
       d[:neighbors].each do |neighbor|
-        cmds << "neighbor #{neighbor}"
+        cmds << "neighbor #{neighbor}" << "remote-as #{REMOTE_ASN}"
       end
     end
 
@@ -161,7 +161,7 @@ class TestBgpNeighbor < CiscoTestCase
   def test_create_destroy
     test_data.each do |d|
       d[:neighbors].each do |addr|
-        neighbor = RouterBgpNeighbor.new(ASN, d[:vrf], addr)
+        neighbor = create_neighbor(d[:vrf], addr)
         exists = neighbor_exists?(addr, d[:vrf])
         assert(exists, "Failed to create bgp neighbor #{addr}")
         line = get_bgpneighbor_match_line(addr, d[:vrf])
@@ -295,7 +295,7 @@ class TestBgpNeighbor < CiscoTestCase
   end
 
   def test_log_neighbor_changes
-    if node.product_id[/ios_xr|N(5|6|7)/]
+    if node.product_id[/IOSXR|N(5|6|7)/]
       b = create_neighbor('blue')
       assert_nil(b.log_neighbor_changes)
       assert_nil(b.default_log_neighbor_changes)
