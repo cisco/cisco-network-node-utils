@@ -938,5 +938,39 @@ module Cisco
       return nil if platform == :ios_xr && @vrf != 'default'
       config_get_default('bgp', 'timer_bestpath_limit_always')
     end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
+    def default_information_originate
+      config_get('bgp', 'default_information_originate', @get_args)
+    end
+
+    def default_information_originate=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('bgp', 'default_information_originate', @set_args)
+    end
+
+    def default_default_information_originate
+      config_get_default('bgp', 'default_information_originate')
+    end
+
+    def default_metric
+      config_get('bgp', 'default_metric', @get_args)
+    end
+
+    def default_metric=(val)
+      default = default_default_metric
+      set_args_keys(state: (val == default) ? 'no' : '',
+                    num:   (val == default) ? '' : val )
+      config_set('bgp', 'default_metric', @set_args)
+    end
+
+    def default_default_metric
+      config_get_default('bgp', 'default_metric')
+    end
+
   end
 end

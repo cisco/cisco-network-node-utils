@@ -118,6 +118,20 @@ confederation_peers:
 create_destroy_neighbor:
   set_value: '<state> neighbor <nbr>'
 
+default_information_originate:
+  kind: boolean
+  default_value: false
+  ios_xr:
+    get_value: '/^default-information originate$/'
+    set_value: '<state> default-information originate'
+
+default_metric:
+  kind: int
+  default_value: false
+  ios_xr:
+    get_value: '/^default-metric (\d+)$/'
+    set_value: '<state> default-metric <num>'
+
 disable_policy_batching:
   _exclude: [ios_xr]
   get_value: '/^disable-policy-batching$/'
