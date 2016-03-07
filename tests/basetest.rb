@@ -162,7 +162,7 @@ class TestCase < Minitest::Test
       # NX-OS has a space after '#', IOS XR does not
       'Match'  => /^[^()]+[$%#>] *\z/n)
 
-    if !warn_match.nil? && warn_match.match(result)
+    if warn_match && warn_match.match(result)
       Cisco::Logger.warn("Config result:\n#{result}")
     else
       Cisco::Logger.debug("Config result:\n#{result}")

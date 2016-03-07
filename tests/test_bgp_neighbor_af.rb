@@ -211,7 +211,6 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbrs_with_masks
-
     cleanup_bgp
 
     # Creates
