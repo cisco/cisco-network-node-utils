@@ -76,7 +76,7 @@ class TestGRPC < TestCase
   end
 
   def test_auth_failure
-    e = assert_raises Cisco::Client::AuthenticationFailed do
+    e = assert_raises Cisco::AuthenticationFailed do
       Cisco::Client::GRPC.new(address, username, 'wrong password')
     end
     assert_equal('gRPC client creation failure: Failed authentication',
@@ -85,13 +85,13 @@ class TestGRPC < TestCase
 
   def test_connection_failure
     # Connecting to a port that's listening, but not gRPC is one failure path
-    e = assert_raises Cisco::Client::ConnectionRefused do
+    e = assert_raises Cisco::ConnectionRefused do
       Cisco::Client::GRPC.new('127.0.0.1:22', 'user', 'pass')
     end
     assert_equal('gRPC client creation failure: Connection refused: ',
                  e.message)
     # Connecting to a port that's not listening is a different failure path
-    e = assert_raises Cisco::Client::ConnectionRefused do
+    e = assert_raises Cisco::ConnectionRefused do
       Cisco::Client::GRPC.new('127.0.0.1:0', 'user', 'pass')
     end
     assert_equal('gRPC client creation failure: ' \
@@ -114,7 +114,7 @@ class TestGRPC < TestCase
   end
 
   def test_set_cli_invalid
-    e = assert_raises Cisco::Client::GRPC::CliError do
+    e = assert_raises Cisco::CliError do
       client.set(context: ['int gi0/0/0/0'],
                  values:  ['wark', 'bark bark'])
     end
@@ -152,13 +152,13 @@ int gi0/0/0/0 bark bark
   end
 
   def test_get_cli_invalid
-    assert_raises Cisco::Client::GRPC::CliError do
+    assert_raises Cisco::CliError do
       client.get(command: 'show fuzz')
     end
   end
 
   def test_get_cli_incomplete
-    assert_raises Cisco::Client::GRPC::CliError do
+    assert_raises Cisco::CliError do
       client.get(command: 'show ')
     end
   end

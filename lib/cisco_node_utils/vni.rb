@@ -35,13 +35,17 @@ require_relative 'feature'
 module Cisco
   # node_utils class for Vni
   class Vni < NodeUtil
-    attr_reader :name, :vni_id
+    attr_reader :vni_id
 
     def initialize(vni_id, instantiate=true)
       @vni_id = vni_id.to_s
       fail ArgumentError,
            'Invalid value(non-numeric VNI id)' unless @vni_id[/^\d+$/]
       create if instantiate
+    end
+
+    def to_s
+      "VNI #{vni_id}"
     end
 
     def self.vnis
@@ -169,8 +173,6 @@ module Cisco
           end
         cli_error_check(result)
       end
-    rescue CliError => e
-      raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encap_dot1q
@@ -202,8 +204,6 @@ module Cisco
       state = (state) ? '' : 'no'
       result = config_set('vni', 'shutdown', state: state, vni: @vni_id)
       cli_error_check(result)
-    rescue CliError => e
-      raise "[vni #{@vni_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown

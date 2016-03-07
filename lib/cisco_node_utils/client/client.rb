@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'client_errors'
+require_relative '../exceptions'
 require_relative 'utils'
 require_relative '../constants'
 require_relative '../logger'
@@ -88,7 +88,7 @@ class Cisco::Client
         client = client_class.new(address, username, password)
         debug "#{client_class} connected successfully"
         return client
-      rescue ClientError, TypeError, ArgumentError => e
+      rescue Cisco::ClientError, TypeError, ArgumentError => e
         debug "Unable to connect to #{address} as #{client_class}: #{e.message}"
         debug e.backtrace.join("\n  ")
         errors << e
@@ -100,13 +100,15 @@ class Cisco::Client
   def self.handle_errors(errors)
     # ClientError means we tried to connect but failed,
     # so it's 'more significant' than input validation errors.
-    client_errors = errors.select { |e| e.kind_of? ClientError }
+    client_errors = errors.select { |e| e.kind_of? Cisco::ClientError }
     if !client_errors.empty?
       # Reraise the specific error if just one
       fail client_errors[0] if client_errors.length == 1
       # Otherwise clump them together into a new error
       e_cls = client_errors[0].class
-      e_cls = ClientError unless client_errors.all? { |e| e.class == e_cls }
+      unless client_errors.all? { |e| e.class == e_cls }
+        e_cls = Cisco::ClientError
+      end
       fail e_cls, ("Unable to establish any client connection:\n" +
                    errors.each(&:message).join("\n"))
     elsif errors.any? { |e| e.kind_of? ArgumentError }
@@ -116,7 +118,7 @@ class Cisco::Client
       fail TypeError, ("Invalid arguments:\n" +
                        errors.each(&:message).join("\n"))
     end
-    fail ClientError, 'No client connected, but no errors were reported?'
+    fail Cisco::ClientError, 'No client connected, but no errors were reported?'
   end
 
   def to_s
@@ -164,7 +166,7 @@ class Cisco::Client
           values:      nil)
     # subclasses will generally want to call Client.munge_to_array()
     # on context and/or values before calling super()
-    fail RequestNotSupported unless self.supports?(data_format)
+    fail Cisco::RequestNotSupported unless self.supports?(data_format)
     cache_flush if cache_auto?
     Cisco::Logger.debug("Set state using data format '#{data_format}'")
     Cisco::Logger.debug("  with context:\n    #{context.join("\n    ")}") \
@@ -194,7 +196,7 @@ class Cisco::Client
           value:       nil)
     # subclasses will generally want to call Client.munge_to_array()
     # on context and/or value before calling super()
-    fail RequestNotSupported unless self.supports?(data_format)
+    fail Cisco::RequestNotSupported unless self.supports?(data_format)
     Cisco::Logger.debug("Get state using data format '#{data_format}'")
     Cisco::Logger.debug("  executing command:\n    #{command}") \
       unless command.nil? || command.empty?

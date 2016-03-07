@@ -33,6 +33,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "BGP #{asnum} VRF '#{vrf}'"
+    end
+
     # Create a hash of all router bgp default and non-default
     # vrf instances
     def self.routers

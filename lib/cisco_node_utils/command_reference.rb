@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'exceptions'
 require 'yaml'
 
 module Cisco
@@ -321,22 +322,6 @@ module Cisco
       str << "Command: #{@feature} #{@name}\n"
       @hash.each { |key, value| str << "  #{key}: #{value}\n" }
       str
-    end
-  end
-
-  # Exception class raised when a particular feature/attribute
-  # is explicitly excluded on the given node.
-  class UnsupportedError < RuntimeError
-    def initialize(feature, name, oper=nil, msg=nil)
-      @feature = feature
-      @name = name
-      @oper = oper
-      message = "Feature '#{feature}'"
-      message += ", attribute '#{name}'" unless name.nil?
-      message += ", operation '#{oper}'" unless oper.nil?
-      message += ' is unsupported on this node'
-      message += ": #{msg}" unless msg.nil?
-      super(message)
     end
   end
 
