@@ -22,7 +22,7 @@ require_relative 'feature'
 module Cisco
   # node_utils class for bridge_domain
   class BridgeDomain < NodeUtil
-    attr_reader :name, :bd_ids
+    attr_reader :bd_ids
 
     def initialize(bds, instantiate=true)
       # Spaces are removed as bridge-domain cli doesn't accept value with
@@ -31,6 +31,10 @@ module Cisco
       fail 'bridge-domain value is empty' if @bd_ids.empty? # no empty strings
 
       create if instantiate
+    end
+
+    def to_s
+      "Bridge Domain #{bd_ids}"
     end
 
     # This will expand the string to a list of bds as integers
@@ -80,7 +84,7 @@ module Cisco
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
 
-    def self.allbds
+    def self.bds
       hash = {}
       bd_list = config_get('bridge_domain', 'all_bds')
       return hash if bd_list.nil?
@@ -106,38 +110,11 @@ module Cisco
         add_bds = BridgeDomain.bd_list_to_string(inp_bds_array - sys_bds_array)
         config_set('bridge_domain', 'system_bd_add', addbd: add_bds)
       end
-      result = config_set('bridge_domain', 'create', crbd: @bd_ids)
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
+      config_set('bridge_domain', 'create', crbd: @bd_ids)
     end
 
     def destroy
-      result = config_set('bridge_domain', 'destroy',
-                          delbd: @bd_ids, rembd: @bd_ids)
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
-    end
-
-    def cli_error_check(result)
-      # The NXOS bridge-domain cli does not raise an exception in some
-      # conditions and instead just displays a STDOUT error message;
-      # thus NXAPI does not detect the failure and we must catch it by
-      # inspecting the "body" hash entry returned by NXAPI. This
-      # bridge-domain cli behavior is unlikely to change.
-      fail result[2]['body'] if
-        result[2].is_a?(Hash) &&
-        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
-
-      # Some test environments get result[2] as a string instead of a hash
-      fail result[2] if
-        result[2].is_a?(String) &&
-        /(ERROR:|Warning:)/.match(result[2])
-    end
-
-    def bd_raise(e)
-      fail "[bridge-domain #{@bd_ids}] '#{e.command}' : #{e.clierror}"
+      config_set('bridge_domain', 'destroy', delbd: @bd_ids, rembd: @bd_ids)
     end
 
     ########################################################
@@ -154,11 +131,7 @@ module Cisco
 
     def fabric_control=(val)
       state = (val) ? '' : 'no'
-      result = config_set('bridge_domain', 'fabric_control',
-                          bd: @bd_ids, state: state)
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
+      config_set('bridge_domain', 'fabric_control', bd: @bd_ids, state: state)
     end
 
     def default_fabric_control
@@ -204,17 +177,12 @@ module Cisco
         bd_val = member_vni.keys.join(',')
         vni_val = member_vni.values.join(',')
         return '' if vni_val.empty?
-        result = config_set('bridge_domain', 'member_vni', vnistate: 'no',
-                            vni: vni_val, bd: bd_val, membstate: 'no',
-                            membvni: vni_val)
+        config_set('bridge_domain', 'member_vni', vnistate: 'no', vni: vni_val,
+                   bd: bd_val, membstate: 'no', membvni: vni_val)
       else
-        result = config_set('bridge_domain', 'member_vni', vnistate: '',
-                            vni: val.to_s, bd: @bd_ids, membstate: '',
-                            membvni: val.to_s)
+        config_set('bridge_domain', 'member_vni', vnistate: '', vni: val.to_s,
+                   bd: @bd_ids, membstate: '', membvni: val.to_s)
       end
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
     end
 
     def default_member_vni
@@ -231,15 +199,10 @@ module Cisco
     def name=(str)
       fail TypeError unless str.is_a?(String)
       if str.empty?
-        result = config_set('bridge_domain', 'name',
-                            bd: @bd_ids, state: 'no', name: '')
+        config_set('bridge_domain', 'name', bd: @bd_ids, state: 'no', name: '')
       else
-        result = config_set('bridge_domain', 'name',
-                            bd: @bd_ids, state: '', name: str)
+        config_set('bridge_domain', 'name', bd: @bd_ids, state: '', name: str)
       end
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
     end
 
     def default_name
@@ -257,11 +220,7 @@ module Cisco
 
     def shutdown=(val)
       state = (val) ? '' : 'no'
-      result = config_set('bridge_domain', 'shutdown',
-                          bd: @bd_ids, state: state)
-      cli_error_check(result)
-    rescue CliError => e
-      bd_raise(e)
+      config_set('bridge_domain', 'shutdown', bd: @bd_ids, state: state)
     end
 
     def default_shutdown

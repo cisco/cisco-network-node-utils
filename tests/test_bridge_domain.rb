@@ -24,7 +24,7 @@ class TestBridgeDomain < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
-    BridgeDomain.allbds.each do |_bd, obj|
+    BridgeDomain.bds.each do |_bd, obj|
       obj.destroy
     end
   end
@@ -42,11 +42,11 @@ class TestBridgeDomain < CiscoTestCase
 
   def test_single_bd_create_destroy
     bd = BridgeDomain.new('100', true)
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     assert(bds.key?(100), 'Error: failed to create bridge-domain 100')
 
     bd.destroy
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     refute(bds.key?(100), 'Error: failed to destroy bridge-domain 100')
   end
 
@@ -63,7 +63,7 @@ class TestBridgeDomain < CiscoTestCase
     create = '100-120'
     BridgeDomain.new('100-110,115')
     bd = BridgeDomain.new('100-120')
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     BridgeDomain.bd_ids_to_array(create).each do |id|
       assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
     end
@@ -75,13 +75,13 @@ class TestBridgeDomain < CiscoTestCase
     bdlist = BridgeDomain.bd_ids_to_array(create)
 
     bd = BridgeDomain.new(create, true)
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     bdlist.each do |id|
       assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
     end
 
     bd.destroy
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     bdlist.each do |id|
       refute(bds.key?(id.to_i), 'Error: failed to destroy bridge-domain ' << id)
     end
@@ -90,7 +90,7 @@ class TestBridgeDomain < CiscoTestCase
   def test_bd_create_noorder_and_space
     create = '100, 90, 200, 2-4'
     bd = BridgeDomain.new(create)
-    bds = BridgeDomain.allbds
+    bds = BridgeDomain.bds
     BridgeDomain.bd_ids_to_array(create).each do |id|
       assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
     end

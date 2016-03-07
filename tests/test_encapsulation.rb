@@ -21,7 +21,7 @@ class TestEncapsulation < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
-    Encapsulation.all_encaps.each do |_encap, obj|
+    Encapsulation.encaps.each do |_encap, obj|
       obj.destroy
     end
   end

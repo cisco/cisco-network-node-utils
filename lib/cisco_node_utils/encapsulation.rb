@@ -32,8 +32,12 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "Encapsulation #{encap_name}"
+    end
+
     # Create a hash of all current encap instances.
-    def self.all_encaps
+    def self.encaps
       instances = config_get('encapsulation', 'all_encaps')
       return {} if instances.nil?
       hash = {}
@@ -46,38 +50,12 @@ module Cisco
     # Enable feature and create encap instance
     def create
       Feature.vni_enable
-      result = config_set('encapsulation', 'create', profile: @encap_name)
-      cli_error_check(result)
-    rescue CliError => e
-      encap_error(e)
+      config_set('encapsulation', 'create', profile: @encap_name)
     end
 
     # Destroy a encap instance; disable feature on last instance
     def destroy
-      result = config_set('encapsulation', 'destroy', profile: @encap_name)
-      cli_error_check(result)
-    rescue CliError => e
-      encap_error(e)
-    end
-
-    def encap_error(e)
-      fail "[encapsulation #{@encap_name}] '#{e.command}' : #{e.clierror}"
-    end
-
-    def cli_error_check(result)
-      # The NXOS encap profile cli does not raise an exception in some
-      # conditions and instead just displays a STDOUT error message;
-      # thus NXAPI does not detect the failure and we must catch it by
-      # inspecting the "body" hash entry returned by NXAPI. This
-      # encap profile cli behavior is unlikely to change.
-      fail result[2]['body'] if
-        result[2].is_a?(Hash) &&
-        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
-
-      # Some test environments get result[2] as a string instead of a hash
-      fail result[2] if
-        result[2].is_a?(String) &&
-        /(ERROR:|Warning:)/.match(result[2])
+      config_set('encapsulation', 'destroy', profile: @encap_name)
     end
 
     # ----------
@@ -90,11 +68,8 @@ module Cisco
 
     def set_dot1q_map=(cmd, dot1q, vni)
       no_cmd = (cmd) ? '' : 'no'
-      result = config_set('encapsulation', 'dot1q_map', profile: @encap_name,
-                          state: no_cmd, vlans: dot1q, vnis: vni)
-      cli_error_check(result)
-    rescue CliError => e
-      encap_error(e)
+      config_set('encapsulation', 'dot1q_map', profile: @encap_name,
+                 state: no_cmd, vlans: dot1q, vnis: vni)
     end
 
     def default_dot1q_map
