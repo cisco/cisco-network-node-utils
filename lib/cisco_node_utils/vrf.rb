@@ -107,7 +107,8 @@ module Cisco
 
     def remote_route_filtering=(val)
       no_cmd = val ? 'no' : ''
-      config_set('vrf', 'remote_route_filtering', vrf: @name, state: no_cmd, remote_route_filtering: val)
+      config_set('vrf', 'remote_route_filtering', vrf: @name,
+                 state: no_cmd, remote_route_filtering: val)
     end
 
     def default_remote_route_filtering
@@ -175,7 +176,7 @@ module Cisco
 
     def vpn_id=(val)
       val.strip!
-      no_cmd = val.empty?? 'no' : ''
+      no_cmd = val.empty? ? 'no' : ''
       config_set('vrf', 'vpn_id', vrf: @name, state: no_cmd, vpnid: val)
     end
 

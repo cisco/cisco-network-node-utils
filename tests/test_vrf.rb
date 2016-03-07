@@ -143,7 +143,9 @@ class TestVrf < CiscoTestCase
     v = Vrf.new('test_remote_route_filtering')
     if platform == :nexus
       refute(v.remote_route_filtering)
-      assert_raises(Cisco::UnsupportedError) { v.remote_route_filtering = false }
+      assert_raises(Cisco::UnsupportedError) do
+        v.remote_route_filtering = false
+      end
       v.destroy
       return
     end
