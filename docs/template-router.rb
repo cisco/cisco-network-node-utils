@@ -27,6 +27,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "X__CLASS_NAME__X '#{name}'"
+    end
+
     # Create a hash of all current router instances.
     def self.routers
       instances = config_get('X__RESOURCE_NAME__X', 'router')

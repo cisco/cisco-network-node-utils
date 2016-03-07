@@ -18,38 +18,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'singleton'
-
 require_relative 'client'
 require_relative 'command_reference'
+require_relative 'exceptions'
 require_relative 'logger'
 
 # Add node management classes and APIs to the Cisco namespace.
 module Cisco
-  # Error class raised by the config_set and config_get APIs if the
-  # device encounters an issue trying to act on the requested CLI.
-  #
-  # command - the specific CLI that was rejected
-  # clierror - any error string from the device
-  class CliError < RuntimeError
-    attr_reader :command, :clierror, :previous
-    def initialize(command, clierror, previous)
-      @command = command
-      @clierror = clierror.rstrip if clierror.kind_of? String
-      @previous = previous
-    end
-
-    def to_s
-      "CliError: '#{@command}' rejected with message:\n'#{@clierror}'"
-    end
-  end
-
   # class Cisco::Node
   # Singleton representing the network node (switch/router) that is
   # running this code. The singleton is lazily instantiated, meaning that
   # it doesn't exist until some client requests it (with Node.instance())
   class Node
-    include Singleton
+    @instance = nil
 
     # Convenience wrapper for get()
     # Uses CommandReference to look up the given show command and key
@@ -61,7 +42,7 @@ module Cisco
     #        for the 'get_command' and (optional) 'get_value' fields.
     # @raise [Cisco::UnsupportedError] if the (feature, name) pair is flagged
     #        in the YAML as unsupported on this device.
-    # @raise [Cisco::CliError] if the given command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if the command is rejected by the device.
     #
     # @param feature [String]
     # @param name [String]
@@ -70,7 +51,6 @@ module Cisco
     # @example config_get("ospf", "router_id",
     #                     {name: "green", vrf: "one"})
     def config_get(feature, property, *args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
 
       # If we have a default value but no getter, just return the default
@@ -132,7 +112,6 @@ module Cisco
     # @return [nil] if this feature/name pair is marked as unsupported
     # @example config_get_default("vtp", "file")
     def config_get_default(feature, property)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
       ref.default_value
     end
@@ -143,7 +122,7 @@ module Cisco
     # @raise [IndexError] if no relevant cmd_ref config_set exists
     # @raise [ArgumentError] if too many or too few args are provided.
     # @raise [Cisco::UnsupportedError] if this feature/name is unsupported
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     #
     # @param feature [String]
     # @param name [String]
@@ -153,7 +132,6 @@ module Cisco
     #  {:name => "green", :vrf => "one", :state => "",
     #   :router_id => "192.0.0.1"})
     def config_set(feature, property, *args)
-      fail 'lazy_connect specified but did not request connect' unless @cmd_ref
       ref = @cmd_ref.lookup(feature, property)
       set_args = ref.setter(*args)
       set(**set_args)
@@ -173,21 +151,21 @@ module Cisco
 
     attr_reader :cmd_ref, :client
 
-    # For unit testing - we won't know the node connection info at load time.
-    @lazy_connect = false
-
-    class << self
-      attr_reader :lazy_connect
+    def self.instance(*args)
+      if @instance && !args.empty? && args != @args
+        fail "Can't change existing instance (#{@args} -> #{args})"
+      end
+      @args ||= args
+      @instance ||= new(*args)
     end
 
-    class << self
-      attr_writer :lazy_connect
-    end
-
-    def initialize
-      @client = nil
+    def initialize(*args)
+      @client = Cisco::Client.create(*args)
       @cmd_ref = nil
-      connect unless self.class.lazy_connect
+      @cmd_ref = CommandReference.new(product:      product_id,
+                                      platform:     @client.platform,
+                                      data_formats: @client.data_formats)
+      cache_flush
     end
 
     def to_s
@@ -196,20 +174,6 @@ module Cisco
 
     def inspect
       "Node: client:'#{client.inspect}' cmd_ref:'#{cmd_ref.inspect}'"
-    end
-
-    # "hidden" API - used for UT but shouldn't be used elsewhere
-    def connect(*args)
-      @client = Cisco::Client.create(*args)
-      @cmd_ref = CommandReference.new(product:      product_id,
-                                      platform:     @client.platform,
-                                      data_formats: @client.data_formats)
-      cache_flush
-    end
-
-    # TODO: remove me
-    def reload
-      @client.reload
     end
 
     def cache_enable?
@@ -232,28 +196,18 @@ module Cisco
     # In general, clients should use config_set() rather than calling
     # this function directly.
     #
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     def set(**kwargs)
       @client.set(**kwargs)
-    rescue Cisco::Client::RequestFailed => e
-      raise Cisco::CliError.new(
-        e.rejected_input,
-        e.respond_to?(:clierror) ? e.clierror : e.message,
-        e.successful_input)
     end
 
     # Send a show command to the device.
     # In general, clients should use config_get() rather than calling
     # this function directly.
     #
-    # @raise [Cisco::CliError] if any command is rejected by the device.
+    # @raise [Cisco::RequestFailed] if any command is rejected by the device.
     def get(**kwargs)
       @client.get(**kwargs)
-    rescue Cisco::Client::RequestFailed => e
-      raise Cisco::CliError.new(
-        e.rejected_input,
-        e.respond_to?(:clierror) ? e.clierror : e.message,
-        e.successful_input)
     end
 
     # @return [String] such as "Cisco Nexus Operating System (NX-OS) Software"

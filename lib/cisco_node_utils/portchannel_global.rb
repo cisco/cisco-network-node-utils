@@ -27,6 +27,10 @@ module Cisco
       @name = name.downcase
     end
 
+    def to_s
+      "portchannel_global #{name}"
+    end
+
     def self.globals
       { 'default' => PortChannelGlobal.new('default') }
     end
@@ -42,8 +46,6 @@ module Cisco
     def hash_distribution=(val)
       config_set('portchannel_global',
                  'hash_distribution', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_hash_distribution
@@ -56,8 +58,6 @@ module Cisco
 
     def load_defer=(val)
       config_set('portchannel_global', 'load_defer', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_load_defer
@@ -72,8 +72,6 @@ module Cisco
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
       config_set('portchannel_global', 'resilient', no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_resilient
@@ -203,8 +201,6 @@ module Cisco
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, rot_str, rot_val, concat, sym)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     # on n6k, the bundle hash and bundle select are

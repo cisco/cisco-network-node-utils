@@ -17,6 +17,7 @@ Changelog
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
+* CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
 * Add IOS XR support for the following classes:
   * bgp
   * bgp_af
@@ -49,6 +50,9 @@ Changelog
   - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
   - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
 * `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
+* Improved minitest logging CLI.
+  - `ruby test_foo.rb -l debug` instead of `ruby test_foo.rb -- <host> <user> <pass> debug`
+  - `rake test TESTOPTS='--log-level=debug'`
 
 ### Fixed
 
@@ -57,7 +61,7 @@ Changelog
   - MTU is not supported on loopback interfaces
 
 ### Removed
-*
+* Removed `Node.lazy_connect` internal API.
 
 ## [v1.2.0]
 
