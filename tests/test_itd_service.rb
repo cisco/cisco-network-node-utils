@@ -32,7 +32,7 @@ class TestItdService < CiscoTestCase
     super
   end
 
-  def test_itd_device_group_create_destroy
+  def test_itd_service_create_destroy
     i1 = ItdService.new('abc')
     i2 = ItdService.new('BCD')
     i3 = ItdService.new('xyzABC')
@@ -207,6 +207,22 @@ class TestItdService < CiscoTestCase
     sleep(5)
     assert_equal(itd.default_service_enable,
                  itd.service_enable)
+    itd.destroy
+  end
+
+  def test_virtual_ip
+    itd = ItdService.new('new_group')
+    config 'itd device-group myGroup1'
+    config 'itd device-group myGroup2'
+    values = ['ip 1.1.1.1 255.255.255.0 tcp 2000 advertise enable',
+              'ip 2.2.2.2 255.0.0.0 udp 1000 device-group myGroup1',
+              'ip 3.3.3.3 255.0.255.0 device-group myGroup2']
+    itd.virtual_ip = values
+    assert_equal(itd.virtual_ip,
+                 values)
+    itd.virtual_ip = itd.default_virtual_ip
+    assert_equal(itd.virtual_ip,
+                 itd.default_virtual_ip)
     itd.destroy
   end
 

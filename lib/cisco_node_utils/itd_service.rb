@@ -384,6 +384,30 @@ module Cisco
       config_get_default('itd_service', 'service_enable')
     end
 
+    def virtual_ip
+      config_get('itd_service', 'virtual_ip', @get_args)
+    end
+
+    def virtual_ip=(values)
+      @set_args[:state] = 'no'
+      list = virtual_ip
+      # remove all the virtual configs first
+      list.each do |line|
+        @set_args[:string] = line
+        config_set('itd_service', 'virtual_ip', @set_args)
+      end
+      @set_args[:state] = ''
+      values.each do |value|
+        @set_args[:string] = value
+        config_set('itd_service', 'virtual_ip', @set_args)
+      end
+      set_args_keys_default
+    end
+
+    def default_virtual_ip
+      config_get_default('itd_service', 'virtual_ip')
+    end
+
     def vrf
       config_get('itd_service', 'vrf', @get_args)
     end

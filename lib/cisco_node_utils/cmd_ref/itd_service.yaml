@@ -96,6 +96,7 @@ load_balance:
   set_value: "<state> load-balance <method> <bs> <bh> <proto> <range> <start> <end> <buck> <buckets> <mpos> <mask>"
 
 nat_destination:
+  _exclude: [N9k]
   kind: boolean
   get_value: '/^nat destination$/'
   set_value: "<state> nat destination"
@@ -111,6 +112,12 @@ service_enable:
   get_value: '/^no shut$/'
   set_value: "<state> shutdown"
   default_value: false
+
+virtual_ip:
+  multiple:
+  get_value: '/^virtual (.*)/'
+  set_value : "<state> virtual <string>"
+  default_value: []
 
 vrf:
   kind: string
