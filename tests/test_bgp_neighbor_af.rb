@@ -101,14 +101,11 @@ class TestBgpNeighborAF < CiscoTestCase
     cfg << "route-policy #{str2.reverse}" << 'end-policy'
     cfg << 'route-policy foo_bar' << 'end-policy'
     cfg << 'route-policy baz_inga' << 'end-policy'
-
-    # vpn stuff - possibly not needed
-    cfg << "vrf #{vrf} address-family #{af_v4}"
     cfg << 'rd-set auto' << 'end-set'
 
-    # If any of the route-policies already exist, the config output
-    # will match our magic "warning regex" (due to the presence of a '%'),
-    # so just execute this part of the config without checking for errors.
+    # If any of the above config already exists, the output will contain
+    # a warning that matches our magic "warning regex" (due to the presence
+    # of a '%'), so just execute without checking for errors.
     config_no_warn(*cfg)
 
     cfg = []
