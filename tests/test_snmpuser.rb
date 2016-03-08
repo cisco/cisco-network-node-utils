@@ -185,7 +185,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_snmpuser_auth_password_equal_invalid_param
-    name = 'testV3PwEqualInv2'
+    name = 'testV3PwEqualInvalid2'
     auth_pw = 'TeSt297534'
     create_user(name, "network-admin auth md5 #{auth_pw}")
 
@@ -194,7 +194,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_snmpuser_auth_priv_password_equal_invalid_param
-    name = 'testV3PwEqualInv'
+    name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-admin auth md5 #{auth_pw} priv #{auth_pw}")
 
@@ -205,7 +205,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_snmpuser_auth_password_equal_priv_invalid_param
-    name = 'testV3PwEqualInv'
+    name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-operator auth md5 #{auth_pw} priv #{auth_pw}")
 

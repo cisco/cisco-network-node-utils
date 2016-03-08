@@ -103,9 +103,9 @@ class TestBgpNeighborAF < CiscoTestCase
     cfg << 'route-policy baz_inga' << 'end-policy'
     cfg << 'rd-set auto' << 'end-set'
 
-    # If any of the above config already exists, the output will contain
-    # a warning that matches our magic "warning regex" (due to the presence
-    # of a '%'), so just execute without checking for errors.
+    # If any of the above config already exists, we will get a
+    # CLI warning message about replacing existing configuration.
+    # Ignore these warnings, as they're intentional.
     config_no_warn(*cfg)
 
     cfg = []

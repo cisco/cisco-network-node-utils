@@ -140,7 +140,7 @@ class TestCase < Minitest::Test
   # Execute the specified config commands and warn if the
   # output matches the default "warning" regex.
   def config(*args)
-    config_and_warn_on_match(/invalid|^%/i, *args)
+    config_and_warn_on_match(/^invalid|^%/i, *args)
   end
 
   # Execute the specified config commands. Use this version
