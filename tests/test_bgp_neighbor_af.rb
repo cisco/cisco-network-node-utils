@@ -106,6 +106,13 @@ class TestBgpNeighborAF < CiscoTestCase
     cfg << "vrf #{vrf} address-family #{af_v4}"
     cfg << 'rd-set auto' << 'end-set'
 
+    # If any of the route-policies already exist, the config output
+    # will match our magic "warning regex" (due to the presence of a '%'),
+    # so just execute this part of the config without checking for errors.
+    config_no_warn(*cfg)
+
+    cfg = []
+
     # router-id and address-family under the global bgp
     # remote-as under the neighbor
     # VRF statements
@@ -115,16 +122,13 @@ class TestBgpNeighborAF < CiscoTestCase
     cfg << "router bgp #{asn} address-family #{af_v4}"
     cfg << "router bgp #{asn} address-family #{af_v6}"
     cfg << "router bgp #{asn} address-family #{vpn}"
+    cfg << "router bgp #{asn} address-family vpnv6 unicast"
     cfg << "router bgp #{asn} address-family #{evpn}"
     cfg << "router bgp #{asn} vrf #{vrf} rd auto"
     cfg << "router bgp #{asn} vrf #{vrf} address-family #{af_v4}"
-    cfg << "router bgp #{asn} vrf #{vrf} address-family #{af_v6}"
-    cfg << "router bgp #{asn} vrf #{vrf} address-family #{evpn}"
     cfg << "router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}"
-    cfg << "router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
-           "address-family #{af_v4}"
 
-    config_no_warn(*cfg)
+    config(*cfg)
   end
 
   def cleanup

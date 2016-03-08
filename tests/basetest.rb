@@ -138,20 +138,20 @@ class TestCase < Minitest::Test
   end
 
   # Execute the specified config commands and warn if the
-  # ouput matches the following regex: /invalid|^%/i
+  # output matches the default "warning" regex.
   def config(*args)
-     config_and_warn_on_match(/invalid|^%/i, *args)
+    config_and_warn_on_match(/invalid|^%/i, *args)
   end
 
   # Execute the specified config commands. Use this version
   # of the config method if you expect possible config errors
   # and do not wish to log them as a warning.
   def config_no_warn(*args)
-     config_and_warn_on_match(nil, *args)
+    config_and_warn_on_match(nil, *args)
   end
 
   # Execute the specified config commands and warn if the
-  # ouput matches the specified regex.5  Specifying nil for
+  # ouput matches the specified regex.  Specifying nil for
   # warn_match means "do not warn".
   def config_and_warn_on_match(warn_match, *args)
     # Send the entire config as one string but be sure not to return until
