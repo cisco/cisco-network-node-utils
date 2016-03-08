@@ -399,7 +399,7 @@ module Cisco
         end
 
         feature_hash.each do |name, value|
-          debug "No entries under '#{name}' in '#{file}'" if value.nil?
+          fail "No entries under '#{name}' in '#{file}'" if value.nil?
           @hash[feature] ||= {}
           if value.empty?
             @hash[feature][name] = UnsupportedCmdRef.new(feature, name, file)
