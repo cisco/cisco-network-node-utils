@@ -86,6 +86,23 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
+  def test_ingress_interface
+    config 'feature interface-vlan'
+    config 'vlan 2'
+    config 'interface vlan 2'
+    config 'interface port-channel 100'
+    itd = ItdService.new('new_group')
+    intf = interfaces[0].dup
+    ii = [['vlan 2', '1.1.1.1'],
+          [intf.insert(8, ' '), '2.2.2.2'],
+          ['port-channel 100', '3.3.3.3']]
+    itd.ingress_interface = ii
+    assert_equal(itd.ingress_interface, ii)
+    itd.ingress_interface = itd.default_ingress_interface
+    assert_equal(itd.ingress_interface, itd.default_ingress_interface)
+    itd.destroy
+  end
+
   def test_load_balance
     itd = ItdService.new('new_group')
     bs = 'src'
@@ -107,7 +124,7 @@ class TestItdService < CiscoTestCase
     bs = 'dst'
     bh = 'ip-l4port'
     buckets = 128
-    mask = 100
+    mask = 10
     proto = 'tcp'
     start = 200
     enport = 700
@@ -122,7 +139,7 @@ class TestItdService < CiscoTestCase
     bs = false
     bh = false
     buckets = false
-    mask = 50
+    mask = 20
     proto = false
     start = false
     enport = false
@@ -180,15 +197,16 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
-  def test_shutdown
+  def test_service_enable
     itd = ItdService.new('new_group')
     # need to configure a lot before doing this test
     # also there is a delay after shutdown, please take care
-    itd.shutdown = false
-    assert_equal(false, itd.shutdown)
-    itd.shutdown = itd.default_shutdown
-    assert_equal(itd.default_shutdown,
-                 itd.shutdown)
+    itd.service_enable = true
+    assert_equal(true, itd.service_enable)
+    itd.service_enable = itd.default_service_enable
+    sleep(5)
+    assert_equal(itd.default_service_enable,
+                 itd.service_enable)
     itd.destroy
   end
 

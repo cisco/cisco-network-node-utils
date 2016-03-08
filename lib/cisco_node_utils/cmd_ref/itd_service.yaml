@@ -53,6 +53,12 @@ feature:
   set_value: 'feature itd'
   default_value: false
 
+ingress_interface:
+  multiple:
+  get_value: '/^ingress interface (\S+)(?: next-hop (\S+))*/'
+  set_value: "<state> ingress interface <interface> <next> <nhop>"
+  default_value: []
+
 load_bal_buckets:
   kind: int
   default_value: false
@@ -89,17 +95,22 @@ load_balance:
   get_value: '/^load-balance (.*)$/'
   set_value: "<state> load-balance <method> <bs> <bh> <proto> <range> <start> <end> <buck> <buckets> <mpos> <mask>"
 
+nat_destination:
+  kind: boolean
+  get_value: '/^nat destination$/'
+  set_value: "<state> nat destination"
+  default_value: false
+
 peer:
   get_value: '/^peer vdc (.*) service (.*)$/'
   set_value: "<state> peer vdc <vdc> service <service>"
   default_value: []
 
-shutdown:
+service_enable:
   kind: boolean
-  auto_default: false
   get_value: '/^no shut$/'
   set_value: "<state> shutdown"
-  default_value: true
+  default_value: false
 
 vrf:
   kind: string

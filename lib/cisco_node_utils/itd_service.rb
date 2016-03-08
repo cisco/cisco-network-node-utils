@@ -164,6 +164,42 @@ module Cisco
       config_get_default('itd_service', 'failaction')
     end
 
+    def ingress_interface
+      list = config_get('itd_service', 'ingress_interface', @get_args)
+      list.each do |intf, _next_hop|
+        intf[/Eth/] = 'ethernet ' if intf.include?('Eth')
+        intf[/Po/] = 'port-channel ' if intf.include?('Po')
+        intf[/Vlan/] = 'vlan ' if intf.include?('Vlan')
+      end
+      list
+    end
+
+    def ingress_interface=(list)
+      cur_list = ingress_interface
+      @set_args[:state] = 'no'
+      @set_args[:next] = ''
+      @set_args[:nhop] = ''
+      # clean up the current list first
+      cur_list.each do |intf, _next_hop|
+        @set_args[:interface] = intf
+        config_set('itd_service', 'ingress_interface', @set_args)
+      end
+      @set_args[:state] = ''
+      list.each do |intf, next_hop|
+        @set_args[:interface] = intf
+        unless next_hop == '' || next_hop == 'default'
+          @set_args[:next] = 'next-hop'
+          @set_args[:nhop] = next_hop
+        end
+        config_set('itd_service', 'ingress_interface', @set_args)
+      end
+      set_args_keys_default
+    end
+
+    def default_ingress_interface
+      config_get_default('itd_service', 'ingress_interface')
+    end
+
     # the load-balance command can take several forms like:
     # load-balance method dst ip
     # load-balance method dst ip-l4port tcp range 3 6
@@ -304,6 +340,7 @@ module Cisco
         @set_args[:mask] = mask
       end
       config_set('itd_service', 'load_balance', @set_args)
+      set_args_keys_default
     end
 
     # peer is an array of vdc and service
@@ -325,24 +362,26 @@ module Cisco
         @set_args[:service] = parray[1]
       end
       config_set('itd_service', 'peer', @set_args)
+      set_args_keys_default
     end
 
     def default_peer
       config_get_default('itd_service', 'peer')
     end
 
-    def shutdown
-      config_get('itd_service', 'shutdown', @get_args)
+    def service_enable
+      config_get('itd_service', 'service_enable', @get_args)
     end
 
-    def shutdown=(state)
+    def service_enable=(state)
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
-      config_set('itd_service', 'shutdown', @set_args)
+      config_set('itd_service', 'service_enable', @set_args)
+      set_args_keys_default
     end
 
-    def default_shutdown
-      config_get_default('itd_service', 'shutdown')
+    def default_service_enable
+      config_get_default('itd_service', 'service_enable')
     end
 
     def vrf
