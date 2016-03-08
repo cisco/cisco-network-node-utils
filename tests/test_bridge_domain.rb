@@ -107,16 +107,16 @@ class TestBridgeDomain < CiscoTestCase
 
   def test_bd_name
     bd = BridgeDomain.new(101)
-    assert_equal(bd.default_name, bd.name,
+    assert_equal(bd.default_bd_name, bd.bd_name,
                  'Error: Bridge-Domain name not initialized to default')
 
     name = 'Pepsi'
-    bd.name = name
-    assert_equal(name, bd.name,
+    bd.bd_name = name
+    assert_equal(name, bd.bd_name,
                  'Error: Bridge-Domain name not updated to #{name}')
 
-    bd.name = bd.default_name
-    assert_equal(bd.default_name, bd.name,
+    bd.bd_name = bd.default_bd_name
+    assert_equal(bd.default_bd_name, bd.bd_name,
                  'Error: Bridge-Domain name not restored to default')
     bd.destroy
   end

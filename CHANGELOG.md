@@ -8,6 +8,10 @@ Changelog
 #### Cisco Resources
 * Spanning Tree
   * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
 
 #### NetDev Resources
 *
@@ -63,6 +67,7 @@ Changelog
 
 ### Removed
 * Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
 
 ## [v1.2.0]
 

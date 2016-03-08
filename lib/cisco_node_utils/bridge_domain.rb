@@ -193,11 +193,11 @@ module Cisco
     # Bridge-Domain name assigning case
     # bridge-domain 100
     #   name PepsiCo
-    def name
+    def bd_name
       config_get('bridge_domain', 'name', bd: @bd_ids)
     end
 
-    def name=(str)
+    def bd_name=(str)
       fail TypeError unless str.is_a?(String)
       if str.empty?
         config_set('bridge_domain', 'name', bd: @bd_ids, state: 'no', name: '')
@@ -206,7 +206,7 @@ module Cisco
       end
     end
 
-    def default_name
+    def default_bd_name
       sprintf('Bridge-Domain%s', @bd_ids)
     end
 
