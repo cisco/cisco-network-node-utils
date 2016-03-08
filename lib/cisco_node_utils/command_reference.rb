@@ -399,7 +399,7 @@ module Cisco
         end
 
         feature_hash.each do |name, value|
-          fail "No entries under '#{name}' in '#{file}'" if value.nil?
+          debug "No entries under '#{name}' in '#{file}'" if value.nil?
           @hash[feature] ||= {}
           if value.empty?
             @hash[feature][name] = UnsupportedCmdRef.new(feature, name, file)
@@ -414,6 +414,11 @@ module Cisco
     def supports?(feature)
       value = @hash[feature]
       !(value.is_a?(UnsupportedCmdRef) || value.nil?)
+    end
+
+    def property_supported?(feature, property)
+      value = @hash[feature][property]
+      !value.is_a?(UnsupportedCmdRef)
     end
 
     # Get the command reference

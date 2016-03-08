@@ -137,6 +137,10 @@ class CiscoTestCase < TestCase
     flunk(message)
   end
 
+  def validate_property_excluded?(feature, property)
+    !node.cmd_ref.property_supported?(feature, property)
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
