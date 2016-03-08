@@ -20,7 +20,7 @@ fabric_control:
   get_value: '/^Configured fabric-control.*:\s+(\d+)/'
   set_context: ["bridge-domain <bd>"]
   set_value: "<state> fabric-control"
-  default_value: "0" 
+  default_value: false 
 
 # For the below member_vni, name, shutdown commands we are going to use show
 # bridge-domain cli as show running-config bridge-domain cli is very difficult

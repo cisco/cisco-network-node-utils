@@ -126,7 +126,8 @@ module Cisco
     #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
-      config_get('bridge_domain', 'fabric_control')
+      result = config_get('bridge_domain', 'fabric_control')
+      result.to_i == @bd_ids.to_i ? true : false
     end
 
     def fabric_control=(val)
