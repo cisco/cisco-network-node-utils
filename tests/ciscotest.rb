@@ -58,7 +58,7 @@ class CiscoTestCase < TestCase
   def self.node
     unless @@node
       # rubocop:disable Style/ClassVars
-      @@node = Node.instance(address, username, password)
+      @@node = Node.instance
       # rubocop:enable Style/ClassVars
       @@node.cache_enable = true
       @@node.cache_auto = true

@@ -15,12 +15,11 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Make changes in your branch.
 * Testing
   * Create a minitest script for any new APIs or new functionality
-  * Run all the tests to ensure there was no collateral damage to existing code. There are two ways you can specify the Nexus switch (virtual or physical) to test against when running the full test suite:
-    1. Use the NODE environment variable to specify the address, username, and password:
+  * Run all the tests to ensure there was no collateral damage to existing code. There are two ways you can specify the router or switch (virtual or physical) to test against when running the full test suite:
+    1. Create a YAML config file as `/etc/cisco_node_utils.yaml` or `~/cisco_node_utils.yaml` to specify the host, username, and password. There is an example file in `docs/cisco_node_utils.yaml.example`. You can specify a single test node as `default` in this YAML, or you can describe multiple test hosts and specify the desired host with the `--environment` option:
 
         ```bash
-        export NODE="192.168.100.1 user password"
-        rake test
+        rake test TEST_OPTS='--environment=nxapi_remote'
         ```
 
     2. Enter the connection information at runtime:
