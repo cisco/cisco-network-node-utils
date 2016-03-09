@@ -204,4 +204,17 @@ class CiscoTestCase < TestCase
       ["default interface #{intf_name}"]
     end
   end
+
+  def compatible_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
+  end
 end

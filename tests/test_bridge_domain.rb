@@ -43,11 +43,11 @@ class TestBridgeDomain < CiscoTestCase
   def test_single_bd_create_destroy
     bd = BridgeDomain.new('100', true)
     bds = BridgeDomain.bds
-    assert(bds.key?(100), 'Error: failed to create bridge-domain 100')
+    assert(bds.key?(100.to_s), 'Error: failed to create bridge-domain 100')
 
     bd.destroy
     bds = BridgeDomain.bds
-    refute(bds.key?(100), 'Error: failed to destroy bridge-domain 100')
+    refute(bds.key?(100.to_s), 'Error: failed to destroy bridge-domain 100')
   end
 
   def test_bd_create_if_vlan_exists
@@ -65,7 +65,7 @@ class TestBridgeDomain < CiscoTestCase
     bd = BridgeDomain.new('100-120')
     bds = BridgeDomain.bds
     BridgeDomain.bd_ids_to_array(create).each do |id|
-      assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
+      assert(bds.key?(id.to_s), 'Error: failed to create bridge-domain ' << id)
     end
     bd.destroy
   end
@@ -77,13 +77,13 @@ class TestBridgeDomain < CiscoTestCase
     bd = BridgeDomain.new(create, true)
     bds = BridgeDomain.bds
     bdlist.each do |id|
-      assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
+      assert(bds.key?(id.to_s), 'Error: failed to create bridge-domain ' << id)
     end
 
     bd.destroy
     bds = BridgeDomain.bds
     bdlist.each do |id|
-      refute(bds.key?(id.to_i), 'Error: failed to destroy bridge-domain ' << id)
+      refute(bds.key?(id.to_s), 'Error: failed to destroy bridge-domain ' << id)
     end
   end
 
@@ -92,7 +92,7 @@ class TestBridgeDomain < CiscoTestCase
     bd = BridgeDomain.new(create)
     bds = BridgeDomain.bds
     BridgeDomain.bd_ids_to_array(create).each do |id|
-      assert(bds.key?(id.to_i), 'Error: failed to create bridge-domain ' << id)
+      assert(bds.key?(id.to_s), 'Error: failed to create bridge-domain ' << id)
     end
     bd.destroy
   end
@@ -131,6 +131,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_bd_member_vni
+    compatible_interface?
     bd = BridgeDomain.new(100)
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -151,6 +152,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_mapped_bd_member_vni
+    compatible_interface?
     bd = BridgeDomain.new(100)
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -170,6 +172,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_multiple_bd_vni_mapping
+    compatible_interface?
     bd = BridgeDomain.new('100,110,120')
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -190,6 +193,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_member_vni_empty_assign
+    compatible_interface?
     bd = BridgeDomain.new(100)
     bd.member_vni = ''
     curr_vni = bd.member_vni.values.join(',')

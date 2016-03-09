@@ -93,7 +93,7 @@ module Cisco
           bd_list.map { |elem| BridgeDomain.bd_ids_to_array(elem) }
           .flatten.uniq.sort
       final_bd_list.each do |id|
-        hash[id] = BridgeDomain.new(id, false)
+        hash[id.to_s] = BridgeDomain.new(id, false)
       end
       hash
     end
