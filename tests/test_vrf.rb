@@ -75,7 +75,7 @@ class TestVrf < CiscoTestCase
 
   def test_shutdown
     v = Vrf.new('test_shutdown')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'shutdown')
       assert_nil(v.shutdown)
       assert_nil(v.default_shutdown)
       assert_raises(Cisco::UnsupportedError) { v.shutdown = true }
@@ -109,7 +109,7 @@ class TestVrf < CiscoTestCase
   def test_mhost
     v = Vrf.new('test_mhost')
     t_intf = 'Loopback100'
-    if validate_property_excluded?('vrf', 'mhost_ipv4')
+    if validate_property_excluded?('vrf', 'mhost_default_interface')
       assert_nil(v.mhost_ipv4)
       assert_nil(v.mhost_ipv6)
       assert_raises(Cisco::UnsupportedError) { v.mhost_ipv4 = t_intf }
@@ -174,7 +174,7 @@ class TestVrf < CiscoTestCase
 
   def test_route_distinguisher
     v = Vrf.new('green')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'route_distinguisher')
       # Must be configured under BGP in IOS XR
       assert_nil(v.route_distinguisher)
       assert_nil(v.default_route_distinguisher)
