@@ -27,10 +27,11 @@ git diff --cached --name-only --diff-filter=A -z $against |
         LC_ALL=C tr -d '[ -~]\0' | wc -c
 check_rc "Rename non-ASCII file name(s) before committing"
 
-step_name 'Checking for trailing whitespace'
+step_name 'Checking for trailing whitespace in non-Ruby files'
 # If there are whitespace errors, print the offending file names and fail.
-# We only check YAML/MD files, as whitespace in .rb files is managed by Rubocop
-non_ruby_files=`git diff --staged --name-only | grep -v \.rb`
+# Ignore .rb files, as whitespace in these files is managed by Rubocop
+# Ignore .proto files, as they are generated code
+non_ruby_files=`git diff --staged --name-only | grep -v \.rb | grep -v \.proto`
 if [ -n "$non_ruby_files" ]; then
   ! git grep -n -I ' $' -- $non_ruby_files
   check_rc "Fix trailing whitespace before committing"
