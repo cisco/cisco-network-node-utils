@@ -73,31 +73,31 @@ module Cisco
       config_get_default('vrf', 'description')
     end
 
-    def mhost_ipv4
+    def mhost_ipv4_default_interface
       config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv4')
     end
 
-    def mhost_ipv4=(val)
-      mhost_setter_helper('ipv4', val)
+    def mhost_ipv4_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv4', val)
     end
 
-    def default_mhost_ipv4
+    def default_mhost_ipv4_default_interface
       config_get_default('vrf', 'mhost_default_interface')
     end
 
-    def mhost_ipv6
+    def mhost_ipv6_default_interface
       config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv6')
     end
 
-    def mhost_ipv6=(val)
-      mhost_setter_helper('ipv6', val)
+    def mhost_ipv6_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv6', val)
     end
 
-    def default_mhost_ipv6
+    def default_mhost_ipv6_default_interface
       config_get_default('vrf', 'mhost_default_interface')
     end
 
-    def mhost_setter_helper(afi, val)
+    def mhost_default_interface_setter_helper(afi, val)
       val.strip!
       no_cmd = val.empty? ? 'no' : ''
       config_set('vrf', 'mhost_default_interface', vrf: @name,

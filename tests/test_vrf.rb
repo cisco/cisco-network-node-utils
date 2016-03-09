@@ -110,15 +110,19 @@ class TestVrf < CiscoTestCase
     v = Vrf.new('test_mhost')
     t_intf = 'Loopback100'
     if validate_property_excluded?('vrf', 'mhost_default_interface')
-      assert_nil(v.mhost_ipv4)
-      assert_nil(v.mhost_ipv6)
-      assert_raises(Cisco::UnsupportedError) { v.mhost_ipv4 = t_intf }
-      assert_raises(Cisco::UnsupportedError) { v.mhost_ipv6 = t_intf }
+      assert_nil(v.mhost_ipv4_default_interface)
+      assert_nil(v.mhost_ipv6_default_interface)
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv4_default_interface = t_intf
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv6_default_interface = t_intf
+      end
       v.destroy
       return
     end
     config("interface #{t_intf}")
-    %w(mhost_ipv4 mhost_ipv6).each do |mh|
+    %w(mhost_ipv4_default_interface mhost_ipv6_default_interface).each do |mh|
       df = v.send("default_#{mh}")
       result = v.send("#{mh}")
       assert_equal(df, result, "Test1.1 : #{mh} should be default value")
