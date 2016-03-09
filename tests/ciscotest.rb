@@ -138,7 +138,7 @@ class CiscoTestCase < TestCase
   end
 
   def validate_property_excluded?(feature, property)
-    !node.cmd_ref.property_supported?(feature, property)
+    !node.cmd_ref.supports?(feature, property)
   end
 
   def interfaces
