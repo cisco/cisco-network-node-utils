@@ -92,10 +92,7 @@ module Cisco
           fail 'Failed to install the requested rpm.'
         end
       end
-      # HACK: The current nxos host installer is a multi-part command
-      # which may fail at a later stage yet return a false positive;
-      # therefore a post-validation check is needed here to verify the
-      # actual outcome.
+      # post-validation check to verify the outcome.
       validate(pkg)
     end
 
