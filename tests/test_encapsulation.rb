@@ -14,7 +14,6 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/encapsulation'
-require_relative '../lib/cisco_node_utils/vdc'
 
 # TestEncapsulation - Minitest for Encapsulation node utility class
 class TestEncapsulation < CiscoTestCase
