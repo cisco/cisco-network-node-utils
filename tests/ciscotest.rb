@@ -153,7 +153,7 @@ class CiscoTestCase < TestCase
       end
       # rubocop:enable Style/ClassVars
     end
-    abort "No suitable interfaces found on #{node} for this test" if
+    skip "No suitable interfaces found on #{node} for this test" if
       @@interfaces.empty?
     @@interfaces
   end
