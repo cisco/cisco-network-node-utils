@@ -96,9 +96,9 @@ class CiscoTestCase < TestCase
     self.class.platform
   end
 
-  def config(*args)
+  def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(*args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit best-effort')
     else
       result = super
     end
@@ -135,6 +135,10 @@ class CiscoTestCase < TestCase
     skip('Skip test: Feature is unsupported on this device') if
       message[Regexp.union(patterns)]
     flunk(message)
+  end
+
+  def validate_property_excluded?(feature, property)
+    !node.cmd_ref.supports?(feature, property)
   end
 
   def interfaces

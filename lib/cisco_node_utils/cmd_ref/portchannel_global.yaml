@@ -6,52 +6,50 @@ _template:
   get_command: "show running all"
 
 asymmetric:
-  _exclude: [N6k, N5k, N3k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   default_value: false
 
 bundle_hash:
-  N3k:
+  N3k: &bundle_hash_ip_l4port
     default_value: 'ip-l4port'
-  N5k:
+  N5k: &bundle_hash_ip
     default_value: 'ip'
-  N6k:
-    default_value: 'ip'
-  N7k:
-    default_value: 'ip'
-  N9k:
-    default_value: 'ip-l4port'
+  N6k: *bundle_hash_ip
+  N7k: *bundle_hash_ip
+  N8k: *bundle_hash_ip_l4port
+  N9k: *bundle_hash_ip_l4port
 
 bundle_select:
   default_value: 'src-dst'
 
 concatenation:
-  _exclude: [N7k, N5k, N6k]
+  _exclude: [N5k, N6k, N7k]
   default_value: false
 
 hash_distribution:
-  _exclude: [N6k, N5k, N3k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   get_value: '/^port.channel hash.distribution (.*)$/'
   set_value: "port-channel hash-distribution %s"
   default_value: 'adaptive'
 
 hash_poly:
-  _exclude: [N7k, N3k, N9k]
+  _exclude: [N3k, N7k, N8k, N9k]
+  default_value: ~
 
 load_balance_type:
   kind: string
-  N3k:
+  N3k: &load_balance_type_symmetry
     default_only: "symmetry"
-  N5k:
+  N5k: &load_balance_type_ethernet
     default_only: "ethernet"
-  N6k:
-    default_only: "ethernet"
-  N7k:
+  N6k: *load_balance_type_ethernet
+  N7k: &load_balance_type_asymmetric
     default_only: "asymmetric"
-  N9k:
-    default_only: "symmetry"
+  N8k: *load_balance_type_symmetry
+  N9k: *load_balance_type_symmetry
 
 load_defer:
-  _exclude: [N6k, N5k, N3k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: int
   get_value: '/^port.channel load.defer (\d+)$/'
   set_value: "port-channel load-defer %s"
@@ -63,7 +61,7 @@ port_channel_load_balance:
   set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
-  _exclude: [N6k, N5k, N7k]
+  _exclude: [N5k, N6k, N8k, N7k]
   kind: boolean
   get_value: '/^port-channel load-balance resilient$/'
   set_value: "%s port-channel load-balance resilient"
@@ -75,5 +73,5 @@ rotate:
   default_value: 0
 
 symmetry:
-  _exclude: [N7k, N5k, N6k]
+  _exclude: [N5k, N6k, N7k]
   default_value: false

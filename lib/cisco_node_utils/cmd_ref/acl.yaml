@@ -24,7 +24,7 @@ acl:
   context: ~
   get_value: '/^<afi> access-list (\S+)$/'
   set_value: '<state> <afi> access-list <acl_name>'
-                      
+
 all_aces:
   multiple:
   get_value: '/^(\d+) .+$/'

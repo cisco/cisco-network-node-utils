@@ -24,15 +24,15 @@ class TestPortchannelGlobal < CiscoTestCase
 
   def setup
     super
-    config 'no port-channel load-balance' unless n6k_platform?
+    config 'no port-channel load-balance' unless /N(5|6)/ =~ node.product_id
     config 'no port-channel load-balance ethernet' unless
-    n9k_platform? || n7k_platform?
+      /N(3|7|8|9)/ =~ node.product_id
   end
 
   def teardown
-    config 'no port-channel load-balance' unless n6k_platform?
+    config 'no port-channel load-balance' unless /N(5|6)/ =~ node.product_id
     config 'no port-channel load-balance ethernet' unless
-    n9k_platform? || n7k_platform?
+      /N(3|7|8|9)/ =~ node.product_id
     super
   end
 
@@ -45,159 +45,170 @@ class TestPortchannelGlobal < CiscoTestCase
     mode[Regexp.union(patterns)] ? true : false
   end
 
-  def n7k_platform?
-    /N7/ =~ node.product_id
-  end
-
-  def n9k_platform?
-    /N(3|9)/ =~ node.product_id
-  end
-
-  def n6k_platform?
-    /N(5|6)/ =~ node.product_id
-  end
-
   def create_portchannel_global(name=DEFAULT_NAME)
     PortChannelGlobal.new(name)
   end
 
   def test_get_hash_distribution
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
-    @global = create_portchannel_global
-    @global.hash_distribution = 'fixed'
-    assert_equal('fixed', @global.hash_distribution)
-    @global.hash_distribution =
-      @global.default_hash_distribution
-    assert_equal(@global.default_hash_distribution,
-                 @global.hash_distribution)
+    global = create_portchannel_global
+    if validate_property_excluded?('portchannel_global', 'hash_distribution')
+      assert_raises(Cisco::UnsupportedError) do
+        global.hash_distribution = 'fixed'
+      end
+      assert_nil(global.hash_distribution)
+    else
+      global.hash_distribution = 'fixed'
+      assert_equal('fixed', global.hash_distribution)
+      global.hash_distribution =
+        global.default_hash_distribution
+      assert_equal(global.default_hash_distribution,
+                   global.hash_distribution)
+    end
   end
 
   def test_get_set_load_defer
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
-    @global = create_portchannel_global
-    @global.load_defer = 1000
-    assert_equal(1000, @global.load_defer)
-    @global.load_defer =
-      @global.default_load_defer
-    assert_equal(@global.default_load_defer,
-                 @global.load_defer)
+    global = create_portchannel_global
+    if validate_property_excluded?('portchannel_global', 'load_defer')
+      assert_raises(Cisco::UnsupportedError) do
+        global.load_defer = 1000
+      end
+      assert_nil(global.load_defer)
+    else
+      global.load_defer = 1000
+      assert_equal(1000, global.load_defer)
+      global.load_defer =
+        global.default_load_defer
+      assert_equal(global.default_load_defer,
+                   global.load_defer)
+    end
   end
 
   def test_get_set_resilient
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n7k_platform?
-    @global = create_portchannel_global
-    @global.resilient = true
-    assert_equal(true, @global.resilient)
-    @global.resilient = @global.default_resilient
-    assert_equal(@global.default_resilient, @global.resilient)
+    global = create_portchannel_global
+    if validate_property_excluded?('portchannel_global', 'resilient')
+      assert_raises(Cisco::UnsupportedError) do
+        global.resilient = true
+      end
+      assert_nil(global.resilient)
+    else
+      global = create_portchannel_global
+      global.resilient = true
+      assert_equal(true, global.resilient)
+      global.resilient = global.default_resilient
+      assert_equal(global.default_resilient, global.resilient)
+    end
   end
 
   def test_get_set_port_channel_load_balance_sym_concat_rot
-    skip('Platform does not support this property') if
-      n6k_platform? || n7k_platform? || n3k_in_n3k_mode?
-    @global = create_portchannel_global
-    @global.send(:port_channel_load_balance=,
-                 'src-dst', 'ip-l4port', nil, nil, true, true, 4)
+    # rubocop:disable Style/MultilineOperationIndentation
+    skip('Test not supported on this platform') if n3k_in_n3k_mode? ||
+      validate_property_excluded?('portchannel_global', 'symmetry')
+    # rubocop:enable Style/MultilineOperationIndentation
+
+    global = create_portchannel_global
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-l4port', nil, nil, true, true, 4)
     assert_equal('src-dst',
-                 @global.bundle_select)
+                 global.bundle_select)
     assert_equal('ip-l4port',
-                 @global.bundle_hash)
-    assert_equal(true, @global.symmetry)
-    assert_equal(true, @global.concatenation)
-    assert_equal(4, @global.rotate)
-    @global.send(
+                 global.bundle_hash)
+    assert_equal(true, global.symmetry)
+    assert_equal(true, global.concatenation)
+    assert_equal(4, global.rotate)
+    global.send(
       :port_channel_load_balance=,
-      @global.default_bundle_select,
-      @global.default_bundle_hash,
+      global.default_bundle_select,
+      global.default_bundle_hash,
       nil,
       nil,
-      @global.default_symmetry,
-      @global.default_concatenation,
-      @global.default_rotate)
+      global.default_symmetry,
+      global.default_concatenation,
+      global.default_rotate)
     assert_equal(
-      @global.default_bundle_select,
-      @global.bundle_select)
+      global.default_bundle_select,
+      global.bundle_select)
     assert_equal(
-      @global.default_bundle_hash,
-      @global.bundle_hash)
+      global.default_bundle_hash,
+      global.bundle_hash)
     assert_equal(
-      @global.default_symmetry,
-      @global.symmetry)
+      global.default_symmetry,
+      global.symmetry)
     assert_equal(
-      @global.default_concatenation,
-      @global.concatenation)
-    assert_equal(@global.default_rotate,
-                 @global.rotate)
+      global.default_concatenation,
+      global.concatenation)
+    assert_equal(global.default_rotate,
+                 global.rotate)
   end
 
   def test_get_set_port_channel_load_balance_hash_poly
-    skip('Platform does not support this property') if n7k_platform? ||
-                                                       n9k_platform?
-    @global = create_portchannel_global
-    @global.send(:port_channel_load_balance=,
-                 'src-dst', 'ip-only', 'CRC10c', nil, nil, nil, nil)
-    assert_equal('src-dst',
-                 @global.bundle_select)
-    assert_equal('ip-only',
-                 @global.bundle_hash)
-    assert_equal('CRC10c', @global.hash_poly)
-    @global.send(:port_channel_load_balance=,
-                 'dst', 'mac', 'CRC10a', nil, nil, nil, nil)
-    assert_equal('dst',
-                 @global.bundle_select)
-    assert_equal('mac',
-                 @global.bundle_hash)
-    assert_equal('CRC10a', @global.hash_poly)
-    @global.send(
-      :port_channel_load_balance=,
-      @global.default_bundle_select,
-      @global.default_bundle_hash,
-      'CRC10b',
-      nil, nil, nil, nil)
-    assert_equal(
-      @global.default_bundle_select,
-      @global.bundle_select)
-    assert_equal(
-      @global.default_bundle_hash,
-      @global.bundle_hash)
-    assert_equal('CRC10b',
-                 @global.hash_poly)
+    global = create_portchannel_global
+    if validate_property_excluded?('portchannel_global', 'hash_poly')
+      skip('Test not supported on this platform')
+    else
+      global.send(:port_channel_load_balance=,
+                  'src-dst', 'ip-only', 'CRC10c', nil, nil, nil, nil)
+      assert_equal('src-dst',
+                   global.bundle_select)
+      assert_equal('ip-only',
+                   global.bundle_hash)
+      assert_equal('CRC10c', global.hash_poly)
+      global.send(:port_channel_load_balance=,
+                  'dst', 'mac', 'CRC10a', nil, nil, nil, nil)
+      assert_equal('dst',
+                   global.bundle_select)
+      assert_equal('mac',
+                   global.bundle_hash)
+      assert_equal('CRC10a', global.hash_poly)
+      global.send(
+        :port_channel_load_balance=,
+        global.default_bundle_select,
+        global.default_bundle_hash,
+        'CRC10b',
+        nil, nil, nil, nil)
+      assert_equal(
+        global.default_bundle_select,
+        global.bundle_select)
+      assert_equal(
+        global.default_bundle_hash,
+        global.bundle_hash)
+      assert_equal('CRC10b',
+                   global.hash_poly)
+    end
   end
 
   def test_get_set_port_channel_load_balance_asym_rot
-    skip('Platform does not support this property') if n6k_platform? ||
-                                                       n9k_platform?
-    @global = create_portchannel_global
-    @global.send(:port_channel_load_balance=,
-                 'src-dst', 'ip-vlan', nil, true, nil, nil, 4)
-    assert_equal('src-dst',
-                 @global.bundle_select)
-    assert_equal('ip-vlan',
-                 @global.bundle_hash)
-    assert_equal(true, @global.asymmetric)
-    assert_equal(4, @global.rotate)
-    @global.send(
-      :port_channel_load_balance=,
-      @global.default_bundle_select,
-      @global.default_bundle_hash,
-      nil,
-      @global.default_asymmetric,
-      nil,
-      nil,
-      @global.default_rotate)
-    assert_equal(
-      @global.default_bundle_select,
-      @global.bundle_select)
-    assert_equal(
-      @global.default_bundle_hash,
-      @global.bundle_hash)
-    assert_equal(
-      @global.default_asymmetric,
-      @global.asymmetric)
-    assert_equal(@global.default_rotate,
-                 @global.rotate)
+    global = create_portchannel_global
+    if validate_property_excluded?('portchannel_global', 'asymmetric')
+      skip('Test not supported on this platform')
+    else
+      global.send(:port_channel_load_balance=,
+                  'src-dst', 'ip-vlan', nil, true, nil, nil, 4)
+      assert_equal('src-dst',
+                   global.bundle_select)
+      assert_equal('ip-vlan',
+                   global.bundle_hash)
+      assert_equal(true, global.asymmetric)
+      assert_equal(4, global.rotate)
+      global.send(
+        :port_channel_load_balance=,
+        global.default_bundle_select,
+        global.default_bundle_hash,
+        nil,
+        global.default_asymmetric,
+        nil,
+        nil,
+        global.default_rotate)
+      assert_equal(
+        global.default_bundle_select,
+        global.bundle_select)
+      assert_equal(
+        global.default_bundle_hash,
+        global.bundle_hash)
+      assert_equal(
+        global.default_asymmetric,
+        global.asymmetric)
+      assert_equal(global.default_rotate,
+                   global.rotate)
+    end
   end
 end
