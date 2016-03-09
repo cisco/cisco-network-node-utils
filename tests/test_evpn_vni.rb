@@ -28,11 +28,16 @@ class TestEvpnVni < CiscoTestCase
     # ensure we are starting with a clean slate for each test.
     super
     config('no feature bgp')
-    config('no nv overlay evpn')
+
+    # Some platforms complain when nv overlay is not configured
+    config_no_warn('no nv overlay evpn')
 
     # Some platforms remove the 'evpn' command when 'no nv overlay evpn'
     # is processed, while others must remove it explicitly.
     config_no_warn('no evpn')
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_create_and_destroy
@@ -43,6 +48,9 @@ class TestEvpnVni < CiscoTestCase
     vni.destroy
     vni_list = EvpnVni.vnis
     refute(vni_list.key?('4096'), 'Error: failed to destroy evpn vni 4096')
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_vni_collection
@@ -62,6 +70,9 @@ class TestEvpnVni < CiscoTestCase
     assert_empty(vni.route_distinguisher,
                  'vni route_distinguisher should *NOT* be configured')
     vni.destroy
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   # test route_target
@@ -91,6 +102,9 @@ class TestEvpnVni < CiscoTestCase
     route_target_tester(vni, opts, should, 'Test 4')
 
     vni .destroy
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def route_target_tester(vni, opts, should, test_id)
