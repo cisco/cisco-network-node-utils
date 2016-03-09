@@ -74,31 +74,34 @@ module Cisco
     end
 
     def mhost_ipv4
-      config_get('vrf', 'mhost_ipv4', vrf: @name)
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv4')
     end
 
     def mhost_ipv4=(val)
-      val.strip!
-      no_cmd = val.empty? ? 'no' : ''
-      config_set('vrf', 'mhost_ipv4', vrf: @name, state: no_cmd, intf: val)
+      mhost_setter_helper('ipv4', val)
     end
 
     def default_mhost_ipv4
-      config_get_default('vrf', 'mhost_ipv4')
+      config_get_default('vrf', 'mhost_default_interface')
     end
 
     def mhost_ipv6
-      config_get('vrf', 'mhost_ipv6', vrf: @name)
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv6')
     end
 
     def mhost_ipv6=(val)
-      val.strip!
-      no_cmd = val.empty? ? 'no' : ''
-      config_set('vrf', 'mhost_ipv6', vrf: @name, state: no_cmd, intf: val)
+      mhost_setter_helper('ipv6', val)
     end
 
     def default_mhost_ipv6
-      config_get_default('vrf', 'mhost_ipv6')
+      config_get_default('vrf', 'mhost_default_interface')
+    end
+
+    def mhost_setter_helper(afi, val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'mhost_default_interface', vrf: @name,
+                 state: no_cmd, afi: afi, intf: val)
     end
 
     def remote_route_filtering

@@ -41,16 +41,10 @@ destroy:
   ios_xr:
     set_value: 'no vrf <vrf>'
 
-mhost_ipv4:
+mhost_default_interface:
   _exclude: [nexus] # not yet evaluate on nexus
-  get_value: '/^mhost ipv4 default-interface (\S+)$/'
-  set_value: '<state> mhost ipv4 default-interface <intf>'
-  default_value: ''
-
-mhost_ipv6:
-  _exclude: [nexus] # not yet evaluate on nexus
-  get_value: '/^mhost ipv6 default-interface (\S+)$/'
-  set_value: '<state> mhost ipv6 default-interface <intf>'
+  get_value: '/^mhost <afi> default-interface (\S+)$/'
+  set_value: '<state> mhost <afi> default-interface <intf>'
   default_value: ''
 
 remote_route_filtering:

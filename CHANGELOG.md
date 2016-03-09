@@ -178,7 +178,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 
