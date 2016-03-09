@@ -1,7 +1,7 @@
 # bridge_domain
 # bridge_domain feature is available only on n7k
 ---
-_exclude: [N3k, N5k, N6k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
 
 all_bds:
   multiple: true
