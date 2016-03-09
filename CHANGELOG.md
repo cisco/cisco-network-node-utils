@@ -8,12 +8,17 @@ Changelog
 #### Cisco Resources
 * Spanning Tree
   * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
 
 #### NetDev Resources
 *
 
 ### Added
 
+* Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
@@ -62,6 +67,7 @@ Changelog
 
 ### Removed
 * Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
 
 ## [v1.2.0]
 

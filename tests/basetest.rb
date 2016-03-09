@@ -137,7 +137,23 @@ class TestCase < Minitest::Test
     @device = nil
   end
 
+  # Execute the specified config commands and warn if the
+  # output matches the default "warning" regex.
   def config(*args)
+    config_and_warn_on_match(/^invalid|^%/i, *args)
+  end
+
+  # Execute the specified config commands. Use this version
+  # of the config method if you expect possible config errors
+  # and do not wish to log them as a warning.
+  def config_no_warn(*args)
+    config_and_warn_on_match(nil, *args)
+  end
+
+  # Execute the specified config commands and warn if the
+  # ouput matches the specified regex.  Specifying nil for
+  # warn_match means "do not warn".
+  def config_and_warn_on_match(warn_match, *args)
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
@@ -146,11 +162,12 @@ class TestCase < Minitest::Test
       # NX-OS has a space after '#', IOS XR does not
       'Match'  => /^[^()]+[$%#>] *\z/n)
 
-    if /invalid|^%/i.match(result)
+    if warn_match && warn_match.match(result)
       Cisco::Logger.warn("Config result:\n#{result}")
     else
       Cisco::Logger.debug("Config result:\n#{result}")
     end
+    result
   rescue Net::ReadTimeout => e
     raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end

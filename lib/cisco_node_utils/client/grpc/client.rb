@@ -48,7 +48,7 @@ class Cisco::Client::GRPC < Cisco::Client
     @exec = GRPCExec::Stub.new(address, :this_channel_is_insecure)
 
     # Make sure we can actually connect
-    @timeout = 5
+    @timeout = 10
     begin
       base_msg = 'gRPC client creation failure: '
       get(command: 'show clock')
