@@ -110,7 +110,7 @@ class TestVrf < CiscoTestCase
   def test_mhost
     v = Vrf.new('test_mhost')
     t_intf = 'Loopback100'
-    if platform == :nexus
+    if validate_property_excluded?('vrf', 'mhost_ipv4')
       assert_nil(v.mhost_ipv4)
       assert_nil(v.mhost_ipv6)
       assert_raises(Cisco::UnsupportedError) { v.mhost_ipv4 = t_intf }
@@ -141,7 +141,7 @@ class TestVrf < CiscoTestCase
 
   def test_remote_route_filtering
     v = Vrf.new('test_remote_route_filtering')
-    if platform == :nexus
+    if validate_property_excluded?('vrf', 'remote_route_filtering')
       refute(v.remote_route_filtering)
       assert_raises(Cisco::UnsupportedError) do
         v.remote_route_filtering = false
@@ -201,7 +201,7 @@ class TestVrf < CiscoTestCase
 
   def test_vpn_id
     v = Vrf.new('test_vpn_id')
-    if platform == :nexus
+    if validate_property_excluded?('vrf', 'vpn_id')
       assert_nil(v.vpn_id)
       assert_raises(Cisco::UnsupportedError) { v.vpn_id = '1:1' }
       v.destroy
