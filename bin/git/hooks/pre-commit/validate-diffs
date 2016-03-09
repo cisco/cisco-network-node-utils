@@ -33,6 +33,6 @@ step_name 'Checking for trailing whitespace in non-Ruby files'
 # Ignore .proto files, as they are generated code
 non_ruby_files=`git diff --staged --name-only | grep -v \.rb | grep -v \.proto`
 if [ -n "$non_ruby_files" ]; then
-  ! git grep -n -I ' $' -- $non_ruby_files
+  ! git grep -n -I '\s$' -- $non_ruby_files
   check_rc "Fix trailing whitespace before committing"
 fi
