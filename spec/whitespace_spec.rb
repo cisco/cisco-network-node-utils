@@ -1,8 +1,9 @@
 require_relative 'spec_helper.rb'
 
-# Whitespace in ruby files is managed by Rubocop
 context 'non-ruby files' do
-  failures = `git grep -n -I ' $' | grep -v .rb`
+  # Whitespace in ruby files is managed by Rubocop.
+  # Ignore ems.proto as it's a generated file.
+  failures = `git grep -n -I ' $' | grep -v .rb | grep -v ems.proto`
   it 'should have no trailing whitespace' do
     expect(failures).to be_empty, -> { failures }
   end
