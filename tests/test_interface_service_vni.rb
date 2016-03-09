@@ -47,7 +47,7 @@ class TestInterfaceServiceVni < CiscoTestCase
 
   def mt_full_env_setup
     skip('Platform does not support MT-full') unless Vni.mt_full_support
-    intf = compatible_interface?
+    intf = mt_full_interface?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'

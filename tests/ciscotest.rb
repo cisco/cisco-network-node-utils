@@ -205,7 +205,7 @@ class CiscoTestCase < TestCase
     end
   end
 
-  def compatible_interface?
+  def mt_full_interface?
     # MT-full tests require a specific linecard; either because they need a
     # compatible interface or simply to enable the features. Either way
     # we will provide an appropriate interface name if the linecard is present.

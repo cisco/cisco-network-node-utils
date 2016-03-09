@@ -53,7 +53,7 @@ class TestVlanMtFull < CiscoTestCase
 
   def mt_full_env_setup
     skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    compatible_interface?
+    mt_full_interface?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'

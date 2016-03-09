@@ -131,7 +131,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_bd_member_vni
-    compatible_interface?
+    mt_full_interface?
     bd = BridgeDomain.new(100)
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -152,7 +152,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_mapped_bd_member_vni
-    compatible_interface?
+    mt_full_interface?
     bd = BridgeDomain.new(100)
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -172,7 +172,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_multiple_bd_vni_mapping
-    compatible_interface?
+    mt_full_interface?
     bd = BridgeDomain.new('100,110,120')
     curr_vni = bd.member_vni.values.join(',')
     assert_equal(bd.default_member_vni, curr_vni,
@@ -193,7 +193,7 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_member_vni_empty_assign
-    compatible_interface?
+    mt_full_interface?
     bd = BridgeDomain.new(100)
     bd.member_vni = ''
     curr_vni = bd.member_vni.values.join(',')

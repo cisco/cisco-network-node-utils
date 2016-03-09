@@ -47,7 +47,7 @@ class TestVdc < CiscoTestCase
   end
 
   def test_limit_resource_module_type
-    compatible_interface?
+    mt_full_interface?
     v = Vdc.new('default')
     # Set limit-resource module-type to default (this is variable for each
     # device, so the default is for this device only)
