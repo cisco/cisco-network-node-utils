@@ -20,13 +20,13 @@ fabric_control:
   get_value: '/^Configured fabric-control.*:\s+(\d+)/'
   set_context: ["bridge-domain <bd>"]
   set_value: "<state> fabric-control"
-  default_value: false 
+  default_value: false
 
 # For the below member_vni, name, shutdown commands we are going to use show
 # bridge-domain cli as show running-config bridge-domain cli is very difficult
 # to parse for n7k platform. Also this feature is present only in n7k
 # show bridge-domain cli looks like:
-# 
+#
 # Bridge-domain 100  (0 ports in all)
 # Name:: Bridge-Domain100
 #  Administrative State: UP               Operational State: DOWN
@@ -35,7 +35,7 @@ member_vni:
   get_command: "show running-config bridge-domain | inc 'member vni'"
   get_value: '/^  member vni (.*)/'
   set_value: "<vnistate> vni <vni> ; bridge-domain <bd> ; <membstate> member vni <membvni>"
-  default_value: '' 
+  default_value: ''
 
 member_vni_bd:
   get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
