@@ -343,45 +343,81 @@ module Cisco
       set_args_keys_default
     end
 
-    # peer is an array of vdc and service
-    def peer
-      config_get('itd_service', 'peer', @get_args)
+    def nat_destination
+      config_get('itd_service', 'nat_destination', @get_args)
     end
 
-    # peer is an array of vdc and service
+    def nat_destination=(state)
+      no_cmd = (state ? '' : 'no')
+      @set_args[:state] = no_cmd
+      config_set('itd_service', 'nat_destination', @set_args)
+      set_args_keys_default
+    end
+
+    def default_nat_destination
+      config_get_default('itd_service', 'nat_destination')
+    end
+
+    def peer_local
+      config_get('itd_service', 'peer_local', @get_args)
+    end
+
+    def peer_local=(value)
+      if value
+        @set_args[:state] = ''
+        @set_args[:service] = value
+      else
+        @set_args[:state] = 'no'
+        current_peer_local = peer_local
+        @set_args[:service] = current_peer_local
+      end
+      config_set('itd_service', 'peer_local', @set_args)
+      set_args_keys_default
+    end
+
+    def default_peer_local
+      config_get_default('itd_service', 'peer_local')
+    end
+
+    # peer_vdc is an array of vdc and service
+    def peer_vdc
+      config_get('itd_service', 'peer_vdc', @get_args)
+    end
+
+    # peer_vdc is an array of vdc and service
     # ex: ['switch', 'myservice']
-    def peer=(parray)
+    def peer_vdc=(parray)
       if parray.empty?
         @set_args[:state] = 'no'
-        current_peer = peer
-        @set_args[:vdc] = current_peer[0]
-        @set_args[:service] = current_peer[1]
+        current_peer_vdc = peer_vdc
+        @set_args[:vdc] = current_peer_vdc[0]
+        @set_args[:service] = current_peer_vdc[1]
       else
         @set_args[:state] = ''
         @set_args[:vdc] = parray[0]
         @set_args[:service] = parray[1]
       end
-      config_set('itd_service', 'peer', @set_args)
+      config_set('itd_service', 'peer_vdc', @set_args)
       set_args_keys_default
     end
 
-    def default_peer
-      config_get_default('itd_service', 'peer')
+    def default_peer_vdc
+      config_get_default('itd_service', 'peer_vdc')
     end
 
-    def service_enable
-      config_get('itd_service', 'service_enable', @get_args)
+    def shutdown
+      config_get('itd_service', 'shutdown', @get_args)
     end
 
-    def service_enable=(state)
+    def shutdown=(state)
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
-      config_set('itd_service', 'service_enable', @set_args)
+      config_set('itd_service', 'shutdown', @set_args)
       set_args_keys_default
     end
 
-    def default_service_enable
-      config_get_default('itd_service', 'service_enable')
+    def default_shutdown
+      config_get_default('itd_service', 'shutdown')
     end
 
     def virtual_ip

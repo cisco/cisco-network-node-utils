@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/itd_device_group_node'
 require_relative '../lib/cisco_node_utils/itd_service'
 
 include Cisco
@@ -67,7 +68,7 @@ class TestItdService < CiscoTestCase
 
   def test_device_group
     itd = ItdService.new('new_group')
-    config 'itd device-group myGroup'
+    ItdDeviceGroup.new('myGroup')
     itd.device_group = 'myGroup'
     assert_equal('myGroup', itd.device_group)
     itd.device_group = itd.default_device_group
@@ -100,6 +101,10 @@ class TestItdService < CiscoTestCase
     assert_equal(itd.ingress_interface, ii)
     itd.ingress_interface = itd.default_ingress_interface
     assert_equal(itd.ingress_interface, itd.default_ingress_interface)
+    config 'no interface port-channel 100'
+    config 'no interface vlan 2'
+    config 'no vlan 2'
+    config 'no feature interface-vlan'
     itd.destroy
   end
 
@@ -186,34 +191,86 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
-  def test_peer
+  def test_nat_destination
     itd = ItdService.new('new_group')
-    parray = %w(vdc1 ser1)
-    itd.peer = parray
-    assert_equal(parray, itd.peer)
-    itd.peer = itd.default_peer
-    assert_equal(itd.default_peer,
-                 itd.peer)
+    if node.product_id =~ /N9/
+      assert_nil(itd.nat_destination)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.nat_destination = false
+      end
+      return
+    end
+    itddg = ItdDeviceGroup.new('abc')
+    ItdDeviceGroupNode.new(itddg.name, '1.1.1.1', 'ip')
+    itd.device_group = 'abc'
+    itd.virtual_ip = ['ip 2.2.2.2 255.255.255.0']
+    intf = interfaces[0].dup
+    ii = [[intf.insert(8, ' '), '2.2.2.2']]
+    itd.ingress_interface = ii
+    itd.nat_destination = true
+    assert_equal(true, itd.nat_destination)
+    itd.nat_destination = itd.default_nat_destination
+    assert_equal(itd.default_nat_destination, itd.nat_destination)
     itd.destroy
   end
 
-  def test_service_enable
+  def test_shutdown
     itd = ItdService.new('new_group')
-    # need to configure a lot before doing this test
-    # also there is a delay after shutdown, please take care
-    itd.service_enable = true
-    assert_equal(true, itd.service_enable)
-    itd.service_enable = itd.default_service_enable
-    sleep(5)
-    assert_equal(itd.default_service_enable,
-                 itd.service_enable)
+    itddg = ItdDeviceGroup.new('abc')
+    ItdDeviceGroupNode.new(itddg.name, '1.1.1.1', 'ip')
+    itd.device_group = 'abc'
+    itd.virtual_ip = ['ip 2.2.2.2 255.255.255.0']
+    intf = interfaces[0].dup
+    ii = [[intf.insert(8, ' '), '2.2.2.2']]
+    itd.ingress_interface = ii
+    itd.shutdown = false
+    assert_equal(false, itd.shutdown)
+    itd.shutdown = itd.default_shutdown
+    assert_equal(itd.default_shutdown,
+                 itd.shutdown)
+    itd.destroy
+  end
+
+  def test_peer_vdc
+    itd = ItdService.new('new_group')
+    parray = %w(vdc1 ser1)
+    if node.product_id =~ /N9/
+      assert_nil(itd.peer_vdc)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.peer_vdc = parray
+      end
+      return
+    end
+    itd.peer_vdc = parray
+    assert_equal(parray, itd.peer_vdc)
+    itd.peer_vdc = itd.default_peer_vdc
+    assert_equal(itd.default_peer_vdc,
+                 itd.peer_vdc)
+    itd.destroy
+  end
+
+  def test_peer_local
+    itd = ItdService.new('new_group')
+    service = 'ser1'
+    if node.product_id =~ /N7/
+      assert_nil(itd.peer_local)
+      assert_raises(Cisco::UnsupportedError) do
+        itd.peer_local = service
+      end
+      return
+    end
+    itd.peer_local = service
+    assert_equal(service, itd.peer_local)
+    itd.peer_local = itd.default_peer_local
+    assert_equal(itd.default_peer_local,
+                 itd.peer_local)
     itd.destroy
   end
 
   def test_virtual_ip
     itd = ItdService.new('new_group')
-    config 'itd device-group myGroup1'
-    config 'itd device-group myGroup2'
+    ItdDeviceGroup.new('myGroup1')
+    ItdDeviceGroup.new('myGroup2')
     values = ['ip 1.1.1.1 255.255.255.0 tcp 2000 advertise enable',
               'ip 2.2.2.2 255.0.0.0 udp 1000 device-group myGroup1',
               'ip 3.3.3.3 255.0.255.0 device-group myGroup2']
