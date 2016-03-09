@@ -1,7 +1,7 @@
 # fabricpath
 ---
 # Fabricpath feature is not available on N3K and N9K
-_exclude: [N3k, N9k, ios_xr]
+_exclude: [N3k, N8k, N9k, ios_xr]
 
 aggregate_multicast_routes:
   _exclude: [N5k, N6k]
@@ -10,7 +10,7 @@ aggregate_multicast_routes:
   get_value: '/^fabricpath multicast aggregate\-routes\s*$/'
   set_value: "<state> fabricpath multicast aggregate-routes"
   default_value: false
-  
+
 allocate_delay:
   kind: int
   get_command: "show run fabricpath all"
@@ -18,7 +18,7 @@ allocate_delay:
   set_value: "<state> fabricpath timers allocate-delay <delay>"
   default_value: 10
 
-auto_switch_id: 
+auto_switch_id:
   kind: int
   get_command: "show fabricpath switch-id"
   get_value: '/^\*\s+(\d+).*No\s*$/'
@@ -54,7 +54,7 @@ linkup_delay_always:
   get_value: '/^fabricpath timers linkup\-delay always\s*$/'
   set_value: "<state> fabricpath timers linkup-delay always"
   default_value: false
-  
+
 linkup_delay_enable:
   _exclude: [N5k, N6k]
   auto_default: false
@@ -63,7 +63,7 @@ linkup_delay_enable:
   get_value: '/^fabricpath linkup\-delay\s*$/'
   set_value: "<state> fabricpath linkup-delay"
   default_value: true
-  
+
 loadbalance_algorithm:
   kind: string
   get_command: "show run fabricpath all"
@@ -92,7 +92,7 @@ loadbalance_multicast_rotate:
   get_command: "show fabricpath load-balance | begin Ftag"
   get_value: '/^Rotate amount: (\d+)/'
   default_value: 1
- 
+
 loadbalance_multicast_set:
   _exclude: [N5k, N6k]
   set_value: 'fabricpath load-balance multicast <rotate_amt> <inc_vlan>'
