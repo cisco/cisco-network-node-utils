@@ -182,7 +182,7 @@ feature:
 maximum_paths:
   # This is an integer property
   kind: int
-  context: 
+  context:
     - 'router eigrp <name>'
   get_command: 'show running eigrp all'
   get_value: 'maximum-paths (\d+)'

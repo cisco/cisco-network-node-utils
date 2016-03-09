@@ -75,15 +75,15 @@ When the release checklist above has been fully completed, the process for publi
     ```diff
      Changelog
      =========
- 
+
     -(unreleased)
     -------------
     +1.0.1
     +-----
     ```
-    
+
     and also update `version.rb`:
-    
+
     ```diff
     -  VERSION = '1.0.0'
     +  VERSION = '1.0.1'

@@ -57,7 +57,7 @@ dual_active_exclude_interface_vlan_bridge_domain:
     set_value: "<state> dual-active exclude interface-vlan <range>"
   default_value: 'none'
 
-fabricpath_emulated_switch_id: 
+fabricpath_emulated_switch_id:
   _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: int
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
@@ -65,14 +65,14 @@ fabricpath_emulated_switch_id:
   set_value: '<state> fabricpath switch-id <swid>'
   default_value: false
 
-fabricpath_multicast_load_balance: 
+fabricpath_multicast_load_balance:
   _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
   get_value: '/^fabricpath multicast load-balance$/'
   set_value: "<state> fabricpath multicast load-balance"
   default_value: false
 
-feature: 
+feature:
   kind: boolean
   get_command: "show feature | section vpc"
   get_context: ~
@@ -163,7 +163,7 @@ peer_keepalive_vrf:
 port_channel_limit:
   _exclude: [N3k, N5k, N6k, N8k, N9k]
   auto_default: false
-  kind: boolean    
+  kind: boolean
   get_value: '/^port-channel limit/'
   set_value: "<state> port-channel limit"
   default_value: true
