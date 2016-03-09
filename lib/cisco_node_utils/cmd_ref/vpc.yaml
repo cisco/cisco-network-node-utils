@@ -1,6 +1,6 @@
 # vpc
 ---
-_exclude: [ios_xr]
+_exclude: [ios_xr, N8k]
 
 _template:
   get_command:  'show running-config vpc all'
