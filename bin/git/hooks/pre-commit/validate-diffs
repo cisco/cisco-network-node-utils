@@ -32,6 +32,6 @@ step_name 'Checking for trailing whitespace'
 # We only check YAML/MD files, as whitespace in .rb files is managed by Rubocop
 non_ruby_files=`git diff --staged --name-only | grep -v \.rb`
 if [ -n "$non_ruby_files" ]; then
-  ! git grep -n ' $' -- $non_ruby_files
+  ! git grep -n -I ' $' -- $non_ruby_files
   check_rc "Fix trailing whitespace before committing"
 fi
