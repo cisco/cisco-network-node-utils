@@ -29,7 +29,10 @@ class TestEvpnVni < CiscoTestCase
     super
     config('no feature bgp')
     config('no nv overlay evpn')
-    config('no evpn')
+
+    # Some platforms remove the 'evpn' command when 'no nv overlay evpn'
+    # is processed, while others must remove it explicitly.
+    config_no_warn('no evpn')
   end
 
   def test_create_and_destroy
