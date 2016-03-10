@@ -1,4 +1,4 @@
-require_relative 'spec_helper.rb'
+require_relative '../spec_helper.rb'
 
 context 'when both clients are installed' do
   it 'should have both clients' do

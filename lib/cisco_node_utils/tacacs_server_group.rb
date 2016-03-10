@@ -125,7 +125,7 @@ module Cisco
 
     def source_interface
       i = config_get('tacacs_server_group', 'source_interface', @name)
-      i.nil? ? default_source_interface : i
+      i.nil? ? default_source_interface : i.downcase
     end
 
     def source_interface=(s)

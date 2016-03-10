@@ -18,7 +18,6 @@ require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'pim'
 require_relative 'vrf'
-require_relative 'vni'
 require_relative 'overlay_global'
 
 # Add some interface-specific constants to the Cisco namespace
@@ -380,7 +379,7 @@ module Cisco
 
     def ipv4_pim_sparse_mode=(state)
       check_switchport_disabled
-      Pim.feature_enable unless platform == :ios_xr || Pim.feature_enabled
+      Feature.pim_enable unless platform == :ios_xr
       config_set('interface', 'ipv4_pim_sparse_mode',
                  name: @name, state: state ? '' : 'no')
     end

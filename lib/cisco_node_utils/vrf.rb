@@ -31,7 +31,7 @@ module Cisco
     end
 
     def to_s
-      "VRF #{name}"
+      "VRF #{@name}"
     end
 
     def self.vrfs
@@ -71,6 +71,51 @@ module Cisco
 
     def default_description
       config_get_default('vrf', 'description')
+    end
+
+    def mhost_ipv4_default_interface
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv4')
+    end
+
+    def mhost_ipv4_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv4', val)
+    end
+
+    def default_mhost_ipv4_default_interface
+      config_get_default('vrf', 'mhost_default_interface')
+    end
+
+    def mhost_ipv6_default_interface
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv6')
+    end
+
+    def mhost_ipv6_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv6', val)
+    end
+
+    def default_mhost_ipv6_default_interface
+      config_get_default('vrf', 'mhost_default_interface')
+    end
+
+    def mhost_default_interface_setter_helper(afi, val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'mhost_default_interface', vrf: @name,
+                 state: no_cmd, afi: afi, intf: val)
+    end
+
+    def remote_route_filtering
+      config_get('vrf', 'remote_route_filtering', vrf: @name)
+    end
+
+    def remote_route_filtering=(val)
+      no_cmd = val ? 'no' : ''
+      config_set('vrf', 'remote_route_filtering', vrf: @name,
+                 state: no_cmd, remote_route_filtering: val)
+    end
+
+    def default_remote_route_filtering
+      config_get_default('vrf', 'remote_route_filtering')
     end
 
     def shutdown
@@ -126,6 +171,20 @@ module Cisco
 
     def default_vni
       config_get_default('vrf', 'vni')
+    end
+
+    def vpn_id
+      config_get('vrf', 'vpn_id', vrf: @name)
+    end
+
+    def vpn_id=(val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'vpn_id', vrf: @name, state: no_cmd, vpnid: val)
+    end
+
+    def default_vpn_id
+      config_get_default('vrf', 'vpn_id')
     end
   end # class
 end # module
