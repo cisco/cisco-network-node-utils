@@ -968,13 +968,12 @@ module Cisco
     def default_metric=(val)
       default = default_default_metric
       set_args_keys(state: (val == default) ? 'no' : '',
-                    num:   (val == default) ? '' : val )
+                    num:   (val == default) ? '' : val)
       config_set('bgp', 'default_metric', @set_args)
     end
 
     def default_default_metric
       config_get_default('bgp', 'default_metric')
     end
-
   end
 end

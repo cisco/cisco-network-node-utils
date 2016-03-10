@@ -1277,7 +1277,8 @@ class TestRouterBgp < CiscoTestCase
   end
 
   ##################################################
-  # Generic Testing Functions for Property Matrix
+  # Generic Testing Functions using Property Matrix
+  #
 
   def new_test_object(ctx)
     asn, vrf = *ctx
@@ -1300,126 +1301,7 @@ class TestRouterBgp < CiscoTestCase
     [:default_metric,                 :nexus,  [:any, :any],  :CliError],
   ]
 
-  # rubocop:disable Style/SpaceAroundOperators
-  def check_test_exceptions(test_, os_, ctx_)
-    _asn, vrf_ = *ctx_
-    ret = nil
-    amb = nil
-    TEST_EXCEPTIONS.each do |test, os, ctx, expect|
-      _asn, vrf = *ctx
-
-      # Check to see if the context matches
-      ctx.zip(ctx_).map {|x,y|
-        x == :any ||
-        x == y    ||
-        (x == :VRF       && y == 'default')           ||
-        (x == :unicast   && (y.include? 'unicast'))   ||
-        (x == :multicast && (y.include? 'multicast')) ||
-        (x == :ipv4      && (y.include? 'ipv4'))      ||
-        (x == :ipv6      && (y.include? 'ipv6'))
-      }
-      next unless ctx.uniq == [true]
-
-      return expect if expect == :success || expect == :skip
-
-      # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
-      if !ret.nil? && ret != expect
-        assert('TEST ERROR: Exceptions matrix has ambiguous entries! ' \
-               "#{amb} and [#{test}, #{os}, #{ctx}]")
-      end
-      ret = expect
-      amb = [test, os, ctx, expect]
-    end
-    # Return the expected test result
-    ret.nil? ? :success : ret
-  end
-  # rubocop:enable Style/SpaceAroundOperators
-
-  def properties_matrix(context, values)
-    cartesian_product = context[0].product(*context[1..-1])
-    cartesian_product.each do |ctx|
-      test_obj = new_test_object(ctx)
-
-      values.each do |test, test_values|
-        # What result do we expect from this test?
-        expect = check_test_exceptions(test, platform, ctx)
-
-        # Gather initial value, default value, and the first test value..
-        initial = test_obj.send(test)
-        if initial.nil? # unsupported or auto_default: false
-          default = nil
-          first_value = nil
-        else
-          default = test_obj.send("default_#{test}")
-          first_value = (test_values[0] == :toggle) ? !default : test_values[0]
-        end
-
-        if expect == :skip
-          # Do nothing..
-          puts '         skip'
-
-        elsif expect == :CliError
-          puts '         CliError'
-
-          # This set of parameters should produce a CLI error
-          assert_raises(Cisco::CliError,
-                        "Assert 'cli error' failed for: #{test}, #{ctx}") do
-            test_obj.send("#{test}=", first_value)
-          end
-
-        elsif expect == :unsupported
-          puts '         Unsupported'
-
-          # Getter should return nil when unsupported?  Does not seem to work:
-          #    Assert 'nil' inital value failed for:
-          #       default_information_originate 55 default ["ipv4", "unicast"].
-          #    Expected false to be nil.
-          #
-          #    Assert 'nil' inital value failed for:
-          #       advertise_l2vpn_evpn 55 default ["ipv4", "unicast"].
-          #    Expected false to be nil.
-          # assert_nil(initial,
-          #    "Assert 'nil' inital value failed for: #{test} #{ctx}")
-
-          # Setter should raise UnsupportedError
-          assert_raises(Cisco::UnsupportedError,
-                        "Assert 'unsupported' failed for: #{test}, #{ctx}") do
-            test_obj.send("#{test}=", first_value)
-          end
-
-        else
-
-          # Check initial value == default value
-          #   Skip this assertion for properties that use auto_default: false
-          assert_equal(default, initial,
-                       "Initial value failed for: #{test}, #{ctx}"
-                      ) unless  initial.nil?
-
-          # Try all the test values in order
-          test_values.each do |test_value|
-            test_value = (test_value == :toggle) ? !default : test_value
-
-            # Try the test value
-            test_obj.send("#{test}=", test_value)
-            assert_equal(test_value, test_obj.send(test),
-                         "Test value failed for: #{test}, #{ctx}")
-          end # test_values
-
-          # Set it back to the default
-          unless default.nil?
-            test_obj.send("#{test}=", default)
-            assert_equal(default, test_obj.send(test),
-                         "Default assignment failed for: #{test}, #{ctx}")
-          end
-        end
-
-        # Cleanup
-        test_obj.destroy
-      end # tests
-    end # context
-  end
-
   def test_properties_matrix
-    properties_matrix(T_CONTEXT, T_VALUES)
+    properties_matrix(T_CONTEXT, T_VALUES, TEST_EXCEPTIONS)
   end
 end

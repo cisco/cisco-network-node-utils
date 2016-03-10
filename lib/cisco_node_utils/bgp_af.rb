@@ -87,7 +87,6 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-
     def fail_unsupported(callee)
       fail Cisco::UnsupportedError.new('bgp_af', callee.to_s)
     end
@@ -509,61 +508,60 @@ module Cisco
 
     ##########################################
     # Single-Argument, Single-Instance, Boolean-Valued Properties
-    def set_single_boolean(yaml,prop,val)
-        default = config_get_default(yaml, prop)   # TODO: What if default is 'nil' or missing?
-        set_args_keys(state: (val == default) ? 'no' : '')
-        config_set(yaml, prop, @set_args)
+    def set_single_boolean(yaml, prop, val)
+      default = config_get_default(yaml, prop) # TODO: What if 'nil' or missing?
+      set_args_keys(state: (val == default) ? 'no' : '')
+      config_set(yaml, prop, @set_args)
     end
 
     ##########################################
     # Single-Argument, Single-Instance, Integer-Valued Properties
-    def set_single_integer(yaml,prop,val)
-        default = config_get_default(yaml, prop)   # TODO: What if default is 'nil' or missing?
-        is_default = (val == default)
-        set_args_keys(state: is_default ? 'no' : '',
-                      number_a: val )
-        config_set(yaml, prop, @set_args)
+    def set_single_integer(yaml, prop, val)
+      default = config_get_default(yaml, prop) # TODO: What if 'nil' or missing?
+      is_default = (val == default)
+      set_args_keys(state:    is_default ? 'no' : '',
+                    number_a: val)
+      config_set(yaml, prop, @set_args)
     end
 
     ##########################################
     # Single-Argument, Single-Instance, String-Valued Properties
-    def set_single_string(yaml,prop,val)
-        val.strip!                                              # TODO: Does this pass 'nil' through correctly?
-        default = config_get_default(yaml, prop)   # TODO: What if default is 'nil' or missing?
-        disable = val.nil? || (val == default) || val.empty?
+    def set_single_string(yaml, prop, val)
+      val.strip! # TODO: Does this pass 'nil' through correctly?
+      default = config_get_default(yaml, prop) # TODO: What if 'nil' or missing?
+      disable = val.nil? || (val == default) || val.empty?
 
-        set_args_keys(state: disable ? 'no' : '',
-                      string_a: val )
-        config_set(yaml, prop, @set_args)
+      set_args_keys(state:    disable ? 'no' : '',
+                    string_a: val)
+      config_set(yaml, prop, @set_args)
     end
 
     ##########################################
     # Multiple-Argument, Single-Instance Properties
-    def set_multi_arg(yaml,prop,vals)
+    def set_multi_arg(yaml, prop, vals)
+      # 'vals' is an array of values (bool, int, or string)
+      default = config_get_default(yaml, prop) # TODO: What if 'nil' or missing?
+      disable = vals.nil? || (vals == default) || vals.empty?
 
-        # 'vals' is an array of values (bool, int, or string)
-        default = config_get_default(yaml, prop)   # TODO: What if default is 'nil' or missing?
-        disable = vals.nil? || (vals == default) || vals.empty?
+      strings = [:string_a, :string_b, :string_c, :string_d, :string_e]
+      numbers = [:number_a, :number_b, :number_c, :number_d, :number_e]
 
-        strings = [:string_a,:string_b,:string_c,:string_d,:string_e]
-        numbers = [:number_a,:number_b,:number_c,:number_d,:number_e]
-
-        # Set args for each parameter passed to us..
-        hash = {state: disable ? 'no' : ''}
-        vals.each do |val|
-          if val.is_a? String
-            str = strings.shift
-            hash[str] = val
-          elsif (val.is_a? Fixnum) || (val.is_a? Integer)
-            num = numbers.shift
-            hash[num] = val
-          else
-            puts "Unknown #{val} of class #{val.class}"
-          end
+      # Set args for each parameter passed to us..
+      hash = { state: disable ? 'no' : '' }
+      vals.each do |val|
+        if val.is_a? String
+          str = strings.shift
+          hash[str] = val
+        elsif (val.is_a? Fixnum) || (val.is_a? Integer)
+          num = numbers.shift
+          hash[num] = val
+        else
+          puts "Unknown #{val} of class #{val.class}"
         end
+      end
 
-        set_args_keys(hash)
-        config_set(yaml, prop, @set_args)
+      set_args_keys(hash)
+      config_set(yaml, prop, @set_args)
     end
 
     ##########################################
@@ -571,7 +569,8 @@ module Cisco
     #
     def method_missing(*args)
       yaml = 'bgp_af'
-      name = args[0].to_s;
+      name = args[0].to_s
+
       if args.length == 1 # Getter
         if name =~ /^default_(.*)$/
           config_get_default(yaml, Regexp.last_match(1))
@@ -579,22 +578,26 @@ module Cisco
           config_get(yaml, name, @get_args)
         end
       elsif args.length >= 2 && name =~ /^(.*)=$/ # Setter
-
         name = Regexp.last_match(1)
-
-        # Get the value, the default, and compare the two, also check if this value is "empty"
         ref = node.cmd_ref.lookup(yaml, name)
-        case ref.kind
-        when :boolean
-          set_single_boolean(yaml,name,args[1])
-        when :int
-          set_single_integer(yaml,name,args[1])
-        when :string
-          set_single_string(yaml,name,args[1])
+        return super if ref.nil?
+        #        return nil unless ref.setter?
+
+        if (ref.kind == :boolean) || ([true, false].include? ref.default_value)
+          #          puts "#{args} :: boolean"
+          set_single_boolean(yaml, name, args[1])
+        elsif (ref.kind == :int) || (ref.default_value.is_a? Fixnum)
+          #          puts "#{args} :: int"
+          set_single_integer(yaml, name, args[1])
+        elsif (ref.kind == :string) || (ref.default_value.is_a? String)
+          #          puts "#{args} :: string"
+          set_single_string(yaml, name, args[1])
         else
-          if (ref.multiple == false)
-            set_multi_arg(yaml,name,args.drop(1))
+          if ref.multiple == false
+            #            puts "#{args} :: multi-param"
+            set_multi_arg(yaml, name, args.drop(1))
           else
+            #            puts "#{args} :: unknown"
             super
           end
         end

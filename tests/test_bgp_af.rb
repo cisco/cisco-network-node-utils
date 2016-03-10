@@ -32,6 +32,7 @@ class TestBgpAF < CiscoTestCase
     remove_all_bgps if @@pre_clean_needed
     remove_all_vrfs if @@pre_clean_needed
     if platform == :ios_xr && @@pre_clean_needed
+      config('no route-policy DropAllTraffic')
       config('no route-policy drop_all')
     end
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
@@ -40,7 +41,10 @@ class TestBgpAF < CiscoTestCase
   def teardown
     remove_all_bgps
     remove_all_vrfs
-    config('no route-policy drop_all') if platform == :ios_xr
+    if platform == :ios_xr
+      config('no route-policy DropAllTraffic')
+      config('no route-policy drop_all')
+    end
     super
   end
 
@@ -54,35 +58,6 @@ class TestBgpAF < CiscoTestCase
     %w(ipv6 unicast),
     %w(ipv4 multicast),
     %w(ipv6 multicast),
-    %w(l2vpn evpn),
-
-    # TODO: These are additional address families/modifiers reported by XR, should they be tested also?
-    #       Looks like most of them are not supported on Nexus...
-    #
-
-    #     %w(ipv4 mvpn),
-    #     %w(ipv6 mvpn),
-
-    # Not on Nexus:
-    #     %w(link-state link-state),
-    #
-    #     %w(l2vpn mspw),
-    #     %w(l2vpn vpls-vpws),
-    #
-    #     %w(ipv4 flowspec),
-    #     %w(ipv4 mdt),
-    #     %w(ipv4 rt-filter),
-    #     %w(ipv4 tunnel),
-    #
-    #     %w(ipv6 flowspec),
-    #
-    #     %w(vpnv4 unicast),
-    #     %w(vpnv4 multicast),
-    #     %w(vpnv4 flowspec),
-    #
-    #     %w(vpnv6 unicast),
-    #     %w(vpnv6 multicast),
-    #     %w(vpnv6 flowspec),
   ]
 
   # ASs to test:
@@ -109,7 +84,7 @@ class TestBgpAF < CiscoTestCase
     [:maximum_paths_ibgp,             [7, 9]],
     [:dampen_igp_metric,              [555, nil]],
     [:default_metric,                 [50, false]],
-    [:inject_map,                     [[%w(lax sfo), %w(lax sjc), %w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)], [%w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)]]],
+    [:inject_map, [[%w(lax sfo), %w(lax sjc), %w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)], [%w(nyc sfo copy-attributes), %w(sjc nyc copy-attributes)]]],
   ]
 
   # Given the cartesian product of the above parameters, not all tests are supported.
@@ -122,175 +97,55 @@ class TestBgpAF < CiscoTestCase
   #   - Condense entries using :any where possible.
   #
   TEST_EXCEPTIONS = [
-    #  Test                           OS      VRF        AF                    Expected result
+    #  Test                           OS      [ASN,   VRF        AF                    Expected result
 
     # Tests that are successful even though a rule below says otherwise
-    [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
+    [:next_hop_route_map,            :nexus,  [:any, 'default', %w(l2vpn evpn)], :success],
 
     # XR Unsupported
-    [:additional_paths_install,      :ios_xr, :any,      :any,                 :unsupported],
-    [:advertise_l2vpn_evpn,          :ios_xr, :any,      :any,                 :unsupported],
-    [:dampen_igp_metric,             :ios_xr, :any,      :any,                 :unsupported],
-    [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
-    [:default_metric,                :ios_xr, :any,      :any,                 :unsupported],
-    [:inject_map,                    :ios_xr, :any,      :any,                 :unsupported],
+    [:additional_paths_install,      :ios_xr, [:any, :any,      :any],             :unsupported],
+    [:advertise_l2vpn_evpn,          :ios_xr, [:any, :any,      :any],             :unsupported],
+    [:dampen_igp_metric,             :ios_xr, [:any, :any,      :any],             :unsupported],
+    [:default_information_originate, :ios_xr, [:any, :any,      :any],             :unsupported],
+    [:default_metric,                :ios_xr, [:any, :any,      :any],             :unsupported],
+    [:inject_map,                    :ios_xr, [:any, :any,      :any],             :unsupported],
 
     # XR CLI Errors
-    [:additional_paths_send,         :ios_xr, :any,      :multicast,           :CliError],
-    [:additional_paths_receive,      :ios_xr, :any,      :multicast,           :CliError],
-    [:additional_paths_selection,    :ios_xr, :any,      :multicast,           :CliError],
-    [:client_to_client,              :ios_xr, :VRF,      :any,                 :CliError],
-    [:maximum_paths,                 :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
-    [:maximum_paths_ibgp,            :ios_xr, :any,      %w(l2vpn evpn),       :CliError],
-    [:next_hop_route_map,            :ios_xr, :VRF,      :any,                 :CliError],
+    [:additional_paths_send,         :ios_xr, [:any, :any,      :multicast],       :CliError],
+    [:additional_paths_receive,      :ios_xr, [:any, :any,      :multicast],       :CliError],
+    [:additional_paths_selection,    :ios_xr, [:any, :any,      :multicast],       :CliError],
+    [:client_to_client,              :ios_xr, [:any, :VRF,      :any],             :CliError],
+    [:maximum_paths,                 :ios_xr, [:any, :any,      %w(l2vpn evpn)],   :CliError],
+    [:maximum_paths_ibgp,            :ios_xr, [:any, :any,      %w(l2vpn evpn)],   :CliError],
+    [:next_hop_route_map,            :ios_xr, [:any, :VRF,      :any],             :CliError],
+
+    [:allocate_label_all,            :ios_xr, [:any, :any,      :multicast],       :CliError],
+    [:allocate_label_all,            :ios_xr, [:any, :any,      %w(l2vpn evpn)],   :CliError],
+    [:allocate_label_all,            :ios_xr, [:any, :VRF,      %w(ipv6 unicast)], :CliError],
 
     # Nexus Unsupported
-    [:allocate_label_all,            :nexus,  :any,      :any,                 :unsupported],
-    [:as_path_loopcheck_out,         :nexus,  :any,      :any,                 :unsupported],
+    [:allocate_label_all,            :nexus,  [:any, :any,      :any],             :unsupported],
+    [:as_path_loopcheck_out,         :nexus,  [:any, :any,      :any],             :unsupported],
 
     # Nexus CLI Errors
-    [:any,                           :nexus,  'default', %w(l2vpn evpn),       :CliError],
-    [:additional_paths_install,      :nexus,  :any,      :ipv6,                :CliError],
-    [:advertise_l2vpn_evpn,          :nexus,  'default', :any,                 :CliError],
-    [:advertise_l2vpn_evpn,          :nexus,  :VRF,      :multicast,           :CliError],
-    [:inject_map,                    :nexus,  :any,      :multicast,           :CliError],
-
+    [:any,                           :nexus,  [:any, 'default', %w(l2vpn evpn)],   :CliError],
+    [:additional_paths_install,      :nexus,  [:any, :any,      :ipv6],            :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  [:any, 'default', :any],             :CliError],
+    [:advertise_l2vpn_evpn,          :nexus,  [:any, :VRF,      :multicast],       :CliError],
+    [:inject_map,                    :nexus,  [:any, :any,      :multicast],       :CliError],
   ]
 
-  # rubocop:disable Style/SpaceAroundOperators
-  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-  def check_test_exceptions(test_, os_, vrf_, af_)
-    ret = []
-    amb = []
-    TEST_EXCEPTIONS.each do |test, os, vrf, af, expect|
-      next unless (test_ == test || test == :any) &&
-                  (os_   == os   || os   == :any) &&
-                  (vrf_  == vrf  || vrf  == :any ||
-                    (vrf == :VRF && vrf_ != 'default')) &&
-                  (af_   == af   || af   == :any ||
-                    (af == :unicast   && (af_.include? 'unicast'))   ||
-                    (af == :multicast && (af_.include? 'multicast')) ||
-                    (af == :ipv4      && (af_.include? 'ipv4'))      ||
-                    (af == :ipv6      && (af_.include? 'ipv6')))
-      return expect if expect == :success || expect == :skip
-
-      ret.push(expect)
-      amb.push([test, os, vrf, af, expect])
-    end
-
-    # The currently defined errors have a hierarchy; "unsupported" is stronger.
-    return :unsupported if (ret.include?(:unsupported))
-    return :success     if ret.empty?
-
-    # In case future errors are defined, make sure there is no ambiguity.
-    ret.uniq!
-
-    # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
-    if ret.length > 1
-      assert(false, 'TEST ERROR: Exceptions matrix has ambiguous entries! ' \
-             "#{amb}")
-    end
-
-    # Return the expected test result
-    ret[0]
+  def new_test_object(ctx)
+    asn, vrf, af = *ctx
+    RouterBgpAF.new(asn, vrf, af)
   end
-  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-  # rubocop:enable Style/SpaceAroundOperators
-
-  def properties_matrix(asns, vrfs, afs, values)
-    asns.each do |asn|
-      config_ios_xr_dependencies(asn) if platform == :ios_xr
-
-      vrfs.each do |vrf|
-        afs.each do |af|
-          # l2vpn evpn is not supported in a vrf
-          next if vrf != 'default' && af == %w(l2vpn evpn)
-
-          bgp_af = RouterBgpAF.new(asn, vrf, af)
-
-          values.each do |test, test_values|
-            # What result do we expect from this test?
-            expect = check_test_exceptions(test, platform, vrf, af)
-
-            # Gather initial value, default value, and the first test value..
-            initial = bgp_af.send(test)
-
-            # Properties which are unsupported or OFF by default return initial == nil
-            if initial.nil?
-              default = nil
-              first_value = nil
-            else
-              default = bgp_af.send("default_#{test}")
-              first_value = (test_values[0] == :toggle) ? !default : test_values[0]
-            end
-
-            if expect == :skip
-              # Do nothing..
-              puts '         skip'
-
-            elsif expect == :CliError
-              puts '         CliError'
-
-              # This set of parameters should produce a CLI error
-              assert_raises(Cisco::CliError,
-                            "Assert 'cli error' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
-                bgp_af.send("#{test}=", first_value)
-              end
-
-            elsif expect == :unsupported
-              puts '         Unsupported'
-
-              # Getter should return nil when unsupported?  Does not seem to work:
-              #    Assert 'nil' inital value failed for: default_information_originate 55 default ["ipv4", "unicast"].
-              #    Expected false to be nil.
-              #
-              #    Assert 'nil' inital value failed for: advertise_l2vpn_evpn 55 default ["ipv4", "unicast"].
-              #    Expected false to be nil.
-              # assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
-
-              # Setter should raise UnsupportedError
-              assert_raises(Cisco::UnsupportedError,
-                            "Assert 'unsupported' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
-                bgp_af.send("#{test}=", first_value)
-              end
-
-            else
-
-              # Check initial value == default value
-              #   Skip this assertion for properties that use auto_default: false
-              assert_equal(default, initial,
-                           "Initial value failed for: #{test}, #{asn}, #{vrf}, #{af}"
-                          ) unless  initial.nil?
-
-              # Try all the test values in order
-              test_values.each do |test_value|
-                test_value = (test_value == :toggle) ? !default : test_value
-
-                # Try the test value
-                bgp_af.send("#{test}=", test_value)
-                assert_equal(test_value, bgp_af.send(test),
-                             "Test value failed for: #{test}, #{asn}, #{vrf}, #{af}")
-              end # test_values
-
-              # Set it back to the default
-              unless default.nil?
-                bgp_af.send("#{test}=", default)
-                assert_equal(default, bgp_af.send(test),
-                             "Default assignment failed for: #{test}, #{asn}, #{vrf}, #{af}")
-              end
-            end
-
-            # Cleanup
-            bgp_af.destroy
-          end # tests
-        end # afs
-      end # vrfs
-    end # asns
-  end
-  # rubocop:enable Metrics/LineLength
 
   def test_properties_matrix
-    properties_matrix(T_ASNS, T_VRFS, T_AFS, T_VALUES)
+    config_ios_xr_dependencies(55) if platform == :ios_xr
+    properties_matrix([T_ASNS, T_VRFS, T_AFS], T_VALUES, TEST_EXCEPTIONS)
+
+    # l2vpn evpn is not supported in a vrf -- easier just to break it out into its own test
+    properties_matrix([T_ASNS, ['default'], [%w(l2vpn evpn)]], T_VALUES, TEST_EXCEPTIONS)
   end
 
   ##
@@ -314,11 +169,14 @@ class TestBgpAF < CiscoTestCase
 
     bgp_afs = []
     %w(default red blue orange black).each do |vrf|
+      config_ios_xr_dependencies(55, vrf) if platform == :ios_xr
+
       [%w(ipv4 unicast), %w(ipv6 unicast),
        %w(ipv4 multicast), %w(ipv6 multicast)].each do |af|
-        config_ios_xr_dependencies(55, vrf)
         bgp_afs.push(RouterBgpAF.new(55, vrf, af))
       end
+
+      config('no route-policy drop_all') if platform == :ios_xr
     end
 
     # config('router bgp 55',
@@ -372,13 +230,19 @@ class TestBgpAF < CiscoTestCase
     # "address-family vpnv4 unicast" required, otherwise XR reports:
     #   'The parent address family has not been initialized'
 
+    if vrf == 'default'
+      vrf_config = []
+    else
+      vrf_config = ["vrf #{vrf}", 'rd auto']
+    end
+
     config("router bgp #{asn}",
            'bgp router-id 10.1.1.1',
            'address-family vpnv4 unicast',
            'address-family vpnv6 unicast',
            'address-family vpnv4 multicast',
            'address-family vpnv6 multicast',
-           "vrf #{vrf}", 'rd auto')
+           *vrf_config)
 
     # Needed for testing route-policy commands
     config('route-policy drop_all', 'end-policy')
@@ -471,6 +335,7 @@ class TestBgpAF < CiscoTestCase
     assert_nil(bgp_af.dampening_max_suppress_time)
     assert_nil(bgp_af.dampening_routemap)
 
+    config('no route-policy DropAllTraffic') if platform == :ios_xr
     bgp_af.destroy
   end
 
@@ -504,6 +369,7 @@ class TestBgpAF < CiscoTestCase
       assert_equal(distancer[:ibgp], bgp_af.distance_ibgp)
       assert_equal(distancer[:local], bgp_af.distance_local)
     end
+
     bgp_af.destroy
   end
 
@@ -514,10 +380,10 @@ class TestBgpAF < CiscoTestCase
   def test_network
     vrfs = %w(default red)
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    config_ios_xr_dependencies(1) if platform == :ios_xr
     vrfs.each do |vrf|
       afs.each do |af|
         dbg = sprintf('[VRF %s AF %s]', vrf, af.join('/'))
-        config_ios_xr_dependencies(1)
         af_obj = RouterBgpAF.new(1, vrf, af)
         network_cmd(af_obj, dbg)
 
@@ -613,15 +479,16 @@ class TestBgpAF < CiscoTestCase
   def test_redistribute
     vrfs = %w(default red)
     afs = [%w(ipv4 unicast), %w(ipv6 unicast)]
+    config_ios_xr_dependencies(1) if platform == :ios_xr
     vrfs.each do |vrf|
       afs.each do |af|
         dbg = sprintf('[VRF %s AF %s]', vrf, af.join('/'))
-        config_ios_xr_dependencies(1) if platform == :ios_xr
         af = RouterBgpAF.new(1, vrf, af)
         redistribute_cmd(af, dbg)
         af.destroy
       end
     end
+    config('no route-policy drop_all') if platform == :ios_xr
   end
 
   def redistribute_cmd(af, dbg)
@@ -668,7 +535,7 @@ class TestBgpAF < CiscoTestCase
                  "#{dbg} Test 3. Restore the removed protocols")
 
     # Test: Change route-maps on existing commands
-    config('route-policy my_policy_2', 'end-policy')
+    config('route-policy my_policy_2', 'end-policy') if platform == :ios_xr
     should = master.map { |prot_only, rm| [prot_only, "#{rm}_2"] }
     af.redistribute = should
     result = af.redistribute
@@ -810,6 +677,7 @@ class TestBgpAF < CiscoTestCase
     # Functions that shouldn't be covered by method_missing
     refute_respond_to(bgp_af, :default_next_hop_route_map=)
 
+    config('no route-policy drop_all') if platform == :ios_xr
     bgp_af.destroy
   end
 
@@ -861,6 +729,5 @@ class TestBgpAF < CiscoTestCase
     afs.each do |af|
       table_map(55, 'red', af)
     end
-    config('no route-policy sjc') if platform == :ios_xr
   end
 end
