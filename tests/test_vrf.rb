@@ -75,7 +75,7 @@ class TestVrf < CiscoTestCase
 
   def test_shutdown
     v = Vrf.new('test_shutdown')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'shutdown')
       assert_nil(v.shutdown)
       assert_nil(v.default_shutdown)
       assert_raises(Cisco::UnsupportedError) { v.shutdown = true }
@@ -106,6 +106,63 @@ class TestVrf < CiscoTestCase
     v.destroy
   end
 
+  def test_mhost
+    v = Vrf.new('test_mhost')
+    t_intf = 'Loopback100'
+    if validate_property_excluded?('vrf', 'mhost_default_interface')
+      assert_nil(v.mhost_ipv4_default_interface)
+      assert_nil(v.mhost_ipv6_default_interface)
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv4_default_interface = t_intf
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv6_default_interface = t_intf
+      end
+      v.destroy
+      return
+    end
+    config("interface #{t_intf}")
+    %w(mhost_ipv4_default_interface mhost_ipv6_default_interface).each do |mh|
+      df = v.send("default_#{mh}")
+      result = v.send("#{mh}")
+      assert_equal(df, result, "Test1.1 : #{mh} should be default value")
+
+      v.send("#{mh}=", t_intf)
+      result = v.send("#{mh}")
+      assert_equal(t_intf, result,
+                   "Test2.1 :vrf #{mh} should be set to #{t_intf}")
+
+      df = v.send("default_#{mh}")
+      v.send("#{mh}=", "#{df}")
+      result = v.send("#{mh}")
+      assert_equal(df, result,
+                   "Test3.1 :vrf #{mh} should be set to default value")
+    end
+    config("no interface #{t_intf}")
+    v.destroy
+  end
+
+  def test_remote_route_filtering
+    v = Vrf.new('test_remote_route_filtering')
+    if validate_property_excluded?('vrf', 'remote_route_filtering')
+      refute(v.remote_route_filtering)
+      assert_raises(Cisco::UnsupportedError) do
+        v.remote_route_filtering = false
+      end
+      v.destroy
+      return
+    end
+    assert(v.remote_route_filtering,
+           'Test1.1, remote_route_filtering should be default value')
+    v.remote_route_filtering = false
+    refute(v.remote_route_filtering,
+           'Test2.1, remote_route_filtering should be set to false')
+    v.remote_route_filtering = v.default_remote_route_filtering
+    assert(v.remote_route_filtering,
+           'Test3.1, remote_route_filtering should be set to default value')
+    v.destroy
+  end
+
   def test_vni
     vrf = Vrf.new('test_vni')
     vrf.vni = 4096
@@ -121,7 +178,7 @@ class TestVrf < CiscoTestCase
 
   def test_route_distinguisher
     v = Vrf.new('green')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'route_distinguisher')
       # Must be configured under BGP in IOS XR
       assert_nil(v.route_distinguisher)
       assert_nil(v.default_route_distinguisher)
@@ -141,6 +198,26 @@ class TestVrf < CiscoTestCase
     v.route_distinguisher = v.default_route_distinguisher
     assert_empty(v.route_distinguisher,
                  'v route_distinguisher should *NOT* be configured')
+    v.destroy
+  end
+
+  def test_vpn_id
+    v = Vrf.new('test_vpn_id')
+    if validate_property_excluded?('vrf', 'vpn_id')
+      assert_nil(v.vpn_id)
+      assert_raises(Cisco::UnsupportedError) { v.vpn_id = '1:1' }
+      v.destroy
+      return
+    end
+    assert_equal(v.default_vpn_id, v.vpn_id,
+                 'Test1.1, vpn_id should be default value')
+    %w(1:1 abcdef:12345678).each do |id|
+      v.vpn_id = id
+      assert_equal(id, v.vpn_id, "Test2.1, vpn_id should be set to #{id}")
+    end
+    v.vpn_id = v.default_vpn_id
+    assert_equal(v.default_vpn_id, v.vpn_id,
+                 'Test3.1, vpn_id should be set to default value')
     v.destroy
   end
 end
