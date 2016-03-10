@@ -2,13 +2,7 @@ require_relative 'spec_helper.rb'
 require 'cisco_node_utils/environment'
 require 'cisco_node_utils/client'
 
-context 'Cisco::Environment examples' do
-  before(:example) do
-    allow(YAML).to receive(:load_file).and_wrap_original do |orig|
-      orig.call(File.expand_path('docs/cisco_node_utils.yaml.example'))
-    end
-  end
-
+describe Cisco::Environment do
   context '#merge_config' do
     it 'handles File.expand_path errors' do
       expect(File).to receive(:expand_path).and_raise(ArgumentError)
@@ -54,7 +48,10 @@ context 'Cisco::Environment examples' do
     end
   end
 
-  context 'default' do
+  context 'default values' do
+    before(:example) do
+      allow(File).to receive(:file?).and_return(false)
+    end
     expected = {
       host:     nil,
       port:     nil,
@@ -69,83 +66,93 @@ context 'Cisco::Environment examples' do
     end
   end
 
-  context 'the "nxapi_local" example' do
-    expected = {
-      host:     nil,
-      port:     nil,
-      username: nil,
-      password: nil,
-    }
-    it 'can be loaded explicitly by name' do
-      expect(Cisco::Environment.environment('nxapi_local')).to eq(expected)
+  context 'examples in docs/cisco_node_utils.yaml.example' do
+    before(:example) do
+      allow(File).to receive(:file?).and_return(true)
+      allow(File).to receive(:readable?).and_return(true)
+      allow(YAML).to receive(:load_file).and_wrap_original do |orig|
+        orig.call(File.expand_path('docs/cisco_node_utils.yaml.example'))
+      end
     end
-    it 'can be specified as the default then loaded implicitly' do
-      Cisco::Environment.default_environment_name = 'nxapi_local'
-      expect(Cisco::Environment.environment).to eq(expected)
-    end
-    it 'is valid configuration for the NXAPI client' do
-      hash = Cisco::Environment.environment('nxapi_local')
-      Cisco::Client::NXAPI.validate_args(hash)
-    end
-  end
 
-  context 'the "nxapi_remote" example' do
-    expected = {
-      host:     '192.168.1.100',
-      port:     nil,
-      username: 'devops',
-      password: 'devops',
-    }
-    it 'can be loaded explicitly by name' do
-      expect(Cisco::Environment.environment('nxapi_remote')).to eq(expected)
+    context 'the "nxapi_local" example' do
+      expected = {
+        host:     nil,
+        port:     nil,
+        username: nil,
+        password: nil,
+      }
+      it 'can be loaded explicitly by name' do
+        expect(Cisco::Environment.environment('nxapi_local')).to eq(expected)
+      end
+      it 'can be specified as the default then loaded implicitly' do
+        Cisco::Environment.default_environment_name = 'nxapi_local'
+        expect(Cisco::Environment.environment).to eq(expected)
+      end
+      it 'is valid configuration for the NXAPI client' do
+        hash = Cisco::Environment.environment('nxapi_local')
+        Cisco::Client::NXAPI.validate_args(hash)
+      end
     end
-    it 'can be specified as the default then loaded implicitly' do
-      Cisco::Environment.default_environment_name = 'nxapi_remote'
-      expect(Cisco::Environment.environment).to eq(expected)
-    end
-    it 'is valid configuration for the NXAPI client' do
-      hash = Cisco::Environment.environment('nxapi_remote')
-      Cisco::Client::NXAPI.validate_args(hash)
-    end
-  end
 
-  context 'the "grpc_local" example' do
-    expected = {
-      host:     nil,
-      port:     57_999,
-      username: 'admin',
-      password: 'admin',
-    }
-    it 'can be loaded explicitly by name' do
-      expect(Cisco::Environment.environment('grpc_local')).to eq(expected)
+    context 'the "nxapi_remote" example' do
+      expected = {
+        host:     '192.168.1.100',
+        port:     nil,
+        username: 'devops',
+        password: 'devops',
+      }
+      it 'can be loaded explicitly by name' do
+        expect(Cisco::Environment.environment('nxapi_remote')).to eq(expected)
+      end
+      it 'can be specified as the default then loaded implicitly' do
+        Cisco::Environment.default_environment_name = 'nxapi_remote'
+        expect(Cisco::Environment.environment).to eq(expected)
+      end
+      it 'is valid configuration for the NXAPI client' do
+        hash = Cisco::Environment.environment('nxapi_remote')
+        Cisco::Client::NXAPI.validate_args(hash)
+      end
     end
-    it 'can be specified as default then loaded implicitly' do
-      Cisco::Environment.default_environment_name = 'grpc_local'
-      expect(Cisco::Environment.environment).to eq(expected)
-    end
-    it 'is valid configuration for the gRPC client' do
-      hash = Cisco::Environment.environment('grpc_local')
-      Cisco::Client::GRPC.validate_args(hash)
-    end
-  end
 
-  context 'the "grpc_remote" example' do
-    expected = {
-      host:     '192.168.1.100',
-      port:     nil,
-      username: 'admin',
-      password: 'admin',
-    }
-    it 'can be loaded explicitly by name' do
-      expect(Cisco::Environment.environment('grpc_remote')).to eq(expected)
+    context 'the "grpc_local" example' do
+      expected = {
+        host:     nil,
+        port:     57_999,
+        username: 'admin',
+        password: 'admin',
+      }
+      it 'can be loaded explicitly by name' do
+        expect(Cisco::Environment.environment('grpc_local')).to eq(expected)
+      end
+      it 'can be specified as default then loaded implicitly' do
+        Cisco::Environment.default_environment_name = 'grpc_local'
+        expect(Cisco::Environment.environment).to eq(expected)
+      end
+      it 'is valid configuration for the gRPC client' do
+        hash = Cisco::Environment.environment('grpc_local')
+        Cisco::Client::GRPC.validate_args(hash)
+      end
     end
-    it 'can be specified as default then loaded implicitly' do
-      Cisco::Environment.default_environment_name = 'grpc_remote'
-      expect(Cisco::Environment.environment).to eq(expected)
-    end
-    it 'is valid configuration for the gRPC client' do
-      hash = Cisco::Environment.environment('grpc_remote')
-      Cisco::Client::GRPC.validate_args(hash)
+
+    context 'the "grpc_remote" example' do
+      expected = {
+        host:     '192.168.1.100',
+        port:     nil,
+        username: 'admin',
+        password: 'admin',
+      }
+      it 'can be loaded explicitly by name' do
+        expect(Cisco::Environment.environment('grpc_remote')).to eq(expected)
+      end
+      it 'can be specified as default then loaded implicitly' do
+        Cisco::Environment.default_environment_name = 'grpc_remote'
+        expect(Cisco::Environment.environment).to eq(expected)
+      end
+      it 'is valid configuration for the gRPC client' do
+        hash = Cisco::Environment.environment('grpc_remote')
+        Cisco::Client::GRPC.validate_args(hash)
+      end
     end
   end
 end
