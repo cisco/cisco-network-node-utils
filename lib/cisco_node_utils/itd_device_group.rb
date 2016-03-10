@@ -32,19 +32,11 @@ module Cisco
 
     def self.itds
       hash = {}
-      group_list = []
       groups = config_get('itd_device_group',
                           'all_itd_device_groups')
       return hash if groups.nil?
 
-      groups.each do |group|
-        # The show cmd shows more than name if the probe is not confgured yet
-        # itd device-group abc frequency 10 timeout 5 retry-down-count 3 ...
-        # so filter it out to just get the name
-        group_list << group.split[0]
-      end
-
-      group_list.each do |id|
+      groups.each do |id|
         hash[id] = ItdDeviceGroup.new(id, false)
       end
       hash
@@ -69,20 +61,15 @@ module Cisco
       @get_args = @set_args
     end
 
-    def probe_params
-      params = config_get('itd_device_group', 'probe', @get_args)
-      params
-    end
-
-    # proble configuration is all done in a single line (like below)
+    # probe configuration is all done in a single line (like below)
     # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
     # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
     # probe icmp frequency 10 timeout 5 retry-down-count 3 retry-up-count 3
     # probe dns host 8.8.8.8 frequency 10 timeout 5 retry-down-count 3 ...
     # also the 'control enable' can be set if the type is tcp or udp only
     # probe udp port 23 control enable frequency 10 timeout 5 ...
-    def probe
-      params = probe_params
+    def probe_get
+      params = config_get('itd_device_group', 'probe', @get_args)
       hash = {}
       hash[:probe_control] = default_probe_control
       if params.nil?
@@ -111,8 +98,7 @@ module Cisco
     end
 
     def probe_control
-      hash = probe
-      hash[:probe_control]
+      probe_get[:probe_control]
     end
 
     def default_probe_control
@@ -120,13 +106,11 @@ module Cisco
     end
 
     def probe_dns_host
-      hash = probe
-      hash[:probe_dns_host]
+      probe_get[:probe_dns_host]
     end
 
     def probe_frequency
-      hash = probe
-      hash[:probe_frequency]
+      probe_get[:probe_frequency]
     end
 
     def default_probe_frequency
@@ -134,13 +118,11 @@ module Cisco
     end
 
     def probe_port
-      hash = probe
-      hash[:probe_port]
+      probe_get[:probe_port]
     end
 
     def probe_retry_down
-      hash = probe
-      hash[:probe_retry_down]
+      probe_get[:probe_retry_down]
     end
 
     def default_probe_retry_down
@@ -148,8 +130,7 @@ module Cisco
     end
 
     def probe_retry_up
-      hash = probe
-      hash[:probe_retry_up]
+      probe_get[:probe_retry_up]
     end
 
     def default_probe_retry_up
@@ -157,8 +138,7 @@ module Cisco
     end
 
     def probe_timeout
-      hash = probe
-      hash[:probe_timeout]
+      probe_get[:probe_timeout]
     end
 
     def default_probe_timeout
@@ -166,8 +146,7 @@ module Cisco
     end
 
     def probe_type
-      hash = probe
-      hash[:probe_type]
+      probe_get[:probe_type]
     end
 
     def default_probe_type

@@ -17,7 +17,7 @@ all_itd_device_group_nodes:
 all_itd_device_groups:
   multiple:
   get_context: ~
-  get_value: '/^itd device-group (.*)/'
+  get_value: '/^itd device-group (\S+)/'
 
 create:
   set_context: ~
