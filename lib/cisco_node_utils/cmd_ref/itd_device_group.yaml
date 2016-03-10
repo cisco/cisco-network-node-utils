@@ -43,7 +43,7 @@ hot_standby:
 
 probe:
   get_value: '/^probe .+$/'
-  set_value: "probe <type> <hps> <hpv> <control> frequency <freq> timeout <to> retry-down-count <rdc> retry-up-count <ruc>"
+  set_value: "probe <type> <dns_host> <port> <control> <frequency> <timeout> <retry_down_count> <retry_up_count>"
 
 probe_control:
   kind: boolean

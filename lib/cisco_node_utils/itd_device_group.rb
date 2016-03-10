@@ -57,8 +57,14 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      @set_args = { name: @name }
-      @get_args = @set_args
+      keys = { name: @name }
+      @get_args = @set_args = keys
+    end
+
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
     # extract value of property from probe
@@ -112,6 +118,14 @@ module Cisco
       val == 'enable' ? true : default_probe_control
     end
 
+    def probe_control=(control)
+      if control
+        @set_args[:control] = 'control enable'
+      else
+        @set_args[:control] = ''
+      end
+    end
+
     def default_probe_control
       config_get_default('itd_device_group', 'probe_control')
     end
@@ -120,10 +134,18 @@ module Cisco
       extract_value('dns_host', 'host')
     end
 
+    def probe_dns_host=(dns_host)
+      attach_prefix(dns_host, :dns_host, 'host')
+    end
+
     def probe_frequency
       val = extract_value('frequency')
       return default_probe_frequency if val.nil?
       val.to_i
+    end
+
+    def probe_frequency=(frequency)
+      attach_prefix(frequency, :frequency)
     end
 
     def default_probe_frequency
@@ -135,10 +157,18 @@ module Cisco
       val.to_i unless val.nil?
     end
 
+    def probe_port=(port)
+      attach_prefix(port, :port)
+    end
+
     def probe_retry_down
       val = extract_value('retry_down', 'retry-down-count')
       return default_probe_retry_down if val.nil?
       val.to_i
+    end
+
+    def probe_retry_down=(rdc)
+      attach_prefix(rdc, :retry_down_count, 'retry-down-count')
     end
 
     def default_probe_retry_down
@@ -151,6 +181,10 @@ module Cisco
       val.to_i
     end
 
+    def probe_retry_up=(ruc)
+      attach_prefix(ruc, :retry_up_count, 'retry-up-count')
+    end
+
     def default_probe_retry_up
       config_get_default('itd_device_group', 'probe_retry_up')
     end
@@ -159,6 +193,10 @@ module Cisco
       val = extract_value('timeout')
       return default_probe_timeout if val.nil?
       val.to_i
+    end
+
+    def probe_timeout=(timeout)
+      attach_prefix(timeout, :timeout)
     end
 
     def default_probe_timeout
@@ -171,40 +209,37 @@ module Cisco
       match.names.include?('type') ? match[:type] : default_probe_type
     end
 
+    def probe_type=(type)
+      @set_args[:type] = type
+    end
+
     def default_probe_type
       config_get_default('itd_device_group', 'probe_type')
     end
 
-    def probe=(type, host, control, freq, ret_up, ret_down, port, timeout)
-      if type == false
+    def probe_set(attrs)
+      if attrs[:probe_type] == false
+        cmd = 'probe_type'
         @set_args[:state] = 'no'
-        config_set('itd_device_group', 'probe_type', @set_args)
+      else
+        cmd = 'probe'
         set_args_keys_default
-        return
+        set_args_keys(attrs)
+        [:probe_type,
+         :probe_dns_host,
+         :probe_port,
+         :probe_control,
+         :probe_frequency,
+         :probe_timeout,
+         :probe_retry_down,
+         :probe_retry_up,
+        ].each do |p|
+          attrs[p] = '' if attrs[p].nil?
+          send(p.to_s + '=', attrs[p])
+        end
+        @get_args = @set_args
       end
-      @set_args[:type] = type
-      @set_args[:freq] = freq
-      @set_args[:to] = timeout
-      @set_args[:rdc] = ret_down
-      @set_args[:ruc] = ret_up
-      case type.to_sym
-      when :dns
-        @set_args[:hps] = 'host'
-        @set_args[:hpv] = host
-        @set_args[:control] = ''
-        config_set('itd_device_group', 'probe', @set_args)
-      when :tcp, :udp
-        control_str = control ? 'control enable' : ''
-        @set_args[:hps] = 'port'
-        @set_args[:hpv] = port
-        @set_args[:control] = control_str
-        config_set('itd_device_group', 'probe', @set_args)
-      when :icmp
-        @set_args[:hps] = ''
-        @set_args[:hpv] = ''
-        @set_args[:control] = ''
-        config_set('itd_device_group', 'probe', @set_args)
-      end
+      config_set('itd_device_group', cmd, @set_args)
       set_args_keys_default
     end
   end  # Class
