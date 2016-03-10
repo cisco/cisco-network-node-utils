@@ -28,6 +28,7 @@ nv_overlay:
   set_value: "feature nv overlay"
 
 nv_overlay_evpn:
+  # TBD: Exclude all n3k even though N31xx in 'switchmode n9k' supports evpn
   _exclude: [N3k]
   kind: boolean
   get_command: "show running | section nv"
