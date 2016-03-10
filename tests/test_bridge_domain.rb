@@ -43,11 +43,11 @@ class TestBridgeDomain < CiscoTestCase
   def test_single_bd_create_destroy
     bd = BridgeDomain.new('100', true)
     bds = BridgeDomain.bds
-    assert(bds.key?(100.to_s), 'Error: failed to create bridge-domain 100')
+    assert(bds.key?('100'), 'Error: failed to create bridge-domain 100')
 
     bd.destroy
     bds = BridgeDomain.bds
-    refute(bds.key?(100.to_s), 'Error: failed to destroy bridge-domain 100')
+    refute(bds.key?('100'), 'Error: failed to destroy bridge-domain 100')
   end
 
   def test_bd_create_if_vlan_exists
