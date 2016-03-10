@@ -29,6 +29,8 @@ def debug_bgp
 end
 
 def create_bgp_vrf(asnum, vrf)
+  @asnum = asnum
+  @vrf = vrf
   if platform == :nexus
     bgp = RouterBgp.new(asnum, vrf)
   else
@@ -42,6 +44,7 @@ def create_bgp_vrf(asnum, vrf)
     # behave).
     bgp = RouterBgp.new(asnum)
     bgp.router_id = '1.2.3.4'
+    return bgp unless vrf != 'default'
     bgp = RouterBgp.new(asnum, vrf)
     bgp.router_id = '4.5.6.7'
   end
@@ -213,7 +216,7 @@ class TestRouterBgp < CiscoTestCase
     refute_nil(line, "Error: 'router bgp #{asnum}' not configured")
 
     # Only one bgp instance supported so try to create another.
-    assert_raises(CliError) do
+    assert_raises(Cisco::CliError) do
       bgp2 = RouterBgp.new(88)
       bgp2.destroy unless bgp2.nil?
     end
@@ -1276,5 +1279,34 @@ class TestRouterBgp < CiscoTestCase
                  'bgp timer_bestpath_timer_keepalive_hold_default should be' \
                  "set to default values of '60' and '180'")
     bgp.destroy
+  end
+
+  ##################################################
+  # Generic Testing Functions using Property Matrix
+  #
+
+  def new_test_object(ctx)
+    asn, vrf = *ctx
+    create_bgp_vrf(asn, vrf)
+  end
+
+  T_CONTEXT = [
+    [55],               # ASN
+    %w(default red),    # VRF
+  ]
+
+  T_VALUES = [
+    [:default_information_originate,  [:toggle]],
+    [:default_metric,                 [50, false]],
+  ]
+
+  TEST_EXCEPTIONS = [
+    #  Test                           OS       [ASN, VRF]     Expected result
+    [:default_information_originate,  :nexus,  [:any, :any],  :unsupported],
+    [:default_metric,                 :nexus,  [:any, :any],  :unsupported],
+  ]
+
+  def test_properties_matrix
+    properties_matrix(T_CONTEXT, T_VALUES, TEST_EXCEPTIONS)
   end
 end
