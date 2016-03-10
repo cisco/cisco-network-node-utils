@@ -445,9 +445,9 @@ class TestInterfaceOspf < CiscoTestCase
     config('no feature ospf',
            'feature ospf',
            'feature interface-vlan',
-           'default interface interfaces[0]',
-           'default interface interfaces[1]',
-           'default interface interfaces[2]',
+           "default interface #{interfaces[0]}",
+           "default interface #{interfaces[1]}",
+           "default interface #{interfaces[2]}",
           )
 
     # pre-configure
