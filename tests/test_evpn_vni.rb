@@ -80,7 +80,11 @@ class TestEvpnVni < CiscoTestCase
     vni = EvpnVni.new(4096)
 
     # test route target both auto and route target both auto evpn
-    opts = [:both, :import, :export]
+    if Utils.nexus_i2_image
+      opts = [:import, :export]
+    else
+      opts = [:both, :import, :export]
+    end
 
     # Master list of communities to test against
     master = ['1.2.3.4:55', '2:2', '55:33', 'auto']
