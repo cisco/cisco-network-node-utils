@@ -24,6 +24,8 @@ class TestEncapsulation < CiscoTestCase
     Encapsulation.encaps.each do |_encap, obj|
       obj.destroy
     end
+  rescue
+    skip('Unsupported in non F3 vdcs')
   end
 
   def setup
@@ -42,11 +44,13 @@ class TestEncapsulation < CiscoTestCase
   # TESTS
 
   def test_encapsulation_create_destroy
+    mt_full_interface?
     encap = Encapsulation.new('cisco')
     encap.destroy
   end
 
   def test_encapsulation_dot1_mapping
+    mt_full_interface?
     encap = Encapsulation.new('cisco')
     assert_equal(encap.default_dot1q_map, encap.dot1q_map,
                  'Error: dot1q is not matching')
@@ -61,6 +65,7 @@ class TestEncapsulation < CiscoTestCase
   end
 
   def test_invalid_range_dot1q_mapping
+    mt_full_interface?
     encap = Encapsulation.new('cisco')
     assert_equal(encap.default_dot1q_map, encap.dot1q_map,
                  'Error: dot1q is not matching')
