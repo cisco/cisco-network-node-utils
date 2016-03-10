@@ -6,7 +6,7 @@
 # Run the Kwalify YAML schema validation
 
 step_name "Validating YAML files"
-rake spec_yaml
+rspec "$REPO_DIR"/spec/yaml_spec.rb
 check_rc "Please fix YAML schema validation failures before committing"
 
 # Ensure that command_reference can parse all the YAML as well
