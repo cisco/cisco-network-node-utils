@@ -75,10 +75,16 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    def route_target_feature_enable
-      Feature.bgp_enable if platform == :nexus
-      Feature.nv_overlay_enable if platform == :nexus
-      Feature.nv_overlay_evpn_enable if platform == :nexus
+    def route_target_feature_enable(require_nv_overlay=nil)
+      return unless platform == :nexus
+
+      # All NX route-target properties require feature bgp
+      Feature.bgp_enable
+
+      # Some platforms/versions also require nv overlay for some properties
+      return unless require_nv_overlay
+      Feature.nv_overlay_enable if Feature.nv_overlay_supported?
+      Feature.nv_overlay_evpn_enable if Feature.nv_overlay_evpn_supported?
     end
 
     ########################################################
@@ -125,12 +131,13 @@ module Cisco
       config_get_default('vrf_af', 'route_policy_import')
     end
 
+    # --------------------------
     def route_target_both_auto
       config_get('vrf_af', 'route_target_both_auto', @get_args)
     end
 
     def route_target_both_auto=(state)
-      route_target_feature_enable
+      route_target_feature_enable(:require_nv_overlay)
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vrf_af', 'route_target_both_auto', @set_args)
     end
@@ -145,7 +152,7 @@ module Cisco
     end
 
     def route_target_both_auto_evpn=(state)
-      route_target_feature_enable
+      route_target_feature_enable(:require_nv_overlay)
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vrf_af', 'route_target_both_auto_evpn', @set_args)
     end
@@ -161,6 +168,7 @@ module Cisco
     end
 
     def route_target_export=(should)
+      route_target_feature_enable
       route_target_delta(should, route_target_export, 'route_target_export')
     end
 
@@ -175,6 +183,7 @@ module Cisco
     end
 
     def route_target_export_evpn=(should)
+      route_target_feature_enable(:require_nv_overlay)
       route_target_delta(should, route_target_export_evpn,
                          'route_target_export_evpn')
     end
@@ -205,6 +214,7 @@ module Cisco
     end
 
     def route_target_import=(should)
+      route_target_feature_enable
       route_target_delta(should, route_target_import, 'route_target_import')
     end
 
@@ -214,6 +224,7 @@ module Cisco
 
     # --------------------------
     def route_target_import_evpn
+      route_target_feature_enable(:require_nv_overlay)
       cmds = config_get('vrf_af', 'route_target_import_evpn', @get_args)
       cmds.nil? ? nil : cmds.sort
     end
@@ -246,7 +257,6 @@ module Cisco
     # route_target_delta is a common helper function for the route_target
     # properties. It walks the delta hash and adds/removes each target cli.
     def route_target_delta(should, is, prop)
-      route_target_feature_enable
       fail Cisco::UnsupportedError.new('vrf_af', prop) if is.nil?
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?

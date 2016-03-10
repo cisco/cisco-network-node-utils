@@ -29,8 +29,8 @@ class TestVrf < CiscoTestCase
   end
 
   def teardown
-    super
     remove_all_vrfs
+    super
   end
 
   def test_collection_default
@@ -84,11 +84,15 @@ class TestVrf < CiscoTestCase
     end
     v.shutdown = true
     assert(v.shutdown)
+
+    sleep 20 if node.product_id[/N(5|6)/]
     v.shutdown = false
     refute(v.shutdown)
 
     v.shutdown = true
     assert(v.shutdown)
+
+    sleep 20 if node.product_id[/N(5|6)/]
     v.shutdown = v.default_shutdown
     refute(v.shutdown)
     v.destroy
@@ -165,6 +169,9 @@ class TestVrf < CiscoTestCase
 
   def test_vni
     vrf = Vrf.new('test_vni')
+    assert_equal(vrf.default_vni, vrf.vni,
+                 'vrf vni should be set to default value')
+
     vrf.vni = 4096
     assert_equal(4096, vrf.vni,
                  "vrf vni should be set to '4096'")

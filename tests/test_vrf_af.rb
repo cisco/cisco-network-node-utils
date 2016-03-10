@@ -23,16 +23,30 @@ class TestVrfAf < CiscoTestCase
 
   def setup
     super
-    remove_all_vrfs if @@pre_clean_needed
+    return unless @@pre_clean_needed
+    nexus_feature_disable
+    remove_all_vrfs
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    super
+    nexus_feature_disable
     remove_all_vrfs
+    super
   end
 
-  def test_vrf_af_create_destroy
+  def nexus_feature_disable
+    config('no feature bgp')
+
+    # Some platforms complain when nv overlay is not configured
+    config_no_warn('no nv overlay evpn')
+
+    # Some platforms remove the 'evpn' command when 'no nv overlay evpn'
+    # is processed, while others must remove it explicitly.
+    config_no_warn('no evpn')
+  end
+
+  def test_create_destroy
     v1 = VrfAF.new('cyan', %w(ipv4 unicast))
     v2 = VrfAF.new('cyan', %w(ipv6 unicast))
     v3 = VrfAF.new('red', %w(ipv4 unicast))
@@ -118,7 +132,7 @@ class TestVrfAf < CiscoTestCase
     refute(v.default_route_target_both_auto_evpn,
            'default value for route target both auto evpn should be false')
 
-    if platform == :ios_xr
+    if platform == :ios_xr || node.product_id[/N3/]
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
     else
       v.route_target_both_auto = true
@@ -130,7 +144,7 @@ class TestVrfAf < CiscoTestCase
              'v route-target both auto should be disabled')
     end
 
-    if platform == :ios_xr
+    if platform == :ios_xr || node.product_id[/N3/]
       assert_raises(Cisco::UnsupportedError) do
         v.route_target_both_auto_evpn = true
       end
@@ -174,7 +188,7 @@ class TestVrfAf < CiscoTestCase
       # non-evpn
       v.send("route_target_#{opt}=", should)
       # evpn
-      if platform == :nexus
+      if platform == :nexus && !node.product_id[/N3/]
         v.send("route_target_#{opt}_evpn=", should)
       else
         assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_evpn=") do
@@ -200,7 +214,7 @@ class TestVrfAf < CiscoTestCase
                    "#{test_id} : #{af} : route_target_#{opt}")
       # evpn
       result = v.send("route_target_#{opt}_evpn")
-      if platform == :nexus
+      if platform == :nexus && !node.product_id[/N3/]
         assert_equal(should, result,
                      "#{test_id} : #{af} : route_target_#{opt}_evpn")
       else
