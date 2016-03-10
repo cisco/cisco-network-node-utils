@@ -9,7 +9,7 @@ bgp:
   set_value: "feature bgp"
 
 fabric:
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N8k, N9k]
   get_command: "show feature-set"
   get_value: '/^fabric[\s\d]+(\w+)/'
   set_value: "<state> feature-set fabric"

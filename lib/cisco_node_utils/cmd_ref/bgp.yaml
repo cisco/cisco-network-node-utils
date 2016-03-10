@@ -119,6 +119,7 @@ create_destroy_neighbor:
   set_value: '<state> neighbor <nbr>'
 
 default_information_originate:
+  _exclude: [nexus]
   kind: boolean
   default_value: false
   ios_xr:
@@ -126,6 +127,7 @@ default_information_originate:
     set_value: '<state> default-information originate'
 
 default_metric:
+  _exclude: [nexus]
   kind: int
   default_value: false
   ios_xr:

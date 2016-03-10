@@ -8,12 +8,17 @@ Changelog
 #### Cisco Resources
 * Spanning Tree
   * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
 
 #### NetDev Resources
 *
 
 ### Added
 
+* Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
@@ -37,7 +42,7 @@ Changelog
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
-  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
 
@@ -62,6 +67,7 @@ Changelog
 
 ### Removed
 * Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
 
 ## [v1.2.0]
 
@@ -172,7 +178,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 

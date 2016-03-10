@@ -29,7 +29,7 @@ module Cisco
     end
 
     def to_s
-      "VRF #{vrf} afi #{afi} safi #{safi}"
+      "VRF #{@vrf} afi #{@afi} safi #{@safi}"
     end
 
     def self.afs

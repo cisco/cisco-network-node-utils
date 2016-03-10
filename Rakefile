@@ -26,12 +26,16 @@ end
 RSpec::Core::RakeTask.new(:spec_yaml) do |t|
   t.pattern = 'spec/yaml_spec.rb'
 end
+RSpec::Core::RakeTask.new(:spec_whitespace) do |t|
+  t.pattern = 'spec/whitespace_spec.rb'
+end
 
 task spec: [:spec_no_clients,
             :spec_nxapi_only,
             :spec_grpc_only,
             :spec_all_clients,
             :spec_yaml,
+            :spec_whitespace,
            ]
 
 task :build do

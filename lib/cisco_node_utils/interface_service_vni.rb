@@ -15,7 +15,6 @@
 # limitations under the License.
 
 require_relative 'node_util'
-require_relative 'vni'
 require_relative 'feature'
 
 module Cisco
