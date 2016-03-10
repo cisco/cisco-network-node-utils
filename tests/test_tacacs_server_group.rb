@@ -331,12 +331,12 @@ class TestTacacsServerGroup < CiscoTestCase
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface set')
 
-    intf = 'Ethernet1/1'
+    intf = interfaces[0]
     create_source_interface(group_name, 'tacacs+', intf)
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface not correct')
 
-    intf = 'Ethernet1/32'
+    intf = interfaces[1]
     create_source_interface(group_name, 'tacacs+', intf)
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface not correct')
