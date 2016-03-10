@@ -147,8 +147,8 @@ class TestInterface < CiscoTestCase
     Interface.new(ifname)
   end
 
-  def interface_ethernet_default(ethernet_id)
-    config("default interface ethernet #{ethernet_id}")
+  def interface_ethernet_default(ethernet_intf)
+    config("default interface #{ethernet_intf}")
   end
 
   def interface_supports_property?(intf, message)
@@ -471,7 +471,7 @@ class TestInterface < CiscoTestCase
     description = 'This is a test description ! '
     interface.description = description
     assert_equal(description.rstrip, interface.description)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_encapsulation_dot1q
@@ -484,7 +484,7 @@ class TestInterface < CiscoTestCase
     subif.encapsulation_dot1q = 25
     assert_equal(25, subif.encapsulation_dot1q)
     subif.destroy
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_mtu_change
@@ -496,7 +496,7 @@ class TestInterface < CiscoTestCase
     assert_equal(1580, interface.mtu)
     interface.mtu = interface.default_mtu
     assert_equal(interface.default_mtu, interface.mtu)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_mtu_invalid
@@ -512,7 +512,7 @@ class TestInterface < CiscoTestCase
     assert_equal(1550, interface.mtu)
     interface.mtu = interface.default_mtu
     assert_equal(interface.default_mtu, interface.mtu)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_mtu_invalid_loopback
@@ -541,7 +541,7 @@ class TestInterface < CiscoTestCase
         speed_change_disallowed(e.message)
       end
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_duplex
@@ -564,7 +564,7 @@ class TestInterface < CiscoTestCase
         speed_change_disallowed(e.message)
       end
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_shutdown_valid
@@ -574,7 +574,7 @@ class TestInterface < CiscoTestCase
 
     interface.shutdown = false
     refute(interface.shutdown, 'Error: shutdown state is not false')
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_svi_prop_nil_when_ethernet
@@ -590,7 +590,7 @@ class TestInterface < CiscoTestCase
   #     interface.switchport_mode = :access
   #     addresses = interface.prefixes
   #     assert_empty(addresses)
-  #     interface_ethernet_default(interfaces_id[0])
+  #     interface_ethernet_default(interfaces[0])
   #   end
   #
   #   def test_interface_get_prefix_list_with_ipv4_address_assignment
@@ -604,7 +604,7 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("192.168.1.100"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
+  #     interface_ethernet_default(interfaces[0])
   #   end
   #
   #   def test_interface_get_prefix_list_with_ipv6_address_assignment
@@ -618,7 +618,7 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("fd56:31f7:e4ad:5585::1"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
+  #     interface_ethernet_default(interfaces[0])
   #   end
   #
   #   def test_interface_prefix_list_with_both_ip4_and_ipv6_address_assignments
@@ -634,7 +634,7 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("fd56:31f7:e4ad:5585::1"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
+  #     interface_ethernet_default(interfaces[0])
   #   end
 
   def negotiate_auto_helper(interface, default, cmd_ref)
@@ -716,7 +716,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     # Create interface member of this group (required for XR)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
     member = InterfaceChannelGroup.new(interfaces[0])
     begin
       member.channel_group = 10
@@ -757,7 +757,7 @@ class TestInterface < CiscoTestCase
     assert(ref, 'Error, reference not found')
 
     # Cleanup
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
 
     # Some platforms does not support negotiate auto
     # if so then we abort the test.
@@ -790,11 +790,11 @@ class TestInterface < CiscoTestCase
     negotiate_auto_helper(interface, default, ref)
 
     # Test with no switchport
-    config("interface #{interfaces[0]}", 'no switchport')
+    config_no_warn("interface #{interfaces[0]}", 'no switchport')
     negotiate_auto_helper(interface, default, ref)
 
     # Cleanup
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_negotiate_auto_loopback
@@ -830,7 +830,7 @@ class TestInterface < CiscoTestCase
     assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('', 14)
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_ipv4_addr_mask_set_netmask_invalid
@@ -839,7 +839,7 @@ class TestInterface < CiscoTestCase
     assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_ipv4_acl
@@ -859,7 +859,7 @@ class TestInterface < CiscoTestCase
         config("ipv4 access-list #{acl_name} 1 permit any")
       end
     end
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
     intf = Interface.new(interfaces[0])
 
     intf.ipv4_acl_in = 'v4acl1'
@@ -890,7 +890,7 @@ class TestInterface < CiscoTestCase
     #     ipv6 traffic-filter v6acl1 in
     #     ipv6 traffic-filter v6acl2 out
     #
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
     intf = Interface.new(interfaces[0])
 
     # create acls first
@@ -978,7 +978,7 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_netmask_length,
                  'Error: ipv4 netmask length default get value mismatch')
 
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_ipv4_address_getter_with_preconfig
@@ -996,7 +996,7 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress
     interface_ipv4_config(ifname, address, length, false)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_ipv4_address_getter_with_preconfig_secondary
@@ -1018,7 +1018,7 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress includign secondary
     interface_ipv4_config(ifname, address, length, false, false)
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_ipv4_arp_timeout
@@ -1043,7 +1043,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_forwarding
     intf = interfaces[0]
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
     i = Interface.new(intf)
 
     if platform == :ios_xr
@@ -1148,7 +1148,7 @@ class TestInterface < CiscoTestCase
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
 
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def test_interface_ipv4_redirects
@@ -1194,7 +1194,7 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_ipv4_redirects, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
 
-    interface_ethernet_default(interfaces_id[0])
+    interface_ethernet_default(interfaces[0])
   end
 
   def config_from_hash(inttype_h)
