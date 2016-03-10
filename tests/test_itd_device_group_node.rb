@@ -58,111 +58,98 @@ class TestItdDeviceGroupNode < CiscoTestCase
     assert_empty(ItdDeviceGroupNode.itd_nodes['efg'])
   end
 
-  def test_probe_icmp
-    itddg = ItdDeviceGroup.new('new_group')
+  def probe_helper(props)
+    test_hash = {
+      probe_frequency:  9,
+      probe_retry_down: 5,
+      probe_retry_up:   5,
+      probe_timeout:    6,
+    }.merge!(props)
+
+    ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
-    type = 'icmp'
-    freq = 9
-    rd = 5
-    ru = 5
-    to = 6
-    idg.send(:probe=, type, nil, nil, freq, ru, rd, nil, to)
-    assert_equal(type, idg.probe_type)
-    assert_equal(freq, idg.probe_frequency)
-    assert_equal(to, idg.probe_timeout)
-    assert_equal(ru, idg.probe_retry_up)
-    assert_equal(rd, idg.probe_retry_down)
-    idg.send(:probe=, type, nil, nil,
-             idg.default_probe_frequency,
-             idg.default_probe_retry_up,
-             idg.default_probe_retry_down,
-             nil,
-             idg.default_probe_timeout)
+    idg.probe_set(test_hash)
+    idg
+  end
+
+  def test_probe_icmp
+    idg = probe_helper(probe_type: 'icmp')
+    assert_equal('icmp', idg.probe_type)
+    assert_equal(9, idg.probe_frequency)
+    assert_equal(6, idg.probe_timeout)
+    assert_equal(5, idg.probe_retry_up)
+    assert_equal(5, idg.probe_retry_down)
+    idg = probe_helper(probe_type:       'icmp',
+                       probe_frequency:  idg.default_probe_frequency,
+                       probe_retry_up:   idg.default_probe_retry_up,
+                       probe_retry_down: idg.default_probe_retry_down,
+                       probe_timeout:    idg.default_probe_timeout)
     assert_equal(idg.default_probe_frequency, idg.probe_frequency)
     assert_equal(idg.default_probe_timeout, idg.probe_timeout)
     assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
     assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
-    idg.send(:probe=, idg.default_probe_type,
-             nil, nil, nil, nil, nil, nil, nil)
+    idg = probe_helper(probe_type: idg.default_probe_type)
     assert_equal(idg.default_probe_type, idg.probe_type)
     idg.destroy
-    itddg.destroy
   end
 
   def test_probe_dns
-    itddg = ItdDeviceGroup.new('new_group')
-    idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     host = 'resolver1.opendns.com'
-    type = 'dns'
-    freq = 9
-    rd = 5
-    ru = 5
-    to = 6
-    idg.send(:probe=, type, host, nil, freq, ru, rd, nil, to)
-    assert_equal(type, idg.probe_type)
+    idg = probe_helper(probe_type: 'dns', probe_dns_host: host)
+    assert_equal('dns', idg.probe_type)
     assert_equal(host, idg.probe_dns_host)
-    assert_equal(freq, idg.probe_frequency)
-    assert_equal(to, idg.probe_timeout)
-    assert_equal(ru, idg.probe_retry_up)
-    assert_equal(rd, idg.probe_retry_down)
+    assert_equal(9, idg.probe_frequency)
+    assert_equal(6, idg.probe_timeout)
+    assert_equal(5, idg.probe_retry_up)
+    assert_equal(5, idg.probe_retry_down)
     host = '208.67.220.222'
-    idg.send(:probe=, type, host, nil,
-             idg.default_probe_frequency,
-             idg.default_probe_retry_up,
-             idg.default_probe_retry_down,
-             nil,
-             idg.default_probe_timeout)
+    idg = probe_helper(probe_type: 'dns', probe_dns_host: host,
+            probe_frequency: idg.default_probe_frequency,
+            probe_retry_up: idg.default_probe_retry_up,
+            probe_retry_down: idg.default_probe_retry_down,
+            probe_timeout: idg.default_probe_timeout)
     assert_equal(host, idg.probe_dns_host)
     assert_equal(idg.default_probe_frequency, idg.probe_frequency)
     assert_equal(idg.default_probe_timeout, idg.probe_timeout)
     assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
     assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
     host = '2620:0:ccd::2'
-    idg.send(:probe=, type, host, nil,
-             idg.default_probe_frequency,
-             idg.default_probe_retry_up,
-             idg.default_probe_retry_down,
-             nil,
-             idg.default_probe_timeout)
+    idg = probe_helper(probe_type: 'dns', probe_dns_host: host,
+            probe_frequency: idg.default_probe_frequency,
+            probe_retry_up: idg.default_probe_retry_up,
+            probe_retry_down: idg.default_probe_retry_down,
+            probe_timeout: idg.default_probe_timeout)
     assert_equal(host, idg.probe_dns_host)
     idg.destroy
-    itddg.destroy
   end
 
   def test_probe_tcp_udp
-    itddg = ItdDeviceGroup.new('new_group')
-    idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     port = 11_111
     type = 'tcp'
-    freq = 9
-    rd = 5
-    ru = 5
-    to = 6
-    control = true
-    idg.send(:probe=, type, nil, control, freq, ru, rd, port, to)
+    idg = probe_helper(probe_type: type, probe_port: port,
+                      probe_control: true)
     assert_equal(type, idg.probe_type)
     assert_equal(port, idg.probe_port)
-    assert_equal(control, idg.probe_control)
-    assert_equal(freq, idg.probe_frequency)
-    assert_equal(to, idg.probe_timeout)
-    assert_equal(ru, idg.probe_retry_up)
-    assert_equal(rd, idg.probe_retry_down)
+    assert_equal(true, idg.probe_control)
+    assert_equal(9, idg.probe_frequency)
+    assert_equal(6, idg.probe_timeout)
+    assert_equal(5, idg.probe_retry_up)
+    assert_equal(5, idg.probe_retry_down)
     type = 'udp'
-    idg.send(:probe=, type, nil,
-             idg.default_probe_control,
-             idg.default_probe_frequency,
-             idg.default_probe_retry_up,
-             idg.default_probe_retry_down,
-             port,
-             idg.default_probe_timeout)
+    idg = probe_helper(probe_type: type, probe_port: port,
+            probe_control: idg.default_probe_control,
+            probe_frequency: idg.default_probe_frequency,
+            probe_retry_up: idg.default_probe_retry_up,
+            probe_retry_down: idg.default_probe_retry_down,
+            probe_timeout: idg.default_probe_timeout)
     assert_equal(type, idg.probe_type)
+    assert_equal(port, idg.probe_port)
     assert_equal(idg.default_probe_control, idg.probe_control)
     assert_equal(idg.default_probe_frequency, idg.probe_frequency)
     assert_equal(idg.default_probe_timeout, idg.probe_timeout)
     assert_equal(idg.default_probe_retry_up, idg.probe_retry_up)
     assert_equal(idg.default_probe_retry_down, idg.probe_retry_down)
     idg.destroy
-    itddg.destroy
   end
 
   def test_hot_standby_weight

@@ -60,9 +60,8 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_icmp
-    type = 'icmp'
     idg = probe_helper(probe_type: 'icmp')
-    assert_equal(type, idg.probe_type)
+    assert_equal('icmp', idg.probe_type)
     assert_equal(9, idg.probe_frequency)
     assert_equal(6, idg.probe_timeout)
     assert_equal(5, idg.probe_retry_up)

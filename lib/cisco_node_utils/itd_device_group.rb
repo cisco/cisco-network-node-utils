@@ -119,7 +119,7 @@ module Cisco
     end
 
     def probe_control=(control)
-      if control
+      if control == true
         @set_args[:control] = 'control enable'
       else
         @set_args[:control] = ''
