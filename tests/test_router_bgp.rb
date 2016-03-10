@@ -44,7 +44,7 @@ def create_bgp_vrf(asnum, vrf)
     # behave).
     bgp = RouterBgp.new(asnum)
     bgp.router_id = '1.2.3.4'
-    return unless vrf != 'default'
+    return bgp unless vrf != 'default'
     bgp = RouterBgp.new(asnum, vrf)
     bgp.router_id = '4.5.6.7'
   end

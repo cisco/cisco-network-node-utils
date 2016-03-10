@@ -337,13 +337,11 @@ class CiscoTestCase < TestCase
       # For each context, create an object with that context
       test_obj = new_test_object(ctx)
 
-      puts "#{ctx}"
+      # puts "#{ctx}"
 
       values.each do |test, test_values|
         # What result do we expect from this test?
         expect = check_test_exceptions(exns, test, platform, ctx)
-
-        puts "#{test}"
 
         # Gather initial value, default value, and the first test value..
         initial = test_obj.send(test)
@@ -357,10 +355,10 @@ class CiscoTestCase < TestCase
 
         if expect == :skip
           # Do nothing..
-          puts '         skip'
+          # puts '         skip'
 
         elsif expect == :CliError
-          puts '         CliError'
+          # puts '         CliError'
 
           # This set of parameters should produce a CLI error
           assert_raises(Cisco::CliError,
@@ -369,7 +367,7 @@ class CiscoTestCase < TestCase
           end
 
         elsif expect == :unsupported
-          puts '         Unsupported'
+          # puts '         Unsupported'
 
           # Getter should return nil when unsupported?  Does not seem to work:
           #    Assert 'nil' inital value failed for:
@@ -409,10 +407,10 @@ class CiscoTestCase < TestCase
             begin
               test_obj.send("#{test}=", test_value)
             rescue Cisco::UnsupportedError
-              puts "****** [:#{test}, :#{platform}, #{ctx}, :unsupported]," if
+              puts "    [:#{test}, :#{platform}, #{ctx}, :unsupported]," if
                 generate
             rescue Cisco::CliError
-              puts "****** [:#{test}, :#{platform}, #{ctx}, :CliError]," if
+              puts "    [:#{test}, :#{platform}, #{ctx}, :CliError]," if
                 generate
             end
 
