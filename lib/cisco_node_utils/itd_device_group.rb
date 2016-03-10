@@ -61,6 +61,30 @@ module Cisco
       @get_args = @set_args
     end
 
+    # extract value of property from probe
+    def extract_value(prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      probe_match = probe_get
+
+      # matching probe not found
+      return nil if probe_match.nil? # no matching probe found
+
+      # property not defined for matching probe
+      return nil unless probe_match.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(probe_match[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # prepend property name prefix/keyword to value
+    def attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
+    end
+
     # probe configuration is all done in a single line (like below)
     # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
     # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
@@ -69,36 +93,23 @@ module Cisco
     # also the 'control enable' can be set if the type is tcp or udp only
     # probe udp port 23 control enable frequency 10 timeout 5 ...
     def probe_get
-      params = config_get('itd_device_group', 'probe', @get_args)
-      hash = {}
-      hash[:probe_control] = default_probe_control
-      if params.nil?
-        hash[:probe_frequency] = default_probe_frequency
-        hash[:probe_timeout] = default_probe_timeout
-        hash[:probe_retry_down] = default_probe_retry_down
-        hash[:probe_retry_up] = default_probe_retry_up
-        hash[:probe_type] = default_probe_type
-        return hash
-      end
-      hash[:probe_frequency] = params[1].to_i
-      hash[:probe_timeout] = params[2].to_i
-      hash[:probe_retry_down] = params[3].to_i
-      hash[:probe_retry_up] = params[4].to_i
-
-      lparams = params[0].split
-      hash[:probe_type] = lparams[0]
-      case hash[:probe_type].to_sym
-      when :dns
-        hash[:probe_dns_host] = lparams[2]
-      when :tcp, :udp
-        hash[:probe_port] = lparams[2].to_i
-        hash[:probe_control] = true unless lparams[3].nil?
-      end
-      hash
+      str = config_get('itd_device_group', 'probe', @get_args)
+      return nil if str.nil?
+      regexp = Regexp.new('(?<type>\S+)'\
+                 ' *(?<dns_host>host \S+)?'\
+                 ' *(?<port>port \d+)?'\
+                 ' *(?<control>control \S+)?'\
+                 ' *(?<frequency>frequency \d+)?'\
+                 ' *(?<timeout>timeout \d+)'\
+                 ' *(?<retry_down>retry-down-count \d+)'\
+                 ' *(?<retry_up>retry-up-count \d+)')
+      regexp.match(str)
     end
 
     def probe_control
-      probe_get[:probe_control]
+      val = extract_value('control')
+      return default_probe_control if val.nil?
+      val == 'enable' ? true : default_probe_control
     end
 
     def default_probe_control
@@ -106,11 +117,13 @@ module Cisco
     end
 
     def probe_dns_host
-      probe_get[:probe_dns_host]
+      extract_value('dns_host', 'host')
     end
 
     def probe_frequency
-      probe_get[:probe_frequency]
+      val = extract_value('frequency')
+      return default_probe_frequency if val.nil?
+      val.to_i
     end
 
     def default_probe_frequency
@@ -118,11 +131,14 @@ module Cisco
     end
 
     def probe_port
-      probe_get[:probe_port]
+      val = extract_value('port')
+      val.to_i unless val.nil?
     end
 
     def probe_retry_down
-      probe_get[:probe_retry_down]
+      val = extract_value('retry_down', 'retry-down-count')
+      return default_probe_retry_down if val.nil?
+      val.to_i
     end
 
     def default_probe_retry_down
@@ -130,7 +146,9 @@ module Cisco
     end
 
     def probe_retry_up
-      probe_get[:probe_retry_up]
+      val = extract_value('retry_up', 'retry-up-count')
+      return default_probe_retry_up if val.nil?
+      val.to_i
     end
 
     def default_probe_retry_up
@@ -138,7 +156,9 @@ module Cisco
     end
 
     def probe_timeout
-      probe_get[:probe_timeout]
+      val = extract_value('timeout')
+      return default_probe_timeout if val.nil?
+      val.to_i
     end
 
     def default_probe_timeout
@@ -146,7 +166,9 @@ module Cisco
     end
 
     def probe_type
-      probe_get[:probe_type]
+      match = probe_get
+      return default_probe_type if match.nil?
+      match.names.include?('type') ? match[:type] : default_probe_type
     end
 
     def default_probe_type

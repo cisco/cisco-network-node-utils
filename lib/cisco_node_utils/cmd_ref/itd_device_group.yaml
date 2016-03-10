@@ -42,7 +42,7 @@ hot_standby:
   default_value: false
 
 probe:
-  get_value: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
+  get_value: '/^probe .+$/'
   set_value: "probe <type> <hps> <hpv> <control> frequency <freq> timeout <to> retry-down-count <rdc> retry-up-count <ruc>"
 
 probe_control:
