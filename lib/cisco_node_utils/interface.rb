@@ -379,7 +379,7 @@ module Cisco
 
     def ipv4_pim_sparse_mode=(state)
       check_switchport_disabled
-      Feature.pim_enable unless platform == :ios_xr || Feature.pim_enabled?
+      Feature.pim_enable unless platform == :ios_xr
       config_set('interface', 'ipv4_pim_sparse_mode',
                  name: @name, state: state ? '' : 'no')
     end
