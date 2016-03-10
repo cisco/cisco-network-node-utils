@@ -36,6 +36,7 @@ Changelog
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
   * platform (@glennmatthews)
+  * radius_server (@jonnytpuppet)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
