@@ -23,8 +23,8 @@ step_name 'Checking for non-ASCII filenames'
 # Note that the use of brackets around a tr range is ok here, (it's
 # even required, for portability to Solaris 10's /usr/bin/tr), since
 # the square bracket bytes happen to fall in the designated range.
-git diff --cached --name-only --diff-filter=A -z $against |
-        LC_ALL=C tr -d '[ -~]\0' | wc -c
+(git diff --cached --name-only --diff-filter=A -z $against |
+  LC_ALL=C tr -d '[ -~]\0' | exit $(wc -c))
 check_rc "Rename non-ASCII file name(s) before committing"
 
 step_name 'Checking for trailing whitespace in non-Ruby files'
