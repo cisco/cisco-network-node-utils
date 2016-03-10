@@ -89,8 +89,8 @@ class TestInterface < CiscoTestCase
   def interface_ipv4_config(ifname, address, length,
                             do_config=true, secip=false)
     if do_config
-      config("interface #{ifname}",
-             'no switchport') if platform == :nexus
+      config_no_warn("interface #{ifname}",
+                     'no switchport') if platform == :nexus
       if !secip
         config("interface #{ifname}",
                "#{ipv4} address #{address}/#{length}")
