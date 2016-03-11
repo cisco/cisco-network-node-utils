@@ -51,6 +51,7 @@ module Cisco
     end
 
     def dup_host_ip_addr_detection_set(host_moves, timeout)
+      Feature.fabric_forwarding_enable
       Feature.nv_overlay_evpn_enable
       if host_moves == default_dup_host_ip_addr_detection_host_moves &&
          timeout == default_dup_host_ip_addr_detection_timeout
