@@ -53,10 +53,9 @@ module Cisco
         match = config_get('itd_device_group',
                            'all_itd_device_group_nodes', name: name)
         next if match.nil?
-        match.each do |line|
-          local = line.split
-          ntype = local[0]
-          nname = local[1].strip
+        match.each do |vars|
+          ntype = vars[0]
+          nname = vars[1].strip
           next unless node_name.nil? || nname == node_name
           itd_nodes[name][nname] =
               ItdDeviceGroupNode.new(name, nname, ntype, false)

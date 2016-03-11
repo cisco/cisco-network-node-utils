@@ -12,7 +12,7 @@ _template:
 all_itd_device_group_nodes:
   multiple:
   get_context: ['/^itd device-group <name>/']
-  get_value: '/^node (.*)/'
+  get_value: '/^node (\S+) (\S+)/'
 
 all_itd_device_groups:
   multiple:
