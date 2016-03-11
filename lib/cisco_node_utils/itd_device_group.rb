@@ -119,7 +119,7 @@ module Cisco
     end
 
     def probe_control=(control)
-      if control == true
+      if control
         @set_args[:control] = 'control enable'
       else
         @set_args[:control] = ''
@@ -237,6 +237,8 @@ module Cisco
           attrs[p] = '' if attrs[p].nil?
           send(p.to_s + '=', attrs[p])
         end
+        # for boolean we need to do this
+        send('probe_control=', false) if attrs[:probe_control] == ''
         @get_args = @set_args
       end
       config_set('itd_device_group', cmd, @set_args)
