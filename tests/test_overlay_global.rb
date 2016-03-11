@@ -25,13 +25,20 @@ class TestOverlayGlobal < CiscoTestCase
 
   def setup
     super
-    config('no feature fabric forwarding')
-    config('no nv overlay evpn')
-    config('l2rib dup-host-mac-detection default')
+    config_no_warn('no feature fabric forwarding')
+    config_no_warn('no nv overlay evpn')
+    config_no_warn('l2rib dup-host-mac-detection default')
   end
 
   def test_dup_host_ip_addr_detection
     o = OverlayGlobal.new
+    if validate_property_excluded?('overlay_global',
+                                   'dup_host_ip_addr_detection')
+      assert_raises(Cisco::UnsupportedError) do
+        o.dup_host_ip_addr_detection_set(200, 20)
+      end
+      return
+    end
 
     # Before enabling 'nv overlay evpn', these properties do not exist
     assert_nil(o.dup_host_ip_addr_detection_host_moves)
@@ -80,6 +87,11 @@ class TestOverlayGlobal < CiscoTestCase
 
   def test_anycast_gateway_mac
     o = OverlayGlobal.new
+    if validate_property_excluded?('overlay_global', 'anycast_gateway_mac')
+      assert_raises(Cisco::UnsupportedError) { o.anycast_gateway_mac = '1.1.1' }
+      return
+    end
+
     # Before enabling 'nv overlay evpn', this property does not exist
     assert_nil(o.anycast_gateway_mac)
 
