@@ -96,12 +96,7 @@ or (if you don't have admin/root privileges and have used `--user-install` to in
 ~/.gem/ruby/$RUBY_VERSION/bin/bundle install --path ~/.gem
 ```
 
-Create the file `/etc/cisco_node_utils.yaml` or `~/cisco_node_utils.yaml` to specify how the gem will connect to your Nexus VM or other node under test. Refer to `docs/cisco_node_utils.yaml.example` for examples:
-
-```bash
-cp docs/cisco_node_utils.yaml.example ~/cisco_node_utils.yaml
-vim ~/cisco_node_utils.yaml
-```
+Optionally create the file `~/cisco_node_utils.yaml` to specify how the test scripts will connect to your Nexus VM or other node under test. Refer to the project [README](../README.md#configuration) for details.
 
 If you intend to contribute your code back to the project then you should install the git hooks that are checked in with the project source code.  These hooks check your commits for conformance with various style guidelines.  To install them in your local repository (or to update them to match the files currently in the repository, in case they are out of sync), simply run the `update-hooks` script:
 
@@ -498,7 +493,7 @@ class TestRouterEigrp < CiscoTestCase
 end
 ```
 
-Now run the test (using the `--environment` option to specify your node under test):
+Now run the test (see [README-test-execution](README-test-execution.md) for detailed instructions):
 
 ```bash
 % ruby test_router_eigrp.rb -v --environment my_nexus_vm

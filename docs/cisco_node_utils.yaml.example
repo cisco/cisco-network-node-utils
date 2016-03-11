@@ -1,4 +1,6 @@
-# The entry labeled 'default' will be used unless another entry is specified
+# The entry labeled 'default' will be used by default.
+# The user can select a different entry by name if desired.
+#
 # default:
 #   host: foo
 

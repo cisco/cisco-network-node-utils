@@ -23,6 +23,8 @@ module Cisco
     @environments = {}
     @default_environment_name = 'default'
 
+    # Autogenerate Cisco::Environment.default_environment_name and
+    # Cisco::Environment.default_environment_name= class methods.
     class << self
       attr_accessor :default_environment_name
     end
