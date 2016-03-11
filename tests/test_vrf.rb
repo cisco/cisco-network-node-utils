@@ -73,6 +73,17 @@ class TestVrf < CiscoTestCase
     end
   end
 
+  # This helper is needed on some platforms to allow enough time for the
+  # 'no shutdown' process to complete before 'shutdown' can be successful.
+  def shutdown_with_sleep(obj, val)
+    obj.shutdown = val
+  rescue CliError => e
+    raise unless e.message[/ERROR: Shutdown of VRF .* in progress/]
+    sleep 1
+    tries ||= 1
+    retry unless (tries += 1) > 20
+  end
+
   def test_shutdown
     v = Vrf.new('test_shutdown')
     if validate_property_excluded?('vrf', 'shutdown')
@@ -85,15 +96,13 @@ class TestVrf < CiscoTestCase
     v.shutdown = true
     assert(v.shutdown)
 
-    sleep 20 if node.product_id[/N(5|6)/]
-    v.shutdown = false
+    shutdown_with_sleep(v, false)
     refute(v.shutdown)
 
     v.shutdown = true
     assert(v.shutdown)
 
-    sleep 20 if node.product_id[/N(5|6)/]
-    v.shutdown = v.default_shutdown
+    shutdown_with_sleep(v, v.default_shutdown)
     refute(v.shutdown)
     v.destroy
   end
