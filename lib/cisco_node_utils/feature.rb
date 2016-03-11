@@ -86,6 +86,10 @@ module Cisco
       return false
     end
 
+    def self.nv_overlay_supported?
+      node.cmd_ref.supports?('feature', 'nv_overlay')
+    end
+
     # ---------------------------
     def self.nv_overlay_evpn_enable
       return if nv_overlay_evpn_enabled?
@@ -94,6 +98,10 @@ module Cisco
 
     def self.nv_overlay_evpn_enabled?
       config_get('feature', 'nv_overlay_evpn')
+    end
+
+    def self.nv_overlay_evpn_supported?
+      node.cmd_ref.supports?('feature', 'nv_overlay_evpn')
     end
 
     # ---------------------------

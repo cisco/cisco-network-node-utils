@@ -141,12 +141,14 @@ module Cisco
       # feature bgp and nv overlay required for rd cli in NXOS
       if platform == :nexus
         Feature.bgp_enable
-        Feature.nv_overlay_enable      # TBD: Only req'd for n7k?
-        Feature.nv_overlay_evpn_enable # TBD: Only req'd for n7k?
+        Feature.nv_overlay_enable if Feature.nv_overlay_supported?
+        Feature.nv_overlay_evpn_enable if Feature.nv_overlay_evpn_supported?
       end
       if rd == default_route_distinguisher
         state = 'no'
-        rd = ''
+        # I2 images require an rd for removal
+        rd = route_distinguisher
+        return if rd.to_s.empty?
       else
         state = ''
       end
