@@ -122,7 +122,7 @@ module Cisco
     # the CLI is pretty weird and it accepts these params in a very
     # particular way and they cannot even be reset unless proper
     # order is followed
-    def hs_weight=(hs, wt)
+    def hs_weight(hs, wt)
       if hs != hot_standby && hot_standby == default_hot_standby
         self.lweight = wt unless weight == wt
         self.lhot_standby = hs
