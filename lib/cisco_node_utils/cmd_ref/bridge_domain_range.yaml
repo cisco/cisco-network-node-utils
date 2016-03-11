@@ -1,0 +1,31 @@
+# bridge_domain
+# bridge_domain feature is available only on n7k
+---
+_exclude: [N3k, N5k, N6k, N9k, ios_xr]
+
+create:
+  set_value: "bridge-domain <crbd>"
+
+destroy:
+  set_value: "no bridge-domain <delbd> ; system bridge-domain remove <rembd>"
+
+member_vni:
+  get_command: "show running-config bridge-domain | inc 'member vni'"
+  get_value: '/^  member vni (.*)/'
+  set_value: "<vnistate> vni <vni> ; bridge-domain <bd> ; <membstate> member vni <membvni>"
+  default_value: '' 
+
+member_vni_bd:
+  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
+  get_value: '/^bridge-domain (.*)/'
+
+range_bds:
+  multiple: true
+  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
+  get_value: '/^bridge-domain (.*)/'
+
+system_bd_add:
+  get_command: "show running-config bridge-domain"
+  get_value: '/^system bridge-domain (\S+)/'
+  set_value: "system bridge-domain add <addbd>"
+  default_value: ""
