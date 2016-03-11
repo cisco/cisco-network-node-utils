@@ -206,6 +206,12 @@ class TestVxlanVtep < CiscoTestCase
     mt_lite_env_setup if VxlanVtep.mt_lite_support
 
     vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'source_intf_hold_down_time')
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.source_interface_hold_down_time = 50
+      end
+      return
+    end
 
     # Set source_interface to non-default value
     val = 'loopback55'
