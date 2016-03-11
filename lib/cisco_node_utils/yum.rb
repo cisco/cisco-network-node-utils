@@ -22,7 +22,10 @@ require_relative 'node_util'
 module Cisco
   # This Yum class provides cisco package management functions.
   class Yum < NodeUtil
-    EXEC_IN_DEFAULT_NS = 'ip netns exec default sdr_instcmd'
+    EXEC_IN_DEFAULT_NS = 'ip netns exec default'
+
+    # This function accepts name of the rpm package and returns match
+    # group - 1. package name, 2. package version, 3. os version, 4. platform
     def self.decompose_name(file_name)
       # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
       name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
@@ -33,15 +36,16 @@ module Cisco
       # ex: b+z-ip2.x64_64
       name_arch_regex = /^([\w\-\+]+)\.(\w+)$/
 
+      # xrv9k-k9sec-1.0.0.0-r600.x86_64.rpm-6.0.0
       # xrv9k-k9sec-1.0.0.0-r61102I.x86_64.rpm-XR-DEV-16.02.22C
-      name_arch_regex_xr = /^(.*\d.*)-([\d.]*)-(r\d\d\d\d*.).(\w{4,}).rpm/
+      name_ver_arch_regex_xr = /^(.*\d.*)-([\d.]*)-(r\d+.*)\.(\w{4,}).rpm/
 
       if platform == :nexus
         file_name.match(name_ver_arch_regex) ||
           file_name.match(name_ver_arch_regex_nx) ||
           file_name.match(name_arch_regex)
       elsif platform == :ios_xr
-        file_name.match(name_arch_regex_xr)
+        file_name.match(name_ver_arch_regex_xr)
       end
     end
 
@@ -86,10 +90,11 @@ module Cisco
         if pkg_info
           pkg_name = "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}"
           debug "Installing package #{pkg_name}"
-          `#{EXEC_IN_DEFAULT_NS} install activate pkg 0x0 #{pkg_name}`
-          `#{EXEC_IN_DEFAULT_NS} install commit sdr`
-        else
-          fail 'Failed to install the requested rpm.'
+          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install activate pkg 0x0 \
+          #{pkg_name}`
+          debug "install activate #{pkg_name} : #{rc}"
+          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
+          debug "install commit sdr : #{rc}"
         end
       end
       # post-validation check to verify the outcome.
@@ -114,14 +119,14 @@ module Cisco
         query_package_name = "#{pkg_name}-#{should_version}" \
                             "-#{xr_version}.#{platform_var}"
 
-        version = `#{EXEC_IN_DEFAULT_NS} show install \
+        version = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install \
                      package #{query_package_name} none | grep -E Version`
         version_var_regex_xr = /^(\s*Version\s*):\s*(\d.*)$/
 
         version.match(version_var_regex_xr)
         ver = Regexp.last_match(2)
         is_active_regex = /^\s*#{pkg_name}/
-        is_active = `#{EXEC_IN_DEFAULT_NS} show install active`
+        is_active = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install active`
         if is_active =~ is_active_regex
           debug "Package #{query_package_name} version #{ver} is present."
           b = ["#{ver}"]
@@ -139,8 +144,11 @@ module Cisco
         if pkg_info
           pkg_name = "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}"
           debug "Removing package #{pkg_name}"
-          `#{EXEC_IN_DEFAULT_NS} install deactivate pkg 0x0 #{pkg_name}`
-          `#{EXEC_IN_DEFAULT_NS} install commit sdr`
+          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install deactivate pkg 0x0 \
+          #{pkg_name}`
+          debug "install deactivate #{pkg_name} : #{rc}"
+          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
+          debug "install commit sdr : #{rc}"
         end
       end
     end
