@@ -74,7 +74,7 @@ class TestVrf < CiscoTestCase
   end
 
   # This helper is needed on some platforms to allow enough time for the
-  # 'no shutdown' process to complete before 'shutdown' can be successful.
+  # 'shutdown' process to complete before 'no shutdown' can be successful.
   def shutdown_with_sleep(obj, val)
     obj.shutdown = val
   rescue CliError => e

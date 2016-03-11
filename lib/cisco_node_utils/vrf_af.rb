@@ -96,6 +96,7 @@ module Cisco
     end
 
     def route_policy_export=(name)
+      Feature.bgp_enable if platform == :nexus
       # Nexus requires passing in <policy_name> in "no export map" command.
       if name
         set_args_keys(state: '', policy_name: name)
@@ -116,6 +117,7 @@ module Cisco
     end
 
     def route_policy_import=(name)
+      Feature.bgp_enable if platform == :nexus
       # Nexus requires passing in <policy_name> in "no import map" command.
       if name
         set_args_keys(state: '', policy_name: name)
