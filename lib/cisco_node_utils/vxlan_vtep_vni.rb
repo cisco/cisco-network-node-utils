@@ -104,12 +104,16 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def ingress_replication_supported?
+      node.cmd_ref.supports?('vxlan_vtep_vni', 'ingress_replication')
+    end
+
     def ingress_replication
       config_get('vxlan_vtep_vni', 'ingress_replication', @get_args)
     end
 
     def remove_add_ingress_replication(protocol)
-      if ingress_replication.empty?
+      if ingress_replication.to_s.empty?
         set_args_keys(state: '', protocol: protocol)
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       else
@@ -171,7 +175,7 @@ module Cisco
         ip_end = '' if ip_end.nil?
         # Since multicast group and ingress replication are exclusive
         # properties, remove ingress replication first
-        unless ingress_replication.empty?
+        if ingress_replication_supported? && !ingress_replication.empty?
           set_args_keys(state: 'no', protocol: ingress_replication)
           config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
         end
