@@ -38,9 +38,9 @@ module Cisco
       return hash if services.nil?
 
       services.each do |service|
-        # The show cmd shows more than name sometimes,
-        # and also we get other things like device-groups etc.
-        # so filter it out to just get the name
+        # The show cmd shows more than service,
+        # we get other things like device-groups etc.
+        # so filter it out to just get the service
         next if service.include?('device-group')
         next if service.include?('session')
         next if service.include?('statistics')
@@ -82,8 +82,38 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      @set_args = { name: @name }
-      @get_args = @set_args
+      keys = { name: @name }
+      @get_args = @set_args = keys
+    end
+
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
+    # extract value of property from load-balance
+    def extract_value(prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      lb_match = lb_get
+
+      # matching lb not found
+      return nil if lb_match.nil? # no matching lb found
+
+      # property not defined for matching lb
+      return nil unless lb_match.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(lb_match[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # prepend property name prefix/keyword to value
+    def attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
     end
 
     def access_list
@@ -206,40 +236,33 @@ module Cisco
     # load-balance method dst ip-l4port tcp range 3 6 buckets 8 mask-position 2
     # load-balance buckets 8
     # load-balance mask-position 2
-    def load_balance
-      hash = {}
-      hash[:state] = false
-      hash[:buckets] = false
-      hash[:mask] = false
-      hash[:bundle_select] = false
-      hash[:bundle_hash] = false
-      hash[:proto] = false
-      hash[:start_port] = false
-      hash[:end_port] = false
-      lb = config_get('itd_service', 'load_balance', @get_args)
-      return hash if lb.nil?
-      hash[:state] = true
-      params = lb.split
-      bi = params.index('buckets')
-      hash[:buckets] = params[bi + 1].to_i unless bi.nil?
-      mi = params.index('mask-position')
-      hash[:mask] = params[mi + 1].to_i unless mi.nil?
-      mei = params.index('method')
-      unless mei.nil?
-        hash[:bundle_select] = params[mei + 1]
-        hash[:bundle_hash] = params[mei + 2]
+    def lb_get
+      str = config_get('itd_service', 'load_balance', @get_args)
+      return nil if str.nil?
+      if str.include?('method') && str.include?('range')
+        regexp = Regexp.new('load-balance *(?<bundle_select>method \S+)?'\
+                 ' *(?<bundle_hash>\S+)?'\
+                 ' *(?<proto>\S+)?'\
+                 ' *(?<start_port>range \d+)?'\
+                 ' *(?<end_port>\d+)?'\
+                 ' *(?<buckets>buckets \d+)?'\
+                 ' *(?<mask>mask-position \d+)?')
+      elsif str.include?('method')
+        regexp = Regexp.new('load-balance *(?<bundle_select>method \S+)?'\
+                 ' *(?<bundle_hash>\S+)?'\
+                 ' *(?<buckets>buckets \d+)?'\
+                 ' *(?<mask>mask-position \d+)?') unless str.include?('range')
+      else
+        regexp = Regexp.new('load-balance *(?<buckets>buckets \d+)?'\
+                 ' *(?<mask>mask-position \d+)?')
       end
-      ri = params.index('range')
-      unless ri.nil?
-        hash[:proto] = params[ri - 1]
-        hash[:start_port] = params[ri + 1].to_i
-        hash[:end_port] = params[ri + 2].to_i
-      end
-      hash
+      regexp.match(str)
     end
 
     def load_bal_buckets
-      load_balance[:buckets]
+      val = extract_value('buckets')
+      return default_load_bal_buckets if val.nil?
+      val.to_i
     end
 
     def default_load_bal_buckets
@@ -247,7 +270,9 @@ module Cisco
     end
 
     def load_bal_mask_pos
-      load_balance[:mask]
+      val = extract_value('mask', 'mask-position')
+      return default_load_bal_mask_pos if val.nil?
+      val.to_i
     end
 
     def default_load_bal_mask_pos
@@ -255,7 +280,10 @@ module Cisco
     end
 
     def load_bal_method_bundle_hash
-      load_balance[:bundle_hash]
+      val = default_load_bal_method_bundle_hash
+      match = lb_get
+      return val if match.nil?
+      match.names.include?('bundle_hash') ? match[:bundle_hash] : val
     end
 
     def default_load_bal_method_bundle_hash
@@ -263,7 +291,9 @@ module Cisco
     end
 
     def load_bal_method_bundle_select
-      load_balance[:bundle_select]
+      val = extract_value('bundle_select', 'method')
+      return default_load_bal_method_bundle_select if val.nil?
+      val
     end
 
     def default_load_bal_method_bundle_select
@@ -271,7 +301,10 @@ module Cisco
     end
 
     def load_bal_method_end_port
-      load_balance[:end_port]
+      val = default_load_bal_method_end_port
+      match = lb_get
+      return val if match.nil?
+      match.names.include?('end_port') ? match[:end_port].to_i : val
     end
 
     def default_load_bal_method_end_port
@@ -279,7 +312,9 @@ module Cisco
     end
 
     def load_bal_method_start_port
-      load_balance[:start_port]
+      val = extract_value('start_port', 'range')
+      return default_load_bal_method_start_port if val.nil?
+      val.to_i
     end
 
     def default_load_bal_method_start_port
@@ -287,7 +322,10 @@ module Cisco
     end
 
     def load_bal_method_proto
-      load_balance[:proto]
+      val = default_load_bal_method_proto
+      match = lb_get
+      return val if match.nil?
+      match.names.include?('proto') ? match[:proto] : val
     end
 
     def default_load_bal_method_proto
@@ -295,7 +333,7 @@ module Cisco
     end
 
     def load_bal_enable
-      load_balance[:state]
+      lb_get.nil? ? default_load_bal_enable : true
     end
 
     def default_load_bal_enable

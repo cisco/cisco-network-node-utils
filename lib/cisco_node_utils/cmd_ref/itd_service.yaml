@@ -10,14 +10,14 @@ _template:
 
 access_list:
   kind: string
-  get_value: '/^access-list (.*)$/'
+  get_value: '/^access-list (\S+)$/'
   set_value: "<state> access-list <al>"
   default_value: false
 
 all_itds:
   multiple:
   get_context: ~
-  get_value: '/^itd (.*)/'
+  get_value: '/^itd (\S+)/'
 
 create:
   set_context: ~
@@ -29,13 +29,13 @@ destroy:
 
 device_group:
   kind: string
-  get_value: '/^device-group (.*)$/'
+  get_value: '/^device-group (\S+)$/'
   set_value: "<state> device-group <dg>"
   default_value: false
 
 exclude_access_list:
   kind: string
-  get_value: '/^exclude access-list (.*)$/'
+  get_value: '/^exclude access-list (\S+)$/'
   set_value: "<state> exclude access-list <al>"
   default_value: false
 
@@ -92,7 +92,7 @@ load_bal_method_start_port:
   default_value: false
 
 load_balance:
-  get_value: '/^load-balance (.*)$/'
+  get_value: '/^load-balance .+$/'
   set_value: "<state> load-balance <method> <bs> <bh> <proto> <range> <start> <end> <buck> <buckets> <mpos> <mask>"
 
 nat_destination:
@@ -110,7 +110,7 @@ peer_local:
 
 peer_vdc:
   _exclude: [N9k]
-  get_value: '/^peer vdc (.*) service (.*)$/'
+  get_value: '/^peer vdc (\S+) service (\S+)$/'
   set_value: "<state> peer vdc <vdc> service <service>"
   default_value: []
 
@@ -129,6 +129,6 @@ virtual_ip:
 
 vrf:
   kind: string
-  get_value: '/^vrf (.*)$/'
+  get_value: '/^vrf (\S+)$/'
   set_value: "<state> vrf <vrf>"
   default_value: false
