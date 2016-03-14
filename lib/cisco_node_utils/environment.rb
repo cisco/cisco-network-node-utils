@@ -55,31 +55,38 @@ module Cisco
     end
 
     def self.merge_config(path, current_config)
+      data = data_from_file(path)
+      data.each do |name, config|
+        # in case config is nil:
+        config ||= {}
+        # in case current_config has no entry for this name:
+        current_config[name] ||= DEFAULT_ENVIRONMENT.clone
+        # merge it on in!
+        current_config[name].merge!(strings_to_symbols(config))
+      end
+      current_config
+    end
+
+    def self.data_from_file(path)
       begin
         path = File.expand_path(path)
       rescue ArgumentError => e
         # Can happen if path includes '~' but $HOME is not defined
         Cisco::Logger.debug "Failed to load #{path}: #{e}"
-        return current_config
+        return {}
       end
-      if File.file?(path)
-        if File.readable?(path)
-          data = YAML.load_file(path)
-          data.each do |name, config|
-            # in case config is nil:
-            config ||= {}
-            # in case current_config has no entry for this name:
-            current_config[name] ||= DEFAULT_ENVIRONMENT.clone
-            # merge it on in!
-            current_config[name].merge!(strings_to_symbols(config))
-          end
-        else
-          Cisco::Logger.debug "No permissions to read #{path}"
-        end
-      else
+      unless File.file?(path)
         Cisco::Logger.debug "No file found at #{path}"
+        return {}
       end
-      current_config
+      unless File.readable?(path)
+        Cisco::Logger.debug "No permissions to read #{path}"
+        return {}
+      end
+      YAML.load_file(path)
+    rescue Psych::SyntaxError => e
+      Cisco::Logger.error("Error loading #{path}: #{e}")
+      {}
     end
 
     def self.strings_to_symbols(hash)
