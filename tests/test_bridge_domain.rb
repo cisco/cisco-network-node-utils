@@ -206,6 +206,7 @@ class TestBridgeDomain < CiscoTestCase
                  'Error: Bridge-Domain is mapped to different vnis')
     bd.destroy
   end
+
   def test_another_bd_as_fabric_control
     bd = BridgeDomain.new(100)
     assert_equal(bd.default_fabric_control, bd.fabric_control,
@@ -221,6 +222,7 @@ class TestBridgeDomain < CiscoTestCase
     bd.destroy
     another_bd.destroy
   end
+
   def test_invalid_bd_create
     assert_raises(CliError,
                   'BD misconfig did not raise CliError') do
