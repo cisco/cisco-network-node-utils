@@ -86,6 +86,18 @@ class TestCase < Minitest::Test
   end
 
   def setup
+    # Hack - populate environment from user-entered values from basetest.rb
+    if Cisco::Environment.environments.empty?
+      class << Cisco::Environment
+        attr_writer :environments
+      end
+      Cisco::Environment.environments['default'] = {
+        host:     address.split(':')[0],
+        port:     address.split(':')[1],
+        username: username,
+        password: password,
+      }
+    end
     @device = Net::Telnet.new('Host'    => address.split(':')[0],
                               'Timeout' => 240,
                               # NX-OS has a space after '#', IOS XR does not

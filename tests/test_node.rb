@@ -22,10 +22,7 @@ include Cisco
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
-    # Load parameters for login
-    address
-    username
-    password
+    super
     # Clear out the environment so we have control over which parameters
     # we provide to Node to connect with.
     Node.instance_variable_set(:@instance, nil)
