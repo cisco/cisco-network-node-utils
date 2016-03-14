@@ -45,14 +45,6 @@ failaction:
   set_value: "<state> failaction node reassign"
   default_value: false
 
-feature:
-  get_command: 'show running | i ^feature'
-  get_context: ~
-  get_value: '/^feature itd$/'
-  set_context: ~
-  set_value: 'feature itd'
-  default_value: false
-
 ingress_interface:
   multiple:
   get_value: '/^ingress interface (\S+)(?: next-hop (\S+))*/'

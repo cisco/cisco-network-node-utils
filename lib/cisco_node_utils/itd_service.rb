@@ -53,26 +53,12 @@ module Cisco
       hash
     end
 
-    # feature itd
-    def self.feature_itd_enabled
-      config_get('itd_service', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_itd_enable
-      config_set('itd_service', 'feature')
-    end
-
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
 
     def create
-      ItdService.feature_itd_enable unless
-        ItdService.feature_itd_enabled
+      Feature.itd_enable
       config_set('itd_service', 'create', name: @name)
     end
 
