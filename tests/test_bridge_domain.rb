@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bridge_domain'
+require_relative '../lib/cisco_node_utils/vlan'
 
 include Cisco
 
