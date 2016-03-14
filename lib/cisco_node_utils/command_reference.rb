@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'exceptions'
 require 'yaml'
 
 module Cisco
@@ -324,22 +325,6 @@ module Cisco
     end
   end
 
-  # Exception class raised when a particular feature/attribute
-  # is explicitly excluded on the given node.
-  class UnsupportedError < RuntimeError
-    def initialize(feature, name, oper=nil, msg=nil)
-      @feature = feature
-      @name = name
-      @oper = oper
-      message = "Feature '#{feature}'"
-      message += ", attribute '#{name}'" unless name.nil?
-      message += ", operation '#{oper}'" unless oper.nil?
-      message += ' is unsupported on this node'
-      message += ": #{msg}" unless msg.nil?
-      super(message)
-    end
-  end
-
   # Placeholder for known but explicitly excluded entry
   # For these, we have an implied default_only value of nil.
   class UnsupportedCmdRef < CmdRef
@@ -426,8 +411,9 @@ module Cisco
       end
     end
 
-    def supports?(feature)
+    def supports?(feature, property=nil)
       value = @hash[feature]
+      value = value[property] if value && property
       !(value.is_a?(UnsupportedCmdRef) || value.nil?)
     end
 

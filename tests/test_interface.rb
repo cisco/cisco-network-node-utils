@@ -859,7 +859,7 @@ class TestInterface < CiscoTestCase
         config("ipv4 access-list #{acl_name} 1 permit any")
       end
     end
-    interface_ethernet_default(interfaces[0])
+    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     intf.ipv4_acl_in = 'v4acl1'
@@ -890,7 +890,7 @@ class TestInterface < CiscoTestCase
     #     ipv6 traffic-filter v6acl1 in
     #     ipv6 traffic-filter v6acl2 out
     #
-    interface_ethernet_default(interfaces[0])
+    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     # create acls first
@@ -1024,7 +1024,7 @@ class TestInterface < CiscoTestCase
   def test_interface_ipv4_arp_timeout
     unless platform == :ios_xr
       # Setup
-      config('no interface vlan11')
+      config_no_warn('no interface vlan11')
       int = Interface.new('vlan11')
 
       # Test default
@@ -1043,16 +1043,16 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_forwarding
     intf = interfaces[0]
-    interface_ethernet_default(intf)
+    interface_ethernet_default(interfaces_id[0])
+    i = Interface.new(intf)
 
     if platform == :ios_xr
-      assert_nil(intf.default_ipv4_forwarding)
-      assert_nil(intf.ipv4_forwarding)
-      assert_raises(Cisco::UnsupportedError) { intf.ipv4_forwarding = false }
+      assert_nil(i.default_ipv4_forwarding)
+      assert_nil(i.ipv4_forwarding)
+      assert_raises(Cisco::UnsupportedError) { i.ipv4_forwarding = false }
       return
     end
 
-    i = Interface.new(intf)
     assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
     begin
       i.switchport_mode = :disabled
@@ -1076,7 +1076,7 @@ class TestInterface < CiscoTestCase
   def test_interface_fabric_forwarding_anycast_gateway
     unless platform == :ios_xr
       # Setup
-      config('no interface vlan11')
+      config_no_warn('no interface vlan11')
       int = Interface.new('vlan11')
       foo = OverlayGlobal.new
       foo.anycast_gateway_mac = '1223.3445.5668'
@@ -1225,9 +1225,7 @@ class TestInterface < CiscoTestCase
     inttype_h
   end
 
-  # NOTE - Changes to this method may require new validation methods
-  #        to be created or existing ones to be modified.
-  def test_interface_ipv4_all_interfaces
+  def interface_test_data
     inttype_h = {}
     inttype_h[interfaces[0]] = {
       address_len:         '8.7.1.1/15',
@@ -1300,6 +1298,13 @@ class TestInterface < CiscoTestCase
     }
     # Skipping mgmt0 interface since that interface is our 'path' to
     # master should revisit this later
+    inttype_h
+  end
+
+  # NOTE - Changes to this method may require new validation methods
+  #        to be created or existing ones to be modified.
+  def test_interface_ipv4_all_interfaces
+    inttype_h = interface_test_data
 
     # Set system defaults to "factory" values prior to initial test.
     config(*
@@ -1319,9 +1324,15 @@ class TestInterface < CiscoTestCase
     # Steps to cleanup the preload configuration
     cfg = []
     inttype_h.each_key do |k|
-      cfg << "#{/^Ethernet/.match(k) ? 'default' : 'no'} interface #{k}"
+      if /ethernet/.match(k)
+        # leave interface there, but unconfigure it
+        cfg.push(*get_interface_cleanup_config(k))
+      else
+        # remove interface
+        cfg << "no interface #{k}"
+      end
     end
-    cfg << 'no feature interface-vlan'
+    cfg << 'no feature interface-vlan' unless platform == :ios_xr
 
     begin
       # Validate the collection
@@ -1335,6 +1346,7 @@ class TestInterface < CiscoTestCase
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
       config(*cfg)
+      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)

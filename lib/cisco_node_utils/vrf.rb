@@ -30,6 +30,10 @@ module Cisco
       create if instantiate
     end
 
+    def to_s
+      "VRF #{@name}"
+    end
+
     def self.vrfs
       hash = {}
       vrf_list = config_get('vrf', 'all_vrfs')
@@ -63,12 +67,55 @@ module Cisco
       desc.strip!
       no_cmd = desc.empty? ? 'no' : ''
       config_set('vrf', 'description', vrf: @name, state: no_cmd, desc: desc)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_description
       config_get_default('vrf', 'description')
+    end
+
+    def mhost_ipv4_default_interface
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv4')
+    end
+
+    def mhost_ipv4_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv4', val)
+    end
+
+    def default_mhost_ipv4_default_interface
+      config_get_default('vrf', 'mhost_default_interface')
+    end
+
+    def mhost_ipv6_default_interface
+      config_get('vrf', 'mhost_default_interface', vrf: @name, afi: 'ipv6')
+    end
+
+    def mhost_ipv6_default_interface=(val)
+      mhost_default_interface_setter_helper('ipv6', val)
+    end
+
+    def default_mhost_ipv6_default_interface
+      config_get_default('vrf', 'mhost_default_interface')
+    end
+
+    def mhost_default_interface_setter_helper(afi, val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'mhost_default_interface', vrf: @name,
+                 state: no_cmd, afi: afi, intf: val)
+    end
+
+    def remote_route_filtering
+      config_get('vrf', 'remote_route_filtering', vrf: @name)
+    end
+
+    def remote_route_filtering=(val)
+      no_cmd = val ? 'no' : ''
+      config_set('vrf', 'remote_route_filtering', vrf: @name,
+                 state: no_cmd, remote_route_filtering: val)
+    end
+
+    def default_remote_route_filtering
+      config_get_default('vrf', 'remote_route_filtering')
     end
 
     def shutdown
@@ -78,8 +125,6 @@ module Cisco
     def shutdown=(val)
       no_cmd = (val) ? '' : 'no'
       config_set('vrf', 'shutdown', vrf: @name, state: no_cmd)
-    rescue Cisco::CliError => e
-      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown
@@ -96,12 +141,14 @@ module Cisco
       # feature bgp and nv overlay required for rd cli in NXOS
       if platform == :nexus
         Feature.bgp_enable
-        Feature.nv_overlay_enable      # TBD: Only req'd for n7k?
-        Feature.nv_overlay_evpn_enable # TBD: Only req'd for n7k?
+        Feature.nv_overlay_enable if Feature.nv_overlay_supported?
+        Feature.nv_overlay_evpn_enable if Feature.nv_overlay_evpn_supported?
       end
       if rd == default_route_distinguisher
         state = 'no'
-        rd = ''
+        # I2 images require an rd for removal
+        rd = route_distinguisher
+        return if rd.to_s.empty?
       else
         state = ''
       end
@@ -122,12 +169,24 @@ module Cisco
       no_cmd = (id) ? '' : 'no'
       id = (id) ? id : vni
       config_set('vrf', 'vni', vrf: @name, state: no_cmd, id: id)
-    rescue Cisco::CliError => e
-      raise "[vrf #{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_vni
       config_get_default('vrf', 'vni')
+    end
+
+    def vpn_id
+      config_get('vrf', 'vpn_id', vrf: @name)
+    end
+
+    def vpn_id=(val)
+      val.strip!
+      no_cmd = val.empty? ? 'no' : ''
+      config_set('vrf', 'vpn_id', vrf: @name, state: no_cmd, vpnid: val)
+    end
+
+    def default_vpn_id
+      config_get_default('vrf', 'vpn_id')
     end
   end # class
 end # module

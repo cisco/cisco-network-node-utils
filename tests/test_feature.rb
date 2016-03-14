@@ -174,7 +174,7 @@ class TestFeature < CiscoTestCase
   #####################
 
   def test_feature_set_fabric
-    if node.product_id[/N(3|9)/]
+    if node.product_id[/N(3|8|9)/]
       assert_nil(Feature.fabric_enabled?)
       assert_raises(Cisco::UnsupportedError) { Feature.fabric_enable }
       return

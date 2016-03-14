@@ -22,7 +22,6 @@ Cisco::Client.silence_warnings do
 end
 require 'json'
 require_relative 'ems_services'
-require_relative 'client_errors'
 
 include IOSXRExtensibleManagabilityService
 include Cisco::Logger
@@ -49,14 +48,14 @@ class Cisco::Client::GRPC < Cisco::Client
     @exec = GRPCExec::Stub.new(address, :this_channel_is_insecure)
 
     # Make sure we can actually connect
-    @timeout = 5
+    @timeout = 10
     begin
       base_msg = 'gRPC client creation failure: '
       get(command: 'show clock')
-    rescue Cisco::Client::ClientError => e
+    rescue Cisco::ClientError => e
       error 'initial connect failed: ' + e.to_s
       if e.message[/deadline exceeded/i]
-        raise Cisco::Client::ConnectionRefused, \
+        raise Cisco::ConnectionRefused, \
               base_msg + 'timed out during initial connection: ' + e.message
       end
       raise e.class, base_msg + e.message
@@ -86,8 +85,6 @@ class Cisco::Client::GRPC < Cisco::Client
   end
 
   # Configure the given CLI command(s) on the device.
-  #
-  # @raise [RequestNotSupported] if this client doesn't support CLI config
   #
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param context [Array<String>] Zero or more configuration commands used
@@ -169,18 +166,18 @@ class Cisco::Client::GRPC < Cisco::Client
     warn "  '#{e.details}'"
     case e.code
     when ::GRPC::Core::StatusCodes::UNAVAILABLE
-      raise Cisco::Client::ConnectionRefused, "Connection refused: #{e.details}"
+      raise Cisco::ConnectionRefused, "Connection refused: #{e.details}"
     when ::GRPC::Core::StatusCodes::UNAUTHENTICATED
-      raise Cisco::Client::AuthenticationFailed, e.details
+      raise Cisco::AuthenticationFailed, e.details
     else
-      raise Cisco::Client::ClientError, e.details
+      raise Cisco::ClientError, e.details
     end
   end
 
   def handle_response(args, replies)
     klass = replies[0].class
     unless replies.all? { |r| r.class == klass }
-      fail Cisco::Client::ClientError, 'reply class inconsistent: ' +
+      fail Cisco::ClientError, 'reply class inconsistent: ' +
         replies.map(&:class).join(', ')
     end
     debug "Handling #{replies.length} '#{klass}' reply(s):"
@@ -197,7 +194,7 @@ class Cisco::Client::GRPC < Cisco::Client
       # nothing to process
       output = ''
     else
-      fail Cisco::Client::ClientError, "unsupported reply class #{klass}"
+      fail Cisco::ClientError, "unsupported reply class #{klass}"
     end
     debug "Success with output:\n#{output}"
     output
@@ -222,7 +219,10 @@ class Cisco::Client::GRPC < Cisco::Client
     # Now we have either [<output_line_1>, <output_line_2>, ...] or
     # [<cmd>, <error_line_1>, <error_line_2>, ...]
     if output[0].strip == args.cli.strip
-      fail CliError.new(output.join("\n"), args.cli)
+      fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
+        rejected_input: args.cli,
+        clierror:       output.join("\n"),
+      )
     end
     output.join("\n")
   end
@@ -245,9 +245,12 @@ class Cisco::Client::GRPC < Cisco::Client
   # Generate an error from a failed request
   def handle_text_error(args, msg)
     if /^Disallowed commands:/ =~ msg
-      fail Cisco::Client::RequestNotSupported, msg
+      fail Cisco::RequestNotSupported, msg
     else
-      fail CliError.new(msg, args.cli)
+      fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
+        rejected_input: args.cli,
+        clierror:       msg,
+      )
     end
   end
 
@@ -280,7 +283,7 @@ class Cisco::Client::GRPC < Cisco::Client
       type = m['error-type']
       message = m['error-message']
       if type == 'protocol' && message == 'Failed authentication'
-        fail Cisco::Client::AuthenticationFailed, message
+        fail Cisco::AuthenticationFailed, message
       elsif type == 'application'
         # Example message:
         # !! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
@@ -300,9 +303,12 @@ class Cisco::Client::GRPC < Cisco::Client
         else
           rejected = match[1].split("\n")
         end
-        fail CliError.new(message, rejected)
+        fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
+          rejected_input: rejected,
+          clierror:       message,
+        )
       else
-        fail Cisco::Client::ClientError, message
+        fail Cisco::ClientError, message
       end
     end
   end

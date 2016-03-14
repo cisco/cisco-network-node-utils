@@ -230,10 +230,10 @@ CLI is the lowest common denominator, so YAML entries not otherwise flagged as a
 description:
   get_command: 'show version'
   nexus:
-    data_model: nxapi_structured
+    data_format: nxapi_structured
     get_value: 'chassis_id'
   else:
-    data_model: cli
+    data_format: cli
     get_value: '/Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/'
 ```
 
@@ -320,10 +320,10 @@ Using `_template` in combination with platform and data format variants:
 _template:
   ios_xr:
     get_command: 'show inventory | begin "Rack 0"'
-    get_data_model: cli
+    get_data_format: cli
   nexus:
     get_command: 'show inventory'
-    get_data_model: nxapi_structured
+    get_data_format: nxapi_structured
 
 productid:
   ios_xr:
@@ -360,7 +360,7 @@ The `get_data_format` key is optionally used to specify which data format a give
 productid:
   get_command: 'show inventory'
   nexus:
-    get_data_model: nxapi_structured
+    get_data_format: nxapi_structured
     get_context: ['TABLE_inv', 'ROW_inv', 0]
 ```
 
@@ -386,7 +386,7 @@ area:
 productid:
   get_command: 'show inventory'
   nexus:
-    get_data_model: nxapi_structured
+    get_data_format: nxapi_structured
     get_context: ['TABLE_inv', 'ROW_inv', 0]
     get_value: 'productid'
     # config_get('inventory', 'productid') returns

@@ -59,7 +59,7 @@ system_image:
   nexus:
     get_value: "kick_file_name"
   ios_xr:
-    get_value: '/IOS XR.*Version (.*)$/' 
+    get_value: '/IOS XR.*Version (.*)$/'
   N7k:
     get_value: "isan_file_name"
 

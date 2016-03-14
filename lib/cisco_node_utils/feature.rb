@@ -72,6 +72,20 @@ module Cisco
     end
 
     # ---------------------------
+    def self.itd_enable
+      return if itd_enabled?
+      config_set('feature', 'itd')
+    end
+
+    def self.itd_enabled?
+      config_get('feature', 'itd')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    # ---------------------------
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
@@ -86,6 +100,10 @@ module Cisco
       return false
     end
 
+    def self.nv_overlay_supported?
+      node.cmd_ref.supports?('feature', 'nv_overlay')
+    end
+
     # ---------------------------
     def self.nv_overlay_evpn_enable
       return if nv_overlay_evpn_enabled?
@@ -94,6 +112,10 @@ module Cisco
 
     def self.nv_overlay_evpn_enabled?
       config_get('feature', 'nv_overlay_evpn')
+    end
+
+    def self.nv_overlay_evpn_supported?
+      node.cmd_ref.supports?('feature', 'nv_overlay_evpn')
     end
 
     # ---------------------------

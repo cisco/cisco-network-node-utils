@@ -25,7 +25,7 @@ module Cisco
 
   # Vlan - node utility class for VLAN configuration management
   class Vlan < NodeUtil
-    attr_reader :name, :vlan_id
+    attr_reader :vlan_id
 
     def initialize(vlan_id, instantiate=true)
       @vlan_id = vlan_id.to_s
@@ -33,6 +33,10 @@ module Cisco
            'Invalid value(non-numeric Vlan id)' unless @vlan_id[/^\d+$/]
 
       create if instantiate
+    end
+
+    def to_s
+      "VLAN #{vlan_id}"
     end
 
     def self.vlans
@@ -135,8 +139,6 @@ module Cisco
         result = config_set('vlan', 'name', @vlan_id, '', str)
       end
       cli_error_check(result)
-    rescue CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_vlan_name
@@ -161,8 +163,6 @@ module Cisco
         result = config_set('vlan', 'state', @vlan_id, '', str)
       end
       cli_error_check(result)
-    rescue CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_state
@@ -179,8 +179,6 @@ module Cisco
       no_cmd = (val) ? '' : 'no'
       result = config_set('vlan', 'shutdown', @vlan_id, no_cmd)
       cli_error_check(result)
-    rescue CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown

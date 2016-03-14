@@ -6,17 +6,26 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Itd
+  * itd_device_group (@saichint)
+  * itd_device_group_node (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
 
 #### NetDev Resources
 *
 
 ### Added
 
+* Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
+* CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
 * Add IOS XR support for the following classes:
   * bgp
   * bgp_af
@@ -30,13 +39,14 @@ Changelog
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
   * platform (@glennmatthews)
+  * radius_server (@jonnytpuppet)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
-  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
 * Extend vlan with attributes:
@@ -51,6 +61,9 @@ Changelog
   - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
   - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
 * `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
+* Improved minitest logging CLI.
+  - `ruby test_foo.rb -l debug` instead of `ruby test_foo.rb -- <host> <user> <pass> debug`
+  - `rake test TESTOPTS='--log-level=debug'`
 
 ### Fixed
 
@@ -59,7 +72,8 @@ Changelog
   - MTU is not supported on loopback interfaces
 
 ### Removed
-*
+* Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
 
 ## [v1.2.0]
 
@@ -170,7 +184,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 

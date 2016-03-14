@@ -1,0 +1,118 @@
+# vrf_af.yaml
+---
+_template:
+  nexus:
+    get_command: "show running all | section '^vrf context'"
+    context:
+      - 'vrf context <vrf>'
+      - 'address-family <afi> <safi>'
+  ios_xr:
+    get_command: "show run vrf"
+    context:
+      - 'vrf <vrf>'
+      - 'address-family <afi> <safi>'
+
+all_afs:
+  multiple: true
+  get_value: '/^address-family (\S+) (\S+)$/'
+  nexus:
+    context: ['vrf context <vrf>']
+  ios_xr:
+    context: ['vrf <vrf>']
+
+route_policy_export:
+  default_value: ~
+  nexus:
+    get_value: '/^export map (\S+)$/'
+    set_value: '<state> export map <policy_name>'
+  ios_xr:
+    get_value: '/^export route-policy (\S+)$/'
+    set_value: '<state> export route-policy <policy_name>'
+
+route_policy_import:
+  default_value: ~
+  nexus:
+    get_value: '/^import map (\S+)$/'
+    set_value: '<state> import map <policy_name>'
+  ios_xr:
+    get_value: '/^import route-policy (\S+)$/'
+    set_value: '<state> import route-policy <policy_name>'
+
+route_target_both_auto:
+  _exclude: [N3k, ios_xr]
+  kind: boolean
+  get_value: '/^route-target both auto$/'
+  set_value: '<state> route-target both auto'
+  default_value: false
+
+route_target_both_auto_evpn:
+  _exclude: [N3k, ios_xr]
+  kind: boolean
+  get_value: '/^route-target both auto evpn$/'
+  set_value: '<state> route-target both auto evpn'
+  default_value: false
+
+route_target_export:
+  multiple: true
+  default_value: []
+  nexus:
+    get_value: '/^route-target export (\S+)$/'
+    set_value: '<state> route-target export <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^export route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> export route-target <community>'
+
+route_target_export_evpn:
+  _exclude: [N3k, ios_xr]
+  multiple: true
+  get_value: '/^route-target export (\S+) evpn$/'
+  set_value: '<state> route-target export <community> evpn'
+  default_value: []
+
+route_target_export_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^export route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> export route-target <community> stitching'
+  default_value: []
+
+route_target_import:
+  multiple: true
+  default_value: []
+  nexus:
+    get_value: '/^route-target import (\S+)$/'
+    set_value: '<state> route-target import <community>'
+  ios_xr:
+    get_context:
+      - '/^vrf <vrf>$/i'
+      - '/^address-family <afi> <safi>$/'
+      - '/^import route-target$/'
+    get_value: '/^(\S+)$/'
+    set_value: '<state> import route-target <community>'
+
+route_target_import_evpn:
+  _exclude: [N3k, ios_xr]
+  multiple: true
+  get_value: '/^route-target import (\S+) evpn$/'
+  set_value: '<state> route-target import <community> evpn'
+  default_value: []
+
+route_target_import_stitching:
+  _exclude: [nexus]
+  multiple: true
+  get_context:
+    - '/^vrf <vrf>$/i'
+    - '/^address-family <afi> <safi>$/'
+    - '/^import route-target$/'
+  get_value: '/^(\S+) stitching$/'
+  set_value: '<state> import route-target <community> stitching'
+  default_value: []
+

@@ -17,6 +17,27 @@ require_relative '../lib/cisco_node_utils/platform'
 
 # TestPlatform - Minitest for Platform class
 class TestPlatform < CiscoTestCase
+  def test_image_version
+    case platform
+    when :ios_xr
+      refute_empty(Platform.image_version)
+
+    when :nexus
+      # Supported Images:
+      # N3/9k: 7.0(3)I2(*), 7.0(3)I3(1)
+      # N7k:   7.3(1)D1(1)
+      # N5/6k: 7.3(0)N1(1)
+
+      in_pat = '(^  NXOS: version |^  system:    version)'
+      s = @device.cmd("show version | i '#{in_pat}'")
+
+      out_pat = %r{/(\d\.\d\(\d\)[IDN])\d\(\d\)/}
+      show = s.match(out_pat).to_s
+      plat = Platform.image_version.match(out_pat).to_s
+      assert_equal(show, plat)
+    end
+  end
+
   def test_system_image
     if platform == :ios_xr
       assert_nil(Platform.system_image)

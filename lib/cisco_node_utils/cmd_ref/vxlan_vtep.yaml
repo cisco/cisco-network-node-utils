@@ -47,6 +47,7 @@ source_intf:
   default_value: ''
 
 source_intf_hold_down_time:
+  _exclude: [N7k]
   kind: int
   get_value: '/^source-interface hold-down-time (\d+)$/'
   set_value: '<state> source-interface hold-down-time <time>'

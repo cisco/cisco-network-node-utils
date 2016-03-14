@@ -21,8 +21,6 @@ require_relative '../lib/cisco_node_utils/node'
 
 include Cisco
 
-Node.lazy_connect = true # we'll specify the connection info later
-
 # CiscoTestCase - base class for all node utility minitests
 class CiscoTestCase < TestCase
   # rubocop:disable Style/ClassVars
@@ -59,8 +57,9 @@ class CiscoTestCase < TestCase
 
   def self.node
     unless @@node
-      @@node = Node.instance # rubocop:disable Style/ClassVars
-      @@node.connect(address, username, password)
+      # rubocop:disable Style/ClassVars
+      @@node = Node.instance(address, username, password)
+      # rubocop:enable Style/ClassVars
       @@node.cache_enable = true
       @@node.cache_auto = true
       # Record the platform we're running on
@@ -70,9 +69,9 @@ class CiscoTestCase < TestCase
       puts "  - image - #{@@node.system}\n\n"
     end
     @@node
-  rescue Cisco::Client::AuthenticationFailed
+  rescue Cisco::AuthenticationFailed
     abort "Unauthorized to connect as #{username}:#{password}@#{address}"
-  rescue Cisco::Client::ClientError, TypeError, ArgumentError => e
+  rescue Cisco::ClientError, TypeError, ArgumentError => e
     abort "Error in establishing connection: #{e}"
   end
 
@@ -97,9 +96,9 @@ class CiscoTestCase < TestCase
     self.class.platform
   end
 
-  def config(*args)
+  def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(*args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit best-effort')
     else
       result = super
     end
@@ -138,6 +137,10 @@ class CiscoTestCase < TestCase
     flunk(message)
   end
 
+  def validate_property_excluded?(feature, property)
+    !node.cmd_ref.supports?(feature, property)
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
@@ -150,7 +153,7 @@ class CiscoTestCase < TestCase
       end
       # rubocop:enable Style/ClassVars
     end
-    abort "No suitable interfaces found on #{node} for this test" if
+    skip "No suitable interfaces found on #{node} for this test" if
       @@interfaces.empty?
     @@interfaces
   end
@@ -160,7 +163,7 @@ class CiscoTestCase < TestCase
       # rubocop:disable Style/ClassVars
       @@interfaces_id = []
       interfaces.each do |interface|
-        id = interface.split('Ethernet')[1]
+        id = interface.split('ethernet')[1]
         @@interfaces_id << id
       end
       # rubocop:enable Style/ClassVars
@@ -188,5 +191,34 @@ class CiscoTestCase < TestCase
       next if vrf[/management/]
       obj.destroy
     end
+  end
+
+  # Remove all configurations from an interface.
+  def interface_cleanup(intf_name)
+    cfg = get_interface_cleanup_config(intf_name)
+    config(*cfg)
+  end
+
+  # Returns an array of commands to remove all configurations from
+  # an interface.
+  def get_interface_cleanup_config(intf_name)
+    if platform == :ios_xr
+      ["no interface #{intf_name}", "interface #{intf_name} shutdown"]
+    else
+      ["default interface #{intf_name}"]
+    end
+  end
+
+  def mt_full_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
   end
 end

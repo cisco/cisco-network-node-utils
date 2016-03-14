@@ -267,7 +267,8 @@ class TestNodeExt < CiscoTestCase
       configured_domain_name = nil
     end
 
-    config("no #{@domain} #{configured_domain_name}")
+    config("no #{@domain} #{configured_domain_name}") unless
+      configured_domain_name.nil?
 
     domain_name = node.domain_name
     assert_equal('', domain_name)

@@ -182,7 +182,7 @@ feature:
 maximum_paths:
   # This is an integer property
   kind: int
-  context: 
+  context:
     - 'router eigrp <name>'
   get_command: 'show running eigrp all'
   get_value: 'maximum-paths (\d+)'
@@ -260,6 +260,10 @@ module Cisco
       fail ArgumentError unless name.length > 0
       @name = name
       create if instantiate
+    end
+
+    def to_s
+      "RouterEigrp '#{name}'"
     end
 
     # Create a hash of all current router instances.

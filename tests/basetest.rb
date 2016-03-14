@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Minitest needs to have this path in order to discover our logging plugin
+$LOAD_PATH.push File.expand_path('../../lib', __FILE__)
+
 require 'simplecov'
 SimpleCov.start do
   # Don't calculate coverage of our test code itself!
@@ -122,7 +125,6 @@ class TestCase < Minitest::Test
                    )
     end
     @device.cmd('term len 0')
-    Cisco::Logger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
     puts "  and that you have configured 'feature telnet' (NX-OS) or "
@@ -135,13 +137,37 @@ class TestCase < Minitest::Test
     @device = nil
   end
 
+  # Execute the specified config commands and warn if the
+  # output matches the default "warning" regex.
   def config(*args)
+    config_and_warn_on_match(/^invalid|^%/i, *args)
+  end
+
+  # Execute the specified config commands. Use this version
+  # of the config method if you expect possible config errors
+  # and do not wish to log them as a warning.
+  def config_no_warn(*args)
+    config_and_warn_on_match(nil, *args)
+  end
+
+  # Execute the specified config commands and warn if the
+  # ouput matches the specified regex.  Specifying nil for
+  # warn_match means "do not warn".
+  def config_and_warn_on_match(warn_match, *args)
     # Send the entire config as one string but be sure not to return until
     # we are safely back out of config mode, i.e. prompt is
     # 'switch#' not 'switch(config)#' or 'switch(config-if)#' etc.
-    @device.cmd('String' => "configure terminal\n" + args.join("\n") + "\nend",
-                # NX-OS has a space after '#', IOS XR does not
-                'Match'  => /^[^()]+[$%#>] *\z/n)
+    result = @device.cmd(
+      'String' => "configure terminal\n" + args.join("\n") + "\nend",
+      # NX-OS has a space after '#', IOS XR does not
+      'Match'  => /^[^()]+[$%#>] *\z/n)
+
+    if warn_match && warn_match.match(result)
+      Cisco::Logger.warn("Config result:\n#{result}")
+    else
+      Cisco::Logger.debug("Config result:\n#{result}")
+    end
+    result
   rescue Net::ReadTimeout => e
     raise "Timeout when configuring:\n#{args.join("\n")}\n\n#{e}"
   end

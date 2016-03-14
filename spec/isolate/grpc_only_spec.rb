@@ -1,4 +1,4 @@
-require_relative 'spec_helper.rb'
+require_relative '../spec_helper.rb'
 
 context 'when only gRPC client is installed' do
   let(:main_self) { TOPLEVEL_BINDING.eval('self') }

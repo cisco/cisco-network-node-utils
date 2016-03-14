@@ -13,7 +13,6 @@
 # limitations under the License.
 
 require_relative 'client'
-require_relative 'client_errors'
 
 # Fail gracefully if submodule dependencies are not met
 begin

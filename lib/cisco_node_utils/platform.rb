@@ -19,6 +19,13 @@ require_relative 'node_util'
 module Cisco
   # Platform - class for gathering platform hardware and software information
   class Platform < NodeUtil
+    #
+    # NX: 7.0(3)I2(3) [build 7.0(3)I2(2.118)]
+    # XR: 6.1.1.04I
+    def self.image_version
+      config_get('show_version', 'version')
+    end
+
     # ex: 'n3500-uk9.6.0.2.A3.0.40.bin'
     def self.system_image
       config_get('show_version', 'boot_image')

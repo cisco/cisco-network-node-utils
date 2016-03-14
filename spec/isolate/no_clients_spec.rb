@@ -1,4 +1,4 @@
-require_relative 'spec_helper.rb'
+require_relative '../spec_helper.rb'
 require 'rspec/core'
 
 context 'when no client implementations are installed' do
