@@ -61,6 +61,11 @@ class TestInterface < CiscoTestCase
     end
   end
 
+  def teardown
+    interface_ethernet_default(interfaces[0])
+    super
+  end
+
   def ipv4
     if platform == :nexus
       'ip'
@@ -780,7 +785,8 @@ class TestInterface < CiscoTestCase
     rescue Cisco::CliError => e
       skip('Skip test: Interface type does not allow config change') if
         e.message[/requested config change not allowed/]
-      flunk(e.message)
+      flunk(e.message) unless
+        e.message[/cannot turn off auto-negotiate with auto-negotiate speeds/]
     end
 
     default = ref.default_value
@@ -1356,14 +1362,12 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_vrf_default
-    config('interface loopback1', 'vrf member foo')
     interface = Interface.new('loopback1')
     interface.vrf = interface.default_vrf
     assert_equal(DEFAULT_IF_VRF, interface.vrf)
   end
 
   def test_interface_vrf_empty
-    config('interface loopback1', 'vrf member foo')
     interface = Interface.new('loopback1')
     interface.vrf = DEFAULT_IF_VRF
     assert_equal(DEFAULT_IF_VRF, interface.vrf)
