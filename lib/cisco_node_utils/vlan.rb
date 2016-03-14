@@ -257,8 +257,6 @@ module Cisco
       end
       result = config_set('vlan', 'private_vlan_type', @set_args)
       cli_error_check(result, ignore_msg)
-    rescue Cisco::CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_private_vlan_type
@@ -296,8 +294,6 @@ module Cisco
       end
       result = config_set('vlan', 'private_vlan_association', @set_args)
       cli_error_check(result)
-    rescue Cisco::CliError => e
-      raise "[vlan #{@vlan_id}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_private_vlan_association
