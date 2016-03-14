@@ -110,14 +110,16 @@ module Cisco
         fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
 
       elsif platform == :ios_xr
+        fail TypeError unless src.is_a? String
+        fail ArgumentError if src.empty?
         filename = src.strip.tr(':', '/').split('/').last
         pkg_info = Yum.decompose_name(filename)
         pkg_name = pkg_info[1]
         should_version = pkg_info[2]
         xr_version = pkg_info[3]
         platform_var = pkg_info[4]
-        query_package_name = "#{pkg_name}-#{should_version}" \
-                            "-#{xr_version}.#{platform_var}"
+        query_package_name = \
+                   "#{pkg_name}-#{should_version}-#{xr_version}.#{platform_var}"
 
         version = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install \
                      package #{query_package_name} none | grep -E Version`
