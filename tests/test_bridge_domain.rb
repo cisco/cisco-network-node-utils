@@ -14,7 +14,6 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/bridge_domain'
-require_relative '../lib/cisco_node_utils/vlan'
 
 include Cisco
 
@@ -24,14 +23,8 @@ class TestBridgeDomain < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
-    Vlan.vlans.each do |vlan, obj|
-      # skip reserved vlans
-      next if vlan == '1'
-      obj.destroy
-    end
-    BridgeDomain.bds.each do |_bd, obj|
-      obj.destroy
-    end
+    remove_all_vlans
+    remove_all_bridge_domains
   end
 
   def setup

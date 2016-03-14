@@ -18,6 +18,8 @@ require_relative 'basetest'
 require_relative 'platform_info'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/vlan'
+require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
@@ -220,5 +222,23 @@ class CiscoTestCase < TestCase
     skip('Unable to find compatible interface in chassis') if slot.nil?
 
     "ethernet#{slot}/1"
+  end
+
+  def remove_all_vlans
+    # This testcase will remove all the vlans existing in the system
+    # specifically in cleanup for minitests
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlan
+      next if vlan == '1'
+      obj.destroy
+    end
+  end
+
+  def remove_all_bridge_domains
+    # This testcase will remove all the vlans existing in the system
+    # specifically in cleanup for minitests
+    BridgeDomain.bds.each do |_bd, obj|
+      obj.destroy
+    end
   end
 end
