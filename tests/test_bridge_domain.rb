@@ -24,6 +24,11 @@ class TestBridgeDomain < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlans
+      next if vlan == '1'
+      obj.destroy
+    end
     BridgeDomain.bds.each do |_bd, obj|
       obj.destroy
     end
@@ -52,8 +57,8 @@ class TestBridgeDomain < CiscoTestCase
 
   def test_bd_create_if_vlan_exists
     vlan = Vlan.new(100)
-    assert_raises(RuntimeError,
-                  'Vlan already exist did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'Vlan already exist did not raise CliError') do
       BridgeDomain.new(100)
     end
     vlan.destroy
@@ -164,8 +169,8 @@ class TestBridgeDomain < CiscoTestCase
     assert_equal(vni, curr_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
     vni = '6000'
-    assert_raises(RuntimeError,
-                  'Should raise RuntimeError as BD already mapped to vni ') do
+    assert_raises(CliError,
+                  'Should raise CliError as BD already mapped to vni ') do
       bd.member_vni = vni
     end
     bd.destroy
@@ -201,7 +206,6 @@ class TestBridgeDomain < CiscoTestCase
                  'Error: Bridge-Domain is mapped to different vnis')
     bd.destroy
   end
-
   def test_another_bd_as_fabric_control
     bd = BridgeDomain.new(100)
     assert_equal(bd.default_fabric_control, bd.fabric_control,
@@ -210,17 +214,16 @@ class TestBridgeDomain < CiscoTestCase
     assert(bd.fabric_control)
     another_bd = BridgeDomain.new(101)
 
-    assert_raises(RuntimeError,
-                  'BD misconfig did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'BD misconfig did not raise CliError') do
       another_bd.fabric_control = true
     end
     bd.destroy
     another_bd.destroy
   end
-
   def test_invalid_bd_create
-    assert_raises(RuntimeError,
-                  'BD misconfig did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'BD misconfig did not raise CliError') do
       BridgeDomain.new('90, 5000-5004,100')
     end
   end
