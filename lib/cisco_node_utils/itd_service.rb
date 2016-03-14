@@ -251,6 +251,10 @@ module Cisco
       val.to_i
     end
 
+    def load_bal_buckets=(buckets)
+      attach_prefix(buckets, :buckets)
+    end
+
     def default_load_bal_buckets
       config_get_default('itd_service', 'load_bal_buckets')
     end
@@ -259,6 +263,10 @@ module Cisco
       val = extract_value('mask', 'mask-position')
       return default_load_bal_mask_pos if val.nil?
       val.to_i
+    end
+
+    def load_bal_mask_pos=(mask)
+      attach_prefix(mask, :mask, 'mask-position')
     end
 
     def default_load_bal_mask_pos
@@ -272,6 +280,10 @@ module Cisco
       match.names.include?('bundle_hash') ? match[:bundle_hash] : val
     end
 
+    def load_bal_method_bundle_hash=(bh)
+      @set_args[:bundle_hash] = bh
+    end
+
     def default_load_bal_method_bundle_hash
       config_get_default('itd_service', 'load_bal_method_bundle_hash')
     end
@@ -280,6 +292,10 @@ module Cisco
       val = extract_value('bundle_select', 'method')
       return default_load_bal_method_bundle_select if val.nil?
       val
+    end
+
+    def load_bal_method_bundle_select=(bs)
+      attach_prefix(bs, :bundle_select, 'method')
     end
 
     def default_load_bal_method_bundle_select
@@ -293,6 +309,10 @@ module Cisco
       match.names.include?('end_port') ? match[:end_port].to_i : val
     end
 
+    def load_bal_method_end_port=(enport)
+      @set_args[:endPort] = enport
+    end
+
     def default_load_bal_method_end_port
       config_get_default('itd_service', 'load_bal_method_end_port')
     end
@@ -301,6 +321,10 @@ module Cisco
       val = extract_value('start_port', 'range')
       return default_load_bal_method_start_port if val.nil?
       val.to_i
+    end
+
+    def load_bal_method_start_port=(start)
+      attach_prefix(start, :start_port, 'range')
     end
 
     def default_load_bal_method_start_port
@@ -314,6 +338,10 @@ module Cisco
       match.names.include?('proto') ? match[:proto] : val
     end
 
+    def load_bal_method_proto=(proto)
+      @set_args[:proto] = proto
+    end
+
     def default_load_bal_method_proto
       config_get_default('itd_service', 'load_bal_method_proto')
     end
@@ -322,47 +350,32 @@ module Cisco
       lb_get.nil? ? default_load_bal_enable : true
     end
 
+    def load_bal_enable=(enable)
+      @set_args[:state] = enable ? '' : 'no'
+    end
+
     def default_load_bal_enable
       config_get_default('itd_service', 'load_bal_enable')
     end
 
-    def load_balance=(enable, bs, bh, buck, mask, proto, stport, enport)
-      no_cmd = (enable ? '' : 'no')
-      @set_args[:state] = no_cmd
-      if bs == false
-        @set_args[:method] = ''
-        @set_args[:bs] = ''
-        @set_args[:bh] = ''
-      else
-        @set_args[:method] = 'method'
-        @set_args[:bs] = bs
-        @set_args[:bh] = bh
+    def load_balance_set(attrs)
+      set_args_keys_default
+      set_args_keys(attrs)
+      [:load_bal_buckets,
+       :load_bal_mask_pos,
+       :load_bal_method_bundle_hash,
+       :load_bal_method_bundle_select,
+       :load_bal_method_end_port,
+       :load_bal_method_start_port,
+       :load_bal_method_proto,
+       :load_bal_enable,
+      ].each do |p|
+        attrs[p] = '' if attrs[p].nil? || attrs[p] == false
+        send(p.to_s + '=', attrs[p])
       end
-      if proto == false
-        @set_args[:range] = ''
-        @set_args[:proto] = ''
-        @set_args[:start] = ''
-        @set_args[:end] = ''
-      else
-        @set_args[:range] = 'range'
-        @set_args[:proto] = proto
-        @set_args[:start] = stport
-        @set_args[:end] = enport
-      end
-      if buck == false
-        @set_args[:buck] = ''
-        @set_args[:buckets] = ''
-      else
-        @set_args[:buck] = 'buckets'
-        @set_args[:buckets] = buck
-      end
-      if mask == false
-        @set_args[:mpos] = ''
-        @set_args[:mask] = ''
-      else
-        @set_args[:mpos] = 'mask-position'
-        @set_args[:mask] = mask
-      end
+      # for boolean we need to do this
+      send('load_bal_enable=', false) if attrs[:load_bal_enable] == ''
+      @get_args = @set_args
       config_set('itd_service', 'load_balance', @set_args)
       set_args_keys_default
     end

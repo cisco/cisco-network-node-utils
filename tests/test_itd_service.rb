@@ -108,72 +108,76 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
-  def test_load_balance
+  def lb_helper(props)
     itd = ItdService.new('new_group')
-    bs = 'src'
-    bh = 'ip'
-    buckets = 16
-    mask = 4
-    proto = false
-    start = false
-    enport = false
-    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
+    test_hash = {
+      load_bal_enable:               true,
+      load_bal_method_bundle_select: itd.default_load_bal_method_bundle_select,
+      load_bal_method_bundle_hash:   itd.default_load_bal_method_bundle_hash,
+      load_bal_method_proto:         itd.default_load_bal_method_proto,
+      load_bal_buckets:              itd.default_load_bal_buckets,
+      load_bal_method_end_port:      itd.default_load_bal_method_end_port,
+      load_bal_method_start_port:    itd.default_load_bal_method_start_port,
+    }.merge!(props)
+    itd.load_balance_set(test_hash)
+    itd
+  end
+
+  def test_load_balance
+    itd = lb_helper(load_bal_method_bundle_select: 'src',
+                    load_bal_method_bundle_hash:   'ip',
+                    load_bal_buckets:              16,
+                    load_bal_mask_pos:             4)
     assert_equal(true, itd.load_bal_enable)
-    assert_equal(buckets, itd.load_bal_buckets)
-    assert_equal(mask, itd.load_bal_mask_pos)
-    assert_equal(bh, itd.load_bal_method_bundle_hash)
-    assert_equal(bs, itd.load_bal_method_bundle_select)
-    assert_equal(proto, itd.load_bal_method_end_port)
-    assert_equal(start, itd.load_bal_method_start_port)
-    assert_equal(enport, itd.load_bal_method_proto)
-    bs = 'dst'
-    bh = 'ip-l4port'
-    buckets = 128
-    mask = 10
-    proto = 'tcp'
-    start = 200
-    enport = 700
-    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
-    assert_equal(buckets, itd.load_bal_buckets)
-    assert_equal(mask, itd.load_bal_mask_pos)
-    assert_equal(bh, itd.load_bal_method_bundle_hash)
-    assert_equal(bs, itd.load_bal_method_bundle_select)
-    assert_equal(enport, itd.load_bal_method_end_port)
-    assert_equal(start, itd.load_bal_method_start_port)
-    assert_equal(proto, itd.load_bal_method_proto)
-    bs = false
-    bh = false
-    buckets = false
-    mask = 20
-    proto = false
-    start = false
-    enport = false
-    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
-    assert_equal(buckets, itd.load_bal_buckets)
-    assert_equal(mask, itd.load_bal_mask_pos)
-    assert_equal(bh, itd.load_bal_method_bundle_hash)
-    assert_equal(bs, itd.load_bal_method_bundle_select)
-    assert_equal(enport, itd.load_bal_method_end_port)
-    assert_equal(start, itd.load_bal_method_start_port)
-    assert_equal(proto, itd.load_bal_method_proto)
-    bs = false
-    bh = false
-    buckets = 256
-    mask = false
-    proto = false
-    start = false
-    enport = false
-    itd.send(:load_balance=, true, bs, bh, buckets, mask, proto, start, enport)
-    assert_equal(buckets, itd.load_bal_buckets)
-    assert_equal(mask, itd.load_bal_mask_pos)
-    assert_equal(bh, itd.load_bal_method_bundle_hash)
-    assert_equal(bs, itd.load_bal_method_bundle_select)
-    assert_equal(enport, itd.load_bal_method_end_port)
-    assert_equal(start, itd.load_bal_method_start_port)
-    assert_equal(proto, itd.load_bal_method_proto)
-    buckets = false
-    itd.send(:load_balance=, itd.default_load_bal_enable,
-             bs, bh, buckets, mask, proto, start, enport)
+    assert_equal(16, itd.load_bal_buckets)
+    assert_equal(4, itd.load_bal_mask_pos)
+    assert_equal('ip', itd.load_bal_method_bundle_hash)
+    assert_equal('src', itd.load_bal_method_bundle_select)
+    itd = lb_helper(load_bal_enable:               true,
+                    load_bal_method_bundle_select: 'dst',
+                    load_bal_method_bundle_hash:   'ip-l4port',
+                    load_bal_buckets:              128,
+                    load_bal_mask_pos:             10,
+                    load_bal_method_end_port:      700,
+                    load_bal_method_proto:         'tcp',
+                    load_bal_method_start_port:    200)
+    assert_equal(128, itd.load_bal_buckets)
+    assert_equal(10, itd.load_bal_mask_pos)
+    assert_equal('ip-l4port', itd.load_bal_method_bundle_hash)
+    assert_equal('dst', itd.load_bal_method_bundle_select)
+    assert_equal(700, itd.load_bal_method_end_port)
+    assert_equal(200, itd.load_bal_method_start_port)
+    assert_equal('tcp', itd.load_bal_method_proto)
+    itd = lb_helper(load_bal_mask_pos: 20)
+    assert_equal(itd.default_load_bal_buckets,
+                 itd.load_bal_buckets)
+    assert_equal(20, itd.load_bal_mask_pos)
+    assert_equal(itd.default_load_bal_method_bundle_hash,
+                 itd.load_bal_method_bundle_hash)
+    assert_equal(itd.default_load_bal_method_bundle_select,
+                 itd.load_bal_method_bundle_select)
+    assert_equal(itd.default_load_bal_method_end_port,
+                 itd.load_bal_method_end_port)
+    assert_equal(itd.default_load_bal_method_start_port,
+                 itd.load_bal_method_start_port)
+    assert_equal(itd.default_load_bal_method_proto,
+                 itd.load_bal_method_proto)
+    itd = lb_helper(load_bal_enable:  true,
+                    load_bal_buckets: 256)
+    assert_equal(256, itd.load_bal_buckets)
+    assert_equal(itd.default_load_bal_mask_pos,
+                 itd.load_bal_mask_pos)
+    assert_equal(itd.default_load_bal_method_bundle_hash,
+                 itd.load_bal_method_bundle_hash)
+    assert_equal(itd.default_load_bal_method_bundle_select,
+                 itd.load_bal_method_bundle_select)
+    assert_equal(itd.default_load_bal_method_end_port,
+                 itd.load_bal_method_end_port)
+    assert_equal(itd.default_load_bal_method_start_port,
+                 itd.load_bal_method_start_port)
+    assert_equal(itd.default_load_bal_method_proto,
+                 itd.load_bal_method_proto)
+    itd = lb_helper(load_bal_enable: false)
     assert_equal(itd.load_bal_enable,
                  itd.default_load_bal_enable)
     assert_equal(itd.load_bal_buckets, itd.default_load_bal_buckets)

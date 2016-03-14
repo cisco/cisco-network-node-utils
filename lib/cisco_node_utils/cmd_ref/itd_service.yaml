@@ -85,7 +85,7 @@ load_bal_method_start_port:
 
 load_balance:
   get_value: '/^load-balance .+$/'
-  set_value: "<state> load-balance <method> <bs> <bh> <proto> <range> <start> <end> <buck> <buckets> <mpos> <mask>"
+  set_value: "<state> load-balance <bundle_select> <bundle_hash> <proto> <start_port> <endPort> <buckets> <mask>"
 
 nat_destination:
   _exclude: [N9k]
