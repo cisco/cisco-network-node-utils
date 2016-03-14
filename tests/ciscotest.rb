@@ -186,6 +186,25 @@ class CiscoTestCase < TestCase
     end
   end
 
+  # This testcase will remove all the bds existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_bridge_domains
+    BridgeDomain.bds.each do |_bd, obj|
+      obj.destroy
+    end
+  end
+
+  # This testcase will remove all the vlans existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_vlans
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlan
+      next if vlan == '1'
+      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
+      obj.destroy
+    end
+  end
+
   # Remove all user vrfs.
   def remove_all_vrfs
     require_relative '../lib/cisco_node_utils/vrf'
@@ -222,23 +241,5 @@ class CiscoTestCase < TestCase
     skip('Unable to find compatible interface in chassis') if slot.nil?
 
     "ethernet#{slot}/1"
-  end
-
-  def remove_all_vlans
-    # This testcase will remove all the vlans existing in the system
-    # specifically in cleanup for minitests
-    Vlan.vlans.each do |vlan, obj|
-      # skip reserved vlan
-      next if vlan == '1'
-      obj.destroy
-    end
-  end
-
-  def remove_all_bridge_domains
-    # This testcase will remove all the vlans existing in the system
-    # specifically in cleanup for minitests
-    BridgeDomain.bds.each do |_bd, obj|
-      obj.destroy
-    end
   end
 end
