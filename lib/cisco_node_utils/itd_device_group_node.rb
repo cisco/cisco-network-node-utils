@@ -1,6 +1,6 @@
 # February 2016, Sai Chintalapudi
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ module Cisco
   class ItdDeviceGroupNode < ItdDeviceGroup
     attr_reader :itd_device_group_name, :name, :node_type
 
-    def initialize(itd_dg_name, node_name, node_type, create=true)
+    def initialize(itd_dg_name, node_name, node_type, instantiate=true)
       fail TypeError unless itd_dg_name.is_a?(String)
       fail TypeError unless node_name.is_a?(String)
       fail ArgumentError unless itd_dg_name.length > 0
@@ -36,12 +36,13 @@ module Cisco
       @node_type = node_type
 
       set_args_keys_default
-      return unless create
-
-      config_set('itd_device_group', 'create_node',
-                 name: @itddg.name, ntype: @node_type, nname: @name)
+      create_node if instantiate
     end
 
+    # itd_device_group_nodes have the name form as
+    # node ip 1.1.1.1
+    # node IPv6 2000::1
+    # and they depdend on the device_group
     def self.itd_nodes(node_name=nil)
       fail TypeError unless node_name.is_a?(String) || node_name.nil?
       itd_nodes = {}
@@ -52,10 +53,9 @@ module Cisco
         match = config_get('itd_device_group',
                            'all_itd_device_group_nodes', name: name)
         next if match.nil?
-        match.each do |line|
-          local = line.split
-          ntype = local[0]
-          nname = local[1].strip
+        match.each do |vars|
+          ntype = vars[0]
+          nname = vars[1].strip
           next unless node_name.nil? || nname == node_name
           itd_nodes[name][nname] =
               ItdDeviceGroupNode.new(name, nname, ntype, false)
@@ -71,6 +71,11 @@ module Cisco
     def ==(other)
       (itd_device_group_name == other.itd_device_group_name) &&
         (name == other.name) && (node_type == other.node_type)
+    end
+
+    def create_node
+      config_set('itd_device_group', 'create_node',
+                 name: @itddg.name, ntype: @node_type, nname: @name)
     end
 
     def destroy
@@ -117,7 +122,7 @@ module Cisco
     # the CLI is pretty weird and it accepts these params in a very
     # particular way and they cannot even be reset unless proper
     # order is followed
-    def hs_weight=(hs, wt)
+    def hs_weight(hs, wt)
       if hs != hot_standby && hot_standby == default_hot_standby
         self.lweight = wt unless weight == wt
         self.lhot_standby = hs

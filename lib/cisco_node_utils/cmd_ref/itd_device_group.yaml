@@ -1,6 +1,6 @@
 # itd_device_group
 ---
-_exclude: [N3k, N5k, N6k, ios_xr]
+_exclude: [N3k, N5k, N6k, N8k, ios_xr]
 
 _template:
   get_command: "show running-config all | section itd"
@@ -12,12 +12,12 @@ _template:
 all_itd_device_group_nodes:
   multiple:
   get_context: ['/^itd device-group <name>/']
-  get_value: '/^node (.*)/'
+  get_value: '/^node (\S+) (\S+)/'
 
 all_itd_device_groups:
   multiple:
   get_context: ~
-  get_value: '/^itd device-group (.*)/'
+  get_value: '/^itd device-group (\S+)/'
 
 create:
   set_context: ~
@@ -35,14 +35,6 @@ destroy_node:
   set_context: ["itd device-group <name>"]
   set_value: "no node <ntype> <nname>"
 
-feature:
-  get_command: 'show running | i ^feature'
-  get_context: ~
-  get_value: '/^feature itd$/'
-  set_context: ~
-  set_value: 'feature itd'
-  default_value: false
-
 hot_standby:
   kind: boolean
   get_value: '/^mode hot-standby/'
@@ -50,8 +42,8 @@ hot_standby:
   default_value: false
 
 probe:
-  get_value: '/^probe (.*) frequency (\d+) timeout (\d+) retry-down-count (\d+) retry-up-count (\d+)$/'
-  set_value: "probe <type> <hps> <hpv> <control> frequency <freq> timeout <to> retry-down-count <rdc> retry-up-count <ruc>"
+  get_value: '/^probe .+$/'
+  set_value: "probe <type> <dns_host> <port> <control> <frequency> <timeout> <retry_down_count> <retry_up_count>"
 
 probe_control:
   kind: boolean

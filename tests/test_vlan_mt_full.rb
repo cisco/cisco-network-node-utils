@@ -51,22 +51,9 @@ class TestVlanMtFull < CiscoTestCase
     config("default interface ethernet #{ethernet_id}")
   end
 
-  def compatible_interface?
-    # MT-full tests require a specific linecard; either because they need a
-    # compatible interface or simply to enable the features. Either way
-    # we will provide an appropriate interface name if the linecard is present.
-    # Example 'show mod' output to match against:
-    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
-    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
-    skip('Unable to find a compatible interface in chassis') if slot.nil?
-
-    "ethernet#{slot}/1"
-  end
-
   def mt_full_env_setup
     skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    compatible_interface?
+    mt_full_interface?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'

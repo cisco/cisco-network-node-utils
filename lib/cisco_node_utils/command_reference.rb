@@ -411,8 +411,9 @@ module Cisco
       end
     end
 
-    def supports?(feature)
+    def supports?(feature, property=nil)
       value = @hash[feature]
+      value = value[property] if value && property
       !(value.is_a?(UnsupportedCmdRef) || value.nil?)
     end
 

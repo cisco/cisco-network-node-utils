@@ -6,6 +6,9 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Itd
+  * itd_device_group (@saichint)
+  * itd_device_group_node (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
 * Bridge Domain
@@ -36,13 +39,14 @@ Changelog
   * ntp_config (@jonnytpuppet)
   * ntp_server (@jonnytpuppet)
   * platform (@glennmatthews)
+  * radius_server (@jonnytpuppet)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
-  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
 
@@ -178,7 +182,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 

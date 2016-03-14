@@ -1,6 +1,6 @@
 # February 2016, Sai Chintalapudi
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,35 +32,14 @@ module Cisco
 
     def self.itds
       hash = {}
-      group_list = []
       groups = config_get('itd_device_group',
                           'all_itd_device_groups')
       return hash if groups.nil?
 
-      groups.each do |group|
-        # The show cmd shows more than name if the probe is not confgured yet
-        # itd device-group abc frequency 10 timeout 5 retry-down-count 3 ...
-        # so filter it out to just get the name
-        group_list << group.split[0]
-      end
-
-      group_list.each do |id|
+      groups.each do |id|
         hash[id] = ItdDeviceGroup.new(id, false)
       end
       hash
-    end
-
-    # feature itd
-    def self.feature_itd_enabled
-      config_get('itd_device_group', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_itd_enable
-      config_set('itd_device_group', 'feature')
     end
 
     ########################################################
@@ -68,8 +47,7 @@ module Cisco
     ########################################################
 
     def create
-      ItdDeviceGroup.feature_itd_enable unless
-        ItdDeviceGroup.feature_itd_enabled
+      Feature.itd_enable
       config_set('itd_device_group', 'create', name: @name)
     end
 
@@ -79,54 +57,73 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      @set_args = { name: @name }
-      @get_args = @set_args
+      keys = { name: @name }
+      @get_args = @set_args = keys
     end
 
-    def probe_params
-      params = config_get('itd_device_group', 'probe', @get_args)
-      params
+    # rubocop:disable Style/AccessorMethodName
+    def set_args_keys(hash={})
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # proble configuration is all done in a single line (like below)
+    # extract value of property from probe
+    def extract_value(prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      probe_match = probe_get
+
+      # matching probe not found
+      return nil if probe_match.nil? # no matching probe found
+
+      # property not defined for matching probe
+      return nil unless probe_match.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(probe_match[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # prepend property name prefix/keyword to value
+    def attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
+    end
+
+    # probe configuration is all done in a single line (like below)
     # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
     # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
     # probe icmp frequency 10 timeout 5 retry-down-count 3 retry-up-count 3
     # probe dns host 8.8.8.8 frequency 10 timeout 5 retry-down-count 3 ...
     # also the 'control enable' can be set if the type is tcp or udp only
     # probe udp port 23 control enable frequency 10 timeout 5 ...
-    def probe
-      params = probe_params
-      hash = {}
-      hash[:probe_control] = default_probe_control
-      if params.nil?
-        hash[:probe_frequency] = default_probe_frequency
-        hash[:probe_timeout] = default_probe_timeout
-        hash[:probe_retry_down] = default_probe_retry_down
-        hash[:probe_retry_up] = default_probe_retry_up
-        hash[:probe_type] = default_probe_type
-        return hash
-      end
-      hash[:probe_frequency] = params[1].to_i
-      hash[:probe_timeout] = params[2].to_i
-      hash[:probe_retry_down] = params[3].to_i
-      hash[:probe_retry_up] = params[4].to_i
-
-      lparams = params[0].split
-      hash[:probe_type] = lparams[0]
-      case hash[:probe_type].to_sym
-      when :dns
-        hash[:probe_dns_host] = lparams[2]
-      when :tcp, :udp
-        hash[:probe_port] = lparams[2].to_i
-        hash[:probe_control] = true unless lparams[3].nil?
-      end
-      hash
+    def probe_get
+      str = config_get('itd_device_group', 'probe', @get_args)
+      return nil if str.nil?
+      regexp = Regexp.new('(?<type>\S+)'\
+                 ' *(?<dns_host>host \S+)?'\
+                 ' *(?<port>port \d+)?'\
+                 ' *(?<control>control \S+)?'\
+                 ' *(?<frequency>frequency \d+)?'\
+                 ' *(?<timeout>timeout \d+)'\
+                 ' *(?<retry_down>retry-down-count \d+)'\
+                 ' *(?<retry_up>retry-up-count \d+)')
+      regexp.match(str)
     end
 
     def probe_control
-      hash = probe
-      hash[:probe_control]
+      val = extract_value('control')
+      return default_probe_control if val.nil?
+      val == 'enable' ? true : default_probe_control
+    end
+
+    def probe_control=(control)
+      if control
+        @set_args[:control] = 'control enable'
+      else
+        @set_args[:control] = ''
+      end
     end
 
     def default_probe_control
@@ -134,13 +131,21 @@ module Cisco
     end
 
     def probe_dns_host
-      hash = probe
-      hash[:probe_dns_host]
+      extract_value('dns_host', 'host')
+    end
+
+    def probe_dns_host=(dns_host)
+      attach_prefix(dns_host, :dns_host, 'host')
     end
 
     def probe_frequency
-      hash = probe
-      hash[:probe_frequency]
+      val = extract_value('frequency')
+      return default_probe_frequency if val.nil?
+      val.to_i
+    end
+
+    def probe_frequency=(frequency)
+      attach_prefix(frequency, :frequency)
     end
 
     def default_probe_frequency
@@ -148,13 +153,22 @@ module Cisco
     end
 
     def probe_port
-      hash = probe
-      hash[:probe_port]
+      val = extract_value('port')
+      val.to_i unless val.nil?
+    end
+
+    def probe_port=(port)
+      attach_prefix(port, :port)
     end
 
     def probe_retry_down
-      hash = probe
-      hash[:probe_retry_down]
+      val = extract_value('retry_down', 'retry-down-count')
+      return default_probe_retry_down if val.nil?
+      val.to_i
+    end
+
+    def probe_retry_down=(rdc)
+      attach_prefix(rdc, :retry_down_count, 'retry-down-count')
     end
 
     def default_probe_retry_down
@@ -162,8 +176,13 @@ module Cisco
     end
 
     def probe_retry_up
-      hash = probe
-      hash[:probe_retry_up]
+      val = extract_value('retry_up', 'retry-up-count')
+      return default_probe_retry_up if val.nil?
+      val.to_i
+    end
+
+    def probe_retry_up=(ruc)
+      attach_prefix(ruc, :retry_up_count, 'retry-up-count')
     end
 
     def default_probe_retry_up
@@ -171,8 +190,13 @@ module Cisco
     end
 
     def probe_timeout
-      hash = probe
-      hash[:probe_timeout]
+      val = extract_value('timeout')
+      return default_probe_timeout if val.nil?
+      val.to_i
+    end
+
+    def probe_timeout=(timeout)
+      attach_prefix(timeout, :timeout)
     end
 
     def default_probe_timeout
@@ -180,44 +204,44 @@ module Cisco
     end
 
     def probe_type
-      hash = probe
-      hash[:probe_type]
+      match = probe_get
+      return default_probe_type if match.nil?
+      match.names.include?('type') ? match[:type] : default_probe_type
+    end
+
+    def probe_type=(type)
+      @set_args[:type] = type
     end
 
     def default_probe_type
       config_get_default('itd_device_group', 'probe_type')
     end
 
-    def probe=(type, host, control, freq, ret_up, ret_down, port, timeout)
-      if type == false
+    def probe_set(attrs)
+      if attrs[:probe_type] == false
+        cmd = 'probe_type'
         @set_args[:state] = 'no'
-        config_set('itd_device_group', 'probe_type', @set_args)
+      else
+        cmd = 'probe'
         set_args_keys_default
-        return
+        set_args_keys(attrs)
+        [:probe_type,
+         :probe_dns_host,
+         :probe_port,
+         :probe_control,
+         :probe_frequency,
+         :probe_timeout,
+         :probe_retry_down,
+         :probe_retry_up,
+        ].each do |p|
+          attrs[p] = '' if attrs[p].nil?
+          send(p.to_s + '=', attrs[p])
+        end
+        # for boolean we need to do this
+        send('probe_control=', false) if attrs[:probe_control] == ''
+        @get_args = @set_args
       end
-      @set_args[:type] = type
-      @set_args[:freq] = freq
-      @set_args[:to] = timeout
-      @set_args[:rdc] = ret_down
-      @set_args[:ruc] = ret_up
-      case type.to_sym
-      when :dns
-        @set_args[:hps] = 'host'
-        @set_args[:hpv] = host
-        @set_args[:control] = ''
-        config_set('itd_device_group', 'probe', @set_args)
-      when :tcp, :udp
-        control_str = control ? 'control enable' : ''
-        @set_args[:hps] = 'port'
-        @set_args[:hpv] = port
-        @set_args[:control] = control_str
-        config_set('itd_device_group', 'probe', @set_args)
-      when :icmp
-        @set_args[:hps] = ''
-        @set_args[:hpv] = ''
-        @set_args[:control] = ''
-        config_set('itd_device_group', 'probe', @set_args)
-      end
+      config_set('itd_device_group', cmd, @set_args)
       set_args_keys_default
     end
   end  # Class

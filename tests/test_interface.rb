@@ -859,7 +859,7 @@ class TestInterface < CiscoTestCase
         config("ipv4 access-list #{acl_name} 1 permit any")
       end
     end
-    interface_ethernet_default(interfaces[0])
+    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     intf.ipv4_acl_in = 'v4acl1'
@@ -890,7 +890,7 @@ class TestInterface < CiscoTestCase
     #     ipv6 traffic-filter v6acl1 in
     #     ipv6 traffic-filter v6acl2 out
     #
-    interface_ethernet_default(interfaces[0])
+    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     # create acls first
@@ -1024,7 +1024,7 @@ class TestInterface < CiscoTestCase
   def test_interface_ipv4_arp_timeout
     unless platform == :ios_xr
       # Setup
-      config('no interface vlan11')
+      config_no_warn('no interface vlan11')
       int = Interface.new('vlan11')
 
       # Test default
@@ -1043,7 +1043,7 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_forwarding
     intf = interfaces[0]
-    interface_ethernet_default(intf)
+    interface_ethernet_default(interfaces_id[0])
     i = Interface.new(intf)
 
     if platform == :ios_xr
@@ -1076,7 +1076,7 @@ class TestInterface < CiscoTestCase
   def test_interface_fabric_forwarding_anycast_gateway
     unless platform == :ios_xr
       # Setup
-      config('no interface vlan11')
+      config_no_warn('no interface vlan11')
       int = Interface.new('vlan11')
       foo = OverlayGlobal.new
       foo.anycast_gateway_mac = '1223.3445.5668'
