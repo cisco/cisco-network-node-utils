@@ -2,8 +2,6 @@ Changelog
 =========
 
 ## [Unreleased]
-* PRIVATE-VLAN
-  * Extension of vlan (@davidefdl)
 
 ### New feature support
 
@@ -41,6 +39,8 @@ Changelog
   * `fabricpath_emulated_switch_id` 
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
+* Extend vlan with attributes:
+  * `private_vlan_association, private_vlan_association_all, private_vlan_type, private_vlan_type_all` 
 
 ### Changed
 

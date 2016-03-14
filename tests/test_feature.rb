@@ -133,6 +133,10 @@ class TestFeature < CiscoTestCase
     feature('pim')
   end
 
+  def test_private_vlan
+    feature('private_vlan')
+  end
+
   def test_vn_segment_vlan_based
     if node.product_id[/N(5|6|7)/]
       assert_nil(Feature.vn_segment_vlan_based_enabled?)
