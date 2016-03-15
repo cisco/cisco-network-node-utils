@@ -25,7 +25,7 @@ class TestGRPC < TestCase
   def self.runnable_methods
     # If we're pointed to an NXAPI node (as evidenced by lack of a port num)
     # then these tests don't apply
-    return [:all_skipped] unless address[/:/]
+    return [:all_skipped] unless Cisco::Environment.environment[:port]
     super
   end
 
@@ -35,7 +35,7 @@ class TestGRPC < TestCase
 
   def client
     unless @@client
-      client = Cisco::Client::GRPC.new(address, username, password)
+      client = Cisco::Client::GRPC.new(Cisco::Environment.environment)
       client.cache_enable = true
       client.cache_auto = true
       @@client = client # rubocop:disable Style/ClassVars
@@ -186,7 +186,7 @@ int gi0/0/0/0 bark bark
   # TODO: add structured output test cases (when supported on XR)
 
   def test_smart_create
-    autoclient = Cisco::Client.create(address, username, password)
+    autoclient = Cisco::Client.create
     assert_equal(Cisco::Client::GRPC, autoclient.class)
     assert(autoclient.supports?(:cli))
     refute(autoclient.supports?(:nxapi_structured))

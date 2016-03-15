@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative '../environment'
 require_relative '../exceptions'
 require_relative 'utils'
 require_relative '../constants'
@@ -38,19 +39,19 @@ class Cisco::Client
 
   attr_reader :data_formats, :platform
 
-  def initialize(address:      nil,
-                 username:     nil,
-                 password:     nil,
-                 data_formats: [],
-                 platform:     nil)
+  def initialize(data_formats: [],
+                 platform:     nil,
+                 **kwargs)
     if self.class == Cisco::Client
       fail NotImplementedError, 'Cisco::Client is an abstract class. ' \
         "Instantiate one of #{@@clients} or use Cisco::Client.create() instead"
     end
-    validate_args(address, username, password)
-    @address = address
-    @username = username
-    @password = password
+    self.class.validate_args(**kwargs)
+    @host = kwargs[:host]
+    @port = kwargs[:port]
+    @address = @port.nil? ? @host : "#{@host}:#{@port}"
+    @username = kwargs[:username]
+    @password = kwargs[:password]
     self.data_formats = data_formats
     self.platform = platform
     @cache_enable = true
@@ -58,16 +59,19 @@ class Cisco::Client
     cache_flush
   end
 
-  def validate_args(address, username, password)
-    unless address.nil?
-      fail TypeError, 'invalid address' unless address.is_a?(String)
-      fail ArgumentError, 'empty address' if address.empty?
+  def self.validate_args(**kwargs)
+    host = kwargs[:host]
+    unless host.nil?
+      fail TypeError, 'invalid address' unless host.is_a?(String)
+      fail ArgumentError, 'empty address' if host.empty?
     end
+    username = kwargs[:username]
     unless username.nil?
       fail TypeError, 'invalid username' unless username.is_a?(String)
       fail ArgumentError, 'empty username' if username.empty?
     end
-    unless password.nil? # rubocop:disable Style/GuardClause
+    password = kwargs[:password]
+    unless password.nil?
       fail TypeError, 'invalid password' unless password.is_a?(String)
       fail ArgumentError, 'empty password' if password.empty?
     end
@@ -78,18 +82,20 @@ class Cisco::Client
   end
 
   # Try to create an instance of an appropriate subclass
-  def self.create(address=nil, username=nil, password=nil)
+  def self.create(environment_name=nil)
     fail 'No client implementations available!' if clients.empty?
     debug "Trying to establish client connection. clients = #{clients}"
+    environment = Cisco::Environment.environment(environment_name)
+    host = environment[:host]
     errors = []
     clients.each do |client_class|
       begin
-        debug "Trying to connect to #{address} as #{client_class}"
-        client = client_class.new(address, username, password)
+        debug "Trying to connect to #{host} as #{client_class}"
+        client = client_class.new(**environment)
         debug "#{client_class} connected successfully"
         return client
       rescue Cisco::ClientError, TypeError, ArgumentError => e
-        debug "Unable to connect to #{address} as #{client_class}: #{e.message}"
+        debug "Unable to connect to #{host} as #{client_class}: #{e.message}"
         debug e.backtrace.join("\n  ")
         errors << e
       end
