@@ -1,0 +1,30 @@
+# The entry labeled 'default' will be used by default.
+# The user can select a different entry by name if desired.
+#
+# default:
+#   host: foo
+
+# Example config for running NXAPI remotely:
+nxapi_remote:
+  host: 192.168.1.100
+  username: devops
+  password: devops
+
+# Example config for running NXAPI on a node:
+nxapi_local:
+  # (none needed)
+
+# Example config for running gRPC remotely:
+grpc_remote:
+  host: 192.168.1.100
+  # gRPC port defaults to 57400 if unset
+  # port: 57400
+  username: admin
+  password: admin
+
+# Example config for running gRPC on a node:
+grpc_local:
+  port: 57999
+  username: admin
+  password: admin
+

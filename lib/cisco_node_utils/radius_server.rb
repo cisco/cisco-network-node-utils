@@ -381,6 +381,9 @@ module Cisco
           unless format.is_a?(Integer)
       end
 
+      # Return as we don't need to do anything
+      return if value.nil? && key.nil?
+
       if value.nil? && !key.nil?
         config_set('radius_server',
                    'key',

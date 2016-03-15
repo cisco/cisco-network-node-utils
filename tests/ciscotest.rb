@@ -18,6 +18,8 @@ require_relative 'basetest'
 require_relative 'platform_info'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/vlan'
+require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
@@ -58,7 +60,7 @@ class CiscoTestCase < TestCase
   def self.node
     unless @@node
       # rubocop:disable Style/ClassVars
-      @@node = Node.instance(address, username, password)
+      @@node = Node.instance
       # rubocop:enable Style/ClassVars
       @@node.cache_enable = true
       @@node.cache_auto = true
@@ -184,6 +186,25 @@ class CiscoTestCase < TestCase
     end
   end
 
+  # This testcase will remove all the bds existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_bridge_domains
+    BridgeDomain.bds.each do |_bd, obj|
+      obj.destroy
+    end
+  end
+
+  # This testcase will remove all the vlans existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_vlans
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlan
+      next if vlan == '1'
+      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
+      obj.destroy
+    end
+  end
+
   # Remove all user vrfs.
   def remove_all_vrfs
     require_relative '../lib/cisco_node_utils/vrf'
@@ -207,5 +228,18 @@ class CiscoTestCase < TestCase
     else
       ["default interface #{intf_name}"]
     end
+  end
+
+  def mt_full_interface?
+    # MT-full tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable the features. Either way
+    # we will provide an appropriate interface name if the linecard is present.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+    skip('Unable to find compatible interface in chassis') if slot.nil?
+
+    "ethernet#{slot}/1"
   end
 end

@@ -6,16 +6,17 @@ _template:
   get_command: "show running-config interface all | section 'interface nve'"
   get_context:
     - '/^interface <name>$/i'
-    - '/^member vni <vni> ?(associate-vrf)?$/'
+    - '(?)/^member vni <vni> ?(associate-vrf)?$/'
   set_context:
     - 'interface <name>'
-    - 'member vni <vni> <assoc_vrf>'
+    - '(?)member vni <vni> <assoc_vrf>'
 
 all_vnis:
   multiple:
   get_value: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
+  _exclude: [N7k]
   kind: string
   get_value: '/^ingress-replication protocol (\S+)$/'
   set_value: '<state> ingress-replication protocol <protocol>'
@@ -27,6 +28,7 @@ multicast_group:
   default_value: ''
 
 peer_list:
+  _exclude: [N7k]
   multiple:
   get_context:
     - '/^interface <name>$/i'

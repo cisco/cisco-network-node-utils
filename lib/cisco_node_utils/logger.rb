@@ -19,6 +19,10 @@
 
 require 'logger'
 
+# Ensure module Cisco is defined
+module Cisco
+end
+
 # Module for logging in CiscoNodeUtils. Will automatically
 # tie into Puppet or Chef logging modules if available.
 module Cisco::Logger

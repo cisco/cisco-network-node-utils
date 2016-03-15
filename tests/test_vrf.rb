@@ -29,8 +29,8 @@ class TestVrf < CiscoTestCase
   end
 
   def teardown
-    super
     remove_all_vrfs
+    super
   end
 
   def test_collection_default
@@ -73,6 +73,17 @@ class TestVrf < CiscoTestCase
     end
   end
 
+  # This helper is needed on some platforms to allow enough time for the
+  # 'shutdown' process to complete before 'no shutdown' can be successful.
+  def shutdown_with_sleep(obj, val)
+    obj.shutdown = val
+  rescue CliError => e
+    raise unless e.message[/ERROR: Shutdown of VRF .* in progress/]
+    sleep 1
+    tries ||= 1
+    retry unless (tries += 1) > 20
+  end
+
   def test_shutdown
     v = Vrf.new('test_shutdown')
     if validate_property_excluded?('vrf', 'shutdown')
@@ -84,12 +95,14 @@ class TestVrf < CiscoTestCase
     end
     v.shutdown = true
     assert(v.shutdown)
-    v.shutdown = false
+
+    shutdown_with_sleep(v, false)
     refute(v.shutdown)
 
     v.shutdown = true
     assert(v.shutdown)
-    v.shutdown = v.default_shutdown
+
+    shutdown_with_sleep(v, v.default_shutdown)
     refute(v.shutdown)
     v.destroy
   end
@@ -165,6 +178,9 @@ class TestVrf < CiscoTestCase
 
   def test_vni
     vrf = Vrf.new('test_vni')
+    assert_equal(vrf.default_vni, vrf.vni,
+                 'vrf vni should be set to default value')
+
     vrf.vni = 4096
     assert_equal(4096, vrf.vni,
                  "vrf vni should be set to '4096'")

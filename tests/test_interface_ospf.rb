@@ -389,7 +389,7 @@ class TestInterfaceOspf < CiscoTestCase
         end
         # puts "k1: #{k1}, k:  #{k},   area   #{v1[:area]}"
         cfg << "ip router ospf #{k} area #{v1[:area]}"
-        cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost].nil?
+        cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost] == 0
         cfg << "ip ospf hello-interval #{v1[:hello]}" unless v1[:hello].nil?
         cfg << "ip ospf dead-interval #{v1[:dead]}" unless v1[:dead].nil?
         cfg << 'ip ospf passive-interface' if !v1[:pass].nil? &&

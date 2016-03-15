@@ -32,20 +32,17 @@ class Cisco::Client::GRPC < Cisco::Client
 
   attr_accessor :timeout
 
-  def initialize(address, username, password)
-    # TODO: remove if/when we have a local socket to use
-    if address.nil? && username.nil? && password.nil? && ENV['NODE']
-      address ||= ENV['NODE'].split(' ')[0]
-      username ||= ENV['NODE'].split(' ')[1]
-      password ||= ENV['NODE'].split(' ')[2]
-    end
-    super(address:      address,
-          username:     username,
-          password:     password,
-          data_formats: [:cli],
-          platform:     :ios_xr)
-    @config = GRPCConfigOper::Stub.new(address, :this_channel_is_insecure)
-    @exec = GRPCExec::Stub.new(address, :this_channel_is_insecure)
+  def initialize(**kwargs)
+    # Defaults for gRPC:
+    kwargs[:host] ||= '127.0.0.1'
+    kwargs[:port] ||= 57_400
+    # rubocop:disable Style/HashSyntax
+    super(data_formats: [:cli],
+          platform:     :ios_xr,
+          **kwargs)
+    # rubocop:enable Style/HashSyntax
+    @config = GRPCConfigOper::Stub.new(@address, :this_channel_is_insecure)
+    @exec = GRPCExec::Stub.new(@address, :this_channel_is_insecure)
 
     # Make sure we can actually connect
     @timeout = 10
@@ -65,15 +62,14 @@ class Cisco::Client::GRPC < Cisco::Client
     @timeout = 120
   end
 
-  def validate_args(address, username, password)
+  def self.validate_args(**kwargs)
     super
     base_msg = 'gRPC client creation failure: '
-    fail TypeError, base_msg + 'address must be specified' if address.nil?
-    fail ArgumentError, base_msg + 'port # required in address' \
-         unless address[/:/]
     # Connection to remote system - username and password are required
-    fail TypeError, base_msg + 'username must be specified' if username.nil?
-    fail TypeError, base_msg + 'password must be specified' if password.nil?
+    fail TypeError, base_msg + 'username must be specified' \
+      if kwargs[:username].nil?
+    fail TypeError, base_msg + 'password must be specified' \
+      if kwargs[:password].nil?
   end
 
   def cache_flush

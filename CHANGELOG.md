@@ -6,6 +6,9 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Itd
+  * itd_device_group (@saichint)
+  * itd_device_group_node (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
 * Bridge Domain
@@ -59,6 +62,9 @@ Changelog
 * Improved minitest logging CLI.
   - `ruby test_foo.rb -l debug` instead of `ruby test_foo.rb -- <host> <user> <pass> debug`
   - `rake test TESTOPTS='--log-level=debug'`
+* Client connectivity is now specified in `/etc/cisco_node_utils.yaml` or `~/cisco_node_utils.yaml` instead of environment variables or command-line arguments to minitest.
+  - `ruby test_foo.rb -e <node name defined in YAML>`
+  - `rake test TESTOPTS='--environment=default'`
 
 ### Fixed
 

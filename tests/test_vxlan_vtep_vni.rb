@@ -94,6 +94,10 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_ingress_replication
     vni = VxlanVtepVni.new('nve1', '5000')
+    if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
+      assert_raises(Cisco::UnsupportedError) { vni.ingress_replication = 'bgp' }
+      return
+    end
 
     # Test non-default values
     vni.ingress_replication = 'static'
@@ -129,11 +133,13 @@ class TestVxlanVtepVni < CiscoTestCase
 
     # Test the case where an existing ingress_replication is removed before
     # configuring multicast_group
-    vni1.ingress_replication = 'static'
-    assert_equal('static', vni1.ingress_replication)
+    unless validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
+      vni1.ingress_replication = 'static'
+      assert_equal('static', vni1.ingress_replication)
 
-    vni1.multicast_group = '224.1.1.1'
-    assert_equal('224.1.1.1', vni1.multicast_group)
+      vni1.multicast_group = '224.1.1.1'
+      assert_equal('224.1.1.1', vni1.multicast_group)
+    end
 
     # Test multicast group range
     vni2.multicast_group = '224.1.1.1 224.1.1.200'
@@ -148,6 +154,10 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_peer_list
     vni = VxlanVtepVni.new('nve1', '6000')
+    if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
+      assert_raises(Cisco::UnsupportedError) { vni.peer_list = ['1.1.1.1'] }
+      return
+    end
 
     peer_list = ['1.1.1.1', '2.2.2.2', '3.3.3.3', '4.4.4.4']
 

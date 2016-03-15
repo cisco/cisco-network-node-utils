@@ -152,7 +152,8 @@ class Cisco::Client
     data
   end
 
-  # Helper method for require - suppress Ruby warnings for the given block
+  # Helper method for calls into third-party code - suppresses Ruby warnings
+  # for the given block since we have no control over that code.
   def self.silence_warnings(&block)
     warn_level = $VERBOSE
     $VERBOSE = nil

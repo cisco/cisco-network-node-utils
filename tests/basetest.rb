@@ -31,6 +31,7 @@ gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
 require_relative '../lib/cisco_node_utils/client'
+require_relative '../lib/cisco_node_utils/environment'
 require_relative '../lib/cisco_node_utils/command_reference'
 require_relative '../lib/cisco_node_utils/logger'
 
@@ -41,22 +42,12 @@ require_relative '../lib/cisco_node_utils/logger'
 # TestCase - common base class for all minitest cases in this module.
 #   Most node utility tests should inherit from CiscoTestCase instead.
 class TestCase < Minitest::Test
-  # These variables can be set in one of three ways:
-  # 1) ARGV:
-  #   $ ruby basetest.rb -- address[:port] username password
-  # 2) NODE environment variable
-  #   $ export NODE="address[:port] username password"
-  #   $ rake test
-  # 3) At run time:
-  #   $ rake test
-  #   Enter address or hostname of node under test:
   @@address = nil
   @@username = nil
   @@password = nil
 
   def self.address
-    @@address ||= ARGV[0]
-    @@address ||= ENV['NODE'].split(' ')[0] if ENV['NODE']
+    @@address ||= Cisco::Environment.environment[:host]
     unless @@address
       print 'Enter address or hostname of node under test: '
       @@address = gets.chomp
@@ -69,8 +60,7 @@ class TestCase < Minitest::Test
   end
 
   def self.username
-    @@username ||= ARGV[1]
-    @@username ||= ENV['NODE'].split(' ')[1] if ENV['NODE']
+    @@username ||= Cisco::Environment.environment[:username]
     unless @@username
       print 'Enter username for node under test:           '
       @@username = gets.chomp
@@ -83,8 +73,7 @@ class TestCase < Minitest::Test
   end
 
   def self.password
-    @@password ||= ARGV[2]
-    @@password ||= ENV['NODE'].split(' ')[2] if ENV['NODE']
+    @@password ||= Cisco::Environment.environment[:password]
     unless @@password
       print 'Enter password for node under test:           '
       @@password = gets.chomp
@@ -97,6 +86,18 @@ class TestCase < Minitest::Test
   end
 
   def setup
+    # Hack - populate environment from user-entered values from basetest.rb
+    if Cisco::Environment.environments.empty?
+      class << Cisco::Environment
+        attr_writer :environments
+      end
+      Cisco::Environment.environments['default'] = {
+        host:     address.split(':')[0],
+        port:     address.split(':')[1],
+        username: username,
+        password: password,
+      }
+    end
     @device = Net::Telnet.new('Host'    => address.split(':')[0],
                               'Timeout' => 240,
                               # NX-OS has a space after '#', IOS XR does not
