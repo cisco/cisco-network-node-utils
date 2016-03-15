@@ -286,6 +286,12 @@ class Cisco::Client::NXAPI < Cisco::Client
       # handle accordingly
       fail Cisco::RequestNotSupported, \
            "Structured output not supported for #{command}"
+    elsif output['code'] =~ /4\d\d/
+      fail Cisco::RequestFailed, \
+           "#{output['code']} Error: #{output['msg']}"
+    elsif output['code'] =~ /5\d\d/
+      fail Cisco::RequestFailed, \
+           "#{output['code']} Error: #{output['msg']}"
     else
       debug("Result for '#{command}': #{output['msg']}")
       if output['body'] && !output['body'].empty?
