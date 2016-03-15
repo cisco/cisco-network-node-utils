@@ -47,36 +47,23 @@ name:
 private_vlan_association:
   _exclude: [N8k]
   kind: string
+  multiple: true
   get_command: "show vlan private-vlan"
-  get_value: '/^([\s0-9][^\n]*\w)/'
+  get_value: '/^<id>\s+(\d+)/'
   set_context: ['vlan <vlan>']
   # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan association <operation> <vlans> ; end"
   default_value: "default"
 
-private_vlan_association_all:
-  _exclude: [N8k]
-  multiple: true
-  context: ~
-  get_command: 'show vlan private-vlan'
-  get_value: '/^([\s0-9][^\n]*\w)/'
-
 private_vlan_type:
   _exclude: [N8k]
   kind: string
   get_command: 'show vlan private-vlan type'
-  get_value: '/^\d+\s+([a-z]+)$/'
+  get_value: '/^<id>\s+(\S+)/'
   set_context: ['vlan <vlan>']
   # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan <type> ; end"
   default_value: ""
-
-private_vlan_type_all:
-  _exclude: [N8k]
-  multiple: true
-  context: ~
-  get_command: 'show vlan private-vlan type'
-  get_value: '/^\d+\s+\S+/'
 
 shutdown:
   get_command: "show vlan brief"

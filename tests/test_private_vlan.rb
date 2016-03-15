@@ -206,7 +206,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_isolate_association
     vlan_list = %w(100 101)
-    result = { '101' => 'isolated' }
+    result = '[101]'
     config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
@@ -228,7 +228,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_community_association
     vlan_list = %w(100 101)
-    result = { '101' => 'community' }
+    result = '[101]'
     config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
@@ -250,7 +250,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_failure
     vlan_list = %w(100 101 200)
-    result = { '101' => 'isolated', '200' => 'community' }
+    result = '[101, 200]'
     config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
@@ -443,7 +443,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_isolate_community_association
     vlan_list = %w(100 101 200)
-    result = { '101' => 'isolated', '200' => 'community' }
+    result = '[101, 200]'
     config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
@@ -470,12 +470,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_multi_isolate_community_association
     vlan_list = %w(100 101 102 104 105 200 201 202)
-    result = { '101' => 'isolated',
-               '104' => 'community',
-               '105' => 'community',
-               '200' => 'community',
-               '202' => 'non-operational',
-    }
+    result = '[101, 104, 105, 200, 202]'
     config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])

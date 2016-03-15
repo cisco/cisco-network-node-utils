@@ -65,29 +65,27 @@ module Cisco
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       # Check for messages that can be safely ignored.
 
+      warning = false
+
       unless ignore_message.nil?
-        # Check result against ignore_message
-        # Return if  ignore_message is included in result
-        fail result[2]['body'] if
-          result[2].is_a?(Hash) &&
-          /(ERROR:|VLAN:)/.match(result[2]['body'].to_s)
-        fail result[2] if
-          result[2].is_a?(String) &&
-          /(ERROR:|VLAN:)/.match(result[2])
-        return result[2].is_a?(Hash) &&
-          result[2]['body'].to_s[ignore_message] ||
-          result[2].is_a?(String) &&
-            result[2]['body'].to_s[ignore_message]
+        # Check if ignore_message is present
+        warning = true
       end
 
       fail result[2]['body'] if
         result[2].is_a?(Hash) &&
-        /(ERROR:|Warning:|VLAN:)/.match(result[2]['body'].to_s)
+        /(ERROR:|VLAN:)/.match(result[2]['body'].to_s) ||
+        /(Warning:)/.match(result[2]['body'].to_s) &&
+        warning &&
+        result[2]['body'].to_s[ignore_message].nill?
 
       # Some test environments get result[2] as a string instead of a hash
       fail result[2] if
         result[2].is_a?(String) &&
-        /(ERROR:|Warning:|VLAN:)/.match(result[2])
+        /(ERROR:|VLAN:)/.match(result[2]) ||
+        result[2].is_a?(String) && /(Warning:)/.match(result[2]) &&
+        warning &&
+        result[2].to_s[ignore_message].nill?
     end
 
     def fabricpath_feature
@@ -229,14 +227,7 @@ module Cisco
     end
 
     def private_vlan_type
-      result = config_get('vlan', 'private_vlan_type_all')
-      return '' if result.nil?
-      result.each do |elem|
-        vlan = elem.match(@vlan_id)
-        next if vlan.nil?
-        return elem.match(/\d+\s+(\S+)/)[1]
-      end
-      ''
+      config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
 
     def private_vlan_type=(pv_type)
@@ -264,16 +255,8 @@ module Cisco
     end
 
     def private_vlan_association
-      match_entries = {}
-      result = config_get('vlan', 'private_vlan_association_all')
-      return match_entries if result.nil?
-      result.each do |elem|
-        vlan = elem.match(@vlan_id)
-        next if vlan.nil?
-        assoc_operational = elem.match(/\d+\s+(\d+)\s+(\S+)/)
-        match_entries.store(assoc_operational[1], assoc_operational[2])
-      end
-      match_entries
+      result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      result.delete('"')
     end
 
     def private_vlan_association=(config)
