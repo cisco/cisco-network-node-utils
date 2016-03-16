@@ -23,6 +23,8 @@ class TestBridgeDomainVNI < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
+    remove_all_vlans
+    remove_all_bridge_domains
     BridgeDomainVNI.rangebds.each do |_bd, obj|
       obj.destroy
     end
