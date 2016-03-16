@@ -15,22 +15,7 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Make changes in your branch.
 * Testing
   * Create a minitest script for any new APIs or new functionality
-  * Run all the tests to ensure there was no collateral damage to existing code. There are two ways you can specify the Nexus switch (virtual or physical) to test against when running the full test suite:
-    1. Use the NODE environment variable to specify the address, username, and password:
-
-        ```bash
-        export NODE="192.168.100.1 user password"
-        rake test
-        ```
-
-    2. Enter the connection information at runtime:
-
-        ```
-        rake test
-        Enter address or hostname of node under test: 192.168.100.1
-        Enter username for node under test:           user
-        Enter password for node under test:           password
-        ```
+  * Run all the tests to ensure there was no collateral damage to existing code. See [README-test-execution](docs/README-test-execution.md) for details.
 
 * Committing
   * Check for unnecessary whitespace with `git diff --check` before committing.

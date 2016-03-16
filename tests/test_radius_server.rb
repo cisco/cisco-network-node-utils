@@ -93,6 +93,9 @@ class TestRadiusServer < CiscoTestCase
       server.auth_port = 77
       assert_equal(77, Cisco::RadiusServer.radiusservers[id].auth_port)
 
+      server.key_set(nil, nil)
+      assert_equal(nil, Cisco::RadiusServer.radiusservers[id].key)
+
       server.key_set('44444444', nil)
       assert_equal('44444444', Cisco::RadiusServer.radiusservers[id].key)
     else

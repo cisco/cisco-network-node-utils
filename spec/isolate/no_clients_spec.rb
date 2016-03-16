@@ -19,7 +19,7 @@ context 'when no client implementations are installed' do
 
   it 'should fail Client.create' do
     require 'cisco_node_utils'
-    expect { Cisco::Client.create('1.1.1.1', 'u', 'p') }.to \
+    expect { Cisco::Client.create }.to \
       raise_error(RuntimeError, 'No client implementations available!')
   end
   # TODO
