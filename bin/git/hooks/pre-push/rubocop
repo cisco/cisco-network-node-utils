@@ -3,10 +3,5 @@
 [ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
 . "$GIT_DIR"/hooks/hook_lib
 
-staged_ruby_files=$(get_staged_ruby_files)
-if [ -z "$staged_ruby_files" ]; then
-  # quit since there are no ruby files to check
-  exit 0
-fi
-rubocop $staged_ruby_files
+rubocop
 check_rc "Please fix RuboCop failures before pushing code upstream."
