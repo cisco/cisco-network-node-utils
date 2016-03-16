@@ -1,0 +1,83 @@
+# itd_device_group
+---
+_exclude: [N3k, N5k, N6k, N8k, ios_xr]
+
+_template:
+  get_command: "show running-config all | section itd"
+  get_context:
+      - '/^itd device-group <name>/'
+      - '(?)/^node <ntype> <nname>/'
+  set_context: ["itd device-group <name>", "(?)node <ntype> <nname>"]
+
+all_itd_device_group_nodes:
+  multiple:
+  get_context: ['/^itd device-group <name>/']
+  get_value: '/^node (\S+) (\S+)/'
+
+all_itd_device_groups:
+  multiple:
+  get_context: ~
+  get_value: '/^itd device-group (\S+)/'
+
+create:
+  set_context: ~
+  set_value: "itd device-group <name>"
+
+create_node:
+  set_context: ["itd device-group <name>"]
+  set_value: "node <ntype> <nname>"
+
+destroy:
+  set_context: ~
+  set_value: "no itd device-group <name>"
+
+destroy_node:
+  set_context: ["itd device-group <name>"]
+  set_value: "no node <ntype> <nname>"
+
+hot_standby:
+  kind: boolean
+  get_value: '/^mode hot-standby/'
+  set_value: "<state> mode hot-standby"
+  default_value: false
+
+probe:
+  get_value: '/^probe .+$/'
+  set_value: "probe <type> <dns_host> <port> <control> <frequency> <timeout> <retry_down_count> <retry_up_count>"
+
+probe_control:
+  kind: boolean
+  default_value: false
+
+probe_dns_host:
+  kind: string
+
+probe_frequency:
+  kind: int
+  default_value: 10
+
+probe_port:
+  kind: int
+
+probe_retry_down:
+  kind: int
+  default_value: 3
+
+probe_retry_up:
+  kind: int
+  default_value: 3
+
+probe_timeout:
+  kind: int
+  default_value: 5
+
+probe_type:
+  kind: string
+  set_value: "<state> probe icmp"
+  default_value: false
+
+weight:
+  kind: int
+  get_value: '/^weight (\d+)/'
+  set_value: "<state> weight <weight>"
+  default_value: 1

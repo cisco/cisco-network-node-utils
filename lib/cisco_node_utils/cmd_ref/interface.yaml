@@ -441,14 +441,14 @@ system_default_switchport_shutdown:
     default_only: true
 
 vlan_mapping:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^switchport vlan mapping (\d+) (\d+)/'
   set_value: '<state> switchport vlan mapping <original> <translated>'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
   get_value: '/^(no )?switchport vlan mapping enable/'
   set_value: '<state> switchport vlan mapping enable'

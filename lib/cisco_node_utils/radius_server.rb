@@ -25,7 +25,7 @@ module Cisco
   class RadiusServer < NodeUtil
     attr_reader :name
 
-    def initialize(name, instantiate=true)
+    def initialize(name, instantiate=true, auth_p=nil, acct_p=nil)
       unless name =~ /^[a-zA-Z0-9\.\:]*$/
         fail ArgumentError,
              'Invalid value (IPv4/IPv6 address contains invalid characters)'
@@ -39,7 +39,37 @@ module Cisco
       end
       @name = name
 
+      if platform == :ios_xr
+        if auth_p.nil?
+          @auth_port = config_get_default('radius_server', 'auth-port')
+        else
+          fail ArgumentError, 'auth_p must be an Integer' \
+            unless auth_p.is_a?(Integer)
+          @auth_port = auth_p
+        end
+
+        if acct_p.nil?
+          @acct_port = config_get_default('radius_server', 'acct-port')
+        else
+          fail ArgumentError, 'acct_p must be an Integer' \
+            unless acct_p.is_a?(Integer)
+          @acct_port = acct_p
+        end
+      end
+
       create if instantiate
+
+      return if platform == :ios_xr
+      unless auth_p.nil?
+        fail ArgumentError, 'auth_p must be an Integer' \
+          unless auth_p.is_a?(Integer)
+        self.auth_port = auth_p
+      end
+
+      return if acct_p.nil?
+      fail ArgumentError, 'acct_p must be an Integer' \
+        unless acct_p.is_a?(Integer)
+      self.acct_port = acct_p
     end
 
     def self.radiusservers
@@ -48,24 +78,65 @@ module Cisco
       radiusservers_list = config_get('radius_server', 'hosts')
       return hash if radiusservers_list.empty?
       radiusservers_list.each do |id|
-        hash[id] = RadiusServer.new(id, false)
+        if platform == :ios_xr
+          authp = config_get('radius_server', 'auth-port', ip: id)
+          authp = authp[0] if authp.is_a?(Array)
+          authp = authp.to_i
+
+          acctp = config_get('radius_server', 'acct-port', ip: id)
+          acctp = acctp[0] if acctp.is_a?(Array)
+          acctp = acctp.to_i
+
+          hash[id] = RadiusServer.new(id, false, authp, acctp)
+        else
+          hash[id] = RadiusServer.new(id, false)
+        end
       end
 
       hash
     end
 
     def create
+      destroy if platform == :ios_xr
       config_set('radius_server',
                  'hosts',
-                 state: '',
-                 ip:    @name)
+                 state:     '',
+                 ip:        @name,
+                 auth_port: @auth_port,
+                 acct_port: @acct_port)
     end
 
     def destroy
-      config_set('radius_server',
-                 'hosts',
-                 state: 'no',
-                 ip:    @name)
+      if platform == :ios_xr
+        # This provider only support a 1-1 mapping between host and ports.
+        # Thus, we must remove the other entries on different ports.
+        all_hosts = config_get('radius_server', 'host_port_pairs', ip: @name)
+        return unless all_hosts.is_a?(Array)
+
+        warn("#{name} is configured multiple times on the device" \
+            ' (possibly using different ports). This is unsupported by this' \
+            ' API and the duplicate entries are being deleted.') \
+          if all_hosts.count > 1
+
+        all_hosts.each do |host|
+          auth = host[0]
+          acct = host[1]
+
+          config_set('radius_server',
+                     'hosts',
+                     state:     'no',
+                     ip:        @name,
+                     auth_port: auth,
+                     acct_port: acct)
+        end
+      else
+        config_set('radius_server',
+                   'hosts',
+                   state:     'no',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port)
+      end
     end
 
     def ==(other)
@@ -73,7 +144,8 @@ module Cisco
     end
 
     def auth_port
-      config_get('radius_server', 'auth-port', @name)
+      platform == :ios_xr ? @auth_port : config_get('radius_server',
+                                                    'auth-port', ip: @name)
     end
 
     def default_auth_port
@@ -81,6 +153,10 @@ module Cisco
     end
 
     def auth_port=(val)
+      fail("'auth_port' setter method not applicable for this platform." \
+        'auth_port must be passed in to the constructor.') \
+          if platform == :ios_xr
+
       unless val.nil?
         fail ArgumentError, 'auth_port must be an Integer' \
           unless val.is_a?(Integer)
@@ -102,7 +178,8 @@ module Cisco
     end
 
     def acct_port
-      config_get('radius_server', 'acct-port', @name)
+      platform == :ios_xr ? @acct_port : config_get('radius_server',
+                                                    'acct-port', ip: @name)
     end
 
     def default_acct_port
@@ -110,6 +187,10 @@ module Cisco
     end
 
     def acct_port=(val)
+      fail("'acct_port' setter method not applicable for this platform." \
+        'acct_port must be passed in to the constructor.') \
+          if platform == :ios_xr
+
       unless val.nil?
         fail ArgumentError, 'acct_port must be an Integer' \
           unless val.is_a?(Integer)
@@ -131,7 +212,15 @@ module Cisco
     end
 
     def timeout
-      config_get('radius_server', 'timeout', @name)
+      val = config_get('radius_server',
+                       'timeout',
+                       ip:        @name,
+                       auth_port: @auth_port,
+                       acct_port: @acct_port)
+
+      val = val[0] if val.is_a?(Array)
+      val = val.to_i unless val.nil?
+      val
     end
 
     def default_timeout
@@ -147,20 +236,31 @@ module Cisco
       if val.nil?
         config_set('radius_server',
                    'timeout',
-                   state:   'no',
-                   ip:      @name,
-                   timeout: timeout)
+                   state:     'no',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   timeout:   timeout)
       else
         config_set('radius_server',
                    'timeout',
-                   state:   '',
-                   ip:      @name,
-                   timeout: val)
+                   state:     '',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   timeout:   val)
       end
     end
 
     def retransmit_count
-      config_get('radius_server', 'retransmit', @name)
+      val = config_get('radius_server',
+                       'retransmit',
+                       ip:        @name,
+                       auth_port: @auth_port,
+                       acct_port: @acct_port)
+      val = val[0] if val.is_a?(Array)
+      val = val.to_i unless val.nil?
+      val
     end
 
     def default_retransmit_count
@@ -176,20 +276,25 @@ module Cisco
       if val.nil?
         config_set('radius_server',
                    'retransmit',
-                   state: 'no',
-                   ip:    @name,
-                   count: retransmit_count)
+                   state:     'no',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   count:     retransmit_count)
       else
         config_set('radius_server',
                    'retransmit',
-                   state: '',
-                   ip:    @name,
-                   count: val)
+                   state:     '',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   count:     val)
       end
     end
 
     def accounting
-      val = config_get('radius_server', 'accounting', @name)
+      return nil if platform == :ios_xr
+      val = config_get('radius_server', 'accounting', ip: @name)
       if val.nil?
         false
       else
@@ -216,7 +321,8 @@ module Cisco
     end
 
     def authentication
-      val = config_get('radius_server', 'authentication', @name)
+      return nil if platform == :ios_xr
+      val = config_get('radius_server', 'authentication', ip: @name)
       if val.nil?
         false
       else
@@ -243,11 +349,25 @@ module Cisco
     end
 
     def key_format
-      config_get('radius_server', 'key_format', @name)
+      val = config_get('radius_server',
+                       'key_format',
+                       ip:        @name,
+                       auth_port: @auth_port,
+                       acct_port: @acct_port)
+
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     def key
-      config_get('radius_server', 'key', @name)
+      val = config_get('radius_server',
+                       'key',
+                       ip:        @name,
+                       auth_port: @auth_port,
+                       acct_port: @acct_port)
+
+      val = val[0] if val.is_a?(Array)
+      val
     end
 
     def key_set(value, format)
@@ -261,24 +381,33 @@ module Cisco
           unless format.is_a?(Integer)
       end
 
+      # Return as we don't need to do anything
+      return if value.nil? && key.nil?
+
       if value.nil? && !key.nil?
         config_set('radius_server',
                    'key',
-                   state: 'no',
-                   ip:    @name,
-                   key:   "#{key_format} #{key}")
+                   state:     'no',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   key:       "#{key_format} #{key}")
       elsif !format.nil?
         config_set('radius_server',
                    'key',
-                   state: '',
-                   ip:    @name,
-                   key:   "#{format} #{value}")
+                   state:     '',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   key:       "#{format} #{value}")
       else
         config_set('radius_server',
                    'key',
-                   state: '',
-                   ip:    @name,
-                   key:   "#{value}")
+                   state:     '',
+                   ip:        @name,
+                   auth_port: @auth_port,
+                   acct_port: @acct_port,
+                   key:       "#{value}")
       end
     end
   end # class

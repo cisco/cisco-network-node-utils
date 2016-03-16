@@ -1,7 +1,7 @@
 # encapsulation_profile_vni
 # encapsulation_profile_vni feature is available only on n7k
 ---
-_exclude: [N3k, N5k, N6k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
 
 all_encaps:
   multiple: true
@@ -22,4 +22,4 @@ dot1q_map:
   get_value: '/^.* vni <profile>\s+dot1q ([\d\s,-]+) vni ([\d\s,-]+)$/'
   set_context: ['encapsulation profile vni <profile>']
   set_value: '<state> dot1q <vlans> vni <vnis>'
-  default_value: ~ 
+  default_value: ~

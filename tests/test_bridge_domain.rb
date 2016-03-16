@@ -24,9 +24,8 @@ class TestBridgeDomain < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
-    BridgeDomain.bds.each do |_bd, obj|
-      obj.destroy
-    end
+    remove_all_vlans
+    remove_all_bridge_domains
   end
 
   def setup
@@ -52,8 +51,8 @@ class TestBridgeDomain < CiscoTestCase
 
   def test_bd_create_if_vlan_exists
     vlan = Vlan.new(100)
-    assert_raises(RuntimeError,
-                  'Vlan already exist did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'Vlan already exist did not raise CliError') do
       BridgeDomain.new(100)
     end
     vlan.destroy
@@ -138,8 +137,8 @@ class TestBridgeDomain < CiscoTestCase
     assert(bd.fabric_control)
     another_bd = BridgeDomain.new(101)
 
-    assert_raises(RuntimeError,
-                  'BD misconfig did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'BD misconfig did not raise CliError') do
       another_bd.fabric_control = true
     end
     bd.destroy
@@ -147,8 +146,8 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def test_invalid_bd_create
-    assert_raises(RuntimeError,
-                  'BD misconfig did not raise RuntimeError') do
+    assert_raises(CliError,
+                  'BD misconfig did not raise CliError') do
       BridgeDomain.new('90, 5000-5004,100')
     end
   end

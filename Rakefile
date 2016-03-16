@@ -9,30 +9,26 @@ task default: %w(rubocop spec build)
 
 RuboCop::RakeTask.new
 
+RSpec::Core::RakeTask.new(:spec_common) do |t|
+  t.pattern = 'spec/*_spec.rb'
+  t.rspec_opts = '--format documentation'
+  t.verbose = false
+end
+spec_tasks = [:spec_common]
+
 # Because each of the below specs requires a clean Ruby environment,
 # they need to be run individually instead of as a single RSpec task.
-RSpec::Core::RakeTask.new(:spec_no_clients) do |t|
-  t.pattern = 'spec/no_clients_spec.rb'
-end
-RSpec::Core::RakeTask.new(:spec_nxapi_only) do |t|
-  t.pattern = 'spec/nxapi_only_spec.rb'
-end
-RSpec::Core::RakeTask.new(:spec_grpc_only) do |t|
-  t.pattern = 'spec/grpc_only_spec.rb'
-end
-RSpec::Core::RakeTask.new(:spec_all_clients) do |t|
-  t.pattern = 'spec/all_clients_spec.rb'
-end
-RSpec::Core::RakeTask.new(:spec_yaml) do |t|
-  t.pattern = 'spec/yaml_spec.rb'
+Dir.glob('spec/isolate/*_spec.rb').each do |f|
+  task = File.basename(f, '.rb').to_sym
+  RSpec::Core::RakeTask.new(task) do |t|
+    t.pattern = f
+    t.rspec_opts = '--format documentation'
+    t.verbose = false
+  end
+  spec_tasks << task
 end
 
-task spec: [:spec_no_clients,
-            :spec_nxapi_only,
-            :spec_grpc_only,
-            :spec_all_clients,
-            :spec_yaml,
-           ]
+task spec: spec_tasks
 
 task :build do
   system 'gem build cisco_node_utils.gemspec'

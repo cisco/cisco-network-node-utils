@@ -14,8 +14,6 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vrf'
-require_relative '../lib/cisco_node_utils/vrf_af'
-require_relative '../lib/cisco_node_utils/vni'
 
 include Cisco
 
@@ -31,8 +29,8 @@ class TestVrf < CiscoTestCase
   end
 
   def teardown
-    super
     remove_all_vrfs
+    super
   end
 
   def test_collection_default
@@ -75,9 +73,20 @@ class TestVrf < CiscoTestCase
     end
   end
 
+  # This helper is needed on some platforms to allow enough time for the
+  # 'shutdown' process to complete before 'no shutdown' can be successful.
+  def shutdown_with_sleep(obj, val)
+    obj.shutdown = val
+  rescue CliError => e
+    raise unless e.message[/ERROR: Shutdown of VRF .* in progress/]
+    sleep 1
+    tries ||= 1
+    retry unless (tries += 1) > 20
+  end
+
   def test_shutdown
     v = Vrf.new('test_shutdown')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'shutdown')
       assert_nil(v.shutdown)
       assert_nil(v.default_shutdown)
       assert_raises(Cisco::UnsupportedError) { v.shutdown = true }
@@ -86,12 +95,14 @@ class TestVrf < CiscoTestCase
     end
     v.shutdown = true
     assert(v.shutdown)
-    v.shutdown = false
+
+    shutdown_with_sleep(v, false)
     refute(v.shutdown)
 
     v.shutdown = true
     assert(v.shutdown)
-    v.shutdown = v.default_shutdown
+
+    shutdown_with_sleep(v, v.default_shutdown)
     refute(v.shutdown)
     v.destroy
   end
@@ -108,9 +119,68 @@ class TestVrf < CiscoTestCase
     v.destroy
   end
 
+  def test_mhost
+    v = Vrf.new('test_mhost')
+    t_intf = 'Loopback100'
+    if validate_property_excluded?('vrf', 'mhost_default_interface')
+      assert_nil(v.mhost_ipv4_default_interface)
+      assert_nil(v.mhost_ipv6_default_interface)
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv4_default_interface = t_intf
+      end
+      assert_raises(Cisco::UnsupportedError) do
+        v.mhost_ipv6_default_interface = t_intf
+      end
+      v.destroy
+      return
+    end
+    config("interface #{t_intf}")
+    %w(mhost_ipv4_default_interface mhost_ipv6_default_interface).each do |mh|
+      df = v.send("default_#{mh}")
+      result = v.send("#{mh}")
+      assert_equal(df, result, "Test1.1 : #{mh} should be default value")
+
+      v.send("#{mh}=", t_intf)
+      result = v.send("#{mh}")
+      assert_equal(t_intf, result,
+                   "Test2.1 :vrf #{mh} should be set to #{t_intf}")
+
+      df = v.send("default_#{mh}")
+      v.send("#{mh}=", "#{df}")
+      result = v.send("#{mh}")
+      assert_equal(df, result,
+                   "Test3.1 :vrf #{mh} should be set to default value")
+    end
+    config("no interface #{t_intf}")
+    v.destroy
+  end
+
+  def test_remote_route_filtering
+    v = Vrf.new('test_remote_route_filtering')
+    if validate_property_excluded?('vrf', 'remote_route_filtering')
+      refute(v.remote_route_filtering)
+      assert_raises(Cisco::UnsupportedError) do
+        v.remote_route_filtering = false
+      end
+      v.destroy
+      return
+    end
+    assert(v.remote_route_filtering,
+           'Test1.1, remote_route_filtering should be default value')
+    v.remote_route_filtering = false
+    refute(v.remote_route_filtering,
+           'Test2.1, remote_route_filtering should be set to false')
+    v.remote_route_filtering = v.default_remote_route_filtering
+    assert(v.remote_route_filtering,
+           'Test3.1, remote_route_filtering should be set to default value')
+    v.destroy
+  end
+
   def test_vni
-    skip('Platform does not support MT-lite') unless Vni.mt_lite_support
     vrf = Vrf.new('test_vni')
+    assert_equal(vrf.default_vni, vrf.vni,
+                 'vrf vni should be set to default value')
+
     vrf.vni = 4096
     assert_equal(4096, vrf.vni,
                  "vrf vni should be set to '4096'")
@@ -124,7 +194,7 @@ class TestVrf < CiscoTestCase
 
   def test_route_distinguisher
     v = Vrf.new('green')
-    if platform == :ios_xr
+    if validate_property_excluded?('vrf', 'route_distinguisher')
       # Must be configured under BGP in IOS XR
       assert_nil(v.route_distinguisher)
       assert_nil(v.default_route_distinguisher)
@@ -147,188 +217,23 @@ class TestVrf < CiscoTestCase
     v.destroy
   end
 
-  def test_vrf_af_create_destroy
-    v1 = VrfAF.new('cyan', %w(ipv4 unicast))
-    v2 = VrfAF.new('cyan', %w(ipv6 unicast))
-    v3 = VrfAF.new('red', %w(ipv4 unicast))
-    v4 = VrfAF.new('blue', %w(ipv4 unicast))
-    v5 = VrfAF.new('red', %w(ipv6 unicast))
-    assert_equal(2, VrfAF.afs['cyan'].keys.count)
-    assert_equal(2, VrfAF.afs['red'].keys.count)
-    assert_equal(1, VrfAF.afs['blue'].keys.count)
-
-    v1.destroy
-    v5.destroy
-    assert_equal(1, VrfAF.afs['cyan'].keys.count)
-    assert_equal(1, VrfAF.afs['red'].keys.count)
-    assert_equal(1, VrfAF.afs['blue'].keys.count)
-
-    v2.destroy
-    v3.destroy
-    v4.destroy
-    assert_equal(0, VrfAF.afs['cyan'].keys.count)
-    assert_equal(0, VrfAF.afs['red'].keys.count)
-    assert_equal(0, VrfAF.afs['blue'].keys.count)
-  end
-
-  #-----------------------------------------
-  # test_route_policy
-  def test_route_policy
-    config('route-policy abc', 'end-policy') if platform == :ios_xr
-    [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_policy(af) }
-    config('no route-policy abc') if platform == :ios_xr
-  end
-
-  def route_policy(af)
-    v = VrfAF.new('black', af)
-
-    assert_nil(v.default_route_policy_import,
-               "Test1.1 : #{af} : route_policy_import")
-    assert_nil(v.default_route_policy_export,
-               "Test1.2 : #{af} : route_policy_export")
-    opts = [:import, :export]
-    # test route_target_import
-    # test route_target_export
-    opts.each do |opt|
-      # test route_policy set, from nil to name
-      policy_name = 'abc'
-      v.send("route_policy_#{opt}=", policy_name)
-      result = v.send("route_policy_#{opt}")
-      assert_equal(policy_name, result,
-                   "Test2.1 : #{af} : route_policy_#{opt}")
-
-      # test route_policy remove, from name to nil
-      policy_name = nil
-      v.send("route_policy_#{opt}=", policy_name)
-      result = v.send("route_policy_#{opt}")
-      assert_nil(result, "Test2.2 : #{af} : route_policy_#{opt}")
-
-      # test route_policy remove, from nil to nil
-      v.send("route_policy_#{opt}=", policy_name)
-      result = v.send("route_policy_#{opt}")
-      assert_nil(result, "Test2.3 : #{af} : route_policy_#{opt}")
+  def test_vpn_id
+    v = Vrf.new('test_vpn_id')
+    if validate_property_excluded?('vrf', 'vpn_id')
+      assert_nil(v.vpn_id)
+      assert_raises(Cisco::UnsupportedError) { v.vpn_id = '1:1' }
+      v.destroy
+      return
     end
+    assert_equal(v.default_vpn_id, v.vpn_id,
+                 'Test1.1, vpn_id should be default value')
+    %w(1:1 abcdef:12345678).each do |id|
+      v.vpn_id = id
+      assert_equal(id, v.vpn_id, "Test2.1, vpn_id should be set to #{id}")
+    end
+    v.vpn_id = v.default_vpn_id
+    assert_equal(v.default_vpn_id, v.vpn_id,
+                 'Test3.1, vpn_id should be set to default value')
     v.destroy
-  end
-
-  def test_route_target
-    [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_target(af) }
-  end
-
-  def route_target(af)
-    # Common tester for route-target properties. Tests evpn and non-evpn.
-    #   route_target_both_auto
-    #   route_target_both_auto_evpn
-    #   route_target_export
-    #   route_target_export_evpn
-    #   route_target_import
-    #   route_target_import_evpn
-    vrf = 'orange'
-    v = VrfAF.new(vrf, af)
-
-    # test route target both auto and route target both auto evpn
-    refute(v.default_route_target_both_auto,
-           'default value for route target both auto should be false')
-
-    refute(v.default_route_target_both_auto_evpn,
-           'default value for route target both auto evpn should be false')
-
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
-    else
-      v.route_target_both_auto = true
-      assert(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-             'v route-target both auto should be enabled')
-
-      v.route_target_both_auto = false
-      refute(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
-             'v route-target both auto should be disabled')
-    end
-
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        v.route_target_both_auto_evpn = true
-      end
-    else
-      v.route_target_both_auto_evpn = true
-      assert(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-             'v route-target both auto evpn should be enabled')
-
-      v.route_target_both_auto_evpn = false
-      refute(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
-             'v route-target both auto evpn should be disabled')
-    end
-
-    opts = [:import, :export]
-
-    # Master list of communities to test against
-    master = ['1:1', '2:2', '3:3', '4:5']
-
-    # Test 1: both/import/export when no commands are present. Each target
-    # option will be tested with and without evpn (6 separate types)
-    should = master.clone
-    route_target_tester(v, af, opts, should, 'Test 1')
-
-    # Test 2: remove half of the entries
-    should = ['1:1', '4:4']
-    route_target_tester(v, af, opts, should, 'Test 2')
-
-    # Test 3: restore the removed entries
-    should = master.clone
-    route_target_tester(v, af, opts, should, 'Test 3')
-
-    # Test 4: 'default'
-    should = v.default_route_target_import
-    route_target_tester(v, af, opts, should, 'Test 4')
-    v.destroy
-  end
-
-  def route_target_tester(v, af, opts, should, test_id)
-    # First configure all four property types
-    opts.each do |opt|
-      # non-evpn
-      v.send("route_target_#{opt}=", should)
-      # evpn
-      if platform == :nexus
-        v.send("route_target_#{opt}_evpn=", should)
-      else
-        assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_evpn=") do
-          v.send("route_target_#{opt}_evpn=", should)
-        end
-      end
-      # stitching
-      if platform == :nexus
-        assert_raises(Cisco::UnsupportedError,
-                      "route_target_#{opt}_stitching=") do
-          v.send("route_target_#{opt}_stitching=", should)
-        end
-      else
-        v.send("route_target_#{opt}_stitching=", should)
-      end
-    end
-
-    # Now check the results
-    opts.each do |opt|
-      # non-evpn
-      result = v.send("route_target_#{opt}")
-      assert_equal(should, result,
-                   "#{test_id} : #{af} : route_target_#{opt}")
-      # evpn
-      result = v.send("route_target_#{opt}_evpn")
-      if platform == :nexus
-        assert_equal(should, result,
-                     "#{test_id} : #{af} : route_target_#{opt}_evpn")
-      else
-        assert_nil(result)
-      end
-      # stitching
-      result = v.send("route_target_#{opt}_stitching")
-      if platform == :nexus
-        assert_nil(result)
-      else
-        assert_equal(should, result,
-                     "#{test_id} : #{af} : route_target_#{opt}_stitching")
-      end
-    end
   end
 end

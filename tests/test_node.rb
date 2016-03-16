@@ -22,110 +22,29 @@ include Cisco
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
-    # Load parameters for login
-    address
-    username
-    password
+    super
     # Clear out the environment so we have control over which parameters
     # we provide to Node to connect with.
-    @env_node = ENV['NODE']
-    ENV['NODE'] = nil
     Node.instance_variable_set(:@instance, nil)
   end
 
-  def teardown
-    # Restore the environment
-    ENV['NODE'] = @env_node
-  end
-
-  def test_connect_zero_arguments
-    # No UDS present on the test host, so default logic fails to connect
+  def test_connect_no_environment
+    environment = Node::Environment.default_environment_name
+    Node::Environment.default_environment_name = '!@#$&@#$' # nonexistent
+    # No UDS present on the test host, so default environment fails to connect
     assert_raises(Cisco::ConnectionRefused) do
       Node.new
     end
     assert_raises(RuntimeError) do
       Node.instance
     end
+  ensure
+    Node::Environment.default_environment_name = environment
   end
 
-  def test_connect_one_argument
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(address)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(address)
-    end
-  end
-
-  def test_connect_two_arguments
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(username, password)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(username, password)
-    end
-  end
-
-  def test_connect_nil_username
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(address, nil, password)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(address, nil, password)
-    end
-  end
-
-  def test_connect_invalid_username
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(address, self, password)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(address, self, password)
-    end
-  end
-
-  def test_connect_username_zero_length
-    assert_raises(ArgumentError) do
-      Node.new(address, '', password)
-    end
-    assert_raises(ArgumentError) do
-      Node.instance(address, '', password)
-    end
-  end
-
-  def test_connect_nil_password
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(address, username, nil)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(address, username, nil)
-    end
-  end
-
-  def test_connect_invalid_password
-    assert_raises(TypeError, ArgumentError) do
-      Node.new(address, username, self)
-    end
-    assert_raises(TypeError, ArgumentError) do
-      Node.instance(address, username, self)
-    end
-  end
-
-  def test_connect_password_zero_length
-    assert_raises(ArgumentError) do
-      Node.new(address, username, '')
-    end
-    assert_raises(ArgumentError) do
-      Node.instance(address, username, '')
-    end
-  end
-
-  def test_connect
-    node = Node.instance(address, username, password)
+  def test_singleton
+    node = Node.instance
     node2 = Node.instance
     assert_equal(node, node2)
-    assert_raises(RuntimeError) do
-      Node.instance(address, 'hello', 'goodbye')
-    end
   end
 end

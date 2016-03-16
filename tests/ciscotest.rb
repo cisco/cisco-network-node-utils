@@ -18,6 +18,8 @@ require_relative 'basetest'
 require_relative 'platform_info'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/vlan'
+require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
@@ -58,7 +60,7 @@ class CiscoTestCase < TestCase
   def self.node
     unless @@node
       # rubocop:disable Style/ClassVars
-      @@node = Node.instance(address, username, password)
+      @@node = Node.instance
       # rubocop:enable Style/ClassVars
       @@node.cache_enable = true
       @@node.cache_auto = true
@@ -96,9 +98,9 @@ class CiscoTestCase < TestCase
     self.class.platform
   end
 
-  def config(*args)
+  def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(*args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit best-effort')
     else
       result = super
     end
@@ -137,6 +139,10 @@ class CiscoTestCase < TestCase
     flunk(message)
   end
 
+  def validate_property_excluded?(feature, property)
+    !node.cmd_ref.supports?(feature, property)
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
@@ -149,7 +155,7 @@ class CiscoTestCase < TestCase
       end
       # rubocop:enable Style/ClassVars
     end
-    abort "No suitable interfaces found on #{node} for this test" if
+    skip "No suitable interfaces found on #{node} for this test" if
       @@interfaces.empty?
     @@interfaces
   end
@@ -177,6 +183,25 @@ class CiscoTestCase < TestCase
           break
         end
       end
+    end
+  end
+
+  # This testcase will remove all the bds existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_bridge_domains
+    BridgeDomain.bds.each do |_bd, obj|
+      obj.destroy
+    end
+  end
+
+  # This testcase will remove all the vlans existing in the system
+  # specifically in cleanup for minitests
+  def remove_all_vlans
+    Vlan.vlans.each do |vlan, obj|
+      # skip reserved vlan
+      next if vlan == '1'
+      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
+      obj.destroy
     end
   end
 
