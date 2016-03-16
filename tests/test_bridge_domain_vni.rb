@@ -13,17 +13,17 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
-require_relative '../lib/cisco_node_utils/bridge_domain_range'
+require_relative '../lib/cisco_node_utils/bridge_domain_vni'
 
 include Cisco
 
-# TestBridgeDomainRange - Minitest for bridge domain class.
-class TestBridgeDomainRange < CiscoTestCase
-  @skip_unless_supported = 'bridge_domain_range'
+# TestBridgeDomainVNI - Minitest for bridge domain class.
+class TestBridgeDomainVNI < CiscoTestCase
+  @skip_unless_supported = 'bridge_domain_vni'
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
-    BridgeDomainRange.rangebds.each do |_bd, obj|
+    BridgeDomainVNI.rangebds.each do |_bd, obj|
       obj.destroy
     end
   end
@@ -42,7 +42,7 @@ class TestBridgeDomainRange < CiscoTestCase
 
   def test_single_bd_member_vni
     mt_full_interface?
-    bd = BridgeDomainRange.new('100')
+    bd = BridgeDomainVNI.new('100')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
 
@@ -60,7 +60,7 @@ class TestBridgeDomainRange < CiscoTestCase
 
   def test_multiple_bd_member_vni
     mt_full_interface?
-    bd = BridgeDomainRange.new('100-110,150,170-171')
+    bd = BridgeDomainVNI.new('100-110,150,170-171')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
 
@@ -76,9 +76,18 @@ class TestBridgeDomainRange < CiscoTestCase
     bd.destroy
   end
 
+  def test_member_vni_empty_assign
+    mt_full_interface?
+    bd = BridgeDomainVNI.new(100)
+    bd.member_vni = ''
+    assert_equal(bd.default_member_vni, bd.member_vni,
+                 'Error: Bridge-Domain is mapped to different vnis')
+    bd.destroy
+  end
+
   def test_overwrite_bd_member_vni
     mt_full_interface?
-    bd = BridgeDomainRange.new('100-110')
+    bd = BridgeDomainVNI.new('100-110')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
 
@@ -96,15 +105,6 @@ class TestBridgeDomainRange < CiscoTestCase
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
 
-    bd.destroy
-  end
-
-  def test_member_vni_empty_assign
-    mt_full_interface?
-    bd = BridgeDomainRange.new(100)
-    bd.member_vni = ''
-    assert_equal(bd.default_member_vni, bd.member_vni,
-                 'Error: Bridge-Domain is mapped to different vnis')
     bd.destroy
   end
 end

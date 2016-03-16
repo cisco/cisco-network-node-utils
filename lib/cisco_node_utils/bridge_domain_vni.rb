@@ -1,4 +1,4 @@
-# NXAPI implementation of BridgeDomainRange class
+# NXAPI implementation of BridgeDomainVNI class
 #
 # February 2016, Rohan Gandhi Korlepara
 #
@@ -20,8 +20,8 @@ require_relative 'node_util'
 require_relative 'feature'
 
 module Cisco
-  # node_utils class for bridge_domain_range
-  class BridgeDomainRange < NodeUtil
+  # node_utils class for bridge_domain_vni
+  class BridgeDomainVNI < NodeUtil
     attr_reader :bd_ids, :bd_ids_list
 
     def initialize(bds, instantiate=true)
@@ -30,12 +30,12 @@ module Cisco
       @bd_ids = bds.to_s.gsub(/\s+/, '')
       fail 'bridge-domain value is empty' if @bd_ids.empty? # no empty strings
 
-      @bd_ids_list = BridgeDomainRange.bd_ids_to_array(@bd_ids)
+      @bd_ids_list = BridgeDomainVNI.bd_ids_to_array(@bd_ids)
       create if instantiate
     end
 
     def to_s
-      "Bridge Domain shit #{bd_ids}"
+      "Bridge Domain #{bd_ids}"
     end
 
     # This will expand the string to a list of bds as integers
@@ -87,11 +87,11 @@ module Cisco
 
     def self.rangebds
       hash = {}
-      bd_list = config_get('bridge_domain_range', 'range_bds')
+      bd_list = config_get('bridge_domain_vni', 'range_bds')
       return hash if bd_list.nil?
 
       bd_list.each do |id|
-        hash[id] = BridgeDomainRange.new(id, false)
+        hash[id] = BridgeDomainVNI.new(id, false)
       end
       hash
     end
@@ -102,18 +102,22 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = BridgeDomainRange.bd_ids_to_array(system_bd_add)
+      sys_bds_array = BridgeDomainVNI.bd_ids_to_array(system_bd_add)
       if (@bd_ids_list - sys_bds_array).any?
-        add_bds = BridgeDomainRange
+        add_bds = BridgeDomainVNI
                   .bd_list_to_string(@bd_ids_list - sys_bds_array)
-        config_set('bridge_domain_range', 'system_bd_add', addbd: add_bds)
+        config_set('bridge_domain_vni', 'system_bd_add', addbd: add_bds)
       end
-      config_set('bridge_domain_range', 'create', crbd: @bd_ids)
+      config_set('bridge_domain_vni', 'create', crbd: @bd_ids)
     end
 
     def destroy
-      config_set('bridge_domain_range', 'destroy', delbd: @bd_ids,
-                                                   rembd: @bd_ids)
+      bd_vni = curr_bd_vni_hash
+      bd_val = bd_vni.keys.join(',')
+      vni_val = bd_vni.values.join(',')
+      return '' if vni_val.empty?
+      config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
+                 vni: vni_val, bd: bd_val, membstate: 'no', membvni: vni_val)
     end
 
     ########################################################
@@ -132,12 +136,12 @@ module Cisco
     # {100=>5000,105=>8000,106=>0,107=>5007}
     def curr_bd_vni_hash
       final_bd_vni = {}
-      curr_vni = config_get('bridge_domain_range', 'member_vni')
-      curr_bd_vni = config_get('bridge_domain_range', 'member_vni_bd')
+      curr_vni = config_get('bridge_domain_vni', 'member_vni')
+      curr_bd_vni = config_get('bridge_domain_vni', 'member_vni_bd')
       return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
 
-      curr_vni_list = BridgeDomainRange.bd_ids_to_array(curr_vni)
-      curr_bd_vni_list = BridgeDomainRange.bd_ids_to_array(curr_bd_vni)
+      curr_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_vni)
+      curr_bd_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_bd_vni)
 
       hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
       @bd_ids_list.each do |bd|
@@ -160,7 +164,7 @@ module Cisco
       @bd_ids_list.each do |bd|
         ret_list << bd_vni_hash[bd]
       end
-      BridgeDomainRange.bd_list_to_string(ret_list)
+      BridgeDomainVNI.bd_list_to_string(ret_list)
     end
 
     # This member_vni mapping will be executed only when the val is not empty
@@ -176,34 +180,38 @@ module Cisco
     def member_vni=(val)
       val = val.to_s
       Feature.vni_enable
+      bd_vni = curr_bd_vni_hash
       if val.empty?
-        bd_val = curr_bd_vni_hash.keys.join(',')
-        vni_val = curr_bd_vni_hash.values.join(',')
+        bd_val = bd_vni.keys.join(',')
+        vni_val = bd_vni.values.join(',')
         return '' if vni_val.empty?
-        config_set('bridge_domain_range', 'member_vni', vnistate: 'no',
+        config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
                    vni: vni_val, bd: bd_val, membstate: 'no', membvni: vni_val)
       else
-        unless curr_bd_vni_hash.empty?
-          inp_vni_list = BridgeDomainRange.bd_ids_to_array(val.to_s)
+        unless bd_vni.empty?
+          inp_vni_list = BridgeDomainVNI.bd_ids_to_array(val.to_s)
           inp_bd_vni_hash = Hash[@bd_ids_list.zip(inp_vni_list)]
-          rem_hash = (curr_bd_vni_hash.to_a - inp_bd_vni_hash.to_a).to_h
+
+          temp_hash = bd_vni.to_a.keep_if { |k, _v| inp_bd_vni_hash.key? k }
+          rem_hash = (temp_hash.to_a - inp_bd_vni_hash.to_a).to_h
+
           rm_bd = rem_hash.keys.join(',')
           rm_vni = rem_hash.values.join(',')
-          config_set('bridge_domain_range', 'member_vni', vnistate: 'no',
+          config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
                      vni: rm_vni, bd: rm_bd, membstate: 'no', membvni: rm_vni)
         end
-        config_set('bridge_domain_range', 'member_vni', vnistate: '', vni: val,
+        config_set('bridge_domain_vni', 'member_vni', vnistate: '', vni: val,
                    bd: @bd_ids, membstate: '', membvni: val)
       end
     end
 
     def default_member_vni
-      config_get_default('bridge_domain_range', 'member_vni')
+      config_get_default('bridge_domain_vni', 'member_vni')
     end
 
     # getter for system bridge-domain
     def system_bd_add
-      config_get('bridge_domain_range', 'system_bd_add')
+      config_get('bridge_domain_vni', 'system_bd_add')
     end
   end  # Class
 end    # Module

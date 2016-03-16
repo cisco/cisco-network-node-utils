@@ -38,6 +38,7 @@ module Cisco
 
     # Create a hash of all current encap instances.
     def self.encaps
+      return {} unless Feature.vni_enabled?
       instances = config_get('encapsulation', 'all_encaps')
       return {} if instances.nil?
       hash = {}
@@ -66,10 +67,11 @@ module Cisco
       config_get('encapsulation', 'dot1q_map', profile: @encap_name)
     end
 
-    def set_dot1q_map=(cmd, dot1q, vni)
-      no_cmd = (cmd) ? '' : 'no'
+    def dot1q_map=(val)
+      no_cmd = (val.empty?) ? 'no' : ''
+      val = dot1q_map if val.empty?
       config_set('encapsulation', 'dot1q_map', profile: @encap_name,
-                 state: no_cmd, vlans: dot1q, vnis: vni)
+                 state: no_cmd, vlans: val[0], vnis: val[1])
     end
 
     def default_dot1q_map

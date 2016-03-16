@@ -143,7 +143,9 @@ module Cisco
     # bridge-domain 100
     #   name PepsiCo
     def bd_name
-      config_get('bridge_domain', 'name', bd: @bd_ids)
+      res = config_get('bridge_domain', 'name', bd: @bd_ids)
+      return default_bd_name unless res[2]
+      res[2]
     end
 
     def bd_name=(str)
@@ -165,7 +167,8 @@ module Cisco
     def shutdown
       result = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
       # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result[/DOWN/] ? true : false
+      return false unless result[0]
+      result[0][/shutdown/] ? true : false
     end
 
     def shutdown=(val)

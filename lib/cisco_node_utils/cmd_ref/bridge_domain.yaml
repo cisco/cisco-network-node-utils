@@ -3,6 +3,10 @@
 ---
 _exclude: [N3k, N5k, N6k, N9k, ios_xr]
 
+_template:
+  get_command: "show running-config bridge-domain"
+  get_value: '/^bridge-domain[\s\S]*bridge-domain <bd>\s+(shutdown)?\s*(fabric-control)?\s*(?:name (\S+)|\s*)/'
+
 all_bds:
   multiple: true
   get_command: "show running-config bridge-domain"
@@ -22,27 +26,37 @@ fabric_control:
   set_value: "<state> fabric-control"
   default_value: false 
 
-# For the below name, shutdown commands we are going to use show
-# bridge-domain cli as show running-config bridge-domain cli is very difficult
-# to parse for n7k platform. Also this feature is present only in n7k
-# show bridge-domain cli looks like:
+# For the below name, shutdown commands we are going to use show running-config
+# bridge-domain cli which displays as below
+#
+# system bridge-domain 100-110
+#
+# bridge-domain 100-110
 # 
-# Bridge-domain 100  (0 ports in all)
-# Name:: Bridge-Domain100
-#  Administrative State: UP               Operational State: DOWN
+# bridge-domain 100
+#   shutdown
+#   fabric-control
+#   name PepsiCo
+# bridge-domain 101
+# bridge-domain 102
+# ...
+# bridge-domain 108
+#   shutdown
+#   name Amazon
+# bridge-domain 109
+#   shutdown
+# bridge-domain 110
+#   name Microsoft
 
 name:
-  get_command: "show bridge-domain"
-  get_value: '/^Bridge-domain <bd>[\s\S]+Name::\s+(\S+)/'
   set_context: ["bridge-domain <bd>"]
   set_value: "<state> name <name>"
+  default_value: ~ 
 
 shutdown:
-  get_command: "show bridge-domain"
-  get_value: '/^Bridge-domain <bd>[\s\S]+Administrative State: (\w+)/'
   set_context: ["bridge-domain <bd>"]
   set_value: "<state> shutdown"
-  default_value: false
+  default_value: false 
 
 system_bd_add:
   get_command: "show running-config bridge-domain"

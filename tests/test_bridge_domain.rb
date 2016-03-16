@@ -152,4 +152,41 @@ class TestBridgeDomain < CiscoTestCase
       BridgeDomain.new('90, 5000-5004,100')
     end
   end
+
+  def test_multiple_bd_combinations
+    bds = BridgeDomain.new('100-110')
+    bd_hash = {}
+    bd_hash['100'] = [true, false, 'PepsiCo']
+    bd_hash['105'] = [true, true, 'Microsoft']
+    bd_hash['107'] = [true, false, 'Amazon']
+    bd_hash['110'] = [true, false, '']
+    BridgeDomain.bds.each do |bd, obj|
+      if bd_hash.key?(bd)
+        obj.shutdown = bd_hash[bd][0]
+        assert_equal(bd_hash[bd][0], obj.shutdown,
+                     'Error: Bridge-Domain state is not matching')
+
+        obj.fabric_control = bd_hash[bd][1]
+        assert_equal(bd_hash[bd][1], obj.fabric_control,
+                     'Error: Bridge-Domain type is not matching')
+
+        if bd_hash[bd][2] != ''
+          obj.bd_name = bd_hash[bd][2]
+          assert_equal(bd_hash[bd][2], obj.bd_name,
+                       'Error: Bridge-Domain name is not matching')
+        else
+          assert_equal(obj.default_bd_name, obj.bd_name,
+                       'Error: Bridge-Domain name is not matching')
+        end
+      else
+        assert_equal(obj.default_shutdown, obj.shutdown,
+                     'Error: Bridge-Domain state is not matching')
+        assert_equal(obj.default_fabric_control, obj.fabric_control,
+                     'Error: Bridge-Domain type is not matching')
+        assert_equal(obj.default_bd_name, obj.bd_name,
+                     'Error: Bridge-Domain name is not matching')
+      end
+    end
+    bds.destroy
+  end
 end

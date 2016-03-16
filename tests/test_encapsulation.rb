@@ -56,11 +56,15 @@ class TestEncapsulation < CiscoTestCase
                  'Error: dot1q is not matching')
     dot1q = '100-110'
     vni = '5000-5010'
-    encap.send(:set_dot1q_map=, true, dot1q, vni)
+    encap.dot1q_map = [dot1q, vni]
     assert_equal(dot1q, encap.dot1q_map[0].gsub(/\s+/, ''),
-                 'Error: dot1q is not matching')
+                 'Error: dot1q vlan is not matching')
     assert_equal(vni, encap.dot1q_map[1].gsub(/\s+/, ''),
                  'Error: vni to dot1q mapping is not matchin')
+
+    encap.dot1q_map = []
+    assert_equal(encap.default_dot1q_map, encap.dot1q_map,
+                 'Error: dot1q is not matching')
     encap.destroy
   end
 
@@ -73,7 +77,7 @@ class TestEncapsulation < CiscoTestCase
     vni = '5000-5010'
     assert_raises(RuntimeError,
                   'Encap misconfig did not raise RuntimeError') do
-      encap.send(:set_dot1q_map=, true, dot1q, vni)
+      encap.dot1q_map = [dot1q, vni]
     end
   end
 end
