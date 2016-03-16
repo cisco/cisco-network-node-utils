@@ -24,8 +24,11 @@ module Cisco
   class Yum < NodeUtil
     EXEC_IN_DEFAULT_NS = 'ip netns exec default'
 
-    # This function accepts name of the rpm package and returns match
-    # group - 1. package name, 2. package version, 3. os version, 4. platform
+    # This function accepts name of the rpm package and returns a match group.
+    # Match group when platform is ios_xr :
+    #   1. package name, 2. package version, 3. os version, 4. platform
+    # Match group when platform is nexus :
+    #   1. package name 2. package version 3. platform
     def self.decompose_name(file_name)
       # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
       name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
@@ -36,7 +39,7 @@ module Cisco
       # ex: b+z-ip2.x64_64
       name_arch_regex = /^([\w\-\+]+)\.(\w+)$/
 
-      # xrv9k-k9sec-1.0.0.0-r600.x86_64.rpm-6.0.0
+      # ex xrv9k-k9sec-1.0.0.0-r600.x86_64.rpm-6.0.0
       # xrv9k-k9sec-1.0.0.0-r61102I.x86_64.rpm-XR-DEV-16.02.22C
       name_ver_arch_regex_xr = /^(.*\d.*)-([\d.]*)-(r\d+.*)\.(\w{4,}).rpm/
 
@@ -58,11 +61,17 @@ module Cisco
         if pkg_info[3].nil?
           query_name = pkg_info[1]
         else
-          query_name = "#{pkg_info[1]}.#{pkg_info[3]}"
+          if platform == :nexus
+            query_name = "#{pkg_info[1]}.#{pkg_info[3]}"
+          elsif platform == :ios_xr
+            # ex query_name xrv9k-k9sec-1.0.0.0-r61102I.x86_64
+            query_name = \
+              "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}.#{pkg_info[4]}"
+          end
         end
       end
       should_ver = pkg_info[2] if pkg_info && pkg_info[3]
-      ver = query(query_name, pkg)
+      ver = query(query_name)
       debug "Installed package version #{ver}, expected package version" \
             "#{should_ver}"
       if ver.nil? || (!should_ver.nil? && should_ver != ver)
@@ -88,6 +97,7 @@ module Cisco
         filename = pkg.strip.tr(':', '/').split('/').last
         pkg_info = Yum.decompose_name(filename)
         if pkg_info
+          # ex pkg_name xrv9k-k9sec-1.0.0.0-r61102I
           pkg_name = "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}"
           debug "Installing package #{pkg_name}"
           rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install activate pkg 0x0 \
@@ -97,61 +107,65 @@ module Cisco
           debug "install commit sdr : #{rc}"
         end
       end
-      # post-validation check to verify the outcome.
+      # post-validation check to verify successful installation.
       validate(pkg)
     end
 
-    # returns version of package, or false if package doesn't exist
-    def self.query(pkg, src)
+    # returns version of the package if exists, otherwise returns nil
+    def self.query(pkg)
+      fail TypeError unless pkg.is_a? String
+      fail ArgumentError if pkg.empty?
       if platform == :nexus
-        fail TypeError unless pkg.is_a? String
-        fail ArgumentError if pkg.empty?
         b = config_get('yum', 'query', pkg)
         fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
 
       elsif platform == :ios_xr
-        fail TypeError unless src.is_a? String
-        fail ArgumentError if src.empty?
-        filename = src.strip.tr(':', '/').split('/').last
-        pkg_info = Yum.decompose_name(filename)
-        pkg_name = pkg_info[1]
-        should_version = pkg_info[2]
-        xr_version = pkg_info[3]
-        platform_var = pkg_info[4]
-        query_package_name = \
-                   "#{pkg_name}-#{should_version}-#{xr_version}.#{platform_var}"
+        package_info = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install \
+                     package #{pkg} none`
 
-        version = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install \
-                     package #{query_package_name} none | grep -E Version`
-        version_var_regex_xr = /^(\s*Version\s*):\s*(\d.*)$/
+        # sample output of show install package
+        #     Filename          : xrv9k-k9sec
+        #     Version           : 1.0.0.0
+        #     Parent Version    : (none)
+        #     Platform          : xrv9k
+        #     Package Type      : Package
+        #   Restart Type      : dependent
+        #   Install Method    : parallel
+        #   RPM Count         : 1
+        #
+        #   Package Contents     :
+        #     xrv9k-k9sec-1.0.0.0-r61102I.x86_64
 
-        version.match(version_var_regex_xr)
+        ver_file_regex_xr = /^\s*Filename\s*:\s*(.*)\s*Version\s*:\s*(.*)/
+
+        package_info.match(ver_file_regex_xr)
+        filename = Regexp.last_match(1)
         ver = Regexp.last_match(2)
-        is_active_regex = /^\s*#{pkg_name}/
+        is_active_regex = /^\s*#{filename}/
+
+        # In XR, even if package is inactive, 'show install package' returns
+        # information about the package. Hence we verify if the package is
+        # actived
         is_active = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show install active`
         if is_active =~ is_active_regex
-          debug "Package #{query_package_name} version #{ver} is present."
+          debug "Package #{filename} version #{ver} is present."
           b = ["#{ver}"]
         end
       end
       b.nil? ? nil : b.first
     end
 
-    def self.remove(pkg, src)
+    def self.remove(pkg)
+      fail TypeError unless pkg.is_a? String
+      fail ArgumentError if pkg.empty?
       if platform == :nexus
         config_set('yum', 'remove', pkg)
       elsif platform == :ios_xr
-        filename = src.strip.tr(':', '/').split('/').last
-        pkg_info = Yum.decompose_name(filename)
-        if pkg_info
-          pkg_name = "#{pkg_info[1]}-#{pkg_info[2]}-#{pkg_info[3]}"
-          debug "Removing package #{pkg_name}"
-          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install deactivate pkg 0x0 \
-          #{pkg_name}`
-          debug "install deactivate #{pkg_name} : #{rc}"
-          rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
-          debug "install commit sdr : #{rc}"
-        end
+        rc = \
+          `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install deactivate pkg 0x0 #{pkg}`
+        debug "install deactivate #{pkg} : #{rc}"
+        rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
+        debug "install commit sdr : #{rc}"
       end
     end
   end
