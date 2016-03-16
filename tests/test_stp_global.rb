@@ -36,7 +36,6 @@ class TestStpGlobal < CiscoTestCase
   def teardown
     config 'no spanning-tree mode'
     config 'system bridge-domain none' if /N7/ =~ node.product_id
-    @intf.switchport_enable
     super
   end
 
