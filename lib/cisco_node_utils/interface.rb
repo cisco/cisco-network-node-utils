@@ -1103,12 +1103,21 @@ module Cisco
       config_get('vtp', 'feature')
     end
 
-    def check_switchport(status)
-      if status.kind_of?(Symbol)
-        return if switchport_mode == status
-      elsif status.kind_of?(Array)
-        return if status.include?(switchport_mode)
+    def switchport_status?(status)
+      case status
+      when :disabled
+        return true if switchport_mode == status || switchport_mode.nil?
+      when :access, :trunk
+        return true if switchport_mode == status
+      when Array
+        return true if status.include?(switchport_mode)
+      else
+        return false
       end
+    end
+
+    def check_switchport(status)
+      return if switchport_status?(status)
       fail("#{caller[0][/`.*'/][1..-2]} cannot be set unless " \
            "switchport mode is #{status}")
     end
