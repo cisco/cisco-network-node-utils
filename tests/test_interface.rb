@@ -1417,6 +1417,7 @@ class TestInterface < CiscoTestCase
     #   interface Ethernet1/1
     #     ip pim sparse-mode
     #
+    i.switchport_mode = :disabled
     i.ipv4_pim_sparse_mode = false
     refute(i.ipv4_pim_sparse_mode)
 
