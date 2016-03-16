@@ -1108,9 +1108,9 @@ module Cisco
       when :disabled
         return true if switchport_mode == status || switchport_mode.nil?
       when :access, :trunk
-        return true if switchport_mode == status
+        return switchport_mode == status
       when Array
-        return true if status.include?(switchport_mode)
+        return status.include?(switchport_mode)
       else
         return false
       end
