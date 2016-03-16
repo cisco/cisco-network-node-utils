@@ -297,7 +297,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_tacacsserver_get_source_interface
-    config('no ip tacacs source-interface')
+    config_no_warn('no ip tacacs source-interface')
     tacacs = TacacsServer.new
     intf = node.config_get_default('tacacs_server', 'source_interface')
     assert_equal(intf, tacacs.source_interface,
