@@ -48,6 +48,7 @@ lacp_suspend_individual:
 
 port_hash_distribution:
   _exclude: [N6k, N5k]
+  set_context:  ['terminal dont-ask', "interface %s"]
   get_value: '/^port-channel port hash.distribution (.*)$/'
   set_value: "%s port-channel port hash-distribution %s"
   default_value: false

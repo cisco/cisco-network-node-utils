@@ -406,13 +406,13 @@ class TestInterfaceOspf < CiscoTestCase
         interfaces[0].downcase => {
           area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
         interfaces[1].downcase => {
-          area: '1.1.1.38', dead: 40, pass: false },
+          area: '1.1.1.38', cost: 10, dead: 40, pass: false },
         'vlan101'              => {
           area: '2.2.2.101', cost: 5, hello: 20, dead: 80, pass: true },
       },
       'TestOspfInt' => {
         interfaces[2].downcase => {
-          area: '0.0.0.19' },
+          area: '0.0.0.19', cost: 10 },
         'vlan290'              => {
           area: '2.2.2.29', cost: 200, hello: 30, dead: 120, pass: true },
         'port-channel100'      => {
