@@ -75,17 +75,19 @@ module Cisco
       fail result[2]['body'] if
         (result[2].is_a?(Hash) &&
         /(ERROR:|VLAN:)/.match(result[2]['body'].to_s)) ||
-        (result[2].is_a?(Hash) && /(Warning:)/.match(result[2]['body'].to_s) &&
-        warning_msg &&
-        !result[2]['body'].to_s.include?(ignore_message))
+        ((result[2].is_a?(Hash) &&
+        /(Warning:)/.match(result[2]['body'].to_s)) &&
+        ((warning_msg &&
+        !result[2]['body'].to_s.include?(ignore_message)) || !warning_msg))
 
       # Some test environments get result[2] as a string instead of a hash
       fail result[2] if
         (result[2].is_a?(String) &&
         /(ERROR:|VLAN:)/.match(result[2])) ||
-        (result[2].is_a?(String) && /(Warning:)/.match(result[2]) &&
-        warning_msg &&
-        !result[2].to_s.include?(ignore_message))
+        ((result[2].is_a?(String) &&
+        /(Warning:)/.match(result[2])) &&
+        ((warning_msg &&
+        !result[2].to_s.include?(ignore_message)) || !warning_msg))
     end
 
     def fabricpath_feature

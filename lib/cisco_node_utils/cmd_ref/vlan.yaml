@@ -42,7 +42,7 @@ name:
   get_command: "show vlan brief"
   get_value: '/^%d\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s name %s"
+  set_value: "%s name %s ; end"
 
 private_vlan_association:
   _exclude: [N8k]
@@ -69,12 +69,12 @@ shutdown:
   get_command: "show vlan brief"
   get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s shutdown"
+  set_value: "%s shutdown ; end"
   default_value: false
 
 state:
   get_command: "show vlan brief"
   get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s state %s"
+  set_value: "%s state %s ; end"
   default_value: "active"
