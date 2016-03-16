@@ -96,6 +96,22 @@ module Cisco
       hash
     end
 
+    def curr_bd_vni_hash
+      final_bd_vni = {}
+      curr_vni = config_get('bridge_domain_vni', 'member_vni')
+      curr_bd_vni = config_get('bridge_domain_vni', 'member_vni_bd')
+      return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
+
+      curr_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_vni)
+      curr_bd_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_bd_vni)
+
+      hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
+      @bd_ids_list.each do |bd|
+        final_bd_vni[bd.to_i] = hash_map[bd.to_i] if hash_map.key?(bd.to_i)
+      end
+      final_bd_vni
+    end
+
     # This function will first add bds to the system bridge-domain and then
     # create the bds. If bds already existing then just create. Else add the
     # non added bds to system range first then create all. This is to avoid the
@@ -134,30 +150,6 @@ module Cisco
     # If puppet layer tries to get values of 100-107 bds the final_bd_vni map
     # which is returned will contain only these mappings as
     # {100=>5000,105=>8000,106=>0,107=>5007}
-    def curr_bd_vni_hash
-      final_bd_vni = {}
-      curr_vni = config_get('bridge_domain_vni', 'member_vni')
-      curr_bd_vni = config_get('bridge_domain_vni', 'member_vni_bd')
-      return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
-
-      curr_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_vni)
-      curr_bd_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_bd_vni)
-
-      hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
-      @bd_ids_list.each do |bd|
-        final_bd_vni[bd.to_i] = hash_map[bd.to_i] if hash_map.key?(bd.to_i)
-      end
-      final_bd_vni
-    end
-
-    # This is the getter for the member vni.
-    # Now this method needs to return the member vni mapping as in order of the
-    # bridge domain input.
-    # Suppose the mappings are
-    # bridge-domain 100,105,107-109,150
-    #   member vni 5000, 8000, 5007-5008, 7000, 5050
-    # The user input bd is 100,107,150 then this getter needs to return
-    # 5000,5007,5050
     def member_vni
       bd_vni_hash = curr_bd_vni_hash
       ret_list = []
