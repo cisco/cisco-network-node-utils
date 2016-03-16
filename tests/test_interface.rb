@@ -1356,7 +1356,7 @@ class TestInterface < CiscoTestCase
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
+      interface_ethernet_default(interfaces[1])
       raise
     end
   end
