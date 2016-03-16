@@ -288,10 +288,7 @@ class Cisco::Client::NXAPI < Cisco::Client
            "Structured output not supported for #{command}"
     # Error 432: Requested object does not exist
     # Ignore 432 errors because it means that a property is not configured
-    elsif output['code'] =~ /4\d\d/ && output['code'] != '432'
-      fail Cisco::RequestFailed, \
-           "#{output['code']} Error: #{output['msg']}"
-    elsif output['code'] =~ /5\d\d/
+    elsif output['code'] =~ /[45]\d\d/ && output['code'] != '432'
       fail Cisco::RequestFailed, \
            "#{output['code']} Error: #{output['msg']}"
     else
