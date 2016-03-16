@@ -65,27 +65,27 @@ module Cisco
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       # Check for messages that can be safely ignored.
 
-      warning = false
+      warning_msg = false
 
       unless ignore_message.nil?
         # Check if ignore_message is present
-        warning = true
+        warning_msg = true
       end
 
       fail result[2]['body'] if
-        result[2].is_a?(Hash) &&
-        /(ERROR:|VLAN:)/.match(result[2]['body'].to_s) ||
-        /(Warning:)/.match(result[2]['body'].to_s) &&
-        warning &&
-        result[2]['body'].to_s[ignore_message].nill?
+        (result[2].is_a?(Hash) &&
+        /(ERROR:|VLAN:)/.match(result[2]['body'].to_s)) ||
+        (result[2].is_a?(Hash) && /(Warning:)/.match(result[2]['body'].to_s) &&
+        warning_msg &&
+        !result[2]['body'].to_s.include?(ignore_message))
 
       # Some test environments get result[2] as a string instead of a hash
       fail result[2] if
-        result[2].is_a?(String) &&
-        /(ERROR:|VLAN:)/.match(result[2]) ||
-        result[2].is_a?(String) && /(Warning:)/.match(result[2]) &&
-        warning &&
-        result[2].to_s[ignore_message].nill?
+        (result[2].is_a?(String) &&
+        /(ERROR:|VLAN:)/.match(result[2])) ||
+        (result[2].is_a?(String) && /(Warning:)/.match(result[2]) &&
+        warning_msg &&
+        !result[2].to_s.include?(ignore_message))
     end
 
     def fabricpath_feature
