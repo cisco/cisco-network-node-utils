@@ -33,7 +33,7 @@ module Cisco
       config_get('vtp', 'feature')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      raise unless e.clierror =~ /Syntax error|Service not enabled/
       return false
     end
 
