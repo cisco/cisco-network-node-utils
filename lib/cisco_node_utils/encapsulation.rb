@@ -63,8 +63,16 @@ module Cisco
     # PROPERTIES
     # ----------
 
+    def batch_the_string(string)
+      Utils.unsorted_list_to_string(Utils.string_to_array(string.to_s))
+    end
+
     def dot1q_map
-      config_get('encapsulation', 'dot1q_map', profile: @encap_name)
+      result = config_get('encapsulation', 'dot1q_map', profile: @encap_name)
+      return '' unless result != ''
+      result[0] = batch_the_string(result[0])
+      result[1] = batch_the_string(result[1])
+      result
     end
 
     def dot1q_map=(val)

@@ -30,59 +30,12 @@ module Cisco
       @bd_ids = bds.to_s.gsub(/\s+/, '')
       fail 'bridge-domain value is empty' if @bd_ids.empty? # no empty strings
 
-      @bd_ids_list = BridgeDomainVNI.bd_ids_to_array(@bd_ids)
+      @bd_ids_list = Utils.string_to_array(@bd_ids)
       create if instantiate
     end
 
     def to_s
       "Bridge Domain #{bd_ids}"
-    end
-
-    # This will expand the string to a list of bds as integers
-    def self.bd_ids_to_array(bdid_string)
-      list = []
-      narray = bdid_string.split(',')
-      narray.each do |elem|
-        if elem.include?('-')
-          es = elem.gsub('-', '..')
-          ea = es.split('..').map { |d| Integer(d) }
-          er = ea[0]..ea[1]
-          list << er.to_a
-        else
-          list << elem.to_i
-        end
-      end
-      list.flatten
-    end
-
-    # This method will generate a batched string if a list is passed as
-    # argument
-    # Input would be as [1,2,3,4,5,10,11,12,7,30,100,31,32]
-    # output will be 1-5,10-12,7,30,100,31-32
-    def self.bd_list_to_string(bd_list)
-      farray = bd_list.compact
-      lranges = []
-      unless farray.empty?
-        left = bd_list.first
-        right = nil
-        farray.each do |aelem|
-          if right && aelem != right.succ
-            if left == right
-              lranges << left
-            else
-              lranges << Range.new(left, right)
-            end
-            left = aelem
-          end
-          right = aelem
-        end
-        if left == right
-          lranges << left
-        else
-          lranges << Range.new(left, right)
-        end
-      end
-      lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
 
     def self.rangebds
@@ -102,8 +55,8 @@ module Cisco
       curr_bd_vni = config_get('bridge_domain_vni', 'member_vni_bd')
       return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
 
-      curr_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_vni)
-      curr_bd_vni_list = BridgeDomainVNI.bd_ids_to_array(curr_bd_vni)
+      curr_vni_list = Utils.string_to_array(curr_vni)
+      curr_bd_vni_list = Utils.string_to_array(curr_bd_vni)
 
       hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
       @bd_ids_list.each do |bd|
@@ -118,10 +71,10 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = BridgeDomainVNI.bd_ids_to_array(system_bd_add)
+      sys_bds_array = Utils.string_to_array(system_bd_add)
       if (@bd_ids_list - sys_bds_array).any?
-        add_bds = BridgeDomainVNI
-                  .bd_list_to_string(@bd_ids_list - sys_bds_array)
+        add_bds = Utils
+                  .unsorted_list_to_string(@bd_ids_list - sys_bds_array)
         config_set('bridge_domain_vni', 'system_bd_add', addbd: add_bds)
       end
       config_set('bridge_domain_vni', 'create', crbd: @bd_ids)
@@ -147,16 +100,19 @@ module Cisco
     # Eg: Suppose the bd mapping is as below on the switch
     # bridge-domain 100,105,107-109,150
     #   member vni 5000, 8000, 5007-5008, 7000, 5050
-    # If puppet layer tries to get values of 100-107 bds the final_bd_vni map
-    # which is returned will contain only these mappings as
-    # {100=>5000,105=>8000,106=>0,107=>5007}
+    # If puppet layer tries to get values of 100,105,107 bds as defined in
+    # manifest then the final_bd_vni map which is returned will contain only
+    # these mappings as below;
+    # '5000,8000,5007'
+    # This is also to handle the idempotence case, and if any mismatch then set
+    # the member_vni
     def member_vni
       bd_vni_hash = curr_bd_vni_hash
       ret_list = []
       @bd_ids_list.each do |bd|
         ret_list << bd_vni_hash[bd]
       end
-      BridgeDomainVNI.bd_list_to_string(ret_list)
+      Utils.unsorted_list_to_string(ret_list)
     end
 
     # This member_vni mapping will be executed only when the val is not empty
@@ -181,7 +137,7 @@ module Cisco
                    vni: vni_val, bd: bd_val, membstate: 'no', membvni: vni_val)
       else
         unless bd_vni.empty?
-          inp_vni_list = BridgeDomainVNI.bd_ids_to_array(val.to_s)
+          inp_vni_list = Utils.string_to_array(val.to_s)
           inp_bd_vni_hash = Hash[@bd_ids_list.zip(inp_vni_list)]
 
           temp_hash = bd_vni.to_a.keep_if { |k, _v| inp_bd_vni_hash.key? k }

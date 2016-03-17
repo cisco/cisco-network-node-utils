@@ -22,4 +22,4 @@ dot1q_map:
   get_value: '/^.* vni <profile>\s+dot1q ([\d\s,-]+) vni ([\d\s,-]+)$/'
   set_context: ['encapsulation profile vni <profile>']
   set_value: '<state> dot1q <vlans> vni <vnis>'
-  default_value: ~
+  default_value: ''
