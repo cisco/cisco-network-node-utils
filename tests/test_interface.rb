@@ -1053,25 +1053,30 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_fabric_forwarding_anycast_gateway
-    unless platform == :ios_xr
-      # Setup
-      config_no_warn('no interface vlan11')
-      int = Interface.new('vlan11')
-      foo = OverlayGlobal.new
-      foo.anycast_gateway_mac = '1223.3445.5668'
-
-      # 1. Testing default for newly created vlan
-      assert_equal(int.default_fabric_forwarding_anycast_gateway,
-                   int.fabric_forwarding_anycast_gateway)
-
-      # 2. Testing non-default:true
-      int.fabric_forwarding_anycast_gateway = true
-      assert(int.fabric_forwarding_anycast_gateway)
-
-      # 3. Setting back to false
-      int.fabric_forwarding_anycast_gateway = false
-      refute(int.fabric_forwarding_anycast_gateway)
+    if validate_property_excluded?('overlay_global', 'anycast_gateway_mac')
+      assert_raises(Cisco::UnsupportedError) do
+        OverlayGlobal.new.anycast_gateway_mac = '1223.3445.5668'
+      end
+      return
     end
+
+    # Setup
+    config_no_warn('no interface vlan11')
+    int = Interface.new('vlan11')
+    foo = OverlayGlobal.new
+    foo.anycast_gateway_mac = '1223.3445.5668'
+
+    # 1. Testing default for newly created vlan
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
+
+    # 2. Testing non-default:true
+    int.fabric_forwarding_anycast_gateway = true
+    assert(int.fabric_forwarding_anycast_gateway)
+
+    # 3. Setting back to false
+    int.fabric_forwarding_anycast_gateway = false
+    refute(int.fabric_forwarding_anycast_gateway)
 
     # 4. Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
@@ -1079,15 +1084,13 @@ class TestInterface < CiscoTestCase
       nonvlanint.fabric_forwarding_anycast_gateway = true
     end
 
-    unless platform == :ios_xr # rubocop:disable Style/GuardClause
-      # 5. Attempt to set 'fabric forwarding anycast gateway' while the
-      #    overlay gateway mac is not set.
-      int = Interface.new('vlan11')
-      foo = OverlayGlobal.new
-      foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
-      assert_raises(RuntimeError) do
-        int.fabric_forwarding_anycast_gateway = true
-      end
+    # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+    #    overlay gateway mac is not set.
+    int = Interface.new('vlan11')
+    foo = OverlayGlobal.new
+    foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+    assert_raises(RuntimeError) do
+      int.fabric_forwarding_anycast_gateway = true
     end
   end
 
