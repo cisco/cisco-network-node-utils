@@ -8,7 +8,7 @@ Guidelines for the core maintainers of the cisco-network-node-utils project - ab
 * Does `rubocop` pass? (TODO - this will be part of our CI integration to run automatically)
 * Is `CHANGELOG.md` updated appropriately?
 * Are new minitests added? Do they provide sufficient coverage and consistent results?
-* Do minitests pass on both N9K and N3K?
+* Do minitests pass on all supported platforms
 
 ## Setting up git-flow
 
@@ -45,6 +45,9 @@ When we are considering publishing a new release, all of the following steps mus
   * Platforms (all with latest released software or release candidate)
     - N30xx
     - N31xx
+    - N56xx
+    - N6xxx
+    - N7xxx
     - N9xxx
 
 3. Triage any minitest failures.

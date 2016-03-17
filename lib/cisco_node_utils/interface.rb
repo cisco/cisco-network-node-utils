@@ -249,7 +249,7 @@ module Cisco
     end
 
     def ipv4_addr_mask_set(addr, mask, secondary=false)
-      check_switchport_disabled
+      check_switchport(:disabled)
       sec = secondary ? 'secondary' : ''
       if addr.nil? || addr == default_ipv4_address
         state = 'no'
@@ -378,7 +378,7 @@ module Cisco
     end
 
     def ipv4_pim_sparse_mode=(state)
-      check_switchport_disabled
+      check_switchport(:disabled)
       Feature.pim_enable unless platform == :ios_xr
       config_set('interface', 'ipv4_pim_sparse_mode',
                  name: @name, state: state ? '' : 'no')
@@ -393,7 +393,7 @@ module Cisco
     end
 
     def ipv4_proxy_arp=(proxy_arp)
-      check_switchport_disabled
+      check_switchport(:disabled)
       no_cmd = (proxy_arp ? '' : 'no')
       config_set('interface', 'ipv4_proxy_arp', name: @name, state: no_cmd)
     end
@@ -416,7 +416,7 @@ module Cisco
     end
 
     def ipv4_redirects=(redirects)
-      check_switchport_disabled
+      check_switchport(:disabled)
       no_cmd = (redirects ? '' : 'no')
       config_set('interface', ipv4_redirects_lookup_string,
                  name: @name, state: no_cmd)
@@ -489,7 +489,7 @@ module Cisco
     end
 
     def mtu=(val)
-      check_switchport_disabled
+      check_switchport(:disabled)
       config_set('interface', mtu_lookup_string,
                  name: @name, state: '', mtu: val)
     end
@@ -600,6 +600,7 @@ module Cisco
     end
 
     def stp_bpdufilter=(val)
+      check_switchport([:access, :trunk])
       if val
         state = ''
       else
@@ -639,6 +640,7 @@ module Cisco
     end
 
     def stp_cost=(val)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_cost', name: @name, cost: val)
     end
 
@@ -651,6 +653,7 @@ module Cisco
     end
 
     def stp_guard=(val)
+      check_switchport([:access, :trunk])
       if val
         state = ''
       else
@@ -670,6 +673,7 @@ module Cisco
     end
 
     def stp_link_type=(val)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_link_type', name: @name, type: val)
     end
 
@@ -682,6 +686,7 @@ module Cisco
     end
 
     def stp_port_priority=(val)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_port_priority', name: @name, pp: val)
     end
 
@@ -700,6 +705,7 @@ module Cisco
     end
 
     def stp_mst_cost=(list)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_mst_cost',
                  name: @name, state: 'no', range: @smr,
                  val: '') if list.empty?
@@ -721,6 +727,7 @@ module Cisco
     end
 
     def stp_mst_port_priority=(list)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_mst_port_priority',
                  name: @name, state: 'no', range: @smr,
                  val: '') if list.empty?
@@ -761,6 +768,7 @@ module Cisco
     end
 
     def stp_vlan_cost=(list)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_vlan_cost',
                  name: @name, state: 'no',
                  range: @svr, val: '') if list.empty?
@@ -782,6 +790,7 @@ module Cisco
     end
 
     def stp_vlan_port_priority=(list)
+      check_switchport([:access, :trunk])
       config_set('interface', 'stp_vlan_port_priority',
                  name: @name, state: 'no',
                  range: @svr, val: '') if list.empty?
@@ -1049,7 +1058,7 @@ module Cisco
     end
 
     def svi_autostate=(val)
-      check_switchport_disabled
+      check_switchport(:disabled)
       svi_cmd_allowed?('autostate')
       config_set('interface', 'svi_autostate',
                  name: @name, state: val ? '' : 'no')
@@ -1075,7 +1084,7 @@ module Cisco
     end
 
     def svi_management=(val)
-      check_switchport_disabled
+      check_switchport(:disabled)
       svi_cmd_allowed?('management')
       config_set('interface', 'svi_management',
                  name: @name, state: val ? '' : 'no')
@@ -1094,10 +1103,23 @@ module Cisco
       config_get('vtp', 'feature')
     end
 
-    def check_switchport_disabled
-      return if switchport_mode == :disabled || switchport_mode.nil?
+    def switchport_status?(status)
+      case status
+      when :disabled
+        return true if switchport_mode == status || switchport_mode.nil?
+      when :access, :trunk
+        return switchport_mode == status
+      when Array
+        return status.include?(switchport_mode)
+      else
+        return false
+      end
+    end
+
+    def check_switchport(status)
+      return if switchport_status?(status)
       fail("#{caller[0][/`.*'/][1..-2]} cannot be set unless " \
-           'switchport mode is disabled')
+           "switchport mode is #{status}")
     end
 
     def vpc_id
