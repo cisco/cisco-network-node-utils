@@ -1332,14 +1332,11 @@ class TestInterface < CiscoTestCase
 
   def test_interface_vrf_default
     interface = Interface.new('loopback1')
+    assert_empty(interface.vrf)
+    interface.vrf = 'foo'
+    assert_equal(interface.vrf, 'foo')
     interface.vrf = interface.default_vrf
-    assert_equal(DEFAULT_IF_VRF, interface.vrf)
-  end
-
-  def test_interface_vrf_empty
-    interface = Interface.new('loopback1')
-    interface.vrf = DEFAULT_IF_VRF
-    assert_equal(DEFAULT_IF_VRF, interface.vrf)
+    assert_equal(interface.vrf, interface.default_vrf)
   end
 
   def test_interface_vrf_invalid_type
