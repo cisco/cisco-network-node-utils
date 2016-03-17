@@ -110,12 +110,13 @@ module Cisco
       if val
         @set_args[:state] = ''
         @set_args[:al] = val
+        config_set('itd_service', 'access_list', @set_args)
       else
         @set_args[:state] = 'no'
         @set_args[:al] = access_list
+        config_set('itd_service', 'access_list', @set_args) if
+        access_list
       end
-      config_set('itd_service',
-                 'access_list', @set_args)
       set_args_keys_default
     end
 
@@ -131,12 +132,13 @@ module Cisco
       if val
         @set_args[:state] = ''
         @set_args[:dg] = val
+        config_set('itd_service', 'device_group', @set_args)
       else
         @set_args[:state] = 'no'
         @set_args[:dg] = device_group
+        config_set('itd_service', 'device_group', @set_args) if
+        device_group
       end
-      config_set('itd_service',
-                 'device_group', @set_args)
       set_args_keys_default
     end
 
@@ -152,12 +154,13 @@ module Cisco
       if val
         @set_args[:state] = ''
         @set_args[:al] = val
+        config_set('itd_service', 'exclude_access_list', @set_args)
       else
         @set_args[:state] = 'no'
         @set_args[:al] = exclude_access_list
+        config_set('itd_service', 'exclude_access_list', @set_args) if
+        exclude_access_list
       end
-      config_set('itd_service',
-                 'exclude_access_list', @set_args)
       set_args_keys_default
     end
 
@@ -403,12 +406,14 @@ module Cisco
       if value
         @set_args[:state] = ''
         @set_args[:service] = value
+        config_set('itd_service', 'peer_local', @set_args)
       else
         @set_args[:state] = 'no'
         current_peer_local = peer_local
         @set_args[:service] = current_peer_local
+        config_set('itd_service', 'peer_local', @set_args) unless
+        current_peer_local.nil?
       end
-      config_set('itd_service', 'peer_local', @set_args)
       set_args_keys_default
     end
 
@@ -429,12 +434,14 @@ module Cisco
         current_peer_vdc = peer_vdc
         @set_args[:vdc] = current_peer_vdc[0]
         @set_args[:service] = current_peer_vdc[1]
+        config_set('itd_service', 'peer_vdc', @set_args) unless
+        current_peer_vdc[0].nil? || current_peer_vdc[1].nil?
       else
         @set_args[:state] = ''
         @set_args[:vdc] = parray[0]
         @set_args[:service] = parray[1]
+        config_set('itd_service', 'peer_vdc', @set_args)
       end
-      config_set('itd_service', 'peer_vdc', @set_args)
       set_args_keys_default
     end
 
