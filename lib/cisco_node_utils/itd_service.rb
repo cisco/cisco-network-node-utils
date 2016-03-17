@@ -206,6 +206,8 @@ module Cisco
       @set_args[:state] = ''
       list.each do |intf, next_hop|
         @set_args[:interface] = intf
+        @set_args[:next] = ''
+        @set_args[:nhop] = ''
         unless next_hop == '' || next_hop == 'default'
           @set_args[:next] = 'next-hop'
           @set_args[:nhop] = next_hop
