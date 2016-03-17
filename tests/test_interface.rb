@@ -1412,12 +1412,18 @@ class TestInterface < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { i.ipv4_pim_sparse_mode = true }
       return
     end
+    begin
+      i.switchport_mode = :disabled
+    rescue Cisco::CliError => e
+      skip_message = 'Interface does not support switchport disable'
+      skip(skip_message) if e.message['requested config change not allowed']
+      raise
+    end
     # Sample cli:
     #
     #   interface Ethernet1/1
     #     ip pim sparse-mode
     #
-    i.switchport_mode = :disabled
     i.ipv4_pim_sparse_mode = false
     refute(i.ipv4_pim_sparse_mode)
 
