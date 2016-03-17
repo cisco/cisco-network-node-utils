@@ -10,7 +10,7 @@ member_vni:
   get_command: "show running-config bridge-domain | inc 'member vni'"
   get_value: '/^  member vni (.*)/'
   set_value: "<vnistate> vni <vni> ; bridge-domain <bd> ; <membstate> member vni <membvni>"
-  default_value: '' 
+  default_value: ''
 
 member_vni_bd:
   get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
