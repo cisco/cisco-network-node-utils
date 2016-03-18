@@ -72,6 +72,26 @@ module Cisco
     end
 
     # ---------------------------
+    def self.fex_enable
+      # install feature-set and enable it
+      return if fex_enabled?
+      config_set('feature', 'fex', state: 'install') unless fex_installed?
+      config_set('feature', 'fex', state: '')
+    end
+
+    def self.fex_enabled?
+      config_get('feature', 'fex') =~ /^enabled/
+    end
+
+    def self.fex_installed?
+      config_get('feature', 'fex') !~ /^uninstalled/
+    end
+
+    def self.fex_supported?
+      config_get('feature', 'fex')
+    end
+
+    # ---------------------------
     def self.itd_enable
       return if itd_enabled?
       config_set('feature', 'itd')

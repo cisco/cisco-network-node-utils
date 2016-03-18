@@ -20,6 +20,12 @@ fabric_forwarding:
   get_value: '/^feature fabric forwarding$/'
   set_value: "feature fabric forwarding"
 
+fex:
+  _exclude: [N5k, N6k]
+  get_command: "show feature-set"
+  get_value: '/^fex[\s\d]+(\w+)/'
+  set_value: "<state> feature-set fex"
+
 itd:
   _exclude: [N3k, N5k, N6k]
   get_command: "show running | i ^feature"

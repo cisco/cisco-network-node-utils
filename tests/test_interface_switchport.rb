@@ -115,7 +115,13 @@ class TestSwitchport < TestInterfaceSwitchport
   end
 
   def test_switchport_vtp_disabled_unsupported_mode_fex
-    if platform == :ios_xr
+    if validate_property_excluded?('feature', 'fex')
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.fex_enable
+      end
+      return
+    end
+    if validate_property_excluded?('interface', 'switchport')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode = :fex_fabric
       end
@@ -197,7 +203,6 @@ class TestSwitchport < TestInterfaceSwitchport
       :disabled,
       :access,
       :trunk,
-      #:fex_fabric, (fex is tested by test_interface_switchport_mode_valid_fex)
       :tunnel,
     ]
 
@@ -221,30 +226,21 @@ class TestSwitchport < TestInterfaceSwitchport
   end
 
   def test_interface_switchport_mode_valid_fex
-    skip('Not supported on IOS XR') if platform == :ios_xr
-    switchport_modes = [
-      :unknown,
-      :fex_fabric,
-    ]
-
-    switchport_modes.each do |start|
-      switchport_modes.each do |finish|
-        next if start == :unknown || finish == :unknown
-        begin
-          # puts "#{start},#{finish}"
-          interface.switchport_mode = start
-          assert_equal(start, interface.switchport_mode,
-                       "Error: Switchport mode, #{start}, not as expected")
-          interface.switchport_mode = finish
-          assert_equal(finish, interface.switchport_mode,
-                       "Error: Switchport mode, #{finish}, not as expected")
-        rescue Cisco::CliError => e
-          msg = "[#{interfaces[0]}] switchport_mode is not supported " \
-                'on this interface'
-          assert_equal(msg.downcase, e.message)
-        end
+    if validate_property_excluded?('feature', 'fex')
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.fex_enable
       end
+      return
     end
+    if validate_property_excluded?('interface', 'switchport')
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode = :fex_fabric
+      end
+      return
+    end
+
+    interface.switchport_mode = :fex_fabric
+    assert_equal(start, interface.switchport_mode)
   end
 
   def test_interface_switchport_trunk_allowed_vlan
