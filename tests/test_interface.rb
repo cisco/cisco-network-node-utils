@@ -742,7 +742,6 @@ class TestInterface < CiscoTestCase
 
     # Cleanup
     config("no interface #{@port_channel} 10")
-    member.channel_group = false # rubocop:disable Lint/UselessSetterCall
   end
 
   def test_negotiate_auto_ethernet
