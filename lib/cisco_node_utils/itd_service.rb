@@ -63,6 +63,7 @@ module Cisco
     end
 
     def destroy
+      # the service MUST be shutdown before it can be destroyed
       config_set('itd_service', 'shutdown', name: @name, state: '')
       config_set('itd_service', 'destroy', name: @name)
     end
@@ -184,6 +185,10 @@ module Cisco
       config_get_default('itd_service', 'failaction')
     end
 
+    # this is an array like:
+    # [['ethernet 1/1', '1.1.1.1'], ['port-channel 100', '2.2.2.2']]
+    # show command always shows, Eth1/1, Po100, Vlan2
+    # so translate back to the manifest format
     def ingress_interface
       list = config_get('itd_service', 'ingress_interface', @get_args)
       list.each do |intf, _next_hop|
@@ -194,6 +199,10 @@ module Cisco
       list
     end
 
+    # only one next-hop is allowed per interface but
+    # due to nxos issues, it allows more than one;
+    # so the workaround is to clean up the current ingress
+    # intf and configure all of them from the manifest
     def ingress_interface=(list)
       cur_list = ingress_interface
       @set_args[:state] = 'no'
@@ -430,6 +439,7 @@ module Cisco
     end
 
     # peer_vdc is an array of vdc and service
+    # only one peer_vdc is allowed per service
     # ex: ['switch', 'myservice']
     def peer_vdc=(parray)
       if parray.empty?
@@ -452,6 +462,9 @@ module Cisco
       config_get_default('itd_service', 'peer_vdc')
     end
 
+    # show command shows nothing when the service is
+    # shutdown which is default but it shows "no shut"
+    # when it is up
     def shutdown
       config_get('itd_service', 'shutdown', @get_args)
     end
@@ -471,6 +484,16 @@ module Cisco
       config_get('itd_service', 'virtual_ip', @get_args)
     end
 
+    # VIP is a large string like:
+    # virtual ip 2.2.2.2 10.0.0.0 udp 10 advertise enable device-group icmpGroup
+    # virtual ip 2.2.2.2 10.0.0.0 udp 10 advertise enable
+    # virtual ip 2.2.2.2 10.0.0.0 udp 10
+    # virtual ip 2.2.2.2 10.0.0.0
+    # all of the above are unique and can be added one after the other
+    # the entire string is unique but not individual parts of it
+    # currently, only one VIP can be configured due to nxos issue
+    # else, the switch crashes, this limitation will be set in
+    # puppet manifest. Also remove the current VIPs before configuring more
     def virtual_ip=(values)
       @set_args[:state] = 'no'
       list = virtual_ip
@@ -495,6 +518,8 @@ module Cisco
       config_get('itd_service', 'vrf', @get_args)
     end
 
+    # no cmd does not work for vrf due to nxos issue
+    # this attribute is for future use after nxos fix
     def vrf=(val)
       if val
         @set_args[:state] = ''
