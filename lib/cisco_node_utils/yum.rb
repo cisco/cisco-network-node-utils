@@ -34,7 +34,7 @@ module Cisco
         name_ver_arch_regex_nx = /^(.*)-([\d\.]+-[\d\.]+)\.(\w{4,})\.rpm$/
         # ex: b+z-ip2.x64_64
         name_arch_regex = /^([\w\-\+]+)\.(\w+)$/
-        
+
         file_name.match(name_ver_arch_regex) ||
           file_name.match(name_ver_arch_regex_nx) ||
           file_name.match(name_arch_regex)
@@ -69,8 +69,8 @@ module Cisco
       end
       should_ver = pkg_info[2] if pkg_info && pkg_info[3]
       ver = query(query_name)
-      Cisco::Logger.debug "Installed package version #{ver}, expected package version" \
-            "#{should_ver}"
+      Cisco::Logger.debug "Installed package version #{ver}, " \
+        "expected package version #{should_ver}"
       if ver.nil? || (!should_ver.nil? && should_ver != ver)
         fail 'Failed to install the requested rpm'
       end
