@@ -63,6 +63,7 @@ module Cisco
     end
 
     def destroy
+      config_set('itd_service', 'shutdown', name: @name, state: '')
       config_set('itd_service', 'destroy', name: @name)
     end
 
