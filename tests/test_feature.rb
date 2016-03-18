@@ -198,4 +198,24 @@ class TestFeature < CiscoTestCase
     config("no install #{fs}") unless feature_set_installed
     vdc_lc_state(vdc_current) if vdc_current
   end
+
+  def test_feature_set_fex
+    if validate_property_excluded?('feature', 'fex')
+      assert_nil(Feature.fex_enabled?)
+      assert_raises(Cisco::UnsupportedError) { Feature.fex_enable }
+      return
+    end
+    fs = 'feature-set fex'
+
+    # clean
+    config("no #{fs} ; no install #{fs}") if Feature.fex_installed?
+    refute_show_match(
+      command: "show running | i '^install #{fs}$'",
+      pattern: /^install #{fs}$/,
+      msg:     "(#{fs}) is still configured",
+    )
+
+    Feature.fex_enable
+    assert(Feature.fex_enabled?, "(#{fs}) is not enabled")
+  end
 end

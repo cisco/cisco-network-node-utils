@@ -312,46 +312,6 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  # TODO: Run this test at your peril as it can cause timeouts for this test and
-  # others - 'no feature-set fex' states:
-  # "Feature-set Operation may take up to 30 minutes depending on the
-  #  size of configuration."
-  #
-  #   def test_interface_switchport_fex_feature
-  #     test_matrix = {
-  #       #    [ <set_state>,  <expected> ]
-  #       1 => [:uninstalled, :uninstalled], # noop
-  #       2 => [:installed,   :installed],
-  #       3 => [:uninstalled, :uninstalled],
-  #       4 => [:enabled,     :enabled],
-  #       5 => [:enabled,     :enabled],     # noop
-  #       6 => [:installed,   :enabled],     # noop
-  #       7 => [:uninstalled, :uninstalled],
-  #       8 => [:disabled,    :uninstalled], # noop
-  #       9 => [:installed,   :installed],
-  #       10 => [:installed,   :installed],  # noop
-  #       11 => [:enabled,     :enabled],
-  #       12 => [:disabled,    :disabled],
-  #       13 => [:uninstalled, :uninstalled],
-  #       14 => [:installed,   :installed],
-  #       15 => [:disabled,    :installed],  # noop
-  #       16 => [:uninstalled, :uninstalled],
-  #     }
-  #     interface = Interface.new(interfaces[0])
-  #     # start test from :uninstalled state
-  #     interface.fex_feature_set(:uninstalled)
-  #     from = interface.fex_feature
-  #     test_matrix.each do |id,test|
-  #       #puts "Test #{id}: #{test}, (from: #{from}"
-  #       set_state, expected = test
-  #       interface.fex_feature_set(set_state)
-  #       curr = interface.fex_feature
-  #       assert_equal(expected, curr,
-  #                    "Error: fex test #{id}: from #{from} to #{set_state}")
-  #       from = curr
-  #     end
-  #   end
-
   def test_system_default_switchport_on_off
     if platform == :nexus
       system_default_switchport('')
