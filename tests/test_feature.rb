@@ -51,7 +51,7 @@ class TestFeature < CiscoTestCase
 
     # Get current state of feature, then disable it
     pre_clean_enabled = Feature.send("#{feat}_enabled?")
-    config("no #{feat_str}") if pre_clean_enabled
+    config("no feature #{feat_str}") if pre_clean_enabled
     refute_show_match(
       command: "show running | i #{feat_str}",
       pattern: /^#{feat_str}$/,
@@ -68,7 +68,7 @@ class TestFeature < CiscoTestCase
            "Feature #{feat} (#{feat_str}) is not enabled")
 
     # Return testbed to pre-clean state
-    config("no #{feat_str}") unless pre_clean_enabled
+    config("no feature #{feat_str}") unless pre_clean_enabled
   end
 
   ###################

@@ -65,29 +65,30 @@ module Cisco
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       # Check for messages that can be safely ignored.
 
-      warning_msg = false
+      wrn_msg = false
 
       unless ignore_message.nil?
         # Check if ignore_message is present
-        warning_msg = true
+        wrn_msg = true
       end
 
-      fail result[2]['body'] if
-        (result[2].is_a?(Hash) &&
-        /(ERROR:|VLAN:)/.match(result[2]['body'].to_s)) ||
-        ((result[2].is_a?(Hash) &&
-        /(Warning:)/.match(result[2]['body'].to_s)) &&
-        ((warning_msg &&
-        !result[2]['body'].to_s.include?(ignore_message)) || !warning_msg))
-
-      # Some test environments get result[2] as a string instead of a hash
-      fail result[2] if
-        (result[2].is_a?(String) &&
-        /(ERROR:|VLAN:)/.match(result[2])) ||
-        ((result[2].is_a?(String) &&
-        /(Warning:)/.match(result[2])) &&
-        ((warning_msg &&
-        !result[2].to_s.include?(ignore_message)) || !warning_msg))
+      if result[2].is_a?(Hash) &&
+         /(ERROR:|VLAN:|Warning:)/.match(result[2]['body'].to_s)
+        messages = (result[2]['body'].split(/(ERROR:|VLAN:|Warning:)/) - [''])
+                   .each_slice(2).map(&:join)
+        messages.each do |msg|
+          next if msg.empty? || (wrn_msg && msg.to_s.include?(ignore_message))
+          fail
+        end
+      end
+      return unless result[2].is_a?(String) &&
+                    /(ERROR:|VLAN:|Warning:)/.match(result[2])
+      messages = (result[2].split(/(ERROR:|VLAN:|Warning:)/) - [''])
+                 .each_slice(2).map(&:join)
+      messages.each do |msg|
+        next if msg.empty? || (wrn_msg && msg.to_s.include?(ignore_message))
+        fail
+      end
     end
 
     def fabricpath_feature
@@ -256,33 +257,49 @@ module Cisco
       config_get_default('vlan', 'private_vlan_type')
     end
 
-    def private_vlan_association
-      result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
+    def private_vlan_association_add_vlans
+      result = config_get('vlan', 'private_vlan_association_add_vlans',
+                          id: @vlan_id)
       result.delete('"')
     end
 
-    def private_vlan_association=(config)
-      fail TypeError unless config[:vlan_list] &&
-                            config[:vlan_list].is_a?(String)
+    def private_vlan_association_add_vlans=(config)
+      fail TypeError unless config &&
+                            config.is_a?(String)
       Feature.private_vlan_enable
-      set_args_keys_default
-      if config[:oper] == default_private_vlan_association
-        @set_args[:vlan] = @vlan_id
-        @set_args[:state] = 'no'
-        @set_args[:operation] = ''
-        @set_args[:vlans] = config[:vlan_list]
-      else
-        @set_args[:vlan] = @vlan_id
-        @set_args[:state] = ''
-        @set_args[:operation] = config[:oper]
-        @set_args[:vlans] = config[:vlan_list]
-      end
-      result = config_set('vlan', 'private_vlan_association', @set_args)
+      result = config_set('vlan', 'private_vlan_association_add_vlans',
+                          vlan: @vlan_id, vlans: config)
       cli_error_check(result)
     end
 
-    def default_private_vlan_association
-      config_get_default('vlan', 'private_vlan_association')
+    def private_vlan_association_remove_vlans
+      result = config_get('vlan', 'private_vlan_association_remove_vlans',
+                          id: @vlan_id)
+      result.delete('"')
+    end
+
+    def private_vlan_association_remove_vlans=(config)
+      fail TypeError unless config &&
+                            config.is_a?(String)
+      Feature.private_vlan_enable
+      result = config_set('vlan', 'private_vlan_association_remove_vlans',
+                          vlan: @vlan_id, vlans: config)
+      cli_error_check(result)
+    end
+
+    def private_vlan_association_delete_all
+      result = config_get('vlan', 'private_vlan_association_delete_all',
+                          id: @vlan_id)
+      result.delete('"')
+    end
+
+    def private_vlan_association_delete_all=(config)
+      fail TypeError unless config &&
+                            config.is_a?(String)
+      Feature.private_vlan_enable
+      result = config_set('vlan', 'private_vlan_association_delete_all',
+                          vlan: @vlan_id, vlans: config)
+      cli_error_check(result)
     end
   end # class
 end # module

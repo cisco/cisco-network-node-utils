@@ -50,20 +50,36 @@ class TestVlan < CiscoTestCase
   def test_private_vlan_type_primary
     v1 = Vlan.new(100)
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+    end
     v1.destroy
   end
 
   def test_no_private_vlan_type_primary
     v1 = Vlan.new(200)
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = ''
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = ''
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_multi_private_vlan_type_primary
@@ -73,454 +89,641 @@ class TestVlan < CiscoTestCase
     v4 = Vlan.new(201)
     v5 = Vlan.new(203)
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    v2.private_vlan_type = pv_type
-    v3.private_vlan_type = pv_type
-    v4.private_vlan_type = pv_type
-    v5.private_vlan_type = pv_type
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      v4.destroy
+      v5.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      v2.private_vlan_type = pv_type
+      v3.private_vlan_type = pv_type
+      v4.private_vlan_type = pv_type
+      v5.private_vlan_type = pv_type
 
-    assert_equal(pv_type, v1.private_vlan_type)
-    assert_equal(pv_type, v2.private_vlan_type)
-    assert_equal(pv_type, v3.private_vlan_type)
-    assert_equal(pv_type, v4.private_vlan_type)
-    assert_equal(pv_type, v5.private_vlan_type)
-    v1.destroy
-    v2.destroy
-    v3.destroy
-    v4.destroy
-    v5.destroy
+      assert_equal(pv_type, v1.private_vlan_type)
+      assert_equal(pv_type, v2.private_vlan_type)
+      assert_equal(pv_type, v3.private_vlan_type)
+      assert_equal(pv_type, v4.private_vlan_type)
+      assert_equal(pv_type, v5.private_vlan_type)
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      v4.destroy
+      v5.destroy
+    end
   end
 
   def test_private_vlan_type_isolated
     v1 = Vlan.new(100)
     pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+    end
     v1.destroy
   end
 
   def test_private_vlan_type_community
     v1 = Vlan.new(100)
     pv_type = 'community'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+    end
     v1.destroy
   end
 
   def test_private_vlan_type_isolated_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v2 = Vlan.new(200)
-    pv_type = 'primary'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
-    v2.destroy
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v2 = Vlan.new(200)
+      pv_type = 'primary'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
+      v2.destroy
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_isolated_community_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v2 = Vlan.new(200)
-    pv_type = 'primary'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
-    v3 = Vlan.new(300)
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
-    v2.destroy
-    v1.destroy
-    v3.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v2 = Vlan.new(200)
+      pv_type = 'primary'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
+      v3 = Vlan.new(300)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
+      v2.destroy
+      v1.destroy
+      v3.destroy
+    end
   end
 
   def test_private_vlan_type_change_isolated_to_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_change_isolated_to_community
     v1 = Vlan.new(100)
     pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'community'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'community'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_change_community_to_isolated
     v1 = Vlan.new(100)
     pv_type = 'community'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_change_community_to_primary
     v1 = Vlan.new(100)
     pv_type = 'community'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_change_primary_to_isolated
     v1 = Vlan.new(100)
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_type_change_primary_to_community
     v1 = Vlan.new(100)
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'community'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    v1.destroy
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'community'
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      v1.destroy
+    end
   end
 
   def test_private_vlan_isolate_association
     vlan_list = %w(100 101)
     result = '[101]'
-    config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = vlan_list[1]
-    v1.private_vlan_association = config
+      v1.private_vlan_association_add_vlans = vlan_list[1]
 
-    assert_equal(result, v1.private_vlan_association)
-    v1.destroy
-    v2.destroy
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+    end
   end
 
   def test_private_vlan_community_association
     vlan_list = %w(100 101)
     result = '[101]'
-    config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'community'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      return
+    else
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = vlan_list[1]
-    v1.private_vlan_association = config
+      v1.private_vlan_association_add_vlans = vlan_list[1]
 
-    assert_equal(result, v1.private_vlan_association)
-    v1.destroy
-    v2.destroy
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+    end
   end
 
   def test_private_vlan_association_failure
     vlan_list = %w(100 101 200)
     result = '[101, 200]'
-    config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
-
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
-
-    assert_equal(result, v1.private_vlan_association)
-
-    pv_type = 'isolated'
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
       v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
+
+      v1.private_vlan_association_add_vlans = '101,200'
+
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+
+      pv_type = 'isolated'
+      assert_raises(RuntimeError, 'vlan misconf did not raise RuntimeError') do
+        v2.private_vlan_type = pv_type
+      end
+
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+
+      v1.destroy
+      v2.destroy
+      v3.destroy
     end
-
-    assert_equal(result, v1.private_vlan_association)
-
-    v1.destroy
-    v2.destroy
-    v3.destroy
   end
 
   def test_private_vlan_association_operational_and_not_operational
     vlan_list = %w(100 101 200)
-    config = {}
+    result = '[101, 200]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
 
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      assert_equal(pv_type, v1.private_vlan_type)
 
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
-    v3.destroy
+      v1.private_vlan_association_add_vlans = '101,200'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+      v3.destroy
+    end
   end
 
   def test_private_vlan_association_vlan_not_configured
     vlan_list = %w(100 101 200)
-    config = {}
+    result = '[101, 200]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
+      v1.private_vlan_association_add_vlans = '101,200'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+    end
   end
 
   def test_private_vlan_association_add_vlan
     vlan_list = %w(100 101)
-    config = {}
+    result = '[101]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    config[:oper] = 'add'
-    config[:vlan_list] = '101'
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
+      v1.private_vlan_association_add_vlans = '101'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+    end
   end
 
   def test_private_vlan_association_remove_vlan
     vlan_list = %w(100 101 200)
-    config = {}
+    result = '[101, 200]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
+      v1.private_vlan_association_add_vlans = '101,200'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association_remove_vlans = '101'
+      result = '[200]'
+      assert_equal(result, v1.private_vlan_association_remove_vlans)
 
-    config[:oper] = 'rem'
-    config[:vlan_list] = '101'
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
-    v3.destroy
+      v1.destroy
+      v2.destroy
+      v3.destroy
+    end
   end
 
   def test_no_private_vlan_association
     vlan_list = %w(100 101 200)
-    config = {}
+    result = '[101, 200]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
 
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
 
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
-
-    config[:oper] = 'default'
-    config[:vlan_list] = '101'
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
-    v3.destroy
+      v1.private_vlan_association_add_vlans = '101,200'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association_delete_all = '101'
+      result = '[200]'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+      v3.destroy
+    end
   end
 
   def test_no_private_vlan_association_all
     vlan_list = %w(100 101 200)
-    config = {}
+    result = '[101, 200]'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
 
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
 
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
+      v1.private_vlan_association_add_vlans = '101,200'
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association_delete_all = '101,200'
+      result = ''
+      assert_equal(result, v1.private_vlan_association_add_vlans)
 
-    config[:oper] = 'default'
-    config[:vlan_list] = ''
-    v1.private_vlan_association = config
-
-    v1.destroy
-    v2.destroy
-    v3.destroy
+      v1.destroy
+      v2.destroy
+      v3.destroy
+    end
   end
 
   def test_private_vlan_isolate_community_association
     vlan_list = %w(100 101 200)
     result = '[101, 200]'
-    config = {}
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
-    pv_type = 'community'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      return
+    else
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,200'
-    v1.private_vlan_association = config
+      v1.private_vlan_association_add_vlans = '101,200'
 
-    assert_equal(result, v1.private_vlan_association)
-    v1.destroy
-    v2.destroy
-    v3.destroy
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+      v3.destroy
+    end
   end
 
   def test_private_vlan_multi_isolate_community_association
     vlan_list = %w(100 101 102 104 105 200 201 202)
     result = '[101, 104, 105, 200, 202]'
-    config = {}
     v1 = Vlan.new(vlan_list[0])
-    v2 = Vlan.new(vlan_list[1])
-    v3 = Vlan.new(vlan_list[2])
-    v4 = Vlan.new(vlan_list[3])
-    v5 = Vlan.new(vlan_list[4])
-    v6 = Vlan.new(vlan_list[5])
-    v7 = Vlan.new(vlan_list[6])
-    v8 = Vlan.new(vlan_list[7])
 
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
-    assert_equal(pv_type, v1.private_vlan_type)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v1.private_vlan_type = pv_type
+      end
+      v1.destroy
+      return
+    else
+      v2 = Vlan.new(vlan_list[1])
+      v3 = Vlan.new(vlan_list[2])
+      v4 = Vlan.new(vlan_list[3])
+      v5 = Vlan.new(vlan_list[4])
+      v6 = Vlan.new(vlan_list[5])
+      v7 = Vlan.new(vlan_list[6])
+      v8 = Vlan.new(vlan_list[7])
 
-    pv_type = 'isolated'
-    v2.private_vlan_type = pv_type
-    assert_equal(pv_type, v2.private_vlan_type)
+      v1.private_vlan_type = pv_type
+      assert_equal(pv_type, v1.private_vlan_type)
 
-    pv_type = 'isolated'
-    v3.private_vlan_type = pv_type
-    assert_equal(pv_type, v3.private_vlan_type)
+      pv_type = 'isolated'
+      v2.private_vlan_type = pv_type
+      assert_equal(pv_type, v2.private_vlan_type)
 
-    pv_type = 'community'
-    v4.private_vlan_type = pv_type
-    assert_equal(pv_type, v4.private_vlan_type)
+      pv_type = 'isolated'
+      v3.private_vlan_type = pv_type
+      assert_equal(pv_type, v3.private_vlan_type)
 
-    pv_type = 'community'
-    v5.private_vlan_type = pv_type
-    assert_equal(pv_type, v5.private_vlan_type)
+      pv_type = 'community'
+      v4.private_vlan_type = pv_type
+      assert_equal(pv_type, v4.private_vlan_type)
 
-    pv_type = 'community'
-    v6.private_vlan_type = pv_type
-    assert_equal(pv_type, v6.private_vlan_type)
+      pv_type = 'community'
+      v5.private_vlan_type = pv_type
+      assert_equal(pv_type, v5.private_vlan_type)
 
-    pv_type = 'primary'
-    v7.private_vlan_type = pv_type
-    assert_equal(pv_type, v7.private_vlan_type)
+      pv_type = 'community'
+      v6.private_vlan_type = pv_type
+      assert_equal(pv_type, v6.private_vlan_type)
 
-    config[:oper] = ''
-    config[:vlan_list] = '101,104-105,200,202'
-    v1.private_vlan_association = config
+      pv_type = 'primary'
+      v7.private_vlan_type = pv_type
+      assert_equal(pv_type, v7.private_vlan_type)
 
-    assert_equal(result, v1.private_vlan_association)
-    v1.destroy
-    v2.destroy
-    v3.destroy
-    v4.destroy
-    v5.destroy
-    v6.destroy
-    v7.destroy
-    v8.destroy
+      v1.private_vlan_association_add_vlans = '101,104-105,200,202'
+
+      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      v4.destroy
+      v5.destroy
+      v6.destroy
+      v7.destroy
+      v8.destroy
+    end
   end
 end
