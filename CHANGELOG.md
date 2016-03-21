@@ -9,6 +9,7 @@ Changelog
 * Itd
   * itd_device_group (@saichint)
   * itd_device_group_node (@saichint)
+  * itd_service (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
 * Bridge Domain
