@@ -224,8 +224,10 @@ class TestItdService < CiscoTestCase
     ItdDeviceGroupNode.new(itddg.name, '1.1.1.1', 'ip')
     itd.device_group = 'abc'
     itd.virtual_ip = ['ip 2.2.2.2 255.255.255.0']
-    intf = interfaces[0].dup
-    ii = [[intf.insert(8, ' '), '2.2.2.2']]
+    intf = Interface.new(interfaces[0])
+    intf.switchport_mode = :disabled
+    intf_dup = interfaces[0].dup
+    ii = [[intf_dup.insert(8, ' '), '2.2.2.2']]
     itd.ingress_interface = ii
     itd.shutdown = false
     assert_equal(false, itd.shutdown)
@@ -284,17 +286,6 @@ class TestItdService < CiscoTestCase
     itd.virtual_ip = itd.default_virtual_ip
     assert_equal(itd.virtual_ip,
                  itd.default_virtual_ip)
-    itd.destroy
-  end
-
-  # no vrf <vrf> does not work and so this test will fail
-  def test_vrf
-    itd = ItdService.new('new_group')
-    itd.vrf = 'myVrf'
-    assert_equal('myVrf', itd.vrf)
-    itd.vrf = itd.default_vrf
-    assert_equal(itd.default_vrf,
-                 itd.vrf)
     itd.destroy
   end
 end

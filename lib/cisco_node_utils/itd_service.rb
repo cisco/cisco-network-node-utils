@@ -187,7 +187,7 @@ module Cisco
 
     # this is an array like:
     # [['ethernet 1/1', '1.1.1.1'], ['port-channel 100', '2.2.2.2']]
-    # show command always shows, Eth1/1, Po100, Vlan2
+    # show command output is like: Eth1/1, Po100, Vlan2
     # so translate back to the manifest format
     def ingress_interface
       list = config_get('itd_service', 'ingress_interface', @get_args)
@@ -463,8 +463,8 @@ module Cisco
     end
 
     # show command shows nothing when the service is
-    # shutdown which is default but it shows "no shut"
-    # when it is up
+    # shutdown which is default, but it shows "no shut"
+    # when it is not shut
     def shutdown
       config_get('itd_service', 'shutdown', @get_args)
     end
@@ -512,29 +512,6 @@ module Cisco
 
     def default_virtual_ip
       config_get_default('itd_service', 'virtual_ip')
-    end
-
-    def vrf
-      config_get('itd_service', 'vrf', @get_args)
-    end
-
-    # no cmd does not work for vrf due to nxos issue
-    # this attribute is for future use after nxos fix
-    def vrf=(val)
-      if val
-        @set_args[:state] = ''
-        @set_args[:vrf] = val
-      else
-        @set_args[:state] = 'no'
-        @set_args[:vrf] = vrf
-      end
-      config_set('itd_service',
-                 'vrf', @set_args)
-      set_args_keys_default
-    end
-
-    def default_vrf
-      config_get_default('itd_service', 'vrf')
     end
   end  # Class
 end    # Module
