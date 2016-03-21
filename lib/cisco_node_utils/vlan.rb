@@ -180,7 +180,7 @@ module Cisco
       interfaces = {}
       all_interfaces.each do |name, i|
         next unless i.switchport_mode == :access
-        next unless i.access_vlan == @vlan_id
+        next unless i.access_vlan.to_i == @vlan_id.to_i
         interfaces[name] = i
       end
       interfaces
