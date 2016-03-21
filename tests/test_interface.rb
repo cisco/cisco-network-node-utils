@@ -1058,6 +1058,15 @@ class TestInterface < CiscoTestCase
       end
       return
     end
+    if validate_property_excluded?('interface',
+                                   'fabric_forwarding_anycast_gateway')
+      int = Interface.new('vlan11')
+      OverlayGlobal.new.anycast_gateway_mac = '1223.3445.5668'
+      assert_raises(Cisco::UnsupportedError) do
+        int.fabric_forwarding_anycast_gateway = true
+      end
+      return
+    end
 
     # Setup
     config_no_warn('no interface vlan11')
@@ -1085,9 +1094,10 @@ class TestInterface < CiscoTestCase
 
     # 5. Attempt to set 'fabric forwarding anycast gateway' while the
     #    overlay gateway mac is not set.
+    int.destroy
     int = Interface.new('vlan11')
-    foo = OverlayGlobal.new
-    foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
+    bar = OverlayGlobal.new
+    bar.anycast_gateway_mac = bar.default_anycast_gateway_mac
     assert_raises(RuntimeError) do
       int.fabric_forwarding_anycast_gateway = true
     end
