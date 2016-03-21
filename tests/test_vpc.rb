@@ -56,9 +56,12 @@ class TestVpc < CiscoTestCase
   end
 
   def test_auto_recovery
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'auto_recovery').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'auto_recovery')
+      assert_raises(Cisco::UnsupportedError) { vpc.auto_recovery = true }
+      return
+    end
+
     default_val = vpc.auto_recovery
     assert_equal(default_val, vpc.auto_recovery,
                  "Auto recovery should be #{default_val} by default")
@@ -125,9 +128,12 @@ class TestVpc < CiscoTestCase
   end
 
   def test_layer3_peer_routing
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'layer3_peer_routing').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'layer3_peer_routing')
+      assert_raises(Cisco::UnsupportedError) { vpc.layer3_peer_routing = true }
+      return
+    end
+
     default_val = vpc.default_layer3_peer_routing
     assert_equal(default_val, vpc.layer3_peer_routing,
                  "layer3_peer_routing should be #{default_val} by default")
@@ -190,10 +196,14 @@ class TestVpc < CiscoTestCase
   end
 
   def test_peer_gateway_exclude_bridge_domain
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc',
-                     'peer_gateway_exclude_bridge_domain').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'peer_gateway_exclude_bridge_domain')
+      assert_raises(Cisco::UnsupportedError) do
+        vpc.peer_gateway_exclude_bridge_domain = '10'
+      end
+      return
+    end
+
     default_val = vpc.default_peer_gateway_exclude_bridge_domain
     assert_equal(default_val, vpc.peer_gateway_exclude_bridge_domain,
                  "peer_gateway exclude BD should be #{default_val} default")
@@ -203,9 +213,14 @@ class TestVpc < CiscoTestCase
   end
 
   def test_peer_gateway_exclude_vlan
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'peer_gateway_exclude_vlan').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'peer_gateway_exclude_vlan')
+      assert_raises(Cisco::UnsupportedError) do
+        vpc.peer_gateway_exclude_vlan = '10'
+      end
+      return
+    end
+
     default_val = vpc.default_peer_gateway_exclude_vlan
     assert_equal(default_val, vpc.peer_gateway_exclude_vlan,
                  "peer_gateway exclude vlan should be #{default_val} default")
@@ -225,19 +240,23 @@ class TestVpc < CiscoTestCase
   end
 
   def test_self_isolation
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'self_isolation').default_value.nil?
-
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'self_isolation')
+      assert_raises(Cisco::UnsupportedError) { vpc.self_isolation = true }
+      return
+    end
+
     vpc.self_isolation = true
     assert_equal(true, vpc.self_isolation,
                  'Self isolation should have been configured')
   end
 
   def test_shutdown
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'layer3_peer_routing').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'shutdown')
+      assert_raises(Cisco::UnsupportedError) { vpc.shutdown = true }
+      return
+    end
 
     vpc.shutdown = vpc.default_shutdown
     refute(vpc.shutdown, 'Vpc domain should not be shutdown')
@@ -271,9 +290,11 @@ class TestVpc < CiscoTestCase
   end
 
   def test_track
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'track').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'track')
+      assert_raises(Cisco::UnsupportedError) { vpc.track = 44 }
+      return
+    end
 
     default_value = vpc.default_track
     assert_equal(default_value, vpc.track,
@@ -361,10 +382,30 @@ class TestVpc < CiscoTestCase
   ##############################################################################
   # Test vPC+ properties
   #
+
+  # Some properties require 'feature-set fabricpath', which will process before
+  # the property itself; therefore check for unsupported against the feature
+  # before attempting the property itself. Returns true if excluded.
+  def feature_set_fabricpath_excluded?
+    if validate_property_excluded?('fabricpath', 'feature_install')
+      assert_raises(Cisco::UnsupportedError) do
+        FabricpathGlobal.fabricpath_feature_set(:enabled)
+      end
+      return true
+    end
+    false
+  end
+
   def test_fabricpath_emulated_switch_id
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'fabricpath_emulated_switch_id').default_value.nil?
+    return if feature_set_fabricpath_excluded?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'fabricpath_emulated_switch_id')
+      assert_raises(Cisco::UnsupportedError) do
+        vpc.fabricpath_emulated_switch_id = false
+      end
+      return
+    end
+
     refute(vpc.fabricpath_emulated_switch_id,
            'vPC+ (fabricpath switch-id) should not be enabled by default')
     vpc.fabricpath_emulated_switch_id = 1000
@@ -376,16 +417,24 @@ class TestVpc < CiscoTestCase
   end
 
   def test_fabricpath_multicast_load_balance
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc',
-                     'fabricpath_multicast_load_balance').default_value.nil?
     vpc = Vpc.new(100)
+    return if feature_set_fabricpath_excluded?
+    if validate_property_excluded?('vpc', 'fabricpath_multicast_load_balance')
+      assert_raises(Cisco::UnsupportedError) do
+        vpc.fabricpath_multicast_load_balance = false
+      end
+      return
+    end
+
     refute(vpc.fabricpath_multicast_load_balance,
            'fabricpath multicast loadbalance should not be enabled by default')
     e = assert_raises(RuntimeError) do
       vpc.fabricpath_multicast_load_balance = true
     end
-    assert_match(/fabricpath_switch_id configuration is required/, e.message)
+
+    assert_match(/property also requires fabricpath_emulated_switch_id/,
+                 e.message)
+
     vpc.fabricpath_emulated_switch_id = 1000
     vpc.fabricpath_multicast_load_balance = true
     assert(vpc.fabricpath_multicast_load_balance,
@@ -396,9 +445,12 @@ class TestVpc < CiscoTestCase
   end
 
   def test_port_channel_limit
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'port_channel_limit').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'port_channel_limit')
+      assert_raises(Cisco::UnsupportedError) { vpc.port_channel_limit = true }
+      return
+    end
+
     assert(vpc.port_channel_limit,
            'port_channel_limit should be enabled by default')
     e = assert_raises(RuntimeError) do
@@ -420,9 +472,14 @@ class TestVpc < CiscoTestCase
   end
 
   def test_interface_vpc_plus_peer_link
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('vpc', 'fabricpath_emulated_switch_id').default_value.nil?
     vpc = Vpc.new(100)
+    if validate_property_excluded?('vpc', 'fabricpath_emulated_switch_id')
+      assert_raises(Cisco::UnsupportedError) do
+        vpc.fabricpath_emulated_switch_id = true
+      end
+      return
+    end
+
     # make it vpc plus by setting a fabricpath switch-id
     vpc.fabricpath_emulated_switch_id = 1000
     # Make sure PKA is set
