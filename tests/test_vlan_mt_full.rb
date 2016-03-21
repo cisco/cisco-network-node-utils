@@ -48,7 +48,7 @@ class TestVlanMtFull < CiscoTestCase
   end
 
   def interface_ethernet_default(ethernet_id)
-    config("default interface ethernet #{ethernet_id}")
+    config("default interface #{ethernet_id}")
   end
 
   def mt_full_env_setup
@@ -64,8 +64,9 @@ class TestVlanMtFull < CiscoTestCase
 
     # Test for valid mode
     v = Vlan.new(2000)
-    assert_equal('ce', v.mode,
-                 'Mode should have been default to ce')
+    default = v.default_mode
+    assert_equal(default, v.mode,
+                 'Mode should have been default value: #{default}')
     v.mode = 'fabricpath'
     assert_equal(:enabled, v.fabricpath_feature,
                  'Fabricpath feature should have been enabled')
@@ -74,8 +75,8 @@ class TestVlanMtFull < CiscoTestCase
 
     # Test for invalid mode
     v = Vlan.new(100)
-    assert_equal('ce', v.mode,
-                 'Mode should have been default to ce')
+    assert_equal(default, v.mode,
+                 'Mode should have been default value: #{default}')
 
     assert_raises(RuntimeError) { v.mode = 'junk' }
   end
