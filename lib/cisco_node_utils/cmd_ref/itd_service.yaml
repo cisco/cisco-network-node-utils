@@ -1,6 +1,6 @@
 # itd_service
 ---
-_exclude: [N3k, N5k, N6k, ios_xr]
+_exclude: [N3k, N5k, N6k, N8k, ios_xr]
 
 _template:
   get_command: "show running-config all | section itd"
@@ -118,9 +118,3 @@ virtual_ip:
   get_value: '/^virtual (.*)/'
   set_value : "<state> virtual <string>"
   default_value: []
-
-vrf:
-  kind: string
-  get_value: '/^vrf (\S+)$/'
-  set_value: "<state> vrf <vrf>"
-  default_value: false
