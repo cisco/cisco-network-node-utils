@@ -240,7 +240,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
 
     interface.switchport_mode = :fex_fabric
-    assert_equal(start, interface.switchport_mode)
+    assert_equal(interface.switchport_mode, :fex_fabric)
   end
 
   def test_interface_switchport_trunk_allowed_vlan
