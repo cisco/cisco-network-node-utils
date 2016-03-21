@@ -1323,7 +1323,7 @@ class TestInterface < CiscoTestCase
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
       config(*cfg)
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
+      interface_ethernet_default(interfaces[1])
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)
