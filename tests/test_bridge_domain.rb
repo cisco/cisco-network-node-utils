@@ -35,8 +35,8 @@ class TestBridgeDomain < CiscoTestCase
   end
 
   def teardown
-    super
     cleanup
+    super
   end
 
   def test_single_bd_create_destroy

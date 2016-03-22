@@ -63,15 +63,15 @@ module Cisco
     # PROPERTIES
     # ----------
 
-    def batch_the_string(string)
+    def range_summarize(string)
       Utils.unsorted_list_to_string(Utils.string_to_array(string.to_s))
     end
 
     def dot1q_map
       result = config_get('encapsulation', 'dot1q_map', profile: @encap_name)
-      return '' unless result != ''
-      result[0] = batch_the_string(result[0])
-      result[1] = batch_the_string(result[1])
+      return default_dot1q_map if result.to_s.empty?
+      result[0] = range_summarize(result[0])
+      result[1] = range_summarize(result[1])
       result
     end
 

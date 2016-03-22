@@ -38,7 +38,7 @@ module Cisco
       "Bridge Domain #{bd_ids}"
     end
 
-    def self.rangebds
+    def self.range_bds
       hash = {}
       bd_list = config_get('bridge_domain_vni', 'range_bds')
       return hash if bd_list.nil?
@@ -49,6 +49,25 @@ module Cisco
       hash
     end
 
+    # Example clis;
+    # system bridge-domain 101-200
+    # bridge-domain 101-200
+    # bridge-domain 101-110,120,141-145,180
+    #   member vni 6001-6011,5041-5044,8000,9000
+    #
+    # config_get('bridge_domain_vni', 'member_vni')
+    # will get the current member vni in this case
+    # 6001-6011,5041-5044,8000,9000
+    #
+    # config_get('bridge_domain_vni', 'member_vni_bd')
+    # will get the current bd's mapped to member vni in this case
+    # 101-110,120,141-145,180
+    #
+    # The @bd_ids_list which is created when the BridgeDomainVNI object is
+    # initialized which could be 101-110 bd range.
+    # hash_map will have 101=>6001,102=>6002...120=>6011,141=>5041...180=>9000
+    # And the final_bd_vni hash will be based of the initialized list
+    # 101=>6001,102=>6002,103=>6003....110=>6010 only.
     def curr_bd_vni_hash
       final_bd_vni = {}
       curr_vni = config_get('bridge_domain_vni', 'member_vni')
@@ -71,13 +90,14 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = Utils.string_to_array(system_bd_add)
+      sys_bds_array = Utils.string_to_array(system_bridge_domain)
       if (@bd_ids_list - sys_bds_array).any?
         add_bds = Utils
                   .unsorted_list_to_string(@bd_ids_list - sys_bds_array)
-        config_set('bridge_domain_vni', 'system_bd_add', addbd: add_bds)
+        config_set('bridge_domain_vni', 'system_bridge_domain', oper: 'add',
+                                                                bd:   add_bds)
       end
-      config_set('bridge_domain_vni', 'create', crbd: @bd_ids)
+      config_set('bridge_domain_vni', 'create', bd: @bd_ids)
     end
 
     def destroy
@@ -85,8 +105,9 @@ module Cisco
       bd_val = bd_vni.keys.join(',')
       vni_val = bd_vni.values.join(',')
       return '' if vni_val.empty?
-      config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
-                 vni: vni_val, bd: bd_val, membstate: 'no', membvni: vni_val)
+      config_set('bridge_domain_vni', 'member_vni', bd: bd_val,
+                 membstate: 'no', membvni: vni_val)
+      config_set('bridge_domain_vni', 'vni', state: 'no', vni: vni_val)
     end
 
     ########################################################
@@ -133,8 +154,9 @@ module Cisco
         bd_val = bd_vni.keys.join(',')
         vni_val = bd_vni.values.join(',')
         return '' if vni_val.empty?
-        config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
-                   vni: vni_val, bd: bd_val, membstate: 'no', membvni: vni_val)
+        config_set('bridge_domain_vni', 'member_vni', bd: bd_val,
+                   membstate: 'no', membvni: vni_val)
+        config_set('bridge_domain_vni', 'vni', state: 'no', vni: vni_val)
       else
         unless bd_vni.empty?
           inp_vni_list = Utils.string_to_array(val.to_s)
@@ -145,11 +167,13 @@ module Cisco
 
           rm_bd = rem_hash.keys.join(',')
           rm_vni = rem_hash.values.join(',')
-          config_set('bridge_domain_vni', 'member_vni', vnistate: 'no',
-                     vni: rm_vni, bd: rm_bd, membstate: 'no', membvni: rm_vni)
+          config_set('bridge_domain_vni', 'member_vni', bd: rm_bd,
+                     membstate: 'no', membvni: rm_vni)
+          config_set('bridge_domain_vni', 'vni', state: 'no', vni: rm_vni)
         end
-        config_set('bridge_domain_vni', 'member_vni', vnistate: '', vni: val,
-                   bd: @bd_ids, membstate: '', membvni: val)
+        config_set('bridge_domain_vni', 'vni', state: '', vni: val)
+        config_set('bridge_domain_vni', 'member_vni', bd: @bd_ids,
+                   membstate: '', membvni: val)
       end
     end
 
@@ -158,8 +182,8 @@ module Cisco
     end
 
     # getter for system bridge-domain
-    def system_bd_add
-      config_get('bridge_domain_vni', 'system_bd_add')
+    def system_bridge_domain
+      config_get('bridge_domain_vni', 'system_bridge_domain')
     end
   end  # Class
 end    # Module

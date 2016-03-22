@@ -121,6 +121,30 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # Bridge-Domain name assigning case
+    # bridge-domain 100
+    #   name PepsiCo
+    def bd_name
+      res = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
+      return default_bd_name unless res
+      res.compact.join
+    end
+
+    def bd_name=(str)
+      fail TypeError unless str.is_a?(String)
+      if str.empty?
+        config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: 'no',
+                   name: '')
+      else
+        config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: '',
+                   name: str)
+      end
+    end
+
+    def default_bd_name
+      sprintf('Bridge-Domain%s', @bd_ids)
+    end
+
     # Bridge-Domain type change to fabric-control
     # bridge-domain 100
     #   fabric-control
@@ -139,36 +163,14 @@ module Cisco
       config_get_default('bridge_domain', 'fabric_control')
     end
 
-    # Bridge-Domain name assigning case
-    # bridge-domain 100
-    #   name PepsiCo
-    def bd_name
-      res = config_get('bridge_domain', 'name', bd: @bd_ids)
-      return default_bd_name unless res[2]
-      res[2]
-    end
-
-    def bd_name=(str)
-      fail TypeError unless str.is_a?(String)
-      if str.empty?
-        config_set('bridge_domain', 'name', bd: @bd_ids, state: 'no', name: '')
-      else
-        config_set('bridge_domain', 'name', bd: @bd_ids, state: '', name: str)
-      end
-    end
-
-    def default_bd_name
-      sprintf('Bridge-Domain%s', @bd_ids)
-    end
-
     # Bridge-Domain Shutdown case
     # bridge-domain 100
     #   shutdown
     def shutdown
       result = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
       # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      return false unless result[0]
-      result[0][/shutdown/] ? true : false
+      return false unless result
+      result[/shutdown/] ? true : false
     end
 
     def shutdown=(val)

@@ -25,7 +25,8 @@ class TestBridgeDomainVNI < CiscoTestCase
   def cleanup
     remove_all_vlans
     remove_all_bridge_domains
-    BridgeDomainVNI.rangebds.each do |_bd, obj|
+    config_no_warn('no feature vni')
+    BridgeDomainVNI.range_bds.each do |_bd, obj|
       obj.destroy
     end
   end
@@ -37,9 +38,8 @@ class TestBridgeDomainVNI < CiscoTestCase
   end
 
   def teardown
-    cleanup unless @@cleaned
-    super
     cleanup
+    super
   end
 
   def test_single_bd_member_vni
@@ -62,7 +62,7 @@ class TestBridgeDomainVNI < CiscoTestCase
 
   def test_multiple_bd_member_vni
     mt_full_interface?
-    bd = BridgeDomainVNI.new('100-110,150,170-171')
+    bd = BridgeDomainVNI.new('100-110, 150, 170-171 ')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
 
