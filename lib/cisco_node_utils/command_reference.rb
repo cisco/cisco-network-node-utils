@@ -413,7 +413,7 @@ module Cisco
 
     def supports?(feature, property=nil)
       value = @hash[feature]
-      value = value[property] if value && property
+      value = value[property] if value.is_a?(Hash) && property
       !(value.is_a?(UnsupportedCmdRef) || value.nil?)
     end
 
