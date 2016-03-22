@@ -78,6 +78,6 @@ class TestVlanMtFull < CiscoTestCase
     assert_equal(default, v.mode,
                  'Mode should have been default value: #{default}')
 
-    assert_raises(RuntimeError) { v.mode = 'junk' }
+    assert_raises(CliError) { v.mode = 'junk' }
   end
 end

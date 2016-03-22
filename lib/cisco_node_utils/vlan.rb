@@ -83,16 +83,11 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
-      case result
-      when /fabricpath/i
-        return :fabricpath
-      when /ce/i
-        return :CE
-      end
+      result.downcase! if result[/FABRICPATH/]
+      result
     end
 
     def mode=(str)
-      str = str.to_s
       if str.empty?
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
@@ -105,7 +100,7 @@ module Cisco
     end
 
     def default_mode
-      config_get_default('vlan', 'mode').to_sym
+      config_get_default('vlan', 'mode')
     end
 
     def vlan_name
