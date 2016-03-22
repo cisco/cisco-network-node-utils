@@ -1147,16 +1147,13 @@ class TestInterface < CiscoTestCase
 
   def config_from_hash(inttype_h)
     inttype_h.each do |k, v|
-      # puts "TEST: pre-config hash key : #{k}"
       config('feature interface-vlan') if (/^Vlan\d./).match(k.to_s)
 
-      # puts "TEST: pre-config k: v '#{k} : #{v}'"
       cfg = ["interface #{k}"]
-      if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
-         !(/^#{@port_channel}\d/).match(k.to_s).nil?
-        cfg << 'no switchport'
-      end
-      # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
+
+      switchport_intfs = Regexp.union(/ethernet/i, @port_channel)
+      cfg << 'no switchport' if platform == :nexus && k =~ switchport_intfs
+
       cfg << "#{ipv4} address #{v[:address_len]}" unless v[:address_len].nil?
       if platform == :nexus
         cfg << 'ip proxy-arp' if v[:proxy_arp]

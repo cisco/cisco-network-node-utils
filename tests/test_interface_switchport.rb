@@ -30,13 +30,17 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def setup
     super
-    config('no feature vtp', 'no feature interface-vlan')
+    config_no_warn('no feature vtp', 'no feature interface-vlan')
     @interface = Interface.new(interfaces[0])
   end
 
   def teardown
-    config("default interface ethernet #{interfaces_id[0]}")
+    interface_ethernet_default(interfaces[0])
     super
+  end
+
+  def interface_ethernet_default(ethernet_intf)
+    config("default interface #{ethernet_intf}")
   end
 
   def mgmt_intf
