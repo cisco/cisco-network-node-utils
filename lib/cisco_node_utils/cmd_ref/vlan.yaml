@@ -44,7 +44,7 @@ name:
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
-private_vlan_association_add_vlans:
+private_vlan_association:
   _exclude: [N8k]
   kind: string
   multiple: true
@@ -52,29 +52,7 @@ private_vlan_association_add_vlans:
   get_value: '/^<id>\s+(\d+)/'
   set_context: ['vlan <vlan>']
   # Need end to push the config Without the config wont take effect
-  set_value: "private-vlan association add <vlans> ; end"
-  default_value: ""
-
-private_vlan_association_delete_all:
-  _exclude: [N8k]
-  kind: string
-  multiple: true
-  get_command: "show vlan private-vlan"
-  get_value: '/^<id>\s+(\d+)/'
-  set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
-  set_value: "no private-vlan association <vlans> ; end"
-  default_value: ""
-
-private_vlan_association_remove_vlans:
-  _exclude: [N8k]
-  kind: string
-  multiple: true
-  get_command: "show vlan private-vlan"
-  get_value: '/^<id>\s+(\d+)/'
-  set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
-  set_value: "private-vlan association remove <vlans> ; end"
+  set_value: "<state> private-vlan association <vlans> ; end"
   default_value: ""
 
 private_vlan_type:

@@ -91,6 +91,36 @@ module Cisco
       end
     end
 
+    # Helper method to delete @set_args hash keys
+    def set_args_keys_default
+      @set_args = {}
+    end
+
+    def compute_vlan_list_association(cfg_vlan_list, to_be_cfg_vlan_list)
+      set_args_keys_default
+      vlan_config = to_be_cfg_vlan_list.gsub('-', '..').split(',')
+
+      present_vlan = cfg_vlan_list.split(',')
+      vlan_cfg_array = []
+
+      vlan_config.each do |elem|
+        if elem.include?('..')
+          elema = elem.split('..').map { |d| Integer(d) }
+          tr = elema[0]..elema[1]
+          tr.to_a.each do |item|
+            vlan_cfg_array.push(item.to_s)
+          end
+        else
+          vlan_cfg_array.push(elem)
+        end
+      end
+
+      @set_args[:vlan_to_remove] =
+                     (present_vlan - vlan_cfg_array).map(&:to_s) * ','
+      @set_args[:vlan_to_config] =
+                     vlan_cfg_array.map(&:to_s) * ','
+    end
+
     def fabricpath_feature
       FabricpathGlobal.fabricpath_feature
     end
@@ -224,11 +254,6 @@ module Cisco
       config_get_default('vlan', 'mapped_vni')
     end
 
-    # Helper method to delete @set_args hash keys
-    def set_args_keys_default
-      @set_args = {}
-    end
-
     def private_vlan_type
       config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
@@ -257,49 +282,59 @@ module Cisco
       config_get_default('vlan', 'private_vlan_type')
     end
 
-    def private_vlan_association_add_vlans
-      result = config_get('vlan', 'private_vlan_association_add_vlans',
+    def private_vlan_association
+      result = config_get('vlan', 'private_vlan_association',
                           id: @vlan_id)
-      result.delete('"')
+      result.gsub(/["\[\]" "]/, '')
     end
 
-    def private_vlan_association_add_vlans=(config)
+    def private_vlan_association=(config)
       fail TypeError unless config &&
                             config.is_a?(String)
       Feature.private_vlan_enable
-      result = config_set('vlan', 'private_vlan_association_add_vlans',
-                          vlan: @vlan_id, vlans: config)
-      cli_error_check(result)
+      set_args_keys_default
+      if config == default_private_vlan_association
+        @set_args[:vlan] = @vlan_id
+        @set_args[:state] = 'no'
+        @set_args[:vlans] = config
+        result = config_set('vlan', 'private_vlan_association',
+                            @set_args)
+        cli_error_check(result)
+      else
+        vlan_list = private_vlan_association
+        if vlan_list.empty?
+          @set_args[:vlan] = @vlan_id
+          @set_args[:state] = ''
+          @set_args[:vlans] = config
+          result = config_set('vlan', 'private_vlan_association',
+                              @set_args)
+          cli_error_check(result)
+        else
+          compute_vlan_list_association(vlan_list, config)
+          vlan_to_remove = @set_args[:vlan_to_remove]
+          vlan_to_config = @set_args[:vlan_to_config]
+          set_args_keys_default
+          unless vlan_to_remove.empty?
+            @set_args[:vlan] = @vlan_id
+            @set_args[:state] = 'no'
+            @set_args[:vlans] = vlan_to_remove
+            result = config_set('vlan', 'private_vlan_association',
+                                @set_args)
+            cli_error_check(result)
+
+            @set_args[:vlan] = @vlan_id
+            @set_args[:state] = ''
+            @set_args[:vlans] = vlan_to_config
+            result = config_set('vlan', 'private_vlan_association',
+                                @set_args)
+            cli_error_check(result)
+          end
+        end
+      end
     end
 
-    def private_vlan_association_remove_vlans
-      result = config_get('vlan', 'private_vlan_association_remove_vlans',
-                          id: @vlan_id)
-      result.delete('"')
-    end
-
-    def private_vlan_association_remove_vlans=(config)
-      fail TypeError unless config &&
-                            config.is_a?(String)
-      Feature.private_vlan_enable
-      result = config_set('vlan', 'private_vlan_association_remove_vlans',
-                          vlan: @vlan_id, vlans: config)
-      cli_error_check(result)
-    end
-
-    def private_vlan_association_delete_all
-      result = config_get('vlan', 'private_vlan_association_delete_all',
-                          id: @vlan_id)
-      result.delete('"')
-    end
-
-    def private_vlan_association_delete_all=(config)
-      fail TypeError unless config &&
-                            config.is_a?(String)
-      Feature.private_vlan_enable
-      result = config_set('vlan', 'private_vlan_association_delete_all',
-                          vlan: @vlan_id, vlans: config)
-      cli_error_check(result)
+    def default_private_vlan_association
+      config_get_default('vlan', 'private_vlan_type')
     end
   end # class
 end # module

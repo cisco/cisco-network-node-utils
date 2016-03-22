@@ -50,7 +50,7 @@ Changelog
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
 * Extend vlan with attributes:
-  * `private_vlan_association_add_vlans`, `private_vlan_association_remove_vlans` `private_vlan_association_delete_all` `private_vlan_type`
+  * `private_vlan_association`, `private_vlan_type`
 
 ### Changed
 

@@ -47,6 +47,33 @@ class TestVlan < CiscoTestCase
     config('no feature vtp')
   end
 
+  def test_private_type_default
+    config('no feature vtp')
+    config('feature private-vlan')
+    v1 = Vlan.new(100)
+    pv_type = ''
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+    else
+      assert_equal(pv_type, v1.private_vlan_type)
+    end
+    v1.destroy
+  end
+
+  def test_private_association_default
+    config('no feature vtp')
+    config('feature private-vlan')
+    v1 = Vlan.new(100)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v1.private_vlan_type)
+      v1.destroy
+      return
+    else
+      result = ''
+      assert_equal(result, v1.private_vlan_association)
+    end
+  end
+
   def test_private_vlan_type_primary
     v1 = Vlan.new(100)
     pv_type = 'primary'
@@ -321,7 +348,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_isolate_association
     vlan_list = %w(100 101)
-    result = '[101]'
+    result = '101'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
@@ -340,9 +367,9 @@ class TestVlan < CiscoTestCase
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = vlan_list[1]
+      v1.private_vlan_association = vlan_list[1]
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
     end
@@ -350,7 +377,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_community_association
     vlan_list = %w(100 101)
-    result = '[101]'
+    result = '101'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
@@ -369,9 +396,9 @@ class TestVlan < CiscoTestCase
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = vlan_list[1]
+      v1.private_vlan_association = vlan_list[1]
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
     end
@@ -379,7 +406,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_failure
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -403,16 +430,16 @@ class TestVlan < CiscoTestCase
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
+      v1.private_vlan_association = '101,200'
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
 
       pv_type = 'isolated'
       assert_raises(RuntimeError, 'vlan misconf did not raise RuntimeError') do
         v2.private_vlan_type = pv_type
       end
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
 
       v1.destroy
       v2.destroy
@@ -422,7 +449,8 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_operational_and_not_operational
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
+
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -445,8 +473,9 @@ class TestVlan < CiscoTestCase
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association = '101,200'
+
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
       v3.destroy
@@ -455,7 +484,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_vlan_not_configured
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
@@ -474,8 +503,8 @@ class TestVlan < CiscoTestCase
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association = '101,200'
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
     end
@@ -483,7 +512,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_add_vlan
     vlan_list = %w(100 101)
-    result = '[101]'
+    result = '101'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
@@ -502,8 +531,8 @@ class TestVlan < CiscoTestCase
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association = '101'
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
     end
@@ -511,7 +540,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_association_remove_vlan
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -536,11 +565,12 @@ class TestVlan < CiscoTestCase
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
-      v1.private_vlan_association_remove_vlans = '101'
-      result = '[200]'
-      assert_equal(result, v1.private_vlan_association_remove_vlans)
+      v1.private_vlan_association = '101,200'
+      assert_equal(result, v1.private_vlan_association)
+
+      # v1.private_vlan_association_remove_vlans = '101'
+      # result = '200'
+      # assert_equal(result, vlan_list(v1))
 
       v1.destroy
       v2.destroy
@@ -550,7 +580,7 @@ class TestVlan < CiscoTestCase
 
   def test_no_private_vlan_association
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -577,11 +607,13 @@ class TestVlan < CiscoTestCase
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
-      v1.private_vlan_association_delete_all = '101'
-      result = '[200]'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      v1.private_vlan_association = '101,200'
+      assert_equal(result, v1.private_vlan_association)
+
+      v1.private_vlan_association = '200'
+      result = '200'
+      assert_equal(result, v1.private_vlan_association)
+
       v1.destroy
       v2.destroy
       v3.destroy
@@ -590,7 +622,7 @@ class TestVlan < CiscoTestCase
 
   def test_no_private_vlan_association_all
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -617,11 +649,11 @@ class TestVlan < CiscoTestCase
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
-      assert_equal(result, v1.private_vlan_association_add_vlans)
-      v1.private_vlan_association_delete_all = '101,200'
+      v1.private_vlan_association = '101,200'
+      assert_equal(result, v1.private_vlan_association)
+      v1.private_vlan_association = ''
       result = ''
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
 
       v1.destroy
       v2.destroy
@@ -631,7 +663,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_isolate_community_association
     vlan_list = %w(100 101 200)
-    result = '[101, 200]'
+    result = '101,200'
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
@@ -655,9 +687,9 @@ class TestVlan < CiscoTestCase
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,200'
+      v1.private_vlan_association = '101,200'
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
       v1.destroy
       v2.destroy
       v3.destroy
@@ -666,7 +698,7 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_multi_isolate_community_association
     vlan_list = %w(100 101 102 104 105 200 201 202)
-    result = '[101, 104, 105, 200, 202]'
+    result = '101,104,105,200,202'
     v1 = Vlan.new(vlan_list[0])
 
     pv_type = 'primary'
@@ -713,9 +745,25 @@ class TestVlan < CiscoTestCase
       v7.private_vlan_type = pv_type
       assert_equal(pv_type, v7.private_vlan_type)
 
-      v1.private_vlan_association_add_vlans = '101,104-105,200,202'
+      v1.private_vlan_association = '101,104-105,200,202'
 
-      assert_equal(result, v1.private_vlan_association_add_vlans)
+      assert_equal(result, v1.private_vlan_association)
+
+      if node.product_id[/N9K/]
+        assert_raises(RuntimeError, 'vlan did not raise RuntimeError') do
+          v1.private_vlan_association = '101,103-105,108'
+        end
+      else
+        v1.private_vlan_association = '101,103-105,108'
+
+        result = '101,103,104,105,108'
+        assert_equal(result, v1.private_vlan_association)
+
+        v1.private_vlan_association = '101,103-105,108'
+        result = '101,103,104,105,108'
+        assert_equal(result, v1.private_vlan_association)
+      end
+
       v1.destroy
       v2.destroy
       v3.destroy
