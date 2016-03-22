@@ -632,28 +632,25 @@ class TestInterface < CiscoTestCase
   #     prefixes = nil
   #   end
 
-  def negotiate_auto_helper(interface, default, cmd_ref)
+  def negotiate_auto_helper(interface, default)
     inf_name = interface.name
+
+    negotiate_auto_intf = interface.negotiate_auto_lookup_string
+    if validate_property_excluded?('interface', negotiate_auto_intf)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.negotiate_auto = true
+      end
+      return
+    end
 
     # Test default
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
     interface.negotiate_auto = default
-    # Delay as this change is sometimes too quick for some interfaces
-    sleep 1 unless default == interface.negotiate_auto
-    node.cache_flush
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
-
-    unless cmd_ref.setter?
-      # check the set for unsupported platforms
-      assert_raises(RuntimeError) do
-        interface.negotiate_auto = true
-      end
-      return
-    end
 
     interface.negotiate_auto = default
     assert_equal(default, interface.negotiate_auto,
@@ -677,10 +674,6 @@ class TestInterface < CiscoTestCase
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
-
-    # Delay as this change is sometimes too quick for some interfaces
-    sleep 1 unless non_default == interface.negotiate_auto
-    node.cache_flush
 
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
@@ -706,10 +699,6 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_portchannel
-    ref = cmd_ref.lookup('interface',
-                         'negotiate_auto_portchannel')
-    assert(ref, 'Error, reference not found')
-
     # Create interface member of this group (required for XR)
     member = InterfaceChannelGroup.new(interfaces[0])
     begin
@@ -722,40 +711,34 @@ class TestInterface < CiscoTestCase
 
     inf_name = "#{@port_channel}10"
     interface = Interface.new(inf_name)
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'negotiate_auto_portchannel')
       assert_nil(interface.negotiate_auto)
       assert_nil(interface.default_negotiate_auto)
       assert_raises(Cisco::UnsupportedError) do
         interface.negotiate_auto = false
       end
     else
-      default = ref.default_value
+      default = interface.default_negotiate_auto
       @default_show_command = show_cmd(inf_name)
 
       # Test with switchport
-      negotiate_auto_helper(interface, default, ref)
+      interface.switchport_mode = :access
+      negotiate_auto_helper(interface, default)
 
       # Test with no switchport
-      config("interface #{@port_channel} 10", 'no switchport')
-      negotiate_auto_helper(interface, default, ref)
+      interface.switchport_mode = :disabled
+      negotiate_auto_helper(interface, default)
     end
 
     # Cleanup
-    config("no interface #{@port_channel} 10")
+    interface.destroy
   end
 
   def test_negotiate_auto_ethernet
-    ref = cmd_ref.lookup('interface',
-                         'negotiate_auto_ethernet')
-    assert(ref, 'Error, reference not found')
-
-    # Some platforms does not support negotiate auto
-    # if so then we abort the test.
-
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
 
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'negotiate_auto_ethernet')
       assert_nil(interface.negotiate_auto)
       assert_nil(interface.default_negotiate_auto)
       assert_raises(Cisco::UnsupportedError) do
@@ -773,38 +756,16 @@ class TestInterface < CiscoTestCase
       flunk(e.message)
     end
 
-    default = ref.default_value
+    default = interface.default_negotiate_auto
     @default_show_command = show_cmd(inf_name)
 
     # Test with switchport
-    negotiate_auto_helper(interface, default, ref)
+    interface.switchport_mode = :access
+    negotiate_auto_helper(interface, default)
 
     # Test with no switchport
-    config_no_warn("interface #{interfaces[0]}", 'no switchport')
-    negotiate_auto_helper(interface, default, ref)
-  end
-
-  def test_negotiate_auto_loopback
-    ref = cmd_ref.lookup('interface',
-                         'negotiate_auto_other_interfaces')
-    assert(ref, 'Error, reference not found')
-
-    inf_name = 'loopback2'
-    config('interface loopback 2')
-    interface = Interface.new(inf_name)
-
-    assert_equal(ref.default_value, interface.negotiate_auto,
-                 "Error: #{inf_name} negotiate auto value mismatch")
-
-    assert_raises(Cisco::UnsupportedError) do
-      interface.negotiate_auto = true
-    end
-    assert_raises(Cisco::UnsupportedError) do
-      interface.negotiate_auto = false
-    end
-
-    # Cleanup
-    config('no interface loopback 2')
+    interface.switchport_mode = :disabled
+    negotiate_auto_helper(interface, default)
   end
 
   def test_interfaces_not_empty

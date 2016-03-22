@@ -12,6 +12,7 @@ mapping:
           - 'ios_xr'
           - 'nexus'
           # Product IDs
+          - 'C3064'
           - 'N3k'
           - 'N5k'
           - 'N6k'

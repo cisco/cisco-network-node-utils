@@ -195,31 +195,17 @@ mtu_other_interfaces:
 
 negotiate_auto_ethernet:
   kind: boolean
-  _exclude: [ios_xr]
-  N7k:
-    default_only: false
-  C3064:
-    default_only: false
-  else:
-    get_value: '/^(no )?negotiate auto$/'
-    set_value: "<state> negotiate auto"
-    default_value: true
-
-negotiate_auto_other_interfaces:
-  kind: boolean
-  _exclude: [ios_xr]
-  default_only: false
+  _exclude: [ios_xr, C3064, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
 
 negotiate_auto_portchannel:
   kind: boolean
-  _exclude: [ios_xr]
-  nexus:
-    N7k:
-      default_only: false
-    else:
-      get_value: '/^(no )?negotiate auto$/'
-      set_value: "<state> negotiate auto"
-      default_value: true
+  _exclude: [ios_xr, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
 
 shutdown:
   kind: boolean
