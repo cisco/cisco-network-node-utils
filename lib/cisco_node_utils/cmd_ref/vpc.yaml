@@ -90,7 +90,7 @@ graceful_consistency_check:
 
 layer3_peer_routing:
   kind: boolean
-  _exclude: [N3k, N5k, N8k, N9k]
+  _exclude: [N3k, N8k, N9k]
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
   default_value: false
@@ -176,7 +176,7 @@ role_priority:
 
 self_isolation:
   kind: boolean
-  _exclude: [N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   get_value: '/^self-isolation/'
   set_value: "<state> self-isolation"
   default_value: false

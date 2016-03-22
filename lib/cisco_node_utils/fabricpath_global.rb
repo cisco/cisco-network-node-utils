@@ -46,13 +46,18 @@ module Cisco
 
     def self.fabricpath_feature
       fabricpath = config_get('fabricpath', 'feature')
-      fail 'fabricpath_feature not found' if fabricpath.nil?
       return :disabled if fabricpath.nil?
       fabricpath.to_sym
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
       return :disabled
+    end
+
+    def self.fabricpath_enable
+      # TBD: Move to Feature provider
+      FabricpathGlobal.fabricpath_feature_set(:enabled) unless
+        FabricpathGlobal.fabricpath_feature == :enabled
     end
 
     def self.fabricpath_feature_set(fabricpath_set)
@@ -90,8 +95,7 @@ module Cisco
     end
 
     def create
-      FabricpathGlobal.fabricpath_feature_set(:enabled) unless
-      :enabled == FabricpathGlobal.fabricpath_feature
+      FabricpathGlobal.fabricpath_enable
     end
 
     def destroy

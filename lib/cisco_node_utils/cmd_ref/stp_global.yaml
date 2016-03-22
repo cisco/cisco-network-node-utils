@@ -85,7 +85,7 @@ domain:
   default_value: false
 
 fcoe:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N3k, N5k, N6k, N7k]
   kind: boolean
   auto_default: false
   get_command: "show running-config spanning-tree all"

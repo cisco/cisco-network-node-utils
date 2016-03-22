@@ -24,36 +24,25 @@ class TestStpGlobal < CiscoTestCase
   def setup
     super
     config 'no spanning-tree mode'
-    config 'system bridge-domain none' if n7k_platform?
+    config 'system bridge-domain none' if /N7/ =~ node.product_id
     @intf = Interface.new(interfaces[0])
 
     # Only pre-clean interface on initial setup
-    config("default interface #{@intf}") unless @@clean
+    config("default interface #{interfaces[0]}") unless @@clean
     @@clean = true # rubocop:disable Style/ClassVars
+    @intf.switchport_enable
   end
 
   def teardown
     config 'no spanning-tree mode'
-    config 'system bridge-domain none' if n7k_platform?
+    config 'system bridge-domain none' if /N7/ =~ node.product_id
     super
-  end
-
-  def n7k_platform?
-    /N7/ =~ node.product_id
-  end
-
-  def n9k_platform?
-    /N(3|9)/ =~ node.product_id
-  end
-
-  def n6k_platform?
-    /N(5|6)/ =~ node.product_id
   end
 
   def test_bd_forward_time_change
     global = StpGlobal.new('default')
     bdft = [%w(2-4,6,8-12 4), %w(14 30)]
-    if node.product_id =~ /N(3|5|6|9)/
+    if validate_property_excluded?('stp_global', 'bd_forward_time')
       assert_nil(global.bd_forward_time)
       assert_raises(Cisco::UnsupportedError) do
         global.bd_forward_time = bdft
@@ -74,7 +63,7 @@ class TestStpGlobal < CiscoTestCase
   def test_bd_hello_time_change
     global = StpGlobal.new('default')
     bdft = [%w(2-4,6,8-12 1), %w(14 10)]
-    if node.product_id =~ /N(3|5|6|9)/
+    if validate_property_excluded?('stp_global', 'bd_hello_time')
       assert_nil(global.bd_hello_time)
       assert_raises(Cisco::UnsupportedError) do
         global.bd_hello_time = bdft
@@ -95,7 +84,7 @@ class TestStpGlobal < CiscoTestCase
   def test_bd_max_age_change
     global = StpGlobal.new('default')
     bdft = [%w(2-4,6,8-12 10), %w(14 40)]
-    if node.product_id =~ /N(3|5|6|9)/
+    if validate_property_excluded?('stp_global', 'bd_max_age')
       assert_nil(global.bd_max_age)
       assert_raises(Cisco::UnsupportedError) do
         global.bd_max_age = bdft
@@ -116,7 +105,7 @@ class TestStpGlobal < CiscoTestCase
   def test_bd_priorities_change
     global = StpGlobal.new('default')
     bdft = [%w(2-4,6,8-12 4096), %w(14 8192)]
-    if node.product_id =~ /N(3|5|6|9)/
+    if validate_property_excluded?('stp_global', 'bd_priority')
       assert_nil(global.bd_priority)
       assert_nil(global.bd_root_priority)
       assert_nil(global.bd_designated_priority)
@@ -190,7 +179,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_domain
     global = StpGlobal.new('default')
-    if node.product_id =~ /N(3|9)/
+    if validate_property_excluded?('stp_global', 'domain')
       assert_nil(global.domain)
       assert_raises(Cisco::UnsupportedError) do
         global.domain = 200
@@ -207,7 +196,7 @@ class TestStpGlobal < CiscoTestCase
 
   def test_get_set_fcoe
     global = StpGlobal.new('default')
-    if node.product_id =~ /N(5|6|7)/
+    if validate_property_excluded?('stp_global', 'fcoe')
       assert_nil(global.fcoe)
       assert_raises(Cisco::UnsupportedError) do
         global.fcoe = false
@@ -431,135 +420,144 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_interface_stp_bpdufilter_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_bpdufilter = 'enable'
-    assert_equal('enable', interface.stp_bpdufilter)
-    interface.stp_bpdufilter = 'disable'
-    assert_equal('disable', interface.stp_bpdufilter)
-    interface.stp_bpdufilter = interface.default_stp_bpdufilter
-    assert_equal(interface.default_stp_bpdufilter,
-                 interface.stp_bpdufilter)
+    @intf.stp_bpdufilter = 'enable'
+    assert_equal('enable', @intf.stp_bpdufilter)
+    @intf.stp_bpdufilter = 'disable'
+    assert_equal('disable', @intf.stp_bpdufilter)
+    @intf.stp_bpdufilter = @intf.default_stp_bpdufilter
+    assert_equal(@intf.default_stp_bpdufilter,
+                 @intf.stp_bpdufilter)
   end
 
   def test_interface_stp_bpduguard_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_bpduguard = 'enable'
-    assert_equal('enable', interface.stp_bpduguard)
-    interface.stp_bpduguard = 'disable'
-    assert_equal('disable', interface.stp_bpduguard)
-    interface.stp_bpduguard = interface.default_stp_bpduguard
-    assert_equal(interface.default_stp_bpduguard,
-                 interface.stp_bpduguard)
+    @intf.stp_bpduguard = 'enable'
+    assert_equal('enable', @intf.stp_bpduguard)
+    @intf.stp_bpduguard = 'disable'
+    assert_equal('disable', @intf.stp_bpduguard)
+    @intf.stp_bpduguard = @intf.default_stp_bpduguard
+    assert_equal(@intf.default_stp_bpduguard,
+                 @intf.stp_bpduguard)
   end
 
   def test_interface_stp_cost_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_cost = 2000
-    assert_equal(2000, interface.stp_cost)
-    interface.stp_cost = interface.default_stp_cost
-    assert_equal(interface.default_stp_cost,
-                 interface.stp_cost)
+    @intf.stp_cost = 2000
+    assert_equal(2000, @intf.stp_cost)
+    @intf.stp_cost = @intf.default_stp_cost
+    assert_equal(@intf.default_stp_cost,
+                 @intf.stp_cost)
   end
 
   def test_interface_stp_guard_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_guard = 'loop'
-    assert_equal('loop', interface.stp_guard)
-    interface.stp_guard = 'none'
-    assert_equal('none', interface.stp_guard)
-    interface.stp_guard = 'root'
-    assert_equal('root', interface.stp_guard)
-    interface.stp_guard = interface.default_stp_guard
-    assert_equal(interface.default_stp_guard,
-                 interface.stp_guard)
+    @intf.stp_guard = 'loop'
+    assert_equal('loop', @intf.stp_guard)
+    @intf.stp_guard = 'none'
+    assert_equal('none', @intf.stp_guard)
+    @intf.stp_guard = 'root'
+    assert_equal('root', @intf.stp_guard)
+    @intf.stp_guard = @intf.default_stp_guard
+    assert_equal(@intf.default_stp_guard,
+                 @intf.stp_guard)
   end
 
   def test_interface_stp_link_type_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_link_type = 'shared'
-    assert_equal('shared', interface.stp_link_type)
-    interface.stp_link_type = 'point-to-point'
-    assert_equal('point-to-point', interface.stp_link_type)
-    interface.stp_link_type = interface.default_stp_link_type
-    assert_equal(interface.default_stp_link_type,
-                 interface.stp_link_type)
+    @intf.stp_link_type = 'shared'
+    assert_equal('shared', @intf.stp_link_type)
+    @intf.stp_link_type = 'point-to-point'
+    assert_equal('point-to-point', @intf.stp_link_type)
+    @intf.stp_link_type = @intf.default_stp_link_type
+    assert_equal(@intf.default_stp_link_type,
+                 @intf.stp_link_type)
   end
 
   def test_interface_stp_port_priority_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_port_priority = 32
-    assert_equal(32, interface.stp_port_priority)
-    interface.stp_port_priority = interface.default_stp_port_priority
-    assert_equal(interface.default_stp_port_priority,
-                 interface.stp_port_priority)
+    @intf.stp_port_priority = 32
+    assert_equal(32, @intf.stp_port_priority)
+    @intf.stp_port_priority = @intf.default_stp_port_priority
+    assert_equal(@intf.default_stp_port_priority,
+                 @intf.stp_port_priority)
   end
 
   def test_interface_stp_port_type_change
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :disabled
-    interface.switchport_mode = :trunk
-    interface.stp_port_type = 'edge'
-    assert_equal('edge', interface.stp_port_type)
-    interface.stp_port_type = 'edge trunk'
-    assert_equal('edge trunk', interface.stp_port_type)
-    interface.stp_port_type = 'network'
-    assert_equal('network', interface.stp_port_type)
-    interface.stp_port_type = 'normal'
-    assert_equal('normal', interface.stp_port_type)
-    interface.stp_port_type = interface.default_stp_port_type
-    assert_equal(interface.default_stp_port_type,
-                 interface.stp_port_type)
+    @intf.switchport_mode = :disabled
+    @intf.switchport_mode = :trunk
+    @intf.stp_port_type = 'edge'
+    assert_equal('edge', @intf.stp_port_type)
+    @intf.stp_port_type = 'edge trunk'
+    assert_equal('edge trunk', @intf.stp_port_type)
+    @intf.stp_port_type = 'network'
+    assert_equal('network', @intf.stp_port_type)
+    @intf.stp_port_type = 'normal'
+    assert_equal('normal', @intf.stp_port_type)
+    @intf.stp_port_type = @intf.default_stp_port_type
+    assert_equal(@intf.default_stp_port_type,
+                 @intf.stp_port_type)
   end
 
   def test_interface_stp_mst_cost_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_mst_cost = interface.default_stp_mst_cost
-    assert_equal(interface.default_stp_mst_cost,
-                 interface.stp_mst_cost)
+    @intf.stp_mst_cost = @intf.default_stp_mst_cost
+    assert_equal(@intf.default_stp_mst_cost,
+                 @intf.stp_mst_cost)
     mc = [%w(0,2-4,6,8-12 4500), %w(1 20000)]
-    interface.stp_mst_cost = mc
-    assert_equal(mc, interface.stp_mst_cost)
-    interface.stp_mst_cost = interface.default_stp_mst_cost
-    assert_equal(interface.default_stp_mst_cost,
-                 interface.stp_mst_cost)
+    @intf.stp_mst_cost = mc
+    assert_equal(mc, @intf.stp_mst_cost)
+    @intf.stp_mst_cost = @intf.default_stp_mst_cost
+    assert_equal(@intf.default_stp_mst_cost,
+                 @intf.stp_mst_cost)
   end
 
   def test_interface_stp_mst_port_priority_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_mst_port_priority = interface.default_stp_mst_port_priority
-    assert_equal(interface.default_stp_mst_port_priority,
-                 interface.stp_mst_port_priority)
+    @intf.stp_mst_port_priority = @intf.default_stp_mst_port_priority
+    assert_equal(@intf.default_stp_mst_port_priority,
+                 @intf.stp_mst_port_priority)
     mpp = [%w(0,2-4,6,8-12 224), %w(1 32)]
-    interface.stp_mst_port_priority = mpp
-    assert_equal(mpp, interface.stp_mst_port_priority)
-    interface.stp_mst_port_priority = interface.default_stp_mst_port_priority
-    assert_equal(interface.default_stp_mst_port_priority,
-                 interface.stp_mst_port_priority)
+    @intf.stp_mst_port_priority = mpp
+    assert_equal(mpp, @intf.stp_mst_port_priority)
+    @intf.stp_mst_port_priority = @intf.default_stp_mst_port_priority
+    assert_equal(@intf.default_stp_mst_port_priority,
+                 @intf.stp_mst_port_priority)
   end
 
   def test_interface_stp_vlan_cost_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_vlan_cost = interface.default_stp_vlan_cost
-    assert_equal(interface.default_stp_vlan_cost,
-                 interface.stp_vlan_cost)
+    @intf.stp_vlan_cost = @intf.default_stp_vlan_cost
+    assert_equal(@intf.default_stp_vlan_cost,
+                 @intf.stp_vlan_cost)
     vc = [%w(2-4,6,8-12 4500), %w(14 20000)]
-    interface.stp_vlan_cost = vc
-    assert_equal(vc, interface.stp_vlan_cost)
-    interface.stp_vlan_cost = interface.default_stp_vlan_cost
-    assert_equal(interface.default_stp_vlan_cost,
-                 interface.stp_vlan_cost)
+    @intf.stp_vlan_cost = vc
+    assert_equal(vc, @intf.stp_vlan_cost)
+    @intf.stp_vlan_cost = @intf.default_stp_vlan_cost
+    assert_equal(@intf.default_stp_vlan_cost,
+                 @intf.stp_vlan_cost)
   end
 
   def test_interface_stp_vlan_port_priority_change
-    interface = Interface.new(interfaces[0])
-    interface.stp_vlan_port_priority = interface.default_stp_vlan_port_priority
-    assert_equal(interface.default_stp_vlan_port_priority,
-                 interface.stp_vlan_port_priority)
+    @intf.stp_vlan_port_priority = @intf.default_stp_vlan_port_priority
+    assert_equal(@intf.default_stp_vlan_port_priority,
+                 @intf.stp_vlan_port_priority)
     vpp = [%w(2-4,6,8-12 224), %w(14 32)]
-    interface.stp_vlan_port_priority = vpp
-    assert_equal(vpp, interface.stp_vlan_port_priority)
-    interface.stp_vlan_port_priority = interface.default_stp_vlan_port_priority
-    assert_equal(interface.default_stp_vlan_port_priority,
-                 interface.stp_vlan_port_priority)
+    @intf.stp_vlan_port_priority = vpp
+    assert_equal(vpp, @intf.stp_vlan_port_priority)
+    @intf.stp_vlan_port_priority = @intf.default_stp_vlan_port_priority
+    assert_equal(@intf.default_stp_vlan_port_priority,
+                 @intf.stp_vlan_port_priority)
+  end
+
+  def test_interface_stp_props_switchport_disabled
+    @intf.switchport_enable(false)
+    proplist = {
+      'bpdufilter'         => 'enable',
+      'cost'               => 2000,
+      'guard'              => 'loop',
+      'link_type'          => 'shared',
+      'mst_cost'           => [%w(0,2-4,6,8-12 4500), %w(1 20000)],
+      'mst_port_priority'  => [%w(0,2-4,6,8-12 224), %w(1 32)],
+      'port_priority'      => 32,
+      'vlan_cost'          => [%w(2-4,6,8-12 4500), %w(14 20000)],
+      'vlan_port_priority' => [%w(2-4,6,8-12 224), %w(14 32)],
+    }
+    proplist.each do |k, v|
+      assert_raises(RuntimeError, 'foo') do
+        @intf.send("stp_#{k}=", v)
+      end
+    end
   end
 end
