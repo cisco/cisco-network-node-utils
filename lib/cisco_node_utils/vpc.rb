@@ -164,16 +164,15 @@ module Cisco
       config_get_default('vpc', 'fabricpath_emulated_switch_id')
     end
 
+    # Note: fabricpath_multicast_load_balance also requires
+    # fabricpath_emulated_switch_id before it will be functional but it
+    # will config & nvgen independently.
     def fabricpath_multicast_load_balance
       config_get('vpc', 'fabricpath_multicast_load_balance')
     end
 
     def fabricpath_multicast_load_balance=(state)
       FabricpathGlobal.fabricpath_enable
-
-      fail 'This property also requires fabricpath_emulated_switch_id' if
-        state && !fabricpath_emulated_switch_id
-
       set_args_keys(state: state ? '' : 'no')
       config_set('vpc', 'fabricpath_multicast_load_balance', @set_args)
     end

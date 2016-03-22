@@ -428,20 +428,19 @@ class TestVpc < CiscoTestCase
 
     refute(vpc.fabricpath_multicast_load_balance,
            'fabricpath multicast loadbalance should not be enabled by default')
-    e = assert_raises(RuntimeError) do
-      vpc.fabricpath_multicast_load_balance = true
-    end
 
-    assert_match(/property also requires fabricpath_emulated_switch_id/,
-                 e.message)
-
-    vpc.fabricpath_emulated_switch_id = 1000
     vpc.fabricpath_multicast_load_balance = true
     assert(vpc.fabricpath_multicast_load_balance,
-           'fabricpath multicast loadbalance not getting enabled')
+           'fabricpath multicast load-balance is not enabled')
+
     vpc.fabricpath_multicast_load_balance = false
     refute(vpc.fabricpath_multicast_load_balance,
-           'fabricpath multicast loadbalance not getting disabled')
+           'fabricpath multicast load-balance is not disabled')
+
+    default = vpc.default_fabricpath_multicast_load_balance
+    vpc.fabricpath_multicast_load_balance = default
+    assert_equal(default, vpc.fabricpath_multicast_load_balance,
+                 'fabricpath multicast load-balance is not default')
   end
 
   def test_port_channel_limit
