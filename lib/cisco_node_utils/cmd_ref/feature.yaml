@@ -74,3 +74,10 @@ vni:
     set_value: 'feature vn-segment-vlan-based'
   N8k: *feature_mt_lite
   N9k: *feature_mt_lite
+
+vtp:
+  kind: boolean
+  get_command: "show running vtp"
+  get_value: '/^feature vtp$/'
+  set_value: "<state> feature vtp"
+  default_value: false

@@ -151,6 +151,26 @@ module Cisco
     end
 
     # ---------------------------
+    def self.vtp_enable
+      return if vtp_enabled?
+      result = config_set('feature', 'vtp', state: '')
+      cli_error_check(result)
+    end
+
+    def self.vtp_disable
+      return unless vtp_enabled?
+      config_set('feature', 'vtp', state: 'no')
+    end
+
+    def self.vtp_enabled?
+      config_get('feature', 'vtp')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    # ---------------------------
     def self.cli_error_check(result)
       # The NXOS feature cli may not raise an exception in some conditions and
       # instead just displays a STDOUT error message; thus NXAPI does not detect
