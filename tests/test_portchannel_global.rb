@@ -144,71 +144,52 @@ class TestPortchannelGlobal < CiscoTestCase
     global = create_portchannel_global
     if validate_property_excluded?('portchannel_global', 'hash_poly')
       skip('Test not supported on this platform')
-    else
-      global.send(:port_channel_load_balance=,
-                  'src-dst', 'ip-only', 'CRC10c', nil, nil, nil, nil)
-      assert_equal('src-dst',
-                   global.bundle_select)
-      assert_equal('ip-only',
-                   global.bundle_hash)
-      assert_equal('CRC10c', global.hash_poly)
-      global.send(:port_channel_load_balance=,
-                  'dst', 'mac', 'CRC10a', nil, nil, nil, nil)
-      assert_equal('dst',
-                   global.bundle_select)
-      assert_equal('mac',
-                   global.bundle_hash)
-      assert_equal('CRC10a', global.hash_poly)
-      global.send(
-        :port_channel_load_balance=,
-        global.default_bundle_select,
-        global.default_bundle_hash,
-        'CRC10b',
-        nil, nil, nil, nil)
-      assert_equal(
-        global.default_bundle_select,
-        global.bundle_select)
-      assert_equal(
-        global.default_bundle_hash,
-        global.bundle_hash)
-      assert_equal('CRC10b',
-                   global.hash_poly)
+      return
     end
+
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-only', 'CRC10c', nil, nil, nil, nil)
+    assert_equal('src-dst', global.bundle_select)
+    assert_equal('ip-only', global.bundle_hash)
+    assert_equal('CRC10c', global.hash_poly)
+
+    global.send(:port_channel_load_balance=,
+                'dst', 'mac', 'CRC10a', nil, nil, nil, nil)
+    assert_equal('dst', global.bundle_select)
+    assert_equal('mac', global.bundle_hash)
+    assert_equal('CRC10a', global.hash_poly)
+
+    global.send(:port_channel_load_balance=,
+                global.default_bundle_select,
+                global.default_bundle_hash,
+                'CRC10b', nil, nil, nil, nil)
+    assert_equal(global.default_bundle_select, global.bundle_select)
+    assert_equal(global.default_bundle_hash, global.bundle_hash)
+    assert_equal('CRC10b', global.hash_poly)
   end
 
   def test_get_set_port_channel_load_balance_asym_rot
     global = create_portchannel_global
     if validate_property_excluded?('portchannel_global', 'asymmetric')
       skip('Test not supported on this platform')
-    else
-      global.send(:port_channel_load_balance=,
-                  'src-dst', 'ip-vlan', nil, true, nil, nil, 4)
-      assert_equal('src-dst',
-                   global.bundle_select)
-      assert_equal('ip-vlan',
-                   global.bundle_hash)
-      assert_equal(true, global.asymmetric)
-      assert_equal(4, global.rotate)
-      global.send(
-        :port_channel_load_balance=,
-        global.default_bundle_select,
-        global.default_bundle_hash,
-        nil,
-        global.default_asymmetric,
-        nil,
-        nil,
-        global.default_rotate)
-      assert_equal(
-        global.default_bundle_select,
-        global.bundle_select)
-      assert_equal(
-        global.default_bundle_hash,
-        global.bundle_hash)
-      assert_equal(
-        global.default_asymmetric,
-        global.asymmetric)
-      assert_equal(global.default_rotate,
-                   global.rotate)
+      return
     end
+
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-vlan', nil, true, nil, nil, 4)
+    assert_equal('src-dst', global.bundle_select)
+    assert_equal('ip-vlan', global.bundle_hash)
+    assert_equal(true, global.asymmetric)
+    assert_equal(4, global.rotate)
+
+    global.send(:port_channel_load_balance=,
+                global.default_bundle_select,
+                global.default_bundle_hash,
+                nil, global.default_asymmetric,
+                nil, nil, global.default_rotate)
+    assert_equal(global.default_bundle_select, global.bundle_select)
+    assert_equal(global.default_bundle_hash, global.bundle_hash)
+    assert_equal(global.default_asymmetric, global.asymmetric)
+    assert_equal(global.default_rotate, global.rotate)
   end
 end
