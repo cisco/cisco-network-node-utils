@@ -186,9 +186,10 @@ module Cisco
     end
 
     # this is an array like:
-    # [['ethernet 1/1', '1.1.1.1'], ['port-channel 100', '2.2.2.2']]
+    # [['ethernet 1/1', '1.1.1.1'], ['port-channel 100', '2.2.2.2'],
+    # ['vlan 2', '3.3.3.3']]
     # show command output is like: Eth1/1, Po100, Vlan2
-    # so translate back to the manifest format
+    # so translate back to the input format
     def ingress_interface
       list = config_get('itd_service', 'ingress_interface', @get_args)
       list.each do |intf, _next_hop|
