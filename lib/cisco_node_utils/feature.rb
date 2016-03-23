@@ -119,6 +119,16 @@ module Cisco
     end
 
     # ---------------------------
+    def self.ospf_enable
+      return if ospf_enabled?
+      config_set('feature', 'ospf')
+    end
+
+    def self.ospf_enabled?
+      config_get('feature', 'ospf')
+    end
+
+    # ---------------------------
     def self.pim_enable
       return if pim_enabled?
       config_set('feature', 'pim')
