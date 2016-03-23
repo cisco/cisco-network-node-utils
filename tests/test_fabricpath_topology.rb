@@ -38,7 +38,7 @@ class TestFabricpathTopo < CiscoTestCase
 
   def no_feature_fabricpath
     # Turn the feature off for a clean test.
-    config('no feature-set fabricpath')
+    config_no_warn('no feature-set fabricpath')
   end
 
   # TESTS
