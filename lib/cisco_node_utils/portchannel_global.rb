@@ -203,15 +203,20 @@ module Cisco
       end
     end
 
-    # on n6k, the bundle hash and bundle select are
-    # merged into one and so we need to break them apart,
-    # also they are called source and destination instead of
-    # src and dst as in other devices, so we convert them
+    # N5k/N6k: The bundle hash and bundle select are merged into one output;
+    # also note that the field names are source & destination instead of
+    # src & dst as in other devices.
     def _parse_ethernet_params(hash, params)
       hash_poly = params[2]
-      # hash_poly is not shown on the running config
-      # if it is default under some circumstatnces
+
+      # Depending on the chipset, hash_poly may have have a different
+      # default value within the same platform family (this is done to
+      # avoid polarization) but there is currently no command available
+      # to dynamically determine the default state. As a result the
+      # getter simply hard-codes a default value which means it may
+      # encounter occasional idempotence issues.
       hash_poly = hash_poly.nil? ? 'CRC10b' : hash_poly
+
       select_hash = params[1]
       lparams = select_hash.split('-')
       if lparams[0].downcase == 'destination'
