@@ -77,7 +77,6 @@ vni:
 
 vtp:
   kind: boolean
-  get_command: "show running | i ^feature"
   get_value: '/^feature vtp$/'
   set_value: "<state> feature vtp"
   default_value: false
