@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'logger'
 
 module Cisco
   # Vtp - node utility class for VTP configuration management
@@ -26,29 +27,22 @@ module Cisco
 
     # Constructor for Vtp
     def initialize(instantiate=true)
-      enable if instantiate && !Vtp.enabled
-    end
-
-    def self.enabled
-      config_get('vtp', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error|Service not enabled/
-      return false
-    end
-
-    def enable
-      config_set('vtp', 'feature', '')
-    end
-
-    # Disable vtp feature
-    def destroy
-      config_set('vtp', 'feature', 'no')
+      Feature.vtp_enable if instantiate
     end
 
     # Get vtp domain name
     def self.domain
-      enabled ? config_get('vtp', 'domain') : ''
+      if Feature.vtp_enabled?
+        config_get('vtp', 'domain')
+      else
+        config_get_default('vtp', 'domain')
+      end
+    end
+
+    # The only way to remove a vtp domain is to turn the vtp
+    # feature off.
+    def destroy
+      Feature.vtp_disable
     end
 
     def domain
@@ -57,21 +51,15 @@ module Cisco
 
     # Set vtp domain name
     def domain=(d)
-      fail ArgumentError unless d && d.is_a?(String) &&
-                                d.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
-      enable unless Vtp.enabled
-      begin
-        config_set('vtp', 'domain', d)
-      rescue Cisco::CliError => e
-        # cmd will syntax reject when setting name to same name
-        raise unless e.clierror =~ /ERROR: Domain name already set to /
-      end
+      d = d.to_s
+      fail ArgumentError unless d.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
+      config_set('vtp', 'domain', domain: d)
     end
 
     # Get vtp password
     def password
       # Unfortunately nxapi returns "\\" when the password is not set
-      password = config_get('vtp', 'password') if Vtp.enabled
+      password = config_get('vtp', 'password') if Feature.vtp_enabled?
       return '' if password.nil? || password == '\\'
       password
     end
@@ -81,19 +69,9 @@ module Cisco
       fail TypeError if password.nil?
       fail TypeError unless password.is_a? String
       fail ArgumentError if password.length > MAX_VTP_PASSWORD_SIZE
-      enable unless Vtp.enabled
-      begin
-        if password == default_password
-          config_set('vtp', 'password', 'no', '')
-        else
-          config_set('vtp', 'password', '', password)
-        end
-      rescue Cisco::CliError => e
-        raise unless e.clierror =~ /password cannot be set for NULL domain/
-        unless password == default_password
-          raise 'Setting VTP password requires first setting VTP domain'
-        end
-      end
+      Feature.vtp_enable
+      state = (password == default_password) ? 'no' : ''
+      config_set('vtp', 'password', state: state, password: password)
     end
 
     # Get default vtp password
@@ -103,18 +81,17 @@ module Cisco
 
     # Get vtp filename
     def filename
-      config_get('vtp', 'filename')
+      filename = config_get('vtp', 'filename') if Feature.vtp_enabled?
+      filename.nil? ? default_filename : filename
     end
 
     # Set vtp filename
     def filename=(uri)
       fail TypeError if uri.nil?
-      enable unless Vtp.enabled
-      if uri.empty?
-        config_set('vtp', 'filename', 'no', '')
-      else
-        config_set('vtp', 'filename', '', uri)
-      end
+      Feature.vtp_enable
+      uri = uri.to_s
+      state = uri.empty? ? 'no' : ''
+      config_set('vtp', 'filename', state: state, uri: uri)
     end
 
     # Get default vtp filename
@@ -124,13 +101,13 @@ module Cisco
 
     # Get vtp version
     def version
-      Vtp.enabled ? config_get('vtp', 'version') : default_version
+      Feature.vtp_enabled? ? config_get('vtp', 'version') : default_version
     end
 
     # Set vtp version
-    def version=(version)
-      enable unless Vtp.enabled
-      config_set('vtp', 'version', "#{version}")
+    def version=(v)
+      Feature.vtp_enable
+      config_set('vtp', 'version', version: v)
     end
 
     # Get default vtp version

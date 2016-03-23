@@ -41,7 +41,7 @@ class TestFeature < CiscoTestCase
   # feature test helper
   def feature(feat)
     # Get the feature name string from the yaml
-    ref = cmd_ref.lookup('feature', feat).to_s[/set_value: feature (.*)/]
+    ref = cmd_ref.lookup('feature', feat).to_s[/set_value:.*feature (.*)/]
 
     if ref
       feat_str = Regexp.last_match[1]
@@ -51,7 +51,7 @@ class TestFeature < CiscoTestCase
 
     # Get current state of feature, then disable it
     pre_clean_enabled = Feature.send("#{feat}_enabled?")
-    config("no #{feat_str}") if pre_clean_enabled
+    config("no feature #{feat_str}") if pre_clean_enabled
     refute_show_match(
       command: "show running | i #{feat_str}",
       pattern: /^#{feat_str}$/,
@@ -68,7 +68,7 @@ class TestFeature < CiscoTestCase
            "Feature #{feat} (#{feat_str}) is not enabled")
 
     # Return testbed to pre-clean state
-    config("no #{feat_str}") unless pre_clean_enabled
+    config("no feature #{feat_str}") unless pre_clean_enabled
   end
 
   ###################
@@ -171,6 +171,10 @@ class TestFeature < CiscoTestCase
     vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
+  end
+
+  def test_vtp
+    feature('vtp')
   end
 
   #####################
