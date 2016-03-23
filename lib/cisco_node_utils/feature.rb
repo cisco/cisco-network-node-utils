@@ -157,6 +157,8 @@ module Cisco
       cli_error_check(result)
     end
 
+    # Special Case: The only way to remove a vtp instance
+    # is by disabling the feature.
     def self.vtp_disable
       return unless vtp_enabled?
       config_set('feature', 'vtp', state: 'no')

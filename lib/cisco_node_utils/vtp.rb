@@ -51,8 +51,8 @@ module Cisco
 
     # Set vtp domain name
     def domain=(d)
-      fail ArgumentError unless d && d.is_a?(String) &&
-                                d.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
+      d = d.to_s
+      fail ArgumentError unless d.length.between?(1, MAX_VTP_DOMAIN_NAME_SIZE)
       config_set('vtp', 'domain', domain: d)
     end
 
@@ -70,11 +70,8 @@ module Cisco
       fail TypeError unless password.is_a? String
       fail ArgumentError if password.length > MAX_VTP_PASSWORD_SIZE
       Feature.vtp_enable
-      if password == default_password
-        config_set('vtp', 'password', state: 'no', password: '')
-      else
-        config_set('vtp', 'password', state: '', password: password)
-      end
+      state = (password == default_password) ? 'no' : ''
+      config_set('vtp', 'password', state: state, password: password)
     end
 
     # Get default vtp password
@@ -92,11 +89,9 @@ module Cisco
     def filename=(uri)
       fail TypeError if uri.nil?
       Feature.vtp_enable
-      if uri.empty?
-        config_set('vtp', 'filename', state: 'no', uri: '')
-      else
-        config_set('vtp', 'filename', state: '', uri: uri)
-      end
+      uri = uri.to_s
+      state = uri.empty? ? 'no' : ''
+      config_set('vtp', 'filename', state: state, uri: uri)
     end
 
     # Get default vtp filename
