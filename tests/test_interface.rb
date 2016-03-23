@@ -137,15 +137,20 @@ class TestInterface < CiscoTestCase
     arr.count
   end
 
-  # Helper to check for misc speed change disallowed error messages.
-  def speed_change_disallowed(message)
-    patterns = ['port doesn t support this speed',
-                'Changing interface speed is not permitted',
-                'requested config change not allowed',
-                /does not match the (transceiver speed|port capability)/]
-    skip('Skip test: Interface type does not allow config change') if
-         message[Regexp.union(patterns)]
-    flunk(message)
+  # Helper to get valid speeds for port
+  def capable_speed_values(interface)
+    capabilities = config("show interface #{interface.name} capabilities")
+    speed_capa = capabilities.match(/Speed:\s+(\S+)/)
+    return [] if speed_capa[1].nil?
+    speed_capa[1].split(',')
+  end
+
+  # Helper to get valid duplex values for port
+  def capable_duplex_values(interface)
+    capabilities = config("show interface #{interface.name} capabilities")
+    duplex_capa = capabilities.match(/Duplex:\s+(\S+)/)
+    return [] if duplex_capa[1].nil?
+    duplex_capa[1].split(',')
   end
 
   def create_interface(ifname=interfaces[0])
@@ -163,6 +168,37 @@ class TestInterface < CiscoTestCase
     skip("Interface '#{intf}' does not support property") if
       message[Regexp.union(patterns)]
     flunk(message)
+  end
+
+  # Helper to find first valid speed that isn't "auto"
+  def valid_speed_set(interface)
+    valid_speed = nil
+    speeds = capable_speed_values(interface)
+    speeds.each do |value|
+      next if value == 'auto'
+      begin
+        interface.speed = value
+        assert_equal(value.to_i, interface.speed)
+      rescue Cisco::CliError => e
+        next if speed_change_disallowed?(e.message)
+        raise
+      end
+      # Exit loop once proper speed is found
+      valid_speed = value
+      break
+    end
+    valid_speed
+  end
+
+  # Helper to check for misc speed change disallowed error messages.
+  def speed_change_disallowed?(message)
+    patterns = ['port doesn t support this speed',
+                'Changing interface speed is not permitted',
+                'requested config change not allowed',
+                /does not match the (transceiver speed|port capability)/,
+                'but the transceiver doesn t support this speed',
+                '% Ambiguous parameter']
+    message[Regexp.union(patterns)]
   end
 
   def validate_interfaces_not_empty
@@ -528,43 +564,68 @@ class TestInterface < CiscoTestCase
 
   def test_speed
     interface = Interface.new(interfaces[0])
-    if platform == :ios_xr
+    if node.product_id =~ /C3132/
+      skip('Speed is not supported on this platform')
+    elsif validate_property_excluded?('interface', 'speed')
       assert_nil(interface.speed)
       assert_nil(interface.default_speed)
       assert_raises(Cisco::UnsupportedError) { interface.speed = 1000 }
-    else
-      assert_raises(RuntimeError, Cisco::CliError) { interface.speed = 'hello' }
+      return
+    end
+
+    # Test invalid speed
+    assert_raises(RuntimeError, Cisco::CliError) { interface.speed = 'hello' }
+
+    # Test up to two non-default values
+    speed_values = capable_speed_values(interface)
+    successful_runs = 0
+    speed_values.each do |value|
+      break if successful_runs >= 2
       begin
-        interface.speed = 1000
-        assert_equal('1000', interface.speed)
-        interface.speed = 100
-        assert_equal('100', interface.speed)
+        interface.speed = value
+        assert_equal(value.to_i, interface.speed)
+        successful_runs += 1
       rescue Cisco::CliError => e
-        speed_change_disallowed(e.message)
+        # Many of the 'capable' speeds are actually not valid values
+        # Try next available speed value if CLI rejects current value
+        next if speed_change_disallowed?(e.message)
+        raise
       end
     end
+
+    # Test default speed value
+    interface.speed = interface.default_speed
+    assert_equal(interface.speed, interface.default_speed)
   end
 
   def test_duplex
     interface = Interface.new(interfaces[0])
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'duplex')
       assert_nil(interface.duplex)
       assert_nil(interface.default_duplex)
       assert_raises(Cisco::UnsupportedError) { interface.duplex = 'full' }
-    else
-      assert_raises(RuntimeError, Cisco::CliError) do
-        interface.duplex = 'hello'
-      end
-      interface.speed = 1000
-      begin
-        interface.duplex = 'full'
-        assert_equal('full', interface.duplex)
-        interface.duplex = 'auto'
-        assert_equal('auto', interface.duplex)
-      rescue Cisco::CliError => e
-        speed_change_disallowed(e.message)
-      end
+      return
     end
+
+    # Test invalid duplex
+    assert_raises(RuntimeError, Cisco::CliError) { interface.duplex = 'hello' }
+
+    # Ensure speed is non-auto value
+    if interface.default_speed == 'auto'
+      valid_speed = valid_speed_set(interface)
+      skip('Cannot configure non-auto speed') if valid_speed.nil?
+    end
+
+    # Test non-default values
+    duplex_values = capable_duplex_values(interface)
+    duplex_values.each do |value|
+      interface.duplex = value
+      assert_equal(value, interface.duplex)
+    end
+
+    # Test default duplex value
+    interface.duplex = interface.default_duplex
+    assert_equal(interface.duplex, interface.default_duplex)
   end
 
   def test_interface_shutdown_valid

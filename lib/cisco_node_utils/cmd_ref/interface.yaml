@@ -40,7 +40,10 @@ duplex:
   kind: string
   get_value: '/^duplex (.*)$/'
   set_value: "duplex <duplex>"
-  default_value: "auto"
+  C3064:
+    default_value: 'full'
+  else:
+    default_value: 'auto'
 
 encapsulation_dot1q:
   kind: int
@@ -238,10 +241,19 @@ shutdown_vlan:
     default_value: true
 
 speed:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, C3132]
   get_value: '/^speed (.*)$/'
   set_value: "speed <speed>"
-  default_value: "auto"
+  C3064:
+    default_value: 10000
+  C3172:
+    default_value: 10000
+  N5k:
+    default_value: 10000
+  N6k:
+    default_value: 10000
+  else:
+    default_value: 'auto'
 
 stp_bpdufilter:
   kind: string

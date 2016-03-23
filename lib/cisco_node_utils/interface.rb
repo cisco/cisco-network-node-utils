@@ -475,13 +475,11 @@ module Cisco
     end
 
     def speed
-      config_get('interface', 'speed', name: @name)
+      val = config_get('interface', 'speed', name: @name)
+      val == 'auto' ? val : val.to_i
     end
 
     def speed=(val)
-      if node.product_id =~ /C31\d\d/
-        fail 'Changing interface speed is not permitted on this platform'
-      end
       config_set('interface', 'speed', name: @name, speed: val)
     end
 
@@ -494,9 +492,6 @@ module Cisco
     end
 
     def duplex=(val)
-      if node.product_id =~ /C31\d\d/
-        fail 'Changing interface duplex is not permitted on this platform'
-      end
       config_set('interface', 'duplex', name: @name, duplex: val)
     end
 
