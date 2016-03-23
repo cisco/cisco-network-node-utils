@@ -15,7 +15,6 @@
 # limitations under the License.
 
 require_relative 'node_util'
-require_relative 'feature'
 
 module Cisco
   # RouterOspf - node utility class for process-level OSPF config management
