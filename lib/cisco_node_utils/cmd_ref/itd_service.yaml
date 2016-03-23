@@ -4,8 +4,7 @@ _exclude: [N3k, N5k, N6k, N8k, ios_xr]
 
 _template:
   get_command: "show running-config all | section itd"
-  get_context:
-      - '/^itd <name>/'
+  get_context: ['/^itd <name>/']
   set_context: ["itd <name>"]
 
 access_list:
