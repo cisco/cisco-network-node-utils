@@ -155,13 +155,13 @@ module Cisco
       config_get('ospf', 'router_id', @get_args)
     end
 
-    def router_id=(router_id)
-      if router_id == default_router_id
+    def router_id=(rid)
+      if rid == default_router_id
         @set_args[:state] = 'no'
-        @set_args[:router_id] = ''
+        @set_args[:router_id] = router_id
       else
         @set_args[:state] = ''
-        @set_args[:router_id] = router_id
+        @set_args[:router_id] = rid
       end
 
       config_set('ospf', 'router_id', @set_args)

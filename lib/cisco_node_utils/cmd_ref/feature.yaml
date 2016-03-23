@@ -2,9 +2,11 @@
 ---
 _exclude: [ios_xr]
 
+_template:
+  get_command: "show running | i ^feature"
+
 bgp:
   kind: boolean
-  get_command: "show running | i ^feature"
   get_value: '/^feature bgp$/'
   set_value: "feature bgp"
 
@@ -16,20 +18,17 @@ fabric:
 
 fabric_forwarding:
   _exclude: [N3k]
-  get_command: "show running | i ^feature"
   get_value: '/^feature fabric forwarding$/'
   set_value: "feature fabric forwarding"
 
 itd:
   _exclude: [N3k, N5k, N6k]
-  get_command: "show running | i ^feature"
   get_value: '/^feature itd$/'
   set_value: "feature itd"
 
 nv_overlay:
   _exclude: [N3k, N5k, N6k]
   kind: boolean
-  get_command: "show running | i ^feature"
   get_value: '/^feature nv overlay$/'
   set_value: "feature nv overlay"
 
@@ -41,9 +40,13 @@ nv_overlay_evpn:
   get_value: '/^nv overlay evpn$/'
   set_value: "nv overlay evpn"
 
+ospf:
+  kind: boolean
+  get_value: '/^feature ospf$/'
+  set_value: "feature ospf"
+
 pim:
   kind: boolean
-  get_command: "show running | i ^feature"
   get_value: '/^feature pim$/' # TBD pim6
   set_value: 'feature pim'
 
@@ -52,7 +55,6 @@ vn_segment_vlan_based:
   N3k: &vn_segment_vlan_based_mt_lite
     # Note: Some N3k are not hardware-capable
     kind: boolean
-    get_command: "show running | i ^feature"
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
@@ -63,13 +65,11 @@ vni:
   kind: boolean
   N7k:
     # MT-Full only
-    get_command: "show running | i ^feature"
     get_value: '/^feature vni$/'
     set_value: 'feature vni'
   N3k: &feature_mt_lite
     # MT-lite only
     # Note: Some N3k are not hardware-capable
-    get_command: "show running | i ^feature"
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
   N8k: *feature_mt_lite

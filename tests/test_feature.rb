@@ -129,6 +129,10 @@ class TestFeature < CiscoTestCase
     vdc_lc_state(vdc_current) if vdc_current
   end
 
+  def test_ospf
+    feature('ospf')
+  end
+
   def test_pim
     feature('pim')
   end
@@ -159,6 +163,10 @@ class TestFeature < CiscoTestCase
 
     # vni can't be removed if nv overlay is present
     config('no feature nv overlay')
+
+    # Hang observed on n3|9k when show run occurs immediately after removing
+    # nv overlay. This minor delay avoids the hang.
+    sleep 1
     feature('vni')
     vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e
