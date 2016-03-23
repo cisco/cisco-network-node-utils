@@ -41,7 +41,7 @@ class TestFeature < CiscoTestCase
   # feature test helper
   def feature(feat)
     # Get the feature name string from the yaml
-    ref = cmd_ref.lookup('feature', feat).to_s[/set_value: feature (.*)/]
+    ref = cmd_ref.lookup('feature', feat).to_s[/set_value:.*feature (.*)/]
 
     if ref
       feat_str = Regexp.last_match[1]
@@ -129,6 +129,10 @@ class TestFeature < CiscoTestCase
     vdc_lc_state(vdc_current) if vdc_current
   end
 
+  def test_ospf
+    feature('ospf')
+  end
+
   def test_pim
     feature('pim')
   end
@@ -163,10 +167,18 @@ class TestFeature < CiscoTestCase
 
     # vni can't be removed if nv overlay is present
     config('no feature nv overlay')
+
+    # Hang observed on n3|9k when show run occurs immediately after removing
+    # nv overlay. This minor delay avoids the hang.
+    sleep 1
     feature('vni')
     vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
+  end
+
+  def test_vtp
+    feature('vtp')
   end
 
   #####################

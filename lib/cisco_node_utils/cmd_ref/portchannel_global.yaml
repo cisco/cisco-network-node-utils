@@ -61,7 +61,7 @@ port_channel_load_balance:
   set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
-  _exclude: [N5k, N6k, N8k, N7k]
+  _exclude: [N5k, N6k, N7k, N8k]
   kind: boolean
   get_value: '/^port-channel load-balance resilient$/'
   set_value: "%s port-channel load-balance resilient"

@@ -16,6 +16,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_service_vni'
 require_relative '../lib/cisco_node_utils/vdc'
+require_relative '../lib/cisco_node_utils/vxlan_vtep'
 
 include Cisco
 
@@ -43,15 +44,16 @@ class TestInterfaceServiceVni < CiscoTestCase
     # Reset the vdc module type back to default
     v = Vdc.new('default')
     v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
+    super
   end
 
   def mt_full_env_setup
-    skip('Platform does not support MT-full') unless Vni.mt_full_support
+    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
     intf = mt_full_interface?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'
-    config("default int #{intf}")
+    config_no_warn("default interface #{intf}")
     intf
   end
 
@@ -65,7 +67,18 @@ class TestInterfaceServiceVni < CiscoTestCase
            'encapsulation profile vni vni_700_7000', 'dot1q 700  vni 7000',
            'encapsulation profile vni vni_800_8000', 'dot1q 800  vni 8000')
 
-    # Configure a bridge-domain
+    # Clean up any existing bridge-domain configs
+    # Example config:
+    #   system bridge-domain 41-43
+    #   bridge-domain 41-42
+    #   bridge-domain 41
+    # TBD: Convert this cleanup/setup to use bridge_domain provider
+    found =
+      config('sh run bridge-domain').match(/^bridge-domain (?<bds>[0-9,-]+)/)
+    config("no bridge-domain #{found[:bds]}") if found
+    config_no_warn('system bridge-domain none')
+
+    # Now add our test bridge-domain config
     config('system bridge-domain 100-113', 'bridge-domain 100')
   end
 

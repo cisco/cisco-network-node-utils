@@ -119,6 +119,16 @@ module Cisco
     end
 
     # ---------------------------
+    def self.ospf_enable
+      return if ospf_enabled?
+      config_set('feature', 'ospf')
+    end
+
+    def self.ospf_enabled?
+      config_get('feature', 'ospf')
+    end
+
+    # ---------------------------
     def self.pim_enable
       return if pim_enabled?
       config_set('feature', 'pim')
@@ -158,6 +168,28 @@ module Cisco
 
     def self.vni_enabled?
       config_get('feature', 'vni')
+    end
+
+    # ---------------------------
+    def self.vtp_enable
+      return if vtp_enabled?
+      result = config_set('feature', 'vtp', state: '')
+      cli_error_check(result)
+    end
+
+    # Special Case: The only way to remove a vtp instance
+    # is by disabling the feature.
+    def self.vtp_disable
+      return unless vtp_enabled?
+      config_set('feature', 'vtp', state: 'no')
+    end
+
+    def self.vtp_enabled?
+      config_get('feature', 'vtp')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
     end
 
     # ---------------------------
