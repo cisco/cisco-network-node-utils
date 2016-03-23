@@ -186,6 +186,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
     begin
+      @http.use_ssl = false
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
