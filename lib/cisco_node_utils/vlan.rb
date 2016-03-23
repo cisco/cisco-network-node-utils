@@ -91,13 +91,22 @@ module Cisco
       end
     end
 
-    # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      @set_args = {}
+      keys = { vlan: @vlan_id }
+      @set_args = keys
+    end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @set_args.merge!(hash) unless hash.empty?
     end
 
     def compute_vlan_list_association(cfg_vlan_list, to_be_cfg_vlan_list)
-      set_args_keys_default
+      # This method takes in input the user config private vlan association
+      # list and the configured private vlan association list.
+      # Converts both list into array and compute the difference. The difference
+      # will be the vlan that need to be removed from the final configuration.
+
       vlan_config = to_be_cfg_vlan_list.gsub('-', '..').split(',')
 
       present_vlan = cfg_vlan_list.split(',')
@@ -115,10 +124,9 @@ module Cisco
         end
       end
 
-      @set_args[:vlan_to_remove] =
-                     (present_vlan - vlan_cfg_array).map(&:to_s) * ','
-      @set_args[:vlan_to_config] =
-                     vlan_cfg_array.map(&:to_s) * ','
+      rem_list = (present_vlan - vlan_cfg_array).map(&:to_s) * ','
+      config_list = vlan_cfg_array.map(&:to_s) * ','
+      set_args_keys(vlan_to_remove: rem_list, vlan_to_config: config_list)
     end
 
     def fabricpath_feature
@@ -256,17 +264,13 @@ module Cisco
     def private_vlan_type=(pv_type)
       Feature.private_vlan_enable
       fail TypeError unless pv_type && pv_type.is_a?(String)
-      set_args_keys_default
+
       if pv_type == default_private_vlan_type
         pv_type = private_vlan_type
-        @set_args[:vlan] = @vlan_id
-        @set_args[:state] = 'no'
-        @set_args[:type] = pv_type
+        set_args_keys(state: 'no', type: pv_type)
         ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
-        @set_args[:vlan] = @vlan_id
-        @set_args[:state] = ''
-        @set_args[:type] = pv_type
+        set_args_keys(state: '', type: pv_type)
         ignore_msg = 'Warning: Private-VLAN CLI entered'
       end
       result = config_set('vlan', 'private_vlan_type', @set_args)
@@ -283,43 +287,35 @@ module Cisco
       result.gsub(/["\[\]" "]/, '')
     end
 
-    def private_vlan_association=(config)
-      fail TypeError unless config &&
-                            config.is_a?(String)
+    def private_vlan_association=(vlan_list)
+      fail TypeError unless vlan_list &&
+                            vlan_list.is_a?(String)
       Feature.private_vlan_enable
-      set_args_keys_default
-      if config == default_private_vlan_association
-        @set_args[:vlan] = @vlan_id
-        @set_args[:state] = 'no'
-        @set_args[:vlans] = config
+
+      if vlan_list == default_private_vlan_association
+        set_args_keys(state: 'no', vlans: vlan_list)
         result = config_set('vlan', 'private_vlan_association',
                             @set_args)
         cli_error_check(result)
       else
-        vlan_list = private_vlan_association
-        if vlan_list.empty?
-          @set_args[:vlan] = @vlan_id
-          @set_args[:state] = ''
-          @set_args[:vlans] = config
+        vlan_cfg = private_vlan_association
+        if vlan_cfg.empty?
+          set_args_keys(state: '', vlans: vlan_list)
           result = config_set('vlan', 'private_vlan_association',
                               @set_args)
           cli_error_check(result)
         else
-          compute_vlan_list_association(vlan_list, config)
+          compute_vlan_list_association(vlan_cfg, vlan_list)
           vlan_to_remove = @set_args[:vlan_to_remove]
           vlan_to_config = @set_args[:vlan_to_config]
-          set_args_keys_default
+
           unless vlan_to_remove.empty?
-            @set_args[:vlan] = @vlan_id
-            @set_args[:state] = 'no'
-            @set_args[:vlans] = vlan_to_remove
+            set_args_keys(state: 'no', vlans: vlan_to_remove)
             result = config_set('vlan', 'private_vlan_association',
                                 @set_args)
             cli_error_check(result)
 
-            @set_args[:vlan] = @vlan_id
-            @set_args[:state] = ''
-            @set_args[:vlans] = vlan_to_config
+            set_args_keys(state: '', vlans: vlan_to_config)
             result = config_set('vlan', 'private_vlan_association',
                                 @set_args)
             cli_error_check(result)

@@ -43,8 +43,6 @@ class TestVlan < CiscoTestCase
 
   def teardown
     cleanup
-    config('no feature private-vlan')
-    config('no feature vtp')
   end
 
   def test_private_type_default
@@ -57,7 +55,6 @@ class TestVlan < CiscoTestCase
     else
       assert_equal(pv_type, v1.private_vlan_type)
     end
-    v1.destroy
   end
 
   def test_private_association_default
@@ -66,7 +63,6 @@ class TestVlan < CiscoTestCase
     v1 = Vlan.new(100)
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
-      v1.destroy
       return
     else
       result = ''
@@ -86,7 +82,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
     end
-    v1.destroy
   end
 
   def test_no_private_vlan_type_primary
@@ -97,7 +92,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -105,7 +99,6 @@ class TestVlan < CiscoTestCase
       pv_type = ''
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -121,11 +114,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
-      v4.destroy
-      v5.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -139,11 +127,6 @@ class TestVlan < CiscoTestCase
       assert_equal(pv_type, v3.private_vlan_type)
       assert_equal(pv_type, v4.private_vlan_type)
       assert_equal(pv_type, v5.private_vlan_type)
-      v1.destroy
-      v2.destroy
-      v3.destroy
-      v4.destroy
-      v5.destroy
     end
   end
 
@@ -159,7 +142,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
     end
-    v1.destroy
   end
 
   def test_private_vlan_type_community
@@ -174,7 +156,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
     end
-    v1.destroy
   end
 
   def test_private_vlan_type_isolated_primary
@@ -185,7 +166,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -194,8 +174,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'primary'
       v2.private_vlan_type = pv_type
       assert_equal(pv_type, v2.private_vlan_type)
-      v2.destroy
-      v1.destroy
     end
   end
 
@@ -207,7 +185,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -220,9 +197,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'community'
       v3.private_vlan_type = pv_type
       assert_equal(pv_type, v3.private_vlan_type)
-      v2.destroy
-      v1.destroy
-      v3.destroy
     end
   end
 
@@ -234,7 +208,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -242,7 +215,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'primary'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -254,7 +226,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -262,7 +233,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'community'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -274,7 +244,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -282,7 +251,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'isolated'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -294,7 +262,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -302,7 +269,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'primary'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -314,7 +280,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -322,7 +287,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'isolated'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -334,7 +298,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -342,7 +305,6 @@ class TestVlan < CiscoTestCase
       pv_type = 'community'
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
-      v1.destroy
     end
   end
 
@@ -357,8 +319,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -370,8 +330,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_association = vlan_list[1]
 
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
     end
   end
 
@@ -387,8 +345,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
       return
     else
       assert_equal(pv_type, v1.private_vlan_type)
@@ -399,8 +355,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_association = vlan_list[1]
 
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
     end
   end
 
@@ -417,9 +371,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       assert_equal(pv_type, v1.private_vlan_type)
@@ -441,9 +392,6 @@ class TestVlan < CiscoTestCase
 
       assert_equal(result, v1.private_vlan_association)
 
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -453,7 +401,6 @@ class TestVlan < CiscoTestCase
 
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
-    v3 = Vlan.new(vlan_list[2])
 
     pv_type = 'primary'
     v1.private_vlan_type = pv_type
@@ -462,9 +409,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       assert_equal(pv_type, v1.private_vlan_type)
@@ -476,9 +420,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_association = '101,200'
 
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -493,8 +434,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -505,8 +444,6 @@ class TestVlan < CiscoTestCase
 
       v1.private_vlan_association = '101,200'
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
     end
   end
 
@@ -521,8 +458,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -533,8 +468,6 @@ class TestVlan < CiscoTestCase
 
       v1.private_vlan_association = '101'
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
     end
   end
 
@@ -551,9 +484,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       assert_equal(pv_type, v1.private_vlan_type)
@@ -572,9 +502,6 @@ class TestVlan < CiscoTestCase
       # result = '200'
       # assert_equal(result, vlan_list(v1))
 
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -591,9 +518,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -614,9 +538,6 @@ class TestVlan < CiscoTestCase
       result = '200'
       assert_equal(result, v1.private_vlan_association)
 
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -633,9 +554,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -655,9 +573,6 @@ class TestVlan < CiscoTestCase
       result = ''
       assert_equal(result, v1.private_vlan_association)
 
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -673,9 +588,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
-      v2.destroy
-      v3.destroy
       return
     else
       v1.private_vlan_type = pv_type
@@ -690,9 +602,6 @@ class TestVlan < CiscoTestCase
       v1.private_vlan_association = '101,200'
 
       assert_equal(result, v1.private_vlan_association)
-      v1.destroy
-      v2.destroy
-      v3.destroy
     end
   end
 
@@ -707,7 +616,6 @@ class TestVlan < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         v1.private_vlan_type = pv_type
       end
-      v1.destroy
       return
     else
       v2 = Vlan.new(vlan_list[1])
@@ -716,7 +624,6 @@ class TestVlan < CiscoTestCase
       v5 = Vlan.new(vlan_list[4])
       v6 = Vlan.new(vlan_list[5])
       v7 = Vlan.new(vlan_list[6])
-      v8 = Vlan.new(vlan_list[7])
 
       v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
@@ -764,14 +671,6 @@ class TestVlan < CiscoTestCase
         assert_equal(result, v1.private_vlan_association)
       end
 
-      v1.destroy
-      v2.destroy
-      v3.destroy
-      v4.destroy
-      v5.destroy
-      v6.destroy
-      v7.destroy
-      v8.destroy
     end
   end
 end
