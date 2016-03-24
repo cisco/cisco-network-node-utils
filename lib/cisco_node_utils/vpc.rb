@@ -154,9 +154,7 @@ module Cisco
     end
 
     def fabricpath_emulated_switch_id=(switch_id)
-      # automatically enable fabricpath if it is not already enabled
-      FabricpathGlobal.fabricpath_feature_set(:enabled) if
-        switch_id && :enabled != FabricpathGlobal.fabricpath_feature
+      FabricpathGlobal.fabricpath_enable
       set_args_keys(state: switch_id ? '' : 'no',
                     swid:  switch_id ? switch_id : '')
       config_set('vpc', 'fabricpath_emulated_switch_id', @set_args)
@@ -166,15 +164,16 @@ module Cisco
       config_get_default('vpc', 'fabricpath_emulated_switch_id')
     end
 
+    # Note: fabricpath_multicast_load_balance also requires
+    # fabricpath_emulated_switch_id before it will be functional but it
+    # will config & nvgen independently.
     def fabricpath_multicast_load_balance
       config_get('vpc', 'fabricpath_multicast_load_balance')
     end
 
-    def fabricpath_multicast_load_balance=(val)
-      set_args_keys(state: val ? '' : 'no')
-      # This requires fabricpath_emulated_switch_id to be set first
-      fail 'fabricpath_switch_id configuration is required in the vPC domain' if
-        !fabricpath_emulated_switch_id && val
+    def fabricpath_multicast_load_balance=(state)
+      FabricpathGlobal.fabricpath_enable
+      set_args_keys(state: state ? '' : 'no')
       config_set('vpc', 'fabricpath_multicast_load_balance', @set_args)
     end
 

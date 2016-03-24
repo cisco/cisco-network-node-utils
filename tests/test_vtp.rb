@@ -21,18 +21,12 @@ class TestVtp < CiscoTestCase
 
   def setup
     super
-    no_feature_vtp
+    config('no feature vtp')
   end
 
   def teardown
-    no_feature_vtp
-    super
-  end
-
-  def no_feature_vtp
-    # VTP will raise an error if the domain is configured twice so we need to
-    # turn the feature off for a clean test.
     config('no feature vtp')
+    super
   end
 
   def vtp_domain(domain)
@@ -41,19 +35,19 @@ class TestVtp < CiscoTestCase
     vtp
   end
 
-  def test_vtp_disabled
+  def test_disabled
     vtp = Vtp.new(false)
     assert_empty(vtp.domain)
     assert_equal(vtp.default_password, vtp.password)
     assert_equal(vtp.default_filename, vtp.filename)
     assert_equal(vtp.default_version, vtp.version)
-    refute(Vtp.enabled, 'VTP feature was unexpectedly enabled?')
+    refute(Feature.vtp_enabled?, 'VTP feature was unexpectedly enabled?')
   end
 
-  def test_vtp_enabled_but_no_domain
+  def test_enabled_but_no_domain
     vtp = Vtp.new(false)
     config('feature vtp')
-    assert(Vtp.enabled)
+    assert(Feature.vtp_enabled?)
     assert_empty(vtp.domain)
     assert_equal(vtp.default_password, vtp.password)
     assert_equal(vtp.default_filename, vtp.filename)
@@ -69,7 +63,7 @@ class TestVtp < CiscoTestCase
     end
   end
 
-  def test_vtp_domain_enable_disable
+  def test_domain_enable_disable
     assert_empty(Vtp.domain)
     vtp = vtp_domain('enable')
     assert_equal('enable', Vtp.domain)
@@ -77,57 +71,41 @@ class TestVtp < CiscoTestCase
     assert_empty(Vtp.domain)
   end
 
-  def test_vtp_create_valid
-    vtp_domain('accounting')
-    s = @device.cmd("show run vtp | incl '^vtp domain'")
-    assert_match(/^vtp domain accounting/, s,
-                 'Error: failed to create vtp domain')
+  def test_create_valid
+    vtp = vtp_domain('accounting')
+    assert_equal('accounting', vtp.domain)
   end
 
-  def test_vtp_domain_name_change
+  def test_domain_name_change
     vtp = vtp_domain('accounting')
     vtp_domain('uplink')
     assert_equal('uplink', vtp.domain,
                  'Error: vtp domain name incorrect')
   end
 
-  def test_vtp_create_preconfig_no_change
-    config('feature vtp', 'vtp domain accounting')
+  def test_negative
+    assert_raises(ArgumentError) { vtp_domain(nil) }
+    assert_raises(ArgumentError) { vtp_domain('') }
 
+    # Create the same domain twice
     vtp = vtp_domain('accounting')
-    assert_equal('accounting', vtp.domain,
-                 'Error: vtp domain wrong')
+    assert_raises(Cisco::CliError) { vtp_domain('accounting') }
+
+    # Set password to nil
+    assert_raises(TypeError) { vtp.password = nil }
+
+    # Password too long
+    password = 'a' * (Vtp::MAX_VTP_PASSWORD_SIZE + 1)
+    assert_raises(ArgumentError) { vtp.password = password }
+
+    # Set filename to nil
+    assert_raises(TypeError) { vtp.filename = nil }
+
+    # Invalid version
+    assert_raises(Cisco::CliError) { vtp.version = 34 }
   end
 
-  def test_vtp_create_double
-    vtp = vtp_domain('accounting')
-    vtp_new = vtp_domain('accounting')
-
-    assert_equal('accounting', vtp.domain,
-                 'Error: vtp domain wrong')
-    assert_equal('accounting', vtp_new.domain,
-                 'Error: vtp_new domain wrong')
-  end
-
-  def test_vtp_create_domain_invalid
-    assert_raises(ArgumentError) do
-      vtp_domain(node)
-    end
-  end
-
-  def test_vtp_create_domain_nil
-    assert_raises(ArgumentError) do
-      vtp_domain(nil)
-    end
-  end
-
-  def test_vtp_create_domain_empty
-    assert_raises(ArgumentError) do
-      vtp_domain('')
-    end
-  end
-
-  def test_vtp_assignment
+  def test_assignment
     vtp = vtp_domain('accounting')
     vtp.password = 'copy_test'
     assert_equal('copy_test', vtp.password,
@@ -137,20 +115,13 @@ class TestVtp < CiscoTestCase
                  'Error: vtp password not set')
   end
 
-  def test_vtp_domain_get
+  def test_domain_get
     vtp = vtp_domain('accounting')
     assert_equal('accounting', vtp.domain,
                  'Error: vtp domain incorrect')
   end
 
-  def test_vtp_password_nil
-    vtp = vtp_domain('accounting')
-    assert_raises(TypeError) do
-      vtp.password = nil
-    end
-  end
-
-  def test_vtp_password_default
+  def test_password_default
     vtp = vtp_domain('accounting')
     vtp.password = 'test_me'
     assert_equal('test_me', vtp.password,
@@ -161,14 +132,14 @@ class TestVtp < CiscoTestCase
                  'Error: vtp password not correct')
   end
 
-  def test_vtp_password_zero_length
+  def test_password_zero_length
     vtp = vtp_domain('accounting')
     vtp.password = ''
     assert_equal('', vtp.password,
                  'Error: vtp password not empty')
   end
 
-  def test_vtp_password_get
+  def test_password_get
     vtp = vtp_domain('accounting')
 
     config('vtp password cisco123')
@@ -176,13 +147,13 @@ class TestVtp < CiscoTestCase
                  'Error: vtp password not correct')
   end
 
-  def test_vtp_password_get_not_set
+  def test_password_get_not_set
     vtp = vtp_domain('accounting')
     assert_equal('', vtp.password,
                  'Error: vtp password not empty')
   end
 
-  def test_vtp_password_clear
+  def test_password_clear
     vtp = vtp_domain('accounting')
     vtp.password = 'cisco123'
     assert_equal('cisco123', vtp.password,
@@ -193,7 +164,7 @@ class TestVtp < CiscoTestCase
                  'Error: vtp default password not set')
   end
 
-  def test_vtp_password_valid
+  def test_password_valid
     vtp = vtp_domain('accounting')
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     password = ''
@@ -205,33 +176,20 @@ class TestVtp < CiscoTestCase
     end
   end
 
-  def test_vtp_password_too_long
-    vtp = vtp_domain('accounting')
-    password = 'a' * (Vtp::MAX_VTP_PASSWORD_SIZE + 1)
-    assert_raises(ArgumentError) { vtp.password = password }
-  end
-
-  def test_vtp_password_special_characters
+  def test_password_special_characters
     vtp = vtp_domain('password')
     vtp.password = 'hello!//\\#%$x'
     assert_equal('hello!//\\#%$x', vtp.password)
   end
 
-  def test_vtp_filename_nil
-    vtp = vtp_domain('accounting')
-    assert_raises(TypeError) do
-      vtp.filename = nil
-    end
-  end
-
-  def test_vtp_filename_valid
+  def test_filename_valid
     vtp = vtp_domain('accounting')
     vtp.filename = 'bootflash:/test.dat'
     assert_equal('bootflash:/test.dat', vtp.filename,
                  'Error: vtp file content wrong')
   end
 
-  def test_vtp_filename_zero_length
+  def test_filename_zero_length
     vtp = vtp_domain('accounting')
     vtp.filename = vtp.default_filename
     assert_equal(node.config_get_default('vtp', 'filename'), vtp.filename,
@@ -244,29 +202,29 @@ class TestVtp < CiscoTestCase
                  'Error: vtp file content wrong')
   end
 
-  def test_vtp_filename_auto_enable
+  def test_filename_auto_enable
     vtp = Vtp.new(false)
-    refute(Vtp.enabled, 'VTP should not be enabled')
+    refute(Feature.vtp_enabled?, 'VTP should not be enabled')
     vtp.filename = 'bootflash:/foo.bar'
-    assert(Vtp.enabled)
+    assert(Feature.vtp_enabled?)
     assert_equal('bootflash:/foo.bar', vtp.filename)
   end
 
-  def test_vtp_version_valid
+  def test_version_valid
     vtp = vtp_domain('accounting')
     vtp.version = vtp.default_version
     assert_equal(node.config_get_default('vtp', 'version'), vtp.version,
                  'Error: vtp version not default')
   end
 
-  def test_vtp_version3_valid
+  def test_version3_valid
     vtp = vtp_domain('accounting')
 
     ref = cmd_ref.lookup('vtp', 'version')
     assert(ref, 'Error, reference not found for vtp version3')
 
     case node.product_id
-    when /N7K/
+    when /N(5|6|7)K/
       vtp.version = 3
       assert_equal(vtp.version, 3)
     else
@@ -287,14 +245,7 @@ class TestVtp < CiscoTestCase
     end
   end
 
-  def test_vtp_version_invalid
-    vtp = vtp_domain('accounting')
-    assert_raises(Cisco::CliError) do
-      vtp.version = 34
-    end
-  end
-
-  def test_vtp_version_default
+  def test_version_default
     vtp = vtp_domain('accounting')
     vtp.version = 2
     assert_equal(2, vtp.version,
@@ -304,19 +255,19 @@ class TestVtp < CiscoTestCase
                  'Error: vtp version not default')
   end
 
-  def test_vtp_version_auto_enable
+  def test_version_auto_enable
     vtp = Vtp.new(false)
-    refute(Vtp.enabled, 'VTP should not be enabled')
+    refute(Feature.vtp_enabled?, 'VTP should not be enabled')
     vtp.version = 1
-    assert(Vtp.enabled)
+    assert(Feature.vtp_enabled?)
     assert_equal(1, vtp.version)
   end
 
-  def test_vtp_feature_enable_disable
-    Vtp.new.enable
-    assert(Vtp.enabled, 'Error: vtp is not enabled')
+  def test_feature_enable_disable
+    Feature.vtp_enable
+    assert(Feature.vtp_enabled?, 'Error: vtp is not enabled')
 
-    Vtp.new.destroy
-    refute(Vtp.enabled, 'Error: vtp is not disabled')
+    Feature.vtp_disable
+    refute(Feature.vtp_enabled?, 'Error: vtp is not disabled')
   end
 end
