@@ -193,9 +193,6 @@ module Cisco
     def ingress_interface
       list = config_get('itd_service', 'ingress_interface', @get_args)
       list.each do |intf, _next_hop|
-        # intf[/Eth/] = 'ethernet ' if intf.include?('Eth')
-        # intf[/Po/] = 'port-channel ' if intf.include?('Po')
-        # intf[/Vlan/] = 'vlan ' if intf.include?('Vlan')
         intf.gsub!('Eth', 'ethernet ')
         intf.gsub!('Po', 'port-channel ')
         intf.gsub!('Vlan', 'vlan ')
