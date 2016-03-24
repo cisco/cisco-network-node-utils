@@ -339,7 +339,6 @@ class TestVlan < CiscoTestCase
     v1 = Vlan.new(vlan_list[0])
     v2 = Vlan.new(vlan_list[1])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
       assert_raises(Cisco::UnsupportedError) do
@@ -347,6 +346,7 @@ class TestVlan < CiscoTestCase
       end
       return
     else
+      v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
       pv_type = 'community'
       v2.private_vlan_type = pv_type
@@ -365,7 +365,6 @@ class TestVlan < CiscoTestCase
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
       assert_raises(Cisco::UnsupportedError) do
@@ -373,6 +372,7 @@ class TestVlan < CiscoTestCase
       end
       return
     else
+      v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
       pv_type = 'isolated'
       v2.private_vlan_type = pv_type
@@ -387,7 +387,7 @@ class TestVlan < CiscoTestCase
 
       pv_type = 'isolated'
       assert_raises(RuntimeError, 'vlan misconf did not raise RuntimeError') do
-        v2.private_vlan_type = pv_type
+        v3.private_vlan_type = pv_type
       end
 
       assert_equal(result, v1.private_vlan_association)
@@ -403,7 +403,6 @@ class TestVlan < CiscoTestCase
     v2 = Vlan.new(vlan_list[1])
 
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
       assert_raises(Cisco::UnsupportedError) do
@@ -411,6 +410,7 @@ class TestVlan < CiscoTestCase
       end
       return
     else
+      v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
 
       pv_type = 'isolated'
@@ -478,7 +478,6 @@ class TestVlan < CiscoTestCase
     v2 = Vlan.new(vlan_list[1])
     v3 = Vlan.new(vlan_list[2])
     pv_type = 'primary'
-    v1.private_vlan_type = pv_type
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
       assert_raises(Cisco::UnsupportedError) do
@@ -486,6 +485,7 @@ class TestVlan < CiscoTestCase
       end
       return
     else
+      v1.private_vlan_type = pv_type
       assert_equal(pv_type, v1.private_vlan_type)
       pv_type = 'isolated'
       v2.private_vlan_type = pv_type
