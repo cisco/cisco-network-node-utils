@@ -77,13 +77,13 @@ class TestItdService < CiscoTestCase
     itd.destroy
   end
 
-  def test_failaction
+  def test_fail_action
     itd = ItdService.new('new_group')
-    itd.failaction = true
-    assert_equal(true, itd.failaction)
-    itd.failaction = itd.default_failaction
-    assert_equal(itd.default_failaction,
-                 itd.failaction)
+    itd.fail_action = true
+    assert_equal(true, itd.fail_action)
+    itd.fail_action = itd.default_fail_action
+    assert_equal(itd.default_fail_action,
+                 itd.fail_action)
     itd.destroy
   end
 
@@ -91,7 +91,7 @@ class TestItdService < CiscoTestCase
     config 'feature interface-vlan'
     config 'vlan 2'
     config 'interface vlan 2'
-    config 'interface port-channel 100'
+    config 'interface port-channel 100 ; no switchport'
     itd = ItdService.new('new_group')
     intf = interfaces[0].dup
     ii = [['vlan 2', '1.1.1.1'],
@@ -197,7 +197,7 @@ class TestItdService < CiscoTestCase
 
   def test_nat_destination
     itd = ItdService.new('new_group')
-    if node.product_id =~ /N9/
+    if validate_property_excluded?('itd_service', 'nat_destination')
       assert_nil(itd.nat_destination)
       assert_raises(Cisco::UnsupportedError) do
         itd.nat_destination = false
@@ -240,7 +240,7 @@ class TestItdService < CiscoTestCase
   def test_peer_vdc
     itd = ItdService.new('new_group')
     parray = %w(vdc1 ser1)
-    if node.product_id =~ /N9/
+    if validate_property_excluded?('itd_service', 'peer_vdc')
       assert_nil(itd.peer_vdc)
       assert_raises(Cisco::UnsupportedError) do
         itd.peer_vdc = parray
@@ -258,7 +258,7 @@ class TestItdService < CiscoTestCase
   def test_peer_local
     itd = ItdService.new('new_group')
     service = 'ser1'
-    if node.product_id =~ /N7/
+    if validate_property_excluded?('itd_service', 'peer_local')
       assert_nil(itd.peer_local)
       assert_raises(Cisco::UnsupportedError) do
         itd.peer_local = service

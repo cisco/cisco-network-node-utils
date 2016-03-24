@@ -170,19 +170,19 @@ module Cisco
       config_get_default('itd_service', 'exclude_access_list')
     end
 
-    def failaction
-      config_get('itd_service', 'failaction', @get_args)
+    def fail_action
+      config_get('itd_service', 'fail_action', @get_args)
     end
 
-    def failaction=(state)
+    def fail_action=(state)
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
-      config_set('itd_service', 'failaction', @set_args)
+      config_set('itd_service', 'fail_action', @set_args)
       set_args_keys_default
     end
 
-    def default_failaction
-      config_get_default('itd_service', 'failaction')
+    def default_fail_action
+      config_get_default('itd_service', 'fail_action')
     end
 
     # this is an array like:
@@ -193,18 +193,17 @@ module Cisco
     def ingress_interface
       list = config_get('itd_service', 'ingress_interface', @get_args)
       list.each do |intf, _next_hop|
-        intf[/Eth/] = 'ethernet ' if intf.include?('Eth')
-        intf[/Po/] = 'port-channel ' if intf.include?('Po')
-        intf[/Vlan/] = 'vlan ' if intf.include?('Vlan')
+        # intf[/Eth/] = 'ethernet ' if intf.include?('Eth')
+        # intf[/Po/] = 'port-channel ' if intf.include?('Po')
+        # intf[/Vlan/] = 'vlan ' if intf.include?('Vlan')
+        intf.gsub!('Eth', 'ethernet ')
+        intf.gsub!('Po', 'port-channel ')
+        intf.gsub!('Vlan', 'vlan ')
       end
       list
     end
 
-    # only one next-hop is allowed per interface but
-    # due to nxos issues, it allows more than one;
-    # so the workaround is to clean up the current ingress
-    # intf and configure all of them from the manifest
-    def ingress_interface=(list)
+    def ingress_interface_cleanup
       cur_list = ingress_interface
       @set_args[:state] = 'no'
       @set_args[:next] = ''
@@ -214,6 +213,14 @@ module Cisco
         @set_args[:interface] = intf
         config_set('itd_service', 'ingress_interface', @set_args)
       end
+    end
+
+    # only one next-hop is allowed per interface but
+    # due to nxos issues, it allows more than one;
+    # so the workaround is to clean up the current ingress
+    # intf and configure all of them again
+    def ingress_interface=(list)
+      ingress_interface_cleanup
       @set_args[:state] = ''
       list.each do |intf, next_hop|
         @set_args[:interface] = intf

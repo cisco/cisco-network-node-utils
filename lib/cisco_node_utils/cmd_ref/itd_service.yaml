@@ -38,7 +38,7 @@ exclude_access_list:
   set_value: "<state> exclude access-list <al>"
   default_value: false
 
-failaction:
+fail_action:
   kind: boolean
   get_value: '/^failaction node reassign/'
   set_value: "<state> failaction node reassign"
