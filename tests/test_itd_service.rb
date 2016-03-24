@@ -63,7 +63,6 @@ class TestItdService < CiscoTestCase
                  itd.exclude_access_list)
     config 'no ip access-list include'
     config 'no ip access-list exclude'
-    itd.destroy
   end
 
   def test_device_group
@@ -74,7 +73,6 @@ class TestItdService < CiscoTestCase
     itd.device_group = itd.default_device_group
     assert_equal(itd.default_device_group,
                  itd.device_group)
-    itd.destroy
   end
 
   def test_fail_action
@@ -84,7 +82,6 @@ class TestItdService < CiscoTestCase
     itd.fail_action = itd.default_fail_action
     assert_equal(itd.default_fail_action,
                  itd.fail_action)
-    itd.destroy
   end
 
   def test_ingress_interface
@@ -105,7 +102,6 @@ class TestItdService < CiscoTestCase
     config 'no interface vlan 2'
     config 'no vlan 2'
     config 'no feature interface-vlan'
-    itd.destroy
   end
 
   def lb_helper(props)
@@ -192,7 +188,6 @@ class TestItdService < CiscoTestCase
                  itd.default_load_bal_method_start_port)
     assert_equal(itd.load_bal_method_proto,
                  itd.default_load_bal_method_proto)
-    itd.destroy
   end
 
   def test_nat_destination
@@ -215,7 +210,6 @@ class TestItdService < CiscoTestCase
     assert_equal(true, itd.nat_destination)
     itd.nat_destination = itd.default_nat_destination
     assert_equal(itd.default_nat_destination, itd.nat_destination)
-    itd.destroy
   end
 
   def test_shutdown
@@ -234,7 +228,6 @@ class TestItdService < CiscoTestCase
     itd.shutdown = itd.default_shutdown
     assert_equal(itd.default_shutdown,
                  itd.shutdown)
-    itd.destroy
   end
 
   def test_peer_vdc
@@ -252,7 +245,6 @@ class TestItdService < CiscoTestCase
     itd.peer_vdc = itd.default_peer_vdc
     assert_equal(itd.default_peer_vdc,
                  itd.peer_vdc)
-    itd.destroy
   end
 
   def test_peer_local
@@ -270,7 +262,6 @@ class TestItdService < CiscoTestCase
     itd.peer_local = itd.default_peer_local
     assert_equal(itd.default_peer_local,
                  itd.peer_local)
-    itd.destroy
   end
 
   def test_virtual_ip
@@ -286,6 +277,5 @@ class TestItdService < CiscoTestCase
     itd.virtual_ip = itd.default_virtual_ip
     assert_equal(itd.virtual_ip,
                  itd.default_virtual_ip)
-    itd.destroy
   end
 end

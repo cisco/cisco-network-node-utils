@@ -202,6 +202,7 @@ module Cisco
 
     def ingress_interface_cleanup
       cur_list = ingress_interface
+      return if cur_list.empty?
       @set_args[:state] = 'no'
       @set_args[:next] = ''
       @set_args[:nhop] = ''
