@@ -11,7 +11,7 @@ access_list:
   kind: string
   get_value: '/^access-list (\S+)$/'
   set_value: "<state> access-list <al>"
-  default_value: false
+  default_value: ''
 
 all_itds:
   multiple:
@@ -30,13 +30,13 @@ device_group:
   kind: string
   get_value: '/^device-group (\S+)$/'
   set_value: "<state> device-group <dg>"
-  default_value: false
+  default_value: ''
 
 exclude_access_list:
   kind: string
   get_value: '/^exclude access-list (\S+)$/'
   set_value: "<state> exclude access-list <al>"
-  default_value: false
+  default_value: ''
 
 fail_action:
   kind: boolean
@@ -64,11 +64,11 @@ load_bal_mask_pos:
 
 load_bal_method_bundle_hash:
   kind: string
-  default_value: false
+  default_value: ''
 
 load_bal_method_bundle_select:
   kind: string
-  default_value: false
+  default_value: ''
 
 load_bal_method_end_port:
   kind: int
@@ -76,7 +76,7 @@ load_bal_method_end_port:
 
 load_bal_method_proto:
   kind: string
-  default_value: false
+  default_value: ''
 
 load_bal_method_start_port:
   kind: int

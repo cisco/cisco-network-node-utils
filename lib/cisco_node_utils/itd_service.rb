@@ -109,15 +109,15 @@ module Cisco
     end
 
     def access_list=(val)
-      if val
+      if val.empty?
+        @set_args[:state] = 'no'
+        @set_args[:al] = access_list
+        config_set('itd_service', 'access_list', @set_args) unless
+        access_list.empty?
+      else
         @set_args[:state] = ''
         @set_args[:al] = val
         config_set('itd_service', 'access_list', @set_args)
-      else
-        @set_args[:state] = 'no'
-        @set_args[:al] = access_list
-        config_set('itd_service', 'access_list', @set_args) if
-        access_list
       end
       set_args_keys_default
     end
@@ -131,15 +131,15 @@ module Cisco
     end
 
     def device_group=(val)
-      if val
+      if val.empty?
+        @set_args[:state] = 'no'
+        @set_args[:dg] = device_group
+        config_set('itd_service', 'device_group', @set_args) unless
+        device_group.empty?
+      else
         @set_args[:state] = ''
         @set_args[:dg] = val
         config_set('itd_service', 'device_group', @set_args)
-      else
-        @set_args[:state] = 'no'
-        @set_args[:dg] = device_group
-        config_set('itd_service', 'device_group', @set_args) if
-        device_group
       end
       set_args_keys_default
     end
@@ -153,15 +153,15 @@ module Cisco
     end
 
     def exclude_access_list=(val)
-      if val
+      if val.empty?
+        @set_args[:state] = 'no'
+        @set_args[:al] = exclude_access_list
+        config_set('itd_service', 'exclude_access_list', @set_args) unless
+        exclude_access_list.empty?
+      else
         @set_args[:state] = ''
         @set_args[:al] = val
         config_set('itd_service', 'exclude_access_list', @set_args)
-      else
-        @set_args[:state] = 'no'
-        @set_args[:al] = exclude_access_list
-        config_set('itd_service', 'exclude_access_list', @set_args) if
-        exclude_access_list
       end
       set_args_keys_default
     end
