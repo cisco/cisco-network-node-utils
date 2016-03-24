@@ -139,6 +139,16 @@ module Cisco
     end
 
     # ---------------------------
+    def self.private_vlan_enable
+      return if private_vlan_enabled?
+      config_set('feature', 'private_vlan')
+    end
+
+    def self.private_vlan_enabled?
+      config_get('feature', 'private_vlan')
+    end
+
+    # ---------------------------
     def self.vn_segment_vlan_based_enable
       return if vn_segment_vlan_based_enabled?
       result = config_set('feature', 'vn_segment_vlan_based')

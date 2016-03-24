@@ -50,6 +50,13 @@ pim:
   get_value: '/^feature pim$/' # TBD pim6
   set_value: 'feature pim'
 
+private_vlan:
+  _exclude: [N8k]
+  kind: boolean
+  get_command: "show running | i ^feature"
+  get_value: '/^feature private-vlan$/'
+  set_value: "feature private-vlan"
+
 vn_segment_vlan_based:
   # MT-lite only
   N3k: &vn_segment_vlan_based_mt_lite
