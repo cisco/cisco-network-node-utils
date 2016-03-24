@@ -420,17 +420,17 @@ module Cisco
       config_get('itd_service', 'peer_local', @get_args)
     end
 
-    def peer_local=(value)
-      if value
-        @set_args[:state] = ''
-        @set_args[:service] = value
-        config_set('itd_service', 'peer_local', @set_args)
-      else
+    def peer_local=(val)
+      if val.empty?
         @set_args[:state] = 'no'
         current_peer_local = peer_local
         @set_args[:service] = current_peer_local
         config_set('itd_service', 'peer_local', @set_args) unless
-        current_peer_local.nil?
+        current_peer_local.nil? || current_peer_local.empty?
+      else
+        @set_args[:state] = ''
+        @set_args[:service] = val
+        config_set('itd_service', 'peer_local', @set_args)
       end
       set_args_keys_default
     end

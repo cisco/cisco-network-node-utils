@@ -97,7 +97,7 @@ peer_local:
   _exclude: [N7k]
   get_value: '/^peer local service (\S+)$/'
   set_value: "<state> peer local service <service>"
-  default_value: false
+  default_value: ''
 
 peer_vdc:
   _exclude: [N9k]
