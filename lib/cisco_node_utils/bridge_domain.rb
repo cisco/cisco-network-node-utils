@@ -104,17 +104,20 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = BridgeDomain.bd_ids_to_array(system_bd_add)
+      sys_bds_array = BridgeDomain.bd_ids_to_array(system_bridge_domain)
       inp_bds_array = BridgeDomain.bd_ids_to_array(@bd_ids)
       if (inp_bds_array - sys_bds_array).any?
         add_bds = BridgeDomain.bd_list_to_string(inp_bds_array - sys_bds_array)
-        config_set('bridge_domain', 'system_bd_add', addbd: add_bds)
+        config_set('bridge_domain', 'system_bridge_domain', oper: 'add',
+                                                            bd:   add_bds)
       end
-      config_set('bridge_domain', 'create', crbd: @bd_ids)
+      config_set('bridge_domain', 'create', bd: @bd_ids)
     end
 
     def destroy
-      config_set('bridge_domain', 'destroy', delbd: @bd_ids, rembd: @bd_ids)
+      config_set('bridge_domain', 'destroy', bd: @bd_ids)
+      config_set('bridge_domain', 'system_bridge_domain', oper: 'remove',
+                                                          bd:   @bd_ids)
     end
 
     ########################################################
@@ -126,19 +129,14 @@ module Cisco
     #   name PepsiCo
     def bd_name
       res = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
-      return default_bd_name unless res
-      res.compact.join
+      res.nil? ? default_bd_name : res
     end
 
     def bd_name=(str)
-      fail TypeError unless str.is_a?(String)
-      if str.empty?
-        config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: 'no',
-                   name: '')
-      else
-        config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: '',
+      str = str.to_s
+      state = str.empty? ? 'no' : ''
+      config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: state,
                    name: str)
-      end
     end
 
     def default_bd_name
@@ -150,8 +148,9 @@ module Cisco
     #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
-      result = config_get('bridge_domain', 'fabric_control')
-      result.to_i == @bd_ids.to_i ? true : false
+      result = config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
+      return false unless result
+      result[/fabric-control/] ? true : false
     end
 
     def fabric_control=(val)
@@ -183,8 +182,8 @@ module Cisco
     end
 
     # getter for system bridge-domain
-    def system_bd_add
-      config_get('bridge_domain', 'system_bd_add')
+    def system_bridge_domain
+      config_get('bridge_domain', 'system_bridge_domain')
     end
   end  # Class
 end    # Module

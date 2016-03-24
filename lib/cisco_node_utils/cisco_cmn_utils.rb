@@ -166,53 +166,6 @@ module Cisco
       sprintf('%04x.%04x.%04x', o1, o2, o3)
     end
 
-    # This will expand the string to a list of bds as integers
-    def self.string_to_array(string)
-      list = []
-      narray = string.split(',')
-      narray.each do |elem|
-        if elem.include?('-')
-          es = elem.gsub('-', '..')
-          ea = es.split('..').map { |d| Integer(d) }
-          er = ea[0]..ea[1]
-          list << er.to_a
-        else
-          list << elem.to_i
-        end
-      end
-      list.flatten
-    end
-
-    # This method will generate a batched string if a list is passed as
-    # argument
-    # Input would be as [1,2,3,4,5,10,11,12,7,30,100,31,32]
-    # output will be 1-5,10-12,7,30,100,31-32
-    def self.unsorted_list_to_string(list)
-      farray = list.compact
-      lranges = []
-      unless farray.empty?
-        left = list.first
-        right = nil
-        farray.each do |aelem|
-          if right && aelem != right.succ
-            if left == right
-              lranges << left
-            else
-              lranges << Range.new(left, right)
-            end
-            left = aelem
-          end
-          right = aelem
-        end
-        if left == right
-          lranges << left
-        else
-          lranges << Range.new(left, right)
-        end
-      end
-      lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
-    end
-
     # For spanning tree range based parameters, the range
     # is very dynamic and so before the parameters are set,
     # the rest of the range needs to be reset
@@ -246,8 +199,8 @@ module Cisco
     # This method converts an array to string form
     # for ex: if the array has 1, 2 to 10, 83 to 2014, 3022
     # and the string will be "1,2-10,83-2014,3022"
-    def self.array_to_str(array)
-      farray = array.compact.uniq.sort
+    def self.array_to_str(array, sort=true)
+      farray = sort ? array.compact.uniq.sort : array.compact
       lranges = []
       unless farray.empty?
         l = array.first
@@ -263,7 +216,11 @@ module Cisco
           end
           r = aelem
         end
-        lranges << Range.new(l, r)
+        if l == r
+          lranges << l
+        else
+          lranges << Range.new(l, r)
+        end
       end
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end

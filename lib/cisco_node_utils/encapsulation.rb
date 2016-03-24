@@ -48,6 +48,23 @@ module Cisco
       hash
     end
 
+    # This will expand the string to a list of bds as integers
+    def self.string_to_array(string)
+      list = []
+      narray = string.split(',')
+      narray.each do |elem|
+        if elem.include?('-')
+          es = elem.gsub('-', '..')
+          ea = es.split('..').map { |d| Integer(d) }
+          er = ea[0]..ea[1]
+          list << er.to_a
+        else
+          list << elem.to_i
+        end
+      end
+      list.flatten
+    end
+
     # Enable feature and create encap instance
     def create
       Feature.vni_enable
@@ -64,7 +81,7 @@ module Cisco
     # ----------
 
     def range_summarize(string)
-      Utils.unsorted_list_to_string(Utils.string_to_array(string.to_s))
+      Utils.array_to_string(Encapsulation.string_to_array(string.to_s), false)
     end
 
     def dot1q_map

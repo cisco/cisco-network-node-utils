@@ -30,7 +30,7 @@ module Cisco
       @bd_ids = bds.to_s.gsub(/\s+/, '')
       fail 'bridge-domain value is empty' if @bd_ids.empty? # no empty strings
 
-      @bd_ids_list = Utils.string_to_array(@bd_ids)
+      @bd_ids_list = BridgeDomainVNI.string_to_array(@bd_ids)
       create if instantiate
     end
 
@@ -47,6 +47,23 @@ module Cisco
         hash[id] = BridgeDomainVNI.new(id, false)
       end
       hash
+    end
+
+    # This will expand the string to a list of bds as integers
+    def self.string_to_array(string)
+      list = []
+      narray = string.split(',')
+      narray.each do |elem|
+        if elem.include?('-')
+          es = elem.gsub('-', '..')
+          ea = es.split('..').map { |d| Integer(d) }
+          er = ea[0]..ea[1]
+          list << er.to_a
+        else
+          list << elem.to_i
+        end
+      end
+      list.flatten
     end
 
     # Example clis;
@@ -74,8 +91,8 @@ module Cisco
       curr_bd_vni = config_get('bridge_domain_vni', 'member_vni_bd')
       return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
 
-      curr_vni_list = Utils.string_to_array(curr_vni)
-      curr_bd_vni_list = Utils.string_to_array(curr_bd_vni)
+      curr_vni_list = BridgeDomainVNI.string_to_array(curr_vni)
+      curr_bd_vni_list = BridgeDomainVNI.string_to_array(curr_bd_vni)
 
       hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
       @bd_ids_list.each do |bd|
@@ -90,10 +107,10 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = Utils.string_to_array(system_bridge_domain)
+      sys_bds_array = BridgeDomainVNI.string_to_array(system_bridge_domain)
       if (@bd_ids_list - sys_bds_array).any?
         add_bds = Utils
-                  .unsorted_list_to_string(@bd_ids_list - sys_bds_array)
+                  .array_to_str((@bd_ids_list - sys_bds_array), false)
         config_set('bridge_domain_vni', 'system_bridge_domain', oper: 'add',
                                                                 bd:   add_bds)
       end
@@ -133,7 +150,7 @@ module Cisco
       @bd_ids_list.each do |bd|
         ret_list << bd_vni_hash[bd]
       end
-      Utils.unsorted_list_to_string(ret_list)
+      Utils.array_to_str(ret_list, false)
     end
 
     # This member_vni mapping will be executed only when the val is not empty
@@ -159,7 +176,7 @@ module Cisco
         config_set('bridge_domain_vni', 'vni', state: 'no', vni: vni_val)
       else
         unless bd_vni.empty?
-          inp_vni_list = Utils.string_to_array(val.to_s)
+          inp_vni_list = BridgeDomainVNI.string_to_array(val.to_s)
           inp_bd_vni_hash = Hash[@bd_ids_list.zip(inp_vni_list)]
 
           temp_hash = bd_vni.to_a.keep_if { |k, _v| inp_bd_vni_hash.key? k }
