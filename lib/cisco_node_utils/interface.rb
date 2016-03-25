@@ -15,9 +15,7 @@
 # limitations under the License.
 
 require_relative 'cisco_cmn_utils'
-require_relative 'feature'
 require_relative 'node_util'
-require_relative 'pim'
 require_relative 'vrf'
 require_relative 'overlay_global'
 
