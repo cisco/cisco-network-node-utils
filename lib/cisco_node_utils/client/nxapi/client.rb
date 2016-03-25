@@ -186,6 +186,8 @@ class Cisco::Client::NXAPI < Cisco::Client
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
     begin
+      # Explicitly use http to avoid EOFError
+      # http://stackoverflow.com/a/23080693
       @http.use_ssl = false
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
