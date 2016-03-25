@@ -656,22 +656,14 @@ class TestVlan < CiscoTestCase
 
       assert_equal(result, v1.private_vlan_association)
 
-      if node.product_id[/N(10)K/]
-        puts 'assert_rasies_check'
-        assert_raises(RuntimeError, 'vlan did not raise RuntimeError') do
-          v1.private_vlan_association = ['101', '103-105', '108']
-        end
-      else
-        v1.private_vlan_association = ['101', '103-105', '108']
+      v1.private_vlan_association = ['101', '103-105', '108']
 
-        result = %w(101 103 104 105 108)
-        assert_equal(result, v1.private_vlan_association)
+      result = %w(101 103 104 105 108)
+      assert_equal(result, v1.private_vlan_association)
 
-        v1.private_vlan_association = ['101', '103-105', '108']
-        result = %w(101 103 104 105 108)
-        assert_equal(result, v1.private_vlan_association)
-      end
-
+      v1.private_vlan_association = ['101', '103-105', '108']
+      result = %w(101 103 104 105 108)
+      assert_equal(result, v1.private_vlan_association)
     end
   end
 end

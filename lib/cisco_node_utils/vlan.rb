@@ -71,8 +71,9 @@ module Cisco
       return unless
         result[2].is_a?(Hash) && errors.match(result[2]['body'].to_s)
       # Split errors into a list, but keep the delimiter as part of the message.
-      lst = (result[2]['body'].split(errors) - ['']).each_slice(2).map(&:join)
-      lst.each do |msg|
+      error_list =
+        (result[2]['body'].split(errors) - ['']).each_slice(2).map(&:join)
+      error_list.each do |msg|
         next if ignore_message && msg.to_s.include?(ignore_message)
         fail result[2]['body']
       end
@@ -255,7 +256,7 @@ module Cisco
 
     # --------------------------
     # vlan_list_delta is a helper function for the private_vlan_association
-    # propertie. It walks the delta hash and adds/removes each target private
+    # property. It walks the delta hash and adds/removes each target private
     # vlan.
     def vlan_list_delta(is_list, should_list)
       should_list.each { |item| item.gsub!('-', '..') }
