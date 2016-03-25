@@ -189,6 +189,10 @@ name:
     default_value: 'NXAPI base'
     C3064:
       default_value: 'NXAPI C3064'
+    C3132:
+      default_value: 'NXAPI C3132'
+    C3172:
+      default_value: 'NXAPI C3172'
     N7k:
       default_value: ~
     N9k:
@@ -238,6 +242,22 @@ name:
                           product:      'N3K-C3064PQ-10GE',
                           data_formats: [:nxapi_structured, :cli])
     assert_equal('NXAPI C3064', reference.lookup('test', 'name').default_value)
+  end
+
+  def test_load_n3k_3132
+    write_variants
+    reference = load_file(platform:     :nexus,
+                          product:      'N3K-C3132Q-40GE',
+                          data_formats: [:nxapi_structured, :cli])
+    assert_equal('NXAPI C3132', reference.lookup('test', 'name').default_value)
+  end
+
+  def test_load_n3k_3172
+    write_variants
+    reference = load_file(platform:     :nexus,
+                          product:      'N3K-C3172PQ-10GE',
+                          data_formats: [:nxapi_structured, :cli])
+    assert_equal('NXAPI C3172', reference.lookup('test', 'name').default_value)
   end
 
   def test_load_ios_xr_xrv9k
