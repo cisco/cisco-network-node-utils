@@ -148,9 +148,7 @@ module Cisco
     #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
-      result = config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
-      return false unless result
-      result[/fabric-control/] ? true : false
+      config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
     end
 
     def fabric_control=(val)
@@ -166,10 +164,7 @@ module Cisco
     # bridge-domain 100
     #   shutdown
     def shutdown
-      result = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
-      # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      return false unless result
-      result[/shutdown/] ? true : false
+      config_get('bridge_domain', 'shutdown', bd: @bd_ids)
     end
 
     def shutdown=(val)
