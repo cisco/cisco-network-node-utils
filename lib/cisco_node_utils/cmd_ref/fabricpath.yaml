@@ -67,9 +67,9 @@ loadbalance_algorithm:
   get_command: "show run fabricpath all"
   get_value: '/^fabricpath load\-balance (\S+)\s*$/'
   set_value: "<state> fabricpath load-balance <algo>"
-  N5k: &loadbal_alg_n5_n6
+  N5k: &loadbal_alg_src_dst
     default_value: "source-destination"
-  N6k: *loadbal_alg_n5_n6
+  N6k: *loadbal_alg_src_dst
   else:
     default_value: "symmetric"
 
@@ -131,9 +131,9 @@ loadbalance_unicast_set:
 
 loadbalance_unicast_support:
   kind: string
-  N5k: &loadbal_uni_n5_n6
+  N5k: &loadbal_uni_split
     default_only: "split"
-  N6k: *loadbal_uni_n5_n6
+  N6k: *loadbal_uni_split
   else:
     default_only: "combined"
 
