@@ -46,14 +46,13 @@ name:
 
 private_vlan_association:
   _exclude: [N8k]
-  kind: string
   multiple: true
   get_command: "show vlan private-vlan"
   get_value: '/^<id>\s+(\d+)/'
   set_context: ['vlan <vlan>']
   # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan association <vlans> ; end"
-  default_value: ""
+  default_value: []
 
 private_vlan_type:
   _exclude: [N8k]

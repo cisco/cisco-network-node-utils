@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
@@ -65,29 +66,16 @@ module Cisco
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
       # Check for messages that can be safely ignored.
 
-      wrn_msg = false
+      errors = /(ERROR:|VLAN:|Warning:)/
 
-      unless ignore_message.nil?
-        # Check if ignore_message is present
-        wrn_msg = true
-      end
-
-      if result[2].is_a?(Hash) &&
-         /(ERROR:|VLAN:|Warning:)/.match(result[2]['body'].to_s)
-        messages = (result[2]['body'].split(/(ERROR:|VLAN:|Warning:)/) - [''])
-                   .each_slice(2).map(&:join)
-        messages.each do |msg|
-          next if msg.empty? || (wrn_msg && msg.to_s.include?(ignore_message))
-          fail
-        end
-      end
-      return unless result[2].is_a?(String) &&
-                    /(ERROR:|VLAN:|Warning:)/.match(result[2])
-      messages = (result[2].split(/(ERROR:|VLAN:|Warning:)/) - [''])
-                 .each_slice(2).map(&:join)
-      messages.each do |msg|
-        next if msg.empty? || (wrn_msg && msg.to_s.include?(ignore_message))
-        fail
+      return unless
+        result[2].is_a?(Hash) && errors.match(result[2]['body'].to_s)
+      # Split errors into a list, but keep the delimiter as part of the message.
+      error_list =
+        (result[2]['body'].split(errors) - ['']).each_slice(2).map(&:join)
+      error_list.each do |msg|
+        next if ignore_message && msg.to_s.include?(ignore_message)
+        fail result[2]['body']
       end
     end
 
@@ -99,34 +87,6 @@ module Cisco
     def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
       set_args_keys_default
       @set_args = @set_args.merge!(hash) unless hash.empty?
-    end
-
-    def compute_vlan_list_association(cfg_vlan_list, to_be_cfg_vlan_list)
-      # This method takes in input the user config private vlan association
-      # list and the configured private vlan association list.
-      # Converts both list into array and compute the difference. The difference
-      # will be the vlan that need to be removed from the final configuration.
-
-      vlan_config = to_be_cfg_vlan_list.gsub('-', '..').split(',')
-
-      present_vlan = cfg_vlan_list.split(',')
-      vlan_cfg_array = []
-
-      vlan_config.each do |elem|
-        if elem.include?('..')
-          elema = elem.split('..').map { |d| Integer(d) }
-          tr = elema[0]..elema[1]
-          tr.to_a.each do |item|
-            vlan_cfg_array.push(item.to_s)
-          end
-        else
-          vlan_cfg_array.push(elem)
-        end
-      end
-
-      rem_list = (present_vlan - vlan_cfg_array).map(&:to_s) * ','
-      config_list = vlan_cfg_array.map(&:to_s) * ','
-      set_args_keys(vlan_to_remove: rem_list, vlan_to_config: config_list)
     end
 
     def fabricpath_feature
@@ -261,16 +221,15 @@ module Cisco
       config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
 
-    def private_vlan_type=(pv_type)
+    def private_vlan_type=(type)
       Feature.private_vlan_enable
-      fail TypeError unless pv_type && pv_type.is_a?(String)
+      fail TypeError unless type && type.is_a?(String)
 
-      if pv_type == default_private_vlan_type
-        pv_type = private_vlan_type
-        set_args_keys(state: 'no', type: pv_type)
+      if type == default_private_vlan_type
+        set_args_keys(state: 'no', type: private_vlan_type)
         ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
-        set_args_keys(state: '', type: pv_type)
+        set_args_keys(state: '', type: type)
         ignore_msg = 'Warning: Private-VLAN CLI entered'
       end
       result = config_set('vlan', 'private_vlan_type', @set_args)
@@ -282,50 +241,48 @@ module Cisco
     end
 
     def private_vlan_association
-      result = config_get('vlan', 'private_vlan_association',
-                          id: @vlan_id)
-      result.gsub(/["\[\]" "]/, '')
+      result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      result.sort
     end
 
     def private_vlan_association=(vlan_list)
-      fail TypeError unless vlan_list &&
-                            vlan_list.is_a?(String)
       Feature.private_vlan_enable
-
-      if vlan_list == default_private_vlan_association
-        set_args_keys(state: 'no', vlans: vlan_list)
-        result = config_set('vlan', 'private_vlan_association',
-                            @set_args)
-        cli_error_check(result)
-      else
-        vlan_cfg = private_vlan_association
-        if vlan_cfg.empty?
-          set_args_keys(state: '', vlans: vlan_list)
-          result = config_set('vlan', 'private_vlan_association',
-                              @set_args)
-          cli_error_check(result)
-        else
-          compute_vlan_list_association(vlan_cfg, vlan_list)
-          vlan_to_remove = @set_args[:vlan_to_remove]
-          vlan_to_config = @set_args[:vlan_to_config]
-
-          unless vlan_to_remove.empty?
-            set_args_keys(state: 'no', vlans: vlan_to_remove)
-            result = config_set('vlan', 'private_vlan_association',
-                                @set_args)
-            cli_error_check(result)
-
-            set_args_keys(state: '', vlans: vlan_to_config)
-            result = config_set('vlan', 'private_vlan_association',
-                                @set_args)
-            cli_error_check(result)
-          end
-        end
-      end
+      vlan_list_delta(private_vlan_association, vlan_list)
     end
 
     def default_private_vlan_association
       config_get_default('vlan', 'private_vlan_type')
+    end
+
+    # --------------------------
+    # vlan_list_delta is a helper function for the private_vlan_association
+    # property. It walks the delta hash and adds/removes each target private
+    # vlan.
+    def vlan_list_delta(is_list, should_list)
+      should_list.each { |item| item.gsub!('-', '..') }
+
+      should_list_new = []
+      should_list.each do |elem|
+        if elem.include?('..')
+          elema = elem.split('..').map { |d| Integer(d) }
+          tr = elema[0]..elema[1]
+          tr.to_a.each do |item|
+            should_list_new.push(item.to_s)
+          end
+        else
+          should_list_new.push(elem)
+        end
+      end
+
+      delta_hash = Utils.delta_add_remove(should_list_new, is_list)
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |vlans|
+          state = (action == :add) ? '' : 'no'
+          set_args_keys(state: state, vlans: vlans)
+          result = config_set('vlan', 'private_vlan_association', @set_args)
+          cli_error_check(result)
+        end
+      end
     end
   end # class
 end # module
