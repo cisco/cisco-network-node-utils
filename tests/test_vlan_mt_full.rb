@@ -39,7 +39,9 @@ class TestVlanMtFull < CiscoTestCase
 
   def setup
     super
-    cleanup unless @@cleaned
+    return if @@cleaned
+    cleanup
+    remove_all_bridge_domains # BDs may conflict with our test vlans
     @@cleaned = true # rubocop:disable Style/ClassVars
   end
 
