@@ -122,9 +122,7 @@ class TestFabricpathGlobal < CiscoTestCase
 
   def test_loadbalance_algorithm
     fg = FabricpathGlobal.new('default')
-    default =
-      cmd_ref.lookup('fabricpath', 'loadbalance_algorithm').default_value
-    assert_equal(default, fg.loadbalance_algorithm)
+    assert_equal(fg.default_loadbalance_algorithm, fg.loadbalance_algorithm)
 
     fg.loadbalance_algorithm = 'source'
     assert_equal('source', fg.loadbalance_algorithm)
