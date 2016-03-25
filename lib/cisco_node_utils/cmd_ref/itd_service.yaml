@@ -1,0 +1,119 @@
+# itd_service
+---
+_exclude: [N3k, N5k, N6k, N8k, ios_xr]
+
+_template:
+  get_command: "show running-config all | section itd"
+  get_context: ['/^itd <name>/']
+  set_context: ["itd <name>"]
+
+access_list:
+  kind: string
+  get_value: '/^access-list (\S+)$/'
+  set_value: "<state> access-list <al>"
+  default_value: ''
+
+all_itds:
+  multiple:
+  get_context: ~
+  get_value: '/^itd (\S+)/'
+
+create:
+  set_context: ~
+  set_value: "itd <name>"
+
+destroy:
+  set_context: ~
+  set_value: "no itd <name>"
+
+device_group:
+  kind: string
+  get_value: '/^device-group (\S+)$/'
+  set_value: "<state> device-group <dg>"
+  default_value: ''
+
+exclude_access_list:
+  kind: string
+  get_value: '/^exclude access-list (\S+)$/'
+  set_value: "<state> exclude access-list <al>"
+  default_value: ''
+
+fail_action:
+  kind: boolean
+  get_value: '/^failaction node reassign/'
+  set_value: "<state> failaction node reassign"
+  default_value: false
+
+ingress_interface:
+  multiple:
+  get_value: '/^ingress interface (\S+)(?: next-hop (\S+))*/'
+  set_value: "<state> ingress interface <interface> <next> <nhop>"
+  default_value: []
+
+load_bal_buckets:
+  kind: int
+  default_value: false
+
+load_bal_enable:
+  kind: boolean
+  default_value: false
+
+load_bal_mask_pos:
+  kind: int
+  default_value: false
+
+load_bal_method_bundle_hash:
+  kind: string
+  default_value: ''
+
+load_bal_method_bundle_select:
+  kind: string
+  default_value: ''
+
+load_bal_method_end_port:
+  kind: int
+  default_value: false
+
+load_bal_method_proto:
+  kind: string
+  default_value: ''
+
+load_bal_method_start_port:
+  kind: int
+  default_value: false
+
+load_balance:
+  get_value: '/^load-balance .+$/'
+  set_value: "<state> load-balance <bundle_select> <bundle_hash> <proto> <start_port> <endPort> <buckets> <mask>"
+
+nat_destination:
+  _exclude: [N9k]
+  kind: boolean
+  get_value: '/^nat destination$/'
+  set_value: "<state> nat destination"
+  default_value: false
+
+peer_local:
+  _exclude: [N7k]
+  get_value: '/^peer local service (\S+)$/'
+  set_value: "<state> peer local service <service>"
+  default_value: ''
+
+peer_vdc:
+  _exclude: [N9k]
+  get_value: '/^peer vdc (\S+) service (\S+)$/'
+  set_value: "<state> peer vdc <vdc> service <service>"
+  default_value: []
+
+shutdown:
+  kind: boolean
+  auto_default: true
+  get_value: '/^no shut$/'
+  set_value: "<state> shutdown"
+  default_value: true
+
+virtual_ip:
+  multiple:
+  get_value: '/^virtual (.*)/'
+  set_value : "<state> virtual <string>"
+  default_value: []
