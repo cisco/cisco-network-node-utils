@@ -23,12 +23,15 @@ require_relative 'overlay_global'
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
   IF_SWITCHPORT_MODE = {
-    disabled:   '',
-    access:     'access',
-    trunk:      'trunk',
-    fex_fabric: 'fex-fabric',
-    tunnel:     'dot1q-tunnel',
-    fabricpath: 'fabricpath',
+    disabled:    '',
+    access:      'access',
+    trunk:       'trunk',
+    fex_fabric:  'fex-fabric',
+    tunnel:      'dot1q-tunnel',
+    fabricpath:  'fabricpath',
+    host:        'host',
+    promiscuous: 'promiscuous',
+    secondary:   'secondary',
   }
 
   # Interface - node utility class for general interface config management
@@ -831,6 +834,21 @@ module Cisco
       config_get_default('interface', 'switchport_autostate_exclude')
     end
 
+    def switchport_mode_private_vlan_host_lookup_string
+      puts "name #{@name}"
+      case @name
+      when ETHERNET
+        return 'switchport_mode_private_vlan_host'
+      end
+    end
+
+    def switchport_mode_private_vlan_trunk_lookup_string
+      case @name
+      when ETHERNET
+        return 'switchport_mode_private_vlan_trunk'
+      end
+    end
+
     def switchport_mode_lookup_string
       case @name
       when ETHERNET
@@ -931,6 +949,77 @@ module Cisco
         config_set('interface', 'switchport_trunk_native_vlan',
                    name: @name, state: '', vlan: val)
       end
+    end
+
+    def switchport_enable_and_mode_private_vlan_host(mode_set)
+      puts 'switchp'
+      switchport_enable unless switchport
+      case mode_set
+      when :host
+        puts 'Call config host'
+        config_set('interface', switchport_mode_private_vlan_host_lookup_string,
+                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
+      when :promiscuous
+        puts 'Call config promi'
+        config_set('interface', switchport_mode_private_vlan_host_lookup_string,
+                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
+      end
+    end
+
+    def switchport_enable_and_mode_private_vlan_trunk(mode_set)
+      switchport_enable unless switchport
+      case mode_set
+      when :promiscuous
+      when :secondary
+        config_set('interface',
+                   switchport_mode_private_vlan_trunk_lookup_string,
+                   name:  @name,
+                   state: '',
+                   mode:  IF_SWITCHPORT_MODE[mode_set])
+      end
+    end
+
+    def switchport_mode_private_vlan_host
+      return nil if platform == :ios_xr || N8k
+      mode = config_get('interface',
+                        switchport_mode_private_vlan_host_lookup_string,
+                        name: @name)
+
+      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+
+    rescue IndexError
+      # Assume this is an interface that doesn't support switchport.
+      # Do not raise exception since the providers will prefetch this property
+      # regardless of interface type.
+      # TODO: this should probably be nil instead
+      return :disabled
+    end
+
+    def switchport_mode_private_vlan_host=(mode_set)
+      puts "mode #{mode_set}"
+      fail ArgumentError unless IF_SWITCHPORT_MODE.keys.include? mode_set
+      switchport_enable_and_mode_private_vlan_host(mode_set)
+    end
+
+    def switchport_mode_private_vlan_trunk
+      return nil if platform == :ios_xr || N8k
+      mode = config_get('interface',
+                        switchport_mode_private_vlan_trunk_lookup_string,
+                        name: @name)
+
+      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+
+    rescue IndexError
+      # Assume this is an interface that doesn't support switchport.
+      # Do not raise exception since the providers will prefetch this property
+      # regardless of interface type.
+      # TODO: this should probably be nil instead
+      return :disabled
+    end
+
+    def switchport_mode_private_vlan_trunk=(mode_set)
+      fail ArgumentError unless IF_SWITCHPORT_MODE.keys.include? mode_set
+      switchport_enable_and_mode_private_vlan_trunk(mode_set)
     end
 
     # vlan_mapping & vlan_mapping_enable

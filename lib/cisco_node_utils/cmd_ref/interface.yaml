@@ -385,6 +385,18 @@ switchport_mode_port_channel:
   set_value: "<state> switchport mode <mode>"
   default_value: ""
 
+switchport_mode_private_vlan_host:
+  _exclude: [ios_xr, N8k]
+  get_value: '/^switchport mode private-vlan (.*)$/'
+  set_value: "<state> switchport mode private-vlan <mode>"
+  default_value: ""
+
+switchport_mode_private_vlan_trunk:
+  _exclude: [ios_xr, N8k]
+  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  set_value: "<state> switchport mode private-vlan trunk <mode>"
+  default_value: ""
+
 switchport_trunk_allowed_vlan:
   _exclude: [ios_xr]
   get_value: '/^switchport trunk allowed vlan (.*)$/'
