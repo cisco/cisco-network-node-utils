@@ -22,7 +22,7 @@ require_relative 'node_util'
 module Cisco
   # This Yum class provides cisco package management functions through nxapi.
   class Yum < NodeUtil
-    EXEC_IN_DEFAULT_NS = 'ip netns exec xrnns'
+    EXEC_IN_DEFAULT_NS = 'ip netns exec default'
     def self.decompose_name(file_name)
       # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
       name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
