@@ -835,7 +835,6 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host_lookup_string
-      puts "name #{@name}"
       case @name
       when ETHERNET
         return 'switchport_mode_private_vlan_host'
@@ -952,35 +951,38 @@ module Cisco
     end
 
     def switchport_enable_and_mode_private_vlan_host(mode_set)
-      puts 'switchp'
       switchport_enable unless switchport
       case mode_set
-      when :host
-        puts 'Call config host'
+      when :host, :promiscuous
         config_set('interface', switchport_mode_private_vlan_host_lookup_string,
                    name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
-      when :promiscuous
-        puts 'Call config promi'
+      when :disabled
         config_set('interface', switchport_mode_private_vlan_host_lookup_string,
-                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
+                   name: @name, state: 'no', mode: '')
+
       end
     end
 
     def switchport_enable_and_mode_private_vlan_trunk(mode_set)
       switchport_enable unless switchport
       case mode_set
-      when :promiscuous
-      when :secondary
+      when :secondary, :promiscuous
         config_set('interface',
                    switchport_mode_private_vlan_trunk_lookup_string,
                    name:  @name,
                    state: '',
                    mode:  IF_SWITCHPORT_MODE[mode_set])
+      when :disabled
+        config_set('interface',
+                   switchport_mode_private_vlan_trunk_lookup_string,
+                   name:  @name,
+                   state: 'no',
+                   mode:  '')
+
       end
     end
 
     def switchport_mode_private_vlan_host
-      return nil if platform == :ios_xr || N8k
       mode = config_get('interface',
                         switchport_mode_private_vlan_host_lookup_string,
                         name: @name)
@@ -996,13 +998,116 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host=(mode_set)
-      puts "mode #{mode_set}"
       fail ArgumentError unless IF_SWITCHPORT_MODE.keys.include? mode_set
+      Feature.private_vlan_enable
       switchport_enable_and_mode_private_vlan_host(mode_set)
     end
 
+    def switchport_mode_private_vlan_host_association
+      result = config_get('interface',
+                          'switchport_mode_private_vlan_host_association',
+                          name: @name)
+      result.empty? ? [] : result[0].split(' ')
+    end
+
+    def switchport_mode_private_vlan_host_association=(vlans)
+      fail TypeError unless vlans.is_a?(Array)
+      fail TypeError unless vlans.empty? || vlans.length == 2
+      fail TypeError unless vlans.empty? || ((vlans[0].to_i.to_s == vlans[0]) &&
+                            (vlans[1].to_i.to_s == vlans[1]))
+      Feature.private_vlan_enable
+      if vlans == default_switchport_mode_private_vlan_host_association
+        config_set('interface', 'switchport_mode_private_vlan_host_association',
+                   name: @name, state: 'no', vlan_pr: '', vlan_sec: '')
+
+      else
+        config_set('interface',
+                   'switchport_mode_private_vlan_host_association',
+                   name: @name,
+                   state: '', vlan_pr: vlans[0], vlan_sec: vlans[1])
+      end
+    end
+
+    def default_switchport_mode_private_vlan_host_association
+      config_get_default('interface',
+                         'switchport_mode_private_vlan_host_association')
+    end
+
+    def prepare_array(is_list)
+      is_list_new = []
+      is_list.each do |elem|
+        if elem.include?('..')
+          elema = elem.split('..').map { |d| Integer(d) }
+          tr = elema[0]..elema[1]
+          tr.to_a.each do |item|
+            is_list_new.push(item.to_s)
+          end
+        else
+          is_list_new.push(elem)
+        end
+      end
+      is_list_new
+    end
+
+    def interf_vlan_list_delta(is_list, should_list)
+      pr_vlan = should_list[0]
+      if is_list[0].eql? should_list[0]
+        should_list = should_list[1].split(',')
+        is_list = is_list[1].split(',')
+
+        should_list.each { |item| item.gsub!('-', '..') }
+        is_list.each { |item| item.gsub!('-', '..') }
+
+        should_list_new = prepare_array(should_list)
+        is_list_new = prepare_array(is_list)
+
+        delta_hash = Utils.delta_add_remove(should_list_new, is_list_new)
+        [:add, :remove].each do |action|
+          delta_hash[action].each do |vlans|
+            state = (action == :add) ? '' : 'no'
+            config_set('interface',
+                       'switchport_mode_private_vlan_host_promiscous',
+                       name: @name,
+                       state: state, vlan_pr: pr_vlan, vlans: vlans)
+          end
+        end
+      else
+        if should_list == default_switchport_mode_private_vlan_host_promisc
+          config_set('interface',
+                     'switchport_mode_private_vlan_host_promiscous',
+                     name: @name,
+                     state: 'no', vlan_pr: '', vlans: '')
+        else
+          config_set('interface',
+                     'switchport_mode_private_vlan_host_promiscous',
+                     name: @name,
+                     state: '', vlan_pr: pr_vlan, vlans: should_list[1])
+        end
+      end
+    end
+
+    def switchport_mode_private_vlan_host_promisc
+      result = config_get('interface',
+                          'switchport_mode_private_vlan_host_promiscous',
+                          name: @name)
+      result.empty? ? [] : result[0].split(' ')
+    end
+
+    def switchport_mode_private_vlan_host_promisc=(vlans)
+      fail TypeError unless vlans.is_a?(Array)
+      fail TypeError unless vlans.empty? || vlans.length == 2
+
+      Feature.private_vlan_enable
+      is_list = switchport_mode_private_vlan_host_promisc
+      interf_vlan_list_delta(is_list, vlans)
+    end
+
+    def default_switchport_mode_private_vlan_host_promisc
+      config_get_default('interface',
+                         'switchport_mode_private_vlan_host_promiscous')
+    end
+
     def switchport_mode_private_vlan_trunk
-      return nil if platform == :ios_xr || N8k
       mode = config_get('interface',
                         switchport_mode_private_vlan_trunk_lookup_string,
                         name: @name)
@@ -1019,6 +1124,7 @@ module Cisco
 
     def switchport_mode_private_vlan_trunk=(mode_set)
       fail ArgumentError unless IF_SWITCHPORT_MODE.keys.include? mode_set
+      Feature.private_vlan_enable
       switchport_enable_and_mode_private_vlan_trunk(mode_set)
     end
 

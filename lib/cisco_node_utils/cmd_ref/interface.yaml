@@ -391,6 +391,21 @@ switchport_mode_private_vlan_host:
   set_value: "<state> switchport mode private-vlan <mode>"
   default_value: ""
 
+switchport_mode_private_vlan_host_association:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan host-association (.*)$/'
+  set_value: "<state> switchport private-vlan host-association <vlan_pr> <vlan_sec>"
+  default_value: []
+
+switchport_mode_private_vlan_host_promiscous:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan mapping (.*)$/'
+  set_value: "<state> switchport private-vlan mapping <vlan_pr> <vlans>"
+  default_value: []
+
+
 switchport_mode_private_vlan_trunk:
   _exclude: [ios_xr, N8k]
   get_value: '/^switchport mode private-vlan trunk (.*)$/'
