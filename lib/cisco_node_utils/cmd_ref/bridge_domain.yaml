@@ -28,12 +28,11 @@ _exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
 _template:
   get_command: "show running-config bridge-domain"
   get_context: ['/^bridge-domain <bd>\s$/']
-  set_context: ["bridge-domain <bd>"]
+  set_context: ["(?)bridge-domain <bd>"]
 
 all_bds:
   multiple: true
   get_context: ~
-  set_context: ~
   get_value: '/^bridge-domain (\S+)/'
 
 bd_name:
@@ -44,12 +43,10 @@ bd_name:
 
 create:
   get_context: ~
-  set_context: ~
   set_value: "bridge-domain <bd>"
 
 destroy:
   get_context: ~
-  set_context: ~
   set_value: "no bridge-domain <bd>"
 
 # Configured fabric-control Bridge-Domain/VLAN    :  100

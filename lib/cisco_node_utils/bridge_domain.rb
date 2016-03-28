@@ -128,8 +128,7 @@ module Cisco
     # bridge-domain 100
     #   name PepsiCo
     def bd_name
-      res = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
-      res.nil? ? default_bd_name : res
+      config_get('bridge_domain', 'bd_name', bd: @bd_ids)
     end
 
     def bd_name=(str)
@@ -140,7 +139,7 @@ module Cisco
     end
 
     def default_bd_name
-      sprintf('Bridge-Domain%s', @bd_ids)
+      config_get_default('bridge_domain', 'bd_name')
     end
 
     # Bridge-Domain type change to fabric-control
