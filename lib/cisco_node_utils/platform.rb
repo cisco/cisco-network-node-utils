@@ -106,7 +106,7 @@ module Cisco
 
       # item['name'] value is "\"Chassis\"" on most platforms,
       # but n5k/n6k use "Chassis" so make the quotes optional.
-      chas = all.find { |item| item['name'][/^"*Chassis"*$/] }
+      chas = all.find { |item| item['name'][/^"?Chassis"?$/] }
       return nil if chas.nil?
       {
         'descr' => chas['desc'].tr('"', ''),
