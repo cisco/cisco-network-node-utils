@@ -564,9 +564,7 @@ class TestInterface < CiscoTestCase
 
   def test_speed
     interface = Interface.new(interfaces[0])
-    if node.product_id =~ /C3132/
-      skip('Speed is not supported on this platform')
-    elsif validate_property_excluded?('interface', 'speed')
+    if validate_property_excluded?('interface', 'speed')
       assert_nil(interface.speed)
       assert_nil(interface.default_speed)
       assert_raises(Cisco::UnsupportedError) { interface.speed = 1000 }

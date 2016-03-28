@@ -474,6 +474,7 @@ module Cisco
 
     def speed
       val = config_get('interface', 'speed', name: @name)
+      return val if val.nil?
       val == 'auto' ? val : val.to_i
     end
 
