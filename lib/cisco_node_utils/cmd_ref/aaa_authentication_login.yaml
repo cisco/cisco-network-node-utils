@@ -3,30 +3,35 @@
 _exclude: [ios_xr]
 
 ascii_authentication:
+  kind: boolean
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login ascii-authentication/'
   set_value: "%s aaa authentication login ascii-authentication"
   default_value: false
 
 chap:
+  kind: boolean
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login chap enable/'
   set_value: "%s aaa authentication login chap enable"
   default_value: false
 
 error_display:
+  kind: boolean
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login error-enable/'
   set_value: "%s aaa authentication login error-enable"
   default_value: false
 
 mschap:
+  kind: boolean
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login mschap enable/'
   set_value: "%s aaa authentication login mschap enable"
   default_value: false
 
 mschapv2:
+  kind: boolean
   get_command: "show run aaa all"
   get_value: '/^aaa authentication login mschapv2 enable/'
   set_value: "%s aaa authentication login mschapv2 enable"
