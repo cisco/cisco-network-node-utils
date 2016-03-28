@@ -103,7 +103,10 @@ module Cisco
       node.cache_flush # TODO: investigate why this is needed
       all = config_get('inventory', 'chassis')
       return nil if all.nil?
-      chas = all.find { |item| item['name'] == '"Chassis"' }
+
+      # item['name'] value is "\"Chassis\"" on most platforms,
+      # but n5k/n6k use "Chassis" so make the quotes optional.
+      chas = all.find { |item| item['name'][/^"*Chassis"*$/] }
       return nil if chas.nil?
       {
         'descr' => chas['desc'].tr('"', ''),
