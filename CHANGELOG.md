@@ -14,6 +14,7 @@ Changelog
   * stp_global (@saichint)
 * Bridge Domain
   * bridge_domain (@rkorlepa)
+  * bridge_domain_vni (@rkorlepa)
 * Encapsulation Profile
   * vni_encapsulation_profile (@rkorlepa)
 
@@ -22,6 +23,7 @@ Changelog
 
 ### Added
 
+* Added a new node util to handle bridge domain range cli for member vni
 * Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.

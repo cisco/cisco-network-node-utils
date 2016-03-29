@@ -3,59 +3,69 @@
 ---
 _exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
 
+# For the below name, shutdown commands we are going to use show running-config
+# bridge-domain cli which displays as below
+#
+# system bridge-domain 100-110
+#
+# bridge-domain 100-110
+#
+# bridge-domain 100
+#   shutdown
+#   fabric-control
+#   name PepsiCo
+# bridge-domain 101
+# bridge-domain 102
+# ...
+# bridge-domain 108
+#   shutdown
+#   name Amazon
+# bridge-domain 109
+#   shutdown
+# bridge-domain 110
+#   name Microsoft
+
+_template:
+  get_command: "show running-config bridge-domain"
+  get_context: ['/^bridge-domain <bd>\s$/']
+  set_context: ["(?)bridge-domain <bd>"]
+
 all_bds:
   multiple: true
-  get_command: "show running-config bridge-domain"
+  get_context: ~
   get_value: '/^bridge-domain (\S+)/'
 
+bd_name:
+  kind: string
+  get_value: '/name (\S+)/'
+  set_value: "<state> name <name>"
+  default_value: ~
+
 create:
-  set_value: "bridge-domain <crbd>"
+  get_context: ~
+  set_value: "bridge-domain <bd>"
 
 destroy:
-  set_value: "no bridge-domain <delbd> ; system bridge-domain remove <rembd>"
+  get_context: ~
+  set_value: "no bridge-domain <bd>"
 
 # Configured fabric-control Bridge-Domain/VLAN    :  100
 fabric_control:
-  get_command: "show bridge-domain summary"
-  get_value: '/^Configured fabric-control.*:\s+(\d+)/'
-  set_context: ["bridge-domain <bd>"]
+  kind: boolean
+  get_value: '/fabric-control/'
   set_value: "<state> fabric-control"
   default_value: false
 
-# For the below member_vni, name, shutdown commands we are going to use show
-# bridge-domain cli as show running-config bridge-domain cli is very difficult
-# to parse for n7k platform. Also this feature is present only in n7k
-# show bridge-domain cli looks like:
-#
-# Bridge-domain 100  (0 ports in all)
-# Name:: Bridge-Domain100
-#  Administrative State: UP               Operational State: DOWN
-
-member_vni:
-  get_command: "show running-config bridge-domain | inc 'member vni'"
-  get_value: '/^  member vni (.*)/'
-  set_value: "<vnistate> vni <vni> ; bridge-domain <bd> ; <membstate> member vni <membvni>"
-  default_value: ''
-
-member_vni_bd:
-  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
-  get_value: '/^bridge-domain (.*)/'
-
-name:
-  get_command: "show bridge-domain"
-  get_value: '/^Bridge-domain <bd>[\s\S]+Name::\s+(\S+)/'
-  set_context: ["bridge-domain <bd>"]
-  set_value: "<state> name <name>"
-
+# Same reason as for bd_name case above
 shutdown:
-  get_command: "show bridge-domain"
-  get_value: '/^Bridge-domain <bd>[\s\S]+Administrative State: (\w+)/'
-  set_context: ["bridge-domain <bd>"]
+  kind: boolean
+  get_value: '/shutdown/'
   set_value: "<state> shutdown"
   default_value: false
 
-system_bd_add:
-  get_command: "show running-config bridge-domain"
+system_bridge_domain:
+  get_context: ~
   get_value: '/^system bridge-domain (\S+)/'
-  set_value: "system bridge-domain add <addbd>"
+  set_context: ~
+  set_value: "system bridge-domain <oper> <bd>"
   default_value: ""

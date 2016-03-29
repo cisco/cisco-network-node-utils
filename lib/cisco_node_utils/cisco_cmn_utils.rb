@@ -199,8 +199,8 @@ module Cisco
     # This method converts an array to string form
     # for ex: if the array has 1, 2 to 10, 83 to 2014, 3022
     # and the string will be "1,2-10,83-2014,3022"
-    def self.array_to_str(array)
-      farray = array.compact.uniq.sort
+    def self.array_to_str(array, sort=true)
+      farray = sort ? array.compact.uniq.sort : array.compact
       lranges = []
       unless farray.empty?
         l = array.first
@@ -216,7 +216,11 @@ module Cisco
           end
           r = aelem
         end
-        lranges << Range.new(l, r)
+        if l == r
+          lranges << l
+        else
+          lranges << Range.new(l, r)
+        end
       end
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
