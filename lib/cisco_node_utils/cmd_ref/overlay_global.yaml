@@ -3,7 +3,7 @@
 _exclude: [ios_xr]
 
 anycast_gateway_mac:
-  _exclude: [N3k, N7k]
+  _exclude: [N3k]
   kind: string
   get_command: "show running all | inc 'fabric forwarding'"
   get_value: '/^fabric forwarding anycast-gateway-mac (\S+)$/'

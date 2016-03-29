@@ -52,7 +52,7 @@ encapsulation_dot1q:
   set_value: "<state> encapsulation dot1q <vlan>"
 
 fabric_forwarding_anycast_gateway:
-  _exclude: [ios_xr, N3k, N7k]
+  _exclude: [ios_xr, N3k]
   kind: boolean
   get_value: '/^fabric forwarding mode anycast-gateway$/'
   set_value: "<state> fabric forwarding mode anycast-gateway"
