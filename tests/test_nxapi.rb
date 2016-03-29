@@ -15,6 +15,9 @@
 # limitations under the License.
 
 require_relative 'basetest'
+require_relative '../lib/cisco_node_utils/node'
+
+include Cisco
 
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
@@ -31,6 +34,12 @@ class TestNxapi < TestCase
     skip 'Node under test does not appear to use the NXAPI client'
   end
 
+  def setup
+    super
+    @product_id = Node.new.product_id if @product_id.nil?
+    config_no_warn('no interface loopback41', 'no interface loopback42')
+  end
+
   def client
     unless @@client
       client = Cisco::Client::NXAPI.new(Cisco::Environment.environment)
@@ -44,32 +53,49 @@ class TestNxapi < TestCase
   # Test cases for new NXAPI client APIs
 
   def test_cli_set_string
-    client.set(context: 'int et1/1', values: 'descr panda')
-    run = client.get(command: 'show run int et1/1')
+    client.set(context: 'interface loopback41', values: 'descr panda')
+    run = client.get(command: 'show run int loopback41')
     desc = run.match(/description (.*)/)[1]
     assert_equal(desc, 'panda')
   end
 
   def test_cli_set_array
-    client.set(context: ['int et1/1'], values: ['descr elephant'])
-    run = client.get(command: 'show run int et1/1')
+    client.set(context: ['int loopback41'], values: ['descr elephant'])
+    run = client.get(command: 'show run int loopback41')
     desc = run.match(/description (.*)/)[1]
     assert_equal(desc, 'elephant')
   end
 
   def test_cli_set_invalid
-    e = assert_raises Cisco::CliError do
-      client.set(values: ['int et1/1', 'exit', 'int et1/2', 'plover'])
-    end
-    assert_equal("The command 'plover' was rejected with error:
-% Invalid command
-", e.message)
-    assert_equal('plover', e.rejected_input)
-    assert_equal(['int et1/1', 'exit', 'int et1/2'], e.successful_input)
+    input = ['int loopback41', 'exit', 'int loopback42', 'plover']
+    successful = ['int loopback41', 'exit', 'int loopback42']
+    rejected = 'plover'
 
-    assert_equal("% Invalid command\n", e.clierror)
-    assert_equal('CLI execution error', e.msg)
-    assert_equal('400', e.code)
+    msg = case @product_id
+          when /N(5|6|7)/
+            'Input CLI command error'
+          when /N(3|8|9)/
+            'CLI execution error'
+          end
+
+    e = assert_raises Cisco::CliError do
+      client.set(values: input)
+    end
+
+    cli_rcs = "
+    cli return codes:
+      successful : #{e.successful_input}
+      rejected   : #{e.rejected_input}
+      msg        : #{e.msg}
+      code       : #{e.code}
+      clierror   : #{e.clierror}
+    "
+    assert_equal(successful, e.successful_input, cli_rcs)
+    assert_equal(rejected, e.rejected_input, cli_rcs)
+
+    assert_match(msg, e.msg, cli_rcs)
+    assert_equal('400', e.code, cli_rcs)
+    assert_match('% Invalid command', e.clierror, cli_rcs)
   end
 
   def test_get_cli_default
@@ -116,11 +142,12 @@ class TestNxapi < TestCase
   end
 
   def test_get_nxapi_structured_unsupported
-    # TBD: n3k DOES support structured for this command,
-    #  n9k DOES NOT support structured for this command
-    assert_raises Cisco::RequestNotSupported do
-      client.get(command:     'show snmp internal globals',
-                 data_format: :nxapi_structured)
+    cmd = { command:     'show snmp internal globals',
+            data_format: :nxapi_structured }
+    if @product_id[/N(5|6)/]
+      assert_empty(client.get(cmd))
+    else
+      assert_raises(Cisco::RequestNotSupported) { client.get(cmd) }
     end
   end
 
@@ -133,7 +160,7 @@ class TestNxapi < TestCase
       client.get(command: 'show version')
     end
     assert_raises Cisco::ConnectionRefused do
-      client.set(values: 'interface Et1/1')
+      client.set(values: 'interface loopback41')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
@@ -142,7 +169,7 @@ class TestNxapi < TestCase
       client.get(command: 'show version')
     end
     assert_raises Cisco::ConnectionRefused do
-      client.set(values: 'interface Et1/1')
+      client.set(values: 'interface loopback41')
     end
   ensure
     @device.cmd('configure terminal')
@@ -160,7 +187,7 @@ class TestNxapi < TestCase
       client.get(command: 'show version')
     end
     assert_raises Cisco::AuthenticationFailed do
-      client.set(values: 'interface Et1/1')
+      client.set(values: 'interface loopback41')
     end
   ensure
     client.password = password
