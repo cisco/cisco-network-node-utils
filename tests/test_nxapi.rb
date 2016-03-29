@@ -37,6 +37,15 @@ class TestNxapi < TestCase
   def setup
     super
     @product_id = Node.new.product_id if @product_id.nil?
+    cleanup
+  end
+
+  def teardown
+    cleanup
+    super
+  end
+
+  def cleanup
     config_no_warn('no interface loopback41', 'no interface loopback42')
   end
 
