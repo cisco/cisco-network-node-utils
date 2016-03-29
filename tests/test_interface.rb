@@ -1072,9 +1072,8 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_fabric_forwarding_anycast_gateway
-    # Skip test if incompatible linecard detected
-    msg = 'Required Multi-Tenancy Full compatible linecard for this platform'
-    skip(msg) if node.product_id[/N7/] && !mt_full_interface?
+    # Ensure N7k has compatible interface
+    mt_full_interface? if node.product_id[/N7/]
 
     if validate_property_excluded?('overlay_global', 'anycast_gateway_mac')
       assert_raises(Cisco::UnsupportedError) do
