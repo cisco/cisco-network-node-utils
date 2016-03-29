@@ -32,7 +32,7 @@ class TestBgpAF < CiscoTestCase
     remove_all_bgps if @@pre_clean_needed
     remove_all_vrfs if @@pre_clean_needed
     if platform == :ios_xr && @@pre_clean_needed
-      config('no route-policy drop_all')
+      config_no_warn('no route-policy drop_all')
     end
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
@@ -40,7 +40,7 @@ class TestBgpAF < CiscoTestCase
   def teardown
     remove_all_bgps
     remove_all_vrfs
-    config('no route-policy drop_all') if platform == :ios_xr
+    config_no_warn('no route-policy drop_all') if platform == :ios_xr
     super
   end
 
@@ -125,14 +125,6 @@ class TestBgpAF < CiscoTestCase
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
 
-    # XR Unsupported
-    [:additional_paths_install,      :ios_xr, :any,      :any,                 :unsupported],
-    [:advertise_l2vpn_evpn,          :ios_xr, :any,      :any,                 :unsupported],
-    [:dampen_igp_metric,             :ios_xr, :any,      :any,                 :unsupported],
-    [:default_information_originate, :ios_xr, :any,      :any,                 :unsupported],
-    [:default_metric,                :ios_xr, :any,      :any,                 :unsupported],
-    [:inject_map,                    :ios_xr, :any,      :any,                 :unsupported],
-
     # XR CLI Errors
     [:additional_paths_send,         :ios_xr, :any,      :multicast,           :CliError],
     [:additional_paths_receive,      :ios_xr, :any,      :multicast,           :CliError],
@@ -146,7 +138,6 @@ class TestBgpAF < CiscoTestCase
 
     # Nexus CLI Errors
     [:any,                           :nexus,  'default', %w(l2vpn evpn),       :CliError],
-    [:additional_paths_install,      :nexus,  :any,      :ipv6,                :CliError],
     [:advertise_l2vpn_evpn,          :nexus,  'default', :any,                 :CliError],
     [:advertise_l2vpn_evpn,          :nexus,  :VRF,      :multicast,           :CliError],
     [:inject_map,                    :nexus,  :any,      :multicast,           :CliError],
@@ -185,16 +176,24 @@ class TestBgpAF < CiscoTestCase
 
   def properties_matrix(asns, vrfs, afs, values)
     asns.each do |asn|
-      config_ios_xr_dependencies(asn) if platform == :ios_xr
+      config_ios_xr_dependencies(asn)
 
       vrfs.each do |vrf|
         afs.each do |af|
-          # l2vpn evpn is not supported in a vrf
-          next if vrf != 'default' && af == %w(l2vpn evpn)
+          # l2vpn evpn restrictions
+          if af == %w(l2vpn evpn)
+            next if vrf != 'default' ||
+                    validate_property_excluded?('feature', 'nv_overlay_evpn')
+          end
 
           bgp_af = RouterBgpAF.new(asn, vrf, af)
 
           values.each do |test, test_values|
+            if validate_property_excluded?('bgp_af', test.to_s)
+              assert_raises(Cisco::UnsupportedError) { bgp_af.send("#{test}=", nil) }
+              next
+            end
+
             # What result do we expect from this test?
             expect = check_test_exceptions(test, platform, vrf, af)
 
@@ -212,31 +211,13 @@ class TestBgpAF < CiscoTestCase
 
             if expect == :skip
               # Do nothing..
-              puts '         skip'
 
             elsif expect == :CliError
-              puts '         CliError'
 
               # This set of parameters should produce a CLI error
               assert_raises(Cisco::CliError,
-                            "Assert 'cli error' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
-                bgp_af.send("#{test}=", first_value)
-              end
-
-            elsif expect == :unsupported
-              puts '         Unsupported'
-
-              # Getter should return nil when unsupported?  Does not seem to work:
-              #    Assert 'nil' inital value failed for: default_information_originate 55 default ["ipv4", "unicast"].
-              #    Expected false to be nil.
-              #
-              #    Assert 'nil' inital value failed for: advertise_l2vpn_evpn 55 default ["ipv4", "unicast"].
-              #    Expected false to be nil.
-              # assert_nil(initial, "Assert 'nil' inital value failed for: #{test} #{asn} #{vrf} #{af}")
-
-              # Setter should raise UnsupportedError
-              assert_raises(Cisco::UnsupportedError,
-                            "Assert 'unsupported' failed for: #{test}, #{asn}, #{vrf}, #{af}") do
+                            "Assert 'cli error' failed for: "\
+                            "#{test}=(#{first_value}), #{asn}, #{vrf}, #{af}") do
                 bgp_af.send("#{test}=", first_value)
               end
 
@@ -346,6 +327,7 @@ class TestBgpAF < CiscoTestCase
   end
 
   def config_ios_xr_dependencies(asn, vrf='red')
+    return unless platform == :ios_xr
     # These dependencies are required on ios xr
 
     # "rd auto" required, otherwise XR reports:
@@ -468,7 +450,7 @@ class TestBgpAF < CiscoTestCase
     vrf = 'red'
     af = %w(ipv4 unicast)
 
-    config_ios_xr_dependencies(asn) if platform == :ios_xr
+    config_ios_xr_dependencies(asn)
     bgp_af = RouterBgpAF.new(asn, vrf, af)
     distance = [{ ebgp: 20, ibgp: 40, local: 60 },
                 { ebgp:  bgp_af.default_distance_ebgp,
@@ -602,7 +584,7 @@ class TestBgpAF < CiscoTestCase
     vrfs.each do |vrf|
       afs.each do |af|
         dbg = sprintf('[VRF %s AF %s]', vrf, af.join('/'))
-        config_ios_xr_dependencies(1) if platform == :ios_xr
+        config_ios_xr_dependencies(1)
         af = RouterBgpAF.new(1, vrf, af)
         redistribute_cmd(af, dbg)
         af.destroy
@@ -654,7 +636,7 @@ class TestBgpAF < CiscoTestCase
                  "#{dbg} Test 3. Restore the removed protocols")
 
     # Test: Change route-maps on existing commands
-    config('route-policy my_policy_2', 'end-policy')
+    config('route-policy my_policy_2', 'end-policy') if platform == :ios_xr
     should = master.map { |prot_only, rm| [prot_only, "#{rm}_2"] }
     af.redistribute = should
     result = af.redistribute
@@ -768,7 +750,7 @@ class TestBgpAF < CiscoTestCase
   end
 
   def test_respond_to?
-    config_ios_xr_dependencies('22') if platform == :ios_xr
+    config_ios_xr_dependencies('22')
     bgp_af = RouterBgpAF.new('22', 'red', %w(ipv4 unicast))
 
     # Functions that are actually defined in bgp_af.rb
