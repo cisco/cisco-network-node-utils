@@ -17,8 +17,6 @@
 require_relative 'basetest'
 require_relative '../lib/cisco_node_utils/node'
 
-include Cisco
-
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
   @@client = nil # rubocop:disable Style/ClassVars
@@ -36,7 +34,7 @@ class TestNxapi < TestCase
 
   def setup
     super
-    @product_id = Node.new.product_id if @product_id.nil?
+    @product_id = Cisco::Node.new.product_id if @product_id.nil?
     cleanup
   end
 
