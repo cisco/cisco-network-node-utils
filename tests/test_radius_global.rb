@@ -65,11 +65,17 @@ class TestRadiusGlobal < CiscoTestCase
     assert_equal(global.timeout,
                  2)
 
-    global.key_set('44444444', nil)
-    assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
-                 '44444444')
-    assert_equal(global.key,
-                 '44444444')
+    if platform == :nexus
+      global.key_set('44444444', nil)
+      assert_equal(global.key,
+                   '44444444')
+      assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
+                   '44444444')
+    elsif platform == :ios_xr
+      global.key_set('QsEfThUkO', nil)
+      assert(!global.key.nil?)
+      assert(!Cisco::RadiusGlobal.radius_global[id].key.nil?)
+    end
 
     # Setting back to default and re-checking
     global.timeout = global.default_timeout
