@@ -34,6 +34,11 @@ module Cisco
     secondary:   'secondary',
   }
 
+  PVLAN_PROPERTY = {
+    host_promisc: 'promisc',
+    allow_vlan:   'allow_vlan',
+  }
+
   # Interface - node utility class for general interface config management
   class Interface < NodeUtil
     # Regexp to match various Ethernet interface variants:
@@ -834,20 +839,6 @@ module Cisco
       config_get_default('interface', 'switchport_autostate_exclude')
     end
 
-    def switchport_mode_private_vlan_host_lookup_string
-      case @name
-      when ETHERNET
-        return 'switchport_mode_private_vlan_host'
-      end
-    end
-
-    def switchport_mode_private_vlan_trunk_lookup_string
-      case @name
-      when ETHERNET
-        return 'switchport_mode_private_vlan_trunk'
-      end
-    end
-
     def switchport_mode_lookup_string
       case @name
       when ETHERNET
@@ -950,15 +941,47 @@ module Cisco
       end
     end
 
+    # Interface private vlan configuration properties
+    # private vlan mode (host, promisc, trunk promisc , trunk sec)
+    # private vlan mapping
+    # private vlan native vlan
+    # private vlan allow vlan
+
+    def set_args_keys_default
+      keys = { name: @name }
+      @set_args = keys
+    end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @set_args.merge!(hash) unless hash.empty?
+    end
+
+    def switchport_mode_private_vlan_host_lookup_string
+      case @name
+      when ETHERNET
+        return 'switchport_mode_private_vlan_host'
+      end
+    end
+
+    def switchport_mode_private_vlan_trunk_lookup_string
+      case @name
+      when ETHERNET
+        return 'switchport_mode_private_vlan_trunk'
+      end
+    end
+
     def switchport_enable_and_mode_private_vlan_host(mode_set)
       switchport_enable unless switchport
       case mode_set
       when :host, :promiscuous
+        set_args_keys(state: '', mode: IF_SWITCHPORT_MODE[mode_set])
         config_set('interface', switchport_mode_private_vlan_host_lookup_string,
-                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
+                   @set_args)
       when :disabled
+        set_args_keys(state: 'no', mode: '')
         config_set('interface', switchport_mode_private_vlan_host_lookup_string,
-                   name: @name, state: 'no', mode: '')
+                   @set_args)
 
       end
     end
@@ -967,18 +990,15 @@ module Cisco
       switchport_enable unless switchport
       case mode_set
       when :secondary, :promiscuous
+        set_args_keys(state: '', mode: IF_SWITCHPORT_MODE[mode_set])
         config_set('interface',
                    switchport_mode_private_vlan_trunk_lookup_string,
-                   name:  @name,
-                   state: '',
-                   mode:  IF_SWITCHPORT_MODE[mode_set])
+                   @set_args)
       when :disabled
+        set_args_keys(state: 'no', mode: '')
         config_set('interface',
                    switchport_mode_private_vlan_trunk_lookup_string,
-                   name:  @name,
-                   state: 'no',
-                   mode:  '')
-
+                   @set_args)
       end
     end
 
@@ -1017,14 +1037,15 @@ module Cisco
                             (vlans[1].to_i.to_s == vlans[1]))
       Feature.private_vlan_enable
       if vlans == default_switchport_mode_private_vlan_host_association
+        set_args_keys(state: 'no', vlan_pr: '', vlan_sec: '')
         config_set('interface', 'switchport_mode_private_vlan_host_association',
-                   name: @name, state: 'no', vlan_pr: '', vlan_sec: '')
+                   @set_args)
 
       else
+        set_args_keys(state: '', vlan_pr: vlans[0], vlan_sec: vlans[1])
         config_set('interface',
                    'switchport_mode_private_vlan_host_association',
-                   name: @name,
-                   state: '', vlan_pr: vlans[0], vlan_sec: vlans[1])
+                   @set_args)
       end
     end
 
@@ -1034,6 +1055,7 @@ module Cisco
     end
 
     def prepare_array(is_list)
+      is_list.each { |item| item.gsub!('-', '..') }
       is_list_new = []
       is_list.each do |elem|
         if elem.include?('..')
@@ -1049,39 +1071,56 @@ module Cisco
       is_list_new
     end
 
+    def configure_private_vlan_property(property, should_list_new,
+                                        is_list_new, pr_vlan)
+      delta_hash = Utils.delta_add_remove(should_list_new, is_list_new)
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |vlans|
+          state = (action == :add) ? '' : 'no'
+          oper = (action == :add) ? 'add' : 'remove'
+          case property
+          when :host_promisc
+            set_args_keys(state: state, vlan_pr: pr_vlan, vlans: vlans)
+            config_set('interface',
+                       'switchport_mode_private_vlan_host_promiscous',
+                       @set_args)
+          when :allow_vlan
+            set_args_keys(state: '', oper: oper, vlans: vlans)
+            config_set('interface',
+                       'switchport_private_vlan_trunk_allowed_vlan',
+                       @set_args)
+          end
+        end
+      end
+    end
+
+    # --------------------------
+    # interf_vlan_list_delta is a helper function for the private_vlan_mapping
+    # property. It walks the delta hash and adds/removes each target private
+    # vlan.
+
     def interf_vlan_list_delta(is_list, should_list)
       pr_vlan = should_list[0]
       if is_list[0].eql? should_list[0]
         should_list = should_list[1].split(',')
         is_list = is_list[1].split(',')
 
-        should_list.each { |item| item.gsub!('-', '..') }
-        is_list.each { |item| item.gsub!('-', '..') }
-
         should_list_new = prepare_array(should_list)
         is_list_new = prepare_array(is_list)
 
-        delta_hash = Utils.delta_add_remove(should_list_new, is_list_new)
-        [:add, :remove].each do |action|
-          delta_hash[action].each do |vlans|
-            state = (action == :add) ? '' : 'no'
-            config_set('interface',
-                       'switchport_mode_private_vlan_host_promiscous',
-                       name: @name,
-                       state: state, vlan_pr: pr_vlan, vlans: vlans)
-          end
-        end
+        configure_private_vlan_property(:host_promisc, should_list_new,
+                                        is_list_new, pr_vlan)
       else
         if should_list == default_switchport_mode_private_vlan_host_promisc
+          set_args_keys(state: 'no', vlan_pr: '', vlans: '')
           config_set('interface',
                      'switchport_mode_private_vlan_host_promiscous',
-                     name: @name,
-                     state: 'no', vlan_pr: '', vlans: '')
+                     @set_args)
         else
+          set_args_keys(state: '', vlan_pr: pr_vlan, vlans: should_list[1])
           config_set('interface',
                      'switchport_mode_private_vlan_host_promiscous',
-                     name: @name,
-                     state: '', vlan_pr: pr_vlan, vlans: should_list[1])
+                     @set_args)
         end
       end
     end
@@ -1126,6 +1165,57 @@ module Cisco
       fail ArgumentError unless IF_SWITCHPORT_MODE.keys.include? mode_set
       Feature.private_vlan_enable
       switchport_enable_and_mode_private_vlan_trunk(mode_set)
+    end
+
+    def switchport_private_vlan_trunk_allowed_vlan
+      result = config_get('interface',
+                          'switchport_private_vlan_trunk_allowed_vlan',
+                          name: @name)
+      return [] if result.nil? || result.empty?
+      if result[0].eql? 'none'
+        return []
+      else
+        return result[0].split(',')
+      end
+    end
+
+    def switchport_private_vlan_trunk_allowed_vlan=(vlans)
+      fail TypeError unless vlans.is_a?(Array)
+      Feature.private_vlan_enable
+      vlans = prepare_array(vlans)
+      is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
+      configure_private_vlan_property(:allow_vlan, vlans, is_list, '')
+    end
+
+    # DAVIDE
+    def switchport_private_vlan_trunk_native_vlan
+      result = config_get('interface',
+                          'switchport_private_vlan_trunk_native_vlan',
+                          name: @name)
+      return '' if result.nil? || result.empty?
+
+      result[0]
+    end
+
+    def switchport_private_vlan_trunk_native_vlan=(vlan)
+      fail TypeError unless vlan.is_a?(String)
+      Feature.private_vlan_enable
+      if vlan == default_switchport_private_vlan_trunk_native_vlan
+        set_args_keys(state: 'no', vlan: '')
+        config_set('interface',
+                   'switchport_private_vlan_trunk_native_vlan',
+                   @set_args)
+      else
+        set_args_keys(state: '', vlan: vlan)
+        config_set('interface',
+                   'switchport_private_vlan_trunk_native_vlan',
+                   @set_args)
+      end
+    end
+
+    def default_switchport_private_vlan_trunk_native_vlan
+      config_get_default('interface',
+                         'switchport_private_vlan_trunk_native_vlan')
     end
 
     # vlan_mapping & vlan_mapping_enable

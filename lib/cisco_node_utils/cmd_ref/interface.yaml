@@ -412,6 +412,20 @@ switchport_mode_private_vlan_trunk:
   set_value: "<state> switchport mode private-vlan trunk <mode>"
   default_value: ""
 
+switchport_private_vlan_trunk_allowed_vlan:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan trunk allowed vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk allowed vlan <oper> <vlans>"
+  default_value: []
+
+switchport_private_vlan_trunk_native_vlan:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk native vlan <vlan>"
+  default_value: ''
+
 switchport_trunk_allowed_vlan:
   _exclude: [ios_xr]
   get_value: '/^switchport trunk allowed vlan (.*)$/'

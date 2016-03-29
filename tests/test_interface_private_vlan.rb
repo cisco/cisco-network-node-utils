@@ -368,6 +368,12 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_raises(CliError) do
         interface.switchport_mode_private_vlan_host_promisc = input
       end
+
+      input = %w(10 10)
+      assert_raises(CliError) do
+        interface.switchport_mode_private_vlan_host_promisc = input
+      end
+
     end
   end
 
@@ -395,6 +401,152 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(input, interface.switchport_mode_private_vlan_host_promisc,
                    'Error: switchport private host promisc not configured')
 
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_allow_default
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+      result = []
+      assert_equal(result, interface.switchport_private_vlan_trunk_allowed_vlan,
+                   'Error: wrong config for switchport private trunk allowed')
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_allow_bad_arg
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+      input = %w(ten)
+      assert_raises(CliError) do
+        interface.switchport_private_vlan_trunk_allowed_vlan = input
+      end
+
+      input = %w(5000)
+      assert_raises(CliError) do
+        interface.switchport_private_vlan_trunk_allowed_vlan = input
+      end
+
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_allow
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+
+      input = %w(10)
+      result = %w(10)
+      interface.switchport_private_vlan_trunk_allowed_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_allowed_vlan,
+                   'Error: switchport private trunk allow vlan not configured')
+      input = %w(10-20)
+      result = %w(10-20)
+      interface.switchport_private_vlan_trunk_allowed_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_allowed_vlan,
+                   'Error: switchport private trunk allow vlan not configured')
+      input = %w(10 13-14 40)
+      result = %w(10 13-14 40)
+      interface.switchport_private_vlan_trunk_allowed_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_allowed_vlan,
+                   'Error: switchport private trunk allow vlan not configured')
+
+      input = []
+      interface.switchport_private_vlan_trunk_allowed_vlan = input
+      assert_equal(input, interface.switchport_private_vlan_trunk_allowed_vlan,
+                   'Error: switchport private trunk allow vlan not configured')
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_native_vlan_bad_arg
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+      input = 'ten'
+      assert_raises(CliError) do
+        interface.switchport_private_vlan_trunk_native_vlan = input
+      end
+
+      input = '5000'
+      assert_raises(CliError) do
+        interface.switchport_private_vlan_trunk_native_vlan = input
+      end
+
+      input = '50 10'
+      assert_raises(CliError) do
+        interface.switchport_private_vlan_trunk_native_vlan = input
+      end
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_native_default
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+      result = ''
+      assert_equal(result, interface.switchport_private_vlan_trunk_native_vlan,
+                   'Error: wrong config for switchport private native vlan')
+    end
+  end
+
+  def test_interface_switchport_pvlan_trunk_native_vlan
+    if validate_property_excluded?('interface',
+                                   'switchport_mode_private_vlan_host')
+      assert_nil(interface.switchport_mode_private_vlan_host)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode_private_vlan_host = :host
+      end
+      return
+    else
+
+      input = '10'
+      result = '10'
+      interface.switchport_private_vlan_trunk_native_vlan = input
+
+      assert_equal(result, interface.switchport_private_vlan_trunk_native_vlan,
+                   'Error: switchport private trunk native vlan not configured')
+      input = ''
+      result = '1'
+      interface.switchport_private_vlan_trunk_native_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_native_vlan,
+                   'Error: switchport private trunk native vlan not configured')
+      input = '40'
+      result = '40'
+      interface.switchport_private_vlan_trunk_native_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_native_vlan,
+                   'Error: switchport private trunk native vlan not configured')
+
+      input = '50'
+      result = '50'
+      interface.switchport_private_vlan_trunk_native_vlan = input
+      assert_equal(result, interface.switchport_private_vlan_trunk_native_vlan,
+                   'Error: switchport private trunk native vlan not configured')
     end
   end
 end
