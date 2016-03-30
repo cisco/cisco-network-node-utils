@@ -104,30 +104,50 @@ module Cisco
     # idempotency issue as system add command throws error if a bd is already
     # present in the system range.
     def create
-      sys_bds_array = BridgeDomain.bd_ids_to_array(system_bd_add)
+      sys_bds_array = BridgeDomain.bd_ids_to_array(system_bridge_domain)
       inp_bds_array = BridgeDomain.bd_ids_to_array(@bd_ids)
       if (inp_bds_array - sys_bds_array).any?
         add_bds = BridgeDomain.bd_list_to_string(inp_bds_array - sys_bds_array)
-        config_set('bridge_domain', 'system_bd_add', addbd: add_bds)
+        config_set('bridge_domain', 'system_bridge_domain', oper: 'add',
+                                                            bd:   add_bds)
       end
-      config_set('bridge_domain', 'create', crbd: @bd_ids)
+      config_set('bridge_domain', 'create', bd: @bd_ids)
     end
 
     def destroy
-      config_set('bridge_domain', 'destroy', delbd: @bd_ids, rembd: @bd_ids)
+      config_set('bridge_domain', 'destroy', bd: @bd_ids)
+      config_set('bridge_domain', 'system_bridge_domain', oper: 'remove',
+                                                          bd:   @bd_ids)
     end
 
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
 
+    # Bridge-Domain name assigning case
+    # bridge-domain 100
+    #   name PepsiCo
+    def bd_name
+      config_get('bridge_domain', 'bd_name', bd: @bd_ids)
+    end
+
+    def bd_name=(str)
+      str = str.to_s
+      state = str.empty? ? 'no' : ''
+      config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: state,
+                   name: str)
+    end
+
+    def default_bd_name
+      config_get_default('bridge_domain', 'bd_name')
+    end
+
     # Bridge-Domain type change to fabric-control
     # bridge-domain 100
     #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
-      result = config_get('bridge_domain', 'fabric_control')
-      result.to_i == @bd_ids.to_i ? true : false
+      config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
     end
 
     def fabric_control=(val)
@@ -139,84 +159,11 @@ module Cisco
       config_get_default('bridge_domain', 'fabric_control')
     end
 
-    # Bridge-Domain member vni assigning case
-    # Not all the bds created or initialized in this class context can have the
-    # member vni's mapped. So will get the vnis of the ones which are mapped to
-    # the bds.
-    # Eg: Suppose the bd mapping is as below on the switch
-    # bridge-domain 100,105,107-109,150
-    #   member vni 5000, 8000, 5007-5008, 7000, 5050
-    # If puppet layer tries to get values of 100-107 bds the final_bd_vni map
-    # which is returned will contain only these mappings as
-    # {100=>5000,101=>0,102=>0,103>0,104=>0,105=>8000,106=>0,107=>5007}
-    def member_vni
-      final_bd_vni = {}
-      curr_vni = config_get('bridge_domain', 'member_vni')
-      curr_bd_vni = config_get('bridge_domain', 'member_vni_bd')
-      return final_bd_vni if curr_vni.empty? || curr_bd_vni.empty?
-
-      curr_vni_list = BridgeDomain.bd_ids_to_array(curr_vni)
-      curr_bd_vni_list = BridgeDomain.bd_ids_to_array(curr_bd_vni)
-      input_bds = BridgeDomain.bd_ids_to_array(@bd_ids)
-
-      hash_map = Hash[curr_bd_vni_list.zip(curr_vni_list.map)]
-      input_bds.each do |bd|
-        final_bd_vni[bd.to_i] =
-            hash_map.key?(bd.to_i) ? hash_map[bd.to_i] : 0
-      end
-      final_bd_vni
-    end
-
-    # This member_vni mapping will be executed only when the val is not empty
-    # else it will be treated as a 'no' cli and executed as required.
-    # If the mappings do not match in any fashion then cli normally returns a
-    # failure which will be handled.
-    def member_vni=(val)
-      val = val.to_s
-      Feature.vni_enable
-      if val.empty?
-        bd_val = member_vni.keys.join(',')
-        vni_val = member_vni.values.join(',')
-        return '' if vni_val.empty?
-        config_set('bridge_domain', 'member_vni', vnistate: 'no', vni: vni_val,
-                   bd: bd_val, membstate: 'no', membvni: vni_val)
-      else
-        config_set('bridge_domain', 'member_vni', vnistate: '', vni: val.to_s,
-                   bd: @bd_ids, membstate: '', membvni: val.to_s)
-      end
-    end
-
-    def default_member_vni
-      config_get_default('bridge_domain', 'member_vni')
-    end
-
-    # Bridge-Domain name assigning case
-    # bridge-domain 100
-    #   name PepsiCo
-    def bd_name
-      config_get('bridge_domain', 'name', bd: @bd_ids)
-    end
-
-    def bd_name=(str)
-      fail TypeError unless str.is_a?(String)
-      if str.empty?
-        config_set('bridge_domain', 'name', bd: @bd_ids, state: 'no', name: '')
-      else
-        config_set('bridge_domain', 'name', bd: @bd_ids, state: '', name: str)
-      end
-    end
-
-    def default_bd_name
-      sprintf('Bridge-Domain%s', @bd_ids)
-    end
-
     # Bridge-Domain Shutdown case
     # bridge-domain 100
     #   shutdown
     def shutdown
-      result = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
-      # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result[/DOWN/] ? true : false
+      config_get('bridge_domain', 'shutdown', bd: @bd_ids)
     end
 
     def shutdown=(val)
@@ -229,8 +176,8 @@ module Cisco
     end
 
     # getter for system bridge-domain
-    def system_bd_add
-      config_get('bridge_domain', 'system_bd_add')
+    def system_bridge_domain
+      config_get('bridge_domain', 'system_bridge_domain')
     end
   end  # Class
 end    # Module

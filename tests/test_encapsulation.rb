@@ -21,6 +21,7 @@ class TestEncapsulation < CiscoTestCase
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def cleanup
+    config_no_warn('no feature vni')
     Encapsulation.encaps.each do |_encap, obj|
       obj.destroy
     end
@@ -37,8 +38,8 @@ class TestEncapsulation < CiscoTestCase
 
   def teardown
     # teardown runs at the end of each test
-    super
     cleanup
+    super
   end
 
   # TESTS
@@ -54,13 +55,17 @@ class TestEncapsulation < CiscoTestCase
     encap = Encapsulation.new('cisco')
     assert_equal(encap.default_dot1q_map, encap.dot1q_map,
                  'Error: dot1q is not matching')
-    dot1q = '100-110'
-    vni = '5000-5010'
-    encap.send(:set_dot1q_map=, true, dot1q, vni)
-    assert_equal(dot1q, encap.dot1q_map[0].gsub(/\s+/, ''),
-                 'Error: dot1q is not matching')
-    assert_equal(vni, encap.dot1q_map[1].gsub(/\s+/, ''),
+    dot1q = '100-110,150'
+    vni = '5000-5010,5050'
+    encap.dot1q_map = [dot1q, vni]
+    assert_equal(dot1q, encap.dot1q_map[0],
+                 'Error: dot1q vlan is not matching')
+    assert_equal(vni, encap.dot1q_map[1],
                  'Error: vni to dot1q mapping is not matchin')
+
+    encap.dot1q_map = []
+    assert_equal(encap.default_dot1q_map, encap.dot1q_map,
+                 'Error: dot1q is not matching')
     encap.destroy
   end
 
@@ -73,7 +78,7 @@ class TestEncapsulation < CiscoTestCase
     vni = '5000-5010'
     assert_raises(RuntimeError,
                   'Encap misconfig did not raise RuntimeError') do
-      encap.send(:set_dot1q_map=, true, dot1q, vni)
+      encap.dot1q_map = [dot1q, vni]
     end
   end
 end

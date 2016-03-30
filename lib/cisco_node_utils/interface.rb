@@ -16,7 +16,6 @@
 
 require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
-require_relative 'pim'
 require_relative 'vrf'
 require_relative 'overlay_global'
 
@@ -190,31 +189,6 @@ module Cisco
 
     def default_fabric_forwarding_anycast_gateway
       config_get_default('interface', 'fabric_forwarding_anycast_gateway')
-    end
-
-    def fex_feature
-      fex = config_get('fex', 'feature')
-      fail 'fex_feature not found' if fex.nil?
-      fex.to_sym
-    end
-
-    def fex_feature_set(fex_set)
-      curr = fex_feature
-      return if curr == fex_set
-
-      case fex_set
-      when :enabled
-        config_set('fex', 'feature_install', '') if curr == :uninstalled
-        config_set('fex', 'feature', '')
-      when :disabled
-        config_set('fex', 'feature', 'no') if curr == :enabled
-        return
-      when :installed
-        config_set('fex', 'feature_install', '') if curr == :uninstalled
-      when :uninstalled
-        config_set('fex', 'feature', 'no') if curr == :enabled
-        config_set('fex', 'feature_install', 'no')
-      end
     end
 
     def ipv4_acl_in
@@ -510,13 +484,12 @@ module Cisco
     end
 
     def speed
-      config_get('interface', 'speed', name: @name)
+      val = config_get('interface', 'speed', name: @name)
+      return val if val.nil?
+      val == 'auto' ? val : val.to_i
     end
 
     def speed=(val)
-      if node.product_id =~ /C31\d\d/
-        fail 'Changing interface speed is not permitted on this platform'
-      end
       config_set('interface', 'speed', name: @name, speed: val)
     end
 
@@ -529,9 +502,6 @@ module Cisco
     end
 
     def duplex=(val)
-      if node.product_id =~ /C31\d\d/
-        fail 'Changing interface duplex is not permitted on this platform'
-      end
       config_set('interface', 'duplex', name: @name, duplex: val)
     end
 
@@ -873,7 +843,7 @@ module Cisco
       if :fabricpath == mode_set
         fabricpath_feature_set(:enabled) unless :enabled == fabricpath_feature
       elsif :fex_fabric == mode_set
-        fex_feature_set(:enabled) unless :enabled == fex_feature
+        Feature.fex_enable
       end
       config_set('interface', switchport_mode_lookup_string,
                  name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])

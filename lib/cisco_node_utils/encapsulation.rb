@@ -38,6 +38,7 @@ module Cisco
 
     # Create a hash of all current encap instances.
     def self.encaps
+      return {} unless Feature.vni_enabled?
       instances = config_get('encapsulation', 'all_encaps')
       return {} if instances.nil?
       hash = {}
@@ -45,6 +46,23 @@ module Cisco
         hash[name] = Encapsulation.new(name, false)
       end
       hash
+    end
+
+    # This will expand the string to a list of bds as integers
+    def self.string_to_array(string)
+      list = []
+      narray = string.split(',')
+      narray.each do |elem|
+        if elem.include?('-')
+          es = elem.gsub('-', '..')
+          ea = es.split('..').map { |d| Integer(d) }
+          er = ea[0]..ea[1]
+          list << er.to_a
+        else
+          list << elem.to_i
+        end
+      end
+      list.flatten
     end
 
     # Enable feature and create encap instance
@@ -62,14 +80,23 @@ module Cisco
     # PROPERTIES
     # ----------
 
-    def dot1q_map
-      config_get('encapsulation', 'dot1q_map', profile: @encap_name)
+    def range_summarize(string)
+      Utils.array_to_string(Encapsulation.string_to_array(string.to_s), false)
     end
 
-    def set_dot1q_map=(cmd, dot1q, vni)
-      no_cmd = (cmd) ? '' : 'no'
+    def dot1q_map
+      result = config_get('encapsulation', 'dot1q_map', profile: @encap_name)
+      return default_dot1q_map if result.to_s.empty?
+      result[0] = range_summarize(result[0])
+      result[1] = range_summarize(result[1])
+      result
+    end
+
+    def dot1q_map=(val)
+      no_cmd = (val.empty?) ? 'no' : ''
+      val = dot1q_map if val.empty?
       config_set('encapsulation', 'dot1q_map', profile: @encap_name,
-                 state: no_cmd, vlans: dot1q, vnis: vni)
+                 state: no_cmd, vlans: val[0], vnis: val[1])
     end
 
     def default_dot1q_map
