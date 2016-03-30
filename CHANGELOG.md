@@ -49,6 +49,7 @@ Changelog
   * 'switchport_private_vlan_trunk_allowed_vlan', 'switchport_private_vlan_trunk_native_vlan'
   * 'switchport_mode_private_vlan_host', 'switchport_mode_private_vlan_host_association'
   * 'switchport_mode_private_vlan_host_promiscous', 'switchport_mode_private_vlan_trunk'
+  * 'switchport_private_vlan_association_trunk', 'switchport_private_vlan_mapping_trunk'
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
   * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
