@@ -25,8 +25,27 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def teardown
+    cleanup_aaa
     feature_tacacs(false)
     super
+  end
+
+  def cleanup_aaa
+    cmds = config('show run aaa').scan(/^aaa auth.*/)
+    cmds.each do |cmd|
+      config("no #{cmd}")
+    end
+  end
+
+  def config_tacacs_servers(servers)
+    servers.each do |server|
+      config("aaa group server tacacs+ #{server}")
+    end
+  end
+
+  def feature_tacacs(feature=true)
+    state = feature ? '' : 'no'
+    config("#{state} feature tacacs+")
   end
 
   # Method to pre-configure a valid tacacs server and aaa group.  This
@@ -46,28 +65,12 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
   end
 
-  def feature_tacacs(feature=true)
-    if feature
-      config('feature tacacs')
-    else
-      config('no feature tacacs',
-             'no aaa authentication login ascii-authentication')
-    end
-  end
-
-  def config_tacacs_servers(servers)
-    config('feature tacacs+')
-    servers.each do |server|
-      config("aaa group server tacacs+ #{server}")
-    end
+  def prefix
+    'aaa authorization'
   end
 
   def show_cmd
     'show run aaa all | no-more'
-  end
-
-  def prefix
-    'aaa authorization'
   end
 
   def test_create_unsupported_type
