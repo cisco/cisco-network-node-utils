@@ -221,6 +221,13 @@ negotiate_auto_portchannel:
       set_value: "<state> negotiate auto"
       default_value: true
 
+private_vlan_mapping:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^private-vlan mapping (.*)$/'
+  set_value: "<state> private-vlan mapping <vlans>"
+  default_value: []
+
 shutdown:
   kind: boolean
   get_value: '/^shutdown$/'

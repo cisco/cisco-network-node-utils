@@ -39,6 +39,7 @@ module Cisco
     allow_vlan:    'allow_vlan',
     trunk_assoc:   'trunk_assoc',
     mapping_trunk: 'mapping_trunk',
+    vlan_mapping:  'vlan_mapping',
   }
 
   # Interface - node utility class for general interface config management
@@ -1118,6 +1119,12 @@ module Cisco
             config_set('interface',
                        'switchport_private_vlan_trunk_allowed_vlan',
                        @set_args)
+          when :vlan_mapping
+            set_args_keys(state: state, vlans: vlans)
+            result = config_set('interface',
+                                'private_vlan_mapping',
+                                @set_args)
+            cli_error_check(result)
           end
         end
       end
@@ -1322,7 +1329,6 @@ module Cisco
                          'switchport_private_vlan_association_trunk')
     end
 
-    # DAVIDE
     def switchport_private_vlan_mapping_trunk
       config_get('interface',
                  'switchport_private_vlan_mapping_trunk',
@@ -1346,6 +1352,34 @@ module Cisco
     def default_switchport_private_vlan_mapping_trunk
       config_get_default('interface',
                          'switchport_private_vlan_mapping_trunk')
+    end
+
+    def private_vlan_mapping
+      config_get('interface',
+                 'private_vlan_mapping',
+                 name: @name)
+    end
+
+    def private_vlan_mapping=(vlans)
+      fail TypeError unless vlans.is_a?(Array) || vlans.empty?
+      Feature.private_vlan_enable
+      feature_vlan_set(true)
+      if vlans == default_private_vlan_mapping
+        set_args_keys(state: 'no', vlans: '')
+        config_set('interface', 'private_vlan_mapping',
+                   @set_args)
+      else
+        is_list = private_vlan_mapping
+        new_is_list = prepare_array(is_list)
+        new_vlans = prepare_array(vlans)
+        configure_private_vlan_host_property(:vlan_mapping, new_vlans,
+                                             new_is_list, '', false)
+      end
+    end
+
+    def default_private_vlan_mapping
+      config_get_default('interface',
+                         'private_vlan_mapping')
     end
 
     # vlan_mapping & vlan_mapping_enable

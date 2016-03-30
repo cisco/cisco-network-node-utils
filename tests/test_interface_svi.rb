@@ -66,6 +66,61 @@ class TestSvi < CiscoTestCase
     end
   end
 
+  def test_private_vlan_mapping
+    if validate_property_excluded?('interface',
+                                   'private_vlan_mapping')
+      assert_nil(svi.private_vlan_mapping)
+      assert_raises(Cisco::UnsupportedError) do
+        svi.private_vlan_mapping = 10
+      end
+      return
+    else
+      input = %w(10-20)
+      result = '10-20'
+      svi.private_vlan_mapping = input
+      input = svi.private_vlan_mapping
+      assert_includes(input, result,
+                      'Err: wrong config for svi pvlan mapping')
+
+      input = %w(11-13)
+      result = '11-13'
+      svi.private_vlan_mapping = input
+      input = svi.private_vlan_mapping
+      assert_includes(input, result,
+                      'Err: wrong config for svi pvlan mapping')
+      input = []
+      result = []
+      svi.private_vlan_mapping = input
+      input = svi.private_vlan_mapping
+      assert_equal(input, result,
+                   'Err: wrong config for svi pvlan mapping')
+    end
+  end
+
+  def test_private_vlan_mapping_bad_args
+    if validate_property_excluded?('interface',
+                                   'private_vlan_mapping')
+      assert_nil(svi.private_vlan_mapping)
+      assert_raises(Cisco::UnsupportedError) do
+        svi.private_vlan_mapping = 10
+      end
+      return
+    else
+      input = %w(10 20)
+      result = '10,20'
+      svi.private_vlan_mapping = input
+      input = svi.private_vlan_mapping
+      assert_includes(input, result,
+                      'Err: wrong config for svi pvlan mapping')
+
+      input = %w(23)
+      assert_raises(RuntimeError,
+                    'svi pvlan mapping did not raise RuntimeError') do
+        svi.private_vlan_mapping = input
+      end
+    end
+  end
+
   def test_prop_nil_when_ethernet
     skip_autostate_test?
     intf = Interface.new(interfaces[0])
