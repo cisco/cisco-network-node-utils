@@ -955,29 +955,29 @@ module Cisco
 
     def switchport_enable_and_mode_private_vlan_host(mode_set)
       switchport_enable unless switchport
-      case mode_set
-      when :host, :promiscuous
-        config_set('interface', switchport_mode_private_vlan_host_lookup_string,
-                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
-      when :disabled
-        config_set('interface', switchport_mode_private_vlan_host_lookup_string,
-                   name: @name, state: 'no', mode: '')
-
+      if mode_set[/(host|promiscuous)/]
+        state = ''
+        mode = IF_SWITCHPORT_MODE[mode_set]
+      else
+        state = 'no'
+        mode = ''
       end
+      config_set('interface', 'switchport_mode_private_vlan_host',
+                 name: @name, state: state, mode: mode)
     end
 
     def switchport_enable_and_mode_private_vlan_trunk(mode_set)
       switchport_enable unless switchport
-      case mode_set
-      when :secondary, :promiscuous
-        config_set('interface',
-                   switchport_mode_private_vlan_trunk_lookup_string,
-                   name: @name, state: '', mode: IF_SWITCHPORT_MODE[mode_set])
-      when :disabled
-        config_set('interface',
-                   switchport_mode_private_vlan_trunk_lookup_string,
-                   name: @name, state: 'no', mode: '')
+      if mode_set[/(promiscuous|secondary)/]
+        state = ''
+        mode = IF_SWITCHPORT_MODE[mode_set]
+      else
+        state = 'no'
+        mode = ''
       end
+      config_set('interface',
+                 switchport_mode_private_vlan_trunk_lookup_string,
+                 name: @name, state: state, mode: mode)
     end
 
     def switchport_mode_private_vlan_host
@@ -1056,27 +1056,20 @@ module Cisco
         delta_hash[action].each do |vlans|
           state = (action == :add) ? '' : 'no'
           oper = (action == :add) ? 'add' : 'remove'
-          case property
-          when :host_promisc
-            result = config_set('interface',
-                                PVLAN_PROPERTY[property],
+          if property[/(host_promisc|mapping_trunk)/]
+
+            result = config_set('interface', PVLAN_PROPERTY[property],
                                 name: @name, state: state,
                                 vlan_pr: pr_vlan, vlans: vlans)
-
-          when :mapping_trunk
-            result = config_set('interface',
-                                PVLAN_PROPERTY[property],
-                                name: @name, state: state,
-                                vlan_pr: pr_vlan, vlans: vlans)
-
             @match_found = true
-          when :allow_vlan
+          end
+          if property[/allow_vlan/]
             result = config_set('interface',
                                 PVLAN_PROPERTY[property],
                                 name: @name, state: '',
                                 oper: oper, vlans: vlans)
-
-          when :vlan_mapping
+          end
+          if property[/vlan_mapping/]
             result = config_set('interface',
                                 PVLAN_PROPERTY[property],
                                 name: @name, state: state,
