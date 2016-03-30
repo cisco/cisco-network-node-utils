@@ -76,7 +76,7 @@ module Cisco
         vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
         config_set('yum', 'install', pkg, vrf)
       else
-        # ex pkg xrv9k-k9sec-1.0.0.0-r61102I
+        # ex pkg => xrv9k-k9sec-1.0.0.0-r61102I
         rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install activate pkg 0x0 \
           #{pkg}`
         Cisco::Logger.debug "install activate #{pkg} : #{rc}"
@@ -114,6 +114,7 @@ module Cisco
       if platform == :nexus
         config_set('yum', 'remove', pkg)
       else
+        # ex pkg => xrv9k-k9sec-1.0.0.0-r61102I
         rc = \
           `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install deactivate pkg 0x0 #{pkg}`
         Cisco::Logger.debug "install deactivate #{pkg} : #{rc}"
