@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/vlan'
 
 include Cisco
 
@@ -157,7 +158,13 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     else
-
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      v2 = Vlan.new(11)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['11']
       input = %w(10 11)
       result = %w(10 11)
       interface.switchport_mode_private_vlan_host = :host
@@ -167,7 +174,8 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(result,
                    interface.switchport_mode_private_vlan_host_association,
                    'Err: switchport private host_association not configured')
-
+      v1.destroy
+      v2.destroy
     end
   end
 
@@ -180,6 +188,13 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     else
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      v2 = Vlan.new(11)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['11']
 
       input = %w(10 11)
       result = %w(10 11)
@@ -190,13 +205,25 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(result,
                    interface.switchport_mode_private_vlan_host_association,
                    'Err: switchport private host_association not configured')
+      v1.destroy
+      v2.destroy
 
+      v1 = Vlan.new(20)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+
+      v2 = Vlan.new(21)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['21']
       input = %w(20 21)
       result = %w(20 21)
       interface.switchport_mode_private_vlan_host_association = input
       assert_equal(result,
                    interface.switchport_mode_private_vlan_host_association,
                    'Err: switchport private host_association not configured')
+      v1.destroy
+      v2.destroy
       input = []
       result = []
       interface.switchport_mode_private_vlan_host_association = input
@@ -216,7 +243,13 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     else
-
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      v2 = Vlan.new(11)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['11']
       input = %w(10 11)
       result = %w(10 11)
       interface.switchport_mode_private_vlan_host = :host
@@ -226,6 +259,8 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(result,
                    interface.switchport_mode_private_vlan_host_association,
                    'Err: switchport private host_association not configured')
+      v1.destroy
+      v2.destroy
 
       input = []
       result = []
@@ -323,6 +358,13 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     else
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+      v2 = Vlan.new(11)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['11']
 
       input = %w(10 11)
       interface.switchport_mode_private_vlan_host = :promiscuous
@@ -333,19 +375,57 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(input,
                    interface.switchport_mode_private_vlan_host_promisc,
                    'Error: switchport private host promisc not configured')
+      v1.destroy
+      v2.destroy
 
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+
+      v2 = Vlan.new(12)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+
+      v1.private_vlan_association = ['12']
       input = %w(10 12)
       interface.switchport_mode_private_vlan_host_promisc = input
       assert_equal(input,
                    interface.switchport_mode_private_vlan_host_promisc,
                    'Error: switchport private host promisc not configured')
+      v1.destroy
+      v2.destroy
 
-      input = %w(10 12-14,18,30-33)
+      v6 = Vlan.new(10)
+      pv_type = 'primary'
+      v6.private_vlan_type = pv_type
+
+      v1 = Vlan.new(12)
+      pv_type = 'community'
+      v1.private_vlan_type = pv_type
+
+      v2 = Vlan.new(13)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+
+      v3 = Vlan.new(18)
+      pv_type = 'community'
+      v3.private_vlan_type = pv_type
+
+      v4 = Vlan.new(30)
+      pv_type = 'community'
+      v4.private_vlan_type = pv_type
+
+      v6.private_vlan_association = ['12-13', '18', '30']
+      input = %w(10 12-13,18,30)
       interface.switchport_mode_private_vlan_host_promisc = input
       assert_equal(input,
                    interface.switchport_mode_private_vlan_host_promisc,
                    'Error: switchport private host promisc not configured')
-
+      v1.destroy
+      v2.destroy
+      v3.destroy
+      v4.destroy
+      v6.destroy
     end
   end
 
@@ -407,6 +487,14 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     else
+      v1 = Vlan.new(10)
+      pv_type = 'primary'
+      v1.private_vlan_type = pv_type
+
+      v2 = Vlan.new(11)
+      pv_type = 'community'
+      v2.private_vlan_type = pv_type
+      v1.private_vlan_association = ['11']
 
       input = %w(10 11)
       interface.switchport_mode_private_vlan_host = :promiscuous
@@ -416,7 +504,8 @@ class TestSwitchport < TestInterfaceSwitchport
       interface.switchport_mode_private_vlan_host_promisc = input
       assert_equal(input, interface.switchport_mode_private_vlan_host_promisc,
                    'Error: switchport private host promisc not configured')
-
+      v1.destroy
+      v2.destroy
       input = []
       interface.switchport_mode_private_vlan_host_promisc = input
       assert_equal(input, interface.switchport_mode_private_vlan_host_promisc,
