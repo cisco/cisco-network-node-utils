@@ -340,16 +340,18 @@ class TestBgpAF < CiscoTestCase
     # "address-family vpnv4 unicast" required, otherwise XR reports:
     #   'The parent address family has not been initialized'
 
-    config("router bgp #{asn}",
+    cfg = ["router bgp #{asn}",
            'bgp router-id 10.1.1.1',
            'address-family vpnv4 unicast',
            'address-family vpnv6 unicast',
            'address-family vpnv4 multicast',
            'address-family vpnv6 multicast',
-           "vrf #{vrf}", 'rd auto')
+          ]
+    cfg << "vrf #{vrf}" << 'rd auto' unless vrf == 'default'
+    config(cfg)
 
     # Needed for testing route-policy commands
-    config('route-policy drop_all', 'end-policy')
+    config_no_warn('route-policy drop_all', 'end-policy')
   end
 
   ########################################################
@@ -364,7 +366,7 @@ class TestBgpAF < CiscoTestCase
     elsif platform == :ios_xr
       vrf = 'default'
       config_ios_xr_dependencies(asn, vrf)
-      config('route-policy DropAllTraffic', 'end-policy')
+      config_no_warn('route-policy DropAllTraffic', 'end-policy')
     end
     bgp_af = RouterBgpAF.new(asn, vrf, af)
 
@@ -497,7 +499,7 @@ class TestBgpAF < CiscoTestCase
   def network_cmd(af, dbg)
     if platform == :ios_xr
       %w(rtmap1 rtmap2 rtmap3 rtmap5 rtmap6 rtmap7).each do |policy|
-        config("route-policy #{policy}", 'end-policy')
+        config_no_warn("route-policy #{policy}", 'end-policy')
       end
     end
 
@@ -551,7 +553,7 @@ class TestBgpAF < CiscoTestCase
     if platform == :ios_xr
       %w(rtmap1_55 rtmap2_55 rtmap3_55 rtmap5_55
          rtmap6_55 rtmap7_55).each do |policy|
-        config("route-policy #{policy}", 'end-policy')
+        config_no_warn("route-policy #{policy}", 'end-policy')
       end
     end
     should = master.map { |network, rm| [network, rm.nil? ? nil : "#{rm}_55"] }
@@ -605,7 +607,7 @@ class TestBgpAF < CiscoTestCase
                 [ospf,      'rm_ospf'],
                 ['rip 4',   'rm_rip']]
     elsif platform == :ios_xr
-      config('route-policy my_policy', 'end-policy')
+      config_no_warn('route-policy my_policy', 'end-policy')
       master = [['connected', 'my_policy'],
                 ['eigrp 1',   'my_policy'],
                 [ospf,        'my_policy'],
@@ -636,7 +638,9 @@ class TestBgpAF < CiscoTestCase
                  "#{dbg} Test 3. Restore the removed protocols")
 
     # Test: Change route-maps on existing commands
-    config('route-policy my_policy_2', 'end-policy') if platform == :ios_xr
+    if platform == :ios_xr
+      config_no_warn('route-policy my_policy_2', 'end-policy')
+    end
     should = master.map { |prot_only, rm| [prot_only, "#{rm}_2"] }
     af.redistribute = should
     result = af.redistribute
@@ -821,7 +825,7 @@ class TestBgpAF < CiscoTestCase
 
   def test_table_map
     if platform == :ios_xr
-      config('route-policy sjc', 'end-policy')
+      config_no_warn('route-policy sjc', 'end-policy')
       config_ios_xr_dependencies('55')
     end
 
@@ -829,6 +833,6 @@ class TestBgpAF < CiscoTestCase
     afs.each do |af|
       table_map(55, 'red', af)
     end
-    config('no route-policy sjc') if platform == :ios_xr
+    config_no_warn('no route-policy sjc') if platform == :ios_xr
   end
 end
