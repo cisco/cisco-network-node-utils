@@ -352,6 +352,10 @@ class TestBgpAF < CiscoTestCase
 
     # Needed for testing route-policy commands
     config_no_warn('route-policy drop_all', 'end-policy')
+
+    # TBD: Reduce the number of different route-policies used by this test
+    # and move the remaining ones into this method. Then create an
+    # unconfig_ios_xr_dependencies to handle the cleanups.
   end
 
   ########################################################
@@ -802,25 +806,25 @@ class TestBgpAF < CiscoTestCase
     bgp_af.table_map_set(val)
     assert_equal(val, bgp_af.table_map)
 
+    if validate_property_excluded?('bgp_af', 'table_map_filter')
+      assert_raises(Cisco::UnsupportedError) do
+        bgp_af.table_map_set('sjc', true)
+      end
+      assert_nil(bgp_af.default_table_map_filter)
+      return
+    end
+
     val = false
     bgp_af.table_map_set('sjc', val)
     refute(bgp_af.table_map_filter)
 
     val = true
-    # TODO?  XR does not appear to support 'table-policy sjc filter'
-    if platform == :ios_xr
-      assert_raises(Cisco::UnsupportedError) do
-        bgp_af.table_map_set('sjc', val)
-      end
-      assert_nil(bgp_af.default_table_map_filter)
-    else
-      bgp_af.table_map_set('sjc', val)
-      assert(bgp_af.table_map_filter)
+    bgp_af.table_map_set('sjc', val)
+    assert(bgp_af.table_map_filter)
 
-      val = bgp_af.default_table_map_filter
-      bgp_af.table_map_set('sjc', val)
-      refute(bgp_af.table_map_filter)
-    end
+    default = bgp_af.default_table_map_filter
+    bgp_af.table_map_set('sjc', default)
+    assert_equal(default, bgp_af.table_map_filter)
   end
 
   def test_table_map
@@ -833,6 +837,7 @@ class TestBgpAF < CiscoTestCase
     afs.each do |af|
       table_map(55, 'red', af)
     end
-    config_no_warn('no route-policy sjc') if platform == :ios_xr
+
+    config('no route-policy sjc') if platform == :ios_xr
   end
 end
