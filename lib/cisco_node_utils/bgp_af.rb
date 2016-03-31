@@ -59,7 +59,10 @@ module Cisco
     end
 
     def create
-      Feature.bgp_enable if platform == :nexus
+      if platform == :nexus
+        Feature.bgp_enable
+        Feature.nv_overlay_evpn_enable if @safi[/evpn/]
+      end
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
