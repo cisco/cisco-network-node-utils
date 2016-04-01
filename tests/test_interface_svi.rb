@@ -74,27 +74,27 @@ class TestSvi < CiscoTestCase
         svi.private_vlan_mapping = 10
       end
       return
-    else
-      input = %w(10-20)
-      result = '10-20'
-      svi.private_vlan_mapping = input
-      input = svi.private_vlan_mapping
-      assert_includes(input, result,
-                      'Err: wrong config for svi pvlan mapping')
-
-      input = %w(11-13)
-      result = '11-13'
-      svi.private_vlan_mapping = input
-      input = svi.private_vlan_mapping
-      assert_includes(input, result,
-                      'Err: wrong config for svi pvlan mapping')
-      input = []
-      result = []
-      svi.private_vlan_mapping = input
-      input = svi.private_vlan_mapping
-      assert_equal(input, result,
-                   'Err: wrong config for svi pvlan mapping')
     end
+    input = %w(10-20 30)
+    result = %w(10-20 30)
+    svi.private_vlan_mapping = input
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
+
+    input = %w(11-13)
+    result = %w(11-13)
+    svi.private_vlan_mapping = input
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
+
+    input = []
+    result = []
+    svi.private_vlan_mapping = input
+    input = svi.private_vlan_mapping
+    assert_equal(input, result,
+                 'Err: wrong config for svi pvlan mapping')
   end
 
   def test_private_vlan_mapping_bad_args
@@ -105,19 +105,19 @@ class TestSvi < CiscoTestCase
         svi.private_vlan_mapping = 10
       end
       return
-    else
-      input = %w(10 20)
-      result = '10,20'
-      svi.private_vlan_mapping = input
-      input = svi.private_vlan_mapping
-      assert_includes(input, result,
-                      'Err: wrong config for svi pvlan mapping')
+    end
+    input = %w(10 20)
+    result = %w(10 20)
+    svi.private_vlan_mapping = input
+    input = svi.private_vlan_mapping
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
 
-      input = %w(23)
-      assert_raises(RuntimeError,
-                    'svi pvlan mapping did not raise RuntimeError') do
-        svi.private_vlan_mapping = input
-      end
+    input = %w(23)
+    assert_raises(RuntimeError,
+                  'svi pvlan mapping did not raise RuntimeError') do
+      svi.private_vlan_mapping = input
     end
   end
 

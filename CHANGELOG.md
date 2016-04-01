@@ -50,7 +50,7 @@ Changelog
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
   * `switchport_private_vlan_trunk_allowed_vlan`, `switchport_private_vlan_trunk_native_vlan`
   * `switchport_mode_private_vlan_host`, `switchport_mode_private_vlan_host_association`
-  * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk`
+  * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk_promiscous`, `switchport_mode_private_vlan_trunk_secondary`
   * `switchport_private_vlan_association_trunk`, `switchport_private_vlan_mapping_trunk`
   * `private_vlan_mapping`
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:

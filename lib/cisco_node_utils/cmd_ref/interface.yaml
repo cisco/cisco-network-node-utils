@@ -210,6 +210,10 @@ negotiate_auto_portchannel:
   set_value: "<state> negotiate auto"
   default_value: true
 
+private_vlan_any:
+  multiple:
+  get_value: '/switchport private-vlan/'
+
 private_vlan_mapping:
   _exclude: [ios_xr, N8k]
   multiple: true
@@ -411,10 +415,16 @@ switchport_mode_private_vlan_host_promiscous:
   default_value: []
 
 
-switchport_mode_private_vlan_trunk:
+switchport_mode_private_vlan_trunk_promiscuous:
   _exclude: [ios_xr, N8k]
   get_value: '/^switchport mode private-vlan trunk (.*)$/'
-  set_value: "<state> switchport mode private-vlan trunk <mode>"
+  set_value: "<state> switchport mode private-vlan trunk promiscuous"
+  default_value: ""
+
+switchport_mode_private_vlan_trunk_secondary:
+  _exclude: [ios_xr, N8k]
+  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  set_value: "<state> switchport mode private-vlan trunk secondary"
   default_value: ""
 
 switchport_private_vlan_association_trunk:
