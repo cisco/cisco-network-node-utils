@@ -203,6 +203,11 @@ negotiate_auto_ethernet:
   set_value: "<state> negotiate auto"
   default_value: true
 
+negotiate_auto_other_interfaces:
+  kind: boolean
+  _exclude: [ios_xr]
+  default_only: false
+
 negotiate_auto_portchannel:
   kind: boolean
   _exclude: [ios_xr, N7k]
