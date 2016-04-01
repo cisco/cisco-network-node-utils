@@ -827,6 +827,29 @@ class TestInterface < CiscoTestCase
     negotiate_auto_helper(interface, default)
   end
 
+  def test_negotiate_auto_loopback
+    ref = cmd_ref.lookup('interface',
+                         'negotiate_auto_other_interfaces')
+    assert(ref, 'Error, reference not found')
+
+    int = 'loopback2'
+    config("interface #{int}")
+    interface = Interface.new(int)
+
+    assert_equal(interface.negotiate_auto, ref.default_value,
+                 "Error: #{int} negotiate auto value mismatch")
+
+    assert_raises(Cisco::UnsupportedError) do
+      interface.negotiate_auto = true
+    end
+    assert_raises(Cisco::UnsupportedError) do
+      interface.negotiate_auto = false
+    end
+
+    # Cleanup
+    config("no interface #{int}")
+  end
+
   def test_interfaces_not_empty
     refute_empty(Interface.interfaces, 'Error: interfaces collection empty')
   end
