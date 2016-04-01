@@ -1,23 +1,29 @@
 # snmp_server
 ---
-_exclude: [ios_xr]
 
 aaa_user_cache_timeout:
-  nexus:
-    kind: int
-    get_command: "show snmp internal globals"
-    get_value: '/AAA Cache Timeout :(\d+)/'
-    set_value: "%s snmp-server aaa-user cache-timeout %d"
-    default_value: 3600
+  _exclude: [ios_xr]
+  kind: int
+  get_command: "show snmp internal globals"
+  get_value: '/AAA Cache Timeout :(\d+)/'
+  set_value: "%s snmp-server aaa-user cache-timeout %d"
+  default_value: 3600
 
 contact:
-  get_data_format: nxapi_structured
-  get_command: "show snmp"
-  get_value: "sys_contact"
-  set_value: "%s snmp-server contact %s"
-  default_value: ""
+  nexus:
+    get_data_format: nxapi_structured
+    get_command: "show snmp"
+    get_value: "sys_contact"
+    set_value: "<state> snmp-server contact <contact>"
+    default_value: ""
+  ios_xr:
+    get_command: 'show running-config snmp'
+    get_value: '/^snmp-server contact (\S+)$/'
+    set_value: "<state> snmp-server contact <contact>"
+    default_value: ""
 
 global_enforce_priv:
+  _exclude: [ios_xr]
   kind: boolean
   get_command: "show run snmp all"
   get_value: '/^(?:no )?snmp-server globalEnforcePriv/'
@@ -25,13 +31,20 @@ global_enforce_priv:
   default_value: false
 
 location:
-  get_data_format: nxapi_structured
-  get_command: "show snmp"
-  get_value: "sys_location"
-  set_value: "%s snmp-server location %s"
-  default_value: ""
+  nexus:
+    get_data_format: nxapi_structured
+    get_command: "show snmp"
+    get_value: "sys_location"
+    set_value: "<state> snmp-server location <location>"
+    default_value: ""
+  ios_xr:
+    get_command: 'show running-config snmp'
+    get_value: '/^snmp-server location (\S+)$/'
+    set_value: "<state> snmp-server location <location>"
+    default_value: ""
 
 packet_size:
+  _exclude: [ios_xr]
   kind: int
   get_command: "show snmp internal globals"
   get_value: '/SNMP Max packet size :(\d+)/'
@@ -39,14 +52,16 @@ packet_size:
   default_value: 1500
 
 protocol:
+  _exclude: [ios_xr]
   kind: boolean
   auto_default: false
-  get_command: "show running-config snmp all"
+  get_command: 'show running-config snmp all'
   get_value: '/^snmp.server protocol enable/'
   set_value: "%s snmp-server protocol enable"
   default_value: true
 
 tcp_session_auth:
+  _exclude: [ios_xr]
   kind: boolean
   auto_default: false
   get_command: "show running-config snmp all"
