@@ -1,6 +1,6 @@
 # vxlan_vtep
 ---
-_exclude: [N3k, N5k, N6k, ios_xr]
+_exclude: [N3k, N5k, N6k, N7k, ios_xr]
 
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
