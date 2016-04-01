@@ -18,9 +18,12 @@ require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 # TestAaaAuthorizationService - Minitest for AaaAuthorizationService util
 class TestAaaAuthorizationService < CiscoTestCase
   @skip_unless_supported = 'aaa_authorization_service'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
+    cleanup_aaa if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
     feature_tacacs
     preconfig_tacacs_server_access(tacacs_groups[0])
     config_tacacs_servers(tacacs_groups[1..3])
