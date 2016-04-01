@@ -45,12 +45,8 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def remove_svis
     Interface.interfaces.each do |name, _i|
-      next unless name[/vlan/]
-      if name.match(/\bvlan1\b/)
-        next
-      else
-        config("no interface #{name}")
-      end
+      next unless name[/vlan/] || name.match(/^vlan1$/)
+      config("no interface #{name}")
     end
   end
 

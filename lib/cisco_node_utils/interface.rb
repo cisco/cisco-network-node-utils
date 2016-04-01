@@ -1251,10 +1251,9 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_native_vlan
-      result = config_get('interface',
-                          'switchport_private_vlan_trunk_native_vlan',
-                          name: @name)
-      result
+      config_get('interface',
+                 'switchport_private_vlan_trunk_native_vlan',
+                 name: @name)
     end
 
     def switchport_private_vlan_trunk_native_vlan=(vlan)
