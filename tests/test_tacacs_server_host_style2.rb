@@ -19,7 +19,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/tacacs_server_host'
 
 # TestTacacsServerHost - Minitest for TacacsServerHost node utility.
-class TestTacacsServerHost < CiscoTestCase
+class TestTacacsServerHostStyle2 < CiscoTestCase
   @skip_unless_supported = 'tacacs_server_host'
 
   def setup
