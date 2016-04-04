@@ -22,16 +22,17 @@ class TestAaaAuthorizationService < CiscoTestCase
 
   def setup
     super
-    cleanup_aaa if @@pre_clean_needed
-    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
-    feature_tacacs
+    if @@pre_clean_needed
+      cleanup_aaa
+      config('feature tacacs+')
+      @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+    end
     preconfig_tacacs_server_access(tacacs_groups[0])
     config_tacacs_servers(tacacs_groups[1..3])
   end
 
   def teardown
     cleanup_aaa
-    feature_tacacs(false)
     super
   end
 
@@ -46,11 +47,6 @@ class TestAaaAuthorizationService < CiscoTestCase
     servers.each do |server|
       config("aaa group server tacacs+ #{server}")
     end
-  end
-
-  def feature_tacacs(feature=true)
-    state = feature ? '' : 'no'
-    config("#{state} feature tacacs+")
   end
 
   # Helper method to get regexp for aaa authorization commands
