@@ -237,7 +237,8 @@ class CiscoTestCase < TestCase
     # Example 'show mod' output to match against:
     #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
     #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7[7K]-F3'")[/^(\d+)\s.*N7[7K]-F3/]
+    sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N7[7K]-F3'")
+    sh_mod = sh_mod_string[/^(\d+)\s.*N7[7K]-F3/]
     slot = sh_mod.nil? ? nil : Regexp.last_match[1]
     skip('Unable to find compatible interface in chassis') if slot.nil?
 
