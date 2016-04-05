@@ -87,11 +87,30 @@ module Cisco
     def create
       Feature.bgp_enable if platform == :nexus
       router_bgp
+      wait_for_process_initialized
     end
 
     # Destroy router bgp instance
     def destroy
       router_bgp('no')
+    end
+
+    def process_initialized?
+      config_get('bgp', 'process_initialized')
+    end
+
+    def wait_for_process_initialized
+      return unless node.product_id[/N(5|6)/]
+
+      # Hack for slow-start platforms which will have setter failures if the
+      # bgp instance is still initializing. To see this problem in a sandbox
+      # do 'router bgp 1 ; router bgp 1 ; shutdown'.
+      4.times do
+        return if process_initialized?
+        sleep 1
+        node.cache_flush
+      end
+      fail 'BGP process is not initialized yet'
     end
 
     # Helper method to delete @set_args hash keys
