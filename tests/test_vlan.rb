@@ -299,4 +299,29 @@ class TestVlan < CiscoTestCase
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
+
+  def test_vlan_fabric_control
+    vlan = Vlan.new('100')
+    assert_equal(vlan.default_fabric_control, vlan.fabric_control,
+                 'Error: Vlan fabric-control is not matching')
+    vlan.fabric_control = true
+    assert(vlan.fabric_control)
+    vlan.destroy
+  end
+
+  def test_another_vlan_as_fabric_control
+    vlan = Vlan.new('100')
+    assert_equal(vlan.default_fabric_control, vlan.fabric_control,
+                 'Error: Vlan fabric-control is not matching')
+    vlan.fabric_control = true
+    assert(vlan.fabric_control)
+    another_vlan = Vlan.new(101)
+
+    assert_raises(RuntimeError,
+                  'VLAN misconfig did not raise CliError') do
+      another_vlan.fabric_control = true
+    end
+    vlan.destroy
+    another_vlan.destroy
+  end
 end

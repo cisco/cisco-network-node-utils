@@ -13,6 +13,19 @@ create:
 destroy:
   set_value: "no vlan %s"
 
+fabric_control:
+  _exclude:
+    - N3k
+    - N8k
+    - N9k
+  kind: boolean
+  get_command: "show running-config vlan"
+  get_context: ['/^vlan <vlan>/']
+  get_value: '/fabric-control/'
+  set_context: ["vlan <vlan>"]
+  set_value: "<state> fabric-control ; end"
+  default_value: false
+
 mapped_vni:
   N3k: &mapped_vni_n3k_n9k
     kind: int
@@ -42,18 +55,18 @@ name:
   get_command: "show vlan brief"
   get_value: '/^%d\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s name %s"
+  set_value: "%s name %s ; end"
 
 shutdown:
   get_command: "show vlan brief"
   get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s shutdown"
+  set_value: "%s shutdown ; end"
   default_value: false
 
 state:
   get_command: "show vlan brief"
   get_value: '/^%d\s+\S+\s+(\S+)\s/'
   set_context: ["vlan %d"]
-  set_value: "%s state %s"
+  set_value: "%s state %s ; end"
   default_value: "active"
