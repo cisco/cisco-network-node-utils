@@ -450,7 +450,7 @@ module Cisco
     # Build an array of all redistribute commands currently on the device
     def redistribute
       c = config_get('bgp_af', 'redistribute', @get_args)
-      c.nil? ? nil : c.each(&:compact!)
+      c.nil? ? nil : c.each(&:compact!).sort
     end
 
     # redistribute setter.
