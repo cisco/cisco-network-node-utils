@@ -33,7 +33,7 @@ itd:
   set_value: "feature itd"
 
 nv_overlay:
-  _exclude: [N3k, N5k, N6k]
+  _exclude: [N3k]
   kind: boolean
   get_value: '/^feature nv overlay$/'
   set_value: "feature nv overlay"
@@ -73,6 +73,8 @@ vn_segment_vlan_based:
     default_value: false
   N8k: *vn_segment_vlan_based_mt_lite
   N9k: *vn_segment_vlan_based_mt_lite
+  N6k: *vn_segment_vlan_based_mt_lite
+  N5k: *vn_segment_vlan_based_mt_lite
 
 vni:
   kind: boolean
