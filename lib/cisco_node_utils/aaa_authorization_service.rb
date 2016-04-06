@@ -117,7 +117,7 @@ module Cisco
     # aaa authorization login <type> <name> /
     #   local | group <group1 [group2, ...]> [local]
     def groups_method_set(grps, m)
-      fail TypeError unless grps.is_a? Array
+      grps = Array(grps) unless grps.is_a? Array
       fail TypeError unless grps.all? { |x| x.is_a? String }
       fail TypeError unless m.is_a? Symbol
       # only the following are supported (unselected = blank)

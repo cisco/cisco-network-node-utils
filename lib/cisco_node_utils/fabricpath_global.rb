@@ -46,13 +46,18 @@ module Cisco
 
     def self.fabricpath_feature
       fabricpath = config_get('fabricpath', 'feature')
-      fail 'fabricpath_feature not found' if fabricpath.nil?
       return :disabled if fabricpath.nil?
       fabricpath.to_sym
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled
       raise unless e.clierror =~ /Syntax error/
       return :disabled
+    end
+
+    def self.fabricpath_enable
+      # TBD: Move to Feature provider
+      FabricpathGlobal.fabricpath_feature_set(:enabled) unless
+        FabricpathGlobal.fabricpath_feature == :enabled
     end
 
     def self.fabricpath_feature_set(fabricpath_set)
@@ -90,8 +95,7 @@ module Cisco
     end
 
     def create
-      FabricpathGlobal.fabricpath_feature_set(:enabled) unless
-      :enabled == FabricpathGlobal.fabricpath_feature
+      FabricpathGlobal.fabricpath_enable
     end
 
     def destroy
@@ -99,23 +103,15 @@ module Cisco
       FabricpathGlobal.fabricpath_feature_set(:disabled)
     end
 
-    def my_munge(property, set_val)
-      val = config_get_default('fabricpath', property)
+    def loadbalance_munge(property, set_val)
       case property
       when /loadbalance_algorithm/
-        if (val == 'source-destination') &&
-           (set_val == 'symmetric' || set_val == 'xor')
-          val
-        else
-          set_val
-        end
+        val = config_get_default('fabricpath', property)
+        return val if (val == 'source-destination') && set_val[/symmetric|xor/]
+        set_val
       when /loadbalance_.*_rotate/
-        if val == false || set_val == ''
-          ''
-        else
-          int_val = set_val.to_i
-          "rotate-amount 0x#{int_val.to_s(16)}"
-        end
+        return '' if set_val == ''
+        "rotate-amount 0x#{set_val.to_i.to_s(16)}"
       else
         set_val
       end
@@ -223,13 +219,18 @@ module Cisco
       config_get_default('fabricpath', 'linkup_delay_enable')
     end
 
+    def loadbalance_algorithm_symmetric_support
+      config_get_default('fabricpath',
+                         'loadbalance_algorithm_symmetric_support')
+    end
+
     def loadbalance_algorithm
       algo = config_get('fabricpath', 'loadbalance_algorithm')
       algo.downcase
     end
 
     def loadbalance_algorithm=(val)
-      val = my_munge('loadbalance_algorithm', val)
+      val = loadbalance_munge('loadbalance_algorithm', val)
       state = val ? '' : 'no'
       algo = val ? val : ''
       config_set('fabricpath', 'loadbalance_algorithm', state: state,
@@ -253,16 +254,14 @@ module Cisco
       if rotate == '' && (has_vlan == '' || has_vlan == false)
         config_set('fabricpath', 'loadbalance_multicast_reset')
       else
-        rotate = my_munge('loadbalance_multicast_rotate', rotate)
+        rotate = loadbalance_munge('loadbalance_multicast_rotate', rotate)
         has_vlan = (has_vlan == true) ? 'include-vlan' : ''
         config_set('fabricpath', 'loadbalance_multicast_set',
-                   rotate_amt: rotate, inc_vlan: has_vlan)
+                   rotate: rotate, has_vlan: has_vlan)
       end
     end
 
-    def default_loadbalance_multicast_rotate
-      config_get_default('fabricpath', 'loadbalance_multicast_rotate')
-    end
+    # default_loadbalance_multicast_rotate: n/a
 
     def default_loadbalance_multicast_has_vlan
       config_get_default('fabricpath', 'loadbalance_multicast_has_vlan')
@@ -292,9 +291,9 @@ module Cisco
 
     def split_loadbalance_unicast_layer=(val)
       state = val ? '' : 'no'
-      pref = val ? val : ''
-      config_set('fabricpath', 'loadbalance_unicast_layer', state: state,
-                                                            pref:  pref)
+      layer = val ? val : ''
+      config_set('fabricpath', 'loadbalance_unicast_layer',
+                 state: state, layer: layer)
     end
 
     def split_loadbalance_unicast_has_vlan=(val)
@@ -312,10 +311,10 @@ module Cisco
         if layer == '' && rotate == '' && (has_vlan == '' || has_vlan == false)
           config_set('fabricpath', 'loadbalance_unicast_reset')
         else
-          rotate = my_munge('loadbalance_unicast_rotate', rotate)
+          rotate = loadbalance_munge('loadbalance_unicast_rotate', rotate)
           has_vlan = (has_vlan == true) ? 'include-vlan' : ''
           config_set('fabricpath', 'loadbalance_unicast_set',
-                     pref: layer, rotate_amt: rotate, inc_vlan: has_vlan)
+                     layer: layer, rotate: rotate, has_vlan: has_vlan)
         end
       else
         self.split_loadbalance_unicast_layer = layer
@@ -327,9 +326,7 @@ module Cisco
       config_get_default('fabricpath', 'loadbalance_unicast_layer')
     end
 
-    def default_loadbalance_unicast_rotate
-      config_get_default('fabricpath', 'loadbalance_unicast_rotate')
-    end
+    # default_loadbalance_unicast_rotate: n/a
 
     def default_loadbalance_unicast_has_vlan
       config_get_default('fabricpath', 'loadbalance_unicast_has_vlan')

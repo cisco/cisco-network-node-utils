@@ -34,6 +34,7 @@ class TestInterface < CiscoTestCase
 
   def setup
     super
+    interface_ethernet_default(interfaces[0])
     if platform == :nexus
       @port_channel = 'port-channel'
       # rubocop:disable Style/AlignHash
@@ -59,6 +60,11 @@ class TestInterface < CiscoTestCase
         'shutdown_ethernet_noswitchport_shutdown' => []
       }
     end
+  end
+
+  def teardown
+    interface_ethernet_default(interfaces[0])
+    super
   end
 
   def ipv4
@@ -89,8 +95,8 @@ class TestInterface < CiscoTestCase
   def interface_ipv4_config(ifname, address, length,
                             do_config=true, secip=false)
     if do_config
-      config("interface #{ifname}",
-             'no switchport') if platform == :nexus
+      config_no_warn("interface #{ifname}",
+                     'no switchport') if platform == :nexus
       if !secip
         config("interface #{ifname}",
                "#{ipv4} address #{address}/#{length}")
@@ -131,15 +137,20 @@ class TestInterface < CiscoTestCase
     arr.count
   end
 
-  # Helper to check for misc speed change disallowed error messages.
-  def speed_change_disallowed(message)
-    patterns = ['port doesn t support this speed',
-                'Changing interface speed is not permitted',
-                'requested config change not allowed',
-                /does not match the (transceiver speed|port capability)/]
-    skip('Skip test: Interface type does not allow config change') if
-         message[Regexp.union(patterns)]
-    flunk(message)
+  # Helper to get valid speeds for port
+  def capable_speed_values(interface)
+    capabilities = config("show interface #{interface.name} capabilities")
+    speed_capa = capabilities.match(/Speed:\s+(\S+)/)
+    return [] if speed_capa[1].nil?
+    speed_capa[1].split(',')
+  end
+
+  # Helper to get valid duplex values for port
+  def capable_duplex_values(interface)
+    capabilities = config("show interface #{interface.name} capabilities")
+    duplex_capa = capabilities.match(/Duplex:\s+(\S+)/)
+    return [] if duplex_capa[1].nil?
+    duplex_capa[1].split(',')
   end
 
   def create_interface(ifname=interfaces[0])
@@ -147,8 +158,8 @@ class TestInterface < CiscoTestCase
     Interface.new(ifname)
   end
 
-  def interface_ethernet_default(ethernet_id)
-    config("default interface ethernet #{ethernet_id}")
+  def interface_ethernet_default(ethernet_intf)
+    config("default interface #{ethernet_intf}")
   end
 
   def interface_supports_property?(intf, message)
@@ -157,6 +168,37 @@ class TestInterface < CiscoTestCase
     skip("Interface '#{intf}' does not support property") if
       message[Regexp.union(patterns)]
     flunk(message)
+  end
+
+  # Helper to find first valid speed that isn't "auto"
+  def valid_speed_set(interface)
+    valid_speed = nil
+    speeds = capable_speed_values(interface)
+    speeds.each do |value|
+      next if value == 'auto'
+      begin
+        interface.speed = value
+        assert_equal(value.to_i, interface.speed)
+      rescue Cisco::CliError => e
+        next if speed_change_disallowed?(e.message)
+        raise
+      end
+      # Exit loop once proper speed is found
+      valid_speed = value
+      break
+    end
+    valid_speed
+  end
+
+  # Helper to check for misc speed change disallowed error messages.
+  def speed_change_disallowed?(message)
+    patterns = ['port doesn t support this speed',
+                'Changing interface speed is not permitted',
+                'requested config change not allowed',
+                /does not match the (transceiver speed|port capability)/,
+                'but the transceiver doesn t support this speed',
+                '% Ambiguous parameter']
+    message[Regexp.union(patterns)]
   end
 
   def validate_interfaces_not_empty
@@ -471,7 +513,6 @@ class TestInterface < CiscoTestCase
     description = 'This is a test description ! '
     interface.description = description
     assert_equal(description.rstrip, interface.description)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_encapsulation_dot1q
@@ -484,7 +525,6 @@ class TestInterface < CiscoTestCase
     subif.encapsulation_dot1q = 25
     assert_equal(25, subif.encapsulation_dot1q)
     subif.destroy
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_mtu_change
@@ -496,7 +536,6 @@ class TestInterface < CiscoTestCase
     assert_equal(1580, interface.mtu)
     interface.mtu = interface.default_mtu
     assert_equal(interface.default_mtu, interface.mtu)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_mtu_invalid
@@ -512,7 +551,6 @@ class TestInterface < CiscoTestCase
     assert_equal(1550, interface.mtu)
     interface.mtu = interface.default_mtu
     assert_equal(interface.default_mtu, interface.mtu)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_mtu_invalid_loopback
@@ -526,45 +564,66 @@ class TestInterface < CiscoTestCase
 
   def test_speed
     interface = Interface.new(interfaces[0])
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'speed')
       assert_nil(interface.speed)
       assert_nil(interface.default_speed)
       assert_raises(Cisco::UnsupportedError) { interface.speed = 1000 }
-    else
-      assert_raises(RuntimeError, Cisco::CliError) { interface.speed = 'hello' }
+      return
+    end
+
+    # Test invalid speed
+    assert_raises(RuntimeError, Cisco::CliError) { interface.speed = 'hello' }
+
+    # Test up to two non-default values
+    speed_values = capable_speed_values(interface)
+    successful_runs = 0
+    speed_values.each do |value|
+      break if successful_runs >= 2
       begin
-        interface.speed = 1000
-        assert_equal('1000', interface.speed)
-        interface.speed = 100
-        assert_equal('100', interface.speed)
+        interface.speed = value
+        assert_equal(value.to_i, interface.speed)
+        successful_runs += 1
       rescue Cisco::CliError => e
-        speed_change_disallowed(e.message)
+        # Many of the 'capable' speeds are actually not valid values
+        # Try next available speed value if CLI rejects current value
+        next if speed_change_disallowed?(e.message)
+        raise
       end
     end
-    interface_ethernet_default(interfaces_id[0])
+
+    # Test default speed value
+    interface.speed = interface.default_speed
+    assert_equal(interface.speed, interface.default_speed)
   end
 
   def test_duplex
     interface = Interface.new(interfaces[0])
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'duplex')
       assert_nil(interface.duplex)
       assert_nil(interface.default_duplex)
       assert_raises(Cisco::UnsupportedError) { interface.duplex = 'full' }
-    else
-      assert_raises(RuntimeError, Cisco::CliError) do
-        interface.duplex = 'hello'
-      end
-      interface.speed = 1000
-      begin
-        interface.duplex = 'full'
-        assert_equal('full', interface.duplex)
-        interface.duplex = 'auto'
-        assert_equal('auto', interface.duplex)
-      rescue Cisco::CliError => e
-        speed_change_disallowed(e.message)
-      end
+      return
     end
-    interface_ethernet_default(interfaces_id[0])
+
+    # Test invalid duplex
+    assert_raises(RuntimeError, Cisco::CliError) { interface.duplex = 'hello' }
+
+    # Ensure speed is non-auto value
+    if interface.default_speed == 'auto'
+      valid_speed = valid_speed_set(interface)
+      skip('Cannot configure non-auto speed') if valid_speed.nil?
+    end
+
+    # Test non-default values
+    duplex_values = capable_duplex_values(interface)
+    duplex_values.each do |value|
+      interface.duplex = value
+      assert_equal(value, interface.duplex)
+    end
+
+    # Test default duplex value
+    interface.duplex = interface.default_duplex
+    assert_equal(interface.duplex, interface.default_duplex)
   end
 
   def test_interface_shutdown_valid
@@ -574,7 +633,6 @@ class TestInterface < CiscoTestCase
 
     interface.shutdown = false
     refute(interface.shutdown, 'Error: shutdown state is not false')
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_svi_prop_nil_when_ethernet
@@ -590,7 +648,6 @@ class TestInterface < CiscoTestCase
   #     interface.switchport_mode = :access
   #     addresses = interface.prefixes
   #     assert_empty(addresses)
-  #     interface_ethernet_default(interfaces_id[0])
   #   end
   #
   #   def test_interface_get_prefix_list_with_ipv4_address_assignment
@@ -604,7 +661,6 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("192.168.1.100"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
   #   end
   #
   #   def test_interface_get_prefix_list_with_ipv6_address_assignment
@@ -618,7 +674,6 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("fd56:31f7:e4ad:5585::1"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
   #   end
   #
   #   def test_interface_prefix_list_with_both_ip4_and_ipv6_address_assignments
@@ -634,31 +689,27 @@ class TestInterface < CiscoTestCase
   #     assert(prefixes.has_key?("fd56:31f7:e4ad:5585::1"))
   #     interface.switchport_mode = :access
   #     prefixes = nil
-  #     interface_ethernet_default(interfaces_id[0])
   #   end
 
-  def negotiate_auto_helper(interface, default, cmd_ref)
+  def negotiate_auto_helper(interface, default)
     inf_name = interface.name
+
+    negotiate_auto_intf = interface.negotiate_auto_lookup_string
+    if validate_property_excluded?('interface', negotiate_auto_intf)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.negotiate_auto = true
+      end
+      return
+    end
 
     # Test default
     assert_equal(default, interface.default_negotiate_auto,
                  "Error: #{inf_name} negotiate auto default value mismatch")
 
     interface.negotiate_auto = default
-    # Delay as this change is sometimes too quick for some interfaces
-    sleep 1 unless default == interface.negotiate_auto
-    node.cache_flush
     assert_equal(default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value " \
                  'should be same as default')
-
-    unless cmd_ref.setter?
-      # check the set for unsupported platforms
-      assert_raises(RuntimeError) do
-        interface.negotiate_auto = true
-      end
-      return
-    end
 
     interface.negotiate_auto = default
     assert_equal(default, interface.negotiate_auto,
@@ -682,10 +733,6 @@ class TestInterface < CiscoTestCase
                    "Error: #{inf_name} negotiate auto value not #{default}")
       return
     end
-
-    # Delay as this change is sometimes too quick for some interfaces
-    sleep 1 unless non_default == interface.negotiate_auto
-    node.cache_flush
 
     assert_equal(non_default, interface.negotiate_auto,
                  "Error: #{inf_name} negotiate auto value not #{non_default}")
@@ -711,12 +758,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_portchannel
-    ref = cmd_ref.lookup('interface',
-                         'negotiate_auto_portchannel')
-    assert(ref, 'Error, reference not found')
-
     # Create interface member of this group (required for XR)
-    interface_ethernet_default(interfaces_id[0])
     member = InterfaceChannelGroup.new(interfaces[0])
     begin
       member.channel_group = 10
@@ -728,44 +770,34 @@ class TestInterface < CiscoTestCase
 
     inf_name = "#{@port_channel}10"
     interface = Interface.new(inf_name)
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'negotiate_auto_portchannel')
       assert_nil(interface.negotiate_auto)
       assert_nil(interface.default_negotiate_auto)
       assert_raises(Cisco::UnsupportedError) do
         interface.negotiate_auto = false
       end
     else
-      default = ref.default_value
+      default = interface.default_negotiate_auto
       @default_show_command = show_cmd(inf_name)
 
       # Test with switchport
-      negotiate_auto_helper(interface, default, ref)
+      interface.switchport_mode = :access
+      negotiate_auto_helper(interface, default)
 
       # Test with no switchport
-      config("interface #{@port_channel} 10", 'no switchport')
-      negotiate_auto_helper(interface, default, ref)
+      interface.switchport_mode = :disabled
+      negotiate_auto_helper(interface, default)
     end
 
     # Cleanup
-    config("no interface #{@port_channel} 10")
-    member.channel_group = false # rubocop:disable Lint/UselessSetterCall
+    interface.destroy
   end
 
   def test_negotiate_auto_ethernet
-    ref = cmd_ref.lookup('interface',
-                         'negotiate_auto_ethernet')
-    assert(ref, 'Error, reference not found')
-
-    # Cleanup
-    interface_ethernet_default(interfaces_id[0])
-
-    # Some platforms does not support negotiate auto
-    # if so then we abort the test.
-
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
 
-    if platform == :ios_xr
+    if validate_property_excluded?('interface', 'negotiate_auto_ethernet')
       assert_nil(interface.negotiate_auto)
       assert_nil(interface.default_negotiate_auto)
       assert_raises(Cisco::UnsupportedError) do
@@ -783,18 +815,16 @@ class TestInterface < CiscoTestCase
       flunk(e.message)
     end
 
-    default = ref.default_value
+    default = interface.default_negotiate_auto
     @default_show_command = show_cmd(inf_name)
 
     # Test with switchport
-    negotiate_auto_helper(interface, default, ref)
+    interface.switchport_mode = :access
+    negotiate_auto_helper(interface, default)
 
     # Test with no switchport
-    config("interface #{interfaces[0]}", 'no switchport')
-    negotiate_auto_helper(interface, default, ref)
-
-    # Cleanup
-    interface_ethernet_default(interfaces_id[0])
+    interface.switchport_mode = :disabled
+    negotiate_auto_helper(interface, default)
   end
 
   def test_negotiate_auto_loopback
@@ -802,12 +832,12 @@ class TestInterface < CiscoTestCase
                          'negotiate_auto_other_interfaces')
     assert(ref, 'Error, reference not found')
 
-    inf_name = 'loopback2'
-    config('interface loopback 2')
-    interface = Interface.new(inf_name)
+    int = 'loopback2'
+    config("interface #{int}")
+    interface = Interface.new(int)
 
-    assert_equal(ref.default_value, interface.negotiate_auto,
-                 "Error: #{inf_name} negotiate auto value mismatch")
+    assert_equal(interface.negotiate_auto, ref.default_value,
+                 "Error: #{int} negotiate auto value mismatch")
 
     assert_raises(Cisco::UnsupportedError) do
       interface.negotiate_auto = true
@@ -817,7 +847,7 @@ class TestInterface < CiscoTestCase
     end
 
     # Cleanup
-    config('no interface loopback 2')
+    config("no interface #{int}")
   end
 
   def test_interfaces_not_empty
@@ -830,7 +860,6 @@ class TestInterface < CiscoTestCase
     assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('', 14)
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_ipv4_addr_mask_set_netmask_invalid
@@ -839,7 +868,6 @@ class TestInterface < CiscoTestCase
     assert_raises(Cisco::CliError) do
       interface.ipv4_addr_mask_set('8.1.1.2', DEFAULT_IF_IP_NETMASK_LEN)
     end
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_ipv4_acl
@@ -859,7 +887,6 @@ class TestInterface < CiscoTestCase
         config("ipv4 access-list #{acl_name} 1 permit any")
       end
     end
-    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     intf.ipv4_acl_in = 'v4acl1'
@@ -890,7 +917,6 @@ class TestInterface < CiscoTestCase
     #     ipv6 traffic-filter v6acl1 in
     #     ipv6 traffic-filter v6acl2 out
     #
-    interface_ethernet_default(interfaces_id[0])
     intf = Interface.new(interfaces[0])
 
     # create acls first
@@ -977,8 +1003,6 @@ class TestInterface < CiscoTestCase
     assert_equal(DEFAULT_IF_IP_NETMASK_LEN,
                  interface.ipv4_netmask_length,
                  'Error: ipv4 netmask length default get value mismatch')
-
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_ipv4_address_getter_with_preconfig
@@ -996,7 +1020,6 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress
     interface_ipv4_config(ifname, address, length, false)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_ipv4_address_getter_with_preconfig_secondary
@@ -1018,7 +1041,6 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length get value mismatch')
     # unconfigure ipaddress includign secondary
     interface_ipv4_config(ifname, address, length, false, false)
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_ipv4_arp_timeout
@@ -1043,7 +1065,6 @@ class TestInterface < CiscoTestCase
 
   def test_interface_ipv4_forwarding
     intf = interfaces[0]
-    interface_ethernet_default(interfaces_id[0])
     i = Interface.new(intf)
 
     if platform == :ios_xr
@@ -1074,25 +1095,42 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_fabric_forwarding_anycast_gateway
-    unless platform == :ios_xr
-      # Setup
-      config_no_warn('no interface vlan11')
-      int = Interface.new('vlan11')
-      foo = OverlayGlobal.new
-      foo.anycast_gateway_mac = '1223.3445.5668'
+    # Ensure N7k has compatible interface
+    mt_full_interface? if node.product_id[/N7/]
 
-      # 1. Testing default for newly created vlan
-      assert_equal(int.default_fabric_forwarding_anycast_gateway,
-                   int.fabric_forwarding_anycast_gateway)
-
-      # 2. Testing non-default:true
-      int.fabric_forwarding_anycast_gateway = true
-      assert(int.fabric_forwarding_anycast_gateway)
-
-      # 3. Setting back to false
-      int.fabric_forwarding_anycast_gateway = false
-      refute(int.fabric_forwarding_anycast_gateway)
+    if validate_property_excluded?('overlay_global', 'anycast_gateway_mac')
+      assert_raises(Cisco::UnsupportedError) do
+        OverlayGlobal.new.anycast_gateway_mac = '1223.3445.5668'
+      end
+      return
     end
+    if validate_property_excluded?('interface',
+                                   'fabric_forwarding_anycast_gateway')
+      int = Interface.new('vlan11')
+      OverlayGlobal.new.anycast_gateway_mac = '1223.3445.5668'
+      assert_raises(Cisco::UnsupportedError) do
+        int.fabric_forwarding_anycast_gateway = true
+      end
+      return
+    end
+
+    # Setup
+    config_no_warn('no interface vlan11')
+    int = Interface.new('vlan11')
+    foo = OverlayGlobal.new
+    foo.anycast_gateway_mac = '1223.3445.5668'
+
+    # 1. Testing default for newly created vlan
+    assert_equal(int.default_fabric_forwarding_anycast_gateway,
+                 int.fabric_forwarding_anycast_gateway)
+
+    # 2. Testing non-default:true
+    int.fabric_forwarding_anycast_gateway = true
+    assert(int.fabric_forwarding_anycast_gateway)
+
+    # 3. Setting back to false
+    int.fabric_forwarding_anycast_gateway = false
+    refute(int.fabric_forwarding_anycast_gateway)
 
     # 4. Attempt to configure on a non-vlan interface
     nonvlanint = create_interface
@@ -1100,15 +1138,14 @@ class TestInterface < CiscoTestCase
       nonvlanint.fabric_forwarding_anycast_gateway = true
     end
 
-    unless platform == :ios_xr # rubocop:disable Style/GuardClause
-      # 5. Attempt to set 'fabric forwarding anycast gateway' while the
-      #    overlay gateway mac is not set.
-      int = Interface.new('vlan11')
-      foo = OverlayGlobal.new
-      foo.anycast_gateway_mac = foo.default_anycast_gateway_mac
-      assert_raises(RuntimeError) do
-        int.fabric_forwarding_anycast_gateway = true
-      end
+    # 5. Attempt to set 'fabric forwarding anycast gateway' while the
+    #    overlay gateway mac is not set.
+    int.destroy
+    int = Interface.new('vlan11')
+    bar = OverlayGlobal.new
+    bar.anycast_gateway_mac = bar.default_anycast_gateway_mac
+    assert_raises(RuntimeError) do
+      int.fabric_forwarding_anycast_gateway = true
     end
   end
 
@@ -1147,8 +1184,6 @@ class TestInterface < CiscoTestCase
     assert_equal(DEFAULT_IF_IP_PROXY_ARP,
                  interface.ipv4_proxy_arp,
                  'Error: ip proxy-arp default get value mismatch')
-
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def test_interface_ipv4_redirects
@@ -1193,22 +1228,17 @@ class TestInterface < CiscoTestCase
                       msg:     'Error: default ip redirects set failed')
     assert_equal(interface.default_ipv4_redirects, interface.ipv4_redirects,
                  'Error: ip redirects default get value mismatch')
-
-    interface_ethernet_default(interfaces_id[0])
   end
 
   def config_from_hash(inttype_h)
     inttype_h.each do |k, v|
-      # puts "TEST: pre-config hash key : #{k}"
       config('feature interface-vlan') if (/^Vlan\d./).match(k.to_s)
 
-      # puts "TEST: pre-config k: v '#{k} : #{v}'"
       cfg = ["interface #{k}"]
-      if !(/^Ethernet\d.\d/).match(k.to_s).nil? ||
-         !(/^#{@port_channel}\d/).match(k.to_s).nil?
-        cfg << 'no switchport'
-      end
-      # puts "k: #{k}, k1: #{k1}, address #{v1[:address_len]}"
+
+      switchport_intfs = Regexp.union(/ethernet/i, @port_channel)
+      cfg << 'no switchport' if platform == :nexus && k =~ switchport_intfs
+
       cfg << "#{ipv4} address #{v[:address_len]}" unless v[:address_len].nil?
       if platform == :nexus
         cfg << 'ip proxy-arp' if v[:proxy_arp]
@@ -1346,27 +1376,22 @@ class TestInterface < CiscoTestCase
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
       config(*cfg)
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
+      interface_ethernet_default(interfaces[1])
     rescue Minitest::Assertion
       # clean up before failing
       config(*cfg)
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = false
+      interface_ethernet_default(interfaces[1])
       raise
     end
   end
 
   def test_interface_vrf_default
-    config('interface loopback1', 'vrf member foo')
     interface = Interface.new('loopback1')
+    assert_empty(interface.vrf)
+    interface.vrf = 'foo'
+    assert_equal(interface.vrf, 'foo')
     interface.vrf = interface.default_vrf
-    assert_equal(DEFAULT_IF_VRF, interface.vrf)
-  end
-
-  def test_interface_vrf_empty
-    config('interface loopback1', 'vrf member foo')
-    interface = Interface.new('loopback1')
-    interface.vrf = DEFAULT_IF_VRF
-    assert_equal(DEFAULT_IF_VRF, interface.vrf)
+    assert_equal(interface.vrf, interface.default_vrf)
   end
 
   def test_interface_vrf_invalid_type
@@ -1438,6 +1463,13 @@ class TestInterface < CiscoTestCase
       assert_nil(i.default_ipv4_pim_sparse_mode)
       assert_raises(Cisco::UnsupportedError) { i.ipv4_pim_sparse_mode = true }
       return
+    end
+    begin
+      i.switchport_mode = :disabled
+    rescue Cisco::CliError => e
+      skip_message = 'Interface does not support switchport disable'
+      skip(skip_message) if e.message['requested config change not allowed']
+      raise
     end
     # Sample cli:
     #

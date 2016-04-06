@@ -413,7 +413,7 @@ module Cisco
 
     def supports?(feature, property=nil)
       value = @hash[feature]
-      value = value[property] if value && property
+      value = value[property] if value.is_a?(Hash) && property
       !(value.is_a?(UnsupportedCmdRef) || value.nil?)
     end
 
@@ -434,27 +434,16 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 N3k N5k N6k N7k N8k N9k XRv9k)
+    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 N3k N5k N6k N7k N8k N9k XRv9k)
 
     def self.platform_to_filter(platform)
-      case platform
-      when 'C3064'
-        /C3064/
-      when 'N3k'
-        /N3/
-      when 'N5k'
-        /N5/
-      when 'N6k'
-        /N6/
-      when 'N7k'
-        /N7/
-      when 'N8k'
-        # TBD: This platform currently reports the chassis as N9K
-        /N8/
-      when 'N9k'
-        /N9/
-      when 'XRv9k'
-        /XRV9/
+      if KNOWN_PLATFORMS.include?(platform)
+        case platform
+        when 'XRv9k'
+          /XRV9/
+        else
+          Regexp.new platform.tr('k', '')
+        end
       else
         fail IndexError, "Unknown platform key '#{platform}'"
       end

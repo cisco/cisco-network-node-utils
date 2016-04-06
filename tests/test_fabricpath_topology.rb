@@ -38,7 +38,7 @@ class TestFabricpathTopo < CiscoTestCase
 
   def no_feature_fabricpath
     # Turn the feature off for a clean test.
-    config('no feature-set fabricpath')
+    config_no_warn('no feature-set fabricpath')
   end
 
   # TESTS
@@ -70,7 +70,7 @@ class TestFabricpathTopo < CiscoTestCase
     @topo.topo_name = 'Topo-25'
     @topo.member_vlans = '2-10, 100, 500'
     topo25_vlans = @topo.member_vlans
-    puts "Topo #{@topo.topo_name} member vlans #{topo25_vlans}"
+    # puts "Topo #{@topo.topo_name} member vlans #{topo25_vlans}"
     assert_equal('2-10,100,500', topo25_vlans,
                  'Topo 25 not getting set with member vlans')
   end

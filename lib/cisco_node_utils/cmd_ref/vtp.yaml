@@ -2,33 +2,30 @@
 ---
 _exclude: [ios_xr]
 
+# VTP behaves differently across the various Nexus platforms and as a
+# result it's not currently possible to use a single 'show running'
+# command to query the device state.
 domain:
   get_command: "show vtp status"
-  get_value: "domain_name"
-  set_value: "vtp domain %s"
-
-feature:
-  kind: boolean
-  get_command: "show running vtp"
-  get_value: '/^feature vtp$/'
-  set_value: "%s feature vtp"
-  default_value: false
+  get_value: '/^VTP\s+Domain\s+Name\s+:\s+(\S+)$/'
+  set_value: "vtp domain <domain>"
+  default_value: ""
 
 filename:
-  get_command: "show running vtp"
-  get_value: '/vtp file (\S+)/'
-  set_value: "%s vtp file %s"
+  get_command: "show running-config vtp all"
+  get_value: '/vtp\s+file\s+(\S+)/'
+  set_value: "<state> vtp file <uri>"
   default_value: "bootflash:/vlan.dat"
 
 password:
   get_command: "show vtp password"
-  get_value: "passwd"
-  set_value: "%s vtp password %s"
+  get_value: '/VTP\s+Password:\s+(\S+)/i'
+  set_value: "<state> vtp password <password>"
   default_value: ""
 
 version:
   kind: int
   get_command: "show vtp status"
-  get_value: '/VTP\s+version\s+running\s+:\s+(\d+)/'
-  set_value: "vtp version %s"
+  get_value: '/^VTP\s+version\s+running\s+:\s+(\d+)$/'
+  set_value: "vtp version <version>"
   default_value: 1

@@ -186,6 +186,9 @@ class Cisco::Client::NXAPI < Cisco::Client
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
     begin
+      # Explicitly use http to avoid EOFError
+      # http://stackoverflow.com/a/23080693
+      @http.use_ssl = false
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
@@ -286,6 +289,11 @@ class Cisco::Client::NXAPI < Cisco::Client
       # handle accordingly
       fail Cisco::RequestNotSupported, \
            "Structured output not supported for #{command}"
+    # Error 432: Requested object does not exist
+    # Ignore 432 errors because it means that a property is not configured
+    elsif output['code'] =~ /[45]\d\d/ && output['code'] != '432'
+      fail Cisco::RequestFailed, \
+           "#{output['code']} Error: #{output['msg']}"
     else
       debug("Result for '#{command}': #{output['msg']}")
       if output['body'] && !output['body'].empty?

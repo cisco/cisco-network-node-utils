@@ -53,23 +53,23 @@ class TestVlan < CiscoTestCase
     flunk(e.message)
   end
 
-  def test_vlan_collection_not_empty
+  def test_collection_not_empty
     vlans = Vlan.vlans
     assert_equal(false, vlans.empty?, 'VLAN collection is empty')
     assert(vlans.key?('1'), 'VLAN 1 does not exist')
   end
 
-  def test_vlan_create_invalid
+  def test_create_invalid
     e = assert_raises(CliError) { Vlan.new(5000) }
     assert_match(/Invalid value.range/, e.message)
   end
 
-  def test_vlan_create_invalid_non_numeric_vlan
+  def test_create_invalid_non_numeric_vlan
     e = assert_raises(ArgumentError) { Vlan.new('fred') }
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
-  def test_vlan_create_and_destroy
+  def test_create_and_destroy
     v = Vlan.new(1000)
     vlans = Vlan.vlans
     assert(vlans.key?('1000'), 'Error: failed to create vlan 1000')
@@ -79,7 +79,7 @@ class TestVlan < CiscoTestCase
     refute(vlans.key?('1000'), 'Error: failed to destroy vlan 1000')
   end
 
-  def test_vlan_name_default_1000
+  def test_name_default_1000
     v = Vlan.new(1000)
     assert_equal(v.default_vlan_name, v.vlan_name,
                  'Error: Vlan name not initialized to default')
@@ -94,7 +94,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_default_40
+  def test_name_default_40
     v = Vlan.new(40)
     assert_equal(v.default_vlan_name, v.vlan_name,
                  'Error: Vlan name not initialized to default')
@@ -109,7 +109,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_nil
+  def test_name_nil
     v = Vlan.new(1000)
     assert_raises(TypeError) do
       v.vlan_name = nil
@@ -117,7 +117,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_invalid
+  def test_name_invalid
     v = Vlan.new(1000)
     assert_raises(TypeError) do
       v.vlan_name = Cisco::Node.instance
@@ -125,14 +125,14 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_zero_length
+  def test_name_zero_length
     v = Vlan.new(1000)
     v.vlan_name = ''
     assert('', v.vlan_name)
     v.destroy
   end
 
-  def test_vlan_name_length_valid
+  def test_name_length_valid
     v = Vlan.new(1000)
     alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
     name = ''
@@ -148,7 +148,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_too_long
+  def test_name_too_long
     v = Vlan.new(1000)
     name = 'a' * VLAN_NAME_SIZE
     assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
@@ -159,7 +159,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_name_duplicate
+  def test_name_duplicate
     # Testbed cleanup
     v = Vlan.new(1000)
     v.destroy
@@ -176,15 +176,15 @@ class TestVlan < CiscoTestCase
     v2.destroy
   end
 
-  def test_vlan_state_invalid
+  def test_state_invalid
     v = Vlan.new(1000)
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       v.state = 'unknown'
     end
     v.destroy
   end
 
-  def test_vlan_state_valid
+  def test_state_valid
     states = %w(unknown active suspend)
     v = Vlan.new(1000)
     states.each do |start|
@@ -199,7 +199,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_shutdown_extended
+  def test_shutdown_extended
     v = Vlan.new(2000)
     assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
       v.shutdown = 'shutdown'
@@ -207,7 +207,7 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_shutdown_valid
+  def test_shutdown_valid
     shutdown_states = [true, false]
     v = Vlan.new(1000)
     shutdown_states.each do |start|
@@ -221,57 +221,74 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_vlan_add_remove_interface_valid
-    v = Vlan.new(1000)
-    interfaces = Interface.interfaces
-    interfaces_added_to_vlan = []
-    count = 3
-    interfaces.each do |name, interface|
-      next unless interface.name.match(%r{ethernet[0-9/]+$}) && count > 0
-      interface_ethernet_default(%r{net(\d+/\d+)}.match(name)[1])
-      interfaces_added_to_vlan << name
-      interface.switchport_mode = :access
-      v.add_interface(interface)
-      count -= 1
-    end
-    assert_equal(0, count)
+  def test_add_remove_interface
+    vlan_id = 1000
+    v = Vlan.new(vlan_id)
 
-    interfaces = v.interfaces
-    interfaces.each do |name, interface|
-      assert_includes(interfaces_added_to_vlan, name)
-      assert_equal(v.vlan_id, interface.access_vlan, 'Interface.access_vlan')
-      v.remove_interface(interface)
+    # Remove vlan_id from all interfaces currently using it
+    v.interfaces.each do |_name, i|
+      v.remove_interface(i)
     end
+    assert_empty(v.interfaces, "access vlan #{vlan_id} should not be "\
+                               'present on any interfaces')
 
-    interfaces = v.interfaces
-    assert(interfaces.empty?)
+    # Add test vlan to 3 ethernet interfaces
+    vlan_intf_max = 3
+    vlan_intf_list = []
+    Interface.interfaces.each do |name, i|
+      next unless i.name[/ethernet/]
+      interface_ethernet_default(name)
+      i.switchport_mode = :access
+      assert_equal(i.default_access_vlan, i.access_vlan,
+                   "access vlan is not default on #{name}")
+
+      v.add_interface(i)
+      assert_equal(vlan_id, i.access_vlan,
+                   "access vlan #{vlan_id} not present on #{name}")
+      vlan_intf_list << name
+      break if vlan_intf_list.count == vlan_intf_max
+    end
+    count = v.interfaces.count
+    assert_equal(vlan_intf_max, count,
+                 "vlan #{vlan_id} found on #{count} interfaces, "\
+                 "expected #{vlan_intf_max} total")
+
+    # Remove test vlan from interfaces
+    vlan_intf_list.each do |name|
+      i = Interface.new(name)
+      v.remove_interface(i)
+      assert_equal(i.default_access_vlan, i.access_vlan,
+                   "access vlan #{vlan_id} should not be present on #{name}")
+    end
+    assert_empty(v.interfaces, "access vlan #{vlan_id} should not be "\
+                               'present on any interfaces')
     v.destroy
   end
 
-  def test_vlan_add_interface_invalid
+  def test_add_interface_invalid
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.add_interface(interface) }
+    assert_raises(CliError) { v.add_interface(interface) }
     v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
 
-  def test_vlan_remove_interface_invalid
+  def test_remove_interface_invalid
     v = Vlan.new(1000)
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :access
     v.add_interface(interface)
     interface.switchport_mode = :disabled
-    assert_raises(RuntimeError) { v.remove_interface(interface) }
+    assert_raises(CliError) { v.remove_interface(interface) }
 
     v.destroy
   rescue RuntimeError => e
     linecard_cfg_change_not_allowed?(e)
   end
 
-  def test_vlan_mapped_vnis
+  def test_mapped_vnis
     # Map
     v1 = Vlan.new(100)
     vni1 = 10_000
