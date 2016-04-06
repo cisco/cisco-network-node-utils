@@ -62,7 +62,7 @@ class TestTacacsServerHost < CiscoTestCase
         host = TacacsServerHost.new(name)
         host.port = port
       else
-        host = TacacsServerHost.new(name, true, port)
+        TacacsServerHost.new(name, true, port)
       end
     end
 
@@ -144,7 +144,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     unless platform == :ios_xr
       assert_equal(host_name, line_name.captures[0],
-                   "Error: #{host_name} name mismatch") 
+                   "Error: #{host_name} name mismatch")
       refute_nil(hosts[host_name], "Error: #{host_name} not retrieved.")
       assert_equal(host_name, hosts[host_name].name,
                    "Error: #{host_name} name get value mismatch")
