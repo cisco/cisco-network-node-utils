@@ -185,15 +185,12 @@ send_community:
 soft_reconfiguration_in:
   auto_default: false
   default_value: 'inherit'
-  ios_xr:
+  ios_xr: &soft_recon_always
     get_value: '/^soft-reconfiguration inbound(?: always)?/'
     set_value: '<state> soft-reconfiguration inbound <always>'
-  N3k:
-    get_value: '/^soft-reconfiguration inbound(?: always)?/'
-    set_value: '<state> soft-reconfiguration inbound <always>'
-  N9k:
-    get_value: '/^soft-reconfiguration inbound(?: always)?/'
-    set_value: '<state> soft-reconfiguration inbound <always>'
+  N3k: *soft_recon_always
+  N8k: *soft_recon_always
+  N9k: *soft_recon_always
   else:
     get_value: '/^soft-reconfiguration inbound/'
     set_value: '<state> soft-reconfiguration inbound'

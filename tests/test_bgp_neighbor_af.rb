@@ -360,59 +360,36 @@ class TestBgpNeighborAF < CiscoTestCase
   #   soft_reconfiguration_in
 
   def supports_soft_reconfig_always?
-    return true if node.product_id[/N(3|9)K/]
-    false
+    str = node.cmd_ref.lookup('bgp_neighbor_af',
+                              'soft_reconfiguration_in').set_value
+    str.to_s[/always/]
   end
 
   def test_tri_states
-    platform == :nexus ? tri_states_nexus : tri_states_ios_xr
-  end
-
-  def tri_states_ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       %w(additional_paths_receive additional_paths_send).each do |k|
-        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit'
-        ].each do |val|
-          assert_raises(UnsupportedError,
-                        "This feature #{k}, #{val} is not supported}") do
+        if validate_property_excluded?('bgp_neighbor_af', k)
+          assert_raises(UnsupportedError) { af.send("#{k}=", 'enable') }
+        else
+          [:enable, :disable, :inherit,
+           'enable', 'disable', 'inherit',
+           af.send("default_#{k}")
+          ].each do |val|
             af.send("#{k}=", val)
+            assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
           end
         end
       end
 
       %w(soft_reconfiguration_in).each do |k|
-        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
-          af.send("#{k}=", val)
-          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
-        end
-      end
-    end
-  end
-
-  def tri_states_nexus
-    @@matrix.values.each do |af_args|
-      af, dbg = clean_af(af_args)
-      next if dbg.include?('l2vpn/evpn')
-      %w(additional_paths_receive additional_paths_send).each do |k|
-        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
-          af.send("#{k}=", val)
-          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
-        end
-      end
-
-      # The 'always' keyword is not supported on N6K / N7K
-      %w(soft_reconfiguration_in).each do |k|
-        if supports_soft_reconfig_always?
-          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-                   af.send("default_#{k}")]
-        else
-          array = [:enable, :inherit, 'enable', 'inherit',
-                   af.send("default_#{k}")]
+        array = [:enable, :always, :inherit,
+                 'enable', 'always', 'inherit',
+                 af.send("default_#{k}")]
+        unless supports_soft_reconfig_always?
+          array.delete(:always)
+          array.delete('always')
         end
 
         array.each do |val|
