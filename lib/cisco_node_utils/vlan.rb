@@ -100,19 +100,19 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
-      result.downcase! if result[/FABRICPATH/]
-      result
+      result[0].downcase! if result[0][/FABRICPATH/]
+      result[0]
     end
 
     def mode=(str)
-      if str.empty?
+      if str[0] == default_mode
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
-        if 'fabricpath' == str
+        if 'fabricpath' == str[0]
           fabricpath_feature_set(:enabled) unless
             :enabled == fabricpath_feature
         end
-        config_set('vlan', 'mode', @vlan_id, '', str)
+        config_set('vlan', 'mode', @vlan_id, '', str[0])
       end
     end
 
@@ -218,6 +218,7 @@ module Cisco
     end
 
     def private_vlan_type
+      return nil unless Feature.private_vlan_enabled?
       config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
 
@@ -241,6 +242,7 @@ module Cisco
     end
 
     def private_vlan_association
+      return nil unless Feature.private_vlan_enabled?
       result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
       result.sort
     end

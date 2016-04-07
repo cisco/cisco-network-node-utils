@@ -316,4 +316,11 @@ class TestVlan < CiscoTestCase
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
+
+  def test_mode_with_pvlan
+    v = Vlan.new(1000)
+    result = 'CE'
+    v.private_vlan_type = 'primary'
+    assert_equal(result, v.mode)
+  end
 end
