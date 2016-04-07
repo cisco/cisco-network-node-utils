@@ -262,9 +262,9 @@ module Cisco
 
     def established
       match = ace_get
-      return nil if match.nil?
-      return nil unless match.names.include?('established')
-      match[:established] == 'established' ? true : nil
+      return false if match.nil?
+      return false unless match.names.include?('established')
+      match[:established] == 'established' ? true : false
     end
 
     def established=(established)
