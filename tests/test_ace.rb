@@ -41,13 +41,14 @@ class TestAce < CiscoTestCase
   # Helper to create an ACE and return the obj. The test_hash contains
   # only the minimum properties which can be added to or overwritten as
   # required for each test.
-  def ace_helper(afi, props)
+  def ace_helper(afi, props=nil)
     test_hash = {
       action:   'permit',
       proto:    'tcp',
       src_addr: 'any',
       dst_addr: 'any',
-    }.merge!(props)
+    }
+    test_hash.merge!(props) unless props.nil?
 
     a = Ace.new(afi, afi, 10)
     begin
@@ -152,6 +153,7 @@ class TestAce < CiscoTestCase
 
   def test_established
     %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).established)
       a = ace_helper(afi, established: true)
       assert(a.established)
       a = ace_helper(afi, established: false)
@@ -169,6 +171,7 @@ class TestAce < CiscoTestCase
 
   def test_log
     %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
       a = ace_helper(afi, log: true)
       assert(a.log)
       a = ace_helper(afi, log: false)
