@@ -73,6 +73,7 @@ module Cisco
 
     def create
       feature_vlan_set(true) if @name[/vlan/i]
+      feature_vlan_set(true) if @name[/bdi/i]
       config_set('interface', 'create', name: @name)
     rescue Cisco::CliError
       # Some XR platforms do not support channel-group configuration
