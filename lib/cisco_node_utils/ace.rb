@@ -337,9 +337,9 @@ module Cisco
 
     def log
       match = ace_get
-      return nil if match.nil?
-      return nil unless match.names.include?('log')
-      match[:log] == 'log' ? true : nil
+      return false if match.nil?
+      return false unless match.names.include?('log')
+      match[:log] == 'log' ? true : false
     end
 
     def log=(log)
