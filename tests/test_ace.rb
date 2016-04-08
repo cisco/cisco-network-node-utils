@@ -171,6 +171,7 @@ class TestAce < CiscoTestCase
 
   def test_log
     %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
       a = ace_helper(afi, log: true)
       assert(a.log)
       a = ace_helper(afi, log: false)
