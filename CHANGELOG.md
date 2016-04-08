@@ -16,6 +16,8 @@ Changelog
   * bridge_domain_vni (@rkorlepa)
 * Encapsulation Profile
   * vni_encapsulation_profile (@rkorlepa)
+* Interface Bridge Domain
+  * interface bdi (@rkorlepa)
 
 #### NetDev Resources
 *
