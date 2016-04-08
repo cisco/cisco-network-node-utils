@@ -37,13 +37,13 @@ class TestTacacsServer < CiscoTestCase
                             'show run aaa all | no-more'
   end
 
-  def test_tacacsserver_create_valid
+  def test_create_valid
     tacacs = TacacsServer.new
     assert_tacacsserver_feature
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_encryption_type
+  def test_get_encryption_type
     config('no feature tacacs+', 'feature tacacs+')
     encryption_type = TACACS_SERVER_ENC_UNKNOWN
     # Get encryption password when not configured
@@ -74,14 +74,14 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_encryption
+  def test_get_default_encryption
     # Ruby can use defines, but only they're not initialized from an enum
     assert_equal(TACACS_SERVER_ENC_NONE,
                  TacacsServer.default_encryption_type,
                  'Error: Tacacs Server, default encryption incorrect')
   end
 
-  def test_tacacsserver_get_encryption_password
+  def test_get_encryption_password
     # Get encryption password when not configured
     config('no feature tacacs+')
     tacacs = TacacsServer.new
@@ -104,14 +104,14 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_encryption_password
+  def test_get_default_encryption_password
     assert_equal(node.config_get_default('tacacs_server',
                                          'encryption_password'),
                  TacacsServer.default_encryption_password,
                  'Error: Tacacs Server, default encryption password incorrect')
   end
 
-  def test_tacacsserver_key_set
+  def test_key_set
     enc_type = TACACS_SERVER_ENC_NONE
     # This one is needed since the 'sh run' will always display the type
     # differently than the used encryption config type.
@@ -137,7 +137,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_key_unconfigure
+  def test_key_unconfigure
     config('no feature tacacs+')
     enc_type = TACACS_SERVER_ENC_NONE
     # This one is needed since the 'sh run' will always display the type
@@ -160,7 +160,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_timeout
+  def test_get_timeout
     tacacs = TacacsServer.new
     timeout = node.config_get_default('tacacs_server', 'timeout')
     assert_equal(timeout, tacacs.timeout,
@@ -173,13 +173,13 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_timeout
+  def test_get_default_timeout
     assert_equal(node.config_get_default('tacacs_server', 'timeout'),
                  TacacsServer.default_timeout,
                  'Error: Tacacs Server, default timeout incorrect')
   end
 
-  def test_tacacsserver_set_timeout
+  def test_set_timeout
     timeout = 45
 
     tacacs = TacacsServer.new
@@ -201,7 +201,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_deadtime
+  def test_get_deadtime
     tacacs = TacacsServer.new
     deadtime = node.config_get_default('tacacs_server', 'deadtime')
     assert_equal(deadtime, tacacs.deadtime,
@@ -214,13 +214,13 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_deadtime
+  def test_get_default_deadtime
     assert_equal(node.config_get_default('tacacs_server', 'deadtime'),
                  TacacsServer.default_deadtime,
                  'Error: Tacacs Server, default deadtime incorrect')
   end
 
-  def test_tacacsserver_set_deadtime
+  def test_set_deadtime
     deadtime = 1250
 
     tacacs = TacacsServer.new
@@ -240,7 +240,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_directed_request
+  def test_get_directed_request
     config('feature tacacs', 'tacacs-server directed-request')
     tacacs = TacacsServer.new
     assert(tacacs.directed_request?,
@@ -252,13 +252,13 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_directed_request
+  def test_get_default_directed_request
     assert_equal(node.config_get_default('tacacs_server', 'directed_request'),
                  TacacsServer.default_directed_request,
                  'Error: Tacacs Server, default directed-request incorrect')
   end
 
-  def test_tacacsserver_set_directed_request
+  def test_set_directed_request
     config('feature tacacs', 'tacacs-server directed-request')
     state = true
     tacacs = TacacsServer.new
@@ -296,34 +296,34 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_source_interface
-    config('no ip tacacs source-interface')
+  def test_get_source_interface
+    config_no_warn('no ip tacacs source-interface')
     tacacs = TacacsServer.new
     intf = node.config_get_default('tacacs_server', 'source_interface')
     assert_equal(intf, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface set')
 
-    intf = 'Ethernet1/1'
+    intf = 'loopback41'
     config("ip tacacs source-interface #{intf}")
     assert_equal(intf, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface not correct')
     tacacs.destroy
   end
 
-  def test_tacacsserver_get_default_source_interface
+  def test_get_default_source_interface
     assert_equal(node.config_get_default('tacacs_server', 'source_interface'),
                  TacacsServer.default_source_interface,
                  'Error: Tacacs Server, default source-interface incorrect')
   end
 
-  def test_tacacsserver_set_source_interface
+  def test_set_source_interface
     config('feature tacacs+', 'no ip tacacs source-int')
     intf = node.config_get_default('tacacs_server', 'source_interface')
     tacacs = TacacsServer.new
     assert_equal(intf, tacacs.source_interface,
                  'Error: Tacacs Server, source-interface set')
 
-    intf = 'Ethernet1/1'
+    intf = 'loopback41'
     tacacs.source_interface = intf
     line = assert_show_match(pattern: /ip tacacs source-interface #{intf}/,
                              msg:     'source-interface not configured')
@@ -346,7 +346,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs.destroy
   end
 
-  def test_tacacsserver_destroy
+  def test_destroy
     tacacs = TacacsServer.new
     assert_tacacsserver_feature
     tacacs.destroy

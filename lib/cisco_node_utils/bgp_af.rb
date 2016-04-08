@@ -59,7 +59,10 @@ module Cisco
     end
 
     def create
-      Feature.bgp_enable if platform == :nexus
+      if platform == :nexus
+        Feature.bgp_enable
+        Feature.nv_overlay_evpn_enable if @safi[/evpn/]
+      end
       set_args_keys(state: '')
       config_set('bgp', 'address_family', @set_args)
     end
@@ -447,7 +450,7 @@ module Cisco
     # Build an array of all redistribute commands currently on the device
     def redistribute
       c = config_get('bgp_af', 'redistribute', @get_args)
-      c.nil? ? nil : c.each(&:compact!)
+      c.nil? ? nil : c.each(&:compact!).sort
     end
 
     # redistribute setter.

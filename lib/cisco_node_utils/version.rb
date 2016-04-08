@@ -14,7 +14,7 @@
 
 # Container module for version number only.
 module CiscoNodeUtils
-  VERSION = '1.2.0'
+  VERSION = '1.3.0'
   gem_version = Gem::Version.new(Gem::VERSION)
   min_gem_version = Gem::Version.new('2.1.0')
   fail 'Required rubygems version >= 2.1.0' if gem_version < min_gem_version

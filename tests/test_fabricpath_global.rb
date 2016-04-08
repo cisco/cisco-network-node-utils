@@ -26,8 +26,6 @@ class TestFabricpathGlobal < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    skip("Test not supported on #{node.product_id}") if
-      cmd_ref.lookup('fabricpath', 'feature').default_value.nil?
     no_feature_fabricpath
   end
 
@@ -42,213 +40,201 @@ class TestFabricpathGlobal < CiscoTestCase
     config('no feature-set fabricpath')
   end
 
-  def n5k6k_platforms?
-    /N[56]K/ =~ node.product_id
-  end
-
   # TESTS
 
-  def test_global_collection_empty
-    globals = FabricpathGlobal.globals
-    assert_equal(true, globals.empty?,
-                 'Globals should be empty for this test')
-  end
+  def test_create_destroy
+    assert_empty(FabricpathGlobal.globals)
 
-  def test_global_create
-    @global = FabricpathGlobal.new('default')
-    assert_equal(true, @global.name == 'default',
-                 "Global name not set correctly #{@global.name}")
-    assert_equal(:enabled, FabricpathGlobal.fabricpath_feature,
-                 'Fabricpath feature should have been enabled')
-    refute(FabricpathGlobal.globals.empty?,
-           'Globals should not be empty after create')
-  end
+    # create
+    fg = FabricpathGlobal.new('default')
+    assert_equal('default', fg.name)
+    assert_equal(:enabled, FabricpathGlobal.fabricpath_feature)
+    refute_empty(FabricpathGlobal.globals)
 
-  def test_global_destroy
-    # create and test again
-    test_global_create
-    @global.destroy
-    # now it should be wiped out
-    test_global_collection_empty
+    # destroy
+    fg.destroy
+    assert_empty(FabricpathGlobal.globals)
   end
 
   def test_aggregate_multicast_routes
-    return if n5k6k_platforms?
-    @global = FabricpathGlobal.new('default')
-    @global.aggregate_multicast_routes = true
-    assert(@global.aggregate_multicast_routes,
-           'Aggregate multicast routes not set')
-    @global.aggregate_multicast_routes = false
-    refute(@global.aggregate_multicast_routes,
-           'Aggregate multicast routes not reset')
+    fg = FabricpathGlobal.new('default')
+    if validate_property_excluded?('fabricpath', 'aggregate_multicast_routes')
+      assert_raises(Cisco::UnsupportedError) do
+        fg.aggregate_multicast_routes = true
+      end
+      return
+    end
+
+    fg = FabricpathGlobal.new('default')
+    fg.aggregate_multicast_routes = true
+    assert(fg.aggregate_multicast_routes,
+           'aggregate_multicast_routes: Expected: true')
+
+    fg.aggregate_multicast_routes = false
+    refute(fg.aggregate_multicast_routes,
+           'aggregate_multicast_routes: Expected: false')
   end
 
   def test_allocate_delay
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_allocate_delay,
-                 @global.allocate_delay,
-                 'Default allocate_delay not set correctly')
-    @global.allocate_delay = 20
-    assert_equal(20, @global.allocate_delay,
-                 'allocate_delay not set to 20')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_allocate_delay, fg.allocate_delay)
+
+    fg.allocate_delay = 20
+    assert_equal(20, fg.allocate_delay)
   end
 
   def test_graceful_merge
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(:enable, @global.graceful_merge,
-                 'Default graceful_merge not set correctly')
-    @global.graceful_merge = :disable
-    assert_equal(:disable, @global.graceful_merge,
-                 'graceful merge not set to disable')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_graceful_merge, fg.graceful_merge)
+
+    fg.graceful_merge = :disable
+    assert_equal(:disable, fg.graceful_merge)
   end
 
   def test_linkup_delay_all
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_linkup_delay,
-                 @global.linkup_delay,
-                 'Default linkup_delay not set correctly')
-    @global.linkup_delay = 25
-    assert_equal(25, @global.linkup_delay,
-                 'linkup_delay not set to 25')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_linkup_delay, fg.linkup_delay)
 
-    return if n5k6k_platforms?
+    fg.linkup_delay = 25
+    assert_equal(25, fg.linkup_delay)
 
-    refute(@global.linkup_delay_always,
-           'linkup_delay_always should not be set by default')
-    @global.linkup_delay_always = true
-    assert(@global.linkup_delay_always,
-           'linkup_delay_always is not getting set')
+    if validate_property_excluded?('fabricpath', 'linkup_delay_always')
+      assert_raises(Cisco::UnsupportedError) { fg.linkup_delay_always = true }
+    else
+      assert_equal(fg.default_linkup_delay_always, fg.linkup_delay_always)
+      fg.linkup_delay_always = true
+      assert(fg.linkup_delay_always, 'linkup_delay_always: Expected: true')
+      fg.linkup_delay_always = false
+      refute(fg.linkup_delay_always, 'linkup_delay_always: Expected: false')
+    end
 
-    @global.linkup_delay_enable = true
-    @global.linkup_delay_enable = false
-    refute(@global.linkup_delay_enable,
-           'linkup_delay is not getting disabled')
+    if validate_property_excluded?('fabricpath', 'linkup_delay_enable')
+      assert_raises(Cisco::UnsupportedError) { fg.linkup_delay_enable = true }
+      return
+    end
+
+    assert_equal(fg.default_linkup_delay_enable, fg.linkup_delay_enable)
+    fg.linkup_delay_enable = true
+    assert(fg.linkup_delay_enable, 'linkup_delay_enable: Expected: true')
+    fg.linkup_delay_enable = false
+    refute(fg.linkup_delay_enable, 'linkup_delay_enable: Expected: false')
   end
 
   def test_loadbalance_algorithm
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    check_val = n5k6k_platforms? ? 'source-destination' : 'symmetric'
-    assert_equal(check_val, @global.loadbalance_algorithm,
-                 "default algo should be #{check_val} but is
-                  #{@global.loadbalance_algorithm}")
-    @global.loadbalance_algorithm = 'source'
-    assert_equal('source', @global.loadbalance_algorithm,
-                 'algo not getting set to source-destination')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_loadbalance_algorithm, fg.loadbalance_algorithm)
+
+    fg.loadbalance_algorithm = 'source'
+    assert_equal('source', fg.loadbalance_algorithm)
+    if validate_property_excluded?('fabricpath',
+                                   'loadbalance_algorithm_symmetric_support')
+      assert_nil(fg.loadbalance_algorithm_symmetric_support)
+      return
+    end
+    fg.loadbalance_algorithm = 'symmetric'
+    assert_equal('symmetric', fg.loadbalance_algorithm)
   end
 
   def test_loadbalance_multicast
-    return if n5k6k_platforms?
-    @global = FabricpathGlobal.new('default')
-    # test default values first
-    assert_equal(@global.default_loadbalance_multicast_rotate,
-                 @global.loadbalance_multicast_rotate,
-                 "default mcast rotate should be 6
-                  but is #{@global.loadbalance_multicast_rotate}")
-    assert(@global.loadbalance_multicast_has_vlan,
-           "default mcast include-vlan should be true
-           but is #{@global.loadbalance_multicast_has_vlan}")
-    @global.send(:loadbalance_multicast=, 3, false)
-    assert_equal(3, @global.loadbalance_multicast_rotate,
-                 "mcast rotate should now be 3
-                  but is #{@global.loadbalance_multicast_rotate}")
-    refute(@global.loadbalance_multicast_has_vlan,
-           "mcast include-vlan should now be false
-           but is #{@global.loadbalance_multicast_has_vlan}")
+    # loadbalance_multicast= is a custom setter that takes 2 args:
+    #   rotate, has_vlan
+    fg = FabricpathGlobal.new('default')
+    if validate_property_excluded?('fabricpath',
+                                   'loadbalance_multicast_set')
+      assert_raises(Cisco::UnsupportedError) do
+        (fg.send(:loadbalance_multicast=, 0, 0))
+      end
+      return
+    end
+
+    # default_loadbalance_multicast_rotate: n/a
+    assert(fg.loadbalance_multicast_has_vlan,
+           'loadbalance_multicast_has_vlan: Expected: true')
+
+    fg.send(:loadbalance_multicast=, 3, false)
+    assert_equal(3, fg.loadbalance_multicast_rotate)
+    refute(fg.loadbalance_multicast_has_vlan,
+           'loadbalance_multicast_has_vlan: Expected: false')
   end
 
   def test_loadbalance_unicast
-    @global = FabricpathGlobal.new('default')
-    # test default values first
-    assert_equal(@global.default_loadbalance_unicast_layer,
-                 @global.loadbalance_unicast_layer,
-                 "default unicast layer should be mixed
-                  but is #{@global.loadbalance_unicast_layer}")
-    assert_equal(@global.default_loadbalance_unicast_rotate,
-                 @global.loadbalance_unicast_rotate,
-                 "default unicast rotate not set correctly
-                  but is set to #{@global.loadbalance_unicast_rotate}") unless
-                 n5k6k_platforms?
-    assert(@global.loadbalance_unicast_has_vlan,
-           "default unicast include-vlan should be true
-           but is #{@global.loadbalance_unicast_has_vlan}")
-    @global.send(:loadbalance_unicast=, 'layer4', 3, false)
-    assert_equal('layer4', @global.loadbalance_unicast_layer,
-                 "unicast layer should be layer4
-                  but is #{@global.loadbalance_unicast_layer}")
-    assert_equal(3, @global.loadbalance_unicast_rotate,
-                 "unicast rotate should now be 3
-                  but is #{@global.loadbalance_unicast_rotate}") unless
-                 n5k6k_platforms?
-    refute(@global.loadbalance_unicast_has_vlan,
-           "unicast include-vlan should now be false
-           but is #{@global.loadbalance_unicast_has_vlan}")
+    # loadbalance_unicast= is a custom setter that takes up to 3 args:
+    #   layer, rotate, has_vlan (rotate is not supported on some plats)
+
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_loadbalance_unicast_layer,
+                 fg.loadbalance_unicast_layer)
+
+    # default_loadbalance_unicast_rotate: n/a
+    assert_equal(fg.default_loadbalance_unicast_has_vlan,
+                 fg.loadbalance_unicast_has_vlan)
+
+    fg.send(:loadbalance_unicast=, 'layer4', 3, false)
+    assert_equal('layer4', fg.loadbalance_unicast_layer)
+    unless validate_property_excluded?('fabricpath',
+                                       'loadbalance_unicast_rotate')
+      assert_equal(3, fg.loadbalance_unicast_rotate)
+    end
+    refute(fg.loadbalance_unicast_has_vlan,
+           'loadbalance_unicast_has_vlan: Expected: false')
   end
 
   def test_mode
-    @global = FabricpathGlobal.new('default')
-    @global.mode = 'transit'
-    assert_equal('transit', @global.mode,
-                 'mode not getting set to transit')
-    @global.mode = 'normal'
-    assert_equal('normal', @global.mode,
-                 'mode not getting set to transit')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_mode, fg.mode)
+
+    fg.mode = 'transit'
+    assert_equal('transit', fg.mode)
+    fg.mode = 'normal'
+    assert_equal('normal', fg.mode)
   end
 
   def test_switch_id
-    @global = FabricpathGlobal.new('default')
-    # auto_id = @global.switch_id
-    @global.switch_id = 100
-    assert_equal(100, @global.switch_id,
-                 'switchid not getting set to 100')
+    fg = FabricpathGlobal.new('default')
+    # auto_id = fg.switch_id
+    # switch_id does not have a default
+    fg.switch_id = 100
+    assert_equal(100, fg.switch_id)
   end
 
   def test_transition_delay
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_transition_delay,
-                 @global.transition_delay,
-                 'Default allocate_delay not set correctly')
-    @global.transition_delay = 20
-    assert_equal(20, @global.transition_delay,
-                 'transition_delay not set to 20')
+    fg = FabricpathGlobal.new('default')
+    assert_equal(fg.default_transition_delay, fg.transition_delay)
+
+    fg.transition_delay = 20
+    assert_equal(20, fg.transition_delay)
   end
 
   def test_ttl_multicast
-    return if n5k6k_platforms?
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_ttl_multicast,
-                 @global.ttl_multicast,
-                 'Default multicast ttl not set correctly')
-    @global.ttl_multicast = 16
-    assert_equal(16, @global.ttl_multicast,
-                 'multicast ttl not getting set to 16')
+    fg = FabricpathGlobal.new('default')
+    if validate_property_excluded?('fabricpath', 'ttl_multicast')
+      assert_raises(Cisco::UnsupportedError) { fg.ttl_multicast = 40 }
+      return
+    end
+
+    assert_equal(fg.default_ttl_multicast, fg.ttl_multicast)
+    fg.ttl_multicast = 16
+    assert_equal(16, fg.ttl_multicast)
   end
 
   def test_ttl_unicast
-    return if n5k6k_platforms?
-    @global = FabricpathGlobal.new('default')
-    # test default value
-    assert_equal(@global.default_ttl_unicast,
-                 @global.ttl_unicast,
-                 'Default unicast ttl not set correctly')
-    @global.ttl_unicast = 40
-    assert_equal(40, @global.ttl_unicast,
-                 'unicast ttl not getting set to 40')
+    fg = FabricpathGlobal.new('default')
+    if validate_property_excluded?('fabricpath', 'ttl_unicast')
+      assert_raises(Cisco::UnsupportedError) { fg.ttl_unicast = 40 }
+      return
+    end
+    assert_equal(fg.default_ttl_unicast, fg.ttl_unicast)
+    fg.ttl_unicast = 40
+    assert_equal(40, fg.ttl_unicast)
   end
 
   def test_interface_switchport_mode
-    interface = Interface.new(interfaces[0])
-    interface.switchport_mode = :fabricpath
-    assert_equal(:fabricpath, interface.switchport_mode,
-                 'switchport mode must be set to fabricpath')
-    # clean up
-    interface.switchport_mode = :trunk
-    assert_equal(:trunk, interface.switchport_mode,
-                 'switchport mode must be set to trunk')
+    i = Interface.new(interfaces[0])
+    i.switchport_mode = :fabricpath
+    assert_equal(:fabricpath, i.switchport_mode)
+
+    i.switchport_mode = :trunk
+    assert_equal(:trunk, i.switchport_mode)
+    config("default interface #{interfaces[0]}")
   end
 end

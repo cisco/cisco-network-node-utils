@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.3.0]
 
 ### New feature support
 
@@ -9,6 +9,7 @@ Changelog
 * Itd
   * itd_device_group (@saichint)
   * itd_device_group_node (@saichint)
+  * itd_service (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
 * Bridge Domain
@@ -49,10 +50,17 @@ Changelog
   * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+  * `switchport_private_vlan_trunk_allowed_vlan`, `switchport_private_vlan_trunk_native_vlan`
+  * `switchport_mode_private_vlan_host`, `switchport_mode_private_vlan_host_association`
+  * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk_promiscous`, `switchport_mode_private_vlan_trunk_secondary`
+  * `switchport_private_vlan_association_trunk`, `switchport_private_vlan_mapping_trunk`
+  * `private_vlan_mapping`
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
   * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
+* Extend vlan with attributes:
+  * `private_vlan_association`, `private_vlan_type`
 
 ### Changed
 
@@ -299,7 +307,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

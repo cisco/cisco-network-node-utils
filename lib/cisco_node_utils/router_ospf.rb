@@ -44,49 +44,15 @@ module Cisco
       return {}
     end
 
-    def self.enabled
-      feat = config_get('ospf', 'feature')
-      return (!feat.nil? && !feat.empty?)
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.enable(state='')
-      config_set('ospf', 'feature', state)
-    end
-
-    def ospf_router(name, state='')
-      config_set('ospf', 'router', state, name)
-    end
-
-    def enable_create_router_ospf(name)
-      RouterOspf.enable
-      ospf_router(name)
-    end
-
     # Create one router ospf instance
     def create
-      if RouterOspf.enabled
-        ospf_router(name)
-      else
-        enable_create_router_ospf(name)
-      end
+      Feature.ospf_enable
+      config_set('ospf', 'router', state: '', name: @name)
     end
 
     # Destroy one router ospf instance
     def destroy
-      ospf_ids = config_get('ospf', 'router')
-      return if ospf_ids.nil?
-      if ospf_ids.size == 1
-        RouterOspf.enable('no')
-      else
-        ospf_router(name, 'no')
-      end
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      config_set('ospf', 'router', state: 'no', name: @name)
     end
   end
 end

@@ -19,17 +19,21 @@ require_relative '../lib/cisco_node_utils/router_ospf_vrf'
 # TestRouterOspfVrf - Minitest for RouterOspfVrf node utility class
 class TestRouterOspfVrf < CiscoTestCase
   @skip_unless_supported = 'ospf'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
-    # Disable feature ospf before each test to ensure we
-    # are starting with a clean slate for each test.
     super
-    config('no feature ospf')
+    cleanup if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    config('no feature ospf')
+    cleanup
     super
+  end
+
+  def cleanup
+    RouterOspf.routers.each { |_name, obj| obj.destroy }
   end
 
   def assert_match_vrf_line(routername, vrfname, cmd=nil)
@@ -109,7 +113,7 @@ class TestRouterOspfVrf < CiscoTestCase
     config(*cfg)
   end
 
-  def test_routerospfvrf_collection_size
+  def test_collection_size
     create_routerospfvrf('green')
     vrfs = RouterOspfVrf.vrfs
     assert_equal(1, vrfs.size, 'Error: Collection is not one')
@@ -146,7 +150,7 @@ class TestRouterOspfVrf < CiscoTestCase
   )
   # rubocop:enable Style/AlignHash
 
-  def test_routerospfvrf_collection_not_empty_valid
+  def test_collection_not_empty_valid
     # pre-populate values
     config_from_hash(MULTIPLE_OSPFS)
 
@@ -178,11 +182,11 @@ class TestRouterOspfVrf < CiscoTestCase
     end
   end
 
-  def test_routerospfvrf_create_vrf_nil
+  def test_create_vrf_nil
     assert_raises(TypeError) { RouterOspfVrf.new(nil, 'testvrf') }
   end
 
-  def test_routerospfvrf_create_name_zero_length
+  def test_create_name_zero_length
     routerospf = RouterOspf.new('testOspf')
     assert_raises(ArgumentError) do
       RouterOspfVrf.new('testOspf', '')
@@ -190,9 +194,9 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_create_valid
+  def test_create_valid
     ospfname = 'ospfTest'
-    # routerospf = RouterOspf.new(ospfname)
+
     vrfname = 'default'
     vrf = RouterOspfVrf.new(ospfname, vrfname)
     assert_match_vrf_line(ospfname, vrfname)
@@ -201,7 +205,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_get_parent_name
+  def test_get_parent_name
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     assert_equal(routerospf.name, vrf.parent.name,
@@ -209,7 +213,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_get_name
+  def test_get_name
     vrfname = 'default'
     vrf = create_routerospfvrf('green')
     assert_match_vrf_line('green', vrfname)
@@ -218,7 +222,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_destroy
+  def test_destroy
     vrfname = 'default'
     vrf = create_routerospfvrf
     assert_raises(RuntimeError) do
@@ -228,10 +232,10 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_auto_cost
+  def test_auto_cost
     vrf = create_routerospfvrf
     auto_cost_value = [400_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
-    # set auto-cost
+
     vrf.auto_cost_set(auto_cost_value[0], :mbps)
     pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
@@ -240,12 +244,12 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_auto_cost_multiple_vrf
+  def test_auto_cost_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     auto_cost_value = [600_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
-    # set auto-cost
+
     vrf.auto_cost_set(auto_cost_value[0], :mbps)
     pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
@@ -254,7 +258,7 @@ class TestRouterOspfVrf < CiscoTestCase
 
     # vrf 1
     auto_cost_value = [500_000, RouterOspfVrf::OSPF_AUTO_COST[:mbps]]
-    # set cost
+
     vrf1.auto_cost_set(auto_cost_value[0], :mbps)
     pattern = /\s+auto-cost reference-bandwidth #{auto_cost_value[0]}/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
@@ -263,7 +267,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_get_default_auto_cost
+  def test_get_default_auto_cost
     vrf = create_routerospfvrf
     # NXOS specific
     auto_cost_value = [40, RouterOspfVrf::OSPF_AUTO_COST[:gbps]]
@@ -274,7 +278,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_default_metric
+  def test_default_metric
     vrf = create_routerospfvrf
     metric = 30_000
     vrf.default_metric = metric
@@ -282,18 +286,18 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(metric, vrf.default_metric,
                  "Error: #{vrf.name} vrf, default-metric get value mismatch")
-    # set default metric
+
     vrf.default_metric = vrf.default_default_metric
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_default_metric_multiple_vrf
+  def test_default_metric_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     metric = 35_000
-    # set metric
+
     vrf.default_metric = metric
     pattern = /\s+default-metric #{metric}/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
@@ -311,7 +315,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_log_adjacency_changes
+  def test_log_adjacency_changes
     vrf = create_routerospfvrf
 
     assert_equal(:none, vrf.log_adjacency,
@@ -330,18 +334,17 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf.name} vrf, " \
                  'log-adjacency detail get value mismatch')
 
-    # set default log adjacency
     vrf.log_adjacency = vrf.default_log_adjacency
     pattern = /\s+log-adjacency-changes(.*)/
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_log_adjacency_multiple_vrf
+  def test_log_adjacency_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
-    # set log_adjacency
+
     vrf.log_adjacency = :log
     pattern = /\s+log-adjacency-changes/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
@@ -349,7 +352,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf.name} vrf, log-adjacency get value mismatch")
 
     # vrf 1
-    # set log_adjacency
     vrf1.log_adjacency = :detail
     pattern = /\s+log-adjacency-changes/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
@@ -359,20 +361,19 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_log_adjacency_multiple_vrf_2
+  def test_log_adjacency_multiple_vrf_2
     routerospf = create_routerospf
     vrf_default = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     # DO NOT set log_adjacency for default vrf
     # DO set log_adjacency for non-default vrf
-    # set log_adjacency
+
     vrf1.log_adjacency = :detail
     pattern = /\s+log-adjacency-changes/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(:detail, vrf1.log_adjacency,
                  "Error: #{vrf1.name} vrf, log-adjacency get value mismatch")
 
-    # Make sure default vrf is set to :none
     assert_equal(:none, vrf_default.log_adjacency,
                  "Error: #{vrf_default.name} vrf_default, " \
                  'log-adjacency get value mismatch')
@@ -380,7 +381,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_router_id
+  def test_router_id
     vrf = create_routerospfvrf
     id = '8.1.1.3'
     vrf.router_id = id
@@ -388,18 +389,18 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(id, vrf.router_id,
                  "Error: #{vrf.name} vrf, router-id get value mismatch")
-    # set default router id
+
     vrf.router_id = vrf.default_router_id
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_router_id_multiple_vrf
+  def test_router_id_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     id = '8.1.1.3'
-    # set id
+
     vrf.router_id = id
     pattern = /\s+router-id #{id}/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
@@ -408,7 +409,7 @@ class TestRouterOspfVrf < CiscoTestCase
 
     # vrf 1
     id = '10.1.1.3'
-    # set id
+
     vrf1.router_id = id
     pattern = /\s+router-id #{id}/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
@@ -418,11 +419,11 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_timer_throttle_lsa
+  def test_timer_throttle_lsa
     vrf = create_routerospfvrf
     lsa = [] << 100 << 500 << 1000
     vrf.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
-    # vrf.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
+
     pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(lsa, vrf.timer_throttle_lsa,
@@ -431,14 +432,13 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_timer_throttle_lsa_multiple_vrf
+  def test_timer_throttle_lsa_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     lsa = [] << 100 << 500 << 1000
-    # set lsa
+
     vrf.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
-    # vrf.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
     pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(lsa, vrf.timer_throttle_lsa,
@@ -446,9 +446,8 @@ class TestRouterOspfVrf < CiscoTestCase
                  'get values mismatch')
 
     lsa = [] << 300 << 700 << 2000
-    # set lsa
+
     vrf1.timer_throttle_lsa_set(lsa[0], lsa[1], lsa[2])
-    # vrf1.send(:timer_throttle_lsa=, lsa[0], lsa[1], lsa[2])
     pattern = /\s+timers throttle lsa #{lsa[0]} #{lsa[1]} #{lsa[2]}/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(lsa, vrf1.timer_throttle_lsa,
@@ -458,7 +457,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_get_default_timer_throttle_lsa
+  def test_get_default_timer_throttle_lsa
     vrf = create_routerospfvrf
     lsa = [0, 5000, 5000]
     assert_equal(lsa[0], vrf.timer_throttle_lsa_start,
@@ -476,10 +475,10 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_timer_throttle_spf
+  def test_timer_throttle_spf
     vrf = create_routerospfvrf
     spf = [250, 500, 1000]
-    # vrf.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
+
     vrf.timer_throttle_spf_set(spf[0], spf[1], spf[2])
     pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
@@ -489,14 +488,13 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_timer_throttle_spf_multiple_vrf
+  def test_timer_throttle_spf_multiple_vrf
     routerospf = create_routerospf
     vrf = create_routerospfvrf(routerospf.name)
     vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
     spf = [] << 250 << 500 << 1000
-    # set spf
+
     vrf.timer_throttle_spf_set(spf[0], spf[1], spf[2])
-    # vrf.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
     pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
     assert_match_vrf_line(routerospf.name, vrf.name, pattern)
     assert_equal(spf, vrf.timer_throttle_spf,
@@ -504,9 +502,8 @@ class TestRouterOspfVrf < CiscoTestCase
                  'get values mismatch')
 
     spf = [] << 300 << 700 << 2000
-    # set spf
+
     vrf1.timer_throttle_spf_set(spf[0], spf[1], spf[2])
-    # vrf1.send(:timer_throttle_spf=, spf[0], spf[1], spf[2])
     pattern = /\s+timers throttle spf #{spf[0]} #{spf[1]} #{spf[2]}/
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(spf, vrf1.timer_throttle_spf,
@@ -516,7 +513,7 @@ class TestRouterOspfVrf < CiscoTestCase
     routerospf.destroy
   end
 
-  def test_routerospfvrf_get_default_timer_throttle_spf
+  def test_get_default_timer_throttle_spf
     vrf = create_routerospfvrf
     spf = [200, 1000, 5000]
     assert_equal(spf[0], vrf.default_timer_throttle_spf_start,
@@ -537,7 +534,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_create_valid_destroy_default
+  def test_create_valid_destroy_default
     ospfname = 'ospfTest'
     routerospf = RouterOspf.new(ospfname)
     vrfname = 'default'
@@ -578,7 +575,7 @@ class TestRouterOspfVrf < CiscoTestCase
   )
   # rubocop:enable Style/AlignHash
 
-  def test_routerospfvrf_collection_router_multi_vrfs
+  def test_collection_router_multi_vrfs
     config_from_hash(MULTIPLE_OSPFS_MULTIPLE_VRFS)
     routers = RouterOspf.routers
     # validate the collection
@@ -611,7 +608,7 @@ class TestRouterOspfVrf < CiscoTestCase
     end
   end
 
-  def test_routerospfvrf_timer_throttle_lsa_start_hold_max
+  def test_timer_throttle_lsa_start_hold_max
     vrf = create_routerospfvrf
     vrf.timer_throttle_lsa_set(250, 900, 5001)
     assert_equal(250, vrf.timer_throttle_lsa_start,
@@ -623,7 +620,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_timer_throttle_spf_start_hold_max
+  def test_timer_throttle_spf_start_hold_max
     vrf = create_routerospfvrf
     vrf.timer_throttle_spf_set(250, 900, 5001)
     assert_equal(250, vrf.timer_throttle_spf_start,
@@ -635,7 +632,7 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
-  def test_routerospfvrf_noninstantiated
+  def test_noninstantiated
     routerospf = create_routerospf
     vrf = RouterOspfVrf.new('absent', 'absent', false)
     vrf.auto_cost
