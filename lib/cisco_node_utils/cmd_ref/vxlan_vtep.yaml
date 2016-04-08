@@ -1,6 +1,6 @@
 # vxlan_vtep
 ---
-_exclude: [N3k, N5k, N6k, N7k, ios_xr]
+_exclude: [N3k, ios_xr]
 
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
@@ -30,6 +30,12 @@ mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
   N9k:
+    default_only: true
+  N8k:
+    default_only: true
+  N6k:
+    default_only: true
+  N5k:
     default_only: true
   else:
     # this feature is always off on these platforms and cannot be changed
