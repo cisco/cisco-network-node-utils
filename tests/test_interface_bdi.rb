@@ -57,7 +57,7 @@ platform")
     super
   end
 
-  def test_create_all_properties
+  def test_create_and_check_all_properties
     # Check all the default values
     assert_equal(@bdi.default_vrf, @bdi.vrf)
     assert_equal(@bdi.default_ipv4_address, @bdi.ipv4_address)
