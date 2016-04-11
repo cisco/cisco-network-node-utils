@@ -14,10 +14,7 @@ destroy:
   set_value: "no vlan %s"
 
 fabric_control:
-  _exclude:
-    - N3k
-    - N8k
-    - N9k
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
   get_command: "show running-config vlan"
   get_context: ['/^vlan <vlan>/']
