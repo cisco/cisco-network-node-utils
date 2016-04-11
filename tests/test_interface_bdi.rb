@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
-# TestSvi - Minitest for Interface configuration of SVI interfaces.
-class TestSvi < CiscoTestCase
+# TestBdi - Minitest for Interface configuration of BDI interfaces.
+class TestBdi < CiscoTestCase
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   attr_reader :bdi
 
