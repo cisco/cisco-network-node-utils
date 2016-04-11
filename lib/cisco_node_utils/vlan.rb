@@ -100,6 +100,10 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
+      # Note: The yaml definition for this property
+      # uses 'multiple' as a workaround for a bug
+      # in the N7k nxapi code which displays
+      # the 'show vlan' output twice.
       result[0].downcase! if result[0][/FABRICPATH/]
       result[0]
     end
