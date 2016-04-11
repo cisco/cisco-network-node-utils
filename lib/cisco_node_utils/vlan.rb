@@ -105,14 +105,14 @@ module Cisco
     end
 
     def mode=(str)
-      if str[0] == default_mode
+      if str == default_mode
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
-        if 'fabricpath' == str[0]
+        if 'fabricpath' == str
           fabricpath_feature_set(:enabled) unless
             :enabled == fabricpath_feature
         end
-        config_set('vlan', 'mode', @vlan_id, '', str[0])
+        config_set('vlan', 'mode', @vlan_id, '', str)
       end
     end
 
