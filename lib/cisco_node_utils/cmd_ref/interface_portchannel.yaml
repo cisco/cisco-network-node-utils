@@ -28,6 +28,8 @@ lacp_max_bundle:
   set_value: "lacp max-bundle %s"
   N3k:
     default_value: 32
+  N8k:
+    default_value: 32
   N9k:
     default_value: 32
   else:

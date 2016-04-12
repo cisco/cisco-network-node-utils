@@ -215,4 +215,26 @@ class TestPortchannelGlobal < CiscoTestCase
     assert_equal(global.default_asymmetric, global.asymmetric)
     assert_equal(global.default_rotate, global.rotate)
   end
+
+  def test_load_balance_no_hash_rot
+    global = create_portchannel_global
+    unless validate_property_excluded?('portchannel_global', 'hash_poly')
+      skip('Test not supported on this platform')
+      return
+    end
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-vlan', nil, nil, nil, nil, 4)
+    assert_equal('src-dst', global.bundle_select)
+    assert_equal('ip-vlan', global.bundle_hash)
+    assert_equal(4, global.rotate)
+
+    global.send(:port_channel_load_balance=,
+                global.default_bundle_select,
+                global.default_bundle_hash,
+                nil, nil,
+                nil, nil, global.default_rotate)
+    assert_equal(global.default_bundle_select, global.bundle_select)
+    assert_equal(global.default_bundle_hash, global.bundle_hash)
+    assert_equal(global.default_rotate, global.rotate)
+  end
 end
