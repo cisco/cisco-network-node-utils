@@ -218,7 +218,7 @@ class TestPortchannelGlobal < CiscoTestCase
 
   def test_load_balance_no_hash_rot
     global = create_portchannel_global
-    unless validate_property_excluded?('portchannel_global', 'hash_poly')
+    if validate_property_excluded?('portchannel_global', 'rotate')
       skip('Test not supported on this platform')
       return
     end
