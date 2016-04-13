@@ -320,6 +320,13 @@ class TestVlan < CiscoTestCase
 
   def test_mode_with_pvlan
     v = Vlan.new(1000)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v.private_vlan_type = 'primary'
+      end
+      return
+    end
     result = 'CE'
     v.private_vlan_type = 'primary'
     assert_equal(result, v.mode)
