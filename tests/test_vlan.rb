@@ -31,6 +31,7 @@ class TestVlan < CiscoTestCase
       obj.destroy
     end
     interface_ethernet_default(interfaces[0])
+    config_no_warn('no feature vtp')
   end
 
   def setup
