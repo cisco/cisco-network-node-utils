@@ -23,102 +23,41 @@ module Cisco
     attr_reader :name
     @hosts = {}
 
-    def initialize(name, instantiate=true, host_port=nil)
+    def initialize(name, create=true)
       fail TypeError unless name.is_a? String
       fail ArgumentError if name.empty?
       @name = name
-
-      if platform == :ios_xr
-        if host_port.nil?
-          @port = config_get_default('tacacs_server_host', 'port')
-        else
-          fail ArgumentError, 'host_port must be an Integer' \
-            unless host_port.is_a?(Integer)
-          @port = host_port
-        end
-      end
-
-      create if instantiate
-
-      return if platform == :ios_xr
-
-      return if host_port.nil?
-      fail ArgumentError, 'host_port must be an Integer' \
-        unless host_port.is_a?(Integer)
-      self.port = host_port
+      return unless create
+      # 'feature tacacs+' must be enabled to create a host
+      TacacsServer.new.enable unless TacacsServer.enabled
+      config_set('tacacs_server_host', 'host', '', name)
     end
 
     def self.hosts
-      hosts = {}
+      @hosts = {}
 
-      hosts_list = config_get('tacacs_server_host', 'hosts')
-      return hosts if hosts_list.nil? || hosts_list.empty?
+      return @hosts unless TacacsServer.enabled
 
-      hosts_list.each do |name|
-        if platform == :ios_xr
-          host_port = config_get('tacacs_server_host', 'port', ip: name)
-          host_port = host_port[0] if host_port.is_a?(Array)
-          host_port = host_port.to_i
-
-          hosts[name] = TacacsServerHost.new(name, false, host_port)
-        else
-          hosts[name] = TacacsServerHost.new(name, false) if @hosts[name].nil?
+      hosts = config_get('tacacs_server_host', 'hosts')
+      unless hosts.nil?
+        hosts = [hosts] if hosts.is_a?(Hash)
+        hosts.each do |name|
+          @hosts[name] = TacacsServerHost.new(name, false) if @hosts[name].nil?
         end
       end
-      hosts
-    end
-
-    def create
-      destroy if platform == :ios_xr
-      config_set('tacacs_server_host',
-                 'host',
-                 state: '',
-                 ip:    name,
-                 port:  @port)
+      @hosts
     end
 
     def destroy
-      if platform == :ios_xr
-        # This provider only support a 1-1 mapping between host and ports.
-        # Thus, we must remove the other entries on different ports.
-        all_hosts = config_get('tacacs_server_host',
-                               'host_port_pairs',
-                               ip: @name)
-        return unless all_hosts.is_a?(Array)
-
-        warn("#{name} is configured multiple times on the device" \
-            ' (possibly using different ports). This is unsupported by this' \
-            ' API and the duplicate entries are being deleted.') \
-          if all_hosts.count > 1
-
-        all_hosts.each do |host_port|
-          config_set('tacacs_server_host',
-                     'host',
-                     state: 'no',
-                     ip:    @name,
-                     port:  host_port)
-        end
-      else
-        config_set('tacacs_server_host',
-                   'host',
-                   state: 'no',
-                   ip:    @name,
-                   port:  @port)
-      end
+      config_set('tacacs_server_host', 'host', 'no', @name)
     end
 
     def port
-      platform == :ios_xr ? @port : config_get('tacacs_server_host',
-                                               'port',
-                                               ip: @name)
+      config_get('tacacs_server_host', 'port', @name)
     end
 
     def port=(n)
-      fail("'port' setter method not applicable for this platform." \
-        'port must be passed in to the constructor.') \
-          if platform == :ios_xr
-
-      config_set('tacacs_server_host', 'port', ip: @name, port: n.to_i)
+      config_set('tacacs_server_host', 'port', @name, n.to_i)
     end
 
     def self.default_port
@@ -126,10 +65,7 @@ module Cisco
     end
 
     def encryption_type
-      type = config_get('tacacs_server_host',
-                        'encryption_type',
-                        ip:   @name,
-                        port: @port)
+      type = config_get('tacacs_server_host', 'encryption_type', @name)
       type.nil? ? TACACS_SERVER_ENC_UNKNOWN : type.to_i
     end
 
@@ -138,10 +74,7 @@ module Cisco
     end
 
     def encryption_password
-      config_get('tacacs_server_host',
-                 'encryption_password',
-                 ip:   @name,
-                 port: @port)
+      config_get('tacacs_server_host', 'encryption_password', @name)
     end
 
     def self.default_encryption_password
@@ -160,50 +93,29 @@ module Cisco
         # to unset the key value. Otherwise, the box is not configured with key,
         # thus we don't need to do anything
         if encryption_type != TACACS_SERVER_ENC_UNKNOWN
-          config_set('tacacs_server_host',
-                     'encryption',
-                     state:    'no',
-                     ip:       @name,
-                     port:     @port,
-                     enc_type: encryption_type,
-                     password: encryption_password)
+          config_set('tacacs_server_host', 'encryption', 'no', @name,
+                     encryption_type,
+                     encryption_password)
         end
       else
-        config_set('tacacs_server_host',
-                   'encryption',
-                   state:    '',
-                   ip:       @name,
-                   port:     @port,
-                   enc_type: enctype,
-                   password: password)
+        config_set('tacacs_server_host', 'encryption',
+                   '', @name, enctype, password)
       end
     end
 
     def timeout
-      config_get('tacacs_server_host',
-                 'timeout',
-                 ip:   @name,
-                 port: @port)
+      config_get('tacacs_server_host', 'timeout', @name)
     end
 
     def timeout=(t)
       fail TypeError unless t.is_a? Fixnum
       return if t == timeout
 
-      config_set('tacacs_server_host',
-                 'timeout',
-                 state:   '',
-                 ip:      @name,
-                 port:    @port,
-                 timeout: t)
+      config_set('tacacs_server_host', 'timeout', '', @name, t)
     end
 
     def self.default_timeout
       config_get_default('tacacs_server_host', 'timeout')
-    end
-
-    def ==(other)
-      name == other.name
     end
   end
 end

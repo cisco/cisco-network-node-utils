@@ -1,64 +1,37 @@
 # tacacs_server_host
 ---
-_template:
-  nexus:
-    get_command: "show run tacacs all"
-  ios_xr:
-    get_command: "show running-config tacacs-server"
+_exclude: [ios_xr]
 
 encryption:
-  nexus:
-    set_value: "<state> tacacs-server host <ip> key <enc_type> <key>"
-  ios_xr:
-    context: ["tacacs-server host <ip> port <port>"]
-    set_value: '<state> key <enc_type> <password>'
+  set_value: "%s tacacs-server host %s key %s %s"
 
 encryption_password:
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server host %s key \d+\s+(\S+)/'
   default_value: ""
-  nexus:
-    get_value: '/^tacacs-server host <ip> key \d+\s+(\S+)/'
-  ios_xr:
-    context: ["tacacs-server host <ip> port <port>"]
-    get_value: '/key \d+\s+(\S+)$/'
 
 encryption_type:
-  nexus:
-    get_value: '/^tacacs-server host <ip> key (\d+)/'
-  ios_xr:
-    context: ["tacacs-server host <ip> port <port>"]
-    get_value: '/key (\d+)/'
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server host %s key (\d+)/'
 
 host:
-  nexus:
-    set_value: "<state> tacacs-server host <ip>"
-  ios_xr:
-    set_value: "<state> tacacs-server host <ip> port <port>"
-
-host_port_pairs:
-  _exclude: [nexus]
-  multiple: true
-  get_command: "show running-config tacacs-server"
-  get_value: '/^tacacs-server host <ip> port (\d+)/'
-  default_value: ''
+  set_value: "%s tacacs-server host %s"
 
 hosts:
   multiple: true
+  get_command: "show run tacacs all"
   get_value: '/^tacacs-server host (\S+)/'
 
 port:
+  kind: int
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server host %s .*port (\d+)/'
+  set_value: "tacacs-server host %s port %s"
   default_value: 49
-  multiple: true
-  get_value: '/^tacacs-server host <ip>.* port (\d+).*$/'
-  nexus:
-    set_value: "tacacs-server host <ip> port <port>"
 
 timeout:
-  default_value: 0
   kind: int
-  nexus:
-    get_value: '/^tacacs-server host <ip> .*timeout (\d+)/'
-    set_value: "<state> tacacs-server host <ip> timeout <timeout>"
-  ios_xr:
-    context: ["tacacs-server host <ip> port <port>"]
-    get_value: '/timeout (\d+).*$/'
-    set_value: '<state> timeout <timeout>'
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server host %s .*timeout (\d+)/'
+  set_value: "%s tacacs-server host %s timeout %s"
+  default_value: 0
