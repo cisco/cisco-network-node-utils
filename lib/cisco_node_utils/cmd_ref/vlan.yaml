@@ -20,7 +20,6 @@ mapped_vni:
     get_context: ['/^vlan <vlan>$/']
     get_value: '/^vn-segment (\d+)$/'
     set_context: ['vlan <vlan>']
-    # The 'vn-segment' config is not applied until the 'end' statement is processed
     set_value:  '<state> vn-segment <vni> ; end'
     default_value: ''
   N9k: *mapped_vni_n3k_n9k
@@ -50,7 +49,6 @@ private_vlan_association:
   get_command: "show vlan private-vlan"
   get_value: '/^<id>\s+(\d+)/'
   set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan association <vlans> ; end"
   default_value: []
 
@@ -60,7 +58,6 @@ private_vlan_type:
   get_command: 'show vlan private-vlan type'
   get_value: '/^<id>\s+(\S+)/'
   set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan <type> ; end"
   default_value: ""
 
