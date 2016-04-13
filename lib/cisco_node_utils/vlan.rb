@@ -115,12 +115,16 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
-      result.downcase! if result[/FABRICPATH/]
-      result
+      # Note: The yaml definition for this property
+      # uses 'multiple' as a workaround for a bug
+      # in the N7k nxapi code which displays
+      # the 'show vlan' output twice.
+      result[0].downcase! if result[0][/FABRICPATH/]
+      result[0]
     end
 
     def mode=(str)
-      if str.empty?
+      if str == default_mode
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
         if 'fabricpath' == str
@@ -233,6 +237,7 @@ module Cisco
     end
 
     def private_vlan_type
+      return nil unless Feature.private_vlan_enabled?
       config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
 
@@ -256,6 +261,7 @@ module Cisco
     end
 
     def private_vlan_association
+      return nil unless Feature.private_vlan_enabled?
       result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
       result.sort
     end

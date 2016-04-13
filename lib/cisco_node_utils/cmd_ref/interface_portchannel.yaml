@@ -26,12 +26,14 @@ lacp_max_bundle:
   kind: int
   get_value: '/^lacp max.bundle (\d+)$/'
   set_value: "lacp max-bundle %s"
-  N3k:
+  N3k: &lacp_max_bundle_32
     default_value: 32
-  N9k:
-    default_value: 32
-  else:
+  N5k: &lacp_max_bundle_16
     default_value: 16
+  N6k: *lacp_max_bundle_16
+  N7k: *lacp_max_bundle_16
+  N8k: *lacp_max_bundle_32
+  N9k: *lacp_max_bundle_32
 
 lacp_min_links:
   kind: int

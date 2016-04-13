@@ -24,6 +24,7 @@ Changelog
 ### Added
 
 * Added a new property fabric-control for vlan MT-FULL fabricpath
+* Added support for bdi interfaces to interface provider.
 * Added a new node util to handle bridge domain range cli for member vni
 * Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
