@@ -71,7 +71,7 @@ platform")
     assert_equal(length, @bdi.ipv4_netmask_length,
                  'Error: ipv4 netmask length get value mismatch')
 
-    vrf = 'pepsi'
+    vrf = 'test'
     @bdi.vrf = vrf
     assert_equal(vrf, @bdi.vrf)
     @bdi.vrf = ''
