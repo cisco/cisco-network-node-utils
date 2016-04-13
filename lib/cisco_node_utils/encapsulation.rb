@@ -81,7 +81,7 @@ module Cisco
     # ----------
 
     def range_summarize(string)
-      Utils.array_to_string(Encapsulation.string_to_array(string.to_s), false)
+      Utils.array_to_str(Encapsulation.string_to_array(string.to_s), false)
     end
 
     def dot1q_map

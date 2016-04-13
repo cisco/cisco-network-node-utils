@@ -31,6 +31,7 @@ class TestVlan < CiscoTestCase
       obj.destroy
     end
     interface_ethernet_default(interfaces[0])
+    config_no_warn('no feature vtp')
   end
 
   def setup
@@ -315,5 +316,19 @@ class TestVlan < CiscoTestCase
     assert_equal(v3.default_mapped_vni, v3.mapped_vni)
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
+  end
+
+  def test_mode_with_pvlan
+    v = Vlan.new(1000)
+    if validate_property_excluded?('vlan', 'private_vlan_type')
+      assert_nil(v.private_vlan_type)
+      assert_raises(Cisco::UnsupportedError) do
+        v.private_vlan_type = 'primary'
+      end
+      return
+    end
+    result = 'CE'
+    v.private_vlan_type = 'primary'
+    assert_equal(result, v.mode)
   end
 end
