@@ -318,6 +318,7 @@ class TestVlan < CiscoTestCase
   end
 
   def test_mode_with_pvlan
+    return if node.product_id[/N9K|N3K/]
     v = Vlan.new(1000)
     result = 'CE'
     v.private_vlan_type = 'primary'
