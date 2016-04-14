@@ -25,9 +25,7 @@ mapped_vni:
   N9k: *mapped_vni_n3k_n9k
 
 mode:
-  _exclude:
-    - N3k
-    - N9k
+  _exclude: [N3k, N9k]
   multiple: true
   get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
