@@ -39,6 +39,10 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def load_balance_type
+      config_get('portchannel_global', 'load_balance_type')
+    end
+
     def hash_distribution
       config_get('portchannel_global', 'hash_distribution')
     end
@@ -107,6 +111,8 @@ module Cisco
           _parse_ethernet_params(hash, params)
         when :asymmetric # n7k
           _parse_asymmetric_params(hash, params, line)
+        when :no_hash # n8k
+          _parse_no_hash_params(hash, params)
         when :symmetry # n9k
           _parse_symmetry_params(hash, params, line)
         end
@@ -192,6 +198,12 @@ module Cisco
         # port-channel load-balance dst ip-l4port rotate 4 asymmetric
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, 'rotate', rot.to_s, asym, '')
+      when :no_hash # n8k
+        # port-channel load-balance dst ip-l4port rotate 4
+        rot_str = rot.zero? ? '' : 'rotate'
+        rot_val = rot.zero? ? '' : rot.to_s
+        config_set('portchannel_global', 'port_channel_load_balance',
+                   bselect, bhash, rot_str, rot_val, '', '')
       when :symmetry # n9k
         sym = sy ? 'symmetric' : ''
         concat = conc ? 'concatenation' : ''
@@ -250,6 +262,17 @@ module Cisco
       hash[:bundle_select] = bselect
       hash[:bundle_hash] = bhash
       hash[:asymmetric] = asym
+      hash[:rotate] = rotate
+      hash
+    end
+
+    def _parse_no_hash_params(hash, params)
+      bselect = params[0]
+      bhash = params[1]
+      ri = params.index('rotate')
+      rotate = params[ri + 1].to_i
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
       hash[:rotate] = rotate
       hash
     end

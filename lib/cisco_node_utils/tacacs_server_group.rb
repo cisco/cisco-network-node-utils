@@ -31,7 +31,7 @@ module Cisco
 
       return unless create
 
-      TacacsServer.new.enable unless TacacsServer.enabled
+      TacacsServer.new.enable if platform != :ios_xr && !TacacsServer.enabled
       config_set('tacacs_server_group', 'group', state: '', name: name)
     end
 
@@ -81,8 +81,12 @@ module Cisco
 
     def self.groups
       grps = {}
-      tacgroups = config_get('tacacs_server_group', 'group') if
-        TacacsServer.enabled
+      if platform == :ios_xr
+        tacgroups = config_get('tacacs_server_group', 'group')
+      else
+        tacgroups = config_get('tacacs_server_group', 'group') if
+          TacacsServer.enabled
+      end
       unless tacgroups.nil?
         tacgroups.each { |s| grps[s] = TacacsServerGroup.new(s, false) }
       end

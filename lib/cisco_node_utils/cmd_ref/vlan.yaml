@@ -13,6 +13,16 @@ create:
 destroy:
   set_value: "no vlan %s"
 
+fabric_control:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  kind: boolean
+  get_command: "show running-config vlan"
+  get_context: ['/^vlan <vlan>/']
+  get_value: '/fabric-control/'
+  set_context: ["vlan <vlan>"]
+  set_value: "<state> fabric-control ; end"
+  default_value: false
+
 mapped_vni:
   N3k: &mapped_vni_n3k_n9k
     kind: int
@@ -20,15 +30,12 @@ mapped_vni:
     get_context: ['/^vlan <vlan>$/']
     get_value: '/^vn-segment (\d+)$/'
     set_context: ['vlan <vlan>']
-    # The 'vn-segment' config is not applied until the 'end' statement is processed
     set_value:  '<state> vn-segment <vni> ; end'
     default_value: ''
   N9k: *mapped_vni_n3k_n9k
 
 mode:
-  _exclude:
-    - N3k
-    - N9k
+  _exclude: [N3k, N9k]
   multiple: true
   get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
@@ -50,7 +57,6 @@ private_vlan_association:
   get_command: "show vlan private-vlan"
   get_value: '/^<id>\s+(\d+)/'
   set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan association <vlans> ; end"
   default_value: []
 
@@ -60,7 +66,6 @@ private_vlan_type:
   get_command: 'show vlan private-vlan type'
   get_value: '/^<id>\s+(\S+)/'
   set_context: ['vlan <vlan>']
-  # Need end to push the config Without the config wont take effect
   set_value: "<state> private-vlan <type> ; end"
   default_value: ""
 
