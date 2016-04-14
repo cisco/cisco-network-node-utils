@@ -249,7 +249,7 @@ module Cisco
         config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args)
       else
         set_args_keys(state: 'no')
-        # Remove suppress-uuc only if it is configured. Note that for 
+        # Remove suppress-uuc only if it is configured. Note that for
         # suppress-uuc, default is 'false' which is no suppress-uuc.
         config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args) if suppress_uuc
       end
