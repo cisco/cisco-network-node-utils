@@ -422,15 +422,17 @@ switchport_mode_private_vlan_host_promiscous:
 
 switchport_mode_private_vlan_trunk_promiscuous:
   _exclude: [ios_xr, N8k]
-  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk promiscuous$/'
   set_value: "<state> switchport mode private-vlan trunk promiscuous"
-  default_value: ""
+  default_value: false
 
 switchport_mode_private_vlan_trunk_secondary:
   _exclude: [ios_xr, N8k]
-  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk secondary$/'
   set_value: "<state> switchport mode private-vlan trunk secondary"
-  default_value: ""
+  default_value: false
 
 switchport_private_vlan_association_trunk:
   _exclude: [ios_xr, N8k]

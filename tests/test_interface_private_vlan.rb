@@ -89,9 +89,8 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_promiscuous = ''
-    assert_equal(:promiscuous,
-                 interface.switchport_mode_private_vlan_trunk_promiscuous,
+    interface.switchport_mode_private_vlan_trunk_promiscuous = true
+    assert_equal(true, interface.switchport_mode_private_vlan_trunk_promiscuous,
                  'Err: Switchport mode, not as expected')
   end
 
@@ -101,13 +100,12 @@ class TestSwitchport < TestInterfaceSwitchport
       'switchport_mode_private_vlan_trunk_secondary')
       assert_nil(interface.switchport_mode_private_vlan_trunk_secondary)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_trunk_secondary = ''
+        interface.switchport_mode_private_vlan_trunk_secondary = true
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_secondary = ''
-    assert_equal(:secondary,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
+    interface.switchport_mode_private_vlan_trunk_secondary = true
+    assert_equal(true, interface.switchport_mode_private_vlan_trunk_secondary,
                  'Err: Switchport mode, not as expected')
   end
 
@@ -141,17 +139,15 @@ class TestSwitchport < TestInterfaceSwitchport
       'switchport_mode_private_vlan_trunk_secondary')
       assert_nil(interface.switchport_mode_private_vlan_trunk_secondary)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_trunk_secondary = ''
+        interface.switchport_mode_private_vlan_trunk_secondary = true
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_secondary = ''
-    assert_equal(:secondary,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
+    interface.switchport_mode_private_vlan_trunk_secondary = true
+    assert_equal(true, interface.switchport_mode_private_vlan_trunk_secondary,
                  'Err: Switchport mode not as expected')
-    interface.switchport_mode_private_vlan_trunk_secondary = 'no'
-    assert_equal(:disabled,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
+    interface.switchport_mode_private_vlan_trunk_secondary = false
+    assert_equal(false, interface.switchport_mode_private_vlan_trunk_secondary,
                  'Err: Switchport mode not disabled')
   end
 
