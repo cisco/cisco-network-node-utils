@@ -71,7 +71,7 @@ module Cisco
       config_set('encapsulation', 'create', profile: @encap_name)
     end
 
-    # Destroy a encap instance; disable feature on last instance
+    # Destroy an encap instance
     def destroy
       config_set('encapsulation', 'destroy', profile: @encap_name)
     end

@@ -15,7 +15,7 @@ destroy:
   set_value: "no encapsulation profile vni <profile>"
 
 # Eg:
-# encapsulation profile vni pepsico
+# encapsulation profile vni my_vni_profile
 #   [no] dot1q 100-200, 300 vni 5000-5100, 5300
 dot1q_map:
   get_command: "show encapsulation profile"
