@@ -86,17 +86,23 @@ module Cisco
 
     def dot1q_map
       result = config_get('encapsulation', 'dot1q_map', profile: @encap_name)
-      return default_dot1q_map if result.to_s.empty?
+      return default_dot1q_map if result.empty?
+
       result[0] = range_summarize(result[0])
       result[1] = range_summarize(result[1])
       result
     end
 
-    def dot1q_map=(val)
-      no_cmd = (val.empty?) ? 'no' : ''
-      val = dot1q_map if val.empty?
+    def dot1q_map=(map)
+      state = ''
+      if map.empty?
+        state = 'no'
+        map = dot1q_map
+        return if map.empty?
+      end
+      vlans, vnis = map
       config_set('encapsulation', 'dot1q_map', profile: @encap_name,
-                 state: no_cmd, vlans: val[0], vnis: val[1])
+                 state: state, vlans: vlans, vnis: vnis)
     end
 
     def default_dot1q_map
