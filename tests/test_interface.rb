@@ -141,7 +141,7 @@ class TestInterface < CiscoTestCase
   def capable_speed_values(interface)
     capabilities = config("show interface #{interface.name} capabilities")
     speed_capa = capabilities.match(/Speed:\s+(\S+)/)
-    return [] if speed_capa[1].nil?
+    return [] if speed_capa.nil? || speed_capa[1].nil?
     speed_capa[1].split(',')
   end
 
@@ -149,7 +149,7 @@ class TestInterface < CiscoTestCase
   def capable_duplex_values(interface)
     capabilities = config("show interface #{interface.name} capabilities")
     duplex_capa = capabilities.match(/Duplex:\s+(\S+)/)
-    return [] if duplex_capa[1].nil?
+    return [] if duplex_capa.nil? || duplex_capa[1].nil?
     duplex_capa[1].split(',')
   end
 
