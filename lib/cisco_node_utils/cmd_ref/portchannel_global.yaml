@@ -23,7 +23,7 @@ bundle_select:
   default_value: 'src-dst'
 
 concatenation:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N5k, N6k, N7k, N8k]
   default_value: false
 
 hash_distribution:
@@ -45,7 +45,8 @@ load_balance_type:
   N6k: *load_balance_type_ethernet
   N7k: &load_balance_type_asymmetric
     default_only: "asymmetric"
-  N8k: *load_balance_type_symmetry
+  N8k: &load_balance_type_no_hash
+    default_only: "no_hash"
   N9k: *load_balance_type_symmetry
 
 load_defer:
@@ -73,5 +74,5 @@ rotate:
   default_value: 0
 
 symmetry:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N5k, N6k, N7k, N8k]
   default_value: false
