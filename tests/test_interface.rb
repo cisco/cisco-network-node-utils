@@ -576,7 +576,7 @@ class TestInterface < CiscoTestCase
 
     # Test up to two non-default values
     speed_values = capable_speed_values(interface)
-    warn('No compatible speeds found on interface') if speed_values.nil?
+    warn("No valid speeds found on #{interface.name}") if speed_values.empty?
     successful_runs = 0
     speed_values.each do |value|
       break if successful_runs >= 2
@@ -617,7 +617,7 @@ class TestInterface < CiscoTestCase
 
     # Test non-default values
     duplex_values = capable_duplex_values(interface)
-    warn('No compatible duplex found on interface') if duplex_values.nil?
+    warn("No valid duplex found on #{interface.name}") if duplex_values.empty?
     duplex_values.each do |value|
       interface.duplex = value
       assert_equal(value, interface.duplex)
