@@ -29,14 +29,11 @@ mt_full_support:
 mt_lite_support:
   # This is only used for determining support for Multi-Tenancy Lite
   kind: boolean
-  N9k:
+  N9k: &mt_lite_default
     default_only: true
-  N8k:
-    default_only: true
-  N6k:
-    default_only: true
-  N5k:
-    default_only: true
+  N8k: *mt_lite_default
+  N6k: *mt_lite_default
+  N5k: *mt_lite_default
   else:
     # this feature is always off on these platforms and cannot be changed
     default_only: false
@@ -53,7 +50,7 @@ source_intf:
   default_value: ''
 
 source_intf_hold_down_time:
-  _exclude: [N7k]
+  _exclude: [N5k, N6k, N7k, N8k]
   kind: int
   get_value: '/^source-interface hold-down-time (\d+)$/'
   set_value: '<state> source-interface hold-down-time <time>'

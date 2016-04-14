@@ -33,13 +33,16 @@ itd:
   set_value: "feature itd"
 
 nv_overlay:
+  # N3k - native vxlan support in a future release 
+  # N6k - vxlan supported on 56xx only as of today
   _exclude: [N3k]
   kind: boolean
   get_value: '/^feature nv overlay$/'
   set_value: "feature nv overlay"
 
 nv_overlay_evpn:
-  # TBD: Exclude all n3k even though N31xx in 'switchmode n9k' supports evpn
+  # N3k - native vxlan support in a future release 
+  # N6k - vxlan supported on 56xx only as of today
   _exclude: [N3k]
   kind: boolean
   get_command: "show running | section nv"
@@ -71,8 +74,8 @@ vn_segment_vlan_based:
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
     default_value: false
-  N8k: *vn_segment_vlan_based_mt_lite
   N9k: *vn_segment_vlan_based_mt_lite
+  N8k: *vn_segment_vlan_based_mt_lite
   N6k: *vn_segment_vlan_based_mt_lite
   N5k: *vn_segment_vlan_based_mt_lite
 

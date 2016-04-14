@@ -1,6 +1,6 @@
 # vxlan_vtep_vni
 ---
-_exclude: [N3k, N5k, N6k, N7k, ios_xr]
+_exclude: [N3k, ios_xr]
 
 _template:
   get_command: "show running-config interface all | section 'interface nve'"
@@ -16,7 +16,7 @@ all_vnis:
   get_value: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
-  _exclude: [N7k]
+  _exclude: [N5k, N6k, N7k]
   kind: string
   get_value: '/^ingress-replication protocol (\S+)$/'
   set_value: '<state> ingress-replication protocol <protocol>'
@@ -28,7 +28,7 @@ multicast_group:
   default_value: ''
 
 peer_list:
-  _exclude: [N7k]
+  _exclude: [N5k, N6k, N7k]
   multiple:
   get_context:
     - '/^interface <name>$/i'
@@ -46,4 +46,11 @@ suppress_arp:
   kind: boolean
   get_value: '/^suppress-arp$/'
   set_value: '<state> suppress-arp'
+  default_value: false
+
+suppress_uuc:
+  _exclude: [N7k, N8k, N9k]
+  kind: boolean
+  get_value: '/^suppress-unknown-unicast$/'
+  set_value: '<state> suppress-unknown-unicast'
   default_value: false

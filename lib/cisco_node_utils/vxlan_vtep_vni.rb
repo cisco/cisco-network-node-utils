@@ -236,5 +236,27 @@ module Cisco
     def default_suppress_arp
       config_get_default('vxlan_vtep_vni', 'suppress_arp')
     end
+
+    def suppress_uuc
+      config_get('vxlan_vtep_vni', 'suppress_uuc', @get_args)
+    end
+
+    def suppress_uuc=(state)
+      if state
+        set_args_keys(state: '')
+        # Host reachability must be enabled for this property
+        VxlanVtep.new(@name).host_reachability = 'evpn'
+        config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args)
+      else
+        set_args_keys(state: 'no')
+        # Remove suppress-uuc only if it is configured. Note that for 
+        # suppress-uuc, default is 'false' which is no suppress-uuc.
+        config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args) if suppress_uuc
+      end
+    end
+
+    def default_suppress_uuc
+      config_get_default('vxlan_vtep_vni', 'suppress_uuc')
+    end
   end
 end

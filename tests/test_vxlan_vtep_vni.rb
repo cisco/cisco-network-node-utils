@@ -93,6 +93,8 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_ingress_replication
+    skip('Platform does not support ingress_replication') unless 
+    node.cmd_ref.supports?('vxlan_vtep_vni', 'ingress_replication')
     vni = VxlanVtepVni.new('nve1', '5000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.ingress_replication = 'bgp' }
@@ -153,6 +155,8 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_peer_list
+    skip('Platform does not support peer-list') unless 
+    node.cmd_ref.supports?('vxlan_vtep_vni', 'peer_list')
     vni = VxlanVtepVni.new('nve1', '6000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.peer_list = ['1.1.1.1'] }
@@ -209,5 +213,28 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
+  end
+
+  def test_suppress_uuc
+    skip('Platform does not support suppress-unknown-unicast') unless 
+    node.cmd_ref.supports?('vxlan_vtep_vni', 'suppress_uuc')
+    vni = VxlanVtepVni.new('nve1', '6000')
+
+    # Test: Check suppress_uuc is not configured.
+    refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
+
+    begin
+      # Test: Enable suppress_uuc
+      vni.suppress_uuc = true
+      assert(vni.suppress_uuc, 'suppress_uuc should be enabled')
+    rescue CliError => e
+      msg = 'TCAM reconfiguration required followed by reload' \
+        " Skipping test case.\n#{e}"
+      skip(msg) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
+
+    # Test: Default
+    vni.suppress_uuc = vni.default_suppress_uuc
+    refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
   end
 end

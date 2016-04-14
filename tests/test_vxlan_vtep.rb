@@ -202,6 +202,9 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_source_interface_hold_down_time
+    skip("source_intf_hold_down_time not supported on this Platform") unless 
+    node.cmd_ref.supports?('vxlan_vtep', 'source_intf_hold_down_time')
+
     mt_full_env_setup if VxlanVtep.mt_full_support
     mt_lite_env_setup if VxlanVtep.mt_lite_support
 
