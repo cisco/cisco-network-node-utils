@@ -141,7 +141,7 @@ class TestInterface < CiscoTestCase
   def capable_speed_values(interface)
     capabilities = config("show interface #{interface.name} capabilities")
     speed_capa = capabilities.match(/Speed:\s+(\S+)/)
-    return [] if speed_capa[1].nil?
+    return [] if speed_capa.nil? || speed_capa[1].nil?
     speed_capa[1].split(',')
   end
 
@@ -149,7 +149,7 @@ class TestInterface < CiscoTestCase
   def capable_duplex_values(interface)
     capabilities = config("show interface #{interface.name} capabilities")
     duplex_capa = capabilities.match(/Duplex:\s+(\S+)/)
-    return [] if duplex_capa[1].nil?
+    return [] if duplex_capa.nil? || duplex_capa[1].nil?
     duplex_capa[1].split(',')
   end
 
@@ -576,6 +576,7 @@ class TestInterface < CiscoTestCase
 
     # Test up to two non-default values
     speed_values = capable_speed_values(interface)
+    warn("No valid speeds found on #{interface.name}") if speed_values.empty?
     successful_runs = 0
     speed_values.each do |value|
       break if successful_runs >= 2
@@ -616,6 +617,7 @@ class TestInterface < CiscoTestCase
 
     # Test non-default values
     duplex_values = capable_duplex_values(interface)
+    warn("No valid duplex found on #{interface.name}") if duplex_values.empty?
     duplex_values.each do |value|
       interface.duplex = value
       assert_equal(value, interface.duplex)
