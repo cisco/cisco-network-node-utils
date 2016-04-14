@@ -39,12 +39,12 @@ module Cisco
 
     # Enable tacacs_server feature
     def enable
-      config_set('tacacs_server', 'feature', '')
+      config_set('tacacs_server', 'feature', '') unless platform == :ios_xr
     end
 
     # Disable tacacs_server feature
     def destroy
-      config_set('tacacs_server', 'feature', 'no')
+      config_set('tacacs_server', 'feature', 'no') unless platform == :ios_xr
     end
 
     # --------------------
@@ -55,7 +55,7 @@ module Cisco
     def timeout=(timeout)
       # 'no tacacs timeout' will fail.
       # Just set it to the requested timeout value.
-      config_set('tacacs_server', 'timeout', '', timeout)
+      config_set('tacacs_server', 'timeout', state: '', timeout: timeout)
     end
 
     # Get timeout
@@ -162,12 +162,13 @@ module Cisco
         # need to unset it. Otherwise the box is not configured with key, we
         # don't need to do anything
         if encryption_type != TACACS_SERVER_ENC_UNKNOWN
-          config_set('tacacs_server', 'encryption', 'no',
-                     encryption_type,
-                     encryption_password)
+          config_set('tacacs_server', 'encryption', state:  'no',
+                                                    option: encryption_type,
+                                                    key:    encryption_password)
         end
       else
-        config_set('tacacs_server', 'encryption', '', enctype, password)
+        config_set('tacacs_server', 'encryption', state: '', option: enctype,
+                    key: password)
       end
     end
   end
