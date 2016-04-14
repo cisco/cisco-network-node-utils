@@ -13,6 +13,16 @@ create:
 destroy:
   set_value: "no vlan %s"
 
+fabric_control:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  kind: boolean
+  get_command: "show running-config vlan"
+  get_context: ['/^vlan <vlan>/']
+  get_value: '/fabric-control/'
+  set_context: ["vlan <vlan>"]
+  set_value: "<state> fabric-control ; end"
+  default_value: false
+
 mapped_vni:
   N3k: &mapped_vni_n3k_n9k
     kind: int
