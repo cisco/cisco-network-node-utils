@@ -39,6 +39,10 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def load_balance_type
+      config_get('portchannel_global', 'load_balance_type')
+    end
+
     def hash_distribution
       config_get('portchannel_global', 'hash_distribution')
     end
