@@ -286,6 +286,7 @@ module Cisco
       should_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
+          elema.sort!
           tr = elema[0]..elema[1]
           tr.to_a.each do |item|
             should_list_new.push(item.to_s)
