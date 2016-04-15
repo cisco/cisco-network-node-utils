@@ -13,17 +13,17 @@ _exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
 # bridge-domain 100
 #   shutdown
 #   fabric-control
-#   name PepsiCo
+#   name bd100
 # bridge-domain 101
 # bridge-domain 102
 # ...
 # bridge-domain 108
 #   shutdown
-#   name Amazon
+#   name bd108
 # bridge-domain 109
 #   shutdown
 # bridge-domain 110
-#   name Microsoft
+#   name bd110
 
 _template:
   get_command: "show running-config bridge-domain"
