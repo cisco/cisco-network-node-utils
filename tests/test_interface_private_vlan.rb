@@ -90,8 +90,8 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
     interface.switchport_mode_private_vlan_trunk_promiscuous = true
-    assert_equal(true, interface.switchport_mode_private_vlan_trunk_promiscuous,
-                 'Err: Switchport mode, not as expected')
+    assert(interface.switchport_mode_private_vlan_trunk_promiscuous,
+           'Err: Switchport mode, not as expected')
   end
 
   def test_interface_switchport_private_trunk_secondary
@@ -105,8 +105,8 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
     interface.switchport_mode_private_vlan_trunk_secondary = true
-    assert_equal(true, interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode, not as expected')
+    assert(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode, not as expected')
   end
 
   def test_interface_no_switchport_private_host_mode
@@ -144,11 +144,11 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
     interface.switchport_mode_private_vlan_trunk_secondary = true
-    assert_equal(true, interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode not as expected')
+    assert(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode not as expected')
     interface.switchport_mode_private_vlan_trunk_secondary = false
-    assert_equal(false, interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode not disabled')
+    refute(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode not disabled')
   end
 
   def test_interface_switchport_private_host_association
@@ -273,10 +273,8 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    input = []
-    assert_equal(input,
-                 interface.switchport_mode_private_vlan_host_association,
-                 'Err: switchport private host_association not configured')
+    refute(interface.switchport_mode_private_vlan_host_association,
+           'Err: switchport private host_association not configured')
   end
 
   def test_interface_switchport_pvlan_host_assoc_bad_arg
@@ -324,10 +322,8 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    input = []
-    assert_equal(input,
-                 interface.switchport_mode_private_vlan_host_promisc,
-                 'Error: switchport private host_promisc not configured')
+    refute(interface.switchport_mode_private_vlan_host_promisc,
+           'Error: switchport private host_promisc not configured')
   end
 
   def test_interface_switchport_private_host_promisc
@@ -480,9 +476,8 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = []
-    assert_equal(input, interface.switchport_private_vlan_trunk_allowed_vlan,
-                 'Error: wrong config for switchport private trunk allowed')
+    refute(interface.switchport_private_vlan_trunk_allowed_vlan,
+           'Error: wrong config for switchport private trunk allowed')
   end
 
   def test_interface_switchport_pvlan_trunk_allow_bad_arg
@@ -566,9 +561,8 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = 1
-    assert_equal(input, interface.switchport_private_vlan_trunk_native_vlan,
-                 'Error: wrong config for switchport private native vlan')
+    refute(interface.switchport_private_vlan_trunk_native_vlan,
+           'Error: wrong config for switchport private native vlan')
   end
 
   def test_interface_switchport_pvlan_trunk_native_vlan
@@ -677,10 +671,8 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = []
-    assert_equal(input,
-                 interface.switchport_private_vlan_association_trunk,
-                 'Err: wrong config for switchport private trunk association')
+    refute(interface.switchport_private_vlan_association_trunk,
+           'Err: wrong config for switchport private trunk association')
   end
 
   def test_interface_switchport_pvlan_mapping_trunk_default
@@ -692,9 +684,8 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = []
-    assert_equal(input, interface.switchport_private_vlan_mapping_trunk,
-                 'Err: wrong config for switchport private mapping trunk')
+    refute(interface.switchport_private_vlan_mapping_trunk,
+           'Err: wrong config for switchport private mapping trunk')
   end
 
   def test_interface_switchport_pvlan_mapping_trunk
