@@ -1170,8 +1170,7 @@ module Cisco
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_promiscuous',
                         name: @name)
-
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+      return mode.nil? ? false : mode
 
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
@@ -1187,11 +1186,11 @@ module Cisco
       if state == default_switchport_mode_private_vlan_trunk_promiscuous
         config_set('interface',
                    'switchport_mode_private_vlan_trunk_promiscuous',
-                   name: @name, state: '')
+                   name: @name, state: 'no')
       else
         config_set('interface',
                    'switchport_mode_private_vlan_trunk_promiscuous',
-                   name: @name, state: 'no')
+                   name: @name, state: '')
       end
     end
 
@@ -1205,8 +1204,7 @@ module Cisco
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_secondary',
                         name: @name)
-
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+      return mode.nil? ? false : mode
 
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
@@ -1221,10 +1219,10 @@ module Cisco
       switchport_enable unless switchport
       if state == default_switchport_mode_private_vlan_trunk_secondary
         config_set('interface', 'switchport_mode_private_vlan_trunk_secondary',
-                   name: @name, state: '')
+                   name: @name, state: 'no')
       else
         config_set('interface', 'switchport_mode_private_vlan_trunk_secondary',
-                   name: @name, state: 'no')
+                   name: @name, state: '')
       end
     end
 
