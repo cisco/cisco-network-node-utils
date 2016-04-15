@@ -13,10 +13,11 @@
 # limitations under the License.
 
 require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/bridge_domain'
+require_relative '../lib/cisco_node_utils/encapsulation'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_service_vni'
 require_relative '../lib/cisco_node_utils/vdc'
-require_relative '../lib/cisco_node_utils/vxlan_vtep'
 
 include Cisco
 
@@ -34,97 +35,73 @@ include Cisco
 #      encapsulation profile vni_600_6000 default
 #
 class TestInterfaceServiceVni < CiscoTestCase
+  # rubocop:disable Style/ClassVars
   @skip_unless_supported = 'interface_service_vni'
+  @@pre_clean_needed = true
+  @@intf = nil
 
   def setup
     super
+    return unless @@pre_clean_needed
+
+    mt_full_env_setup
+    @@pre_clean_needed = false
   end
 
   def teardown
-    # Reset the vdc module type back to default
-    v = Vdc.new('default')
-    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
+    config_no_warn("default interface #{@@intf}")
     super
   end
 
   def mt_full_env_setup
-    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    intf = mt_full_interface?
-    v = Vdc.new('default')
-    v.limit_resource_module_type = 'f3' unless
-      v.limit_resource_module_type == 'f3'
-    config_no_warn("default interface #{intf}")
-    intf
+    @@intf = mt_full_interface?
+    Vdc.new('default').limit_resource_module_type = 'f3'
+    config_no_warn("default interface #{@@intf}")
+    global_setup
   end
 
   def global_setup
     # Reset feature to clean up switch
     config('no feature vni', 'feature vni')
 
-    # Create a global encap config
-    config('encapsulation profile vni vni_500_5000', 'dot1q 500  vni 5000',
-           'encapsulation profile vni vni_600_6000', 'dot1q 600  vni 6000',
-           'encapsulation profile vni vni_700_7000', 'dot1q 700  vni 7000',
-           'encapsulation profile vni vni_800_8000', 'dot1q 800  vni 8000')
+    # Create global encap profiles
+    Encapsulation.new('vni_500_5000').dot1q_map = %w(500 5000)
+    Encapsulation.new('vni_600_6000').dot1q_map = %w(600 6000)
+    Encapsulation.new('vni_700_7000').dot1q_map = %w(700 7000)
+    Encapsulation.new('vni_800_8000').dot1q_map = %w(800 8000)
 
-    # Clean up any existing bridge-domain configs
-    # Example config:
-    #   system bridge-domain 41-43
-    #   bridge-domain 41-42
-    #   bridge-domain 41
-    # TBD: Convert this cleanup/setup to use bridge_domain provider
-    found =
-      config('sh run bridge-domain').match(/^bridge-domain (?<bds>[0-9,-]+)/)
-    config("no bridge-domain #{found[:bds]}") if found
-    config_no_warn('system bridge-domain none')
-
-    # Now add our test bridge-domain config
-    config('system bridge-domain 100-113', 'bridge-domain 100')
+    # Create global bridge domains
+    remove_all_bridge_domains
+    BridgeDomain.new('100-113')
   end
 
   def test_create_destroy
-    # This property has several dependencies:
-    #  - VDC support
-    #  - Specific linecard (F3 or newer)
-    #  - Bridge Domain Configuration
-    #  - Feature vni
-
-    intf = mt_full_env_setup
-    global_setup
-
     # TEST Create / Destroy and svc_vni_ids hash builder
-    i5 = InterfaceServiceVni.new(intf, 5)
-    assert_equal(1, InterfaceServiceVni.svc_vni_ids[intf].count)
-    i6 = InterfaceServiceVni.new(intf, 6)
-    i7 = InterfaceServiceVni.new(intf, 7)
-    assert_equal(3, InterfaceServiceVni.svc_vni_ids[intf].count)
+    i5 = InterfaceServiceVni.new(@@intf, 5)
+    assert_equal(1, InterfaceServiceVni.svc_vni_ids[@@intf].count)
+    i6 = InterfaceServiceVni.new(@@intf, 6)
+    i7 = InterfaceServiceVni.new(@@intf, 7)
+    assert_equal(3, InterfaceServiceVni.svc_vni_ids[@@intf].count)
     i6.destroy
-    assert_equal(2, InterfaceServiceVni.svc_vni_ids[intf].count)
+    assert_equal(2, InterfaceServiceVni.svc_vni_ids[@@intf].count)
     i5.destroy
     i7.destroy
   end
 
   def test_shutdown
-    intf = mt_full_env_setup
-    global_setup
+    i5 = InterfaceServiceVni.new(@@intf, 5)
+    assert_equal(i5.default_shutdown, i5.shutdown)
 
-    i5 = InterfaceServiceVni.new(intf, 5)
-    # Test shutdown
     i5.shutdown = false
     refute(i5.shutdown)
     i5.shutdown = true
     assert(i5.shutdown)
-    i5.shutdown = false
-    refute(i5.shutdown)
-    i5.shutdown = i5.default_shutdown
-    assert(i5.shutdown)
   end
 
   def test_encapsulation_profile_vni
-    intf = mt_full_env_setup
-    global_setup
-
-    i5 = InterfaceServiceVni.new(intf, 5)
+    i5 = InterfaceServiceVni.new(@@intf, 5)
+    assert_equal(i5.default_encapsulation_profile_vni,
+                 i5.encapsulation_profile_vni)
 
     # Test removal when profile not present
     i5.encapsulation_profile_vni = ''
@@ -151,16 +128,8 @@ class TestInterfaceServiceVni < CiscoTestCase
   def test_vlan_mapping
     # This test covers two properties:
     #  vlan_mapping & vlan_mapping_enabled
-    #
-    # This property has several dependencies:
-    #  - VDC support
-    #  - Specific linecard (F3)
-    #  - Bridge Domain Configuration
-    #  - Feature vni
-    intf = mt_full_env_setup
-    global_setup
 
-    i = Interface.new(intf)
+    i = Interface.new(@@intf)
     i.switchport_mode = :trunk
     i.vlan_mapping = []
     assert_equal([], i.vlan_mapping, 'Initial cleanup failed')
