@@ -273,8 +273,7 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    refute(interface.switchport_mode_private_vlan_host_association,
-           'Err: switchport private host_association not configured')
+    assert_nil(interface.switchport_mode_private_vlan_host_association)
   end
 
   def test_interface_switchport_pvlan_host_assoc_bad_arg
@@ -322,8 +321,7 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    refute(interface.switchport_mode_private_vlan_host_promisc,
-           'Error: switchport private host_promisc not configured')
+    assert_nil(interface.switchport_mode_private_vlan_host_promisc)
   end
 
   def test_interface_switchport_private_host_promisc
@@ -476,8 +474,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    refute(interface.switchport_private_vlan_trunk_allowed_vlan,
-           'Error: wrong config for switchport private trunk allowed')
+    assert_nil(interface.switchport_private_vlan_trunk_allowed_vlan)
   end
 
   def test_interface_switchport_pvlan_trunk_allow_bad_arg
@@ -561,8 +558,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    refute(interface.switchport_private_vlan_trunk_native_vlan,
-           'Error: wrong config for switchport private native vlan')
+    assert_nil(interface.switchport_private_vlan_trunk_native_vlan)
   end
 
   def test_interface_switchport_pvlan_trunk_native_vlan
@@ -671,8 +667,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    refute(interface.switchport_private_vlan_association_trunk,
-           'Err: wrong config for switchport private trunk association')
+    assert_nil(interface.switchport_private_vlan_association_trunk)
   end
 
   def test_interface_switchport_pvlan_mapping_trunk_default
@@ -684,8 +679,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    refute(interface.switchport_private_vlan_mapping_trunk,
-           'Err: wrong config for switchport private mapping trunk')
+    assert_nil(interface.switchport_private_vlan_mapping_trunk)
   end
 
   def test_interface_switchport_pvlan_mapping_trunk
