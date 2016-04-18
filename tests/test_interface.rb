@@ -137,12 +137,19 @@ class TestInterface < CiscoTestCase
     arr.count
   end
 
-  def test_interface_capabilities
+  def test_capabilities
     if validate_property_excluded?('interface', 'capabilities')
       assert_empty(Interface.capabilities(interfaces[0]))
     else
-      refute_nil(Interface.capabilities(interfaces[0]),
-                 'Interface.capabilities should not return an empty hash')
+      refute_empty(Interface.capabilities(interfaces[0], :hash),
+                   'A valid interface should return a non-empty hash')
+      assert_empty(Interface.capabilities('foo', :hash),
+                   'An Invalid interface should return an empty hash')
+
+      refute_empty(Interface.capabilities(interfaces[0], :raw),
+                   'A valid interface should return a non-empty array')
+      assert_empty(Interface.capabilities('foo', :raw),
+                   'An Invalid interface should return an empty array')
     end
   end
 
