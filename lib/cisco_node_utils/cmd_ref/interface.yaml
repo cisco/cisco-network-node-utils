@@ -27,6 +27,7 @@ capabilities:
   get_context: ["<name>"]
   get_command: "show interface capabilities"
   get_value: '/(.*)/'
+  default_value: [] # :raw default
 
 create:
   set_context: ~

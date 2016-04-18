@@ -119,8 +119,8 @@ module Cisco
         array.each do |line|
           k, v = line.split(':')
           next if k.nil? || v.nil?
-          k.gsub!(/ \(.*\)/, '')
-          v.gsub!(/\s/, '')
+          k.gsub!(/ \(.*\)/, '') # Remove any parenthetical text from key
+          v.strip!
           hash[k] = v
         end
       end
