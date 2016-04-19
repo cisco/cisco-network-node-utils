@@ -95,6 +95,38 @@ module Cisco
       true
     end
 
+    # 'capabilities' is a getter-only helper for minitest and beaker.
+    # mode values:
+    #   :hash = Transform the output into a hash
+    #   :raw  = The raw output from 'show int capabilities'. Some multi-line
+    #           values do not translate easily so this option allows the
+    #           caller to extract the data it needs.
+    #
+    # Sample cli output:
+    #    Model:                 N7K-M132XP-12L
+    #    Type (SFP capable):    10Gbase-SR
+    #    Speed:                 10,100,1000
+    #
+    # Sample hash output:
+    # {"Model"=>"N7K-M132XP-12L", "Type"=>"10Gbase-SR", "Speed"=>"10,100,1000"}
+    #
+    def self.capabilities(intf, mode=:hash)
+      array = config_get('interface', 'capabilities', name: intf)
+      return array if mode == :raw
+      hash = {}
+      if array
+        array.delete('')
+        array.each do |line|
+          k, v = line.split(':')
+          next if k.nil? || v.nil?
+          k.gsub!(/ \(.*\)/, '') # Remove any parenthetical text from key
+          v.strip!
+          hash[k] = v
+        end
+      end
+      hash
+    end
+
     def create
       feature_vlan_set(true) if @name[/(vlan|bdi)/i]
       config_set('interface', 'create', name: @name)

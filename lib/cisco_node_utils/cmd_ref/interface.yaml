@@ -21,6 +21,14 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)/'
 
+capabilities:
+  _exclude: [ios_xr]
+  multiple:
+  get_context: ["<name>"]
+  get_command: "show interface capabilities"
+  get_value: '/(.*)/'
+  default_value: [] # :raw default
+
 create:
   set_context: ~
   set_value: "interface <name>"
