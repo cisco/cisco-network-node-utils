@@ -36,7 +36,7 @@ class TestVxlanVtepVni < CiscoTestCase
     config_no_warn('feature nv overlay')
     # nv overlay is a slow start on some platforms
     sleep 1
-    @@pre_clean_needed = false
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
