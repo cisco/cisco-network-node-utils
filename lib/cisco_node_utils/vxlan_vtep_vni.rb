@@ -220,7 +220,9 @@ module Cisco
       if state
         set_args_keys(state: '')
         # Host reachability must be enabled for this property
-        VxlanVtep.new(@name).host_reachability = 'evpn'
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
         config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
       else
         set_args_keys(state: 'no')
@@ -245,7 +247,9 @@ module Cisco
       if state
         set_args_keys(state: '')
         # Host reachability must be enabled for this property
-        VxlanVtep.new(@name).host_reachability = 'evpn'
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'"
+        end
         config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args)
       else
         set_args_keys(state: 'no')

@@ -34,6 +34,7 @@ class TestVxlanVtep < CiscoTestCase
     # Reset the vdc module type back to default
     v = Vdc.new('default')
     v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
+    config('no feature nv overlay')
   end
 
   def mt_full_env_setup
@@ -42,12 +43,12 @@ class TestVxlanVtep < CiscoTestCase
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'
-    config('no feature nv overlay')
+    Feature.nv_overlay_disable
   end
 
   def mt_lite_env_setup
     skip('Platform does not support MT-lite') unless VxlanVtep.mt_lite_support
-    config('no feature nv overlay')
+    Feature.nv_overlay_disable
     config('no feature vn-segment-vlan-based')
   end
 
@@ -202,14 +203,13 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_source_interface_hold_down_time
-    skip('source_intf_hold_down_time not supported on this Platform') unless
-    node.cmd_ref.supports?('vxlan_vtep', 'source_intf_hold_down_time')
-
     mt_full_env_setup if VxlanVtep.mt_full_support
     mt_lite_env_setup if VxlanVtep.mt_lite_support
 
     vtep = VxlanVtep.new('nve1')
     if validate_property_excluded?('vxlan_vtep', 'source_intf_hold_down_time')
+      assert_nil(vtep.source_interface_hold_down_time)
+      assert_nil(vtep.default_source_interface_hold_down_time)
       assert_raises(Cisco::UnsupportedError) do
         vtep.source_interface_hold_down_time = 50
       end

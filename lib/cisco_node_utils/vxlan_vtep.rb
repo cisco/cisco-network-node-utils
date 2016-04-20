@@ -55,6 +55,10 @@ module Cisco
     end
 
     def create
+      if FabricpathGlobal.fabricpath_feature == :enabled &&
+         node.product_id[/N(5|6)K/]
+        fail 'VxLAN cannot be enabled with Fabricpath configured'
+      end
       Feature.nv_overlay_enable
       Feature.vn_segment_vlan_based_enable if VxlanVtep.mt_lite_support
       # re-use the "interface command ref hooks"

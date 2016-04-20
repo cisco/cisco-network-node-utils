@@ -21,16 +21,26 @@ include Cisco
 # TestVxlanVtepVni - Minitest for VxlanVtepVni node utility
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    config('no feature nv overlay')
-    config('feature nv overlay')
-    config('interface nve1')
+    return unless @@pre_clean_needed
+    # Disable features on initial cleanup only as it's too expensive
+    # to do a disable for every testcase.
+    config_no_warn('no feature nv overlay')
+    config_no_warn('no feature vn-segment-vlan-based') if
+        VxlanVtep.mt_lite_support
+    config_no_warn('feature vn-segment-vlan-based') if
+        VxlanVtep.mt_lite_support
+    config_no_warn('feature nv overlay')
+    # nv overlay is a slow start on some platforms
+    sleep 1
+    @@pre_clean_needed = false
   end
 
   def teardown
-    config('no feature nv overlay')
+    config_no_warn('no interface nve1')
     super
   end
 
@@ -51,6 +61,7 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_vnis
+    VxlanVtep.new('nve1')
     skip('Platform does not support vnis') if VxlanVtepVni.vnis['nve1'].nil?
 
     # Test empty case
@@ -93,8 +104,6 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_ingress_replication
-    skip('Platform does not support ingress_replication') unless
-    node.cmd_ref.supports?('vxlan_vtep_vni', 'ingress_replication')
     vni = VxlanVtepVni.new('nve1', '5000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.ingress_replication = 'bgp' }
@@ -155,8 +164,6 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_peer_list
-    skip('Platform does not support peer-list') unless
-    node.cmd_ref.supports?('vxlan_vtep_vni', 'peer_list')
     vni = VxlanVtepVni.new('nve1', '6000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.peer_list = ['1.1.1.1'] }
@@ -196,6 +203,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_suppress_arp
     vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
 
     # Test: Check suppress_arp is not configured.
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
@@ -216,18 +224,21 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_suppress_uuc
-    skip('Platform does not support suppress-unknown-unicast') unless
-    node.cmd_ref.supports?('vxlan_vtep_vni', 'suppress_uuc')
     vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep_vni', 'suppress_uuc')
+      assert_nil(vni.suppress_uuc)
+      assert_nil(vni.default_suppress_uuc)
+      assert_raises(Cisco::UnsupportedError) { vni.suppress_uuc = true }
+      return
+    end
 
     # Test: Check suppress_uuc is not configured.
     refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
 
-    begin
-      # Test: Enable suppress_uuc
-      vni.suppress_uuc = true
-      assert(vni.suppress_uuc, 'suppress_uuc should be enabled')
-    end
+    # Test: Enable suppress_uuc
+    vni.suppress_uuc = true
+    assert(vni.suppress_uuc, 'suppress_uuc should be enabled')
 
     # Test: Default
     vni.suppress_uuc = vni.default_suppress_uuc
