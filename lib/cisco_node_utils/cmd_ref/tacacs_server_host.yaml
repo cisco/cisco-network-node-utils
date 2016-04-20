@@ -8,7 +8,7 @@ _template:
 
 encryption:
   nexus:
-    set_value: "<state> tacacs-server host <ip> key <enc_type> <key>"
+    set_value: "<state> tacacs-server host <ip> key <enc_type> <password>"
   ios_xr:
     context: ["tacacs-server host <ip> port <port>"]
     set_value: '<state> key <enc_type> <password>'
@@ -47,7 +47,7 @@ hosts:
 
 port:
   default_value: 49
-  multiple: true
+  kind: int
   get_value: '/^tacacs-server host <ip>.* port (\d+).*$/'
   nexus:
     set_value: "tacacs-server host <ip> port <port>"
