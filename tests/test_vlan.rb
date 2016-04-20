@@ -31,6 +31,7 @@ class TestVlan < CiscoTestCase
       obj.destroy
     end
     interface_ethernet_default(interfaces[0])
+    config_no_warn('no feature vtp')
   end
 
   def setup
@@ -317,8 +318,36 @@ class TestVlan < CiscoTestCase
     hardware_supports_feature?(e.message)
   end
 
+  def test_another_vlan_as_fabric_control
+    if validate_property_excluded?('vlan', 'fabric_control')
+      assert_raises(Cisco::UnsupportedError) do
+        Vlan.new('100').fabric_control = true
+      end
+      return
+    end
+
+    vlan = Vlan.new('100')
+    assert_equal(vlan.default_fabric_control, vlan.fabric_control,
+                 'Error: Vlan fabric-control is not matching')
+    vlan.fabric_control = true
+    assert(vlan.fabric_control)
+    another_vlan = Vlan.new(101)
+
+    assert_raises(RuntimeError,
+                  'VLAN misconfig did not raise CliError') do
+      another_vlan.fabric_control = true
+    end
+    vlan.destroy
+    another_vlan.destroy
+  end
+
   def test_mode_with_pvlan
     v = Vlan.new(1000)
+    if validate_property_excluded?('vlan', 'private_vlan_type') ||
+       validate_property_excluded?('vlan', 'mode')
+      features = 'private_vlan_type and/or vlan mode'
+      skip("Skip test: Features #{features} are not supported on this device")
+    end
     result = 'CE'
     v.private_vlan_type = 'primary'
     assert_equal(result, v.mode)

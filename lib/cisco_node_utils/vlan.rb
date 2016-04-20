@@ -89,6 +89,21 @@ module Cisco
       @set_args = @set_args.merge!(hash) unless hash.empty?
     end
 
+    def fabric_control
+      config_get('vlan', 'fabric_control', vlan: @vlan_id)
+    end
+
+    def fabric_control=(val)
+      no_cmd = (val) ? '' : 'no'
+      result = config_set('vlan', 'fabric_control', vlan:  @vlan_id,
+                                                    state: no_cmd)
+      cli_error_check(result)
+    end
+
+    def default_fabric_control
+      config_get_default('vlan', 'fabric_control')
+    end
+
     def fabricpath_feature
       FabricpathGlobal.fabricpath_feature
     end
@@ -271,6 +286,7 @@ module Cisco
       should_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
+          elema.sort!
           tr = elema[0]..elema[1]
           tr.to_a.each do |item|
             should_list_new.push(item.to_s)

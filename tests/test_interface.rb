@@ -137,20 +137,34 @@ class TestInterface < CiscoTestCase
     arr.count
   end
 
+  def test_capabilities
+    if validate_property_excluded?('interface', 'capabilities')
+      assert_empty(Interface.capabilities(interfaces[0]))
+    else
+      refute_empty(Interface.capabilities(interfaces[0], :hash),
+                   'A valid interface should return a non-empty hash')
+      assert_empty(Interface.capabilities('foo', :hash),
+                   'An Invalid interface should return an empty hash')
+
+      refute_empty(Interface.capabilities(interfaces[0], :raw),
+                   'A valid interface should return a non-empty array')
+      assert_empty(Interface.capabilities('foo', :raw),
+                   'An Invalid interface should return an empty array')
+    end
+  end
+
   # Helper to get valid speeds for port
   def capable_speed_values(interface)
-    capabilities = config("show interface #{interface.name} capabilities")
-    speed_capa = capabilities.match(/Speed:\s+(\S+)/)
-    return [] if speed_capa[1].nil?
-    speed_capa[1].split(',')
+    speed_capa = Interface.capabilities(interface.name)['Speed']
+    return [] if speed_capa.nil?
+    speed_capa.split(',')
   end
 
   # Helper to get valid duplex values for port
   def capable_duplex_values(interface)
-    capabilities = config("show interface #{interface.name} capabilities")
-    duplex_capa = capabilities.match(/Duplex:\s+(\S+)/)
-    return [] if duplex_capa[1].nil?
-    duplex_capa[1].split(',')
+    duplex_capa = Interface.capabilities(interface.name)['Duplex']
+    return [] if duplex_capa.nil?
+    duplex_capa.split(',')
   end
 
   def create_interface(ifname=interfaces[0])
@@ -576,6 +590,7 @@ class TestInterface < CiscoTestCase
 
     # Test up to two non-default values
     speed_values = capable_speed_values(interface)
+    warn("No valid speeds found on #{interface.name}") if speed_values.empty?
     successful_runs = 0
     speed_values.each do |value|
       break if successful_runs >= 2
@@ -616,6 +631,7 @@ class TestInterface < CiscoTestCase
 
     # Test non-default values
     duplex_values = capable_duplex_values(interface)
+    warn("No valid duplex found on #{interface.name}") if duplex_values.empty?
     duplex_values.each do |value|
       interface.duplex = value
       assert_equal(value, interface.duplex)
@@ -1342,6 +1358,7 @@ class TestInterface < CiscoTestCase
 
     # pre-configure
     begin
+      interface_ethernet_default(interfaces[1])
       InterfaceChannelGroup.new(interfaces[1]).channel_group = 48
     rescue Cisco::UnsupportedError
       raise unless platform == :ios_xr

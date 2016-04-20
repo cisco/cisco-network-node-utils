@@ -95,6 +95,38 @@ module Cisco
       true
     end
 
+    # 'capabilities' is a getter-only helper for minitest and beaker.
+    # mode values:
+    #   :hash = Transform the output into a hash
+    #   :raw  = The raw output from 'show int capabilities'. Some multi-line
+    #           values do not translate easily so this option allows the
+    #           caller to extract the data it needs.
+    #
+    # Sample cli output:
+    #    Model:                 N7K-M132XP-12L
+    #    Type (SFP capable):    10Gbase-SR
+    #    Speed:                 10,100,1000
+    #
+    # Sample hash output:
+    # {"Model"=>"N7K-M132XP-12L", "Type"=>"10Gbase-SR", "Speed"=>"10,100,1000"}
+    #
+    def self.capabilities(intf, mode=:hash)
+      array = config_get('interface', 'capabilities', name: intf)
+      return array if mode == :raw
+      hash = {}
+      if array
+        array.delete('')
+        array.each do |line|
+          k, v = line.split(':')
+          next if k.nil? || v.nil?
+          k.gsub!(/ \(.*\)/, '') # Remove any parenthetical text from key
+          v.strip!
+          hash[k] = v
+        end
+      end
+      hash
+    end
+
     def create
       feature_vlan_set(true) if @name[/(vlan|bdi)/i]
       config_set('interface', 'create', name: @name)
@@ -1024,6 +1056,7 @@ module Cisco
       is_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
+          elema.sort!
           tr = elema[0]..elema[1]
           tr.to_a.each do |item|
             is_list_new.push(item.to_s)
@@ -1170,8 +1203,7 @@ module Cisco
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_promiscuous',
                         name: @name)
-
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+      return mode.nil? ? false : mode
 
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
@@ -1187,11 +1219,11 @@ module Cisco
       if state == default_switchport_mode_private_vlan_trunk_promiscuous
         config_set('interface',
                    'switchport_mode_private_vlan_trunk_promiscuous',
-                   name: @name, state: '')
+                   name: @name, state: 'no')
       else
         config_set('interface',
                    'switchport_mode_private_vlan_trunk_promiscuous',
-                   name: @name, state: 'no')
+                   name: @name, state: '')
       end
     end
 
@@ -1205,8 +1237,7 @@ module Cisco
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_secondary',
                         name: @name)
-
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
+      return mode.nil? ? false : mode
 
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
@@ -1221,10 +1252,10 @@ module Cisco
       switchport_enable unless switchport
       if state == default_switchport_mode_private_vlan_trunk_secondary
         config_set('interface', 'switchport_mode_private_vlan_trunk_secondary',
-                   name: @name, state: '')
+                   name: @name, state: 'no')
       else
         config_set('interface', 'switchport_mode_private_vlan_trunk_secondary',
-                   name: @name, state: 'no')
+                   name: @name, state: '')
       end
     end
 
