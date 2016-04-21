@@ -1064,6 +1064,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_route_distinguisher
+    skip_nexus_i2_image?
     remove_all_vrfs
 
     bgp = setup_vrf

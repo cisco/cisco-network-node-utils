@@ -143,6 +143,11 @@ class CiscoTestCase < TestCase
     !node.cmd_ref.supports?(feature, property)
   end
 
+  def skip_nexus_i2_image?
+    skip("This property is not supported on Nexus 'I2' images") if
+      Utils.nexus_i2_image
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
