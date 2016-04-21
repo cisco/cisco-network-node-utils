@@ -34,7 +34,6 @@ itd:
 
 nv_overlay:
   # N3k - native vxlan support in a future release
-  # N6k - vxlan supported on 56xx only as of today
   _exclude: [N3k]
   kind: boolean
   get_value: '/^feature nv overlay$/'
