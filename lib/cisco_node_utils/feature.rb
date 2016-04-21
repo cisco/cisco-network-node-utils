@@ -169,6 +169,16 @@ module Cisco
     end
 
     # ---------------------------
+    def self.tacacs_enable
+      return if tacacs_enabled? || platform == :ios_xr
+      config_set('feature', 'tacacs')
+    end
+
+    def self.tacacs_enabled?
+      config_get('feature', 'tacacs')
+    end
+
+    # ---------------------------
     def self.vn_segment_vlan_based_enable
       return if vn_segment_vlan_based_enabled?
       result = config_set('feature', 'vn_segment_vlan_based')
