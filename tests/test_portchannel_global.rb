@@ -98,14 +98,52 @@ class TestPortchannelGlobal < CiscoTestCase
     cmd = 'port-channel load-balance resilient'
     skip('Skip test: Feature is not supported on this device') if
       config(cmd)[/Resilient Hashing Mode unsupported/]
-    config('no ' + cmd)
+    global = create_portchannel_global
+    # For n3k the default is different from n9k
+    if n3k_in_n3k_mode?
+      global.resilient = false
+      assert_equal(false, global.resilient)
+      global.resilient = global.default_resilient
+      assert_equal(global.default_resilient, global.resilient)
+    else
+      config('no ' + cmd)
+      global = create_portchannel_global
+      global.resilient = true
+      assert_equal(true, global.resilient)
+      global.resilient = global.default_resilient
+      assert_equal(global.default_resilient, global.resilient)
+    end
+  end
+
+  def test_load_balance_no_rotate
+    skip('Test not supported on this platform') unless n3k_in_n3k_mode?
 
     global = create_portchannel_global
-    global.resilient = true
-    assert_equal(true, global.resilient)
-
-    global.resilient = global.default_resilient
-    assert_equal(global.default_resilient, global.resilient)
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-only', nil, nil, true, nil, nil)
+    assert_equal('src-dst',
+                 global.bundle_select)
+    assert_equal('ip-only',
+                 global.bundle_hash)
+    assert_equal(true, global.symmetry)
+    global.send(
+      :port_channel_load_balance=,
+      global.default_bundle_select,
+      global.default_bundle_hash,
+      nil,
+      nil,
+      global.default_symmetry,
+      nil,
+      nil)
+    assert_equal(
+      global.default_bundle_select,
+      global.bundle_select)
+    assert_equal(
+      global.default_bundle_hash,
+      global.bundle_hash)
+    assert_equal(
+      global.default_symmetry,
+      global.symmetry)
   end
 
   def test_load_balance_sym_concat_rot
