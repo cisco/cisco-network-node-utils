@@ -170,7 +170,7 @@ module Cisco
 
     # ---------------------------
     def self.tacacs_enable
-      return if tacacs_enabled?
+      return if tacacs_enabled? || platform == :ios_xr
       config_set('feature', 'tacacs')
     end
 

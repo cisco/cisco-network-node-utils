@@ -71,7 +71,7 @@ module Cisco
 
     def create
       destroy if platform == :ios_xr
-      Feature.tacacs_enable unless platform == :ios_xr
+      Feature.tacacs_enable
       config_set('tacacs_server_host',
                  'host',
                  state: '',
