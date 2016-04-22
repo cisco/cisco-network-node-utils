@@ -51,6 +51,7 @@ class TestSvi < CiscoTestCase
 
   def teardown
     remove_all_svis
+    config('no feature private-vlan')
     super
   end
 
@@ -76,7 +77,7 @@ class TestSvi < CiscoTestCase
       return
     end
     input = %w(10-20 30)
-    result = %w(10-20 30)
+    result = ['10-20,30']
     svi.private_vlan_mapping = input
     assert_equal(result,
                  svi.private_vlan_mapping,
@@ -107,7 +108,7 @@ class TestSvi < CiscoTestCase
       return
     end
     input = %w(10 20)
-    result = %w(10 20)
+    result = ['10,20']
     svi.private_vlan_mapping = input
     input = svi.private_vlan_mapping
     assert_equal(result,
