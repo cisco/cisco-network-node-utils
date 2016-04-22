@@ -102,14 +102,14 @@ class TestPortchannelGlobal < CiscoTestCase
     # For n3k the default is different from n9k
     if n3k_in_n3k_mode?
       global.resilient = false
-      assert_equal(false, global.resilient)
+      refute(global.resilient)
       global.resilient = global.default_resilient
       assert_equal(global.default_resilient, global.resilient)
     else
       config('no ' + cmd)
       global = create_portchannel_global
       global.resilient = true
-      assert_equal(true, global.resilient)
+      assert(global.resilient)
       global.resilient = global.default_resilient
       assert_equal(global.default_resilient, global.resilient)
     end
