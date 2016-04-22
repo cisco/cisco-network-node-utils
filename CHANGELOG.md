@@ -61,6 +61,7 @@ Changelog
   * `port_channel_limit` (only on Nexus 7k)
 * Extend vlan with attributes:
   * `private_vlan_association`, `private_vlan_type`
+* Added N3k native support for portchannel_global
 
 ### Changed
 
