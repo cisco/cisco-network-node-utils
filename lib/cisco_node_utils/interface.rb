@@ -1050,10 +1050,29 @@ module Cisco
                          'switchport_mode_private_vlan_host_association')
     end
 
+    # This api is used by private vlan to prepare the input to the setter
+    # method. The input can be in the following formats for vlans:
+    # 10-12,14. Prepare_array api is transforming this input into a flat array.
+    # In the example above the returned array will be 10, 11, 12, 13. Prepare
+    # array is first splitting the input on ',' and the than expanding the vlan
+    # range element like 10-12 into a flat array. The final result will
+    # be a  flat array.
+    # This way we can later used the lib utility to check the delta from
+    # the input vlan value and the vlan configured to apply the right config.
     def prepare_array(is_list)
-      is_list.each { |item| item.gsub!('-', '..') }
+      new_list = []
+      is_list.each do |item|
+        if item.include?(',')
+          new_list.push(item.split(','))
+        else
+          new_list.push(item)
+        end
+      end
+      new_list.flatten!
+      new_list.sort!
+      new_list.each { |item| item.gsub!('-', '..') }
       is_list_new = []
-      is_list.each do |elem|
+      new_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
           elema.sort!
@@ -1379,8 +1398,7 @@ module Cisco
                          name: @name)
       return [] if match.nil? || match.empty?
       match[0].delete!(' ')
-      result = match[0].split(',')
-      result
+      match
     end
 
     def private_vlan_mapping=(vlans)

@@ -71,7 +71,7 @@ class TestSvi < CiscoTestCase
                                    'private_vlan_mapping')
       assert_nil(svi.private_vlan_mapping)
       assert_raises(Cisco::UnsupportedError) do
-        svi.private_vlan_mapping = 10
+        svi.private_vlan_mapping = %w(11-13)
       end
       return
     end
@@ -102,7 +102,7 @@ class TestSvi < CiscoTestCase
                                    'private_vlan_mapping')
       assert_nil(svi.private_vlan_mapping)
       assert_raises(Cisco::UnsupportedError) do
-        svi.private_vlan_mapping = 10
+        svi.private_vlan_mapping = %w(10 20)
       end
       return
     end
