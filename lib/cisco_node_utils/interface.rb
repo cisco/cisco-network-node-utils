@@ -1019,9 +1019,19 @@ module Cisco
     end
 
     def prepare_array(is_list)
-      is_list.each { |item| item.gsub!('-', '..') }
+      new_list = []
+      is_list.each do |item|
+        if item.include?(',')
+          new_list.push(item.split(','))
+        else
+          new_list.push(item)
+        end
+      end
+      new_list.flatten!
+      new_list.sort!
+      new_list.each { |item| item.gsub!('-', '..') }
       is_list_new = []
-      is_list.each do |elem|
+      new_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
           elema.sort!
@@ -1074,6 +1084,7 @@ module Cisco
         is_list.each do |vlans|
           vlans = vlans.split(' ')
           if vlans[0].eql? should_list_new[0]
+            # if vlans[0].eql? pr_vlan
             config_set('interface',
                        'switchport_private_vlan_association_trunk',
                        name: @name, state: 'no',
@@ -1085,6 +1096,7 @@ module Cisco
         end
         result = config_set('interface', PVLAN_PROPERTY[property], name: @name,
                             state: '', vlan_pr: should_list_new[0],
+                            # state: '', vlan_pr: pr_vlan,
                             vlan: should_list_new[1])
       when :mapping_trunk
         @match_found = false
@@ -1347,8 +1359,7 @@ module Cisco
                          name: @name)
       return [] if match.nil? || match.empty?
       match[0].delete!(' ')
-      result = match[0].split(',')
-      result
+      match
     end
 
     def private_vlan_mapping=(vlans)
