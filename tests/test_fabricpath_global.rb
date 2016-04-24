@@ -42,10 +42,10 @@ class TestFabricpathGlobal < CiscoTestCase
     fg.each { |_key, elem| elem.destroy } unless fg.empty?
   end
 
-#  def no_feature_fabricpath
-#    # Turn the feature off for a clean test.
-#    config('no feature-set fabricpath')
-#  end
+  #  def no_feature_fabricpath
+  #    # Turn the feature off for a clean test.
+  #    config('no feature-set fabricpath')
+  #  end
 
   # TESTS
 

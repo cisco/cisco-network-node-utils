@@ -96,6 +96,5 @@ module Cisco
     def default_interface_membership
       config_get_default('vdc', 'membership')
     end
-
   end  # Class
 end    # Module

@@ -225,24 +225,25 @@ class CiscoTestCase < TestCase
     config(*cfg)
   end
 
-  # setup fabricpath env if possibel and populate the interfaces array
+  # setup fabricpath env if possible and populate the interfaces array
   # otherwise cause a global skip
   def fabricpath_testenv_setup
-    if node.product_id[/N7K/]
+    return unless node.product_id[/N7K/]
+    intf_array = Feature.compatible_interfaces('fabricpath')
+    vdc = Vdc.new(Vdc.default_vdc_name)
+    save_lr = vdc.limit_resource_module_type
+    if intf_array.empty? || save_lr != 'f2e f3'
+      # try getting the required modules into the default vdc
+      vdc.limit_resource_module_type = 'f2e f3'
       intf_array = Feature.compatible_interfaces('fabricpath')
-      vdc = Vdc.new(Vdc.default_vdc_name)
-      save_lr = vdc.limit_resource_module_type
-      if intf_array.empty? || save_lr != 'f2e f3'
-        # try getting the required modules into the default vdc
-        vdc.limit_resource_module_type = 'f2e f3'
-        intf_array = Feature.compatible_interfaces('fabricpath')
-      end
-      if intf_array.empty?
-        vdc.limit_resource_module_type = save_lr
-        skip('FabricPath compatible interfaces not found in this switch')
-      else
-        interfaces = intf_array 
-      end
+    end
+    if intf_array.empty?
+      vdc.limit_resource_module_type = save_lr
+      skip('FabricPath compatible interfaces not found in this switch')
+    else
+      # rubocop:disable Style/ClassVars
+      @@interfaces = intf_array
+      # rubocop:enable Style/ClassVars
     end
   end
 
