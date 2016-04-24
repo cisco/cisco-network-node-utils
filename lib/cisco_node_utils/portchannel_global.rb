@@ -107,6 +107,8 @@ module Cisco
         params = line.split
         lb_type = config_get('portchannel_global', 'load_balance_type')
         case lb_type.to_sym
+        when :no_rotate # n3k
+          _parse_no_rotate_params(hash, params, line)
         when :ethernet # n6k
           _parse_ethernet_params(hash, params)
         when :asymmetric # n7k
@@ -181,6 +183,19 @@ module Cisco
     def port_channel_load_balance=(bselect, bhash, hpoly, asy, sy, conc, rot)
       lb_type = config_get('portchannel_global', 'load_balance_type')
       case lb_type.to_sym
+      when :no_rotate # n3k
+        sym = sy ? 'symmetric' : ''
+        if bselect == 'src'
+          sel = 'source'
+        elsif bselect == 'dst'
+          sel = 'destination'
+        else
+          sel = 'source-dest'
+        end
+        sel_hash = sel + '-' + bhash
+        # port-channel load-balance ethernet source-dest-ip symmetric
+        config_set('portchannel_global', 'port_channel_load_balance',
+                   'ethernet', sel_hash, sym, '', '', '')
       when :ethernet # n6k
         if bselect == 'src'
           sel = 'source'
@@ -213,6 +228,42 @@ module Cisco
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, rot_str, rot_val, concat, sym)
       end
+    end
+
+    # N3k: The bundle hash and bundle select are merged into one output;
+    # also note that the field names are source & destination instead of
+    # src & dst as in other devices.
+    def _parse_no_rotate_params(hash, params, line)
+      sym = (line.include? 'symmetric') ? true : false
+
+      select_hash = params[1]
+      lparams = select_hash.split('-')
+      if lparams[0].downcase == 'destination'
+        bselect = 'dst'
+        bhash = lparams[1]
+        # there are bundles hashes like ip-gre which
+        # need extra processing
+        bhash += '-gre' if select_hash.include? 'gre'
+      else
+        if select_hash.include? '-dest-'
+          bselect = 'src-dst'
+          bhash = lparams[2]
+          bhash += '-gre' if select_hash.include? 'gre'
+          # there are bundles hashes like ip-only and
+          # port-only specific to src-dst
+          bhash += '-only' if select_hash.include? 'only'
+        else
+          bselect = 'src'
+          bhash = lparams[1]
+          # there are bundles hashes like ip-gre which
+          # need extra processing
+          bhash += '-gre' if select_hash.include? 'gre'
+        end
+      end
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
+      hash[:symmetry] = sym
+      hash
     end
 
     # N5k/N6k: The bundle hash and bundle select are merged into one output;

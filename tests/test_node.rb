@@ -35,7 +35,7 @@ class TestNode < TestCase
     assert_raises(Cisco::ConnectionRefused) do
       Node.new
     end
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::ConnectionRefused) do
       Node.instance
     end
   ensure

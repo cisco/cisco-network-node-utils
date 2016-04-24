@@ -91,6 +91,8 @@ class TestItdService < CiscoTestCase
     config 'interface port-channel 100 ; no switchport'
     itd = ItdService.new('new_group')
     intf = interfaces[0].dup
+    new_intf = Interface.new(interfaces[0])
+    new_intf.switchport_mode = :disabled
     ii = [['vlan 2', '1.1.1.1'],
           [intf.insert(8, ' '), '2.2.2.2'],
           ['port-channel 100', '3.3.3.3']]
@@ -204,6 +206,8 @@ class TestItdService < CiscoTestCase
     itd.device_group = 'abc'
     itd.virtual_ip = ['ip 2.2.2.2 255.255.255.0']
     intf = interfaces[0].dup
+    new_intf = Interface.new(interfaces[0])
+    new_intf.switchport_mode = :disabled
     ii = [[intf.insert(8, ' '), '2.2.2.2']]
     itd.ingress_interface = ii
     itd.nat_destination = true
@@ -219,6 +223,8 @@ class TestItdService < CiscoTestCase
     itd.device_group = 'abc'
     itd.virtual_ip = ['ip 2.2.2.2 255.255.255.0']
     intf = Interface.new(interfaces[0])
+    new_intf = Interface.new(interfaces[0])
+    new_intf.switchport_mode = :disabled
     intf.switchport_mode = :disabled
     intf_dup = interfaces[0].dup
     ii = [[intf_dup.insert(8, ' '), '2.2.2.2']]
