@@ -237,5 +237,28 @@ module Cisco
         result.is_a?(String) &&
         /Hardware is not capable of supporting/.match(result)
     end
+
+    # ---------------------------
+    def self.compatible_interfaces(feature)
+      # Figure out the interfaces in a modular switch that are
+      # compatible with the given feature and return an array of
+      # such interfaces
+      module_pids = config_get(feature, 'supported_module_pids')
+      return [] if module_pids.nil?
+      module_regex = Regexp.new module_pids
+      # first get the compatible modules present in the switch
+      slots = Platform.slots.select do |_slot, filt_mod|
+        filt_mod['pid'] =~ module_regex
+      end
+      return [] if slots.empty?
+      # get the slot numbers only into filtered slots array
+      filt_slots = slots.keys.map { |key| key[/\d+/] }
+      # now filter interfaces in the vdc based on compatible slots
+      vdc = Vdc.new(Vdc.default_vdc_name)
+      filt_intfs = vdc.interface_membership.select do |intf|
+        filt_slots.include? intf[/\d+/]
+      end
+      filt_intfs
+    end
   end
 end

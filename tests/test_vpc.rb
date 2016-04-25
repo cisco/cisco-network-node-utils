@@ -15,6 +15,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vpc'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_channel_group'
+require_relative '../lib/cisco_node_utils/platform'
 
 include Cisco
 
@@ -472,6 +473,7 @@ class TestVpc < CiscoTestCase
 
   def test_interface_vpc_plus_peer_link
     vpc = Vpc.new(100)
+    fabricpath_testenv_setup
     if validate_property_excluded?('vpc', 'fabricpath_emulated_switch_id')
       assert_raises(Cisco::UnsupportedError) do
         vpc.fabricpath_emulated_switch_id = true

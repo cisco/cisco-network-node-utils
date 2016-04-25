@@ -225,6 +225,29 @@ class CiscoTestCase < TestCase
     config(*cfg)
   end
 
+  # setup fabricpath env if possible and populate the interfaces array
+  # otherwise cause a global skip
+  def fabricpath_testenv_setup
+    return unless node.product_id[/N7K/]
+    intf_array = Feature.compatible_interfaces('fabricpath')
+    vdc = Vdc.new(Vdc.default_vdc_name)
+    save_lr = vdc.limit_resource_module_type
+    fabricpath_lr = node.config_get('fabricpath', 'supported_modules')
+    if intf_array.empty? || save_lr != fabricpath_lr
+      # try getting the required modules into the default vdc
+      vdc.limit_resource_module_type = fabricpath_lr
+      intf_array = Feature.compatible_interfaces('fabricpath')
+    end
+    if intf_array.empty?
+      vdc.limit_resource_module_type = save_lr
+      skip('FabricPath compatible interfaces not found in this switch')
+    else
+      # rubocop:disable Style/ClassVars
+      @@interfaces = intf_array
+      # rubocop:enable Style/ClassVars
+    end
+  end
+
   # Returns an array of commands to remove all configurations from
   # an interface.
   def get_interface_cleanup_config(intf_name)
