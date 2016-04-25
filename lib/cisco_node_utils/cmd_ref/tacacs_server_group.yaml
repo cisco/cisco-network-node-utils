@@ -1,9 +1,13 @@
 # tacacs_server_group
 ---
-_exclude: [ios_xr]
+_template:
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config aaa"
 
 deadtime:
-  get_command: "show run tacacs all"
+  _exclude: [ios_xr]
   get_context: ['/^aaa group server tacacs\+ %s/']
   get_value: '/^deadtime (\d+)/'
   set_context: ["aaa group server tacacs <name>"]
@@ -12,14 +16,12 @@ deadtime:
 
 group:
   multiple: true
-  get_command: "show running-config tacacs all"
   get_value: '/^aaa group server tacacs\+ (\S+)/'
   set_value: '<state> aaa group server tacacs <name>'
   default_value: []
 
 servers:
   multiple: true
-  get_command: "show running-config tacacs all"
   get_context: ['/^aaa group server tacacs\+ %s/']
   get_value: '/^server (\S+)/'
   set_context: ["aaa group server tacacs <name>"]
@@ -27,7 +29,7 @@ servers:
   default_value: []
 
 source_interface:
-  get_command: "show run tacacs all"
+  _exclude: [ios_xr]
   get_context: ['/^aaa group server tacacs\+ %s/']
   get_value: '/^source-interface (\S+)/'
   set_context: ["aaa group server tacacs <name>"]
@@ -35,7 +37,7 @@ source_interface:
   default_value: ""
 
 vrf:
-  get_command: "show run tacacs all"
+  _exclude: [ios_xr]
   get_context: ['/^aaa group server tacacs\+ %s/']
   get_value: '/^use-vrf (\S+)/'
   set_context: ["aaa group server tacacs <name>"]

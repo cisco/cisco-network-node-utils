@@ -60,9 +60,13 @@ pim:
 private_vlan:
   _exclude: [N8k]
   kind: boolean
-  get_command: "show running | i ^feature"
   get_value: '/^feature private-vlan$/'
   set_value: "feature private-vlan"
+
+tacacs:
+  kind: boolean
+  get_value: '/^feature tacacs\+$/'
+  set_value: "feature tacacs"
 
 vn_segment_vlan_based:
   # MT-lite only

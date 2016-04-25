@@ -14,71 +14,64 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/encapsulation'
+require_relative '../lib/cisco_node_utils/vdc'
 
 # TestEncapsulation - Minitest for Encapsulation node utility class
 class TestEncapsulation < CiscoTestCase
   @skip_unless_supported = 'encapsulation'
-  @@cleaned = false # rubocop:disable Style/ClassVars
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
+  def setup
+    super
+    return unless @@pre_clean_needed
+
+    # This provider requires MT-Full and a compatible linecard
+    mt_full_interface?
+    Vdc.new('default').limit_resource_module_type = 'f3'
+    cleanup
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    cleanup
+    super
+  end
 
   def cleanup
     config_no_warn('no feature vni')
     Encapsulation.encaps.each do |_encap, obj|
       obj.destroy
     end
-  rescue
-    skip('Unsupported in non F3 vdcs')
-  end
-
-  def setup
-    # setup runs at the beginning of each test
-    super
-    cleanup unless @@cleaned
-    @@cleaned = true # rubocop:disable Style/ClassVars
-  end
-
-  def teardown
-    # teardown runs at the end of each test
-    cleanup
-    super
   end
 
   # TESTS
 
-  def test_encapsulation_create_destroy
-    mt_full_interface?
-    encap = Encapsulation.new('cisco')
-    encap.destroy
+  def test_create_destroy
+    profile = 'cisco'
+    e = Encapsulation.new(profile)
+    assert(Encapsulation.encaps[profile], "profile '#{profile}' not found")
+    e.destroy
   end
 
-  def test_encapsulation_dot1_mapping
-    mt_full_interface?
-    encap = Encapsulation.new('cisco')
-    assert_equal(encap.default_dot1q_map, encap.dot1q_map,
-                 'Error: dot1q is not matching')
-    dot1q = '100-110,150'
-    vni = '5000-5010,5050'
-    encap.dot1q_map = [dot1q, vni]
-    assert_equal(dot1q, encap.dot1q_map[0],
-                 'Error: dot1q vlan is not matching')
-    assert_equal(vni, encap.dot1q_map[1],
-                 'Error: vni to dot1q mapping is not matchin')
+  def test_dot1q_map
+    e = Encapsulation.new('cisco')
+    assert_equal(e.default_dot1q_map, e.dot1q_map)
 
-    encap.dot1q_map = []
-    assert_equal(encap.default_dot1q_map, encap.dot1q_map,
-                 'Error: dot1q is not matching')
-    encap.destroy
+    map = ['100-110,150', '5000-5010,5050']
+    e.dot1q_map = map
+    assert_equal(map, e.dot1q_map)
+
+    e.dot1q_map = e.default_dot1q_map
+    assert_equal(e.default_dot1q_map, e.dot1q_map)
+
+    e.destroy
   end
 
-  def test_invalid_range_dot1q_mapping
-    mt_full_interface?
-    encap = Encapsulation.new('cisco')
-    assert_equal(encap.default_dot1q_map, encap.dot1q_map,
-                 'Error: dot1q is not matching')
-    dot1q = '100-111'
-    vni = '5000-5010'
-    assert_raises(RuntimeError,
-                  'Encap misconfig did not raise RuntimeError') do
-      encap.dot1q_map = [dot1q, vni]
+  def test_dot1q_map_negative
+    e = Encapsulation.new('cisco')
+    assert_raises(CliError) do
+      # Test for range imbalance (3 vlans to only 2 vnis)
+      e.dot1q_map = ['101-103', '5101-5102']
     end
   end
 end

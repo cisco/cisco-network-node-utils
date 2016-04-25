@@ -58,7 +58,7 @@ class TestVtp < CiscoTestCase
     vtp.version = 1
     assert_equal(1, vtp.version)
     # Can't set any of the below without setting a domain first
-    assert_raises(RuntimeError) do
+    assert_raises(CliError) do
       vtp.password = 'hello'
     end
   end

@@ -89,6 +89,21 @@ module Cisco
       @set_args = @set_args.merge!(hash) unless hash.empty?
     end
 
+    def fabric_control
+      config_get('vlan', 'fabric_control', vlan: @vlan_id)
+    end
+
+    def fabric_control=(val)
+      no_cmd = (val) ? '' : 'no'
+      result = config_set('vlan', 'fabric_control', vlan:  @vlan_id,
+                                                    state: no_cmd)
+      cli_error_check(result)
+    end
+
+    def default_fabric_control
+      config_get_default('vlan', 'fabric_control')
+    end
+
     def fabricpath_feature
       FabricpathGlobal.fabricpath_feature
     end
@@ -100,12 +115,16 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
-      result.downcase! if result[/FABRICPATH/]
-      result
+      # Note: The yaml definition for this property
+      # uses 'multiple' as a workaround for a bug
+      # in the N7k nxapi code which displays
+      # the 'show vlan' output twice.
+      result[0].downcase! if result[0][/FABRICPATH/]
+      result[0]
     end
 
     def mode=(str)
-      if str.empty?
+      if str == default_mode
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
         if 'fabricpath' == str
@@ -218,6 +237,7 @@ module Cisco
     end
 
     def private_vlan_type
+      return nil unless Feature.private_vlan_enabled?
       config_get('vlan', 'private_vlan_type', id: @vlan_id)
     end
 
@@ -241,6 +261,7 @@ module Cisco
     end
 
     def private_vlan_association
+      return nil unless Feature.private_vlan_enabled?
       result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
       result.sort
     end
@@ -265,6 +286,7 @@ module Cisco
       should_list.each do |elem|
         if elem.include?('..')
           elema = elem.split('..').map { |d| Integer(d) }
+          elema.sort!
           tr = elema[0]..elema[1]
           tr.to_a.each do |item|
             should_list_new.push(item.to_s)

@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.3.0]
 
 ### New feature support
 
@@ -23,6 +23,8 @@ Changelog
 
 ### Added
 
+* Added a new property fabric-control for vlan MT-FULL fabricpath
+* Added support for bdi interfaces to interface provider.
 * Added a new node util to handle bridge domain range cli for member vni
 * Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
@@ -59,6 +61,7 @@ Changelog
   * `port_channel_limit` (only on Nexus 7k)
 * Extend vlan with attributes:
   * `private_vlan_association`, `private_vlan_type`
+* Added N3k native support for portchannel_global
 
 ### Changed
 
@@ -305,7 +308,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
