@@ -92,7 +92,7 @@ class TestFeature < CiscoTestCase
   end
 
   def test_nv_overlay
-    if node.product_id[/N(3|5|6)/]
+    if node.product_id[/N(3)/]
       assert_nil(Feature.nv_overlay_enabled?)
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
       return
@@ -139,6 +139,10 @@ class TestFeature < CiscoTestCase
 
   def test_private_vlan
     feature('private_vlan')
+  end
+
+  def test_tacacs
+    feature('tacacs')
   end
 
   def test_vn_segment_vlan_based

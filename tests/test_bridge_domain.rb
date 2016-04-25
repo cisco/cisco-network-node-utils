@@ -109,7 +109,7 @@ class TestBridgeDomain < CiscoTestCase
     assert_equal(bd.default_bd_name, bd.bd_name,
                  'Error: Bridge-Domain name not initialized to default')
 
-    name = 'Pepsi'
+    name = 'my_bridge'
     bd.bd_name = name
     assert_equal(name, bd.bd_name,
                  'Error: Bridge-Domain name not updated to #{name}')
@@ -155,9 +155,9 @@ class TestBridgeDomain < CiscoTestCase
   def test_multiple_bd_combinations
     bds = BridgeDomain.new('100-110')
     bd_hash = {}
-    bd_hash['100'] = [true, false, 'PepsiCo']
-    bd_hash['105'] = [true, true, 'Microsoft']
-    bd_hash['107'] = [true, false, 'Amazon']
+    bd_hash['100'] = [true, false, 'bd100']
+    bd_hash['105'] = [true, true, 'bd105']
+    bd_hash['107'] = [true, false, 'bd107']
     bd_hash['110'] = [true, false, '']
     BridgeDomain.bds.each do |bd, obj|
       if bd_hash.key?(bd)

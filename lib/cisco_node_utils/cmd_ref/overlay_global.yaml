@@ -1,9 +1,8 @@
 # overlay_global
 ---
-_exclude: [ios_xr]
+_exclude: [N3k, ios_xr]
 
 anycast_gateway_mac:
-  _exclude: [N3k]
   kind: string
   get_command: "show running all | inc 'fabric forwarding'"
   get_value: '/^fabric forwarding anycast-gateway-mac (\S+)$/'
@@ -11,7 +10,6 @@ anycast_gateway_mac:
   default_value: ""
 
 dup_host_ip_addr_detection:
-  _exclude: [N3k]
   get_command: "show running all | inc 'fabric forwarding'"
   get_value: '/^fabric forwarding dup-host-ip-addr-detection (\d+) (\d+)$/'
   set_value: "<state> fabric forwarding dup-host-ip-addr-detection <host_moves> <timeout>"

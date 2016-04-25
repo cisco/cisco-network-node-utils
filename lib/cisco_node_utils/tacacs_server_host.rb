@@ -50,6 +50,7 @@ module Cisco
 
     def self.hosts
       hosts = {}
+      return hosts unless Feature.tacacs_enabled?
 
       hosts_list = config_get('tacacs_server_host', 'hosts')
       return hosts if hosts_list.nil? || hosts_list.empty?
@@ -70,6 +71,7 @@ module Cisco
 
     def create
       destroy if platform == :ios_xr
+      Feature.tacacs_enable
       config_set('tacacs_server_host',
                  'host',
                  state: '',

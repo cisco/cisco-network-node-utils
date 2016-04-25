@@ -143,6 +143,11 @@ class CiscoTestCase < TestCase
     !node.cmd_ref.supports?(feature, property)
   end
 
+  def skip_nexus_i2_image?
+    skip("This property is not supported on Nexus 'I2' images") if
+      Utils.nexus_i2_image
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
@@ -236,10 +241,60 @@ class CiscoTestCase < TestCase
     # we will provide an appropriate interface name if the linecard is present.
     # Example 'show mod' output to match against:
     #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
+    #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
+    sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N7[7K]-F3'")
+    sh_mod = sh_mod_string[/^(\d+)\s.*N7[7K]-F3.*ok/]
     slot = sh_mod.nil? ? nil : Regexp.last_match[1]
     skip('Unable to find compatible interface in chassis') if slot.nil?
 
     "ethernet#{slot}/1"
+  end
+
+  def vxlan_linecard?
+    # n5,6,7k tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable vxlan.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
+    #   '2   6  Nexus 6xQSFP Ethernet Module  N5K-C5672UP-M6Q ok'
+    #   '2   6  Nexus xxQSFP Ethernet Module  N6K-C6004-96Q/EF ok'
+    if node.product_id[/N(5|6)K/]
+      sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
+      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
+      slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+      skip('Unable to find compatible interface in chassis') if slot.nil?
+    elsif node.product_id[/N7K/]
+      mt_full_interface?
+    else
+      return
+    end
+  end
+
+  # Wrapper api that can be used to execute bash shell or guestshell
+  # commands.
+  # Returns the output of the command.
+  def shell_command(command, context='bash')
+    fail "shell_command api not supported on #{node.product_id}" unless
+      node.product_id[/N3K|N8K|N9K/]
+    unless context == 'bash' || context == 'guestshell'
+      fail "Context must be either 'bash' or 'guestshell'"
+    end
+    config("run #{context} #{command}")
+  end
+
+  def backup_resolv_file(context='bash')
+    # Configuration bleeding is only a problem on some platforms, so
+    # only backup the resolv.conf file on required plaforms.
+    return unless node.product_id[/N3K|N8K|N9K/]
+    time_stamp = Time.now.strftime('%Y-%m-%d_%H-%M-%S')
+    backup_filename = "/tmp/resolv.conf.#{time_stamp}"
+    shell_command("cp /etc/resolv.conf #{backup_filename}", context)
+    backup_filename
+  end
+
+  def restore_resolv_file(filename, context='bash')
+    return unless node.product_id[/N3K|N8K|N9K/]
+    shell_command("sudo cp #{filename} /etc/resolv.conf", context)
+    shell_command("rm #{filename}", context)
   end
 end
