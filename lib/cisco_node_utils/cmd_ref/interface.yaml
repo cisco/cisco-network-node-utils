@@ -266,16 +266,14 @@ shutdown_vlan:
 
 speed:
   _exclude: [ios_xr, C3132]
+  kind: string
   get_value: '/^speed (.*)$/'
   set_value: "speed <speed>"
-  C3064:
-    default_value: 10000
-  C3172:
-    default_value: 10000
-  N5k:
-    default_value: 10000
-  N6k:
-    default_value: 10000
+  C3064: &non_auto
+    default_value: '10000'
+  C3172: *non_auto
+  N5k: *non_auto
+  N6k: *non_auto
   else:
     default_value: 'auto'
 

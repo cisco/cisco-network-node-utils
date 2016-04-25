@@ -596,7 +596,7 @@ class TestInterface < CiscoTestCase
       break if successful_runs >= 2
       begin
         interface.speed = value
-        assert_equal(value.to_i, interface.speed)
+        assert_equal(value, interface.speed)
         successful_runs += 1
       rescue Cisco::CliError => e
         # Many of the 'capable' speeds are actually not valid values
