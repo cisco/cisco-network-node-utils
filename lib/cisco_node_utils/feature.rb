@@ -243,8 +243,9 @@ module Cisco
       # Figure out the interfaces in a modular switch that are
       # compatible with the given feature and return an array of
       # such interfaces
-      module_regex = Regexp.new config_get(feature, 'supported_module_pids')
-      return [] if module_regex.nil?
+      module_pids = config_get(feature, 'supported_module_pids')
+      return [] if module_pids.nil?
+      module_regex = Regexp.new module_pids
       # first get the compatible modules present in the switch
       slots = Platform.slots.select do |_slot, filt_mod|
         filt_mod['pid'] =~ module_regex

@@ -232,9 +232,10 @@ class CiscoTestCase < TestCase
     intf_array = Feature.compatible_interfaces('fabricpath')
     vdc = Vdc.new(Vdc.default_vdc_name)
     save_lr = vdc.limit_resource_module_type
-    if intf_array.empty? || save_lr != 'f2e f3'
+    fabricpath_lr = node.config_get('fabricpath', 'supported_modules')
+    if intf_array.empty? || save_lr != fabricpath_lr
       # try getting the required modules into the default vdc
-      vdc.limit_resource_module_type = 'f2e f3'
+      vdc.limit_resource_module_type = fabricpath_lr
       intf_array = Feature.compatible_interfaces('fabricpath')
     end
     if intf_array.empty?
