@@ -172,6 +172,22 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_process_initialized
+    return if validate_property_excluded?('bgp', 'process_initialized')
+
+    # Cleanup may be slow on some platforms; make sure it's really dead
+    bgp = RouterBgp.new('55', 'default', false)
+    if bgp.process_initialized?
+      sleep 4
+      node.cache_flush
+    end
+    refute(bgp.process_initialized?, 'bgp should not be initialized')
+
+    bgp = RouterBgp.new('55', 'default')
+    bgp.wait_for_process_initialized unless bgp.process_initialized?
+    assert(bgp.process_initialized?, 'bgp should be initialized')
+  end
+
   def test_valid_asn
     [1, 4_294_967_295, '55', '1.0', '1.65535',
      '65535.0', '65535.65535'].each do |test|
@@ -1048,6 +1064,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_route_distinguisher
+    skip_nexus_i2_image?
     remove_all_vrfs
 
     bgp = setup_vrf

@@ -27,8 +27,6 @@ class TestVdc < CiscoTestCase
 
   def setup
     super
-    # Check for supported platform
-    skip('Platform does not support VDCs') unless Vdc.vdc_support
   end
 
   def test_all_vdcs

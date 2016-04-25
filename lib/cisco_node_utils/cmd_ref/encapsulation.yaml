@@ -15,11 +15,11 @@ destroy:
   set_value: "no encapsulation profile vni <profile>"
 
 # Eg:
-# encapsulation profile vni pepsico
+# encapsulation profile vni my_vni_profile
 #   [no] dot1q 100-200, 300 vni 5000-5100, 5300
 dot1q_map:
   get_command: "show encapsulation profile"
   get_value: '/^.* vni <profile>\s+dot1q ([\d\s,-]+) vni ([\d\s,-]+)$/'
   set_context: ['encapsulation profile vni <profile>']
   set_value: '<state> dot1q <vlans> vni <vnis>'
-  default_value: ~
+  default_value: []
