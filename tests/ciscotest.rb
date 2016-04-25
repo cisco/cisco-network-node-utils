@@ -241,11 +241,32 @@ class CiscoTestCase < TestCase
     # we will provide an appropriate interface name if the linecard is present.
     # Example 'show mod' output to match against:
     #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3.*ok/]
+    #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
+    sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N7[7K]-F3'")
+    sh_mod = sh_mod_string[/^(\d+)\s.*N7[7K]-F3.*ok/]
     slot = sh_mod.nil? ? nil : Regexp.last_match[1]
     skip('Unable to find compatible interface in chassis') if slot.nil?
 
     "ethernet#{slot}/1"
+  end
+
+  def vxlan_linecard?
+    # n5,6,7k tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable vxlan.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
+    #   '2   6  Nexus 6xQSFP Ethernet Module  N5K-C5672UP-M6Q ok'
+    #   '2   6  Nexus xxQSFP Ethernet Module  N6K-C6004-96Q/EF ok'
+    if node.product_id[/N(5|6)K/]
+      sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
+      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
+      skip('Unable to find compatible interface in chassis') if sh_mod.nil?
+    elsif node.product_id[/N7K/]
+      mt_full_interface?
+    else
+      return
+    end
   end
 
   # Wrapper api that can be used to execute bash shell or guestshell
