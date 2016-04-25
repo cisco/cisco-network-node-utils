@@ -244,4 +244,24 @@ class CiscoTestCase < TestCase
 
     "ethernet#{slot}/1"
   end
+
+  def vxlan_linecard?
+    # n5,6,7k tests require a specific linecard; either because they need a
+    # compatible interface or simply to enable vxlan.
+    # Example 'show mod' output to match against:
+    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
+    #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
+    #   '2   6  Nexus 6xQSFP Ethernet Module  N5K-C5672UP-M6Q ok'
+    #   '2   6  Nexus xxQSFP Ethernet Module  N6K-C6004-96Q/EF ok'
+    if node.product_id[/N(5|6)K/]
+      sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
+      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
+      slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+      skip('Unable to find compatible interface in chassis') if slot.nil?
+    elsif node.product_id[/N7K/]
+      mt_full_interface?
+    else
+      return
+    end
+  end
 end

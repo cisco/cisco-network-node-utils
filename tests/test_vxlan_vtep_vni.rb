@@ -28,14 +28,20 @@ class TestVxlanVtepVni < CiscoTestCase
     return unless @@pre_clean_needed
     # Disable features on initial cleanup only as it's too expensive
     # to do a disable for every testcase.
-    config_no_warn('no feature nv overlay')
-    config_no_warn('no feature vn-segment-vlan-based') if
-        VxlanVtep.mt_lite_support
-    config_no_warn('feature vn-segment-vlan-based') if
-        VxlanVtep.mt_lite_support
-    config_no_warn('feature nv overlay')
-    # nv overlay is a slow start on some platforms
+    Feature.nv_overlay_disable
+    # nv overlay is slow on some platforms
     sleep 1
+    vxlan_linecard?
+    if VxlanVtep.mt_full_support
+      return unless Vdc.vdc_support
+      v = Vdc.new('default')
+      v.limit_resource_module_type = 'f3' unless
+        v.limit_resource_module_type == 'f3'
+    else
+      config_no_warn('no feature vn-segment-vlan-based')
+    end
+    Feature.nv_overlay_enable
+    config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
