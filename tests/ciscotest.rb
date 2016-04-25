@@ -261,8 +261,7 @@ class CiscoTestCase < TestCase
     if node.product_id[/N(5|6)K/]
       sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
       sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
-      slot = sh_mod.nil? ? nil : Regexp.last_match[1]
-      skip('Unable to find compatible interface in chassis') if slot.nil?
+      skip('Unable to find compatible interface in chassis') if sh_mod.nil?
     elsif node.product_id[/N7K/]
       mt_full_interface?
     else
