@@ -991,7 +991,6 @@ module Cisco
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_association',
                           name: @name)
-      puts "DAVIDE result #{result}"
       result.empty? ? [] : result[0].split(' ')
     end
 
