@@ -51,7 +51,7 @@ class TestSvi < CiscoTestCase
 
   def teardown
     remove_all_svis
-    config('no feature private-vlan')
+    config_no_warn('no feature private-vlan')
     super
   end
 
