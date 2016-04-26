@@ -40,7 +40,7 @@ class TestInterfaceSwitchport < CiscoTestCase
     remove_svis
     cleanup_pvlan_intfs
     remove_all_vlans
-    config('no feature private-vlan', 'no feature vtp')
+    config_no_warn('no feature private-vlan', 'no feature vtp')
   end
 
   def remove_svis

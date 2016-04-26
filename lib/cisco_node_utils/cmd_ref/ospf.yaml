@@ -25,6 +25,14 @@ log_adjacency:
   set_value: "<state> log-adjacency-changes <type>"
   default_value: :none
 
+process_initialized:
+  _exclude: [ios_xr, N3k, N7k, N8k, N9k]
+  # ospf process initialization state
+  kind: boolean
+  context: ~
+  get_command: "show ip ospf stat"
+  get_value: '/^No SAP is registered/' # Ospf is not initialized when seen
+
 router:
   multiple: true
   get_command: "show running ospf"

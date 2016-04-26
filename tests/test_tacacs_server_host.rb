@@ -170,7 +170,7 @@ class TestTacacsServerHost < CiscoTestCase
     unless platform == :ios_xr
       # when configured
       port = 1138
-      config("tacacs-server host #{@host_name} port #{port}")
+      host.port = port
       assert_equal(port, host.port, 'Error: Tacacs Host port incorrect')
     end
 
@@ -215,7 +215,7 @@ class TestTacacsServerHost < CiscoTestCase
 
     # when configured
     timeout = 30
-    config("tacacs-server host #{@host_name} timeout #{timeout}")
+    host.timeout = timeout
     assert_equal(timeout, host.timeout, 'Error: Tacacs Host timeout incorrect')
 
     host.destroy
@@ -273,7 +273,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     enctype = TACACS_SERVER_ENC_NONE
     sh_run_enctype = TACACS_SERVER_ENC_CISCO_TYPE_7
-    config("tacacs-server host #{@host_name} key #{enctype} TEST")
+    host.encryption_key_set(enctype, 'TEST')
     assert_equal(sh_run_enctype, host.encryption_type,
                  'Error: Tacacs Host encryption type incorrect')
     host.destroy
@@ -299,7 +299,7 @@ class TestTacacsServerHost < CiscoTestCase
     # when configured
     pass = 'TEST'
     sh_run_pass = 'WAWY'
-    config("tacacs-server host #{@host_name} key 0 #{pass}")
+    host.encryption_key_set(0, pass)
 
     if platform != :ios_xr
       assert_equal(sh_run_pass, host.encryption_password,

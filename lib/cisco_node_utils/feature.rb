@@ -109,7 +109,14 @@ module Cisco
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
-      config_set('feature', 'nv_overlay')
+      config_set('feature', 'nv_overlay', state: '')
+    end
+
+    def self.nv_overlay_disable
+      # Note: vdc platforms restrict this feature to F3 or newer linecards
+      # Note: this is for test purposes only
+      return unless nv_overlay_enabled?
+      config_set('feature', 'nv_overlay', state: 'no')
     end
 
     def self.nv_overlay_enabled?
