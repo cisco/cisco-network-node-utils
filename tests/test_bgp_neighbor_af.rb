@@ -128,29 +128,6 @@ class TestBgpNeighborAF < CiscoTestCase
     config(*cfg)
   end
 
-  def cleanup
-    cfg = []
-    if platform == :nexus
-      cfg << 'no feature bgp' << 'feature bgp'
-      cfg << 'no nv overlay evpn' << 'nv overlay evpn'
-    else
-      cfg << 'no router bgp'
-      cfg << 'no vrf aa address-family ipv4 unicast'
-      cfg << 'no vrf aa'
-
-      str1 = 'route-map-in-name'
-      str2 = 'route-map-out-name'
-      cfg << "no route-policy #{str1}"
-      cfg << "no route-policy #{str2}"
-      cfg << "no route-policy #{str1.reverse}"
-      cfg << "no route-policy #{str2.reverse}"
-      cfg << 'no route-policy foo_bar'
-      cfg << 'no route-policy baz_inga'
-    end
-
-    config(*cfg)
-  end
-
   def cleanup_bgp
     if platform == :ios_xr
       config('no router bgp')
