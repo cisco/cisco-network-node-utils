@@ -191,6 +191,14 @@ class CiscoTestCase < TestCase
     end
   end
 
+  # Remove all router ospfs.
+  def remove_all_ospfs
+    require_relative '../lib/cisco_node_utils/router_ospf'
+    RouterOspf.routers.each do |_, obj|
+      obj.destroy
+    end
+  end
+
   # This testcase will remove all the bds existing in the system
   # specifically in cleanup for minitests
   def remove_all_bridge_domains
