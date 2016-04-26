@@ -991,6 +991,7 @@ module Cisco
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_association',
                           name: @name)
+      puts "DAVIDE result #{result}"
       result.empty? ? [] : result[0].split(' ')
     end
 
@@ -1272,6 +1273,11 @@ module Cisco
       is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
       configure_private_vlan_host_property(:allow_vlan, vlans,
                                            is_list, '')
+    end
+
+    def default_switchport_private_vlan_trunk_allowed_vlan
+      config_get_default('interface',
+                         'switchport_private_vlan_trunk_allowed_vlan')
     end
 
     def switchport_private_vlan_trunk_native_vlan
