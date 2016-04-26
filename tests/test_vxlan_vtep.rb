@@ -30,6 +30,9 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def teardown
+    Feature.nv_overlay_disable
+    # nv overlay is slow on some platforms
+    sleep 1
     return unless Vdc.vdc_support
     # Reset the vdc module type back to default
     v = Vdc.new('default')
@@ -38,16 +41,21 @@ class TestVxlanVtep < CiscoTestCase
 
   def mt_full_env_setup
     skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    mt_full_interface?
+    vxlan_linecard?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'
-    config('no feature nv overlay')
+    Feature.nv_overlay_disable
+    # nv overlay is slow on some platforms
+    sleep 1
   end
 
   def mt_lite_env_setup
     skip('Platform does not support MT-lite') unless VxlanVtep.mt_lite_support
-    config('no feature nv overlay')
+    vxlan_linecard?
+    Feature.nv_overlay_disable
+    # nv overlay is slow on some platforms
+    sleep 1
     config('no feature vn-segment-vlan-based')
   end
 
@@ -207,6 +215,8 @@ class TestVxlanVtep < CiscoTestCase
 
     vtep = VxlanVtep.new('nve1')
     if validate_property_excluded?('vxlan_vtep', 'source_intf_hold_down_time')
+      assert_nil(vtep.source_interface_hold_down_time)
+      assert_nil(vtep.default_source_interface_hold_down_time)
       assert_raises(Cisco::UnsupportedError) do
         vtep.source_interface_hold_down_time = 50
       end
