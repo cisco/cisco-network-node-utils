@@ -146,7 +146,7 @@ mode:
 
 supported_module_pids:
   _exclude: [N5k, N6k]
-  default_only: 'N7K-(?:F2.*25E|F3|F4|M3)'
+  default_only: 'N7[K7]-(?:F2.*2.E|F3|F4|M3)'
 
 supported_modules:
   _exclude: [N5k, N6k]
