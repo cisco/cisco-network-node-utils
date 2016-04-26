@@ -192,7 +192,7 @@ class TestInterface < CiscoTestCase
       next if value == 'auto'
       begin
         interface.speed = value
-        assert_equal(value.to_i, interface.speed)
+        assert_equal(value, interface.speed)
       rescue Cisco::CliError => e
         next if speed_change_disallowed?(e.message)
         raise
