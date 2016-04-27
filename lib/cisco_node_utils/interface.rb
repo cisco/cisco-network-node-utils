@@ -1016,6 +1016,11 @@ module Cisco
       switchport_enable_and_mode_private_vlan_host(mode_set)
     end
 
+    def default_switchport_mode_private_vlan_host
+      config_get_default('interface',
+                         'switchport_mode_private_vlan_host')
+    end
+
     def switchport_mode_private_vlan_host_association
       return nil unless Feature.private_vlan_enabled?
       result = config_get('interface',
@@ -1298,10 +1303,23 @@ module Cisco
       fail TypeError unless vlans.is_a?(Array)
       Feature.private_vlan_enable
       switchport_enable unless switchport
-      vlans = prepare_array(vlans)
-      is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
-      configure_private_vlan_host_property(:allow_vlan, vlans,
-                                           is_list, '')
+      if vlans == default_switchport_private_vlan_trunk_allowed_vlan
+        vlans = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
+        # If there are no vlan presently configured, we can simply return
+        return if vlans == default_switchport_private_vlan_trunk_allowed_vlan
+        configure_private_vlan_host_property(:allow_vlan, [],
+                                             vlans, '')
+      else
+        vlans = prepare_array(vlans)
+        is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
+        configure_private_vlan_host_property(:allow_vlan, vlans,
+                                             is_list, '')
+      end
+    end
+
+    def default_switchport_private_vlan_trunk_allowed_vlan
+      config_get_default('interface',
+                         'switchport_private_vlan_trunk_allowed_vlan')
     end
 
     def switchport_private_vlan_trunk_native_vlan

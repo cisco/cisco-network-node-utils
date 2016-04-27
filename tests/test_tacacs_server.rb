@@ -35,6 +35,12 @@ class TestTacacsServer < CiscoTestCase
     # 'directed-request' command is under 'show run aaa all'
     @default_show_command = 'show run tacacs all | no-more ; ' \
                             'show run aaa all | no-more'
+    config_no_warn('no feature tacacs+')
+  end
+
+  def teardown
+    config_no_warn('no feature tacacs+')
+    super
   end
 
   def test_create_valid
@@ -44,7 +50,7 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_get_encryption_type
-    config('no feature tacacs+', 'feature tacacs+')
+    config_no_warn('feature tacacs+')
     encryption_type = TACACS_SERVER_ENC_UNKNOWN
     # Get encryption password when not configured
     tacacs = TacacsServer.new
@@ -82,8 +88,6 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_get_encryption_password
-    # Get encryption password when not configured
-    config('no feature tacacs+')
     tacacs = TacacsServer.new
     assert_equal(node.config_get_default('tacacs_server',
                                          'encryption_password'),
@@ -138,7 +142,6 @@ class TestTacacsServer < CiscoTestCase
   end
 
   def test_key_unconfigure
-    config('no feature tacacs+')
     enc_type = TACACS_SERVER_ENC_NONE
     # This one is needed since the 'sh run' will always display the type
     # differently than the used encryption config type.
