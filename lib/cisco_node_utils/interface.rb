@@ -1268,10 +1268,18 @@ module Cisco
       fail TypeError unless vlans.is_a?(Array)
       Feature.private_vlan_enable
       switchport_enable unless switchport
-      vlans = prepare_array(vlans)
-      is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
-      configure_private_vlan_host_property(:allow_vlan, vlans,
-                                           is_list, '')
+      if vlans == default_switchport_private_vlan_trunk_allowed_vlan
+        vlans = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
+        # If there are no vlan presently configured, we can simply return
+        return if vlans == default_switchport_private_vlan_trunk_allowed_vlan
+        configure_private_vlan_host_property(:allow_vlan, [],
+                                             vlans, '')
+      else
+        vlans = prepare_array(vlans)
+        is_list = prepare_array(switchport_private_vlan_trunk_allowed_vlan)
+        configure_private_vlan_host_property(:allow_vlan, vlans,
+                                             is_list, '')
+      end
     end
 
     def default_switchport_private_vlan_trunk_allowed_vlan
