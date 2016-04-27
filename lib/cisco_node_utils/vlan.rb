@@ -246,6 +246,7 @@ module Cisco
       fail TypeError unless type && type.is_a?(String)
 
       if type == default_private_vlan_type
+        return if private_vlan_type.empty?
         set_args_keys(state: 'no', type: private_vlan_type)
         ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
@@ -262,8 +263,7 @@ module Cisco
 
     def private_vlan_association
       return nil unless Feature.private_vlan_enabled?
-      result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
-      result.sort
+      config_get('vlan', 'private_vlan_association', id: @vlan_id)
     end
 
     def private_vlan_association=(vlan_list)
