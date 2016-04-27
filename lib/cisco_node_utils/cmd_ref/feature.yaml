@@ -69,17 +69,11 @@ tacacs:
   set_value: "feature tacacs"
 
 vn_segment_vlan_based:
-  # MT-lite only
-  N3k: &vn_segment_vlan_based_mt_lite
-    # Note: Some N3k are not hardware-capable
-    kind: boolean
-    get_value: '/^feature vn-segment-vlan-based$/'
-    set_value: 'feature vn-segment-vlan-based'
-    default_value: false
-  N9k: *vn_segment_vlan_based_mt_lite
-  N8k: *vn_segment_vlan_based_mt_lite
-  N6k: *vn_segment_vlan_based_mt_lite
-  N5k: *vn_segment_vlan_based_mt_lite
+  _exclude: [N7k]
+  kind: boolean
+  get_value: '/^feature vn-segment-vlan-based$/'
+  set_value: 'feature vn-segment-vlan-based'
+  default_value: false
 
 vni:
   kind: boolean
@@ -87,13 +81,9 @@ vni:
     # MT-Full only
     get_value: '/^feature vni$/'
     set_value: 'feature vni'
-  N3k: &feature_mt_lite
-    # MT-lite only
-    # Note: Some N3k are not hardware-capable
+  else:
     get_value: '/^feature vn-segment-vlan-based$/'
     set_value: 'feature vn-segment-vlan-based'
-  N8k: *feature_mt_lite
-  N9k: *feature_mt_lite
 
 vtp:
   kind: boolean
