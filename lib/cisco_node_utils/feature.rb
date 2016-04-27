@@ -246,11 +246,11 @@ module Cisco
     end
 
     # ---------------------------
-    def self.compatible_interfaces(feature)
+    def self.compatible_interfaces(feature, property='supported_module_pids')
       # Figure out the interfaces in a modular switch that are
-      # compatible with the given feature and return an array of
-      # such interfaces
-      module_pids = config_get(feature, 'supported_module_pids')
+      # compatible with the given feature (or property within a feature)
+      # and return an array of such interfaces
+      module_pids = config_get(feature, property)
       return [] if module_pids.nil?
       module_regex = Regexp.new module_pids
       # first get the compatible modules present in the switch
