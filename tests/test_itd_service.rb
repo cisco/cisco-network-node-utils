@@ -34,6 +34,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_itd_service_create_destroy
+    skip_nexus_i2_image?
     i1 = ItdService.new('abc')
     i2 = ItdService.new('BCD')
     i3 = ItdService.new('xyzABC')
@@ -48,6 +49,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_access_list
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     config 'ip access-list include'
     config 'ip access-list exclude'
@@ -66,6 +68,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_device_group
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     ItdDeviceGroup.new('myGroup')
     itd.device_group = 'myGroup'
@@ -76,6 +79,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_fail_action
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     itd.fail_action = true
     assert_equal(true, itd.fail_action)
@@ -85,6 +89,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_ingress_interface
+    skip_nexus_i2_image?
     config 'feature interface-vlan'
     config 'vlan 2'
     config 'interface vlan 2'
@@ -122,6 +127,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_load_balance
+    skip_nexus_i2_image?
     itd = lb_helper(load_bal_method_bundle_select: 'src',
                     load_bal_method_bundle_hash:   'ip',
                     load_bal_buckets:              16,
@@ -193,6 +199,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_nat_destination
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     if validate_property_excluded?('itd_service', 'nat_destination')
       assert_nil(itd.nat_destination)
@@ -217,6 +224,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_shutdown
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     itddg = ItdDeviceGroup.new('abc')
     ItdDeviceGroupNode.new(itddg.name, '1.1.1.1', 'ip')
@@ -237,6 +245,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_peer_vdc
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     parray = %w(vdc1 ser1)
     if validate_property_excluded?('itd_service', 'peer_vdc')
@@ -254,6 +263,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_peer_local
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     service = 'ser1'
     if validate_property_excluded?('itd_service', 'peer_local')
@@ -271,6 +281,7 @@ class TestItdService < CiscoTestCase
   end
 
   def test_virtual_ip
+    skip_nexus_i2_image?
     itd = ItdService.new('new_group')
     ItdDeviceGroup.new('myGroup1')
     ItdDeviceGroup.new('myGroup2')
