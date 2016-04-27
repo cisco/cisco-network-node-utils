@@ -282,7 +282,7 @@ module Cisco
     # This api is used by private vlan to prepare the input to the setter
     # method. The input can be in the following formats for vlans:
     # 10-12,14. Prepare_array api is transforming this input into a flat array.
-    # In the example above the returned array will be 10, 11, 12, 13. Prepare
+    # In the example above the returned array will be 10, 11, 12, 14. Prepare
     # array is first splitting the input on ',' and the than expanding the vlan
     # range element like 10-12 into a flat array. The final result will
     # be a  flat array.
