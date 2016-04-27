@@ -1304,6 +1304,11 @@ module Cisco
                                            is_list, '')
     end
 
+    def default_switchport_private_vlan_trunk_allowed_vlan
+      config_get_default('interface',
+                         'switchport_private_vlan_trunk_allowed_vlan')
+    end
+
     def switchport_private_vlan_trunk_native_vlan
       return nil unless Feature.private_vlan_enabled?
       config_get('interface',
