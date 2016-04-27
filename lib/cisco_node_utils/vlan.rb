@@ -272,7 +272,7 @@ module Cisco
     end
 
     def default_private_vlan_association
-      config_get_default('vlan', 'private_vlan_type')
+      config_get_default('vlan', 'private_vlan_association')
     end
 
     # --------------------------
