@@ -262,8 +262,7 @@ module Cisco
 
     def private_vlan_association
       return nil unless Feature.private_vlan_enabled?
-      result = config_get('vlan', 'private_vlan_association', id: @vlan_id)
-      result.sort
+      config_get('vlan', 'private_vlan_association', id: @vlan_id)
     end
 
     def private_vlan_association=(vlan_list)
