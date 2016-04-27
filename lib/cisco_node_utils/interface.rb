@@ -986,6 +986,11 @@ module Cisco
       switchport_enable_and_mode_private_vlan_host(mode_set)
     end
 
+    def default_switchport_mode_private_vlan_host
+      config_get_default('interface',
+                         'switchport_mode_private_vlan_host')
+    end
+
     def switchport_mode_private_vlan_host_association
       return nil unless Feature.private_vlan_enabled?
       result = config_get('interface',
