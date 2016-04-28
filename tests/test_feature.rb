@@ -92,14 +92,25 @@ class TestFeature < CiscoTestCase
   end
 
   def test_nv_overlay
-    if node.product_id[/N(3)/]
+    if validate_property_excluded?('feature', 'nv_overlay')
       assert_nil(Feature.nv_overlay_enabled?)
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
       return
     end
     vxlan_linecard?
     config_no_warn('no feature-set fabricpath')
-    feature('nv_overlay')
+    Feature.nv_overlay_disable
+    sleep 1
+    refute_show_match(
+      command: "show running | i 'feature nv overlay'",
+      pattern: /^feature nv overlay/,
+      msg:     'Feature nv overlay is still enabled',
+    )
+
+    Feature.nv_overlay_enable
+    sleep 1
+    assert(Feature.nv_overlay_enabled?,
+           'Feature nv overlay is not enabled')
   end
 
   def test_nv_overlay_evpn
@@ -149,7 +160,8 @@ class TestFeature < CiscoTestCase
 
   def test_vn_segment_vlan_based
     vxlan_linecard?
-    Feature.nv_overlay_enable if node.product_id[/N(5|6)k/]
+    Feature.nv_overlay_enable unless node.product_id[/N3/]
+    sleep 1
     feature('vn_segment_vlan_based')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
@@ -160,7 +172,7 @@ class TestFeature < CiscoTestCase
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
 
-    if node.product_id[/N(5|6)k/]
+    if node.product_id[/N(5|6)/]
       Feature.nv_overlay_enable
     else
       # vni can't be removed if nv overlay is present
