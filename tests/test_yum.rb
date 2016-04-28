@@ -40,7 +40,8 @@ class TestYum < CiscoTestCase
       @@pkg = 'CSCuxdublin'
       @@pkg_ver = '1.0.0-7.0.3.I3.1'
     when /7.0\(4\)I4\(1\)/
-      info 'Testing Patch For Dublin Plus Release Image'
+      # TBD: Add Dublin Plus RPM when it becomes available.
+      # info 'Testing Patch For Dublin Plus Release Image'
     else
       skip "Available patches are not compatible with this image: #{@@pv}"
     end
