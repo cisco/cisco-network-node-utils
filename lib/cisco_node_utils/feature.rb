@@ -110,6 +110,7 @@ module Cisco
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
       config_set('feature', 'nv_overlay', state: '')
+      sleep 1
     end
 
     def self.nv_overlay_disable
@@ -117,6 +118,7 @@ module Cisco
       # Note: this is for test purposes only
       return unless nv_overlay_enabled?
       config_set('feature', 'nv_overlay', state: 'no')
+      sleep 1
     end
 
     def self.nv_overlay_enabled?
@@ -246,11 +248,11 @@ module Cisco
     end
 
     # ---------------------------
-    def self.compatible_interfaces(feature, property='supported_module_pids')
+    def self.compatible_interfaces(feature)
       # Figure out the interfaces in a modular switch that are
-      # compatible with the given feature (or property within a feature)
-      # and return an array of such interfaces
-      module_pids = config_get(feature, property)
+      # compatible with the given feature and return an array of
+      # such interfaces
+      module_pids = config_get(feature, 'supported_module_pids')
       return [] if module_pids.nil?
       module_regex = Regexp.new module_pids
       # first get the compatible modules present in the switch

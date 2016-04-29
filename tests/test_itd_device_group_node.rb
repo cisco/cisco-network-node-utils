@@ -33,7 +33,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_itd_device_group_node_create_destroy
-    skip_nexus_i2_image?
     itddg1 = ItdDeviceGroup.new('abc')
     n1 = ItdDeviceGroupNode.new(itddg1.name, '1.1.1.1', 'ip')
     n2 = ItdDeviceGroupNode.new(itddg1.name, '2.2.2.2', 'ip')
@@ -74,7 +73,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_icmp
-    skip_nexus_i2_image?
     idg = probe_helper(probe_type: 'icmp')
     assert_equal('icmp', idg.probe_type)
     assert_equal(9, idg.probe_frequency)
@@ -96,7 +94,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_dns
-    skip_nexus_i2_image?
     host = 'resolver1.opendns.com'
     idg = probe_helper(probe_type: 'dns', probe_dns_host: host)
     assert_equal('dns', idg.probe_type)
@@ -127,7 +124,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_probe_tcp_udp
-    skip_nexus_i2_image?
     port = 11_111
     type = 'tcp'
     idg = probe_helper(probe_type: type, probe_port: port,
@@ -157,7 +153,6 @@ class TestItdDeviceGroupNode < CiscoTestCase
   end
 
   def test_hot_standby_weight
-    skip_nexus_i2_image?
     itddg = ItdDeviceGroup.new('new_group')
     idg = ItdDeviceGroupNode.new('new_group', '1.1.1.1', 'ip')
     hot_standby = true

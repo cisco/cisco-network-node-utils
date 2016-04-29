@@ -53,7 +53,7 @@ class TestFeature < CiscoTestCase
     pre_clean_enabled = Feature.send("#{feat}_enabled?")
     config("no feature #{feat_str}") if pre_clean_enabled
     refute_show_match(
-      command: "show running | i #{feat_str}",
+      command: "show running | i '#{feat_str}'",
       pattern: /^#{feat_str}$/,
       msg:     "#{feat} (#{feat_str}) is still enabled",
     )
@@ -92,11 +92,13 @@ class TestFeature < CiscoTestCase
   end
 
   def test_nv_overlay
-    if node.product_id[/N(3)/]
+    if validate_property_excluded?('feature', 'nv_overlay')
       assert_nil(Feature.nv_overlay_enabled?)
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
       return
     end
+    vxlan_linecard?
+    config_no_warn('no feature-set fabricpath')
     feature('nv_overlay')
   end
 
@@ -146,35 +148,24 @@ class TestFeature < CiscoTestCase
   end
 
   def test_vn_segment_vlan_based
-    if node.product_id[/N(5|6|7)/]
-      assert_nil(Feature.vn_segment_vlan_based_enabled?)
-      assert_raises(Cisco::UnsupportedError) do
-        Feature.vn_segment_vlan_based_enable
-      end
-      return
-    end
+    vxlan_linecard?
+    Feature.nv_overlay_enable unless node.product_id[/N3/]
     feature('vn_segment_vlan_based')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
 
   def test_vni
-    if node.product_id[/N(5|6)/]
-      assert_nil(Feature.vn_segment_vlan_based_enabled?)
-      assert_raises(Cisco::UnsupportedError) do
-        Feature.vn_segment_vlan_based_enable
-      end
-      return
-    end
+    vxlan_linecard?
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
 
-    # vni can't be removed if nv overlay is present
-    config('no feature nv overlay')
-
-    # Hang observed on n3|9k when show run occurs immediately after removing
-    # nv overlay. This minor delay avoids the hang.
-    sleep 1
+    if node.product_id[/N(5|6)/]
+      Feature.nv_overlay_enable
+    else
+      # vni can't be removed if nv overlay is present
+      config_no_warn('no feature nv overlay')
+    end
     feature('vni')
     vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e

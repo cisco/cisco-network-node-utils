@@ -33,7 +33,6 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_itd_device_group_create_destroy
-    skip_nexus_i2_image?
     i1 = ItdDeviceGroup.new('abc')
     i2 = ItdDeviceGroup.new('BCD')
     i3 = ItdDeviceGroup.new('xyzABC')
@@ -61,7 +60,6 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_icmp
-    skip_nexus_i2_image?
     idg = probe_helper(probe_type: 'icmp')
     assert_equal('icmp', idg.probe_type)
     assert_equal(9, idg.probe_frequency)
@@ -83,7 +81,6 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_dns
-    skip_nexus_i2_image?
     host = 'resolver1.opendns.com'
     idg = probe_helper(probe_type: 'dns', probe_dns_host: host)
     assert_equal('dns', idg.probe_type)
@@ -114,7 +111,6 @@ class TestItdDeviceGroup < CiscoTestCase
   end
 
   def test_probe_tcp_udp
-    skip_nexus_i2_image?
     port = 11_111
     type = 'tcp'
     idg = probe_helper(probe_type: type, probe_port: port,
