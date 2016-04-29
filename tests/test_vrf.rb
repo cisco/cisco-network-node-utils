@@ -203,6 +203,11 @@ class TestVrf < CiscoTestCase
       v.destroy
       return
     end
+    # Test if VxLAN can be configured 
+    vxlan_linecard?
+    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
+    vdc_lc_state('f3') if vdc_current
+
     v.route_distinguisher = 'auto'
     assert_equal('auto', v.route_distinguisher)
 
@@ -216,6 +221,8 @@ class TestVrf < CiscoTestCase
     assert_empty(v.route_distinguisher,
                  'v route_distinguisher should *NOT* be configured')
     v.destroy
+    # Return testbed to pre-clean state
+    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_vpn_id

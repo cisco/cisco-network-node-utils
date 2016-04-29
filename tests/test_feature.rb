@@ -26,18 +26,6 @@ class TestFeature < CiscoTestCase
   # Helpers #
   ###########
 
-  # VDC helper for features that require a specific linecard.
-  # Allows caller to get current state or change it to a new value.
-  def vdc_lc_state(type=nil)
-    v = Vdc.new('default')
-    if type
-      # This action may be time consuming, use only if necessary.
-      v.limit_resource_module_type = type
-    else
-      v.limit_resource_module_type
-    end
-  end
-
   # feature test helper
   def feature(feat)
     # Get the feature name string from the yaml
@@ -97,7 +85,13 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
       return
     end
+    # Test if VxLAN can be configured 
+    vxlan_linecard?
+    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
+    vdc_lc_state('f3') if vdc_current
     feature('nv_overlay')
+    # Return testbed to pre-clean state
+    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_nv_overlay_evpn
