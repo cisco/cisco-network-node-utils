@@ -70,7 +70,9 @@ class TestSvi < CiscoTestCase
   def test_private_vlan_mapping
     if validate_property_excluded?('interface',
                                    'private_vlan_mapping')
-      assert_nil(svi.private_vlan_mapping)
+      assert_equal([], svi.private_vlan_mapping,
+                   'Err: should not be supported ')
+
       assert_raises(Cisco::UnsupportedError) do
         svi.private_vlan_mapping = %w(11-13)
       end
@@ -101,7 +103,9 @@ class TestSvi < CiscoTestCase
   def test_private_vlan_mapping_bad_args
     if validate_property_excluded?('interface',
                                    'private_vlan_mapping')
-      assert_nil(svi.private_vlan_mapping)
+      assert_equal([], svi.private_vlan_mapping,
+                   'Err: should not be supported ')
+
       assert_raises(Cisco::UnsupportedError) do
         svi.private_vlan_mapping = %w(10 20)
       end

@@ -965,7 +965,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       mode = config_get('interface',
                         'switchport_mode_private_vlan_host',
                         name: @name)
@@ -992,7 +992,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host_association
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_association',
                           name: @name)
@@ -1169,7 +1169,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host_promisc
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_promiscous',
                           name: @name)
@@ -1191,7 +1191,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_promiscuous
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_promiscuous',
                         name: @name)
@@ -1225,7 +1225,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_secondary
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       mode = config_get('interface',
                         'switchport_mode_private_vlan_trunk_secondary',
                         name: @name)
@@ -1257,7 +1257,7 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_allowed_vlan
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_private_vlan_trunk_allowed_vlan',
                           name: @name)
@@ -1293,7 +1293,7 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_native_vlan
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       config_get('interface',
                  'switchport_private_vlan_trunk_native_vlan',
                  name: @name)
@@ -1320,7 +1320,7 @@ module Cisco
     end
 
     def switchport_private_vlan_association_trunk
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_private_vlan_association_trunk',
                           name: @name)
@@ -1349,7 +1349,7 @@ module Cisco
     end
 
     def switchport_private_vlan_mapping_trunk
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_private_vlan_mapping_trunk',
                           name: @name)
@@ -1378,7 +1378,7 @@ module Cisco
     end
 
     def private_vlan_mapping
-      return nil unless Feature.private_vlan_enabled?
+      return [] unless Feature.private_vlan_enabled?
       match = config_get('interface',
                          'private_vlan_mapping',
                          name: @name)
