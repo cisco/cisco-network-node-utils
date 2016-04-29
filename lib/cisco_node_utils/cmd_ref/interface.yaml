@@ -409,7 +409,7 @@ switchport_mode_private_vlan_host:
   _exclude: [ios_xr, N8k]
   get_value: '/^switchport mode private-vlan (.*)$/'
   set_value: "<state> switchport mode private-vlan <mode>"
-  default_value: ""
+  default_value: :disabled
 
 switchport_mode_private_vlan_host_association:
   _exclude: [ios_xr, N8k]
