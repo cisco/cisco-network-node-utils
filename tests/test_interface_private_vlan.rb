@@ -61,8 +61,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_private_host_mode
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
       end
@@ -84,8 +82,6 @@ class TestSwitchport < TestInterfaceSwitchport
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
-      assert_equal([], interface.switchport_mode_private_vlan_trunk_promiscuous,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_trunk_promiscuous = true
       end
@@ -100,8 +96,6 @@ class TestSwitchport < TestInterfaceSwitchport
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
-      assert_equal([], interface.switchport_mode_private_vlan_trunk_secondary,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_trunk_secondary = true
       end
@@ -115,8 +109,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_no_switchport_private_host_mode
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
       end
@@ -141,8 +133,6 @@ class TestSwitchport < TestInterfaceSwitchport
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
-      assert_equal([], interface.switchport_mode_private_vlan_trunk_secondary,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_trunk_secondary = true
       end
@@ -159,8 +149,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_private_host_association
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
       end
@@ -187,9 +175,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_host_assoc_change
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
-
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
       end
@@ -235,8 +220,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_no_pvlan_host_assoc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -267,8 +250,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_host_assoc_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -283,8 +264,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_host_assoc_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -320,8 +299,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_host_primisc_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -336,8 +313,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_private_host_promisc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -393,8 +368,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_private_host_promisc_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -442,8 +415,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_no_switchport_private_host_promisc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -474,8 +445,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_allow_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -489,8 +458,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_allow_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -511,8 +478,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_allow
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -545,8 +510,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_native_vlan_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -567,8 +530,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_native_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -582,8 +543,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_native_vlan
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
-      assert_equal([], interface.switchport_mode_private_vlan_host,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode_private_vlan_host = :host
@@ -615,8 +574,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_association_trunk
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
-      assert_equal([], interface.switchport_private_vlan_association_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_association_trunk = %w(10 12)
@@ -652,8 +609,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_assoc_vlan_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
-      assert_equal([], interface.switchport_private_vlan_association_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_association_trunk = %w(10 10)
@@ -685,8 +640,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_trunk_assocciation_default
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
-      assert_equal([], interface.switchport_private_vlan_association_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_association_trunk = %w(10 10)
@@ -700,8 +653,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_mapping_trunk_default
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
-      assert_equal([], interface.switchport_private_vlan_mapping_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_mapping_trunk = %w(10)
@@ -715,8 +666,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_mapping_trunk
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
-      assert_equal([], interface.switchport_private_vlan_mapping_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_mapping_trunk = %w(10 10)
@@ -752,8 +701,6 @@ class TestSwitchport < TestInterfaceSwitchport
   def test_interface_switchport_pvlan_mapping_trunk_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
-      assert_equal([], interface.switchport_private_vlan_mapping_trunk,
-                   'Err: should not be supported ')
 
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_private_vlan_mapping_trunk = %w(10 10)
