@@ -53,7 +53,7 @@ class TestFeature < CiscoTestCase
     pre_clean_enabled = Feature.send("#{feat}_enabled?")
     config("no feature #{feat_str}") if pre_clean_enabled
     refute_show_match(
-      command: "show running | i #{feat_str}",
+      command: "show running | i '#{feat_str}'",
       pattern: /^#{feat_str}$/,
       msg:     "#{feat} (#{feat_str}) is still enabled",
     )
@@ -99,18 +99,7 @@ class TestFeature < CiscoTestCase
     end
     vxlan_linecard?
     config_no_warn('no feature-set fabricpath')
-    Feature.nv_overlay_disable
-    sleep 1
-    refute_show_match(
-      command: "show running | i 'feature nv overlay'",
-      pattern: /^feature nv overlay/,
-      msg:     'Feature nv overlay is still enabled',
-    )
-
-    Feature.nv_overlay_enable
-    sleep 1
-    assert(Feature.nv_overlay_enabled?,
-           'Feature nv overlay is not enabled')
+    feature('nv_overlay')
   end
 
   def test_nv_overlay_evpn
@@ -161,7 +150,6 @@ class TestFeature < CiscoTestCase
   def test_vn_segment_vlan_based
     vxlan_linecard?
     Feature.nv_overlay_enable unless node.product_id[/N3/]
-    sleep 1
     feature('vn_segment_vlan_based')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
@@ -178,10 +166,6 @@ class TestFeature < CiscoTestCase
       # vni can't be removed if nv overlay is present
       config_no_warn('no feature nv overlay')
     end
-
-    # Hang observed on n3|9k when show run occurs immediately after removing
-    # nv overlay. This minor delay avoids the hang.
-    sleep 1
     feature('vni')
     vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e
