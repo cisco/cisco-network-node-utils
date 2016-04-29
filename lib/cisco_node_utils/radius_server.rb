@@ -234,6 +234,7 @@ module Cisco
       end
 
       if val.nil?
+        return if timeout.nil?
         config_set('radius_server',
                    'timeout',
                    state:     'no',
@@ -274,6 +275,7 @@ module Cisco
       end
 
       if val.nil?
+        return if retransmit_count.nil?
         config_set('radius_server',
                    'retransmit',
                    state:     'no',

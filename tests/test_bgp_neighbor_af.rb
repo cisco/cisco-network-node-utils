@@ -22,7 +22,6 @@ require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
-require_relative '../lib/cisco_node_utils/feature'
 
 # TestBgpNeighborAF - Minitest for RouterBgpNeighborAF class
 class TestBgpNeighborAF < CiscoTestCase
@@ -128,37 +127,6 @@ class TestBgpNeighborAF < CiscoTestCase
     config(*cfg)
   end
 
-  def cleanup
-    cfg = []
-    if platform == :nexus
-      cfg << 'no feature bgp' << 'feature bgp'
-      cfg << 'no nv overlay evpn' << 'nv overlay evpn'
-    else
-      cfg << 'no router bgp'
-      cfg << 'no vrf aa address-family ipv4 unicast'
-      cfg << 'no vrf aa'
-
-      str1 = 'route-map-in-name'
-      str2 = 'route-map-out-name'
-      cfg << "no route-policy #{str1}"
-      cfg << "no route-policy #{str2}"
-      cfg << "no route-policy #{str1.reverse}"
-      cfg << "no route-policy #{str2.reverse}"
-      cfg << 'no route-policy foo_bar'
-      cfg << 'no route-policy baz_inga'
-    end
-
-    config(*cfg)
-  end
-
-  def cleanup_bgp
-    if platform == :ios_xr
-      config('no router bgp')
-    else
-      config('no feature bgp', 'feature bgp')
-    end
-  end
-
   # def test_foo
   #   af, dbg = clean_af([2, 'red', '1.1.1.1', %w(ipv4 unicast)])
   #   foo(af, dbg)
@@ -187,13 +155,16 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbr_af_create_destroy
-    config('no feature bgp', 'feature bgp') if platform == :nexus
     # Creates
     obj = {}
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+      # TBD: This flush should not be needed but we see an intermittent problem
+      # with certain rake test seed values, where 'afs' below is not detecting
+      # vrf 'aa' AF.
+      node.cache_flush
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr].key?(af),
              "#{dbg} Failed to create AF")
@@ -212,8 +183,6 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbrs_with_masks
-    cleanup_bgp
-
     # Creates
     obj = {}
     @@matrix.each do |k, v|
@@ -232,6 +201,10 @@ class TestBgpNeighborAF < CiscoTestCase
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
+      # TBD: This flush should not be needed but we see an intermittent problem
+      # with certain rake test seed values, where 'afs' below is not detecting
+      # vrf 'aa' AF.
+      node.cache_flush
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to create AF")
@@ -642,8 +615,6 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_send_community
-    # iBGP only, do extra cleanup
-    config('no feature bgp', 'feature bgp') unless platform == :ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
       send_comm(af, dbg)

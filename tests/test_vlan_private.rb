@@ -46,8 +46,8 @@ class TestVlan < CiscoTestCase
   end
 
   def test_private_type_default
-    config('no feature vtp')
-    config('feature private-vlan')
+    config_no_warn('no feature vtp')
+    config_no_warn('feature private-vlan')
     v1 = Vlan.new(100)
     pv_type = ''
     if validate_property_excluded?('vlan', 'private_vlan_type')
@@ -58,8 +58,8 @@ class TestVlan < CiscoTestCase
   end
 
   def test_private_association_default
-    config('no feature vtp')
-    config('feature private-vlan')
+    config_no_warn('no feature vtp')
+    config_no_warn('feature private-vlan')
     v1 = Vlan.new(100)
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)

@@ -38,9 +38,9 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def cleanup
     remove_svis
-    remove_all_vlans
     cleanup_pvlan_intfs
-    config('no feature private-vlan', 'no feature vtp')
+    remove_all_vlans
+    config_no_warn('no feature private-vlan', 'no feature vtp')
   end
 
   def remove_svis
@@ -85,14 +85,13 @@ class TestSwitchport < TestInterfaceSwitchport
       'switchport_mode_private_vlan_trunk_secondary')
       assert_nil(interface.switchport_mode_private_vlan_trunk_secondary)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_trunk_secondary = ''
+        interface.switchport_mode_private_vlan_trunk_secondary = true
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_promiscuous = ''
-    assert_equal(:promiscuous,
-                 interface.switchport_mode_private_vlan_trunk_promiscuous,
-                 'Err: Switchport mode, not as expected')
+    interface.switchport_mode_private_vlan_trunk_promiscuous = true
+    assert(interface.switchport_mode_private_vlan_trunk_promiscuous,
+           'Err: Switchport mode, not as expected')
   end
 
   def test_interface_switchport_private_trunk_secondary
@@ -101,14 +100,13 @@ class TestSwitchport < TestInterfaceSwitchport
       'switchport_mode_private_vlan_trunk_secondary')
       assert_nil(interface.switchport_mode_private_vlan_trunk_secondary)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_trunk_secondary = ''
+        interface.switchport_mode_private_vlan_trunk_secondary = true
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_secondary = ''
-    assert_equal(:secondary,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode, not as expected')
+    interface.switchport_mode_private_vlan_trunk_secondary = true
+    assert(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode, not as expected')
   end
 
   def test_interface_no_switchport_private_host_mode
@@ -141,18 +139,16 @@ class TestSwitchport < TestInterfaceSwitchport
       'switchport_mode_private_vlan_trunk_secondary')
       assert_nil(interface.switchport_mode_private_vlan_trunk_secondary)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_trunk_secondary = ''
+        interface.switchport_mode_private_vlan_trunk_secondary = true
       end
       return
     end
-    interface.switchport_mode_private_vlan_trunk_secondary = ''
-    assert_equal(:secondary,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode not as expected')
-    interface.switchport_mode_private_vlan_trunk_secondary = 'no'
-    assert_equal(:disabled,
-                 interface.switchport_mode_private_vlan_trunk_secondary,
-                 'Err: Switchport mode not disabled')
+    interface.switchport_mode_private_vlan_trunk_secondary = true
+    assert(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode not as expected')
+    interface.switchport_mode_private_vlan_trunk_secondary = false
+    refute(interface.switchport_mode_private_vlan_trunk_secondary,
+           'Err: Switchport mode not disabled')
   end
 
   def test_interface_switchport_private_host_association
@@ -180,8 +176,6 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_association,
                  'Err: switchport private host_association not configured')
-    v1.destroy
-    v2.destroy
   end
 
   def test_interface_switchport_pvlan_host_assoc_change
@@ -209,23 +203,19 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_association,
                  'Err: switchport private host_association not configured')
-    v1.destroy
-    v2.destroy
 
-    v1 = Vlan.new(20)
-    v1.private_vlan_type = 'primary'
+    v3 = Vlan.new(20)
+    v3.private_vlan_type = 'primary'
 
-    v2 = Vlan.new(21)
-    v2.private_vlan_type = 'community'
-    v1.private_vlan_association = ['21']
+    v4 = Vlan.new(21)
+    v4.private_vlan_type = 'community'
+    v3.private_vlan_association = ['21']
 
     input = %w(20 21)
     interface.switchport_mode_private_vlan_host_association = input
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_association,
                  'Err: switchport private host_association not configured')
-    v1.destroy
-    v2.destroy
 
     input = []
     interface.switchport_mode_private_vlan_host_association = input
@@ -257,9 +247,6 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_association,
                  'Err: switchport private host_association not configured')
-    v1.destroy
-    v2.destroy
-
     input = []
     interface.switchport_mode_private_vlan_host_association = input
     assert_equal(input,
@@ -277,10 +264,7 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    input = []
-    assert_equal(input,
-                 interface.switchport_mode_private_vlan_host_association,
-                 'Err: switchport private host_association not configured')
+    assert_nil(interface.switchport_mode_private_vlan_host_association)
   end
 
   def test_interface_switchport_pvlan_host_assoc_bad_arg
@@ -328,10 +312,7 @@ class TestSwitchport < TestInterfaceSwitchport
       return
     end
 
-    input = []
-    assert_equal(input,
-                 interface.switchport_mode_private_vlan_host_promisc,
-                 'Error: switchport private host_promisc not configured')
+    assert_nil(interface.switchport_mode_private_vlan_host_promisc)
   end
 
   def test_interface_switchport_private_host_promisc
@@ -358,10 +339,9 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_promisc,
                  'Error: switchport private host promisc not configured')
-    v2.destroy
 
-    v2 = Vlan.new(12)
-    v2.private_vlan_type = 'community'
+    v3 = Vlan.new(12)
+    v3.private_vlan_type = 'community'
 
     v1.private_vlan_association = ['12']
     input = %w(10 12)
@@ -369,19 +349,18 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_promisc,
                  'Error: switchport private host promisc not configured')
-    v2.destroy
 
-    v2 = Vlan.new(12)
-    v2.private_vlan_type = 'community'
-
-    v3 = Vlan.new(13)
-    v3.private_vlan_type = 'community'
-
-    v4 = Vlan.new(18)
+    v4 = Vlan.new(12)
     v4.private_vlan_type = 'community'
 
-    v5 = Vlan.new(30)
+    v5 = Vlan.new(13)
     v5.private_vlan_type = 'community'
+
+    v6 = Vlan.new(18)
+    v6.private_vlan_type = 'community'
+
+    v7 = Vlan.new(30)
+    v7.private_vlan_type = 'community'
 
     v1.private_vlan_association = ['12-13', '18', '30']
     input = %w(10 12-13,18,30)
@@ -389,11 +368,6 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input,
                  interface.switchport_mode_private_vlan_host_promisc,
                  'Error: switchport private host promisc not configured')
-    v1.destroy
-    v2.destroy
-    v3.destroy
-    v4.destroy
-    v5.destroy
   end
 
   def test_interface_switchport_private_host_promisc_bad_arg
@@ -467,8 +441,6 @@ class TestSwitchport < TestInterfaceSwitchport
     interface.switchport_mode_private_vlan_host_promisc = input
     assert_equal(input, interface.switchport_mode_private_vlan_host_promisc,
                  'Error: switchport private host promisc not configured')
-    v1.destroy
-    v2.destroy
     input = []
     interface.switchport_mode_private_vlan_host_promisc = input
     assert_equal(input, interface.switchport_mode_private_vlan_host_promisc,
@@ -484,9 +456,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = []
-    assert_equal(input, interface.switchport_private_vlan_trunk_allowed_vlan,
-                 'Error: wrong config for switchport private trunk allowed')
+    assert_nil(interface.switchport_private_vlan_trunk_allowed_vlan)
   end
 
   def test_interface_switchport_pvlan_trunk_allow_bad_arg
@@ -570,9 +540,7 @@ class TestSwitchport < TestInterfaceSwitchport
       end
       return
     end
-    input = 1
-    assert_equal(input, interface.switchport_private_vlan_trunk_native_vlan,
-                 'Error: wrong config for switchport private native vlan')
+    assert_nil(interface.switchport_private_vlan_trunk_native_vlan)
   end
 
   def test_interface_switchport_pvlan_trunk_native_vlan
@@ -608,10 +576,10 @@ class TestSwitchport < TestInterfaceSwitchport
 
   def test_interface_switchport_pvlan_association_trunk
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_association_trunk')
+      assert_nil(interface.switchport_private_vlan_association_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_association_trunk = %w(10 12)
       end
       return
     end
@@ -643,10 +611,10 @@ class TestSwitchport < TestInterfaceSwitchport
 
   def test_interface_switchport_pvlan_trunk_assoc_vlan_bad_arg
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_association_trunk')
+      assert_nil(interface.switchport_private_vlan_association_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_association_trunk = %w(10 10)
       end
       return
     end
@@ -674,39 +642,34 @@ class TestSwitchport < TestInterfaceSwitchport
 
   def test_interface_switchport_pvlan_trunk_assocciation_default
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_association_trunk')
+      assert_nil(interface.switchport_private_vlan_association_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_association_trunk = %w(10 10)
       end
       return
     end
-    input = []
-    assert_equal(input,
-                 interface.switchport_private_vlan_association_trunk,
-                 'Err: wrong config for switchport private trunk association')
+    assert_nil(interface.switchport_private_vlan_association_trunk)
   end
 
   def test_interface_switchport_pvlan_mapping_trunk_default
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_mapping_trunk')
+      assert_nil(interface.switchport_private_vlan_mapping_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_mapping_trunk = %w(10)
       end
       return
     end
-    input = []
-    assert_equal(input, interface.switchport_private_vlan_mapping_trunk,
-                 'Err: wrong config for switchport private mapping trunk')
+    assert_nil(interface.switchport_private_vlan_mapping_trunk)
   end
 
   def test_interface_switchport_pvlan_mapping_trunk
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_mapping_trunk')
+      assert_nil(interface.switchport_private_vlan_mapping_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_mapping_trunk = %w(10 10)
       end
       return
     end
@@ -738,10 +701,10 @@ class TestSwitchport < TestInterfaceSwitchport
 
   def test_interface_switchport_pvlan_mapping_trunk_bad_arg
     if validate_property_excluded?('interface',
-                                   'switchport_mode_private_vlan_host')
-      assert_nil(interface.switchport_mode_private_vlan_host)
+                                   'switchport_private_vlan_mapping_trunk')
+      assert_nil(interface.switchport_private_vlan_mapping_trunk)
       assert_raises(Cisco::UnsupportedError) do
-        interface.switchport_mode_private_vlan_host = :host
+        interface.switchport_private_vlan_mapping_trunk = %w(10 10)
       end
       return
     end

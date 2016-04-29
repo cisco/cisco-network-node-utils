@@ -30,6 +30,14 @@ limit_resource_module_type:
   set_value: '<state> limit-resource module-type <mods>'
   default_value: ''
 
+membership:
+  multiple:
+  get_command: 'show vdc membership'
+  get_context: ['/^vdc_id: \d+ vdc_name: <vdc> interfaces:$/']
+  get_value: '/(Ethernet\d+\/\d+)/'
+  set_value: 'allocate interface <intf>'
+  default_value: []
+
 vdc_support:
   # This is a only used for determining support for VDCs
   kind: boolean

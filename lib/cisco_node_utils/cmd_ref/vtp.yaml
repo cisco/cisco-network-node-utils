@@ -18,8 +18,9 @@ filename:
   default_value: "bootflash:/vlan.dat"
 
 password:
+  get_data_format: nxapi_structured
   get_command: "show vtp password"
-  get_value: '/VTP\s+Password:\s+(\S+)/i'
+  get_value: "passwd"
   set_value: "<state> vtp password <password>"
   default_value: ""
 

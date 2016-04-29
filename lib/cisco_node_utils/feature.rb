@@ -109,7 +109,14 @@ module Cisco
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
-      config_set('feature', 'nv_overlay')
+      config_set('feature', 'nv_overlay', state: '')
+    end
+
+    def self.nv_overlay_disable
+      # Note: vdc platforms restrict this feature to F3 or newer linecards
+      # Note: this is for test purposes only
+      return unless nv_overlay_enabled?
+      config_set('feature', 'nv_overlay', state: 'no')
     end
 
     def self.nv_overlay_enabled?
@@ -166,6 +173,16 @@ module Cisco
 
     def self.private_vlan_enabled?
       config_get('feature', 'private_vlan')
+    end
+
+    # ---------------------------
+    def self.tacacs_enable
+      return if tacacs_enabled? || platform == :ios_xr
+      config_set('feature', 'tacacs')
+    end
+
+    def self.tacacs_enabled?
+      config_get('feature', 'tacacs')
     end
 
     # ---------------------------
@@ -226,6 +243,29 @@ module Cisco
       fail result if
         result.is_a?(String) &&
         /Hardware is not capable of supporting/.match(result)
+    end
+
+    # ---------------------------
+    def self.compatible_interfaces(feature, property='supported_module_pids')
+      # Figure out the interfaces in a modular switch that are
+      # compatible with the given feature (or property within a feature)
+      # and return an array of such interfaces
+      module_pids = config_get(feature, property)
+      return [] if module_pids.nil?
+      module_regex = Regexp.new module_pids
+      # first get the compatible modules present in the switch
+      slots = Platform.slots.select do |_slot, filt_mod|
+        filt_mod['pid'] =~ module_regex
+      end
+      return [] if slots.empty?
+      # get the slot numbers only into filtered slots array
+      filt_slots = slots.keys.map { |key| key[/\d+/] }
+      # now filter interfaces in the vdc based on compatible slots
+      vdc = Vdc.new(Vdc.default_vdc_name)
+      filt_intfs = vdc.interface_membership.select do |intf|
+        filt_slots.include? intf[/\d+/]
+      end
+      filt_intfs
     end
   end
 end

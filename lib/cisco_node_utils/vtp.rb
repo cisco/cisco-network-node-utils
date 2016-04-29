@@ -62,6 +62,11 @@ module Cisco
       password = config_get('vtp', 'password') if Feature.vtp_enabled?
       return '' if password.nil? || password == '\\'
       password
+    rescue Cisco::RequestNotSupported => e
+      # Certain platforms generate a Cisco::RequestNotSupported when the
+      # vtp password is not set.  We catch this specific error and
+      # return empty '' for the password.
+      return '' if e.message[/Structured output not supported/]
     end
 
     # Set vtp password

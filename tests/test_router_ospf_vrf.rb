@@ -23,17 +23,13 @@ class TestRouterOspfVrf < CiscoTestCase
 
   def setup
     super
-    cleanup if @@pre_clean_needed
+    remove_all_ospfs if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    cleanup
+    remove_all_ospfs
     super
-  end
-
-  def cleanup
-    RouterOspf.routers.each { |_name, obj| obj.destroy }
   end
 
   def assert_match_vrf_line(routername, vrfname, cmd=nil)

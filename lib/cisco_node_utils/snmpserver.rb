@@ -24,12 +24,7 @@ module Cisco
     end
 
     def aaa_user_cache_timeout=(timeout)
-      if timeout == default_aaa_user_cache_timeout
-        config_set('snmp_server', 'aaa_user_cache_timeout', 'no',
-                   aaa_user_cache_timeout)
-      else
-        config_set('snmp_server', 'aaa_user_cache_timeout', '', timeout)
-      end
+      config_set('snmp_server', 'aaa_user_cache_timeout', '', timeout)
     end
 
     def default_aaa_user_cache_timeout

@@ -193,6 +193,7 @@ class TestVrf < CiscoTestCase
   end
 
   def test_route_distinguisher
+    skip_nexus_i2_image?
     v = Vrf.new('green')
     if validate_property_excluded?('vrf', 'route_distinguisher')
       # Must be configured under BGP in IOS XR

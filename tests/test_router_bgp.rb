@@ -71,8 +71,8 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def teardown
-    super
     remove_all_bgps
+    super
   end
 
   def get_routerbgp_match_line(as_number, vrf='default')
@@ -188,18 +188,26 @@ class TestRouterBgp < CiscoTestCase
     assert(bgp.process_initialized?, 'bgp should be initialized')
   end
 
-  def test_valid_asn
-    [1, 4_294_967_295, '55', '1.0', '1.65535',
-     '65535.0', '65535.65535'].each do |test|
-      rtr_bgp = RouterBgp.new(test)
-      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
-      rtr_bgp.destroy
+  def wait_for_process_kill(bgp)
+    return unless node.product_id[/N(5|6)/]
+    # Hack for slow-start platforms which can also be slow-to-die.
+    # Tests that involve many quick process-start / process-stop cycles
+    # are prone to failure without this delay.
+    4.times do
+      return unless bgp.process_initialized?
+      sleep 1
+      node.cache_flush
+    end
+    fail "#{bgp} :: process is still running"
+  end
 
-      vrf = 'Duke'
-      bgp_vrf = create_bgp_vrf(test, vrf)
-      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
-      bgp_vrf.destroy
-      rtr_bgp.destroy
+  def test_valid_asn
+    [1, 4_294_967_295, '55', '1.0', '1.65535', '65535.0', '65535.65535'
+    ].each do |asn|
+      b = RouterBgp.new(asn)
+      assert_equal(asn.to_s, RouterBgp.routers.keys[0].to_s)
+      b.destroy
+      wait_for_process_kill(b)
     end
   end
 
@@ -1064,6 +1072,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_route_distinguisher
+    skip_nexus_i2_image?
     remove_all_vrfs
 
     bgp = setup_vrf

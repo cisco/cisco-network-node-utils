@@ -21,6 +21,14 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)/'
 
+capabilities:
+  _exclude: [ios_xr]
+  multiple:
+  get_context: ["<name>"]
+  get_command: "show interface capabilities"
+  get_value: '/(.*)/'
+  default_value: [] # :raw default
+
 create:
   set_context: ~
   set_value: "interface <name>"
@@ -258,16 +266,14 @@ shutdown_vlan:
 
 speed:
   _exclude: [ios_xr, C3132]
+  kind: string
   get_value: '/^speed (.*)$/'
   set_value: "speed <speed>"
-  C3064:
-    default_value: 10000
-  C3172:
-    default_value: 10000
-  N5k:
-    default_value: 10000
-  N6k:
-    default_value: 10000
+  C3064: &non_auto
+    default_value: '10000'
+  C3172: *non_auto
+  N5k: *non_auto
+  N6k: *non_auto
   else:
     default_value: 'auto'
 
@@ -421,26 +427,29 @@ switchport_mode_private_vlan_host_promiscous:
 
 
 switchport_mode_private_vlan_trunk_promiscuous:
-  _exclude: [ios_xr, N8k]
-  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk promiscuous$/'
   set_value: "<state> switchport mode private-vlan trunk promiscuous"
-  default_value: ""
+  default_value: false
 
 switchport_mode_private_vlan_trunk_secondary:
-  _exclude: [ios_xr, N8k]
-  get_value: '/^switchport mode private-vlan trunk (.*)$/'
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk secondary$/'
   set_value: "<state> switchport mode private-vlan trunk secondary"
-  default_value: ""
+  default_value: false
 
 switchport_private_vlan_association_trunk:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N3k, N8k]
   multiple: true
+  #get_value: '/^switchport private-vlan association trunk (.*) (.*)$/'
   get_value: '/^switchport private-vlan association trunk (.*)$/'
   set_value: "<state> switchport private-vlan association trunk <vlan_pr> <vlan>"
   default_value: []
 
 switchport_private_vlan_mapping_trunk:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N3k, N8k]
   multiple: true
   get_value: '/^switchport private-vlan mapping trunk (.*)$/'
   set_value: "<state> switchport private-vlan mapping trunk <vlan_pr> <vlans>"
