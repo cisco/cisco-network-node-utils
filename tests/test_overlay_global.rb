@@ -44,7 +44,7 @@ class TestOverlayGlobal < CiscoTestCase
     assert_nil(o.dup_host_ip_addr_detection_host_moves)
     assert_nil(o.dup_host_ip_addr_detection_timeout)
 
-    # Test if VxLAN can be configured 
+    # Test if VxLAN can be configured
     vxlan_linecard?
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
@@ -103,7 +103,7 @@ class TestOverlayGlobal < CiscoTestCase
     # Before enabling 'nv overlay evpn', this property does not exist
     assert_nil(o.anycast_gateway_mac)
 
-    # Test if VxLAN can be configured 
+    # Test if VxLAN can be configured
     vxlan_linecard?
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current

@@ -136,7 +136,7 @@ class TestVrfAf < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
     else
 
-      # Test if VxLAN can be configured 
+      # Test if VxLAN can be configured
       vxlan_linecard?
       vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
       vdc_lc_state('f3') if vdc_current

@@ -203,7 +203,7 @@ class TestVrf < CiscoTestCase
       v.destroy
       return
     end
-    # Test if VxLAN can be configured 
+    # Test if VxLAN can be configuredf
     vxlan_linecard?
     vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
     vdc_lc_state('f3') if vdc_current
