@@ -25,12 +25,14 @@ class TestDomainName < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
+    @backup_resolve = backup_resolv_file
     no_domainname_test_xyz
   end
 
   def teardown
     # teardown runs at the end of each test
     no_domainname_test_xyz
+    restore_resolv_file(@backup_resolve)
     super
   end
 

@@ -22,6 +22,10 @@ class TestAaaAuthorizationService < CiscoTestCase
 
   def setup
     super
+    # TBD: Remove once CSCuz44696 is resolved.
+    skip('This test is not currently supported on 7.0(3)I3 images') if
+      node.os_version[/7.0\(3\)I3\(/]
+
     cleanup_aaa if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
     feature_tacacs

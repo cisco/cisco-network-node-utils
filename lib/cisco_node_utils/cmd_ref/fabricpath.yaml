@@ -144,6 +144,10 @@ mode:
   set_value: "<state> fabricpath mode transit"
   default_value: "normal"
 
+supported_module_pids:
+  _exclude: [N5k, N6k]
+  default_only: 'N7[K7]-(?:F2.*2.E|F3|F4|M3)'
+
 supported_modules:
   _exclude: [N5k, N6k]
   default_only: "f2e f3"

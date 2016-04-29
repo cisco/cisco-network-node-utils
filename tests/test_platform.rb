@@ -117,7 +117,12 @@ class TestPlatform < CiscoTestCase
 
   def test_last_reset
     s = @device.cmd('sh ver').scan(/usecs after\s+(.*)/).flatten.first
-    assert_equal(s, Platform.last_reset)
+    if Utils.nexus_i2_image
+      # Platform issue CSCuy72214, uncertain if this will ever be fixed in I2
+      assert_nil(Platform.last_reset)
+    else
+      assert_equal(s, Platform.last_reset)
+    end
   end
 
   def test_reset_reason

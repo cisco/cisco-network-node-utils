@@ -16,6 +16,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/fabricpath_global'
 require_relative '../lib/cisco_node_utils/interface'
+require_relative '../lib/cisco_node_utils/platform'
 
 include Cisco
 
@@ -26,6 +27,7 @@ class TestFabricpathGlobal < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
+    fabricpath_testenv_setup
     no_feature_fabricpath
   end
 
@@ -36,9 +38,14 @@ class TestFabricpathGlobal < CiscoTestCase
   end
 
   def no_feature_fabricpath
-    # Turn the feature off for a clean test.
-    config('no feature-set fabricpath')
+    fg = FabricpathGlobal.globals
+    fg.each { |_key, elem| elem.destroy } unless fg.empty?
   end
+
+  #  def no_feature_fabricpath
+  #    # Turn the feature off for a clean test.
+  #    config('no feature-set fabricpath')
+  #  end
 
   # TESTS
 

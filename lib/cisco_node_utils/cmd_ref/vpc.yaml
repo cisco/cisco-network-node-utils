@@ -160,6 +160,10 @@ peer_keepalive_vrf:
   get_value:  '/^peer-keepalive .*vrf (\S+)/'
   default_value: 'management'
 
+phy_port_vpc_module_pids:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  default_only: 'N7[K7]-(?:F2|F3|F4|M3)'
+
 port_channel_limit:
   _exclude: [N3k, N5k, N6k, N8k, N9k]
   auto_default: false

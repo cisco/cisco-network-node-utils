@@ -9,6 +9,7 @@ _template:
 
 accounting:
   _exclude: [ios_xr]
+  auto_default: false
   kind: boolean
   get_command: "show running-config radius"
   get_value: '/^radius-server host <ip>.* (accounting) .*$/'

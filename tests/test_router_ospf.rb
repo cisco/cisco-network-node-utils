@@ -21,7 +21,7 @@ class TestRouterOspf < CiscoTestCase
 
   def setup
     super
-    config_no_warn('no feature ospf')
+    remove_all_ospfs
   end
 
   def test_create_destroy

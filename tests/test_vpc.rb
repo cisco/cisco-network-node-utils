@@ -15,6 +15,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vpc'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_channel_group'
+require_relative '../lib/cisco_node_utils/platform'
 
 include Cisco
 
@@ -317,22 +318,26 @@ class TestVpc < CiscoTestCase
     interface.channel_group = false if interface.channel_group
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
-      phy_interface = Interface.new(interfaces[0])
-      assert_equal(phy_interface.vpc_id, phy_interface.default_vpc_id,
-                   'default vpc_id should be null')
-      phy_interface.switchport_mode = :trunk
-      phy_interface.vpc_id = 10
-      assert_equal(10, phy_interface.vpc_id, 'vpc_id should be 10')
+      phy_port_iflist =
+        Feature.compatible_interfaces('vpc', 'phy_port_vpc_module_pids')
+      unless phy_port_iflist.empty?
+        phy_interface = Interface.new(phy_port_iflist[0])
+        assert_equal(phy_interface.vpc_id, phy_interface.default_vpc_id,
+                     'default vpc_id should be null')
+        phy_interface.switchport_mode = :trunk
+        phy_interface.vpc_id = 10
+        assert_equal(10, phy_interface.vpc_id, 'vpc_id should be 10')
 
-      # negative - cannot config peer link on this
-      e = assert_raises(CliError) do
-        phy_interface.vpc_peer_link = true
+        # negative - cannot config peer link on this
+        e = assert_raises(CliError) do
+          phy_interface.vpc_peer_link = true
+        end
+        assert_match(/Invalid number/i, e.message)
+
+        # turn off vpc id
+        phy_interface.vpc_id = false
+        refute(phy_interface.vpc_id, 'vpc_id should be unset')
       end
-      assert_match(/Invalid number/i, e.message)
-
-      # turn off vpc id
-      phy_interface.vpc_id = false
-      refute(phy_interface.vpc_id, 'vpc_id should be unset')
     end
     # test port-channel vpc
     interface.channel_group = 10
@@ -472,6 +477,7 @@ class TestVpc < CiscoTestCase
 
   def test_interface_vpc_plus_peer_link
     vpc = Vpc.new(100)
+    fabricpath_testenv_setup
     if validate_property_excluded?('vpc', 'fabricpath_emulated_switch_id')
       assert_raises(Cisco::UnsupportedError) do
         vpc.fabricpath_emulated_switch_id = true

@@ -126,7 +126,7 @@ module Cisco
 
     # Bridge-Domain name assigning case
     # bridge-domain 100
-    #   name PepsiCo
+    #   name bd100
     def bd_name
       config_get('bridge_domain', 'bd_name', bd: @bd_ids)
     end

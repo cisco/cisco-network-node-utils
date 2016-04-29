@@ -48,11 +48,30 @@ module Cisco
     def create
       Feature.ospf_enable
       config_set('ospf', 'router', state: '', name: @name)
+      wait_for_process_initialized
     end
 
     # Destroy one router ospf instance
     def destroy
       config_set('ospf', 'router', state: 'no', name: @name)
+    end
+
+    def process_initialized?
+      !config_get('ospf', 'process_initialized')
+    end
+
+    def wait_for_process_initialized
+      return unless node.product_id[/N(5|6)/]
+
+      # Hack for slow-start platforms which will have setter failures if the
+      # ospf instance is still initializing. To see this problem in a sandbox
+      # or even the cli do 'router ospf 1 ; router ospf 1 ; shutdown'.
+      4.times do
+        return if process_initialized?
+        sleep 1
+        node.cache_flush
+      end
+      fail 'OSPF process is not initialized yet'
     end
   end
 end

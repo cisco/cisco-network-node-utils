@@ -25,12 +25,14 @@ class TestNameServer < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
+    @backup_resolve = backup_resolv_file
     no_nameserver_google
   end
 
   def teardown
     # teardown runs at the end of each test
     no_nameserver_google
+    restore_resolv_file(@backup_resolve)
     super
   end
 

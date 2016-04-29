@@ -23,6 +23,8 @@ Changelog
 
 ### Added
 
+* Added a new property fabric-control for vlan MT-FULL fabricpath
+* Added support for bdi interfaces to interface provider.
 * Added a new node util to handle bridge domain range cli for member vni
 * Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Added client support for gRPC on IOS XR.
@@ -53,12 +55,15 @@ Changelog
   * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk_promiscous`, `switchport_mode_private_vlan_trunk_secondary`
   * `switchport_private_vlan_association_trunk`, `switchport_private_vlan_mapping_trunk`
   * `private_vlan_mapping`
+* Extend Feature class with a class method to list feature compatible interfaces
+* Extend vdc with interface_membership methods
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
   * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
 * Extend vlan with attributes:
   * `private_vlan_association`, `private_vlan_type`
+* Added N3k native support for portchannel_global
 
 ### Changed
 
@@ -306,6 +311,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

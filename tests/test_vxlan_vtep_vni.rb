@@ -21,16 +21,32 @@ include Cisco
 # TestVxlanVtepVni - Minitest for VxlanVtepVni node utility
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    config('no feature nv overlay')
-    config('feature nv overlay')
-    config('interface nve1')
+    return unless @@pre_clean_needed
+    # Disable features on initial cleanup only as it's too expensive
+    # to do a disable for every testcase.
+    Feature.nv_overlay_disable
+    # nv overlay is slow on some platforms
+    sleep 1
+    vxlan_linecard?
+    if VxlanVtep.mt_full_support
+      return unless Vdc.vdc_support
+      v = Vdc.new('default')
+      v.limit_resource_module_type = 'f3' unless
+        v.limit_resource_module_type == 'f3'
+    else
+      config_no_warn('no feature vn-segment-vlan-based')
+    end
+    Feature.nv_overlay_enable
+    config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    config('no feature nv overlay')
+    config_no_warn('no interface nve1')
     super
   end
 
@@ -51,6 +67,7 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_vnis
+    VxlanVtep.new('nve1')
     skip('Platform does not support vnis') if VxlanVtepVni.vnis['nve1'].nil?
 
     # Test empty case
@@ -192,6 +209,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_suppress_arp
     vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
 
     # Test: Check suppress_arp is not configured.
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
@@ -209,5 +227,27 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
+  end
+
+  def test_suppress_uuc
+    vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep_vni', 'suppress_uuc')
+      assert_nil(vni.suppress_uuc)
+      assert_nil(vni.default_suppress_uuc)
+      assert_raises(Cisco::UnsupportedError) { vni.suppress_uuc = true }
+      return
+    end
+
+    # Test: Check suppress_uuc is not configured.
+    refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
+
+    # Test: Enable suppress_uuc
+    vni.suppress_uuc = true
+    assert(vni.suppress_uuc, 'suppress_uuc should be enabled')
+
+    # Test: Default
+    vni.suppress_uuc = vni.default_suppress_uuc
+    refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
   end
 end

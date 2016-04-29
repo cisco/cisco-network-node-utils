@@ -20,6 +20,13 @@ require_relative '../lib/cisco_node_utils/tacacs_server_host'
 class TestTacacsServerGroup < CiscoTestCase
   @skip_unless_supported = 'tacacs_server_group'
 
+  def setup
+    super
+    # TBD: Remove once CSCuz44696 is resolved.
+    skip('This test is not currently supported on 7.0(3)I3 images') if
+      node.os_version[/7.0\(3\)I3\(/]
+  end
+
   def clean_tacacs_config
     config('no feature tacacs',
            'feature tacacs')
