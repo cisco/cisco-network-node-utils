@@ -203,6 +203,10 @@ class TestVrf < CiscoTestCase
       v.destroy
       return
     end
+    # Test if VxLAN can be configuredf
+    vxlan_linecard?
+    vdc_lc_state('f3')
+
     v.route_distinguisher = 'auto'
     assert_equal('auto', v.route_distinguisher)
 

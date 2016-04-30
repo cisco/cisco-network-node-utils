@@ -44,6 +44,10 @@ class TestOverlayGlobal < CiscoTestCase
     assert_nil(o.dup_host_ip_addr_detection_host_moves)
     assert_nil(o.dup_host_ip_addr_detection_timeout)
 
+    # Test if VxLAN can be configured
+    vxlan_linecard?
+    vdc_lc_state('f3')
+
     # Set them to the default value and they should now be present
     default = [o.default_dup_host_ip_addr_detection_host_moves,
                o.default_dup_host_ip_addr_detection_timeout]
@@ -94,6 +98,10 @@ class TestOverlayGlobal < CiscoTestCase
 
     # Before enabling 'nv overlay evpn', this property does not exist
     assert_nil(o.anycast_gateway_mac)
+
+    # Test if VxLAN can be configured
+    vxlan_linecard?
+    vdc_lc_state('f3')
 
     # Explicitly set to default and it should be enabled
     o.anycast_gateway_mac = o.default_anycast_gateway_mac

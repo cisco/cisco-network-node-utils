@@ -135,6 +135,11 @@ class TestVrfAf < CiscoTestCase
     if validate_property_excluded?('vrf_af', 'route_target_both_auto')
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
     else
+
+      # Test if VxLAN can be configured
+      vxlan_linecard?
+      vdc_lc_state('f3')
+
       v.route_target_both_auto = true
       assert(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
              'v route-target both auto should be enabled')
