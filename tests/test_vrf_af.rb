@@ -138,8 +138,7 @@ class TestVrfAf < CiscoTestCase
 
       # Test if VxLAN can be configured
       vxlan_linecard?
-      vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-      vdc_lc_state('f3') if vdc_current
+      vdc_lc_state('f3')
 
       v.route_target_both_auto = true
       assert(v.route_target_both_auto, "vrf context #{vrf} af #{af}: "\
@@ -186,8 +185,6 @@ class TestVrfAf < CiscoTestCase
     should = v.default_route_target_import
     route_target_tester(v, af, opts, should, 'Test 4')
     v.destroy
-    # Return testbed to pre-clean state
-    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def route_target_tester(v, af, opts, should, test_id)

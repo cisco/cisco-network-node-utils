@@ -333,6 +333,7 @@ class CiscoTestCase < TestCase
   # VDC helper for features that require a specific linecard.
   # Allows caller to get current state or change it to a new value.
   def vdc_lc_state(type=nil)
+    return unless node.product_id[/N7/]
     v = Vdc.new('default')
     if type
       # This action may be time consuming, use only if necessary.

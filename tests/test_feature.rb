@@ -87,11 +87,8 @@ class TestFeature < CiscoTestCase
     end
     # Test if VxLAN can be configured
     vxlan_linecard?
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
     feature('nv_overlay')
-    # Return testbed to pre-clean state
-    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_nv_overlay_evpn
@@ -100,8 +97,7 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_evpn_enable }
       return
     end
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
 
     # nv_overlay_evpn can't use the 'feature' helper so test it explicitly here
     # Get current state of feature, then disable it
@@ -117,10 +113,6 @@ class TestFeature < CiscoTestCase
     Feature.nv_overlay_evpn_enable
     assert(Feature.nv_overlay_evpn_enabled?,
            "(#{feat_str}) is not enabled")
-
-    # Return testbed to pre-clean state
-    config("no #{feat_str}") unless pre_clean_enabled
-    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_ospf
@@ -160,8 +152,7 @@ class TestFeature < CiscoTestCase
       end
       return
     end
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
 
     # vni can't be removed if nv overlay is present
     config('no feature nv overlay')
@@ -170,7 +161,6 @@ class TestFeature < CiscoTestCase
     # nv overlay. This minor delay avoids the hang.
     sleep 1
     feature('vni')
-    vdc_lc_state(vdc_current) if vdc_current
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
@@ -193,10 +183,8 @@ class TestFeature < CiscoTestCase
     # Get current state of the feature-set
     feature_set_installed = Feature.fabric_installed?
     feature_enabled = Feature.fabric_enabled?
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
 
-    # clean
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
     config("no #{fs} ; no install #{fs}") if feature_set_installed
     refute_show_match(
       command: "show running | i '^install #{fs}$'",
@@ -210,7 +198,6 @@ class TestFeature < CiscoTestCase
     # Return testbed to pre-clean state
     config("no #{fs}") unless feature_enabled
     config("no install #{fs}") unless feature_set_installed
-    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_feature_set_fex

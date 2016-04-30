@@ -46,8 +46,7 @@ class TestOverlayGlobal < CiscoTestCase
 
     # Test if VxLAN can be configured
     vxlan_linecard?
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
 
     # Set them to the default value and they should now be present
     default = [o.default_dup_host_ip_addr_detection_host_moves,
@@ -63,9 +62,6 @@ class TestOverlayGlobal < CiscoTestCase
     assert_equal(val, o.dup_host_ip_addr_detection)
     assert_equal(val[0], o.dup_host_ip_addr_detection_host_moves)
     assert_equal(val[1], o.dup_host_ip_addr_detection_timeout)
-
-    # Return testbed to pre-clean state
-    vdc_lc_state(vdc_current) if vdc_current
   end
 
   def test_dup_host_mac_detection
@@ -105,8 +101,7 @@ class TestOverlayGlobal < CiscoTestCase
 
     # Test if VxLAN can be configured
     vxlan_linecard?
-    vdc_current = node.product_id[/N7/] ? vdc_lc_state : nil
-    vdc_lc_state('f3') if vdc_current
+    vdc_lc_state('f3')
 
     # Explicitly set to default and it should be enabled
     o.anycast_gateway_mac = o.default_anycast_gateway_mac
@@ -118,8 +113,5 @@ class TestOverlayGlobal < CiscoTestCase
       o.anycast_gateway_mac = mac
       assert_equal(Utils.zero_pad_macaddr(mac), o.anycast_gateway_mac)
     end
-
-    # Return testbed to pre-clean state
-    vdc_lc_state(vdc_current) if vdc_current
   end
 end
