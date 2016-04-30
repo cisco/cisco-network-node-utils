@@ -202,6 +202,7 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the bds existing in the system
   # specifically in cleanup for minitests
   def remove_all_bridge_domains
+    config 'system bridge-domain none' if /N7/ =~ node.product_id
     BridgeDomain.bds.each do |_bd, obj|
       obj.destroy
     end
@@ -210,6 +211,7 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the vlans existing in the system
   # specifically in cleanup for minitests
   def remove_all_vlans
+    remove_all_bridge_domains
     Vlan.vlans.each do |vlan, obj|
       # skip reserved vlan
       next if vlan == '1'
