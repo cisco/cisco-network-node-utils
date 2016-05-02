@@ -13,7 +13,6 @@ This workflow map aids *users*, *developers* and *maintainers* of the CiscoNodeU
   * [CONTRIBUTING.md](CONTRIBUTING.md) : Contribution guidelines
   * [README-develop-node-utils-APIs.md](docs/README-develop-node-utils-APIs.md) : Developing new CiscoNodeUtils APIs
   * [README-develop-best-practices.md](docs/README-develop-best-practices.md) : Development best practices
-  * [README-develop-add-XR-support.md](docs/README-develop-add-XR-support.md) : How To Update node_utils APIs to Support IOS XR
 * Maintainers Guides
   * [README-maintainers.md](docs/README-maintainers.md) : Guidelines for core maintainers of the CiscoNodeUtils project
   * All developer guides apply to maintainers as well
@@ -43,16 +42,11 @@ This CiscoNodeUtils gem release supports the following:
 
 Platform         | OS     | OS Version           |
 -----------------|--------|----------------------|
-Cisco Nexus 30xx | NX-OS  | 7.0(3)I2(1) and later
-Cisco Nexus 31xx | NX-OS  | 7.0(3)I2(1) and later
-Cisco Nexus 93xx | NX-OS  | 7.0(3)I2(1) and later
-Cisco Nexus 95xx | NX-OS  | 7.0(3)I2(1) and later
-Cisco N9kv       | NX-OS  | 7.0(3)I2(1) and later
-Cisco Nexus 56xx | NX-OS  | 7.3(0)N1(1) and later
-Cisco Nexus 60xx | NX-OS  | 7.3(0)N1(1) and later
-Cisco Nexus 7xxx | NX-OS  | 7.3(0)D1(1) and later
-TODO             | IOS XR | TODO
-
+Cisco Nexus N9k  | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N3k  | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N5k  | NX-OS  | 7.3(0)N1(1) and later
+Cisco Nexus N6k  | NX-OS  | 7.3(0)N1(1) and later
+Cisco Nexus N7k  | NX-OS  | 7.3(0)D1(1) and later
 
 Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
@@ -69,7 +63,7 @@ Alternatively, if you've checked the source out directly, you can call
 
 ## Configuration
 
-Depending on the installation environment (Linux, NX-OS, or IOS XR), this gem may require configuration in order to be used. Two configuration file locations are supported:
+This gem may require configuration in order to be used. Two configuration file locations are supported:
 
 * `/etc/cisco_node_utils.yaml` (system and/or root user configuration)
 * `~/cisco_node_utils.yaml` (per-user configuration)
@@ -78,13 +72,10 @@ If both files exist and are readable, configuration in the user-specific file wi
 
 This file specifies the host, port, username, and/or password to be used to connect to one or more nodes.
 
-* When installing this gem on NX-OS nodes, this file is generally not needed, as the default client behavior is sufficient.
-* When installing this gem on IOS XR nodes, this file needs to specify an IOS XR administrator `username` and `password` for the local (`default`) node. Additionally, if the gRPC server is configured to listen on a port other than its default of 57400, the `port` number must be specified in this file. *For security purposes, it is highly recommended that access to this file be restricted to only the owning user (`chmod 0600`).*
-* When developing for or testing this gem, this file can specify one or more NX-OS and/or IOS XR nodes to run tests against. In this case:
+* When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
   - A node labeled as `default` will be the default node to test against.
   - Nodes with other names can be selected at test execution time.
   - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
-  - IOS XR nodes must be defined with a `host`, `username`, and `password`, plus a `port` if the gRPC server is listening on a non-default port.
 
 An example configuration file (illustrating each of the above scenarios) is provided with this gem at [`docs/cisco_node_utils.yaml.example`](docs/cisco_node_utils.yaml.example).
 
@@ -92,10 +83,9 @@ An example configuration file (illustrating each of the above scenarios) is prov
 
 ### Client
 
-The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`. Currently there are two subclasses:
+The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`.
 
 * `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
-* `Cisco::Client::GRPC` - client for communicating with IOS XR 6.0.0 and later, using gRPC.
 
 For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
@@ -105,7 +95,7 @@ The `Node` class is a singleton which wraps around the `Client` class to provide
 
 ### CommandReference
 
-The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG), platform differences (NX-OS vs. IOS XR), or hardware differences (Nexus 9xxx vs. Nexus 3xxx). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
+The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG) or hardware differences (Nexus N9k vs. Nexus N3k). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
 See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 

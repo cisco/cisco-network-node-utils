@@ -27,24 +27,8 @@ Changelog
 * Added support for bdi interfaces to interface provider.
 * Added a new node util to handle bridge domain range cli for member vni
 * Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
-* Added client support for gRPC on IOS XR.
-* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
 * CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
-* Add IOS XR support for the following classes:
-  * bgp
-  * bgp_af
-  * bgp_neighbor
-  * bgp_neighbor_af
-  * command_config
-  * dns_domain (@glennmatthews)
-  * domain_name (@glennmatthews)
-  * interface
-  * name_server (@glennmatthews)
-  * ntp_config (@jonnytpuppet)
-  * ntp_server (@jonnytpuppet)
-  * platform (@glennmatthews)
-  * radius_server (@jonnytpuppet)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
@@ -68,7 +52,7 @@ Changelog
 ### Changed
 
 * Major refactor and enhancement of `CommandReference` YAML files:
-  - Filtering by platform is now by platform name only (`nexus`, `ios_xr`)
+  - Filtering by platform is now by platform name only.
   - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
   - Replaced `config_set(_append)?` with `set_context`, and `set_value`
   - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
