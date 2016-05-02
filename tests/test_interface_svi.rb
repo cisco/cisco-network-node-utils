@@ -71,9 +71,6 @@ class TestSvi < CiscoTestCase
     if validate_property_excluded?('interface',
                                    'private_vlan_mapping')
       assert_nil(svi.private_vlan_mapping)
-      assert_raises(Cisco::UnsupportedError) do
-        svi.private_vlan_mapping = %w(11-13)
-      end
       return
     end
     input = %w(10-20 30)
@@ -102,9 +99,6 @@ class TestSvi < CiscoTestCase
     if validate_property_excluded?('interface',
                                    'private_vlan_mapping')
       assert_nil(svi.private_vlan_mapping)
-      assert_raises(Cisco::UnsupportedError) do
-        svi.private_vlan_mapping = %w(10 20)
-      end
       return
     end
     input = %w(10 20)

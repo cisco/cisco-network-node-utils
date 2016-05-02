@@ -202,6 +202,7 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the bds existing in the system
   # specifically in cleanup for minitests
   def remove_all_bridge_domains
+    config 'system bridge-domain none' if /N7/ =~ node.product_id
     BridgeDomain.bds.each do |_bd, obj|
       obj.destroy
     end
@@ -210,6 +211,7 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the vlans existing in the system
   # specifically in cleanup for minitests
   def remove_all_vlans
+    remove_all_bridge_domains
     Vlan.vlans.each do |vlan, obj|
       # skip reserved vlan
       next if vlan == '1'
@@ -326,5 +328,19 @@ class CiscoTestCase < TestCase
     return unless node.product_id[/N3K|N8K|N9K/]
     shell_command("sudo cp #{filename} /etc/resolv.conf", context)
     shell_command("rm #{filename}", context)
+  end
+
+  # VDC helper for features that require a specific linecard.
+  # Allows caller to get current state or change it to a new value.
+  def vdc_lc_state(type=nil)
+    return unless node.product_id[/N7/]
+    vxlan_linecard? if type && type[/F3/i]
+    v = Vdc.new('default')
+    if type
+      # This action may be time consuming, use only if necessary.
+      v.limit_resource_module_type = type
+    else
+      v.limit_resource_module_type
+    end
   end
 end

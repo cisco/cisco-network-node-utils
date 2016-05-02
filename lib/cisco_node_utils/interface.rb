@@ -995,19 +995,19 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host
-      return nil unless Feature.private_vlan_enabled?
       mode = config_get('interface',
                         'switchport_mode_private_vlan_host',
                         name: @name)
-
-      return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
-
+      unless mode == default_switchport_mode_private_vlan_host
+        mode = IF_SWITCHPORT_MODE.key(mode)
+      end
+      mode
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
       # Do not raise exception since the providers will prefetch this property
       # regardless of interface type.
       # TODO: this should probably be nil instead
-      return :disabled
+      return default_switchport_mode_private_vlan_host
     end
 
     def switchport_mode_private_vlan_host=(mode_set)
@@ -1022,11 +1022,13 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host_association
-      return nil unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_association',
                           name: @name)
-      result.empty? ? [] : result[0].split(' ')
+      unless result == default_switchport_mode_private_vlan_host_association
+        result = result[0].split(' ')
+      end
+      result
     end
 
     def switchport_mode_private_vlan_host_association=(vlans)
@@ -1199,11 +1201,13 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host_promisc
-      return nil unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_mode_private_vlan_host_promiscous',
                           name: @name)
-      result.empty? ? [] : result[0].split(' ')
+      unless result == default_switchport_mode_private_vlan_host_promisc
+        result = result[0].split(' ')
+      end
+      result
     end
 
     def switchport_mode_private_vlan_host_promisc=(vlans)
@@ -1221,18 +1225,15 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_promiscuous
-      return nil unless Feature.private_vlan_enabled?
-      mode = config_get('interface',
-                        'switchport_mode_private_vlan_trunk_promiscuous',
-                        name: @name)
-      return mode.nil? ? false : mode
-
+      config_get('interface',
+                 'switchport_mode_private_vlan_trunk_promiscuous',
+                 name: @name)
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
       # Do not raise exception since the providers will prefetch this property
       # regardless of interface type.
       # TODO: this should probably be nil instead
-      return :disabled
+      return default_switchport_mode_private_vlan_trunk_promiscuous
     end
 
     def switchport_mode_private_vlan_trunk_promiscuous=(state)
@@ -1255,18 +1256,15 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_secondary
-      return nil unless Feature.private_vlan_enabled?
-      mode = config_get('interface',
-                        'switchport_mode_private_vlan_trunk_secondary',
-                        name: @name)
-      return mode.nil? ? false : mode
-
+      config_get('interface',
+                 'switchport_mode_private_vlan_trunk_secondary',
+                 name: @name)
     rescue IndexError
       # Assume this is an interface that doesn't support switchport.
       # Do not raise exception since the providers will prefetch this property
       # regardless of interface type.
       # TODO: this should probably be nil instead
-      return :disabled
+      return default_switchport_mode_private_vlan_trunk_secondary
     end
 
     def switchport_mode_private_vlan_trunk_secondary=(state)
@@ -1287,16 +1285,18 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_allowed_vlan
-      return nil unless Feature.private_vlan_enabled?
       result = config_get('interface',
                           'switchport_private_vlan_trunk_allowed_vlan',
                           name: @name)
-      return [] if result.nil? || result.empty?
-      if result[0].eql? 'none'
-        return []
-      else
-        return result[0].split(',')
+
+      unless result == default_switchport_private_vlan_trunk_allowed_vlan
+        if result[0].eql? 'none'
+          result = default_switchport_private_vlan_trunk_allowed_vlan
+        else
+          result = result[0].split(',')
+        end
       end
+      result
     end
 
     def switchport_private_vlan_trunk_allowed_vlan=(vlans)
@@ -1323,7 +1323,6 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_native_vlan
-      return nil unless Feature.private_vlan_enabled?
       config_get('interface',
                  'switchport_private_vlan_trunk_native_vlan',
                  name: @name)
@@ -1350,12 +1349,9 @@ module Cisco
     end
 
     def switchport_private_vlan_association_trunk
-      return nil unless Feature.private_vlan_enabled?
-      result = config_get('interface',
-                          'switchport_private_vlan_association_trunk',
-                          name: @name)
-      return [] if result.nil? || result.empty?
-      result
+      config_get('interface',
+                 'switchport_private_vlan_association_trunk',
+                 name: @name)
     end
 
     def switchport_private_vlan_association_trunk=(vlans)
@@ -1379,12 +1375,9 @@ module Cisco
     end
 
     def switchport_private_vlan_mapping_trunk
-      return nil unless Feature.private_vlan_enabled?
-      result = config_get('interface',
-                          'switchport_private_vlan_mapping_trunk',
-                          name: @name)
-      return [] if result.nil? || result.empty?
-      result
+      config_get('interface',
+                 'switchport_private_vlan_mapping_trunk',
+                 name: @name)
     end
 
     def switchport_private_vlan_mapping_trunk=(vlans)
@@ -1408,12 +1401,10 @@ module Cisco
     end
 
     def private_vlan_mapping
-      return nil unless Feature.private_vlan_enabled?
       match = config_get('interface',
                          'private_vlan_mapping',
                          name: @name)
-      return [] if match.nil? || match.empty?
-      match[0].delete!(' ')
+      match[0].delete!(' ') unless match == default_private_vlan_mapping
       match
     end
 
