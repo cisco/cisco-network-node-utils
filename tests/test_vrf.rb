@@ -194,6 +194,10 @@ class TestVrf < CiscoTestCase
 
   def test_route_distinguisher
     skip_nexus_i2_image?
+    # Check for compatible linecard (if platform requires it) and set it up
+    vxlan_linecard?
+    vdc_lc_state('f3')
+
     v = Vrf.new('green')
     if validate_property_excluded?('vrf', 'route_distinguisher')
       # Must be configured under BGP in IOS XR

@@ -25,6 +25,8 @@ class TestOverlayGlobal < CiscoTestCase
 
   def setup
     super
+    vxlan_linecard?
+    vdc_lc_state('f3')
     config_no_warn('no feature fabric forwarding')
     config_no_warn('no nv overlay evpn')
     config_no_warn('l2rib dup-host-mac-detection default')
