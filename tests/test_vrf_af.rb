@@ -115,6 +115,11 @@ class TestVrfAf < CiscoTestCase
   end
 
   def route_target(af)
+    #
+    # TBD: The evpn parts of this test need to check for compatible linecards to
+    # skip the evpn portions. Don't use vxlan_linecard? as that will cause all
+    # tests to be skipped.
+    #
     # Common tester for route-target properties. Tests evpn and non-evpn.
     #   route_target_both_auto
     #   route_target_both_auto_evpn
