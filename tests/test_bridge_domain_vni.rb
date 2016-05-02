@@ -35,6 +35,10 @@ class TestBridgeDomainVNI < CiscoTestCase
     super
     cleanup unless @@cleaned
     @@cleaned = true # rubocop:disable Style/ClassVars
+    mt_full_interface?
+    v = Vdc.new('default')
+    v.limit_resource_module_type = 'f3' unless
+      v.limit_resource_module_type == 'f3'
   end
 
   def teardown
