@@ -18,143 +18,214 @@ require_relative '../lib/cisco_node_utils/ace'
 
 # TestAce - Minitest for Ace node utility class
 class TestAce < CiscoTestCase
+  @skip_unless_supported = 'acl'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
-    # setup runs at the beginning of each test
     super
-    @acl_name_v4 = 'test-foo-v4-1'
-    @acl_name_v6 = 'test-foo-v6-1'
-    @seqno = 10
-    no_access_list_foo
+    remove_all_acls if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    # teardown runs at the end of each test
-    no_access_list_foo
     super
+    remove_all_acls
   end
 
-  def no_access_list_foo
-    # Remove the test ACLs
-    %w(ipv4 ipv6).each do |afi|
-      acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
-      config('no ' + Acl.afi_cli(afi) + ' access-list ' + acl_name)
+  def remove_all_acls
+    Acl.acls.each do |_afis, acls|
+      acls.values.each(&:destroy)
     end
   end
 
-  # TESTS
-  def test_create_destroy_ace_one
-    attr_v4_1 = {
+  # Helper to create an ACE and return the obj. The test_hash contains
+  # only the minimum properties which can be added to or overwritten as
+  # required for each test.
+  def ace_helper(afi, props=nil)
+    test_hash = {
       action:   'permit',
       proto:    'tcp',
-      src_addr: '7.8.9.6 2.3.4.5',
-      src_port: 'eq 40',
-      dst_addr: '1.2.3.4/32',
-      dst_port: 'neq 20',
-    }
-
-    attr_v4_2 = {
-      action:   'deny',
-      proto:    'udp',
-      src_addr: '7.8.9.6/32',
-      src_port: 'eq 41',
-      dst_addr: 'host 1.2.3.4',
-      dst_port: 'neq 20',
-    }
-
-    attr_v4_3 = {
-      remark: 'ipv4 remark'
-    }
-
-    attr_v6_1 = {
-      action:   'permit',
-      proto:    '6',
-      src_addr: 'addrgroup fi',
-      src_port: '',
-      dst_addr: '1::7/32',
-      dst_port: '',
-    }
-
-    attr_v6_2 = {
-      action:   'permit',
-      proto:    'udp',
-      src_addr: '1::8/56',
-      src_port: 'eq 41',
+      src_addr: 'any',
       dst_addr: 'any',
-      dst_port: '',
     }
+    test_hash.merge!(props) unless props.nil?
 
-    attr_v6_3 = {
-      remark: 'ipv6 remark'
-    }
+    a = Ace.new(afi, afi, 10)
+    begin
+      a.ace_set(test_hash)
+      a
+    end
+  rescue CliError => e
+    skip('This property is not supported on this platform') if
+      e.message[/(Invalid parameter detected|Invalid command)/]
+    flunk(e.message)
+  end
 
-    props = {
-      'ipv4' => [attr_v4_1, attr_v4_2, attr_v4_3],
-      'ipv6' => [attr_v6_1, attr_v6_2, attr_v6_3],
-    }
-
+  # TESTS
+  def test_remark
     %w(ipv4 ipv6).each do |afi|
-      @seqno = 0
-      props[afi].each do |item|
-        create_destroy_ace(afi, item)
+      a = ace_helper(afi, remark: afi)
+      assert_equal(afi, a.remark)
+    end
+  end
+
+  def test_action
+    %w(ipv4 ipv6).each do |afi|
+      %w(permit deny).each do |val|
+        a = ace_helper(afi, action: val)
+        assert_equal(val, a.action)
       end
     end
   end
 
-  def create_destroy_ace(afi, entry)
-    acl_name = @acl_name_v4 if afi[/(ip|ipv4)$/]
-    acl_name = @acl_name_v6 if afi[/ipv6/]
-    @seqno += 10
-
-    Acl.new(afi, acl_name)
-    ace = Ace.new(afi, acl_name, @seqno)
-    ace.ace_set(entry)
-
-    afi_cli = Acl.afi_cli(afi)
-    all_aces = Ace.aces
-    found = false
-    all_aces[afi][acl_name].each do |seqno, _inst|
-      next unless seqno.to_i == @seqno.to_i
-      found = true
+  def test_proto
+    %w(ipv4 ipv6).each do |afi|
+      # Sampling of proto's
+      %w(ip tcp udp).each do |val|
+        val = 'ipv6' if val[/ip/] && afi[/ipv6/]
+        a = ace_helper(afi, proto: val)
+        assert_equal(val, a.proto)
+      end
     end
-
-    @default_show_command =
-      "show runn aclmgr | sec '#{afi_cli} access-list #{acl_name}'"
-    assert(found,
-           "#{afi_cli} acl #{acl_name} seqno #{@seqno} is not configured")
-
-    if entry.include?(:action)
-      action = "#{entry[:action]} .*"
-    else
-      action = "remark #{entry[:remark]}"
-    end
-    assert_show_match(pattern: /\s+#{@seqno} #{action}$/,
-                      msg:     "failed to create ace seqno #{@seqno}")
-    ace.destroy
-    refute_show_match(pattern: /\s+#{@seqno} #{entry[:action]} .*$/,
-                      msg:     "failed to remove ace seqno #{@seqno}")
   end
 
-  def test_ace_update
-    action = 'permit'
-    proto = 'tcp'
-    src = '1.0.0.0/8'
-    dst = '3.0.0.0 0.0.0.8'
-    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
+  def test_addrs
+    val = '10.1.1.1/32'
+    a = ace_helper('ipv4', src_addr: val, dst_addr: val)
+    assert_equal(val, a.src_addr)
+    assert_equal(val, a.dst_addr)
 
-    a = Ace.new('ipv4', 'ace_update', 10)
-    a.ace_set(entry)
+    val = '10.1.1.1 0.0.0.0'
+    exp = '10.1.1.1/32'
+    # This syntax will transform to 10.1.1.1/32
+    a = ace_helper('ipv4', src_addr: val, dst_addr: val)
+    assert_equal(exp, a.src_addr)
+    assert_equal(exp, a.dst_addr)
 
-    assert_equal(src, a.src_addr)
-    assert_equal(dst, a.dst_addr)
+    val = '10.1.1.1 2.3.4.5'
+    a = ace_helper('ipv4', src_addr: val, dst_addr: val)
+    assert_equal(val, a.src_addr)
+    assert_equal(val, a.dst_addr)
 
-    src = '2.0.0.0/16'
-    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
-    a.ace_set(entry)
-    assert_equal(src, a.src_addr)
+    val = '10:1:1::1/128'
+    a = ace_helper('ipv6', src_addr: val, dst_addr: val)
+    assert_equal(val, a.src_addr)
+    assert_equal(val, a.dst_addr)
 
-    dst = '3.0.0.0 0.0.0.4'
-    entry = { action: action, proto: proto, src_addr: src, dst_addr: dst }
-    a.ace_set(entry)
-    assert_equal(dst, a.dst_addr)
+    %w(ipv4 ipv6).each do |afi|
+      val = "addrgroup my_addrgroup_#{afi}"
+      a = ace_helper(afi, src_addr: val, dst_addr: val)
+      assert_equal(val, a.src_addr)
+      assert_equal(val, a.dst_addr)
+    end
+  end
+
+  def test_ports
+    %w(ipv4 ipv6).each do |afi|
+      ['eq 2', 'neq 2', 'gt 2', 'lt 2',
+       'portgroup my_pg'].each do |val|
+        a = ace_helper(afi, src_port: val, dst_port: val)
+        assert_equal(val, a.src_port)
+        assert_equal(val, a.dst_port)
+      end
+    end
+  end
+
+  def test_dscp
+    %w(ipv4 ipv6).each do |afi|
+      %w(5 60 af11 af12 af13 af21 af22 af23 af31 af32 af33 af41 af42 af43
+         cs1 cs2 cs3 cs4 cs5 cs6 cs7 default ef).each do |val|
+        a = ace_helper(afi, dscp: val)
+        assert_equal(val, a.dscp)
+      end
+    end
+  end
+
+  def test_tcp_flags
+    %w(ipv4 ipv6).each do |afi|
+      %w(ack fin urg syn psh rst) + [
+        'ack fin', 'ack psh rst'].each do |val|
+        a = ace_helper(afi, tcp_flags: val)
+        assert_equal(val, a.tcp_flags)
+      end
+    end
+  end
+
+  def test_established
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).established)
+      a = ace_helper(afi, established: true)
+      assert(a.established)
+      a = ace_helper(afi, established: false)
+      refute(a.established)
+    end
+  end
+
+  def test_http_method
+    afi = 'ipv4'
+    %w(connect delete get head post put trace).each do |val|
+      a = ace_helper(afi, http_method: val)
+      assert_equal(val, a.http_method)
+    end
+  end
+
+  def test_log
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
+      a = ace_helper(afi, log: true)
+      assert(a.log)
+      a = ace_helper(afi, log: false)
+      refute(a.log)
+    end
+  end
+
+  def test_precedence
+    afi = 'ipv4'
+    %w(critical flash flash-override immediate internet network
+       priority routine).each do |val|
+      a = ace_helper(afi, precedence: val)
+      assert_equal(val, a.precedence)
+    end
+  end
+
+  def test_redirect
+    afi = 'ipv4'
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, redirect: val)
+    assert_equal(val, a.redirect)
+  end
+
+  def test_tcp_option_length
+    afi = 'ipv4'
+    %w(0 16 28).each do |val|
+      a = ace_helper(afi, tcp_option_length: val)
+      assert_equal(val, a.tcp_option_length)
+    end
+  end
+
+  def test_time_range
+    val = 'my_range'
+    %w(ipv4 ipv6).each do |afi|
+      a = ace_helper(afi, time_range: val)
+      assert_equal(val, a.time_range)
+    end
+  end
+
+  def test_packet_length
+    val = 'range 80 1000'
+    %w(ipv4 ipv6).each do |afi|
+      a = ace_helper(afi, packet_length: val)
+      assert_equal(val, a.packet_length)
+    end
+  end
+
+  def test_ttl
+    val = '3'
+    %w(ipv4 ipv6).each do |afi|
+      a = ace_helper(afi, ttl: val)
+      skip("This property has a known defect on the platform itself -\n"\
+           'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
+      assert_equal(val, a.ttl)
+    end
   end
 end

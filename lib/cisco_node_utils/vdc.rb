@@ -84,5 +84,17 @@ module Cisco
     def default_limit_resource_module_type
       config_get_default('vdc', 'limit_resource_module_type')
     end
+
+    def interface_membership
+      config_get('vdc', 'membership', vdc: @vdc)
+    end
+
+    def interface_membership=(intf)
+      config_set('vdc', 'membership', vdc: @vdc, intf: intf)
+    end
+
+    def default_interface_membership
+      config_get_default('vdc', 'membership')
+    end
   end  # Class
 end    # Module

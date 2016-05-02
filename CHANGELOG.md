@@ -1,6 +1,80 @@
 Changelog
 =========
 
+## [v1.3.0]
+
+### New feature support
+
+#### Cisco Resources
+* Itd
+  * itd_device_group (@saichint)
+  * itd_device_group_node (@saichint)
+  * itd_service (@saichint)
+* Spanning Tree
+  * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+  * bridge_domain_vni (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
+
+#### NetDev Resources
+*
+
+### Added
+
+* Added a new property fabric-control for vlan MT-FULL fabricpath
+* Added support for bdi interfaces to interface provider.
+* Added a new node util to handle bridge domain range cli for member vni
+* Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
+* Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
+* CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
+* `test_feature` minitest
+* Extend interface with attributes:
+  * `ipv4_forwarding`
+  * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
+  * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+  * `switchport_private_vlan_trunk_allowed_vlan`, `switchport_private_vlan_trunk_native_vlan`
+  * `switchport_mode_private_vlan_host`, `switchport_mode_private_vlan_host_association`
+  * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk_promiscous`, `switchport_mode_private_vlan_trunk_secondary`
+  * `switchport_private_vlan_association_trunk`, `switchport_private_vlan_mapping_trunk`
+  * `private_vlan_mapping`
+* Extend Feature class with a class method to list feature compatible interfaces
+* Extend vdc with interface_membership methods
+* Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
+  * `fabricpath_emulated_switch_id`
+  * `fabricpath_multicast_load_balance` (only on Nexus 7k)
+  * `port_channel_limit` (only on Nexus 7k)
+* Extend vlan with attributes:
+  * `private_vlan_association`, `private_vlan_type`
+* Added N3k native support for portchannel_global
+
+### Changed
+
+* Major refactor and enhancement of `CommandReference` YAML files:
+  - Filtering by platform is now by platform name only.
+  - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
+  - Replaced `config_set(_append)?` with `set_context`, and `set_value`
+  - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
+  - Data format (CLI, NXAPI structured) is now assumed to be CLI unless explicitly specified otherwise using the new `(get_|set_)?data_format` YAML key. No more guessing based on whether a key looks like a hash key or a Regexp.
+* `cisco_nxapi` Gem is no longer a dependency as the NXAPI client code has been merged into this Gem under the `Cisco::Client` namespace.
+* Improved minitest logging CLI.
+  - `ruby test_foo.rb -l debug` instead of `ruby test_foo.rb -- <host> <user> <pass> debug`
+  - `rake test TESTOPTS='--log-level=debug'`
+* Client connectivity is now specified in `/etc/cisco_node_utils.yaml` or `~/cisco_node_utils.yaml` instead of environment variables or command-line arguments to minitest.
+  - `ruby test_foo.rb -e <node name defined in YAML>`
+  - `rake test TESTOPTS='--environment=default'`
+
+### Fixed
+
+* Interface:
+  - Correctly restore IP address when changing VRF membership
+  - MTU is not supported on loopback interfaces
+
+### Removed
+* Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
+
 ## [v1.2.0]
 
 ### New feature support
@@ -40,7 +114,7 @@ Changelog
   * vxlan_vtep (@dcheriancisco)
   * vxlan_vtep_vni (@mikewiebe)
 
-  
+
 ### Additional platform support added to existing classes
 #### Cisco Nexus 56xx, 60xx and 7xxx
 * AAA
@@ -110,7 +184,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 
@@ -119,7 +197,7 @@ Changelog
 * Major refactor and enhancement of `CommandReference` YAML files:
   - Added support for `auto_default`, `default_only`, `kind`, and `multiple`
   - Added filtering by product ID (`/N7K/`) and by client type (`cli_nexus`)
-  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied). 
+  - `CommandReference` methods that do key-value style wildcard substitution now raise an `ArgumentError` if the result is empty (because not enough parameters were supplied).
 
 ## [v1.1.0]
 
@@ -216,6 +294,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

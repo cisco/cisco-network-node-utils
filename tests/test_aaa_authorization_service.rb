@@ -17,55 +17,82 @@ require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
 # TestAaaAuthorizationService - Minitest for AaaAuthorizationService util
 class TestAaaAuthorizationService < CiscoTestCase
+  @skip_unless_supported = 'aaa_authorization_service'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
+    # TBD: Remove once CSCuz44696 is resolved.
+    skip('This test is not currently supported on 7.0(3)I3 images') if
+      node.os_version[/7.0\(3\)I3\(/]
+
+    cleanup_aaa if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
     feature_tacacs
+    preconfig_tacacs_server_access(tacacs_groups[0])
+    config_tacacs_servers(tacacs_groups[1..3])
   end
 
   def teardown
+    cleanup_aaa
     feature_tacacs(false)
     super
+  end
+
+  def cleanup_aaa
+    cmds = config('show run aaa').scan(/^aaa auth.*/)
+    cmds.each do |cmd|
+      config("no #{cmd}")
+    end
+  end
+
+  def config_tacacs_servers(servers)
+    servers.each do |server|
+      config("aaa group server tacacs+ #{server}")
+    end
+  end
+
+  def feature_tacacs(feature=true)
+    state = feature ? '' : 'no'
+    config("#{state} feature tacacs+")
+  end
+
+  # Helper method to get regexp for aaa authorization commands
+  def get_pattern(cmd_type, service, groups, method=:unselected)
+    cmd_type = cmd_type == :config_commands ? 'config-commands' : cmd_type.to_s
+    groups = groups.join(' ') if groups.is_a? Array
+    method = method == :unselected ? '' : method.to_s
+    p = prefix
+    p << ' ' + cmd_type
+    p << ' ' + service
+    p << ' group ' + groups unless groups.empty?
+    p << ' ' + method unless method.empty?
+    Regexp.new(p)
   end
 
   # Method to pre-configure a valid tacacs server and aaa group.  This
   # group can be included in the testing such access to the device
   # never is compromised.
-  def preconfig_tacacs_server_access(group_name, keep=true)
-    if keep
-      config('tacacs-server key testing123',
-             'tacacs-server host 10.122.197.197 key testing123',
-             "aaa group server tacacs+ #{group_name}",
-             'server 10.122.197.197',
-             'use-vrf management',
-             'source-interface mgmt0',
-             'aaa authentication login ascii-authentication')
-    else
-      config("no aaa group server tacacs+ #{group_name}")
-    end
+  def preconfig_tacacs_server_access(group_name)
+    config('tacacs-server key testing123',
+           'tacacs-server host 10.122.197.197 key testing123',
+           "aaa group server tacacs+ #{group_name}",
+           'server 10.122.197.197',
+           'use-vrf management',
+           'source-interface mgmt0',
+           'aaa authentication login ascii-authentication')
   end
 
-  def feature_tacacs(feature=true)
-    if feature
-      config('feature tacacs')
-    else
-      config('no feature tacacs',
-             'no aaa authentication login ascii-authentication')
-    end
-  end
-
-  def config_tacacs_servers(servers)
-    config('feature tacacs+')
-    servers.each do |server|
-      config("aaa group server tacacs+ #{server}")
-    end
+  def prefix
+    'aaa authorization'
   end
 
   def show_cmd
     'show run aaa all | no-more'
   end
 
-  def prefix
-    'aaa authorization'
+  def tacacs_groups
+    %w(tac_group bxb100 sjc200 rtp10)
   end
 
   def test_create_unsupported_type
@@ -355,57 +382,31 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: AaaAuthorizationService commands, ' \
                  'get groups for default')
 
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
-
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
-
     config('aaa authorization commands default group ' \
-           "#{group0} #{group1} #{group2}")
+           "#{tacacs_groups[0..2].join(' ')}")
 
-    groups = [group0, group1, group2]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/1/2')
-    assert_equal(:unselected, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/1/2')
+    assert_equal(tacacs_groups[0..2], aaa_a_service.groups)
+    assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
     config('aaa authorization commands default group ' \
-           "#{group0} #{group3} #{group1} local")
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
 
-    groups = [group0, group3, group1]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/3/1')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/3/1')
+    conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
+    assert_equal(conf_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
 
     # Mix default and console, but since our instance is for 'default'
     # service we should only get 'default' groups and not 'console'
     # groups.
     aaa_cmd1 = 'aaa authorization commands default group ' \
-               "#{group0} #{group2} #{group1} #{group3} local"
+               "#{tacacs_groups.join(' ')} local"
     aaa_cmd2 = 'aaa authorization commands console group ' \
-               "#{group0} #{group2} #{group3} local"
+               "#{tacacs_groups[1..3].join(' ')} local"
     config(aaa_cmd1, aaa_cmd2)
 
-    groups = [group0, group2, group1, group3]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/2/1/3')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/3/1')
-
-    # Cleanup
-    aaa_a_service.destroy
-    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
+    assert_equal(tacacs_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
   end
 
   def test_collection_groups_commands_console
@@ -413,62 +414,33 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
     # Default case
-    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService commands, ' \
-                 'get groups for console')
-
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
-
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
+    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups)
 
     config('aaa authorization commands console group ' \
-           "#{group0} #{group1} #{group2}")
+           "#{tacacs_groups[0..2].join(' ')}")
 
-    groups = [group0, group1, group2]
-    # puts aaa_a_service.groups
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/1/2')
-    assert_equal(:unselected, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/1/2')
+    assert_equal(tacacs_groups[0..2], aaa_a_service.groups)
+    assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
     config('aaa authorization commands console group ' \
-           "#{group0} #{group3} #{group1} local")
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
 
-    groups = [group0, group3, group1]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/3/1')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/3/1')
+    conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
+    assert_equal(conf_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
 
     # Mix default and console, but since our instance is for 'console'
     # service we should only get 'console' groups and not 'default'
     # groups.
     aaa_cmd1 = 'aaa authorization commands console group ' \
-               "#{group0} #{group2} #{group1} #{group3} local"
+               "#{tacacs_groups.join(' ')} local"
     aaa_cmd2 = 'aaa authorization commands default group ' \
-               "#{group0} #{group2} #{group3} local"
+               "#{tacacs_groups[1..3].join(' ')} local"
     config(aaa_cmd1, aaa_cmd2)
 
-    groups = [group0, group2, group1, group3]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/2/1/3')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/2/1/3')
-
-    # Cleanup
-    aaa_a_service.destroy
-    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
+    assert_equal(tacacs_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
   end
 
   def test_collection_groups_config_commands_default
@@ -476,62 +448,33 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
     # Default case
-    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService config-commands, ' \
-                 'get groups for default')
-
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
-
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
+    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups)
 
     config('aaa authorization config-commands default group ' \
-           "#{group0} #{group1} #{group2}")
+           "#{tacacs_groups[0]} #{tacacs_groups[1]} #{tacacs_groups[2]}")
 
-    groups = [group0, group1, group2]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/1/2')
-    assert_equal(:unselected, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/1/2')
+    assert_equal(tacacs_groups[0..2], aaa_a_service.groups)
+    assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
     config('aaa authorization config-commands default group ' \
-           "#{group0} #{group3} #{group1} local")
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
 
-    groups = [group0, group3, group1]
-    # puts aaa_a_service.groups
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/3/1')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/3/1')
+    conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
+    assert_equal(conf_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
 
     # Mix default and console, but since our instance is for 'default'
     # service we should only get 'default' groups and not 'console'
     # groups.
     aaa_cmd1 = 'aaa authorization config-commands default group ' \
-               "#{group0} #{group2} #{group1} #{group3} local"
+               "#{tacacs_groups.join(' ')} local"
     aaa_cmd2 = 'aaa authorization config-commands console group ' \
-               "#{group0} #{group2} #{group3} local"
+               "#{tacacs_groups[1..3].join(' ')} local"
     config(aaa_cmd1, aaa_cmd2)
 
-    groups = [group0, group2, group1, group3]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService default get groups, 0/2/1/3')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/2/1/3')
-
-    # Cleanup
-    aaa_a_service.destroy
-    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
+    assert_equal(tacacs_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
   end
 
   def test_collection_groups_config_commands_console
@@ -539,62 +482,33 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
     # Default case
-    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService config-commands, ' \
-                 'get groups for console')
-
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
-
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
+    assert_equal(aaa_a_service.default_groups, aaa_a_service.groups)
 
     config('aaa authorization config-commands console group ' \
-           "#{group0} #{group1} #{group2}")
+           "#{tacacs_groups[0..2].join(' ')}")
 
-    groups = [group0, group1, group2]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/1/2')
-    assert_equal(:unselected, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/1/2')
+    assert_equal(tacacs_groups[0..2], aaa_a_service.groups)
+    assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
     config('aaa authorization config-commands console group ' \
-           "#{group0} #{group3} #{group1} local")
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
 
-    groups = [group0, group3, group1]
-    # puts aaa_a_service.groups
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/3/1')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/3/1')
+    conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
+    assert_equal(conf_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
 
     # Mix default and console, but since our instance is for 'console'
     # service we should only get 'console' groups and not 'default'
     # groups.
     aaa_cmd1 = 'aaa authorization config-commands console group ' \
-               "#{group0} #{group2} #{group1} #{group3} local"
+               "#{tacacs_groups.join(' ')} local"
     aaa_cmd2 = 'aaa authorization config-commands default group ' \
-               "#{group0} #{group2} #{group3} local"
+               "#{tacacs_groups[1..3].join(' ')} local"
     config(aaa_cmd1, aaa_cmd2)
 
-    groups = [group0, group2, group1, group3]
-    assert_equal(groups, aaa_a_service.groups,
-                 'Error: AaaAuthorizationService console get groups, 0/2/1/3')
-    assert_equal(:local, aaa_a_service.method,
-                 'Error: AaaAuthorizationService default get method, 0/2/1/3')
-
-    # Cleanup
-    aaa_a_service.destroy
-    config("no #{aaa_cmd1}", "no #{aaa_cmd2}")
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
+    assert_equal(tacacs_groups, aaa_a_service.groups)
+    assert_equal(:local, aaa_a_service.method)
   end
 
   def test_get_default_groups
@@ -630,240 +544,144 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_commands_default_set_groups
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
+  def test_commands_default_unselected_single
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
-
-    # Commands, service default
-    type_str = 'commands'
-    type = :commands
-    service = 'default'
-    aaa_a_service = AaaAuthorizationService.new(type, service)
-
-    # Single group, with method 'unselected'
-    method = :unselected
-    groups = [group0]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    p = get_pattern(:commands, 'default', tacacs_groups[0])
     assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'unselected'
-    method = :unselected
-    groups = [group0, group1, group2]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'local'
-    method = :local
-    groups = [group0, group1, group3]
-    aaa_a_service.groups_method_set(groups, method)
-
-    group_str = "group #{group0} #{group1} #{group3}"
-    p = /#{prefix} #{type_str} #{service} #{group_str} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Default group and method
-    method = aaa_a_service.default_method
-    groups = aaa_a_service.default_groups
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Cleanup
-    aaa_a_service.destroy
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_commands_console_set_groups
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
+  def test_commands_default_unselected_multi
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
 
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
-
-    # Commands, service console
-    type_str = 'commands'
-    type = :commands
-    service = 'console'
-    aaa_a_service = AaaAuthorizationService.new(type, service)
-
-    # Single group, with method 'unselected'
-    method = :unselected
-    groups = [group0]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    p = get_pattern(:commands, 'default', tacacs_groups[0..2])
     assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'unselected'
-    method = :unselected
-    groups = [group0, group1, group2]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'local'
-    method = :local
-    groups = [group0, group1, group3]
-    aaa_a_service.groups_method_set(groups, method)
-
-    group_str = "group #{group0} #{group1} #{group3}"
-    p = /#{prefix} #{type_str} #{service} #{group_str} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Default group and method
-    method = aaa_a_service.default_method
-    groups = aaa_a_service.default_groups
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    aaa_a_service.destroy
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_config_commands_default_set_groups
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
+  def test_commands_default_local_multi
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
 
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
-
-    # Commands, service default
-    type_str = 'config-commands'
-    type = :config_commands
-    service = 'default'
-    aaa_a_service = AaaAuthorizationService.new(type, service)
-
-    # Single group, with method 'unselected'
-    method = :unselected
-    groups = [group0]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0}/
+    p = get_pattern(:commands, 'default', tacacs_groups[0..2], :local)
     assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'unselected'
-    method = :unselected
-    groups = [group0, group1, group2]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'local'
-    method = :local
-    groups = [group0, group1, group3]
-    aaa_a_service.groups_method_set(groups, method)
-
-    group_str = "group #{group0} #{group1} #{group3}"
-    p = /#{prefix} #{type_str} #{service} #{group_str} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Default group and method
-    method = aaa_a_service.default_method
-    groups = aaa_a_service.default_groups
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    aaa_a_service.destroy
-
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
   end
 
-  def test_config_commands_console_set_groups
-    # Preconfigure tacacs, tacacs server and AAA valid group
-    group0 = 'tac_group'
-    preconfig_tacacs_server_access(group0)
-
-    # Preconfig for test
-    group1 = 'bxb100'
-    group2 = 'sjc200'
-    group3 = 'rtp10'
-    servers = [group1, group2, group3]
-    config_tacacs_servers(servers)
-
-    # Commands, service console
-    type_str = 'config-commands'
-    type = :config_commands
-    service = 'console'
-    aaa_a_service = AaaAuthorizationService.new(type, service)
-
-    # Single group, with method 'unselected'
-    method = :unselected
-    groups = [group0]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0}/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'unselected'
-    method = :unselected
-    groups = [group0, group1, group2]
-    aaa_a_service.groups_method_set(groups, method)
-
-    p = /#{prefix} #{type_str} #{service} group #{group0} #{group1} #{group2}/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Multi group, with method 'local'
-    method = :local
-    groups = [group0, group1, group3]
-    aaa_a_service.groups_method_set(groups, method)
-
-    group_str = "group #{group0} #{group1} #{group3}"
-    p = /#{prefix} #{type_str} #{service} #{group_str} local/
-    assert_show_match(command: show_cmd, pattern: p)
-
-    # Default group and method
+  def test_commands_default_all_default
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
     aaa_a_service.groups_method_set(groups, method)
 
-    p = /#{prefix} #{type_str} #{service} local/
+    p = get_pattern(:commands, 'default', groups, method)
     assert_show_match(command: show_cmd, pattern: p)
+  end
 
-    aaa_a_service.destroy
+  def test_commands_console_unselected_single
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
-    # Unconfigure tacacs, tacacs server and AAA valid group
-    preconfig_tacacs_server_access(group0, false)
+    p = get_pattern(:commands, 'console', tacacs_groups[0])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_commands_console_unselected_multi
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
+
+    p = get_pattern(:commands, 'console', tacacs_groups[0..2])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_commands_console_local_multi
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
+
+    p = get_pattern(:commands, 'console', tacacs_groups[0..2], :local)
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_commans_console_all_default
+    aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
+    method = aaa_a_service.default_method
+    groups = aaa_a_service.default_groups
+    aaa_a_service.groups_method_set(groups, method)
+
+    p = get_pattern(:commands, 'console', groups, method)
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_default_unselected_single
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
+
+    p = get_pattern(:config_commands, 'default', tacacs_groups[0])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_default_unselected_multi
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
+
+    p = get_pattern(:config_commands, 'default', tacacs_groups[0..2])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_default_local_multi
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
+
+    p = get_pattern(:config_commands, 'default', tacacs_groups[0..2], :local)
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_default_all_default
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
+
+    method = aaa_a_service.default_method
+    groups = aaa_a_service.default_groups
+    aaa_a_service.groups_method_set(groups, method)
+
+    p = get_pattern(:config_commands, 'default', groups, method)
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_console_unselected_single
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
+
+    p = get_pattern(:config_commands, 'console', tacacs_groups[0])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_console_unselected_multi
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
+
+    p = get_pattern(:config_commands, 'console', tacacs_groups[0..2])
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_console_local_multi
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
+    aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
+
+    p = get_pattern(:config_commands, 'console', tacacs_groups[0..2], :local)
+    assert_show_match(command: show_cmd, pattern: p)
+  end
+
+  def test_config_commands_console_all_default
+    aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
+    method = aaa_a_service.default_method
+    groups = aaa_a_service.default_groups
+    aaa_a_service.groups_method_set(groups, method)
+
+    p = get_pattern(:config_commands, 'console', groups, method)
+    assert_show_match(command: show_cmd, pattern: p)
   end
 
   def test_commands_invalid_groups_method_set_groups
-    # preconfig servers
-    servers = %w(bxb100 sjc200 rtp10)
-    config_tacacs_servers(servers)
-
     # Commands, with service default
     type = :commands
     service = 'default'
@@ -908,10 +726,6 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def test_config_commands_invalid_set_groups
-    # preconfig servers
-    servers = %w(bxb100 sjc200 rtp10)
-    config_tacacs_servers(servers)
-
     # Commands, with service default
     type = :config_commands
     service = 'default'
@@ -956,10 +770,6 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def test_commands_invalid_method
-    # preconfig servers
-    servers = %w(bxb100 sjc200 rtp10)
-    config_tacacs_servers(servers)
-
     # Commands, with service default
     type = :commands
     service = 'default'
@@ -998,10 +808,6 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def test_config_commands_invalid_method
-    # preconfig servers
-    servers = %w(bxb100 sjc200 rtp10)
-    config_tacacs_servers(servers)
-
     # Commands, with service default
     type = :config_commands
     service = 'default'

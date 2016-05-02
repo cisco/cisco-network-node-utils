@@ -1,56 +1,84 @@
 # vlan
 ---
+_exclude: [ios_xr]
+
 all_vlans:
   multiple: true
-  config_get: "show vlan brief"
-  config_get_token: '/^(\d+)\s/'
+  get_command: "show vlan brief"
+  get_value: '/^(\d+)\s/'
 
 create:
-  config_set: ["vlan %s" , "end"]
+  set_value: "vlan %s"
 
 destroy:
-  config_set: "no vlan %s"
+  set_value: "no vlan %s"
+
+fabric_control:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  kind: boolean
+  get_command: "show running-config vlan"
+  get_context: ['/^vlan <vlan>/']
+  get_value: '/fabric-control/'
+  set_context: ["vlan <vlan>"]
+  set_value: "<state> fabric-control ; end"
+  default_value: false
 
 mapped_vni:
-  /N(3|9)/:
+  N3k: &mapped_vni_n3k_n9k
     kind: int
-    config_get: 'show running vlan'
-    config_get_token: ['/^vlan <vlan>$/', '/^vn-segment (\d+)$/']
-    # In the cli 'vn-segment' config is not applied untill the 'end'
-    # statement is issued.
-    config_set: ['vlan <vlan>', '<state> vn-segment <vni> ; end']
+    get_command: 'show running vlan'
+    get_context: ['/^vlan <vlan>$/']
+    get_value: '/^vn-segment (\d+)$/'
+    set_context: ['vlan <vlan>']
+    set_value:  '<state> vn-segment <vni> ; end'
     default_value: ''
+  N9k: *mapped_vni_n3k_n9k
 
 mode:
-  _exclude:
-    - /N(3|9)/
-  kind: string
-  config_get: "show vlan"
+  _exclude: [N3k, N9k]
+  multiple: true
+  get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
   # regex workaround: N7 cli bug displays 'trnet' instead of 'enet'
-  config_get_token: '/^%d\s+.+net\s+(\S+)/'
-  config_set: ["vlan %d" , "%s mode %s", "end"]
-  default_value: "ce"
+  get_value: '/^%d\s+.+net\s+(\S+)/'
+  set_context: ["vlan %d"]
+  set_value: "%s mode %s ; end"
+  default_value: 'CE'
 
 name:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s name %s", "end"]
-  /N9K/:
-    test_config_result:
-      32: "Long VLAN name knob is not enabled"
-  else:
-    test_config_result:
-      32: "String exceeded max length of (32)"
+  get_command: "show vlan brief"
+  get_value: '/^%d\s+(\S+)\s/'
+  set_context: ["vlan %d"]
+  set_value: "%s name %s ; end"
+
+private_vlan_association:
+  _exclude: [N8k]
+  multiple: true
+  get_command: "show vlan private-vlan"
+  get_value: '/^<id>\s+(\d+)/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan association <vlans> ; end"
+  default_value: []
+
+private_vlan_type:
+  _exclude: [N8k]
+  kind: string
+  get_command: 'show vlan private-vlan type'
+  get_value: '/^<id>\s+(\S+)/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan <type> ; end"
+  default_value: ""
 
 shutdown:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s shutdown", "end"]
+  get_command: "show vlan brief"
+  get_value: '/^%d\s+\S+\s+(\S+)\s/'
+  set_context: ["vlan %d"]
+  set_value: "%s shutdown ; end"
   default_value: false
 
 state:
-  config_get: "show vlan brief"
-  config_get_token: '/^%d\s+\S+\s+(\S+)\s/'
-  config_set: ["vlan %d", "%s state %s", "end"]
+  get_command: "show vlan brief"
+  get_value: '/^%d\s+\S+\s+(\S+)\s/'
+  set_context: ["vlan %d"]
+  set_value: "%s state %s ; end"
   default_value: "active"

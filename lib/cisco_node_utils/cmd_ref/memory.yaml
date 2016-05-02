@@ -1,13 +1,24 @@
 # memory
 ---
+_template:
+  nexus:
+    get_command: 'show system resources'
+  ios_xr:
+    get_command: 'show memory summary'
+
 free:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) free/'
+  ios_xr:
+    get_value: '/Physical Memory:.*\((\S+) available\)/'
+  nexus:
+    get_value: '/Memory.* (\S+) free/'
 
 total:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) total/'
+  ios_xr:
+    get_value: '/Physical Memory: *(\S+) total/'
+  nexus:
+    get_value: '/Memory.* (\S+) total/'
 
 used:
-  config_get: 'show system resources'
-  config_get_token: '/Memory.* (\S+) used/'
+  _exclude: [ios_xr]
+  nexus:
+    get_value: '/Memory.* (\S+) used/'

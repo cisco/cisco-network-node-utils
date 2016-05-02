@@ -1,0 +1,25 @@
+# encapsulation_profile_vni
+# encapsulation_profile_vni feature is available only on n7k
+---
+_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+
+all_encaps:
+  multiple: true
+  get_command: "show running-config vni"
+  get_value: '/^encapsulation profile vni (\S+)/'
+
+create:
+  set_value: "encapsulation profile vni <profile>"
+
+destroy:
+  set_value: "no encapsulation profile vni <profile>"
+
+# Eg:
+# encapsulation profile vni my_vni_profile
+#   [no] dot1q 100-200, 300 vni 5000-5100, 5300
+dot1q_map:
+  get_command: "show encapsulation profile"
+  get_value: '/^.* vni <profile>\s+dot1q ([\d\s,-]+) vni ([\d\s,-]+)$/'
+  set_context: ['encapsulation profile vni <profile>']
+  set_value: '<state> dot1q <vlans> vni <vnis>'
+  default_value: []

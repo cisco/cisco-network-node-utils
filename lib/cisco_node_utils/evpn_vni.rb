@@ -84,11 +84,13 @@ module Cisco
     def route_distinguisher=(rd)
       if rd == default_route_distinguisher
         @set_args[:state] = 'no'
-        @set_args[:rd] = ''
+        # I2 images require an rd for removal
+        rd = route_distinguisher
+        return if rd.to_s.empty?
       else
         @set_args[:state] = ''
-        @set_args[:rd] = rd
       end
+      @set_args[:rd] = rd
       config_set('evpn_vni', 'route_distinguisher', @set_args)
       set_args_keys_default
     end
@@ -143,7 +145,7 @@ module Cisco
       delta_hash = Utils.delta_add_remove(should, is)
       return if delta_hash.values.flatten.empty?
       [:add, :remove].each do |action|
-        CiscoLogger.debug("#{prop}" \
+        Cisco::Logger.debug("#{prop}" \
           "#{@get_args}\n #{action}: #{delta_hash[action]}")
         delta_hash[action].each do |community|
           state = (action == :add) ? '' : 'no'

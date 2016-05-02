@@ -1,38 +1,32 @@
 # vtp
 ---
-domain:
-  config_get: "show vtp status"
-  config_get_token: "domain_name"
-  config_set: "vtp domain %s"
+_exclude: [ios_xr]
 
-feature:
-  kind: boolean
-  config_get: "show running vtp"
-  config_get_token: '/^feature vtp$/'
-  config_set: "%s feature vtp"
-  default_value: false
+# VTP behaves differently across the various Nexus platforms and as a
+# result it's not currently possible to use a single 'show running'
+# command to query the device state.
+domain:
+  get_command: "show vtp status"
+  get_value: '/^VTP\s+Domain\s+Name\s+:\s+(\S+)$/'
+  set_value: "vtp domain <domain>"
+  default_value: ""
 
 filename:
-  config_get: "show running vtp"
-  config_get_token: '/vtp file (\S+)/'
-  config_set: "%s vtp file %s"
+  get_command: "show running-config vtp all"
+  get_value: '/vtp\s+file\s+(\S+)/'
+  set_value: "<state> vtp file <uri>"
   default_value: "bootflash:/vlan.dat"
 
 password:
-  config_get: "show vtp password"
-  config_get_token: "passwd"
-  config_set: "%s vtp password %s"
+  get_data_format: nxapi_structured
+  get_command: "show vtp password"
+  get_value: "passwd"
+  set_value: "<state> vtp password <password>"
   default_value: ""
 
 version:
   kind: int
-  config_get: "show vtp status"
-  config_get_token: '/VTP\s+version\s+running\s+:\s+(\d+)/'
-  config_set: "vtp version %s"
+  get_command: "show vtp status"
+  get_value: '/^VTP\s+version\s+running\s+:\s+(\d+)$/'
+  set_value: "vtp version <version>"
   default_value: 1
-  /N7/:
-    test_config_result:
-      3: 3
-  else:
-    test_config_result:
-      3: "Cisco::CliError"

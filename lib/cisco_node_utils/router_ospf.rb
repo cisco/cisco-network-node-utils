@@ -44,49 +44,34 @@ module Cisco
       return {}
     end
 
-    def self.enabled
-      feat = config_get('ospf', 'feature')
-      return (!feat.nil? && !feat.empty?)
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.enable(state='')
-      config_set('ospf', 'feature', state)
-    end
-
-    def ospf_router(name, state='')
-      config_set('ospf', 'router', state, name)
-    end
-
-    def enable_create_router_ospf(name)
-      RouterOspf.enable
-      ospf_router(name)
-    end
-
     # Create one router ospf instance
     def create
-      if RouterOspf.enabled
-        ospf_router(name)
-      else
-        enable_create_router_ospf(name)
-      end
+      Feature.ospf_enable
+      config_set('ospf', 'router', state: '', name: @name)
+      wait_for_process_initialized
     end
 
     # Destroy one router ospf instance
     def destroy
-      ospf_ids = config_get('ospf', 'router')
-      return if ospf_ids.nil?
-      if ospf_ids.size == 1
-        RouterOspf.enable('no')
-      else
-        ospf_router(name, 'no')
+      config_set('ospf', 'router', state: 'no', name: @name)
+    end
+
+    def process_initialized?
+      !config_get('ospf', 'process_initialized')
+    end
+
+    def wait_for_process_initialized
+      return unless node.product_id[/N(5|6)/]
+
+      # Hack for slow-start platforms which will have setter failures if the
+      # ospf instance is still initializing. To see this problem in a sandbox
+      # or even the cli do 'router ospf 1 ; router ospf 1 ; shutdown'.
+      4.times do
+        return if process_initialized?
+        sleep 1
+        node.cache_flush
       end
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+      fail 'OSPF process is not initialized yet'
     end
   end
 end

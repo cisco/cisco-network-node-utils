@@ -17,6 +17,7 @@ require_relative '../lib/cisco_node_utils/acl'
 
 # test client for acl creation and deletion
 class TestAcl < CiscoTestCase
+  @skip_unless_supported = 'acl'
   def setup
     # setup runs at the beginning of each test
     super
@@ -84,7 +85,7 @@ class TestAcl < CiscoTestCase
     # set to false
     rtr.stats_per_entry = false
     refute_show_match(pattern: /statistics per-entry/,
-                      msg:     'failed to disnable stats')
+                      msg:     'failed to disable stats')
     refute(rtr.stats_per_entry)
 
     # default getter function
@@ -168,6 +169,14 @@ class TestAcl < CiscoTestCase
   end
 
   def test_fragments
+    if node.product_id[/N(5|6)/]
+      a = Acl.new('ipv4', 'acl_fragments')
+      assert_nil(a.fragments)
+      assert_nil(a.default_fragments)
+      assert_raises(Cisco::UnsupportedError) { a.fragments = 'permit-all' }
+      return
+    end
+
     %w(ipv4 ipv6).each do |afi|
       acl_name = afi[/ipv6/] ? @acl_name_v6 : @acl_name_v4
       fragments(afi, acl_name)

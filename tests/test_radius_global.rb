@@ -20,6 +20,8 @@ require_relative '../lib/cisco_node_utils/radius_global'
 
 # TestRadiusGlobal - Minitest for RadiusGlobal node utility.
 class TestRadiusGlobal < CiscoTestCase
+  @skip_unless_supported = 'radius_global'
+
   def setup
     # setup runs at the beginning of each test
     super
@@ -63,11 +65,17 @@ class TestRadiusGlobal < CiscoTestCase
     assert_equal(global.timeout,
                  2)
 
-    global.key_set('44444444', nil)
-    assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
-                 '44444444')
-    assert_equal(global.key,
-                 '44444444')
+    if platform == :nexus
+      global.key_set('44444444', nil)
+      assert_equal(global.key,
+                   '44444444')
+      assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
+                   '44444444')
+    elsif platform == :ios_xr
+      global.key_set('QsEfThUkO', nil)
+      assert(!global.key.nil?)
+      assert(!Cisco::RadiusGlobal.radius_global[id].key.nil?)
+    end
 
     # Setting back to default and re-checking
     global.timeout = global.default_timeout

@@ -46,7 +46,7 @@ class TestCommandConfig < CiscoTestCase
 
   def compare_with_results(desired_config_str, current_key)
     retrieve_command = 'show running all'
-    running_config_str = node.show(retrieve_command)
+    running_config_str = node.get(command: retrieve_command)
 
     begin
       should_config = ConfigParser::Configuration.new(desired_config_str)
@@ -71,7 +71,7 @@ class TestCommandConfig < CiscoTestCase
         cfg_string = remove_whitespace(cfg_cmd_str)
         # puts "cfg_string: \n||\n#{cfg_string}||\n"
         begin
-          node.config(cfg_string)
+          node.set(values: cfg_string)
           # make sure config is present in success case
           compare_with_results(v1, k)
         rescue CliError => e
@@ -83,13 +83,17 @@ class TestCommandConfig < CiscoTestCase
     end
   end
 
+  def loopback
+    (platform == :ios_xr) ? 'Loopback' : 'loopback'
+  end
+
   def build_int_scale_config(add=true)
     add ? s = '' : s = 'no '
     current_interface = 0
     num_interfaces = 1024
     command_list = ''
     while current_interface < num_interfaces
-      command_list += "#{s}interface loopback#{current_interface}\n"
+      command_list += "#{s}interface #{loopback}#{current_interface}\n"
       current_interface += 1
     end
     command_list
@@ -100,7 +104,7 @@ class TestCommandConfig < CiscoTestCase
   # ---------------------------------------------------------------------------
 
   def test_valid_config
-    cfg_hash = load_yaml
+    cfg_hash = load_yaml[platform.to_s]
     begin
       send_device_config(cfg_hash)
     end
@@ -144,7 +148,7 @@ class TestCommandConfig < CiscoTestCase
       v.each_value do |v1|
         cfg_cmd_str = "#{v1.gsub(/^/, '  ')}\n"
         cfg_string = remove_whitespace(cfg_cmd_str)
-        assert_raises(CliError) { node.config(cfg_string) }
+        assert_raises(Cisco::CliError) { node.set(values: cfg_string) }
       end
     end
   end

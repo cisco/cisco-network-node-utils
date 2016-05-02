@@ -1,186 +1,243 @@
 # interface
 ---
 _template:
-  config_set: ["interface %s"]
-  config_get_token: '/^interface %s$/i'
-  cli_nexus:
-    config_get: "show running interface all"
+  context: ["interface <name>"]
+  ios_xr:
+    get_command: "show running interface"
+  nexus:
+    get_command: "show running interface all"
 
 access_vlan:
-  config_get_token_append: '/^switchport access vlan (.*)$/'
-  config_set_append: "switchport access vlan %s"
+  _exclude: [ios_xr]
   kind: int
+  get_value: '/^switchport access vlan (.*)$/'
+  set_value: "switchport access vlan <vlan>"
   default_value: 1
-
-admin_state_ethernet_noswitchport_shutdown:
-  # TODO: is this actually used?
-  cli_nexus:
-    /N7/:
-      default_value: "shutdown"
 
 all_interfaces:
   multiple:
-  config_get_token: '/^interface (.*)/'
+  ios_xr:
+    get_command: 'show running all-interfaces'
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
+capabilities:
+  _exclude: [ios_xr]
+  multiple:
+  get_context: ["<name>"]
+  get_command: "show interface capabilities"
+  get_value: '/(.*)/'
+  default_value: [] # :raw default
 
 create:
-  config_set: "interface %s"
+  set_context: ~
+  set_value: "interface <name>"
 
 description:
   kind: string
-  config_get_token_append: '/^description (.*)/'
-  config_set_append: "%s description %s"
+  get_value: '/^description (.*)/'
+  set_value: "<state> description <desc>"
   default_value: ""
 
 destroy:
-  config_set: "no interface %s"
+  set_context: ~
+  set_value: "no interface <name>"
 
 duplex:
+  _exclude: [ios_xr]
   kind: string
-  config_get_token_append: '/^duplex (.*)$/'
-  config_set_append: "duplex %s"
-  default_value: "auto"
+  get_value: '/^duplex (.*)$/'
+  set_value: "duplex <duplex>"
+  C3064:
+    default_value: 'full'
+  else:
+    default_value: 'auto'
 
 encapsulation_dot1q:
   kind: int
-  config_get_token_append: '/^encapsulation dot1q (.*)/i'
-  config_set_append: "%s encapsulation dot1q %s"
   default_value: ""
+  get_value: '/^encapsulation dot1q (.*)/i'
+  set_value: "<state> encapsulation dot1q <vlan>"
 
 fabric_forwarding_anycast_gateway:
+  _exclude: [ios_xr, N3k]
   kind: boolean
-  config_get_token_append: '/^fabric forwarding mode anycast-gateway$/'
-  config_set_append: "%s fabric forwarding mode anycast-gateway"
+  get_value: '/^fabric forwarding mode anycast-gateway$/'
+  set_value: "<state> fabric forwarding mode anycast-gateway"
   default_value: false
 
 feature_lacp:
   kind: boolean
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature lacp$/'
-  config_set: "%s feature lacp"
+  nexus:
+    get_command: "show running | i ^feature"
+    context: ~
+    get_value: '/^feature lacp$/'
+    set_value: "<state> feature lacp"
+  ios_xr:
+    default_only: true
 
 feature_vlan:
-  kind: boolean
-  cli_nexus:
-    config_get: "show running | i ^feature"
-    config_get_token: '/^feature interface-vlan$/'
-    config_set: "%s feature interface-vlan"
+  _exclude: [ios_xr]
+  nexus:
+    kind: boolean
+    get_command: "show running | i ^feature"
+    context: ~
+    get_value: '/^feature interface-vlan$/'
+    set_value: "<state> feature interface-vlan"
 
 ipv4_acl_in:
-  config_get_token_append: '/^ip access-group (\S+) in/'
-  config_set_append: "%s ip access-group %s in"
+  ios_xr:
+    get_value: '/^ipv4 access-group (\S+) ingress/'
+    set_value: "<state> ipv4 access-group <acl> ingress"
+  nexus:
+    get_value: '/^ip access-group (\S+) in/'
+    set_value: "<state> ip access-group <acl> in"
   default_value: ""
 
 ipv4_acl_out:
-  config_get_token_append: '/^ip access-group (\S+) out/'
-  config_set_append: "%s ip access-group %s out"
+  ios_xr:
+    get_value: '/^ipv4 access-group (\S+) egress/'
+    set_value: "<state> ipv4 access-group <acl> egress"
+  nexus:
+    get_value: '/^ip access-group (\S+) out/'
+    set_value: "<state> ip access-group <acl> out"
   default_value: ""
 
 ipv4_addr_mask:
   # This handles both primary and secondary addresses
   multiple:
-  cli_nexus:
-    config_get_token_append: '/^ip address ([0-9\.]+)[\s\/](.*)/'
-    config_set_append: "%s ip address %s %s"
+  nexus:
+    get_value: '/^ip address ([0-9\.]+)[\s\/](.*)/'
+    set_value: "<state> ip address <addr> <secondary>"
+  ios_xr:
+    get_value: '/^ipv4 address ([0-9\.]+) (.*)/'
+    set_value: '<state> ipv4 address <addr> <secondary>'
 
 ipv4_address:
   default_value: ~
 
 ipv4_arp_timeout:
   kind: int
-  config_get_token_append: '/^ip arp timeout (\d+)$/'
-  config_set_append: "%s ip arp timeout %s"
+  get_value: '/^ip arp timeout (\d+)$/'
+  set_value: "<state> ip arp timeout <timeout>"
   default_value: 700
 
 ipv4_arp_timeout_non_vlan_interfaces:
   default_only: ~
 
+ipv4_forwarding:
+  _exclude: [ios_xr]
+  kind: boolean
+  default_value: false
+  get_value: '/^ip forward$/'
+  set_value: '<state> ip forward'
+
 ipv4_netmask_length:
   default_value: ~
 
 ipv4_pim_sparse_mode:
+  _exclude: [ios_xr]
   kind: boolean
   default_value: false
-  cli_nexus:
-    config_get_token_append: '/^ip pim sparse-mode$/'
-    config_set_append: "%s ip pim sparse-mode"
+  nexus:
+    get_value: '/^ip pim sparse-mode$/'
+    set_value: "<state> ip pim sparse-mode"
 
 ipv4_proxy_arp:
   kind: boolean
   default_value: false
-  cli_nexus:
-    config_get_token_append: '/^ip proxy-arp$/'
-    config_set_append: "%s ip proxy-arp"
+  nexus:
+    get_value: '/^ip proxy-arp$/'
+    set_value: "<state> ip proxy-arp"
+  ios_xr:
+    get_value: '/^proxy-arp$/'
+    set_value: "<state> proxy-arp"
 
 ipv4_redirects_loopback:
   kind: boolean
-  cli_nexus:
+  nexus:
     default_only: false
+  ios_xr:
+    get_value: '/^((?:no )?ipv4 redirects)$/'
+    set_value: "<state> ipv4 redirects"
+    default_value: false
 
 ipv4_redirects_other_interfaces:
   kind: boolean
-  test_config_result:
-    false: false
-    true: true
-  cli_nexus:
-    config_get_token_append: '/^((?:no )?ip redirects)$/'
-    config_set_append: "%s ip redirects"
+  nexus:
+    get_value: '/^((?:no )?ip redirects)$/'
+    set_value: "<state> ip redirects"
     default_value: true
-    test_config_get_regex: [
-    '/^\s+ip redirects/',
-    '/^\s+no ip redirects/'
-    ]
+  ios_xr:
+    get_value: '/^((?:no )?ipv4 redirects)$/'
+    set_value: "<state> ipv4 redirects"
+    default_value: false
 
 ipv6_acl_in:
-  config_get_token_append: '/^ipv6 traffic-filter (\S+) in/'
-  config_set_append: "%s ipv6 traffic-filter %s in"
+  ios_xr:
+    get_value: '/^ipv6 access-group (\S+) ingress/'
+    set_value: "<state> ipv6 access-group <acl> ingress"
+  nexus:
+    get_value: '/^ipv6 traffic-filter (\S+) in/'
+    set_value: "<state> ipv6 traffic-filter <acl> in"
   default_value: ""
 
 ipv6_acl_out:
-  config_get_token_append: '/^ipv6 traffic-filter (\S+) out/'
-  config_set_append: "%s ipv6 traffic-filter %s out"
+  ios_xr:
+    get_value: '/^ipv6 access-group (\S+) egress/'
+    set_value: "<state> ipv6 access-group <acl> egress"
+  nexus:
+    get_value: '/^ipv6 traffic-filter (\S+) out/'
+    set_value: "<state> ipv6 traffic-filter <acl> out"
   default_value: ""
-mtu:
+
+mtu_loopback:
+  kind: boolean
+  default_only: ~
+
+mtu_other_interfaces:
   kind: int
-  config_get_token_append: '/^mtu (.*)$/'
-  config_set_append: "%s mtu %s"
-  default_value: 1500
+  get_value: '/^mtu (.*)$/'
+  set_value: "<state> mtu <mtu>"
+  nexus:
+    default_value: 1500
+  ios_xr:
+    default_value: 1514
 
 negotiate_auto_ethernet:
   kind: boolean
-  cli_nexus:
-    test_config_get_regex: [
-    '/^\s+no negotiate auto/',
-    '/^\s+negotiate auto/'
-    ]
-    /(N7|C3064)/:
-      default_only: false
-    else:
-      config_get_token_append: '/^(no )?negotiate auto$/'
-      config_set_append: "%s negotiate auto"
-      default_value: true
+  _exclude: [ios_xr, C3064, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
 
 negotiate_auto_other_interfaces:
   kind: boolean
+  _exclude: [ios_xr]
   default_only: false
 
 negotiate_auto_portchannel:
   kind: boolean
-  cli_nexus:
-    test_config_get_regex: [
-    '/^\s+no negotiate auto/',
-    '/^\s+negotiate auto/'
-    ]
-    /N7/:
-      default_only: false
-    else:
-      config_get_token_append: '/^(no )?negotiate auto$/'
-      config_set_append: "%s negotiate auto"
-      default_value: true
+  _exclude: [ios_xr, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
+
+private_vlan_any:
+  multiple:
+  get_value: '/switchport private-vlan/'
+
+private_vlan_mapping:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^private-vlan mapping (.*)$/'
+  set_value: "<state> private-vlan mapping <vlans>"
+  default_value: []
 
 shutdown:
   kind: boolean
-  config_get_token_append: '/^shutdown$/'
-  config_set_append: "%s shutdown"
+  get_value: '/^shutdown$/'
+  set_value: "<state> shutdown"
 
 shutdown_ether_channel:
   default_value: false
@@ -204,136 +261,307 @@ shutdown_unknown:
   default_value: true
 
 shutdown_vlan:
-  cli_nexus:
+  nexus:
     default_value: true
 
 speed:
-  config_get_token_append: '/^speed (.*)$/'
-  config_set_append: "speed %s"
-  default_value: "auto"
+  _exclude: [ios_xr, C3132]
+  kind: string
+  get_value: '/^speed (.*)$/'
+  set_value: "speed <speed>"
+  C3064: &non_auto
+    default_value: '10000'
+  C3172: *non_auto
+  N5k: *non_auto
+  N6k: *non_auto
+  else:
+    default_value: 'auto'
+
+stp_bpdufilter:
+  kind: string
+  get_value: '/^spanning-tree bpdufilter (.*)$/'
+  set_value: "<state> spanning-tree bpdufilter <filter>"
+  default_value: false
+
+stp_bpduguard:
+  kind: string
+  get_value: '/^spanning-tree bpduguard (.*)$/'
+  set_value: "<state> spanning-tree bpduguard <guard>"
+  default_value: false
+
+stp_cost:
+  kind: string
+  get_value: '/^spanning-tree cost (.*)$/'
+  set_value: "spanning-tree cost <cost>"
+  default_value: 'auto'
+
+stp_guard:
+  kind: string
+  get_value: '/^spanning-tree guard (.*)$/'
+  set_value: "<state> spanning-tree guard <guard>"
+  default_value: false
+
+stp_link_type:
+  kind: string
+  get_value: '/^spanning-tree link-type (.*)$/'
+  set_value: "spanning-tree link-type <type>"
+  default_value: 'auto'
+
+stp_mst_cost:
+  multiple:
+  get_command: "show running interface"
+  get_value: '/^spanning-tree mst (.*) cost (.*)$/'
+  set_value: "<state> spanning-tree mst <range> cost <val>"
+  default_value: []
+
+stp_mst_port_priority:
+  multiple:
+  get_command: "show running interface"
+  get_value: '/^spanning-tree mst (.*) port-priority (.*)$/'
+  set_value: "<state> spanning-tree mst <range> port-priority <val>"
+  default_value: []
+
+stp_mst_range:
+  kind: string
+  default_only: "0-4094"
+
+stp_port_priority:
+  kind: int
+  get_value: '/^spanning-tree port-priority (\d+)$/'
+  set_value: "spanning-tree port-priority <pp>"
+  default_value: 128
+
+stp_port_type:
+  kind: string
+  get_command: "show running interface"
+  get_value: '/^spanning-tree port type (.*)$/'
+  set_value: "<state> spanning-tree port type <type>"
+  default_value: false
+
+stp_vlan_cost:
+  multiple:
+  get_command: "show running interface"
+  get_value: '/^spanning-tree vlan (.*) cost (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> cost <val>"
+  default_value: []
+
+stp_vlan_port_priority:
+  multiple:
+  get_command: "show running interface"
+  get_value: '/^spanning-tree vlan (.*) port-priority (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> port-priority <val>"
+  default_value: []
+
+stp_vlan_range:
+  kind: string
+  default_only: "1-3967"
 
 svi_autostate:
-  _exclude: [/N(5|6)/]
+  _exclude: [ios_xr, N5k, N6k]
   kind: boolean
-  config_get_token_append: '/^(?:no )?autostate$/'
-  config_set_append: "%s autostate"
+  get_value: '/^(?:no )?autostate$/'
+  set_value: "<state> autostate"
   default_value: true
-  test_config_result:
-    false: false
-    true: true
 
 svi_management:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^management$/'
-  config_set_append: "%s management"
+  get_value: '/^management$/'
+  set_value: "<state> management"
   default_value: false
 
 switchport:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^switchport$/'
-  config_set_append: "%s switchport"
+  get_value: '/^switchport$/'
+  set_value: "<state> switchport"
   # default_value: n/a. This is derived from system_default_switchport
 
 switchport_autostate_exclude:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/(^switchport autostate exclude)/'
-  config_set_append: "%s switchport autostate exclude"
+  get_value: '/(^switchport autostate exclude)/'
+  set_value: "<state> switchport autostate exclude"
   default_value: false
 
 switchport_mode_dot1q_tunnel:
-  test_config_result:
-    false: RuntimeError
+  _exclude: [ios_xr]
+  default_only: ""
 
 switchport_mode_ethernet:
+  _exclude: [ios_xr]
   auto_default: false
-  config_get_token_append: '/^(?:no )?switchport mode ?(.*)$/'
-  config_set_append: "%s switchport mode %s"
+  get_value: '/^(?:no )?switchport mode ?(.*)$/'
+  set_value: "<state> switchport mode <mode>"
   default_value: "access"
 
 switchport_mode_other_interfaces:
+  _exclude: [ios_xr]
   default_only: ""
 
 switchport_mode_port_channel:
-  config_get_token_append: '/^switchport mode (.*)$/'
-  config_set_append: "%s switchport mode %s"
+  _exclude: [ios_xr]
+  get_value: '/^switchport mode (.*)$/'
+  set_value: "<state> switchport mode <mode>"
   default_value: ""
 
+switchport_mode_private_vlan_host:
+  _exclude: [ios_xr, N8k]
+  get_value: '/^switchport mode private-vlan (.*)$/'
+  set_value: "<state> switchport mode private-vlan <mode>"
+  default_value: :disabled
+
+switchport_mode_private_vlan_host_association:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan host-association (.*)$/'
+  set_value: "<state> switchport private-vlan host-association <vlan_pr> <vlan_sec>"
+  default_value: []
+
+switchport_mode_private_vlan_host_promiscous:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan mapping (\d+.*)$/'
+  set_value: "<state> switchport private-vlan mapping <vlan_pr> <vlans>"
+  default_value: []
+
+
+switchport_mode_private_vlan_trunk_promiscuous:
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk promiscuous$/'
+  set_value: "<state> switchport mode private-vlan trunk promiscuous"
+  default_value: false
+
+switchport_mode_private_vlan_trunk_secondary:
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk secondary$/'
+  set_value: "<state> switchport mode private-vlan trunk secondary"
+  default_value: false
+
+switchport_private_vlan_association_trunk:
+  _exclude: [ios_xr, N3k, N8k]
+  multiple: true
+  #get_value: '/^switchport private-vlan association trunk (.*) (.*)$/'
+  get_value: '/^switchport private-vlan association trunk (.*)$/'
+  set_value: "<state> switchport private-vlan association trunk <vlan_pr> <vlan>"
+  default_value: []
+
+switchport_private_vlan_mapping_trunk:
+  _exclude: [ios_xr, N3k, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan mapping trunk (.*)$/'
+  set_value: "<state> switchport private-vlan mapping trunk <vlan_pr> <vlans>"
+  default_value: []
+
+switchport_private_vlan_trunk_allowed_vlan:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan trunk allowed vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk allowed vlan <oper> <vlans>"
+  default_value: []
+
+switchport_private_vlan_trunk_native_vlan:
+  _exclude: [ios_xr, N8k]
+  kind: int
+  get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk native vlan <vlan>"
+  default_value: 1
+
 switchport_trunk_allowed_vlan:
-  config_get_token_append: '/^switchport trunk allowed vlan (.*)$/'
-  config_set_append: "%s switchport trunk allowed vlan %s"
+  _exclude: [ios_xr]
+  get_value: '/^switchport trunk allowed vlan (.*)$/'
+  set_value: "<state> switchport trunk allowed vlan <vlan>"
   default_value: "1-4094"
 
 switchport_trunk_native_vlan:
+  _exclude: [ios_xr]
   kind: int
-  config_get_token_append: '/^switchport trunk native vlan (.*)$/'
-  config_set_append: "%s switchport trunk native vlan %s"
+  get_value: '/^switchport trunk native vlan (.*)$/'
+  set_value: "<state> switchport trunk native vlan <vlan>"
   default_value: 1
 
 system_default_svi_autostate:
-  _exclude: [/N(5|6)/]
+  _exclude: [N5k, N6k]
   kind: boolean
-  config_get: "show running all | include 'system default'"
-  /N7K/:
-    # When enabled:  Property does not nvgen.
-    # When disabled: Property nvgens as 'system default interface-vlan no autostate'
-    config_get_token: ['/^system default interface-vlan no autostate$/']
+  nexus:
+    get_command: "show running all | include 'system default'"
+    get_context: ~
     # default_value: n/a. This is a user-configurable system default.
-  else:
-    # When enabled:  Property nvgens as 'system default interface-vlan autostate' 
-    # When disabled: Property nvgens as 'no system default interface-vlan autostate'
-    config_get_token: ['/^system default interface-vlan autostate$/']
-    # default_value: n/a. This is a user-configurable system default.
+    N7k:
+      # When enabled:  Property does not nvgen.
+      # When disabled: Property nvgens as 'system default interface-vlan no autostate'
+      get_value: '/^system default interface-vlan no autostate$/'
+    else:
+      # When enabled:  Property nvgens as 'system default interface-vlan autostate'
+      # When disabled: Property nvgens as 'no system default interface-vlan autostate'
+      get_value: '/^system default interface-vlan autostate$/'
+  ios_xr:
+    default_only: false
 
 system_default_switchport:
-  # Note: This is a simple boolean state but there is a bug on some
-  # platforms that causes the cli to nvgen twice; this causes config_get to
-  # raise an error when it encounters the multiple. Therefore we define it
-  # as a multiple to avoid the raise.
-  multiple:
-  config_get: "show running all | include 'system default'"
-  config_get_token: ['/^no system default switchport$/']
-  default_value: true
+  nexus:
+    # Note: This is a simple boolean state but there is a bug on some
+    # platforms that causes the cli to nvgen twice; this causes config_get to
+    # raise an error when it encounters the multiple. Therefore we define it
+    # as a multiple to avoid the raise.
+    multiple:
+    get_command: "show running all | include 'system default'"
+    get_context: ~
+    get_value: '/^no system default switchport$/'
+    default_value: true
+  ios_xr:
+    default_only: false
 
 system_default_switchport_shutdown:
   kind: boolean
-  config_get: "show running all | include 'system default'"
-  config_get_token: ['/^system default switchport shutdown$/']
-  # default_value: n/a. This is a user-configurable system default.
+  nexus:
+    get_command: "show running all | include 'system default'"
+    get_context: ~
+    get_value: '/^system default switchport shutdown$/'
+    # default_value: n/a. This is a user-configurable system default.
+  ios_xr:
+    default_only: true
 
 vlan_mapping:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
-  config_get_token_append: '/^switchport vlan mapping (\d+) (\d+)/'
-  config_set_append: '%s switchport vlan mapping %s %s'
+  get_value: '/^switchport vlan mapping (\d+) (\d+)/'
+  set_value: '<state> switchport vlan mapping <original> <translated>'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [/N(3|5|6|9)/]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
-  config_get_token_append: '/^(no )?switchport vlan mapping enable/'
-  config_set_append: '%s switchport vlan mapping enable'
+  get_value: '/^(no )?switchport vlan mapping enable/'
+  set_value: '<state> switchport vlan mapping enable'
   default_value: true
 
 vpc_id:
   kind: int
-  config_get_token_append: '/^vpc (\d+)$/'
-  config_set_append: '%s vpc %s'
+  get_value: '/^vpc (\d+)$/'
+  set_value: '<state> vpc <id>'
   default_value: false
 
 vpc_peer_link:
   kind: boolean
-  config_get_token_append: '/^vpc peer\-link$/'
-  config_set_append: '%s vpc peer-link'
+  get_value: '/^vpc peer\-link$/'
+  set_value: '<state> vpc peer-link'
   default_value: false
 
 vrf:
   default_value: ""
-  cli_nexus:
-    config_get_token_append: '/^vrf member (.*)/'
-    config_set_append: "%s vrf member %s"
+  nexus:
+    get_value: '/^vrf member (.*)/'
+    set_value: "<state> vrf member <vrf>"
+  ios_xr:
+    get_value: '/^vrf (.*)/'
+    set_value: "<state> vrf <vrf>"
 
 vtp:
+  _exclude: [ios_xr]
   kind: boolean
-  config_get_token_append: '/^vtp *$/'
-  config_set_append: "%s vtp"
+  get_value: '/^vtp *$/'
+  set_value: "<state> vtp"
   default_value: false

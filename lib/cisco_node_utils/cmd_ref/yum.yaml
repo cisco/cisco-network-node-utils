@@ -1,13 +1,15 @@
 # yum
 ---
+_exclude: [ios_xr]
+
 install:
-  config_set: "install add %s %s activate"
+  set_value: "install add %s %s activate"
 
 query:
   multiple: true
-  config_get: "show install packages"
+  get_command: "show install packages"
   # pass in the pkg name, retrieve version
-  config_get_token: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
+  get_value: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
 
 remove:
-  config_set: "install deactivate %s"
+  set_value: "install deactivate %s"

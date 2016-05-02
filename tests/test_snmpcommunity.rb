@@ -25,6 +25,8 @@ end
 
 # TestSnmpCommunity - Minitest for SnmpCommunity node utility
 class TestSnmpCommunity < CiscoTestCase
+  @skip_unless_supported = 'snmp_community'
+
   SNMP_COMMUNITY_NAME_STR = 128
   SNMP_GROUP_NAME_STR = 128
   DEFAULT_SNMP_COMMUNITY_GROUP = 'network-operator'

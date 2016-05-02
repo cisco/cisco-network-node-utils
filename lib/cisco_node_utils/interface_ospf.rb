@@ -41,8 +41,7 @@ module Cisco
       @ospf_name = ospf_name
 
       return unless create
-      # enable feature ospf if it isn't
-      RouterOspf.enable unless RouterOspf.enabled
+      Feature.ospf_enable
 
       config_set('interface_ospf', 'area', @interface.name,
                  '', @ospf_name, area)

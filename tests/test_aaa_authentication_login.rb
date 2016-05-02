@@ -17,6 +17,7 @@ require_relative '../lib/cisco_node_utils/aaa_authentication_login'
 
 # Test class for AAA Authentication Login
 class TestAaaAuthenticationLogin < CiscoTestCase
+  @skip_unless_supported = 'aaa_authentication_login'
   # DEFAULT(:ascii_authentication)
   # => false
   # rubocop:disable Style/MethodName

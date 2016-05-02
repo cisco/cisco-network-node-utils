@@ -34,8 +34,8 @@ class TestNtpServer < CiscoTestCase
 
   def no_ntpserver_uk
     # Turn the feature off for a clean test.
-    config('no ntpserver 130.88.203.12',
-           'no ntpserver 2003::5')
+    config('no ntp server 130.88.203.12',
+           'no ntp server 2003::5')
   end
 
   # TESTS

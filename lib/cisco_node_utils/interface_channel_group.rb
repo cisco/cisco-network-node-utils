@@ -26,6 +26,10 @@ module Cisco
       validate_args(name)
     end
 
+    def to_s
+      "interface_channel_group #{name}"
+    end
+
     def self.interfaces
       hash = {}
       all = config_get('interface_channel_group', 'all_interfaces')
@@ -52,10 +56,6 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    def fail_cli(e)
-      fail "[#{@name}] '#{e.command}' : #{e.clierror}"
-    end
-
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
@@ -65,12 +65,13 @@ module Cisco
     end
 
     def channel_group=(group)
-      # 'force' is needed by cli_nxos to handle the case where a port-channel
+      # 'force' is needed by NXOS to handle the case where a port-channel
       # interface is created prior to the channel-group cli; in which case
       # the properties of the port-channel interface will be different from
       # the ethernet interface. 'force' is not needed if the port-channel is
       # created as a result of the channel-group cli but since it does no
       # harm we will use it every time.
+      # IOS XR simply ignores 'force'
       if group
         state = ''
         force = 'force'
@@ -81,7 +82,11 @@ module Cisco
       config_set('interface_channel_group', 'channel_group',
                  set_args_keys(state: state, group: group, force: force))
     rescue Cisco::CliError => e
-      fail_cli(e)
+      # Some XR platforms do not support channel-group configuration
+      # on some OS versions. Since this is an OS version difference and not
+      # a platform difference, we can't handle this in the YAML.
+      raise unless e.message[/the entered commands do not exist/]
+      raise Cisco::UnsupportedError.new('interface', 'channel_group')
     end
 
     def default_channel_group
@@ -97,8 +102,6 @@ module Cisco
       state = desc.strip.empty? ? 'no' : ''
       config_set('interface_channel_group', 'description',
                  set_args_keys(state: state, desc: desc))
-    rescue Cisco::CliError => e
-      fail_cli(e)
     end
 
     def default_description
@@ -113,8 +116,6 @@ module Cisco
     def shutdown=(state)
       config_set('interface_channel_group', 'shutdown',
                  set_args_keys(state: state ? '' : 'no'))
-    rescue Cisco::CliError => e
-      fail_cli(e)
     end
 
     def default_shutdown

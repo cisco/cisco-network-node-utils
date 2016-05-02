@@ -23,12 +23,13 @@ Please see [Learning Resources](#resources) for additional references.
 #### Table of Contents
 
 1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Examples](#examples)
-4. [Documentation](#documentation)
-5. [Changelog](#changelog)
-6. [Learning Resources](#resources)
-7. [License Information](#license_info)
+1. [Installation](#installation)
+1. [Configuration](#configuration)
+1. [Documentation](#documentation)
+1. [Examples](#examples)
+1. [Changelog](#changelog)
+1. [Learning Resources](#resources)
+1. [License Information](#license_info)
 
 
 ## <a name="overview">Overview</a>
@@ -39,17 +40,13 @@ open source management tools.
 
 This CiscoNodeUtils gem release supports the following:
 
-Platform         | OS    | OS Version           |
------------------|-------|----------------------|
-Cisco Nexus 30xx | NX-OS | 7.0(3)I2(1) and later
-Cisco Nexus 31xx | NX-OS | 7.0(3)I2(1) and later
-Cisco Nexus 93xx | NX-OS | 7.0(3)I2(1) and later
-Cisco Nexus 95xx | NX-OS | 7.0(3)I2(1) and later
-Cisco N9kv       | NX-OS | 7.0(3)I2(1) and later
-Cisco Nexus 56xx | NX-OS | 7.3(0)N1(1) and later
-Cisco Nexus 60xx | NX-OS | 7.3(0)N1(1) and later
-Cisco Nexus 7xxx | NX-OS | 7.3(0)D1(1) and later
-
+Platform         | OS     | OS Version           |
+-----------------|--------|----------------------|
+Cisco Nexus N9k  | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N3k  | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N5k  | NX-OS  | 7.3(0)N1(1) and later
+Cisco Nexus N6k  | NX-OS  | 7.3(0)N1(1) and later
+Cisco Nexus N7k  | NX-OS  | 7.3(0)D1(1) and later
 
 Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
@@ -64,53 +61,41 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## <a name="examples">Examples</a>
+## Configuration
 
+This gem may require configuration in order to be used. Two configuration file locations are supported:
 
-These utilities can be used directly on a Cisco device (as used by Puppet
-and Chef) or can run on a workstation and point to a Cisco device (as used
-by the included minitest suite).
+* `/etc/cisco_node_utils.yaml` (system and/or root user configuration)
+* `~/cisco_node_utils.yaml` (per-user configuration)
 
-### Usage on a Cisco device
+If both files exist and are readable, configuration in the user-specific file will take precedence over the system configuration.
 
-```ruby
-require 'cisco_node_utils'
+This file specifies the host, port, username, and/or password to be used to connect to one or more nodes.
 
-# get a connection to the local device
-node = Cisco::Node.instance()
+* When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
+  - A node labeled as `default` will be the default node to test against.
+  - Nodes with other names can be selected at test execution time.
+  - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
 
-version = node.config_get("show_version", "system_image")
-
-node.config_set("vtp", "domain", "mycompany.com")
-```
-
-### Remote usage
-
-```ruby
-require 'cisco_node_utils'
-
-Cisco::Node.lazy_connect = true
-
-node = Cisco::Node.instance()
-node.connect("n3k.mycompany.com", "username", "password")
-
-version = node.config_get("show_version", "system_image")
-
-node.config_set("vtp", "domain", "mycompany.com")
-```
+An example configuration file (illustrating each of the above scenarios) is provided with this gem at [`docs/cisco_node_utils.yaml.example`](docs/cisco_node_utils.yaml.example).
 
 ## <a name="documentation">Documentation</a>
 
+### Client
+
+The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`.
+
+* `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
+
+For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
 ### Node
 
-The `Node` class is a singleton which provides for management of a given Cisco
-network node. It provides the base APIs `config_set`, `config_get`, and
-`config_get_default`.
+The `Node` class is a singleton which wraps around the `Client` class to provide for management of a given Cisco network node. It provides the base APIs `config_set`, `config_get`, and `config_get_default`.
 
 ### CommandReference
 
-The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG), platform differences (NX-OS vs. IOS XR), or hardware differences (Nexus 9xxx vs. Nexus 3xxx). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
+The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG) or hardware differences (Nexus N9k vs. Nexus N3k). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
 See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 
@@ -131,6 +116,66 @@ code duplication between the Cisco Puppet modules and the Cisco Chef cookbooks.
 
 Generally speaking, Puppet and Chef should only interact with the feature
 provider classes, and not directly call into `CommandReference` or `Node`.
+
+## <a name="examples">Examples</a>
+
+
+These utilities can be used directly on a Cisco device (as used by Puppet
+and Chef) or can run on a workstation and point to a Cisco device (as used
+by the included minitest suite).
+
+### Usage on a Cisco device
+
+#### Low-level Client API
+
+```ruby
+require 'cisco_node_utils'
+
+# get a connection to the local device
+client = Cisco::Client.create()
+
+client.get(command: 'show version')
+client.set(values: 'vtp domain mycompany.com')
+```
+
+#### High-level Node API
+
+```ruby
+require 'cisco_node_utils'
+
+# get a connection to the local device
+node = Cisco::Node.instance()
+
+version = node.config_get("show_version", "system_image")
+
+node.config_set("vtp", "domain", "mycompany.com")
+```
+
+### Remote usage
+
+#### Low-level Client API
+
+```ruby
+require 'cisco_node_utils'
+
+client = Cisco::Client.create('n3k.mycompany.com', 'username', 'password')
+
+client.get(command: 'show version')
+client.set(values: 'vtp domain mycompany.com')
+```
+
+#### High-level Node API
+
+```ruby
+require 'cisco_node_utils'
+
+node = Cisco::Node.new("n3k.mycompany.com", "username", "password")
+
+version = node.config_get("show_version", "system_image")
+
+node.config_set("vtp", "domain", "mycompany.com")
+```
+
 
 ## <a name="changelog">Changelog</a>
 

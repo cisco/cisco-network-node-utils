@@ -55,15 +55,19 @@ module Cisco
     end
 
     def create
+      if FabricpathGlobal.fabricpath_feature == :enabled &&
+         node.product_id[/N(5|6)K/]
+        fail 'VxLAN cannot be enabled with Fabricpath configured'
+      end
       Feature.nv_overlay_enable
       Feature.vn_segment_vlan_based_enable if VxlanVtep.mt_lite_support
       # re-use the "interface command ref hooks"
-      config_set('interface', 'create', @name)
+      config_set('interface', 'create', name: @name)
     end
 
     def destroy
       # re-use the "interface command ref hooks"
-      config_set('interface', 'destroy', @name)
+      config_set('interface', 'destroy', name: @name)
     end
 
     def ==(other)
@@ -75,16 +79,14 @@ module Cisco
     ########################################################
 
     def description
-      config_get('interface', 'description', @name)
+      config_get('interface', 'description', name: @name)
     end
 
     def description=(desc)
       fail TypeError unless desc.is_a?(String)
-      if desc.empty?
-        config_set('interface', 'description', @name, 'no', '')
-      else
-        config_set('interface', 'description', @name, '', desc)
-      end
+      state = desc.empty? ? 'no' : ''
+      config_set('interface', 'description',
+                 name: @name, state: state, desc: desc)
     end
 
     def default_description
@@ -133,6 +135,30 @@ module Cisco
 
     def default_source_interface
       config_get_default('vxlan_vtep', 'source_intf')
+    end
+
+    def source_interface_hold_down_time
+      config_get('vxlan_vtep', 'source_intf_hold_down_time', name: @name)
+    end
+
+    def source_interface_hold_down_time=(time)
+      state = time == default_source_interface_hold_down_time ? 'no' : ''
+      # Cli rejects removing hold-down-time without an argument, so make
+      # sure it is configured before attempting to remove it
+      if state == 'no'
+        time = source_interface_hold_down_time
+        unless time == default_source_interface_hold_down_time
+          config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                             state: state, time: time)
+        end
+      else
+        config_set('vxlan_vtep', 'source_intf_hold_down_time', name: @name,
+                               state: state, time: time)
+      end
+    end
+
+    def default_source_interface_hold_down_time
+      config_get_default('vxlan_vtep', 'source_intf_hold_down_time')
     end
 
     def shutdown

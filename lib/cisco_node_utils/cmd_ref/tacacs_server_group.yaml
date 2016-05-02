@@ -1,33 +1,45 @@
 # tacacs_server_group
 ---
+_template:
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config aaa"
+
 deadtime:
-  config_get: "show run tacacs all"
-  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^deadtime (\d+)/']
-  config_set: ["aaa group server tacacs <name>", "<state> deadtime <deadtime>"]
+  _exclude: [ios_xr]
+  get_context: ['/^aaa group server tacacs\+ %s/']
+  get_value: '/^deadtime (\d+)/'
+  set_context: ["aaa group server tacacs <name>"]
+  set_value: "<state> deadtime <deadtime>"
   default_value: 0
 
 group:
   multiple: true
-  config_get: "show running-config tacacs all"
-  config_get_token: '/^aaa group server tacacs\+ (\S+)/'
-  config_set: '<state> aaa group server tacacs <name>'
+  get_value: '/^aaa group server tacacs\+ (\S+)/'
+  set_value: '<state> aaa group server tacacs <name>'
   default_value: []
 
 servers:
   multiple: true
-  config_get: "show running-config tacacs all"
-  config_get_token: ['/^aaa group server tacacs\+ %s/i', '/^server (\S+)/']
-  config_set: ['aaa group server tacacs <name>', '<state> server <server>']
+  get_context: ['/^aaa group server tacacs\+ %s/']
+  get_value: '/^server (\S+)/'
+  set_context: ["aaa group server tacacs <name>"]
+  set_value: '<state> server <server>'
   default_value: []
 
 source_interface:
-  config_get: "show run tacacs all"
-  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^source-interface (\S+)/']
-  config_set: ["aaa group server tacacs <name>", "<state> source-interface <interface>"]
+  _exclude: [ios_xr]
+  get_context: ['/^aaa group server tacacs\+ %s/']
+  get_value: '/^source-interface (\S+)/'
+  set_context: ["aaa group server tacacs <name>"]
+  set_value: "<state> source-interface <interface>"
   default_value: ""
 
 vrf:
-  config_get: "show run tacacs all"
-  config_get_token: ['/^aaa group server tacacs\+ %s/', '/^use-vrf (\S+)/']
-  config_set: ["aaa group server tacacs <name>", "<state> use-vrf <vrf>"]
+  _exclude: [ios_xr]
+  get_context: ['/^aaa group server tacacs\+ %s/']
+  get_value: '/^use-vrf (\S+)/'
+  set_context: ["aaa group server tacacs <name>"]
+  set_value: "<state> use-vrf <vrf>"
   default_value: "default"

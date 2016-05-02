@@ -32,19 +32,7 @@ module Cisco
       @afi = Pim.afi_cli(afi)
       set_args_keys_default
 
-      Pim.feature_enable if instantiate
-    end
-
-    def self.feature_enabled
-      config_get('pim', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
-    end
-
-    def self.feature_enable
-      config_set('pim', 'feature')
+      Feature.pim_enable if instantiate
     end
 
     # self.pims returns a hash of all current pim objects.
@@ -99,6 +87,7 @@ module Cisco
     # For that reason destroy needs to explicitly set each property
     # to its default state.
     def destroy
+      return unless Feature.pim_enabled?
       self.ssm_range = ''
     end
 

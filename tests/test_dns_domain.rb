@@ -20,23 +20,33 @@ require_relative '../lib/cisco_node_utils/dns_domain'
 
 # TestDnsDomain - Minitest for DnsDomain node utility.
 class TestDnsDomain < CiscoTestCase
+  @skip_unless_supported = 'dnsclient'
+
   def setup
     # setup runs at the beginning of each test
     super
+    @backup_resolve = backup_resolv_file
     no_dnsdomain_tests
   end
 
   def teardown
     # teardown runs at the end of each test
     no_dnsdomain_tests
+    restore_resolv_file(@backup_resolve)
     super
   end
 
   def no_dnsdomain_tests
     # Turn the feature off for a clean test.
-    config('no ip domain-list aoeu.com',
-           'no ip domain-list asdf.com',
-           'no vrf context test')
+    if platform == :ios_xr
+      config('no domain list aoeu.com',
+             'no domain list asdf.com',
+             'no vrf test')
+    else
+      config('no ip domain-list aoeu.com',
+             'no ip domain-list asdf.com',
+             'no vrf context test')
+    end
   end
 
   # TESTS

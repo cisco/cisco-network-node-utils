@@ -1,22 +1,25 @@
 # aaa_auth_login_service
 ---
+_exclude: [ios_xr]
+
 groups:
-  config_get: "show aaa authentication"
-  config_get_token: ["TABLE_AuthenMethods", "ROW_AuthenMethods"]
+  get_data_format: nxapi_structured
+  get_command: "show aaa authentication"
+  get_context: ["TABLE_AuthenMethods", "ROW_AuthenMethods"]
   # this set is only used when there are groups to configure
-  config_set: "%s aaa authentication login %s group %s %s"
+  set_value: "%s aaa authentication login %s group %s %s"
   default_value: []
   multiple:
 
 method:
   auto_default: false
-  config_get: "show aaa authentication"
-  config_get_token: '/^\s*%s:.*(local|none)\s*$/'
+  get_command: "show aaa authentication"
+  get_value: '/^\s*%s:.*(local|none)\s*$/'
   # this set is only used when there are no groups to configure
-  config_set: "%s aaa authentication login %s %s"
+  set_value: "%s aaa authentication login %s %s"
   default_value: :local
 
 services:
-  config_get: "show run aaa all"
-  config_get_token: '/^aaa authentication login (\S+) (?:none|group|local)/'
+  get_command: "show run aaa all"
+  get_value: '/^aaa authentication login (\S+) (?:none|group|local)/'
   multiple:

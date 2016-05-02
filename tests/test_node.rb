@@ -19,91 +19,32 @@ require_relative '../lib/cisco_node_utils/command_reference'
 
 include Cisco
 
-Node.lazy_connect = true # we'll specify the connection info later
-
 # TestNode - Minitest for core functionality of Node class
 class TestNode < TestCase
   def setup
+    super
+    # Clear out the environment so we have control over which parameters
+    # we provide to Node to connect with.
+    Node.instance_variable_set(:@instance, nil)
   end
 
-  def teardown
-    GC.start
-  end
-
-  # As Node is now a singleton, we cannot instantiate it.
-
-  def test_node_create_not_allowed
-    assert_raises(NoMethodError) do
+  def test_connect_no_environment
+    environment = Node::Environment.default_environment_name
+    Node::Environment.default_environment_name = '!@#$&@#$' # nonexistent
+    # No UDS present on the test host, so default environment fails to connect
+    assert_raises(Cisco::ConnectionRefused) do
       Node.new
     end
-  end
-
-  def test_node_connect_zero_arguments
-    node = Node.instance
-    # No UDS present on the test host, so default logic fails to connect
-    assert_raises(RuntimeError) do
-      node.connect
+    assert_raises(Cisco::ConnectionRefused) do
+      Node.instance
     end
+  ensure
+    Node::Environment.default_environment_name = environment
   end
 
-  def test_node_connect_one_argument
+  def test_singleton
     node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(address)
-    end
-  end
-
-  def test_node_connect_two_arguments
-    node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(username, password)
-    end
-  end
-
-  def test_node_connect_nil_username
-    node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(address, nil, password)
-    end
-  end
-
-  def test_node_connect_invalid_username
-    node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(address, node, password)
-    end
-  end
-
-  def test_node_connect_username_zero_length
-    node = Node.instance
-    assert_raises(ArgumentError) do
-      node.connect(address, '', password)
-    end
-  end
-
-  def test_node_connect_nil_password
-    node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(address, username, nil)
-    end
-  end
-
-  def test_node_connect_invalid_password
-    node = Node.instance
-    assert_raises(TypeError) do
-      node.connect(address, username, node)
-    end
-  end
-
-  def test_node_connect_password_zero_length
-    node = Node.instance
-    assert_raises(ArgumentError) do
-      node.connect(address, username, '')
-    end
-  end
-
-  def test_node_connect
-    node = Node.instance
-    node.connect(address, username, password)
+    node2 = Node.instance
+    assert_equal(node, node2)
   end
 end

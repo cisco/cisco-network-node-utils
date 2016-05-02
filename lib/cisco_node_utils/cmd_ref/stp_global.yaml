@@ -1,0 +1,234 @@
+
+# stp_global
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config spanning-tree"
+
+bd_designated_priority:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^bridge-domain (.*) designated priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> bridge-domain <range> designated priority <val>"
+  default_value: []
+
+bd_forward_time:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_value: '/^spanning-tree bridge-domain (.*) forward-time (.*)$/'
+  set_value: "<state> spanning-tree bridge-domain <range> forward-time <val>"
+  default_value: []
+
+bd_hello_time:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_value: '/^spanning-tree bridge-domain (.*) hello-time (.*)$/'
+  set_value: "<state> spanning-tree bridge-domain <range> hello-time <val>"
+  default_value: []
+
+bd_max_age:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_value: '/^spanning-tree bridge-domain (.*) max-age (.*)$/'
+  set_value: "<state> spanning-tree bridge-domain <range> max-age <val>"
+  default_value: []
+
+bd_priority:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_value: '/^spanning-tree bridge-domain (.*) priority (.*)$/'
+  set_value: "<state> spanning-tree bridge-domain <range> priority <val>"
+  default_value: []
+
+bd_range:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  kind: string
+  default_only: "2-3967"
+
+bd_root_priority:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^bridge-domain (.*) root priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> bridge-domain <range> root priority <val>"
+  default_value: []
+
+bpdufilter:
+  kind: boolean
+  get_value: '/^spanning-tree port type edge bpdufilter default$/'
+  set_value: "<state> spanning-tree port type edge bpdufilter default"
+  default_value: false
+
+bpduguard:
+  kind: boolean
+  get_value: '/^spanning-tree port type edge bpduguard default$/'
+  set_value: "<state> spanning-tree port type edge bpduguard default"
+  default_value: false
+
+bridge_assurance:
+  kind: boolean
+  auto_default: false
+  get_command: "show running-config spanning-tree all"
+  get_value: '/^spanning-tree bridge assurance$/'
+  set_value: "<state> spanning-tree bridge assurance"
+  default_value: true
+
+domain:
+  _exclude: [N3k, N8k, N9k]
+  kind: int
+  get_value: '/^spanning-tree domain (\d+)$/'
+  set_value: "<state> spanning-tree domain <domain>"
+  default_value: false
+
+fcoe:
+  _exclude: [N3k, N5k, N6k, N7k]
+  kind: boolean
+  auto_default: false
+  get_command: "show running-config spanning-tree all"
+  get_value: '/^spanning-tree fcoe$/'
+  set_value: "<state> spanning-tree fcoe"
+  default_value: true
+
+loopguard:
+  kind: boolean
+  get_value: '/^spanning-tree loopguard default$/'
+  set_value: "<state> spanning-tree loopguard default"
+  default_value: false
+
+mode:
+  kind: string
+  get_value: '/^spanning-tree mode (.*)$/'
+  set_value: "<state> spanning-tree mode <mode>"
+  default_value: "rapid-pvst"
+
+mst_designated_priority:
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^mst (.*) designated priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> mst <range> designated priority <val>"
+  default_value: []
+
+mst_forward_time:
+  kind: int
+  get_value: '/^spanning-tree mst forward-time (\d+)$/'
+  set_value: "<state> spanning-tree mst forward-time <ft>"
+  default_value: 15
+
+mst_hello_time:
+  kind: int
+  get_value: '/^spanning-tree mst hello-time (\d+)$/'
+  set_value: "<state> spanning-tree mst hello-time <ht>"
+  default_value: 2
+
+mst_inst_range:
+  kind: string
+  default_only: "1-4094"
+
+mst_inst_vlan_map:
+  multiple:
+  get_context: ['/^spanning-tree mst configuration$/']
+  get_value: '/^instance (.*) vlan (.*)$/'
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> instance <instance> <vlan> <range>"
+  default_value: []
+
+mst_max_age:
+  kind: int
+  get_value: '/^spanning-tree mst max-age (\d+)$/'
+  set_value: "<state> spanning-tree mst max-age <ma>"
+  default_value: 20
+
+mst_max_hops:
+  kind: int
+  get_value: '/^spanning-tree mst max-hops (\d+)$/'
+  set_value: "<state> spanning-tree mst max-hops <mh>"
+  default_value: 20
+
+mst_name:
+  kind: string
+  get_context: ['/^spanning-tree mst configuration$/']
+  get_value: '/^name (.*)$/'
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> name <name>"
+  default_value: false
+
+mst_priority:
+  multiple:
+  get_value: '/^spanning-tree mst (.*) priority (.*)$/'
+  set_value: "<state> spanning-tree mst <range> priority <val>"
+  default_value: []
+
+mst_range:
+  kind: string
+  default_only: "0-4094"
+
+mst_revision:
+  kind: int
+  get_context: ['/^spanning-tree mst configuration$/']
+  get_value: '/^revision (\d+)$/'
+  set_context: ["spanning-tree mst configuration"]
+  set_value: "<state> revision <rev>"
+  default_value: 0
+
+mst_root_priority:
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^mst (.*) root priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> mst <range> root priority <val>"
+  default_value: []
+
+pathcost:
+  kind: string
+  get_value: '/^spanning-tree pathcost method (.*)$/'
+  set_value: "<state> spanning-tree pathcost method <method>"
+  default_value: "short"
+
+vlan_designated_priority:
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^vlan (.*) designated priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> vlan <range> designated priority <val>"
+  default_value: []
+
+vlan_forward_time:
+  multiple:
+  get_value: '/^spanning-tree vlan (.*) forward-time (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> forward-time <val>"
+  default_value: []
+
+vlan_hello_time:
+  multiple:
+  get_value: '/^spanning-tree vlan (.*) hello-time (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> hello-time <val>"
+  default_value: []
+
+vlan_max_age:
+  multiple:
+  get_value: '/^spanning-tree vlan (.*) max-age (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> max-age <val>"
+  default_value: []
+
+vlan_priority:
+  multiple:
+  get_value: '/^spanning-tree vlan (.*) priority (.*)$/'
+  set_value: "<state> spanning-tree vlan <range> priority <val>"
+  default_value: []
+
+vlan_range:
+  kind: string
+  default_only: "1-3967"
+
+vlan_root_priority:
+  multiple:
+  get_context: ['/^spanning-tree pseudo-information$/']
+  get_value: '/^vlan (.*) root priority (.*)$/'
+  set_context: ["spanning-tree pseudo-information"]
+  set_value: "<state> vlan <range> root priority <val>"
+  default_value: []

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+[ -n "$GIT_DIR" ] || export GIT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)/.git"
+. "$GIT_DIR"/hooks/hook_lib
+
+# Run the Kwalify YAML schema validation
+
+step_name "Validating YAML files"
+rspec "$REPO_DIR"/spec/yaml_spec.rb
+check_rc "Please fix YAML schema validation failures before committing"
+
+# Ensure that command_reference can parse all the YAML as well
+
+step_name "Checking command_reference YAML parsing"
+ruby "$REPO_DIR"/tests/test_command_reference.rb
+check_rc "Please fix command_reference unit test failures before committing"
+
+exit 0

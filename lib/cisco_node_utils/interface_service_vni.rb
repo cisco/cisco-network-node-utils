@@ -15,7 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
-require_relative 'vni'
+require_relative 'feature'
 
 module Cisco
   # InterfaceServiceVni - node utility class for Service VNI Instance commands
@@ -28,6 +28,10 @@ module Cisco
       fail ArgumentError if @name.empty? || @sid.empty?
       set_args_keys_default
       create if instantiate
+    end
+
+    def to_s
+      "interface_service_vni #{name} #{@sid}"
     end
 
     def self.svc_vni_ids
@@ -49,7 +53,7 @@ module Cisco
     end
 
     def create
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
       @set_args[:state] = ''
       config_set('interface_service_vni', 'create_destroy', @set_args)
     end
@@ -87,7 +91,7 @@ module Cisco
     end
 
     def encapsulation_profile_vni=(profile)
-      Vni.feature_vni_enable unless Vni.feature_vni_enabled
+      Feature.vni_enable
       state = profile.empty? ? 'no' : ''
       current = encapsulation_profile_vni
 
@@ -103,8 +107,6 @@ module Cisco
         config_set('interface_service_vni', 'encapsulation_profile_vni',
                    set_args_keys(state: state, profile: profile))
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_encapsulation_profile_vni
@@ -121,8 +123,6 @@ module Cisco
     def shutdown=(state)
       config_set('interface_service_vni', 'shutdown',
                  set_args_keys(state: state ? '' : 'no'))
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_shutdown

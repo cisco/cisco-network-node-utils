@@ -1,34 +1,55 @@
 # dnsclient
 ---
 _template:
-  config_get: "show running-config all"
+  get_command: "show running-config all"
 
 domain_list:
   multiple: true
-  config_get_token: '/^ip domain-list (\S+)$/'
-  config_set: '<state> ip domain-list <name>'
+  nexus:
+    get_value: '/^ip domain-list (\S+)$/'
+    set_value: '<state> ip domain-list <name>'
+  ios_xr:
+    get_value: '/^domain list (\S+)$/'
+    set_value: '<state> domain list <name>'
   default_value: []
 
 domain_list_vrf:
   multiple: true
-  config_get_token: ['/vrf context <vrf>/', '/ip domain-list (\S+)/']
-  config_set: ['vrf context <vrf>', '<state> ip domain-list <name>']
+  nexus:
+    context: ['vrf context <vrf>']
+    get_value: '/ip domain-list (\S+)/'
+    set_value: '<state> ip domain-list <name>'
+  ios_xr:
+    get_value: '/^domain vrf <vrf> list (\S+)/'
+    set_value: '<state> domain vrf <vrf> list <name>'
   default_value: []
 
 domain_name:
-  cli_nexus:
-    config_set: '<state> ip domain-name <name>'
-    config_get_token: '/^ip domain-name (\S+)$/'
-    default_value: ''
+  default_value: ''
+  nexus:
+    set_value: '<state> ip domain-name <name>'
+    get_value: '/^ip domain-name (\S+)$/'
+  ios_xr:
+    set_value: '<state> domain name <name>'
+    get_value: '/^domain name (\S+)$/'
 
 domain_name_vrf:
-  config_get_token: ['/vrf context <vrf>/', '/ip domain-name (\S+)/']
-  config_set: ['vrf context <vrf>', '<state> ip domain-name <name>']
+  nexus:
+    context: ['vrf context <vrf>']
+    get_value: '/ip domain-name (\S+)/'
+    set_value: '<state> ip domain-name <name>'
+  ios_xr:
+    get_value: '/^domain vrf <vrf> name (\S+)$/'
+    set_value: '<state> domain vrf <vrf> name <name>'
   default_value: ''
 
 name_server:
   multiple: true
   default_value: []
-  config_get: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
-  config_get_token: '/^ip name-server ([\s\d\.:]+)$/'
-  config_set: '<state> ip name-server <ip>'
+  nexus:
+    get_command: "show running-config all | include 'ip name-server' | exclude 'use-vrf'"
+    get_value: '/^ip name-server ([\s\d\.:]+)$/'
+    set_value: '<state> ip name-server <ip>'
+  ios_xr:
+    get_value: '/^domain name-server (\S+)$/'
+    set_value: '<state> domain name-server <ip>'

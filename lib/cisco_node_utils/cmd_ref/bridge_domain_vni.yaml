@@ -1,0 +1,33 @@
+# bridge_domain
+---
+_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+
+create:
+  set_value: "bridge-domain <bd>"
+
+member_vni:
+  get_command: "show running-config bridge-domain | inc 'member vni'"
+  get_value: '/^  member vni (.*)/'
+  set_value: "bridge-domain <bd> ; <membstate> member vni <membvni>"
+  default_value: ''
+
+member_vni_bd:
+  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
+  get_value: '/^bridge-domain (.*)/'
+
+range_bds:
+  multiple: true
+  get_command: "show running-config bridge-domain | inc 'member vni' prev 1"
+  get_value: '/^bridge-domain (.*)/'
+
+system_bridge_domain:
+  get_command: "show running-config bridge-domain"
+  get_value: '/^system bridge-domain (\S+)/'
+  set_value: "system bridge-domain <oper> <bd>"
+  default_value: ""
+
+vni:
+  get_command: "show running-config bridge-domain"
+  get_value: '/^vni (\d+)/'
+  set_value: "<state> vni <vni>"
+  default_value: ''

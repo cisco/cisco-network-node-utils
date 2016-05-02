@@ -1,42 +1,92 @@
 # feature
 ---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running | i ^feature"
+
 bgp:
   kind: boolean
-  config_get: "show running | i feature"
-  config_get_token: '/^feature bgp$/'
-  config_set: "feature bgp"
+  get_value: '/^feature bgp$/'
+  set_value: "feature bgp"
 
 fabric:
-  _exclude: [/N(3|9)/]
-  config_get: "show feature-set"
-  config_get_token: '/^fabric[\s\d]+(\w+)/'
-  config_set: "<state> feature-set fabric"
+  _exclude: [N3k, N8k, N9k]
+  get_command: "show feature-set"
+  get_value: '/^fabric[\s\d]+(\w+)/'
+  set_value: "<state> feature-set fabric"
 
 fabric_forwarding:
-  _exclude: [/N3/]
-  config_get: "show running | i ^feature"
-  config_get_token: '/^feature fabric forwarding$/'
-  config_set: "feature fabric forwarding"
+  _exclude: [N3k]
+  get_value: '/^feature fabric forwarding$/'
+  set_value: "feature fabric forwarding"
+
+fex:
+  _exclude: [C3064, C3132, N5k, N6k, N8k]
+  get_command: "show feature-set"
+  get_value: '/^fex[\s\d]+(\w+)/'
+  set_value: "<state> feature-set fex"
+
+itd:
+  _exclude: [N3k, N5k, N6k]
+  get_value: '/^feature itd$/'
+  set_value: "feature itd"
 
 nv_overlay:
-  _exclude: [/N(3|5|6)/]
+  # N3k - native vxlan support in a future release
+  _exclude: [N3k]
   kind: boolean
-  config_get: 'show running nv overlay'
-  config_get_token: '/^feature nv overlay$/'
-  config_set: "feature nv overlay"
+  get_value: '/^feature nv overlay$/'
+  set_value: "<state> feature nv overlay"
 
 nv_overlay_evpn:
-  _exclude: [/N3/]
+  # N3k - native vxlan support in a future release
+  _exclude: [N3k]
   kind: boolean
-  config_get: "show running | section nv"
-  config_get_token: '/^nv overlay evpn$/'
-  config_set: "nv overlay evpn"
+  get_command: "show running | section nv"
+  get_value: '/^nv overlay evpn$/'
+  set_value: "nv overlay evpn"
+
+ospf:
+  kind: boolean
+  get_value: '/^feature ospf$/'
+  set_value: "feature ospf"
+
+pim:
+  kind: boolean
+  get_value: '/^feature pim$/' # TBD pim6
+  set_value: 'feature pim'
+
+private_vlan:
+  _exclude: [N8k]
+  kind: boolean
+  get_value: '/^feature private-vlan$/'
+  set_value: "feature private-vlan"
+
+tacacs:
+  kind: boolean
+  get_value: '/^feature tacacs\+$/'
+  set_value: "feature tacacs"
 
 vn_segment_vlan_based:
-  # MT-lite only
-  /N(3|9)/:
-    kind: boolean
-    config_get: 'show running section feature'
-    config_get_token: '/^feature vn-segment-vlan-based$/'
-    config_set: 'feature vn-segment-vlan-based'
-    default_value: false
+  _exclude: [N7k]
+  kind: boolean
+  get_value: '/^feature vn-segment-vlan-based$/'
+  set_value: 'feature vn-segment-vlan-based'
+  default_value: false
+
+vni:
+  kind: boolean
+  N7k:
+    # MT-Full only
+    get_value: '/^feature vni$/'
+    set_value: 'feature vni'
+  else:
+    get_value: '/^feature vn-segment-vlan-based$/'
+    set_value: 'feature vn-segment-vlan-based'
+
+vtp:
+  kind: boolean
+  get_value: '/^feature vtp$/'
+  set_value: "<state> feature vtp"
+  default_value: false

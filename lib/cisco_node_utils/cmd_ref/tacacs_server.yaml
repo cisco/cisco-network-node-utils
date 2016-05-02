@@ -1,49 +1,51 @@
 # tacacs_server
 ---
+_exclude: [ios_xr]
+
 deadtime:
   kind: int
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server deadtime\s+(\d+)/'
-  config_set: "%s tacacs-server deadtime %d"
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server deadtime\s+(\d+)/'
+  set_value: "%s tacacs-server deadtime %d"
   default_value: 0
 
 directed_request:
   kind: boolean
   # oddly, directed request must be retrieved from aaa output
-  config_get: "show running aaa all"
-  config_get_token: '/(?:no)?\s*tacacs-server directed-request/'
-  config_set: "%s tacacs-server directed-request"
+  get_command: "show running aaa all"
+  get_value: '/(?:no)?\s*tacacs-server directed-request/'
+  set_value: "%s tacacs-server directed-request"
   default_value: false
 
 encryption:
-  config_set: "%s tacacs-server key %d %s"
+  set_value: "%s tacacs-server key %d %s"
 
 encryption_password:
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: ""
 
 encryption_type:
   auto_default: false
-  config_get: "show run tacacs all"
-  config_get_token: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_command: "show run tacacs all"
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: 0
 
 feature:
   kind: boolean
-  config_get: "show run tacacs all"
-  config_get_token: '/^feature tacacs/'
-  config_set: "%s feature tacacs+"
+  get_command: "show run tacacs all"
+  get_value: '/^feature tacacs/'
+  set_value: "%s feature tacacs+"
 
 source_interface:
-  config_get: "show run tacacs all"
-  config_get_token: '/(no)?\s*ip tacacs source-interface\s+(\S+)?/'
-  config_set: "%s ip tacacs source-interface %s"
+  get_command: "show run tacacs all"
+  get_value: '/(no)?\s*ip tacacs source-interface\s+(\S+)?/'
+  set_value: "%s ip tacacs source-interface %s"
   default_value: ""
 
 timeout:
   kind: int
-  config_get: "show run tacacs all"
-  config_get_token: '/tacacs-server timeout\s+(\d+)/'
-  config_set: "%s tacacs-server timeout %d"
+  get_command: "show run tacacs all"
+  get_value: '/tacacs-server timeout\s+(\d+)/'
+  set_value: "%s tacacs-server timeout %d"
   default_value: 5

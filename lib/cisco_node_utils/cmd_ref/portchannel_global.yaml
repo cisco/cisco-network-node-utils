@@ -1,69 +1,84 @@
 # portchannel_global
 ---
+_exclude: [ios_xr]
+
 _template:
-  config_get: "show running all"
+  get_command: "show running all"
 
 asymmetric:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   default_value: false
 
 bundle_hash:
-  /N(5|6|7)/:
+  N3k: &bundle_hash_ip
     default_value: 'ip'
-  /N(3|9)/:
+  N5k: *bundle_hash_ip
+  N6k: *bundle_hash_ip
+  N7k: *bundle_hash_ip
+  N8k: &bundle_hash_ip_l4port
     default_value: 'ip-l4port'
+  N9k: *bundle_hash_ip_l4port
 
 bundle_select:
   default_value: 'src-dst'
 
 concatenation:
-  _exclude: [/N7/, /N5/, /N6/]
+  _exclude: [N3k, N5k, N6k, N7k, N8k]
   default_value: false
 
 hash_distribution:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
-  config_get_token: ['/^port.channel hash.distribution (.*)$/']
-  config_set: ["terminal dont-ask", "port-channel hash-distribution %s", "end"]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  get_value: '/^port.channel hash.distribution (.*)$/'
+  set_context:  ['terminal dont-ask']
+  set_value: "port-channel hash-distribution %s"
   default_value: 'adaptive'
 
 hash_poly:
-  _exclude: [/N7/, /N3/, /N9/]
-  default_value: 'CRC10b'
+  _exclude: [N3k, N7k, N8k, N9k]
+  default_value: ~
 
 load_balance_type:
   kind: string
-  /N(5|6)/:
+  N3k: &load_balance_type_symmetric
+    default_only: "no_rotate"
+  N5k: &load_balance_type_ethernet
     default_only: "ethernet"
-  /N7/:
+  N6k: *load_balance_type_ethernet
+  N7k: &load_balance_type_asymmetric
     default_only: "asymmetric"
-  /N(3|9)/:
+  N8k: &load_balance_type_no_hash
+    default_only: "no_hash"
+  N9k: &load_balance_type_symmetry
     default_only: "symmetry"
 
 load_defer:
-  _exclude: [/N6/, /N5/, /N3/, /N9/]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: int
-  config_get_token: ['/^port.channel load.defer (\d+)$/']
-  config_set: ["port-channel load-defer %s"]
+  get_value: '/^port.channel load.defer (\d+)$/'
+  set_value: "port-channel load-defer %s"
   default_value: 120
 
 port_channel_load_balance:
   multiple:
-  config_get_token: '/^port-channel load-balance (.*)$/'
-  config_set: "port-channel load-balance %s %s %s %s %s %s"
+  get_value: '/^port-channel load-balance (.*)$/'
+  set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
-  _exclude: [/N6/, /N5/, /N7/]
+  _exclude: [N5k, N6k, N7k, N8k]
   kind: boolean
-  config_get: "show running-config all"
-  config_get_token: '/^port-channel load-balance resilient$/'
-  config_set: "%s port-channel load-balance resilient"
-  default_value: false
+  get_value: '/^port-channel load-balance resilient$/'
+  set_value: "%s port-channel load-balance resilient"
+  N3k:
+    auto_default: false
+    default_value: true
+  N9k:
+    default_value: false
 
 rotate:
-  _exclude: [/N5/, /N6/]
+  _exclude: [N3k, N5k, N6k]
   kind: int
   default_value: 0
 
 symmetry:
-  _exclude: [/N7/, /N3/, /N5/, /N6/]
+  _exclude: [N5k, N6k, N7k, N8k]
   default_value: false

@@ -21,13 +21,23 @@ require_relative '../lib/cisco_node_utils/evpn_vni'
 
 # TestEvpnVni - Minitest for EvpnVni class
 class TestEvpnVni < CiscoTestCase
+  @skip_unless_supported = 'evpn_vni'
+
   def setup
     # Disable feature bgp and no overlay evpn before each test to
     # ensure we are starting with a clean slate for each test.
     super
     config('no feature bgp')
-    config('no nv overlay evpn')
-    config('no evpn')
+
+    # Some platforms complain when nv overlay is not configured
+    config_no_warn('no nv overlay evpn')
+
+    # Some platforms remove the 'evpn' command when 'no nv overlay evpn'
+    # is processed, while others must remove it explicitly.
+    config_no_warn('no evpn')
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_create_and_destroy
@@ -38,11 +48,9 @@ class TestEvpnVni < CiscoTestCase
     vni.destroy
     vni_list = EvpnVni.vnis
     refute(vni_list.key?('4096'), 'Error: failed to destroy evpn vni 4096')
-  end
 
-  def test_vni_collection
-    vni_list = EvpnVni.vnis
-    assert_equal(true, vni_list.empty?, 'VLAN collection is empty')
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_route_distinguisher
@@ -57,6 +65,9 @@ class TestEvpnVni < CiscoTestCase
     assert_empty(vni.route_distinguisher,
                  'vni route_distinguisher should *NOT* be configured')
     vni.destroy
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   # test route_target
@@ -64,7 +75,11 @@ class TestEvpnVni < CiscoTestCase
     vni = EvpnVni.new(4096)
 
     # test route target both auto and route target both auto evpn
-    opts = [:both, :import, :export]
+    if Utils.nexus_i2_image
+      opts = [:import, :export]
+    else
+      opts = [:both, :import, :export]
+    end
 
     # Master list of communities to test against
     master = ['1.2.3.4:55', '2:2', '55:33', 'auto']
@@ -86,6 +101,9 @@ class TestEvpnVni < CiscoTestCase
     route_target_tester(vni, opts, should, 'Test 4')
 
     vni .destroy
+
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def route_target_tester(vni, opts, should, test_id)

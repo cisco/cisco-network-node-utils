@@ -16,135 +16,99 @@ require_relative 'ciscotest'
 
 # TestNodeExt - Minitest for abstracted Node APIs
 class TestNodeExt < CiscoTestCase
+  def setup
+    super
+    @chassis = (platform == :nexus) ? 'Chassis' : 'Rack 0'
+    @domain = (platform == :nexus) ? 'ip domain-name' : 'domain name'
+  end
+
   def assert_output_check(command: nil, pattern: nil, msg: nil, check: nil)
+    command += ' | no-more' if platform == :nexus
     md = assert_show_match(command: command, pattern: pattern, msg: msg)
     assert_equal(md[1], check, msg)
   end
 
-  def show_run_ospf
-    "\
-router ospf foo
- vrf red
-  log-adjacency-changes
-router ospf bar
- log-adjacency-changes
- vrf red
-  log-adjacency-changes detail
- vrf blue
-!
-router ospf baz
- log-adjacency-changes detail"
-  end
-
-  def test_node_find_subconfig
-    result = find_subconfig(show_run_ospf, /router ospf bar/)
-    assert_equal("\
-log-adjacency-changes
-vrf red
- log-adjacency-changes detail
-vrf blue",
-                 result)
-
-    assert_nil(find_subconfig(result, /vrf blue/))
-
-    assert_equal('log-adjacency-changes detail',
-                 find_subconfig(result, /vrf red/))
-
-    assert_nil(find_subconfig(result, /vrf green/))
-  end
-
-  def test_node_find_ascii
-    # Find an entry in the parent submode, ignoring nested submodes
-    assert_equal(['log-adjacency-changes'],
-                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                            /router ospf bar/))
-    # Find an entry in a nested submode
-    assert_equal(['log-adjacency-changes detail'],
-                 find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                            /router ospf bar/, /vrf red/))
-    # Submode exists but does not have a match
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf bar/, /vrf blue/))
-    # Submode does not exist
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf bar/, /vrf green/))
-
-    # Entry exists in submode only
-    assert_nil(find_ascii(show_run_ospf, /^log-adjacency-changes.*$/,
-                          /router ospf foo/))
-  end
-
-  def test_node_config_get
+  def test_config_get
     result = node.config_get('show_version', 'system_image')
     assert_equal(result, node.system)
   end
 
-  def test_node_config_get_regexp_tokens
-    node.client.config(['interface loopback0', 'shutdown'])
-    node.client.config(['interface loopback1', 'no shutdown'])
+  def test_config_get_regexp_tokens
+    node.client.set(context: ['interface loopback0'], values: ['shutdown'])
+    node.client.set(values: ['interface loopback1', 'no shutdown'])
 
-    result = node.config_get('interface', 'shutdown', 'loopback1')
+    result = node.config_get('interface', 'shutdown', name: 'loopback1')
     refute(result)
   end
 
-  def test_node_config_get_invalid
+  def test_config_get_invalid
     assert_raises IndexError do # no entry
-      node.config_get('feature', 'name')
+      node.config_get('foobar', 'name')
     end
     assert_raises IndexError do # entry but no config_get
       node.config_get('show_system', 'resources')
     end
   end
 
-  def test_node_config_get_default
-    result = node.config_get_default('snmp_server', 'aaa_user_cache_timeout')
-    assert_equal(result, 3600)
+  def test_config_get_default
+    result = node.config_get_default('bgp', 'graceful_restart_timers_restart')
+    assert_equal(120, result)
   end
 
-  def test_node_config_get_default_invalid
+  def test_config_get_default_invalid
     assert_raises IndexError do # no name entry
       node.config_get_default('show_version', 'foobar')
     end
     assert_raises IndexError do # no feature entry
-      node.config_get_default('feature', 'name')
+      node.config_get_default('foobar', 'name')
     end
     assert_raises IndexError do # no default_value defined
       node.config_get_default('show_version', 'version')
     end
   end
 
-  def test_node_config_set
-    node.config_set('snmp_server', 'aaa_user_cache_timeout', '', 100)
-    run = node.client.show('show run all | inc snmp')
-    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal(['100'], val)
+  def test_config_set
+    node.config_set('interface', 'create', name: 'loopback122')
+    run = node.client.get(command: 'show run | inc interface')
+    val = Client.filter_cli(cli_output: run, value: /interface loopback122/i)
+    assert_match(/interface loopback122/i, val[0])
 
-    node.config_set('snmp_server', 'aaa_user_cache_timeout', 'no', 100)
-    run = node.client.show('show run all | inc snmp')
-    val = find_ascii(run, /snmp-server aaa-user cache-timeout (\d+)/)
-    assert_equal(['3600'], val)
+    node.config_set('interface', 'destroy', name: 'loopback122')
+    run = node.client.get(command: 'show run | inc interface')
+    val = Client.filter_cli(cli_output: run, value: /interface loopback122/i)
+    assert_nil(val)
   end
 
-  def test_node_config_set_invalid
+  def test_config_set_invalid
     assert_raises IndexError do
-      node.config_set('feature', 'name')
+      node.config_set('foobar', 'name')
     end
-    assert_raises IndexError do # feature exists but no config_set
+    assert_raises(IndexError, Cisco::UnsupportedError) do
+      # feature exists but no config_set
       node.config_set('show_version', 'system_image')
     end
-    assert_raises ArgumentError do # not enough args
-      node.config_set('vtp', 'domain')
-    end
-    assert_raises ArgumentError do # too many args
-      node.config_set('vtp', 'domain', 'example.com', 'baz')
+    # TODO: none of the supported classes on IOS XR use printf-style args
+    if platform == :nexus # rubocop:disable Style/GuardClause
+      assert_raises ArgumentError do # not enough args
+        node.config_set('vtp', 'domain')
+      end
+      assert_raises ArgumentError do # too many args
+        node.config_set('vtp', 'domain', 'example.com', 'baz')
+      end
     end
   end
 
-  def test_node_cli_caching
+  def test_cli_caching
     # don't use config() here because we are testing caching and flushing
-    @device.cmd('conf t ; ip domain-name minitest ; end')
+    @device.cmd('conf t')
+    @device.cmd("#{@domain} minitest")
+    @device.cmd('commit') if platform == :ios_xr
+    @device.cmd('end')
     dom1 = node.domain_name
-    @device.cmd('conf t ; no ip domain-name minitest ; end')
+    @device.cmd('conf t')
+    @device.cmd("no #{@domain} minitest")
+    @device.cmd('commit') if platform == :ios_xr
+    @device.cmd('end')
     dom2 = node.domain_name
     assert_equal(dom1, dom2) # cached output was used for dom2
 
@@ -153,56 +117,78 @@ vrf blue",
     refute_equal(dom1, dom3)
   end
 
-  def test_node_get_product_description
+  def test_get_product_description
     product_description = node.product_description
-    ref = cmd_ref.lookup('show_version', 'description')
-    assert(ref, 'Error, reference not found')
 
-    assert_output_check(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex,
+    command = node.cmd_ref.lookup('show_version', 'description').get_command
+
+    # Hardware
+    #   cisco Nexus9000 C9396PX Chassis
+    #
+    # Other variants for the line of interest:
+    #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
+    #                                          ^-module_id-ignore!-^
+    #   cisco Nexus3000 C3132Q Chassis
+    #   cisco N3K-C3048TP-1GE
+    pattern = /Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/ if
+      platform[/nexus/]
+    pattern = /DESCR: "(.*)"/ if platform[/ios_xr/]
+
+    assert_output_check(command: command,
+                        pattern: pattern,
                         check:   product_description,
                         msg:     'Error, Product description does not match')
   end
 
-  def test_node_get_product_id
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\nPID: (\S+)/,
+  def test_get_product_id
+    assert_output_check(command: 'show inventory',
+                        pattern: /NAME: \"#{@chassis}\".*\nPID: (\S+)/,
                         check:   node.product_id,
                         msg:     'Error, Product id does not match')
   end
 
-  def test_node_get_product_version_id
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\n.*VID: (\w+)/,
+  def test_get_product_version_id
+    assert_output_check(command: 'show inventory',
+                        pattern: /NAME: \"#{@chassis}\".*\n.*VID: (\w+)/,
                         check:   node.product_version_id,
                         msg:     'Error, Version id does not match')
   end
 
-  def test_node_get_product_serial_number
-    assert_output_check(command: 'show inventory | no-more',
-                        pattern: /NAME: \"Chassis\".*\n.*SN: (\w+)/,
+  def test_get_product_serial_number
+    assert_output_check(command: 'show inventory',
+                        pattern: /NAME: \"#{@chassis}\".*\n.*SN: ([-\w]+)/,
                         check:   node.product_serial_number,
                         msg:     'Error, Serial number does not match')
   end
 
-  def test_node_get_os
-    assert_output_check(command: 'show version | no-more',
-                        pattern: /\n(Cisco.*)\n/,
+  def test_get_os
+    assert_output_check(command: 'show version',
+                        pattern: /\n(Cisco.*Software)/,
                         check:   node.os,
                         msg:     'Error, OS version does not match')
   end
 
-  def test_node_get_os_version
-    ref = cmd_ref.lookup('show_version', 'version')
-    assert(ref, 'Error, reference not found')
-    assert_output_check(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex[1],
+  def test_get_os_version
+    # /N(5|6|7)/
+    #   system:    version 7.3(0)D1(1) [build 7.3(0)D1(1)]
+    # /N(3|8|9)/
+    #   NXOS: version 7.0(3)I3(1) [build 7.0(3)I3(1)]
+
+    pattern = /(?:system|NXOS):\s+version (.*)\n/ if platform[/nexus/]
+    pattern = /IOS XR.*Version (.*)$/ if platform[/ios_xr/]
+
+    assert_output_check(command: 'show version',
+                        pattern: pattern,
                         check:   node.os_version,
                         msg:     'Error, OS version does not match')
   end
 
-  def test_node_get_host_name_when_not_set
-    s = @device.cmd('show running-config all | no-more')
+  def test_get_host_name_when_not_set
+    if platform == :nexus
+      s = @device.cmd('show running-config all | no-more')
+    else
+      s = @device.cmd('show running-config all')
+    end
     pattern = /.*\nhostname (\S+)/
     md = pattern.match(s)
     if md
@@ -223,15 +209,23 @@ vrf blue",
     switchname ? config('no switchname') : config('no hostname')
 
     name = node.host_name
-    assert_equal('switch', name)
+    if platform == :nexus
+      assert_equal('switch', name)
+    else
+      assert_equal('ios', name)
+    end
 
     return unless configured_name
     config("hostname #{configured_name}") if switchname == false
     config("switchname #{configured_name}") if switchname == true
   end
 
-  def test_node_get_host_name_when_set
-    s = @device.cmd('show running-config all | no-more')
+  def test_get_host_name_when_set
+    if platform == :nexus
+      s = @device.cmd('show running-config all | no-more')
+    else
+      s = @device.cmd('show running-config all')
+    end
     pattern = /.*\nhostname (\S+)/
     md = pattern.match(s)
     if md
@@ -263,10 +257,10 @@ vrf blue",
     end
   end
 
-  def test_node_get_domain_name_when_not_set
+  def test_get_domain_name_when_not_set
     # Test with default vrf only
-    s = @device.cmd("show running-config | incl '^ip domain-name'")
-    pattern = /^ip domain-name (\S+)/
+    s = @device.cmd("show running-config | incl '^#{@domain}'")
+    pattern = /^#{@domain} (\S+)/
     md = pattern.match(s)
     if md
       configured_domain_name = md[1]
@@ -274,21 +268,22 @@ vrf blue",
       configured_domain_name = nil
     end
 
-    config("no ip domain-name #{configured_domain_name}")
+    config("no #{@domain} #{configured_domain_name}") unless
+      configured_domain_name.nil?
 
     domain_name = node.domain_name
     assert_equal('', domain_name)
 
     if configured_domain_name
-      config("ip domain-name #{configured_domain_name}")
+      config("#{@domain} #{configured_domain_name}")
     else
-      config('no ip domain-name abc.com')
+      config("no #{@domain} abc.com")
     end
   end
 
-  def test_node_get_domain_name_when_set
+  def test_get_domain_name_when_set
     s = @device.cmd('show running-config | no-more')
-    pattern = /.*\nip domain-name (\S+)/
+    pattern = /.*\n#{@domain} (\S+)/
     md = pattern.match(s)
     if md
       configured_domain_name = md[1]
@@ -296,26 +291,25 @@ vrf blue",
       configured_domain_name = nil
     end
 
-    config('ip domain-name abc.com')
+    config("#{@domain} abc.com")
 
     domain_name = node.domain_name
     assert_equal('abc.com', domain_name)
 
     if configured_domain_name
-      config("ip domain-name #{configured_domain_name}")
+      config("#{@domain} #{configured_domain_name}")
     else
-      config('no ip domain-name abc.com')
+      config("no #{@domain} abc.com")
     end
   end
 
-  def test_node_get_system_uptime
+  def test_get_system_uptime
     node.cache_flush
-    # rubocop:disable Metrics/LineLength
-    pattern = /.*System uptime:\s+(\d+) days, (\d+) hours, (\d+) minutes, (\d+) seconds/
-    # rubocop:enable Metrics/LineLength
 
-    md = assert_show_match(command: 'show system uptime | no-more',
-                           pattern: pattern)
+    cmd = node.cmd_ref.lookup('show_system', 'uptime').get_command
+    pattern = node.cmd_ref.lookup('show_system', 'uptime').get_value
+
+    md = assert_show_match(command: cmd, pattern: pattern)
     node_uptime = node.system_uptime
 
     observed_system_uptime = (
@@ -329,58 +323,75 @@ vrf blue",
            "Error, System uptime delta is (#{delta}), expected (delta < 10)")
   end
 
-  def test_node_get_last_reset_time
-    last_reset_time = node.last_reset_time
-    ref = cmd_ref.lookup('show_version', 'last_reset_time')
-    assert(ref, 'Error, reference not found')
-    # N9k doesn't provide this info at present.
-    if !last_reset_time.empty?
-      assert_output_check(command: ref.test_config_get,
-                          pattern: ref.test_config_get_regex,
-                          check:   last_reset_time,
-                          msg:     'Error, Last reset time does not match')
-    else
-      refute_show_match(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex,
-                        msg:     'output found in ASCII but not in node')
+  def test_get_last_reset_time
+    if validate_property_excluded?('show_version', 'last_reset_time')
+      assert_nil(node.last_reset_time)
+      return
     end
+    assert_output_check(command: 'show version',
+                        pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
+                        check:   node.last_reset_time,
+                        msg:     'Error, Last reset time does not match')
   end
 
-  def test_node_get_last_reset_reason
-    ref = cmd_ref.lookup('show_version', 'last_reset_reason')
-    assert(ref, 'Error, reference not found')
-    assert_output_check(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex,
+  def test_get_last_reset_reason
+    if validate_property_excluded?('show_version', 'last_reset_reason')
+      assert_nil(node.last_reset_reason)
+      return
+    end
+    assert_output_check(command: 'show version',
+                        pattern: /.*\nLast reset.*\n\n?  Reason: (.*)\n/,
                         check:   node.last_reset_reason,
                         msg:     'Error, Last reset reason does not match')
   end
 
-  def test_node_get_system_cpu_utilization
+  def test_get_system_cpu_utilization
+    if validate_property_excluded?('system', 'resources')
+      assert_nil(node.system_cpu_utilization)
+      return
+    end
     cpu_utilization = node.system_cpu_utilization
-    ref = cmd_ref.lookup('system', 'resources')
-    assert(ref, 'Error, reference not found')
-    md = assert_show_match(command: ref.test_config_get,
-                           pattern: ref.test_config_get_regex)
+    md = assert_show_match(
+      command: 'show system resources',
+      pattern: /.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/)
     observed_cpu_utilization = md[1].to_f + md[2].to_f
     delta = cpu_utilization - observed_cpu_utilization
     assert(delta > -15.0 && delta < 15.0,
            "Error: delta #{delta}, not +- 15.0")
   end
 
-  def test_node_get_boot
-    ref = cmd_ref.lookup('show_version', 'boot_image')
-    assert(ref, 'Error, reference not found')
-    assert_output_check(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex,
+  def test_get_boot
+    if validate_property_excluded?('show_version', 'boot_image')
+      assert_nil(node.boot)
+      return
+    end
+
+    # /N(5|6|7)/
+    #   kickstart image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
+    # /N(3|8|9)/
+    #   NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+
+    pattern = /(?:kickstart|NXOS) image file is:\s+(.*)$/
+    assert_output_check(command: 'show version',
+                        pattern: pattern,
                         check:   node.boot,
                         msg:     'Error, Kickstart Image does not match')
   end
 
-  def test_node_get_system
-    ref = cmd_ref.lookup('show_version', 'system_image')
-    assert(ref, 'Error, reference not found')
-    assert_output_check(command: ref.test_config_get,
-                        pattern: ref.test_config_get_regex,
+  def test_get_system
+    if validate_property_excluded?('system', 'resources')
+      assert_nil(node.system)
+      return
+    end
+
+    # /N(5|6|7)/
+    # system image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
+    # /N(3|8|9)/
+    # NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+
+    pattern = /(?:system|NXOS) image file is:\s+(.*)$/
+    assert_output_check(command: 'show version',
+                        pattern: pattern,
                         check:   node.system,
                         msg:     'Error, System Image does not match')
   end

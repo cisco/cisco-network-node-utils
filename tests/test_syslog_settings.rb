@@ -21,12 +21,14 @@ require_relative '../lib/cisco_node_utils/syslog_settings'
 # TestSyslogSetting - Minitest for SyslogSetting node utility.
 class TestSyslogSettings < CiscoTestCase
   def setup
+    return if platform != :nexus
     # setup runs at the beginning of each test
     super
     no_syslogsettings
   end
 
   def teardown
+    return if platform != :nexus
     # teardown runs at the end of each test
     no_syslogsettings
     super
@@ -41,14 +43,25 @@ class TestSyslogSettings < CiscoTestCase
 
   def test_syslogsettings_create
     syslog_setting = Cisco::SyslogSettings.new('default')
-    assert_includes(Cisco::SyslogSettings.syslogsettings, 'default')
-    assert_equal(Cisco::SyslogSettings.syslogsettings['default'],
-                 syslog_setting)
 
-    syslog_setting.timestamp = 'milliseconds'
-    assert_equal(Cisco::SyslogSettings.syslogsettings['default'].timestamp,
-                 'milliseconds')
-    assert_equal(syslog_setting.timestamp,
-                 'milliseconds')
+    if platform == :ios_xr
+      assert_nil(syslog_setting.timestamp)
+      assert_raises(Cisco::UnsupportedError) do
+        syslog_setting.timestamp = 'milliseconds'
+      end
+    else
+      assert_includes(Cisco::SyslogSettings.syslogsettings, 'default')
+      assert_equal(syslog_setting,
+                   Cisco::SyslogSettings.syslogsettings['default'],
+                  )
+
+      syslog_setting.timestamp = 'milliseconds'
+      assert_equal('milliseconds',
+                   Cisco::SyslogSettings.syslogsettings['default'].timestamp,
+                  )
+      assert_equal('milliseconds',
+                   syslog_setting.timestamp,
+                  )
+    end
   end
 end

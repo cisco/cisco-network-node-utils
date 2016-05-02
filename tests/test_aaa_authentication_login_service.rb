@@ -21,6 +21,15 @@ AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED = :unselected
 
 # Test class for AAA Authentication Login Service
 class TestAaaAuthenticationLoginService < CiscoTestCase
+  @skip_unless_supported = 'aaa_auth_login_service'
+
+  def setup
+    super
+    # TBD: Remove once CSCuz44696 is resolved.
+    skip('This test is not currently supported on 7.0(3)I3 images') if
+      node.os_version[/7.0\(3\)I3\(/]
+  end
+
   def unconfig_tacacs
     config('no feature tacacs+')
   end

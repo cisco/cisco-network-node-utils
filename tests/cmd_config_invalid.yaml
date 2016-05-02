@@ -6,7 +6,7 @@ feature-global_bad_syntax:
 
 
 feature-nested_bad_syntax:
-  command: > 
+  command: >
           interface loopback0
             descrion testloopback
 

@@ -27,6 +27,10 @@ module Cisco
       @name = name.downcase
     end
 
+    def to_s
+      "portchannel_global #{name}"
+    end
+
     def self.globals
       { 'default' => PortChannelGlobal.new('default') }
     end
@@ -35,6 +39,10 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def load_balance_type
+      config_get('portchannel_global', 'load_balance_type')
+    end
+
     def hash_distribution
       config_get('portchannel_global', 'hash_distribution')
     end
@@ -42,8 +50,6 @@ module Cisco
     def hash_distribution=(val)
       config_set('portchannel_global',
                  'hash_distribution', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_hash_distribution
@@ -56,8 +62,6 @@ module Cisco
 
     def load_defer=(val)
       config_set('portchannel_global', 'load_defer', val)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_load_defer
@@ -72,8 +76,6 @@ module Cisco
       fail TypeError unless state == true || state == false
       no_cmd = (state ? '' : 'no')
       config_set('portchannel_global', 'resilient', no_cmd)
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
     def default_resilient
@@ -105,10 +107,14 @@ module Cisco
         params = line.split
         lb_type = config_get('portchannel_global', 'load_balance_type')
         case lb_type.to_sym
+        when :no_rotate # n3k
+          _parse_no_rotate_params(hash, params, line)
         when :ethernet # n6k
           _parse_ethernet_params(hash, params)
         when :asymmetric # n7k
           _parse_asymmetric_params(hash, params, line)
+        when :no_hash # n8k
+          _parse_no_hash_params(hash, params)
         when :symmetry # n9k
           _parse_symmetry_params(hash, params, line)
         end
@@ -156,11 +162,6 @@ module Cisco
       port_channel_load_balance[:hash_poly]
     end
 
-    def default_hash_poly
-      config_get_default('portchannel_global',
-                         'hash_poly')
-    end
-
     def rotate
       port_channel_load_balance[:rotate]
     end
@@ -182,6 +183,19 @@ module Cisco
     def port_channel_load_balance=(bselect, bhash, hpoly, asy, sy, conc, rot)
       lb_type = config_get('portchannel_global', 'load_balance_type')
       case lb_type.to_sym
+      when :no_rotate # n3k
+        sym = sy ? 'symmetric' : ''
+        if bselect == 'src'
+          sel = 'source'
+        elsif bselect == 'dst'
+          sel = 'destination'
+        else
+          sel = 'source-dest'
+        end
+        sel_hash = sel + '-' + bhash
+        # port-channel load-balance ethernet source-dest-ip symmetric
+        config_set('portchannel_global', 'port_channel_load_balance',
+                   'ethernet', sel_hash, sym, '', '', '')
       when :ethernet # n6k
         if bselect == 'src'
           sel = 'source'
@@ -199,6 +213,12 @@ module Cisco
         # port-channel load-balance dst ip-l4port rotate 4 asymmetric
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, 'rotate', rot.to_s, asym, '')
+      when :no_hash # n8k
+        # port-channel load-balance dst ip-l4port rotate 4
+        rot_str = rot.zero? ? '' : 'rotate'
+        rot_val = rot.zero? ? '' : rot.to_s
+        config_set('portchannel_global', 'port_channel_load_balance',
+                   bselect, bhash, rot_str, rot_val, '', '')
       when :symmetry # n9k
         sym = sy ? 'symmetric' : ''
         concat = conc ? 'concatenation' : ''
@@ -208,19 +228,58 @@ module Cisco
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, rot_str, rot_val, concat, sym)
       end
-    rescue Cisco::CliError => e
-      raise "[#{@name}] '#{e.command}' : #{e.clierror}"
     end
 
-    # on n6k, the bundle hash and bundle select are
-    # merged into one and so we need to break them apart,
-    # also they are called source and destination instead of
-    # src and dst as in other devices, so we convert them
+    # N3k: The bundle hash and bundle select are merged into one output;
+    # also note that the field names are source & destination instead of
+    # src & dst as in other devices.
+    def _parse_no_rotate_params(hash, params, line)
+      sym = (line.include? 'symmetric') ? true : false
+
+      select_hash = params[1]
+      lparams = select_hash.split('-')
+      if lparams[0].downcase == 'destination'
+        bselect = 'dst'
+        bhash = lparams[1]
+        # there are bundles hashes like ip-gre which
+        # need extra processing
+        bhash += '-gre' if select_hash.include? 'gre'
+      else
+        if select_hash.include? '-dest-'
+          bselect = 'src-dst'
+          bhash = lparams[2]
+          bhash += '-gre' if select_hash.include? 'gre'
+          # there are bundles hashes like ip-only and
+          # port-only specific to src-dst
+          bhash += '-only' if select_hash.include? 'only'
+        else
+          bselect = 'src'
+          bhash = lparams[1]
+          # there are bundles hashes like ip-gre which
+          # need extra processing
+          bhash += '-gre' if select_hash.include? 'gre'
+        end
+      end
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
+      hash[:symmetry] = sym
+      hash
+    end
+
+    # N5k/N6k: The bundle hash and bundle select are merged into one output;
+    # also note that the field names are source & destination instead of
+    # src & dst as in other devices.
     def _parse_ethernet_params(hash, params)
       hash_poly = params[2]
-      # hash_poly is not shown on the running config
-      # if it is default under some circumstatnces
+
+      # Depending on the chipset, hash_poly may have have a different
+      # default value within the same platform family (this is done to
+      # avoid polarization) but there is currently no command available
+      # to dynamically determine the default state. As a result the
+      # getter simply hard-codes a default value which means it may
+      # encounter occasional idempotence issues.
       hash_poly = hash_poly.nil? ? 'CRC10b' : hash_poly
+
       select_hash = params[1]
       lparams = select_hash.split('-')
       if lparams[0].downcase == 'destination'
@@ -254,6 +313,17 @@ module Cisco
       hash[:bundle_select] = bselect
       hash[:bundle_hash] = bhash
       hash[:asymmetric] = asym
+      hash[:rotate] = rotate
+      hash
+    end
+
+    def _parse_no_hash_params(hash, params)
+      bselect = params[0]
+      bhash = params[1]
+      ri = params.index('rotate')
+      rotate = params[ri + 1].to_i
+      hash[:bundle_select] = bselect
+      hash[:bundle_hash] = bhash
       hash[:rotate] = rotate
       hash
     end

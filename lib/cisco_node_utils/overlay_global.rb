@@ -51,6 +51,7 @@ module Cisco
     end
 
     def dup_host_ip_addr_detection_set(host_moves, timeout)
+      Feature.fabric_forwarding_enable
       Feature.nv_overlay_evpn_enable
       if host_moves == default_dup_host_ip_addr_detection_host_moves &&
          timeout == default_dup_host_ip_addr_detection_timeout
@@ -127,8 +128,7 @@ module Cisco
     def anycast_gateway_mac
       return nil unless Feature.nv_overlay_evpn_enabled?
       mac = config_get('overlay_global', 'anycast_gateway_mac')
-      # This value gets 0-padded when nvgened, so we need to convert it.
-      Utils.zero_pad_macaddr(mac).nil? ? default_anycast_gateway_mac : mac
+      mac.nil? || mac.empty? ? default_anycast_gateway_mac : mac.downcase
     end
 
     def anycast_gateway_mac=(mac_addr)
