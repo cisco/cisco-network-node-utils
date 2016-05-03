@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.description   = <<-EOF
 Utilities for management of Cisco network nodes.
 Designed to work with Puppet and Chef.
-Currently supports NX-OS and IOS XR nodes.
+Currently supports NX-OS nodes.
   EOF
   spec.license       = 'Apache-2.0'
   spec.homepage      = 'https://github.com/cisco/cisco-network-node-utils'
