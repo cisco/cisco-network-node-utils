@@ -61,7 +61,7 @@ module Cisco
     end
 
     def wait_for_process_initialized
-      return unless node.product_id[/N(5|6)/]
+      return unless node.product_id[/N(5|6|8)/]
 
       # Hack for slow-start platforms which will have setter failures if the
       # ospf instance is still initializing. To see this problem in a sandbox
