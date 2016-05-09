@@ -33,7 +33,6 @@ mapped_vni:
     get_command: 'show running vlan 1-4094'
   N6k: *mapped_vni_n5_6k
   kind: int
-  get_command: 'show running vlan'
   get_context: ['/^vlan <vlan>$/']
   get_value: '/^vn-segment (\d+)$/'
   set_context: ['vlan <vlan>']
