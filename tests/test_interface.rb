@@ -756,7 +756,6 @@ class TestInterface < CiscoTestCase
 
       # Platforms raise error unless speed properly configured first
       speeds = valid_speeds(interface)
-      puts "\n\nSPEEDS = #{speeds}\n\n"
       negotiate_auto_helper(interface, 'auto') if speeds.delete('auto')
 
       non_auto = speeds.shift
