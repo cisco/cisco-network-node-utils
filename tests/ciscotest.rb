@@ -225,6 +225,10 @@ class CiscoTestCase < TestCase
     require_relative '../lib/cisco_node_utils/vrf'
     Vrf.vrfs.each do |vrf, obj|
       next if vrf[/management/]
+      # this is for n8k only for bug
+      # CSCuz56697 unable to remove vrf context sometimes
+      # TBD: remove it once the ddts is fixed
+      config 'vrf context ' + vrf if node.product_id[/N8/]
       obj.destroy
     end
   end
