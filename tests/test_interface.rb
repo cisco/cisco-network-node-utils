@@ -754,12 +754,21 @@ class TestInterface < CiscoTestCase
     else
       @default_show_command = show_cmd(inf_name)
 
-      # Platforms raise error unless speed properly configured first
+      # Platforms raise error unless speed is properly configured first
       speeds = valid_speeds(interface)
       negotiate_auto_helper(interface, 'auto') if speeds.delete('auto')
 
       non_auto = speeds.shift
-      negotiate_auto_helper(interface, non_auto) unless non_auto.nil?
+      # Sometimes portchannel does not list supported speeds, so we try '100'
+      if non_auto.nil?
+        begin
+          interface.speed = '100'
+        rescue Cisco::CliError => e
+          interface_supports_property?(intf, e.message)
+        end
+        non_auto = '100'
+      end
+      negotiate_auto_helper(interface, non_auto)
     end
 
     # Cleanup
@@ -781,7 +790,7 @@ class TestInterface < CiscoTestCase
 
     @default_show_command = show_cmd(inf_name)
 
-    # Platforms raise error unless speed properly configured first
+    # Platforms raise error unless speed is properly configured first
     speeds = valid_speeds(interface)
     negotiate_auto_helper(interface, 'auto') if speeds.delete('auto')
     negotiate_auto_helper(interface, speeds.shift)
