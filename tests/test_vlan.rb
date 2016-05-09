@@ -290,6 +290,12 @@ class TestVlan < CiscoTestCase
   end
 
   def test_mapped_vnis
+    if validate_property_excluded?('vlan', 'mapped_vni')
+      assert_raises(Cisco::UnsupportedError) do
+        Vlan.new(100).mapped_vni = 10_000
+      end
+      return
+    end
     # Map
     v1 = Vlan.new(100)
     vni1 = 10_000

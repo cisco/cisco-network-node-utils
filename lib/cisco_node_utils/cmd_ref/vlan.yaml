@@ -24,15 +24,21 @@ fabric_control:
   default_value: false
 
 mapped_vni:
-  N3k: &mapped_vni_n3k_n9k
-    kind: int
+  _exclude: [N7k]
+  N3k: &mapped_vni_n3_8_9k
     get_command: 'show running vlan'
-    get_context: ['/^vlan <vlan>$/']
-    get_value: '/^vn-segment (\d+)$/'
-    set_context: ['vlan <vlan>']
-    set_value:  '<state> vn-segment <vni> ; end'
-    default_value: ''
-  N9k: *mapped_vni_n3k_n9k
+  N8k: *mapped_vni_n3_8_9k
+  N9k: *mapped_vni_n3_8_9k
+  N5k: &mapped_vni_n5_6k
+    get_command: 'show running vlan 1-4094'
+  N6k: *mapped_vni_n5_6k
+  kind: int
+  get_command: 'show running vlan'
+  get_context: ['/^vlan <vlan>$/']
+  get_value: '/^vn-segment (\d+)$/'
+  set_context: ['vlan <vlan>']
+  set_value:  '<state> vn-segment <vni> ; end'
+  default_value: ''
 
 mode:
   _exclude: [N3k, N9k]
