@@ -712,11 +712,9 @@ class TestInterface < CiscoTestCase
       return
     end
 
-    # Test non-defaults: Note that 'speed' and 'negotiate' are tightly coupled
-    # on some platforms. Some platforms need the speed command to be toggled
-    # before negotiate will work without raising an error; while others just
-    # need a non-'auto' speed value or may not support 'auto' at all; therefore
-    # just set a static speed value before setting any negotiate settings.
+    # Note that 'speed' and 'negotiate' are tightly coupled
+    # When speed is 'auto', set negotiate auto to 'true'
+    # When speed is static value, turn off negotiate auto
     pattern = /^\s+negotiate auto/
     interface.speed = speed
     if speed == 'auto'
@@ -759,16 +757,7 @@ class TestInterface < CiscoTestCase
       negotiate_auto_helper(interface, 'auto') if speeds.delete('auto')
 
       non_auto = speeds.shift
-      # Sometimes portchannel does not list supported speeds, so we try '100'
-      if non_auto.nil?
-        begin
-          interface.speed = '100'
-        rescue Cisco::CliError => e
-          interface_supports_property?(intf, e.message)
-        end
-        non_auto = '100'
-      end
-      negotiate_auto_helper(interface, non_auto)
+      negotiate_auto_helper(interface, non_auto) unless non_auto.nil?
     end
 
     # Cleanup
@@ -793,7 +782,9 @@ class TestInterface < CiscoTestCase
     # Platforms raise error unless speed is properly configured first
     speeds = valid_speeds(interface)
     negotiate_auto_helper(interface, 'auto') if speeds.delete('auto')
-    negotiate_auto_helper(interface, speeds.shift)
+
+    non_auto = speeds.shift
+    negotiate_auto_helper(interface, non_auto) unless non_auto.nil?
   end
 
   def test_negotiate_auto_loopback
