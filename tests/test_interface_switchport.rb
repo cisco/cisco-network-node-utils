@@ -30,13 +30,17 @@ class TestInterfaceSwitchport < CiscoTestCase
 
   def setup
     super
-    config('no feature vtp', 'no feature interface-vlan')
+    config_no_warn('no feature vtp', 'no feature interface-vlan')
     @interface = Interface.new(interfaces[0])
   end
 
   def teardown
-    config("default interface ethernet #{interfaces_id[0]}")
+    interface_ethernet_default(interfaces[0])
     super
+  end
+
+  def interface_ethernet_default(ethernet_intf)
+    config("default interface #{ethernet_intf}")
   end
 
   def mgmt_intf
@@ -115,7 +119,13 @@ class TestSwitchport < TestInterfaceSwitchport
   end
 
   def test_switchport_vtp_disabled_unsupported_mode_fex
-    if platform == :ios_xr
+    if validate_property_excluded?('feature', 'fex')
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.fex_enable
+      end
+      return
+    end
+    if validate_property_excluded?('interface', 'switchport')
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_mode = :fex_fabric
       end
@@ -197,7 +207,6 @@ class TestSwitchport < TestInterfaceSwitchport
       :disabled,
       :access,
       :trunk,
-      #:fex_fabric, (fex is tested by test_interface_switchport_mode_valid_fex)
       :tunnel,
     ]
 
@@ -221,30 +230,21 @@ class TestSwitchport < TestInterfaceSwitchport
   end
 
   def test_interface_switchport_mode_valid_fex
-    skip('Not supported on IOS XR') if platform == :ios_xr
-    switchport_modes = [
-      :unknown,
-      :fex_fabric,
-    ]
-
-    switchport_modes.each do |start|
-      switchport_modes.each do |finish|
-        next if start == :unknown || finish == :unknown
-        begin
-          # puts "#{start},#{finish}"
-          interface.switchport_mode = start
-          assert_equal(start, interface.switchport_mode,
-                       "Error: Switchport mode, #{start}, not as expected")
-          interface.switchport_mode = finish
-          assert_equal(finish, interface.switchport_mode,
-                       "Error: Switchport mode, #{finish}, not as expected")
-        rescue Cisco::CliError => e
-          msg = "[#{interfaces[0]}] switchport_mode is not supported " \
-                'on this interface'
-          assert_equal(msg.downcase, e.message)
-        end
+    if validate_property_excluded?('feature', 'fex')
+      assert_raises(Cisco::UnsupportedError) do
+        Feature.fex_enable
       end
+      return
     end
+    if validate_property_excluded?('interface', 'switchport')
+      assert_raises(Cisco::UnsupportedError) do
+        interface.switchport_mode = :fex_fabric
+      end
+      return
+    end
+
+    interface.switchport_mode = :fex_fabric
+    assert_equal(interface.switchport_mode, :fex_fabric)
   end
 
   def test_interface_switchport_trunk_allowed_vlan
@@ -315,46 +315,6 @@ class TestSwitchport < TestInterfaceSwitchport
       end
     end
   end
-
-  # TODO: Run this test at your peril as it can cause timeouts for this test and
-  # others - 'no feature-set fex' states:
-  # "Feature-set Operation may take up to 30 minutes depending on the
-  #  size of configuration."
-  #
-  #   def test_interface_switchport_fex_feature
-  #     test_matrix = {
-  #       #    [ <set_state>,  <expected> ]
-  #       1 => [:uninstalled, :uninstalled], # noop
-  #       2 => [:installed,   :installed],
-  #       3 => [:uninstalled, :uninstalled],
-  #       4 => [:enabled,     :enabled],
-  #       5 => [:enabled,     :enabled],     # noop
-  #       6 => [:installed,   :enabled],     # noop
-  #       7 => [:uninstalled, :uninstalled],
-  #       8 => [:disabled,    :uninstalled], # noop
-  #       9 => [:installed,   :installed],
-  #       10 => [:installed,   :installed],  # noop
-  #       11 => [:enabled,     :enabled],
-  #       12 => [:disabled,    :disabled],
-  #       13 => [:uninstalled, :uninstalled],
-  #       14 => [:installed,   :installed],
-  #       15 => [:disabled,    :installed],  # noop
-  #       16 => [:uninstalled, :uninstalled],
-  #     }
-  #     interface = Interface.new(interfaces[0])
-  #     # start test from :uninstalled state
-  #     interface.fex_feature_set(:uninstalled)
-  #     from = interface.fex_feature
-  #     test_matrix.each do |id,test|
-  #       #puts "Test #{id}: #{test}, (from: #{from}"
-  #       set_state, expected = test
-  #       interface.fex_feature_set(set_state)
-  #       curr = interface.fex_feature
-  #       assert_equal(expected, curr,
-  #                    "Error: fex test #{id}: from #{from} to #{set_state}")
-  #       from = curr
-  #     end
-  #   end
 
   def test_system_default_switchport_on_off
     if platform == :nexus

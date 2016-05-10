@@ -37,18 +37,18 @@ class Cisco::Client::NXAPI < Cisco::Client
 
   # Constructor for Client. By default this connects to the local
   # unix domain socket. If you need to connect to a remote device,
-  # you must provide the address/username/password parameters.
-  def initialize(address=nil, username=nil, password=nil)
-    super(address:      address,
-          username:     username,
-          password:     password,
-          data_formats: [:nxapi_structured, :cli],
-          platform:     :nexus)
+  # you must provide the host/username/password parameters.
+  def initialize(**kwargs)
+    # rubocop:disable Style/HashSyntax
+    super(data_formats: [:nxapi_structured, :cli],
+          platform:     :nexus,
+          **kwargs)
+    # rubocop:enable Style/HashSyntax
     # Default: connect to unix domain socket on localhost, if available
-    if address.nil?
+    if @host.nil?
       unless File.socket?(NXAPI_UDS)
         fail Cisco::ConnectionRefused, \
-             "No address specified but no UDS found at #{NXAPI_UDS} either"
+             "No host specified but no UDS found at #{NXAPI_UDS} either"
       end
       # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
       # which supports connection to local unix domain sockets. We need this
@@ -59,7 +59,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     else
       # Remote connection. This is primarily expected
       # when running e.g. from a Unix server as part of Minitest.
-      @http = Net::HTTP.new(address)
+      @http = Net::HTTP.new(@host)
     end
     # The default read time out is 60 seconds, which may be too short for
     # scaled configuration to apply. Change it to 300 seconds, which is
@@ -71,21 +71,16 @@ class Cisco::Client::NXAPI < Cisco::Client
     get(command: 'show hostname')
   end
 
-  def validate_args(address, username, password)
+  def self.validate_args(**kwargs)
     super
-    if address.nil?
+    if kwargs[:host].nil?
       # Connection to UDS - no username or password either
-      fail ArgumentError unless username.nil? && password.nil?
+      fail ArgumentError unless kwargs[:username].nil? && kwargs[:password].nil?
     else
-      fail ArgumentError, 'no port number permitted' if address =~ /:/
       # Connection to remote system - username and password are required
-      fail TypeError, 'username is required' if username.nil?
-      fail TypeError, 'password is required' if password.nil?
+      fail TypeError, 'username is required' if kwargs[:username].nil?
+      fail TypeError, 'password is required' if kwargs[:password].nil?
     end
-  end
-
-  def reload
-    # no-op for now
   end
 
   # Clear the cache of CLI output results.
@@ -191,6 +186,9 @@ class Cisco::Client::NXAPI < Cisco::Client
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
     begin
+      # Explicitly use http to avoid EOFError
+      # http://stackoverflow.com/a/23080693
+      @http.use_ssl = false
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
@@ -291,6 +289,11 @@ class Cisco::Client::NXAPI < Cisco::Client
       # handle accordingly
       fail Cisco::RequestNotSupported, \
            "Structured output not supported for #{command}"
+    # Error 432: Requested object does not exist
+    # Ignore 432 errors because it means that a property is not configured
+    elsif output['code'] =~ /[45]\d\d/ && output['code'] != '432'
+      fail Cisco::RequestFailed, \
+           "#{output['code']} Error: #{output['msg']}"
     else
       debug("Result for '#{command}': #{output['msg']}")
       if output['body'] && !output['body'].empty?

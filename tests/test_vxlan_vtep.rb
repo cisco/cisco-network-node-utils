@@ -30,37 +30,26 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def teardown
+    Feature.nv_overlay_disable
     return unless Vdc.vdc_support
     # Reset the vdc module type back to default
     v = Vdc.new('default')
     v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
   end
 
-  def compatible_interface?
-    # MT-full tests require a specific linecard; either because they need a
-    # compatible interface or simply to enable the features. Either way
-    # we will provide an appropriate interface name if the linecard is present.
-    # Example 'show mod' output to match against:
-    #   '9  12  10/40 Gbps Ethernet Module  N7K-F312FQ-25 ok'
-    sh_mod = @device.cmd("sh mod | i '^[0-9]+.*N7K-F3'")[/^(\d+)\s.*N7K-F3/]
-    slot = sh_mod.nil? ? nil : Regexp.last_match[1]
-    skip('Unable to find a compatible interface in chassis') if slot.nil?
-
-    "ethernet#{slot}/1"
-  end
-
   def mt_full_env_setup
     skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    compatible_interface?
+    vxlan_linecard?
     v = Vdc.new('default')
     v.limit_resource_module_type = 'f3' unless
       v.limit_resource_module_type == 'f3'
-    config('no feature nv overlay')
+    Feature.nv_overlay_disable
   end
 
   def mt_lite_env_setup
     skip('Platform does not support MT-lite') unless VxlanVtep.mt_lite_support
-    config('no feature nv overlay')
+    vxlan_linecard?
+    Feature.nv_overlay_disable
     config('no feature vn-segment-vlan-based')
   end
 
@@ -219,6 +208,14 @@ class TestVxlanVtep < CiscoTestCase
     mt_lite_env_setup if VxlanVtep.mt_lite_support
 
     vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'source_intf_hold_down_time')
+      assert_nil(vtep.source_interface_hold_down_time)
+      assert_nil(vtep.default_source_interface_hold_down_time)
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.source_interface_hold_down_time = 50
+      end
+      return
+    end
 
     # Set source_interface to non-default value
     val = 'loopback55'

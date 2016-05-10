@@ -1,18 +1,19 @@
 # radius_server_group
 ---
-_exclude: [ios_xr]
-
 _template:
   multiple: true
   default_value: []
-  get_command: "show running-config radius all"
+  nexus:
+    get_command: "show running-config radius all"
+  ios_xr:
+    get_command: "show running-config aaa"
 
 group:
   get_value: '/^aaa group server radius (\S+)/'
   set_value: '<state> aaa group server radius <name>'
 
 servers:
-  get_context: ['/^aaa group server radius %s $/i']
+  get_context: ['/^aaa group server radius %s/i']
   get_value: '/server (\S+)/'
   set_context: ['aaa group server radius <group>']
   set_value: '<state> server <ip>'

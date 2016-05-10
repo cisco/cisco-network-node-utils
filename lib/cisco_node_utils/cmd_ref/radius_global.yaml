@@ -1,27 +1,30 @@
 # radius_global.yaml
 ---
-_exclude: [ios_xr]
+_template:
+  nexus:
+    get_command: "show running-config radius all"
+  ios_xr:
+    get_command: "show running-config radius-server"
 
 key:
-  get_command: "show running-config radius all"
   get_value: '/^radius-server key \d+\s+(\S+)/'
   set_value: '<state> radius-server key <key>'
 
 key_format:
   kind: int
-  get_command: "show running-config radius all"
   get_value: '/^radius-server key (\d).*/'
 
 retransmit:
   kind: int
-  get_command: "show running-config radius all"
   get_value: '/^radius-server retransmit (\d+).*/'
   set_value: '<state> radius-server retransmit <count>'
-  default_value: 1
+  nexus:
+    default_value: 1
+  ios_xr:
+    default_value: 3
 
 timeout:
   kind: int
-  get_command: "show running-config radius all"
   get_value: '/^radius-server timeout (\d+).*/'
   set_value: '<state> radius-server timeout <timeout>'
   default_value: 5

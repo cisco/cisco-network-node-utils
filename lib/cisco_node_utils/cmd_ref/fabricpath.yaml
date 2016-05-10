@@ -1,7 +1,6 @@
 # fabricpath
 ---
-# Fabricpath feature is not available on N3K and N9K
-_exclude: [N3k, N9k, ios_xr]
+_exclude: [N3k, N8k, N9k, ios_xr]
 
 aggregate_multicast_routes:
   _exclude: [N5k, N6k]
@@ -10,7 +9,7 @@ aggregate_multicast_routes:
   get_value: '/^fabricpath multicast aggregate\-routes\s*$/'
   set_value: "<state> fabricpath multicast aggregate-routes"
   default_value: false
-  
+
 allocate_delay:
   kind: int
   get_command: "show run fabricpath all"
@@ -18,7 +17,7 @@ allocate_delay:
   set_value: "<state> fabricpath timers allocate-delay <delay>"
   default_value: 10
 
-auto_switch_id: 
+auto_switch_id:
   kind: int
   get_command: "show fabricpath switch-id"
   get_value: '/^\*\s+(\d+).*No\s*$/'
@@ -34,9 +33,8 @@ feature_install:
 
 graceful_merge:
   auto_default: false
-  kind: boolean
   get_command: "show run fabricpath all"
-  get_value: '/^fabricpath graceful\-merge disable\s*$/'
+  get_value: '/^fabricpath graceful-merge disable\s*$/'
   set_value: "<state> fabricpath graceful-merge disable"
   default_value: enable
 
@@ -54,7 +52,7 @@ linkup_delay_always:
   get_value: '/^fabricpath timers linkup\-delay always\s*$/'
   set_value: "<state> fabricpath timers linkup-delay always"
   default_value: false
-  
+
 linkup_delay_enable:
   _exclude: [N5k, N6k]
   auto_default: false
@@ -63,23 +61,29 @@ linkup_delay_enable:
   get_value: '/^fabricpath linkup\-delay\s*$/'
   set_value: "<state> fabricpath linkup-delay"
   default_value: true
-  
+
 loadbalance_algorithm:
   kind: string
   get_command: "show run fabricpath all"
   get_value: '/^fabricpath load\-balance (\S+)\s*$/'
   set_value: "<state> fabricpath load-balance <algo>"
-  N5k:
+  N5k: &loadbal_alg_src_dst
     default_value: "source-destination"
+  N6k: *loadbal_alg_src_dst
   else:
     default_value: "symmetric"
+
+loadbalance_algorithm_symmetric_support:
+  _exclude: [N5k, N6k]
+  kind: boolean
+  default_only: true
 
 loadbalance_multicast_has_vlan:
   _exclude: [N5k, N6k]
   kind: boolean
   auto_default: false
-  get_command: "show fabricpath load-balance | begin Ftag"
-  get_value: '/^Use VLAN: TRUE\s*$/'
+  get_command: 'show run fabricpath all'
+  get_value: '/^fabricpath load-balance multicast .*include-vlan/'
   default_value: true
 
 loadbalance_multicast_reset:
@@ -91,17 +95,17 @@ loadbalance_multicast_rotate:
   kind: int
   get_command: "show fabricpath load-balance | begin Ftag"
   get_value: '/^Rotate amount: (\d+)/'
-  default_value: 1
- 
+  # default_value: n/a. The default rotate amount is randomized to avoid polarization.
+
 loadbalance_multicast_set:
   _exclude: [N5k, N6k]
-  set_value: 'fabricpath load-balance multicast <rotate_amt> <inc_vlan>'
+  set_value: 'fabricpath load-balance multicast <rotate> <has_vlan>'
 
 loadbalance_unicast_has_vlan:
   kind: boolean
   auto_default: false
-  get_command: "show fabricpath load-balance | begin ECMP next 4"
-  get_value: '/^Use VLAN: TRUE\s*$/'
+  get_command: 'show run fabricpath all'
+  get_value: '/^fabricpath load-balance unicast .*include-vlan/'
   set_value: "<state> fabricpath load-balance unicast include-vlan"
   default_value: true
 
@@ -109,7 +113,7 @@ loadbalance_unicast_layer:
   kind: string
   get_command: "show fabricpath load-balance | begin ECMP next 4"
   get_value: '/^L3\/L4 Preference: (\S+)/'
-  set_value: "<state> fabricpath load-balance unicast <pref>"
+  set_value: "<state> fabricpath load-balance unicast <layer>"
   default_value: "mixed"
 
 loadbalance_unicast_reset:
@@ -120,28 +124,29 @@ loadbalance_unicast_rotate:
   kind: int
   get_command: "show fabricpath load-balance | begin ECMP next 4"
   get_value: '/^Rotate amount: (\d+)/'
-  default_value: 1
+  # default_value: n/a. The default rotate amount is randomized to avoid polarization.
 
 loadbalance_unicast_set:
-  set_value: 'fabricpath load-balance unicast <pref> <rotate_amt> <inc_vlan>'
+  set_value: 'fabricpath load-balance unicast <layer> <rotate> <has_vlan>'
 
 loadbalance_unicast_support:
   kind: string
-  N5k:
+  N5k: &loadbal_uni_split
     default_only: "split"
-  N6k:
-    default_only: "split"
+  N6k: *loadbal_uni_split
   else:
     default_only: "combined"
 
 mode:
-  _exclude:
-    - N5k
   kind: string
   get_command: "show run fabricpath all"
   get_value: '/^fabricpath mode (\S+)/'
   set_value: "<state> fabricpath mode transit"
   default_value: "normal"
+
+supported_module_pids:
+  _exclude: [N5k, N6k]
+  default_only: 'N7[K7]-(?:F2.*2.E|F3|F4|M3)'
 
 supported_modules:
   _exclude: [N5k, N6k]

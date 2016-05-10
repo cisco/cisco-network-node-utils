@@ -151,16 +151,12 @@ module Cisco
 
     attr_reader :cmd_ref, :client
 
-    def self.instance(*args)
-      if @instance && !args.empty? && args != @args
-        fail "Can't change existing instance (#{@args} -> #{args})"
-      end
-      @args ||= args
-      @instance ||= new(*args)
+    def self.instance
+      @instance ||= new
     end
 
-    def initialize(*args)
-      @client = Cisco::Client.create(*args)
+    def initialize
+      @client = Cisco::Client.create
       @cmd_ref = nil
       @cmd_ref = CommandReference.new(product:      product_id,
                                       platform:     @client.platform,

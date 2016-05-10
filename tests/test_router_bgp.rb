@@ -71,8 +71,8 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def teardown
-    super
     remove_all_bgps
+    super
   end
 
   def get_routerbgp_match_line(as_number, vrf='default')
@@ -172,18 +172,42 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_valid_asn
-    [1, 4_294_967_295, '55', '1.0', '1.65535',
-     '65535.0', '65535.65535'].each do |test|
-      rtr_bgp = RouterBgp.new(test)
-      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
-      rtr_bgp.destroy
+  def test_process_initialized
+    return if validate_property_excluded?('bgp', 'process_initialized')
 
-      vrf = 'Duke'
-      bgp_vrf = create_bgp_vrf(test, vrf)
-      assert_equal(test.to_s, RouterBgp.routers.keys[0].to_s)
-      bgp_vrf.destroy
-      rtr_bgp.destroy
+    # Cleanup may be slow on some platforms; make sure it's really dead
+    bgp = RouterBgp.new('55', 'default', false)
+    if bgp.process_initialized?
+      sleep 4
+      node.cache_flush
+    end
+    refute(bgp.process_initialized?, 'bgp should not be initialized')
+
+    bgp = RouterBgp.new('55', 'default')
+    bgp.wait_for_process_initialized unless bgp.process_initialized?
+    assert(bgp.process_initialized?, 'bgp should be initialized')
+  end
+
+  def wait_for_process_kill(bgp)
+    return unless node.product_id[/N(5|6)/]
+    # Hack for slow-start platforms which can also be slow-to-die.
+    # Tests that involve many quick process-start / process-stop cycles
+    # are prone to failure without this delay.
+    4.times do
+      return unless bgp.process_initialized?
+      sleep 1
+      node.cache_flush
+    end
+    fail "#{bgp} :: process is still running"
+  end
+
+  def test_valid_asn
+    [1, 4_294_967_295, '55', '1.0', '1.65535', '65535.0', '65535.65535'
+    ].each do |asn|
+      b = RouterBgp.new(asn)
+      assert_equal(asn.to_s, RouterBgp.routers.keys[0].to_s)
+      b.destroy
+      wait_for_process_kill(b)
     end
   end
 
@@ -194,14 +218,16 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
 
     if platform == :ios_xr
-      s = config('show run router bgp')
-      line = /"router bgp"/.match(s)
-      assert_nil(line, "Error: 'router bgp' still configured")
+      command = 'show run router bgp'
+      pattern = /"router bgp"/
     else
-      s = config('show run all | no-more')
-      line = /"feature bgp"/.match(s)
-      assert_nil(line, "Error: 'feature bgp' still configured")
+      command = 'show run all | no-more'
+      pattern = /"feature bgp"/
     end
+
+    refute_show_match(
+      command: command, pattern: pattern,
+      msg: "Error: 'router bgp' still configured")
   end
 
   def test_create_invalid_multiple
@@ -469,7 +495,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv4
-    if node.product_id[/ios_xr|N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv4)
       assert_nil(b.default_disable_policy_batching_ipv4)
@@ -498,7 +524,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv6
-    if node.product_id[/ios_xr|N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv6)
       assert_nil(b.default_disable_policy_batching_ipv6)
@@ -966,7 +992,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_neighbor_down_fib_accelerate
-    if node.product_id[/ios_xr|N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
       b = RouterBgp.new(1)
       assert_nil(b.neighbor_down_fib_accelerate)
       assert_nil(b.default_neighbor_down_fib_accelerate)
@@ -1002,7 +1028,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_reconnect_interval
-    if node.product_id[/ios_xr|N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
       b = RouterBgp.new(1)
       assert_nil(b.reconnect_interval)
       assert_nil(b.default_reconnect_interval)
@@ -1046,6 +1072,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_route_distinguisher
+    skip_nexus_i2_image?
     remove_all_vrfs
 
     bgp = setup_vrf

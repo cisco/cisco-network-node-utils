@@ -462,8 +462,7 @@ The more specific assertions also produce more helpful failure messages if somet
 
 ### <a name="mt3">MT3: Do not hardcode interface names.
 
-Rather then hardcode an interface name that may or may not exist, instead use 
-the `interfaces[]` array.
+Rather then hardcode an interface name that may or may not exist, instead use the `interfaces[]` array.
 
 ```ruby
 def create_interface(ifname=interfaces[0])

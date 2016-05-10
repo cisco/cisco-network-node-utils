@@ -22,7 +22,6 @@ require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 require_relative '../lib/cisco_node_utils/bgp'
 require_relative '../lib/cisco_node_utils/bgp_neighbor'
 require_relative '../lib/cisco_node_utils/bgp_neighbor_af'
-require_relative '../lib/cisco_node_utils/feature'
 
 # TestBgpNeighborAF - Minitest for RouterBgpNeighborAF class
 class TestBgpNeighborAF < CiscoTestCase
@@ -89,58 +88,43 @@ class TestBgpNeighborAF < CiscoTestCase
     vpn   = 'vpnv4 unicast'
     evpn  = 'l2vpn evpn'
 
+    cfg = []
+
     # Global requirements
     # route policies
     str1 = 'route-map-in-name'
     str2 = 'route-map-out-name'
-    config("route-policy #{str1}", 'end-policy')
-    config("route-policy #{str2}", 'end-policy')
-    config("route-policy #{str1.reverse}", 'end-policy')
-    config("route-policy #{str2.reverse}", 'end-policy')
-    config('route-policy foo_bar', 'end-policy')
-    config('route-policy baz_inga', 'end-policy')
+    cfg << "route-policy #{str1}" << 'end-policy'
+    cfg << "route-policy #{str2}" << 'end-policy'
+    cfg << "route-policy #{str1.reverse}" << 'end-policy'
+    cfg << "route-policy #{str2.reverse}" << 'end-policy'
+    cfg << 'route-policy foo_bar' << 'end-policy'
+    cfg << 'route-policy baz_inga' << 'end-policy'
+    cfg << 'rd-set auto' << 'end-set'
 
-    # vpn stuff - possibly not needed
-    config("vrf #{vrf} address-family #{af_v4}")
-    config('rd-set auto', 'end-set')
+    # If any of the above config already exists, we will get a
+    # CLI warning message about replacing existing configuration.
+    # Ignore these warnings, as they're intentional.
+    config_no_warn(*cfg)
+
+    cfg = []
 
     # router-id and address-family under the global bgp
     # remote-as under the neighbor
     # VRF statements
-    config("router bgp #{asn}")
-    config("router bgp #{asn} bgp router-id 1.1.1.1")
-    config("router bgp #{asn} neighbor #{nbr} remote-as #{asn}")
-    config("router bgp #{asn} address-family #{af_v4}")
-    config("router bgp #{asn} address-family #{af_v6}")
-    config("router bgp #{asn} address-family #{vpn}")
-    config("router bgp #{asn} address-family #{evpn}")
-    config("router bgp #{asn} vrf #{vrf} rd auto")
-    config("router bgp #{asn} vrf #{vrf} address-family #{af_v4}")
-    config("router bgp #{asn} vrf #{vrf} address-family #{af_v6}")
-    config("router bgp #{asn} vrf #{vrf} address-family #{evpn}")
-    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}")
-    config("router bgp #{asn} vrf #{vrf} neighbor #{nbr} " \
-           "address-family #{af_v4}")
-  end
+    cfg << "router bgp #{asn}"
+    cfg << "router bgp #{asn} bgp router-id 1.1.1.1"
+    cfg << "router bgp #{asn} neighbor #{nbr} remote-as #{asn}"
+    cfg << "router bgp #{asn} address-family #{af_v4}"
+    cfg << "router bgp #{asn} address-family #{af_v6}"
+    cfg << "router bgp #{asn} address-family #{vpn}"
+    cfg << "router bgp #{asn} address-family vpnv6 unicast"
+    cfg << "router bgp #{asn} address-family #{evpn}"
+    cfg << "router bgp #{asn} vrf #{vrf} rd auto"
+    cfg << "router bgp #{asn} vrf #{vrf} address-family #{af_v4}"
+    cfg << "router bgp #{asn} vrf #{vrf} neighbor #{nbr} remote-as #{asn}"
 
-  def cleanup
-    if platform == :nexus
-      config('no feature bgp', 'feature bgp')
-      config('no nv overlay evpn', 'nv overlay evpn')
-    else
-      config('no router bgp')
-      config('no vrf aa address-family ipv4 unicast')
-      config('no vrf aa')
-
-      str1 = 'route-map-in-name'
-      str2 = 'route-map-out-name'
-      config("no route-policy #{str1}")
-      config("no route-policy #{str2}")
-      config("no route-policy #{str1.reverse}")
-      config("no route-policy #{str2.reverse}")
-      config('no route-policy foo_bar')
-      config('no route-policy baz_inga')
-    end
+    config(*cfg)
   end
 
   # def test_foo
@@ -171,13 +155,16 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbr_af_create_destroy
-    config('no feature bgp', 'feature bgp') if platform == :nexus
     # Creates
     obj = {}
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+      # TBD: This flush should not be needed but we see an intermittent problem
+      # with certain rake test seed values, where 'afs' below is not detecting
+      # vrf 'aa' AF.
+      node.cache_flush
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr].key?(af),
              "#{dbg} Failed to create AF")
@@ -196,8 +183,6 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_nbrs_with_masks
-    config('no feature bgp', 'feature bgp')
-
     # Creates
     obj = {}
     @@matrix.each do |k, v|
@@ -216,6 +201,10 @@ class TestBgpNeighborAF < CiscoTestCase
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
       obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
       nbr_munged = Utils.process_network_mask(nbr)
+      # TBD: This flush should not be needed but we see an intermittent problem
+      # with certain rake test seed values, where 'afs' below is not detecting
+      # vrf 'aa' AF.
+      node.cache_flush
       afs = RouterBgpNeighborAF.afs
       assert(afs[asn][vrf][nbr_munged].key?(af),
              "#{dbg} Failed to create AF")
@@ -344,59 +333,36 @@ class TestBgpNeighborAF < CiscoTestCase
   #   soft_reconfiguration_in
 
   def supports_soft_reconfig_always?
-    return true if node.product_id[/N(3|9)K/]
-    false
+    str = node.cmd_ref.lookup('bgp_neighbor_af',
+                              'soft_reconfiguration_in').set_value
+    str.to_s[/always/]
   end
 
   def test_tri_states
-    platform == :nexus ? tri_states_nexus : tri_states_ios_xr
-  end
-
-  def tri_states_ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
+      next if dbg.include?('l2vpn/evpn')
       %w(additional_paths_receive additional_paths_send).each do |k|
-        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit'
-        ].each do |val|
-          assert_raises(UnsupportedError,
-                        "This feature #{k}, #{val} is not supported}") do
+        if validate_property_excluded?('bgp_neighbor_af', k)
+          assert_raises(UnsupportedError) { af.send("#{k}=", 'enable') }
+        else
+          [:enable, :disable, :inherit,
+           'enable', 'disable', 'inherit',
+           af.send("default_#{k}")
+          ].each do |val|
             af.send("#{k}=", val)
+            assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
           end
         end
       end
 
       %w(soft_reconfiguration_in).each do |k|
-        [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
-          af.send("#{k}=", val)
-          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
-        end
-      end
-    end
-  end
-
-  def tri_states_nexus
-    @@matrix.values.each do |af_args|
-      af, dbg = clean_af(af_args)
-      next if dbg.include?('l2vpn/evpn')
-      %w(additional_paths_receive additional_paths_send).each do |k|
-        [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
-         af.send("default_#{k}")
-        ].each do |val|
-          af.send("#{k}=", val)
-          assert_equal(val.to_sym, af.send(k), "#{dbg} Error: #{k}")
-        end
-      end
-
-      # The 'always' keyword is not supported on N6K / N7K
-      %w(soft_reconfiguration_in).each do |k|
-        if supports_soft_reconfig_always?
-          array = [:enable, :always, :inherit, 'enable', 'always', 'inherit',
-                   af.send("default_#{k}")]
-        else
-          array = [:enable, :inherit, 'enable', 'inherit',
-                   af.send("default_#{k}")]
+        array = [:enable, :always, :inherit,
+                 'enable', 'always', 'inherit',
+                 af.send("default_#{k}")]
+        unless supports_soft_reconfig_always?
+          array.delete(:always)
+          array.delete('always')
         end
 
         array.each do |val|
@@ -649,8 +615,6 @@ class TestBgpNeighborAF < CiscoTestCase
 
   # ---------------------------------
   def test_send_community
-    # iBGP only, do extra cleanup
-    config('no feature bgp', 'feature bgp') unless platform == :ios_xr
     @@matrix.values.each do |af_args|
       af, dbg = clean_af(af_args)
       send_comm(af, dbg)

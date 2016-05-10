@@ -1,13 +1,13 @@
 # vpc
 ---
-_exclude: [ios_xr]
+_exclude: [ios_xr, N8k]
 
-_template: 
+_template:
   get_command:  'show running-config vpc all'
   get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['vpc domain <domain>']
 
-auto_recovery: 
+auto_recovery:
   kind: boolean
   _exclude: [N5k, N6k]
   auto_default: false
@@ -20,25 +20,25 @@ auto_recovery:
   else:
     default_value: true
 
-auto_recovery_reload_delay: 
+auto_recovery_reload_delay:
   kind: int
   get_value: '/^auto-recovery reload-delay (\d+)/'
   set_value: "auto-recovery reload-delay <delay>"
   default_value: 240
 
-delay_restore: 
+delay_restore:
   kind: int
   get_value: '/^delay restore\s+(\d+)/'
   set_value: "delay restore <delay>"
   default_value: 30
 
-delay_restore_interface_vlan: 
+delay_restore_interface_vlan:
   kind: int
   get_value: '/^delay restore interface-vlan\s+(\d+)/'
   set_value: "delay restore interface-vlan <delay>"
   default_value: 10
 
-domain: 
+domain:
   auto_default: false
   get_command: "show running-config vpc all"
   get_context: ~
@@ -47,7 +47,7 @@ domain:
   set_value: "<state> vpc domain <domain>"
   default_value: ''
 
-dual_active_exclude_interface_vlan_bridge_domain: 
+dual_active_exclude_interface_vlan_bridge_domain:
   kind: string
   N7k:
     get_value: '/^dual-active exclude interface-vlan-bridge-domain\s+(\S+)/'
@@ -57,22 +57,22 @@ dual_active_exclude_interface_vlan_bridge_domain:
     set_value: "<state> dual-active exclude interface-vlan <range>"
   default_value: 'none'
 
-fabricpath_emulated_switch_id: 
-  _exclude: [N3k, N5k, N6k, N9k]
+fabricpath_emulated_switch_id:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: int
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^fabricpath switch-id\s+(\d+)$/'
   set_value: '<state> fabricpath switch-id <swid>'
   default_value: false
 
-fabricpath_multicast_load_balance: 
-  _exclude: [N3k, N5k, N6k, N9k]
+fabricpath_multicast_load_balance:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
   get_value: '/^fabricpath multicast load-balance$/'
   set_value: "<state> fabricpath multicast load-balance"
   default_value: false
 
-feature: 
+feature:
   kind: boolean
   get_command: "show feature | section vpc"
   get_context: ~
@@ -81,21 +81,21 @@ feature:
   set_value: "<state> feature vpc"
   default_value: false
 
-graceful_consistency_check: 
+graceful_consistency_check:
   auto_default: false
   kind: boolean
   get_value: '/^graceful consistency-check/'
   set_value: "<state> graceful consistency-check"
   default_value: true
 
-layer3_peer_routing: 
+layer3_peer_routing:
   kind: boolean
-  _exclude: [N3k, N5k, N9k]
+  _exclude: [N3k, N8k, N9k]
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
   default_value: false
 
-peer_gateway: 
+peer_gateway:
   kind: boolean
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway/'
@@ -103,16 +103,16 @@ peer_gateway:
   default_value: false
 
 # Exclude everyone for now till the BD command is fully supported
-peer_gateway_exclude_bridge_domain: 
+peer_gateway_exclude_bridge_domain:
   kind: string
-  _exclude: [N3k, N5k, N6k, N7k, N9k]
+  _exclude: [N3k, N5k, N6k, N7k, N8k, N9k]
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude bridge-domain\s+(\S+)/'
   set_value: "peer-gateway exclude-bridge-domain <range>"
   default_value: ''
 
-peer_gateway_exclude_vlan: 
-  _exclude: [N3k, N9k]
+peer_gateway_exclude_vlan:
+  _exclude: [N3k, N8k, N9k]
   kind: string
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude-vlan\s(\S+)/'
@@ -124,34 +124,34 @@ peer_keepalive_dest:
   get_value:  '/^peer-keepalive destination (\S+)/'
   default_value: ''
 
-peer_keepalive_hold_timeout: 
+peer_keepalive_hold_timeout:
   kind: int
   get_value:  '/^peer-keepalive .*hold-timeout (\S+)/'
   default_value: 3
 
-peer_keepalive_interval: 
+peer_keepalive_interval:
   kind: int
   get_value:  '/^peer-keepalive .*interval (\S+)/'
   default_value: 1000
 
-peer_keepalive_precedence: 
+peer_keepalive_precedence:
   kind: int
   get_value:  '/^peer-keepalive .*precedence (\S+)/'
   default_value: 6
 
-peer_keepalive_set: 
+peer_keepalive_set:
   set_value:  "peer-keepalive destination <dest> source <src> udp-port <port_num> vrf <vrf> interval <interval> timeout <timeout> precedence <precedence> hold-timeout <hold_timeout>"
 
 peer_keepalive_src:
   get_value:  '/^peer-keepalive .*source (\S+)/'
   default_value: ''
 
-peer_keepalive_timeout: 
+peer_keepalive_timeout:
   kind: int
   get_value:  '/^peer-keepalive .* timeout (\S+)/'
   default_value: 5
 
-peer_keepalive_udp_port: 
+peer_keepalive_udp_port:
   kind: int
   get_value:  '/^peer-keepalive .*udp-port (\S+)/'
   default_value: 3200
@@ -160,30 +160,34 @@ peer_keepalive_vrf:
   get_value:  '/^peer-keepalive .*vrf (\S+)/'
   default_value: 'management'
 
-port_channel_limit: 
-  _exclude: [N3k, N5k, N6k, N9k]
+phy_port_vpc_module_pids:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  default_only: 'N7[K7]-(?:F2|F3|F4|M3)'
+
+port_channel_limit:
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   auto_default: false
-  kind: boolean    
+  kind: boolean
   get_value: '/^port-channel limit/'
   set_value: "<state> port-channel limit"
   default_value: true
 
-role_priority: 
+role_priority:
   kind: int
   get_value: '/^role priority\s+(\d+)/'
   set_value: "role priority <priority>"
   default_value: 32667
 
-self_isolation: 
+self_isolation:
   kind: boolean
-  _exclude: [N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   get_value: '/^self-isolation/'
   set_value: "<state> self-isolation"
   default_value: false
 
-shutdown: 
+shutdown:
   kind: boolean
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N8k, N9k]
   get_value: '/^shutdown/'
   set_value: "<state> shutdown"
   default_value: false
@@ -194,16 +198,16 @@ system_mac:
   set_value: "<state> system-mac <mac_addr>"
   default_value: ''
 
-system_priority: 
+system_priority:
   kind: int
   get_value: '/^system-priority\s+(\d+)/'
   set_value: "system-priority <priority>"
   default_value: 32667
 
 # Exclude everyone for now till the track command is fully supported
-track: 
+track:
   kind: int
-  _exclude: [N3k, N5k, N6k, N7k, N9k]
+  _exclude: [N3k, N5k, N6k, N7k, N8k, N9k]
   get_value: '/^track\s+(\d+)/'
   set_value: "<state> track <val>"
   default_value: 0

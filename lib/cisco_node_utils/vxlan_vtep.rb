@@ -55,15 +55,19 @@ module Cisco
     end
 
     def create
+      if FabricpathGlobal.fabricpath_feature == :enabled &&
+         node.product_id[/N(5|6)K/]
+        fail 'VxLAN cannot be enabled with Fabricpath configured'
+      end
       Feature.nv_overlay_enable
       Feature.vn_segment_vlan_based_enable if VxlanVtep.mt_lite_support
       # re-use the "interface command ref hooks"
-      config_set('interface', 'create', @name)
+      config_set('interface', 'create', name: @name)
     end
 
     def destroy
       # re-use the "interface command ref hooks"
-      config_set('interface', 'destroy', @name)
+      config_set('interface', 'destroy', name: @name)
     end
 
     def ==(other)
@@ -75,16 +79,14 @@ module Cisco
     ########################################################
 
     def description
-      config_get('interface', 'description', @name)
+      config_get('interface', 'description', name: @name)
     end
 
     def description=(desc)
       fail TypeError unless desc.is_a?(String)
-      if desc.empty?
-        config_set('interface', 'description', @name, 'no', '')
-      else
-        config_set('interface', 'description', @name, '', desc)
-      end
+      state = desc.empty? ? 'no' : ''
+      config_set('interface', 'description',
+                 name: @name, state: state, desc: desc)
     end
 
     def default_description

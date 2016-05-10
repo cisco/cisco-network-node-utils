@@ -20,17 +20,32 @@ require_relative '../lib/cisco_node_utils/tacacs_server_host'
 class TestTacacsServerGroup < CiscoTestCase
   @skip_unless_supported = 'tacacs_server_group'
 
+  def setup
+    super
+    # TBD: Remove once CSCuz44696 is resolved.
+    skip('This test is not currently supported on 7.0(3)I3 images') if
+      node.os_version[/7.0\(3\)I3\(/]
+  end
+
   def clean_tacacs_config
     config('no feature tacacs',
            'feature tacacs')
   end
 
   def create_tacacsserverhost(name='defaulttest')
-    TacacsServerHost.new(name)
+    config("tacacs-server host #{name}")
   end
 
-  def detach_tacacsserverhost(host)
-    host.destroy
+  def detach_tacacsserverhost(name)
+    config("no tacacs-server host #{name}")
+  end
+
+  def config_command
+    if platform == :ios_xr
+      'show running-config aaa'
+    else
+      'show run tacacs+ all | no-more'
+    end
   end
 
   def detach_aaaservergroup(aaa_server_group)
@@ -67,7 +82,7 @@ class TestTacacsServerGroup < CiscoTestCase
   def test_create_valid_tacacs
     group_name = 'Group1'
     aaa_group = TacacsServerGroup.new(group_name)
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /#{group_name}/)
 
     detach_aaaservergroup(aaa_group)
@@ -79,9 +94,9 @@ class TestTacacsServerGroup < CiscoTestCase
     aaa_group1 = TacacsServerGroup.new(group_name1)
     aaa_group2 = TacacsServerGroup.new(group_name2)
 
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /#{group_name1}/)
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /#{group_name2}/)
 
     detach_aaaservergroup(aaa_group1)
@@ -89,6 +104,8 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_collection_empty_tacacs
+    return if platform == :ios_xr
+
     clean_tacacs_config
     aaa_group_list = TacacsServerGroup.groups
     assert_empty(aaa_group_list,
@@ -126,10 +143,10 @@ class TestTacacsServerGroup < CiscoTestCase
 
   def test_servers_tacacs
     clean_tacacs_config
-    server_name1 = 'server1'
-    server_name2 = 'server2'
-    server1 = create_tacacsserverhost(server_name1)
-    server2 = create_tacacsserverhost(server_name2)
+    server_name1 = '1.1.1.1'
+    server_name2 = '2.2.2.2'
+    create_tacacsserverhost(server_name1)
+    create_tacacsserverhost(server_name2)
 
     aaa_group = TacacsServerGroup.new('Group1')
 
@@ -143,41 +160,41 @@ class TestTacacsServerGroup < CiscoTestCase
     servers = aaa_group.servers
     assert_equal(2, servers.size,
                  'Error: Collection is not two servers')
-    assert(servers.include?('server1'),
+    assert(servers.include?(server_name1),
            "Error: Collection does not contain #{server_name1}")
-    assert(servers.include?('server2'),
+    assert(servers.include?(server_name2),
            "Error: Collection does not contain #{server_name2}")
 
     detach_aaaservergroup(aaa_group)
-    detach_tacacsserverhost(server1)
-    detach_tacacsserverhost(server2)
+    detach_tacacsserverhost(server_name1)
+    detach_tacacsserverhost(server_name2)
   end
 
   def test_add_server_tacacs
-    server_name1 = 'server1'
-    server_name2 = 'server2'
-    server1 = create_tacacsserverhost(server_name1)
-    server2 = create_tacacsserverhost(server_name2)
+    server_name1 = '1.1.1.1'
+    server_name2 = '2.2.2.2'
+    create_tacacsserverhost(server_name1)
+    create_tacacsserverhost(server_name2)
 
     aaa_group = TacacsServerGroup.new('Group1')
     aaa_group.servers = [server_name1, server_name2]
 
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /server #{server_name1}/)
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /server #{server_name2}/)
 
     detach_aaaservergroup(aaa_group)
-    detach_tacacsserverhost(server1)
-    detach_tacacsserverhost(server2)
+    detach_tacacsserverhost(server_name1)
+    detach_tacacsserverhost(server_name2)
   end
 
   def test_remove_server_tacacs
     clean_tacacs_config
-    server_name1 = 'server1'
-    server_name2 = 'server2'
-    server1 = create_tacacsserverhost(server_name1)
-    server2 = create_tacacsserverhost(server_name2)
+    server_name1 = '1.1.1.1'
+    server_name2 = '2.2.2.2'
+    create_tacacsserverhost(server_name1)
+    create_tacacsserverhost(server_name2)
 
     aaa_group = TacacsServerGroup.new('Group1')
     aaa_group.servers = [server_name1, server_name2]
@@ -189,24 +206,24 @@ class TestTacacsServerGroup < CiscoTestCase
 
     # Now remove them and then check again
     aaa_group.servers = [server_name2]
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /server #{server_name1}/)
 
     aaa_group.servers = []
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /server #{server_name2}/)
 
     detach_aaaservergroup(aaa_group)
-    detach_tacacsserverhost(server1)
-    detach_tacacsserverhost(server2)
+    detach_tacacsserverhost(server_name1)
+    detach_tacacsserverhost(server_name2)
   end
 
   def test_remove_server_twice_tacacs
     clean_tacacs_config
-    server_name1 = 'server1'
-    server_name2 = 'server2'
-    server1 = create_tacacsserverhost(server_name1)
-    server2 = create_tacacsserverhost(server_name2)
+    server_name1 = '1.1.1.1'
+    server_name2 = '2.2.2.2'
+    create_tacacsserverhost(server_name1)
+    create_tacacsserverhost(server_name2)
 
     aaa_group = TacacsServerGroup.new('Group1')
     aaa_group.servers = [server_name1, server_name2]
@@ -218,12 +235,12 @@ class TestTacacsServerGroup < CiscoTestCase
 
     # Remove server 1
     aaa_group.servers = [server_name2]
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /server #{server_name1}/)
 
     # Now remove server 2
     aaa_group.servers = []
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /server #{server_name2}/)
 
     # Check collection size
@@ -231,11 +248,15 @@ class TestTacacsServerGroup < CiscoTestCase
     assert_empty(servers, 'Error: Collection not empty')
 
     detach_aaaservergroup(aaa_group)
-    detach_tacacsserverhost(server1)
-    detach_tacacsserverhost(server2)
+    detach_tacacsserverhost(server_name1)
+    detach_tacacsserverhost(server_name2)
   end
 
   def test_get_vrf_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'vrf')
+
     group_name1 = 'Group1'
     aaa_group = TacacsServerGroup.new(group_name1)
 
@@ -257,6 +278,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_get_default_vrf_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'vrf')
+
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(cmd_ref.lookup('tacacs_server_group', 'vrf').default_value,
                  aaa_group.default_vrf,
@@ -265,10 +290,14 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_set_vrf_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'vrf')
+
     vrf = 'management-123'
     aaa_group = TacacsServerGroup.new('Group1')
     aaa_group.vrf = vrf
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /use-vrf #{vrf}/)
 
     # Invalid case
@@ -279,6 +308,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_get_deadtime_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'deadtime')
+
     group_name = 'Group1'
     aaa_group = TacacsServerGroup.new(group_name)
 
@@ -300,6 +333,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_get_default_deadtime_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'deadtime')
+
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(
       cmd_ref.lookup('tacacs_server_group', 'deadtime').default_value,
@@ -309,10 +346,14 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_set_deadtime_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'deadtime')
+
     deadtime = 1250
     aaa_group = TacacsServerGroup.new('Group1')
     aaa_group.deadtime = deadtime
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /deadtime #{deadtime}/,
                       msg:     'Error: deadtime not configured')
     # Invalid case
@@ -324,6 +365,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_get_source_interface_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'source_interface')
+
     group_name = 'Group1'
     aaa_group = TacacsServerGroup.new(group_name)
     intf =
@@ -331,12 +376,12 @@ class TestTacacsServerGroup < CiscoTestCase
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface set')
 
-    intf = 'Ethernet1/1'
+    intf = interfaces[0]
     create_source_interface(group_name, 'tacacs+', intf)
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface not correct')
 
-    intf = 'Ethernet1/32'
+    intf = interfaces[1]
     create_source_interface(group_name, 'tacacs+', intf)
     assert_equal(intf, aaa_group.source_interface,
                  'Error: TacacsServerGroup, source-interface not correct')
@@ -345,6 +390,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_get_default_source_interface_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'source_interface')
+
     aaa_group = TacacsServerGroup.new('Group1')
     assert_equal(
       cmd_ref.lookup('tacacs_server_group', 'source_interface').default_value,
@@ -354,6 +403,10 @@ class TestTacacsServerGroup < CiscoTestCase
   end
 
   def test_set_source_interface_tacacs
+    # TODO
+    return if validate_property_excluded?('tacacs_server_group',
+                                          'source_interface')
+
     intf =
       cmd_ref.lookup('tacacs_server_group', 'source_interface').default_value
     aaa_group = TacacsServerGroup.new('Group1')
@@ -361,13 +414,13 @@ class TestTacacsServerGroup < CiscoTestCase
                  'Error: Aaa_Group Server, source-interface not default')
 
     aaa_group.source_interface = 'loopback1'
-    assert_show_match(command: 'show run tacacs+ all | no-more',
+    assert_show_match(command: config_command,
                       pattern: /source-interface loopback1/,
                       msg:     'Error: source-interface not correct')
 
     aaa_group.source_interface =
       cmd_ref.lookup('tacacs_server_group', 'source_interface').default_value
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /source-interface loopback1/)
 
     # Invalid case
@@ -401,7 +454,7 @@ class TestTacacsServerGroup < CiscoTestCase
     aaa_group = TacacsServerGroup.new(group_name)
 
     detach_aaaservergroup(aaa_group)
-    refute_show_match(command: 'show run tacacs+ all | no-more',
+    refute_show_match(command: config_command,
                       pattern: /#{group_name}/)
   end
 end

@@ -1,3 +1,4 @@
+
 # stp_global
 ---
 _exclude: [ios_xr]
@@ -6,7 +7,7 @@ _template:
   get_command: "show running-config spanning-tree"
 
 bd_designated_priority:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) designated priority (.*)$/'
@@ -15,40 +16,40 @@ bd_designated_priority:
   default_value: []
 
 bd_forward_time:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) forward-time (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> forward-time <val>"
   default_value: []
 
 bd_hello_time:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) hello-time (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> hello-time <val>"
   default_value: []
 
 bd_max_age:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) max-age (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> max-age <val>"
   default_value: []
 
 bd_priority:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) priority (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> priority <val>"
   default_value: []
 
 bd_range:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: string
   default_only: "2-3967"
 
 bd_root_priority:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) root priority (.*)$/'
@@ -77,14 +78,14 @@ bridge_assurance:
   default_value: true
 
 domain:
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N8k, N9k]
   kind: int
   get_value: '/^spanning-tree domain (\d+)$/'
   set_value: "<state> spanning-tree domain <domain>"
   default_value: false
 
 fcoe:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N3k, N5k, N6k, N7k]
   kind: boolean
   auto_default: false
   get_command: "show running-config spanning-tree all"

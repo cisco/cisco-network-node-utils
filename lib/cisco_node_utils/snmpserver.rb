@@ -24,12 +24,7 @@ module Cisco
     end
 
     def aaa_user_cache_timeout=(timeout)
-      if timeout == default_aaa_user_cache_timeout
-        config_set('snmp_server', 'aaa_user_cache_timeout', 'no',
-                   aaa_user_cache_timeout)
-      else
-        config_set('snmp_server', 'aaa_user_cache_timeout', '', timeout)
-      end
+      config_set('snmp_server', 'aaa_user_cache_timeout', '', timeout)
     end
 
     def default_aaa_user_cache_timeout
@@ -44,9 +39,9 @@ module Cisco
     def location=(location)
       fail TypeError unless location.is_a?(String)
       if location.empty?
-        config_set('snmp_server', 'location', 'no', '')
+        config_set('snmp_server', 'location', state: 'no', location: '')
       else
-        config_set('snmp_server', 'location', '', location)
+        config_set('snmp_server', 'location', state: '', location: location)
       end
     end
 
@@ -62,9 +57,9 @@ module Cisco
     def contact=(contact)
       fail TypeError unless contact.is_a?(String)
       if contact.empty?
-        config_set('snmp_server', 'contact', 'no', '')
+        config_set('snmp_server', 'contact', state: 'no', contact: '')
       else
-        config_set('snmp_server', 'contact', '', contact)
+        config_set('snmp_server', 'contact', state: '', contact: contact)
       end
     end
 

@@ -1,0 +1,71 @@
+# bridge_domain
+# bridge_domain feature is available only on n7k
+---
+_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+
+# For the below name, shutdown commands we are going to use show running-config
+# bridge-domain cli which displays as below
+#
+# system bridge-domain 100-110
+#
+# bridge-domain 100-110
+#
+# bridge-domain 100
+#   shutdown
+#   fabric-control
+#   name bd100
+# bridge-domain 101
+# bridge-domain 102
+# ...
+# bridge-domain 108
+#   shutdown
+#   name bd108
+# bridge-domain 109
+#   shutdown
+# bridge-domain 110
+#   name bd110
+
+_template:
+  get_command: "show running-config bridge-domain"
+  get_context: ['/^bridge-domain <bd>\s$/']
+  set_context: ["(?)bridge-domain <bd>"]
+
+all_bds:
+  multiple: true
+  get_context: ~
+  get_value: '/^bridge-domain (\S+)/'
+
+bd_name:
+  kind: string
+  get_value: '/name (\S+)/'
+  set_value: "<state> name <name>"
+  default_value: ~
+
+create:
+  get_context: ~
+  set_value: "bridge-domain <bd>"
+
+destroy:
+  get_context: ~
+  set_value: "no bridge-domain <bd>"
+
+# Configured fabric-control Bridge-Domain/VLAN    :  100
+fabric_control:
+  kind: boolean
+  get_value: '/fabric-control/'
+  set_value: "<state> fabric-control"
+  default_value: false
+
+# Same reason as for bd_name case above
+shutdown:
+  kind: boolean
+  get_value: '/shutdown/'
+  set_value: "<state> shutdown"
+  default_value: false
+
+system_bridge_domain:
+  get_context: ~
+  get_value: '/^system bridge-domain (\S+)/'
+  set_context: ~
+  set_value: "system bridge-domain <oper> <bd>"
+  default_value: ""

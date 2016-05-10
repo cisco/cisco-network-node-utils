@@ -21,6 +21,14 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)/'
 
+capabilities:
+  _exclude: [ios_xr]
+  multiple:
+  get_context: ["<name>"]
+  get_command: "show interface capabilities"
+  get_value: '/(.*)/'
+  default_value: [] # :raw default
+
 create:
   set_context: ~
   set_value: "interface <name>"
@@ -40,7 +48,10 @@ duplex:
   kind: string
   get_value: '/^duplex (.*)$/'
   set_value: "duplex <duplex>"
-  default_value: "auto"
+  C3064:
+    default_value: 'full'
+  else:
+    default_value: 'auto'
 
 encapsulation_dot1q:
   kind: int
@@ -49,7 +60,7 @@ encapsulation_dot1q:
   set_value: "<state> encapsulation dot1q <vlan>"
 
 fabric_forwarding_anycast_gateway:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N3k]
   kind: boolean
   get_value: '/^fabric forwarding mode anycast-gateway$/'
   set_value: "<state> fabric forwarding mode anycast-gateway"
@@ -195,15 +206,10 @@ mtu_other_interfaces:
 
 negotiate_auto_ethernet:
   kind: boolean
-  _exclude: [ios_xr]
-  N7k:
-    default_only: false
-  C3064:
-    default_only: false
-  else:
-    get_value: '/^(no )?negotiate auto$/'
-    set_value: "<state> negotiate auto"
-    default_value: true
+  _exclude: [ios_xr, C3064, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
 
 negotiate_auto_other_interfaces:
   kind: boolean
@@ -212,14 +218,21 @@ negotiate_auto_other_interfaces:
 
 negotiate_auto_portchannel:
   kind: boolean
-  _exclude: [ios_xr]
-  nexus:
-    N7k:
-      default_only: false
-    else:
-      get_value: '/^(no )?negotiate auto$/'
-      set_value: "<state> negotiate auto"
-      default_value: true
+  _exclude: [ios_xr, N7k]
+  get_value: '/^(no )?negotiate auto$/'
+  set_value: "<state> negotiate auto"
+  default_value: true
+
+private_vlan_any:
+  multiple:
+  get_value: '/switchport private-vlan/'
+
+private_vlan_mapping:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^private-vlan mapping (.*)$/'
+  set_value: "<state> private-vlan mapping <vlans>"
+  default_value: []
 
 shutdown:
   kind: boolean
@@ -252,10 +265,17 @@ shutdown_vlan:
     default_value: true
 
 speed:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, C3132]
+  kind: string
   get_value: '/^speed (.*)$/'
   set_value: "speed <speed>"
-  default_value: "auto"
+  C3064: &non_auto
+    default_value: '10000'
+  C3172: *non_auto
+  N5k: *non_auto
+  N6k: *non_auto
+  else:
+    default_value: 'auto'
 
 stp_bpdufilter:
   kind: string
@@ -385,6 +405,70 @@ switchport_mode_port_channel:
   set_value: "<state> switchport mode <mode>"
   default_value: ""
 
+switchport_mode_private_vlan_host:
+  _exclude: [ios_xr, N8k]
+  get_value: '/^switchport mode private-vlan (.*)$/'
+  set_value: "<state> switchport mode private-vlan <mode>"
+  default_value: :disabled
+
+switchport_mode_private_vlan_host_association:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan host-association (.*)$/'
+  set_value: "<state> switchport private-vlan host-association <vlan_pr> <vlan_sec>"
+  default_value: []
+
+switchport_mode_private_vlan_host_promiscous:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan mapping (\d+.*)$/'
+  set_value: "<state> switchport private-vlan mapping <vlan_pr> <vlans>"
+  default_value: []
+
+
+switchport_mode_private_vlan_trunk_promiscuous:
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk promiscuous$/'
+  set_value: "<state> switchport mode private-vlan trunk promiscuous"
+  default_value: false
+
+switchport_mode_private_vlan_trunk_secondary:
+  _exclude: [ios_xr, N3k, N8k]
+  kind: boolean
+  get_value: '/^switchport mode private-vlan trunk secondary$/'
+  set_value: "<state> switchport mode private-vlan trunk secondary"
+  default_value: false
+
+switchport_private_vlan_association_trunk:
+  _exclude: [ios_xr, N3k, N8k]
+  multiple: true
+  #get_value: '/^switchport private-vlan association trunk (.*) (.*)$/'
+  get_value: '/^switchport private-vlan association trunk (.*)$/'
+  set_value: "<state> switchport private-vlan association trunk <vlan_pr> <vlan>"
+  default_value: []
+
+switchport_private_vlan_mapping_trunk:
+  _exclude: [ios_xr, N3k, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan mapping trunk (.*)$/'
+  set_value: "<state> switchport private-vlan mapping trunk <vlan_pr> <vlans>"
+  default_value: []
+
+switchport_private_vlan_trunk_allowed_vlan:
+  _exclude: [ios_xr, N8k]
+  multiple: true
+  get_value: '/^switchport private-vlan trunk allowed vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk allowed vlan <oper> <vlans>"
+  default_value: []
+
+switchport_private_vlan_trunk_native_vlan:
+  _exclude: [ios_xr, N8k]
+  kind: int
+  get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
+  set_value: "<state> switchport private-vlan trunk native vlan <vlan>"
+  default_value: 1
+
 switchport_trunk_allowed_vlan:
   _exclude: [ios_xr]
   get_value: '/^switchport trunk allowed vlan (.*)$/'
@@ -441,14 +525,14 @@ system_default_switchport_shutdown:
     default_only: true
 
 vlan_mapping:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   multiple:
   get_value: '/^switchport vlan mapping (\d+) (\d+)/'
   set_value: '<state> switchport vlan mapping <original> <translated>'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [N3k, N5k, N6k, N9k]
+  _exclude: [N3k, N5k, N6k, N8k, N9k]
   kind: boolean
   get_value: '/^(no )?switchport vlan mapping enable/'
   set_value: '<state> switchport vlan mapping enable'

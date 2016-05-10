@@ -39,14 +39,14 @@ route_policy_import:
     set_value: '<state> import route-policy <policy_name>'
 
 route_target_both_auto:
-  _exclude: [ios_xr]
+  _exclude: [N3k, ios_xr]
   kind: boolean
   get_value: '/^route-target both auto$/'
   set_value: '<state> route-target both auto'
   default_value: false
 
 route_target_both_auto_evpn:
-  _exclude: [ios_xr]
+  _exclude: [N3k, ios_xr]
   kind: boolean
   get_value: '/^route-target both auto evpn$/'
   set_value: '<state> route-target both auto evpn'
@@ -67,7 +67,7 @@ route_target_export:
     set_value: '<state> export route-target <community>'
 
 route_target_export_evpn:
-  _exclude: [ios_xr]
+  _exclude: [N3k, ios_xr]
   multiple: true
   get_value: '/^route-target export (\S+) evpn$/'
   set_value: '<state> route-target export <community> evpn'
@@ -99,7 +99,7 @@ route_target_import:
     set_value: '<state> import route-target <community>'
 
 route_target_import_evpn:
-  _exclude: [ios_xr]
+  _exclude: [N3k, ios_xr]
   multiple: true
   get_value: '/^route-target import (\S+) evpn$/'
   set_value: '<state> route-target import <community> evpn'

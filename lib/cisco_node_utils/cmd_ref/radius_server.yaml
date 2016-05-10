@@ -1,66 +1,100 @@
 # radius_server.yaml
 ---
-_exclude: [ios_xr]
+_template:
+  nexus:
+    get_command: "show running-config radius all"
+  ios_xr:
+    get_command: "show running-config radius-server"
+    multiple: true
 
 accounting:
+  _exclude: [ios_xr]
   auto_default: false
   kind: boolean
   get_command: "show running-config radius"
-  get_value: '/^radius-server host %s.* (accounting) .*$/'
+  get_value: '/^radius-server host <ip>.* (accounting) .*$/'
   set_value: '<state> radius-server host <ip> accounting'
   default_value: true
 
 acct-port:
-  kind: int
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* acct-port (\d+).*$/'
-  set_value: '<state> radius-server host <ip> acct-port <port>'
-  default_value: 1813
+  get_value: '/^radius-server host <ip>.* acct-port (\d+).*$/'
+  nexus:
+    default_value: 1813
+    kind: int
+    set_value: '<state> radius-server host <ip> acct-port <port>'
+  ios_xr:
+    default_value: 1646
 
 auth-port:
-  kind: int
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* auth-port (\d+).*$/'
-  set_value: '<state> radius-server host <ip> auth-port <port>'
-  default_value: 1812
+  get_value: '/^radius-server host <ip>.* auth-port (\d+).*$/'
+  nexus:
+    default_value: 1812
+    kind: int
+    set_value: '<state> radius-server host <ip> auth-port <port>'
+  ios_xr:
+    default_value: 1645
 
 authentication:
-  auto_default: false
+  _exclude: [ios_xr]
   kind: boolean
   get_command: "show running-config radius"
-  get_value: '/^radius-server host %s.* (authentication) .*$/'
+  get_value: '/^radius-server host <ip>.* (authentication) .*$/'
   set_value: '<state> radius-server host <ip> authentication'
   default_value: true
 
-hosts:
+host_port_pairs:
+  _exclude: [nexus]
   multiple: true
-  get_command: "show running-config radius"
-  get_value: '/^radius-server host (\S+).*/'
-  set_value: '<state> radius-server host <ip>'
+  get_command: "show running-config radius-server"
+  get_value: '/^radius-server host <ip> auth-port (\d+) acct-port (\d+)/'
   default_value: ''
 
+hosts:
+  get_value: '/^radius-server host (\S+).*/'
+  default_value: ''
+  nexus:
+    multiple: true
+    get_command: "show running-config radius"
+    set_value: '<state> radius-server host <ip>'
+  ios_xr:
+    set_value: '<state> radius-server host <ip> auth-port <auth_port> acct-port <acct_port>'
+
 key:
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* key \d+\s+(\S+)/'
-  set_value: '<state> radius-server host <ip> key <key>'
   default_value: ~
+  nexus:
+    get_value: '/^radius-server host <ip>.* key \d+\s+(\S+)/'
+    set_value: '<state> radius-server host <ip> key <key>'
+  ios_xr:
+    context: ["radius-server host <ip> auth-port <auth_port> acct-port <acct_port>"]
+    get_value: '/key \d+\s+(\S+)/'
+    set_value: '<state> key <key>'
 
 key_format:
-  kind: int
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* key (\d).*$/'
   default_value: ~
+  nexus:
+    get_value: '/^radius-server host <ip>.* key (\d).*$/'
+  ios_xr:
+    context: ["radius-server host <ip> auth-port <auth_port> acct-port <acct_port>"]
+    get_value: '/key (\d).*/'
 
 retransmit:
-  kind: int
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* retransmit (\d+).*$/'
-  set_value: '<state> radius-server host <ip> retransmit <count>'
   default_value: ~
+  nexus:
+    kind: int
+    get_value: '/^radius-server host <ip>.* retransmit (\d+).*$/'
+    set_value: '<state> radius-server host <ip> retransmit <count>'
+  ios_xr:
+    context: ["radius-server host <ip> auth-port <auth_port> acct-port <acct_port>"]
+    get_value: '/retransmit (\d+).*$/'
+    set_value: '<state> retransmit <count>'
 
 timeout:
-  kind: int
-  get_command: "show running-config radius all"
-  get_value: '/^radius-server host %s.* timeout (\d+).*$/'
-  set_value: '<state> radius-server host <ip> timeout <timeout>'
   default_value: ~
+  nexus:
+    kind: int
+    get_value: '/^radius-server host <ip>.* timeout (\d+).*$/'
+    set_value: '<state> radius-server host <ip> timeout <timeout>'
+  ios_xr:
+    context: ["radius-server host <ip> auth-port <auth_port> acct-port <acct_port>"]
+    get_value: '/timeout (\d+).*$/'
+    set_value: '<state> timeout <timeout>'

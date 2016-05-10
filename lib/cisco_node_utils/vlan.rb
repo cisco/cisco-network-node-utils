@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
+require_relative 'feature'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
@@ -57,19 +59,49 @@ module Cisco
       config_set('vlan', 'destroy', @vlan_id)
     end
 
-    def cli_error_check(result)
+    def cli_error_check(result, ignore_message=nil)
       # The NXOS vlan cli does not raise an exception in some conditions and
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This vlan cli behavior is unlikely to change.
-      fail result[2]['body'] if
-        result[2].is_a?(Hash) &&
-        /(ERROR:|Warning:)/.match(result[2]['body'].to_s)
+      # Check for messages that can be safely ignored.
 
-      # Some test environments get result[2] as a string instead of a hash
-      fail result[2] if
-        result[2].is_a?(String) &&
-        /(ERROR:|Warning:)/.match(result[2])
+      errors = /(ERROR:|VLAN:|Warning:)/
+
+      return unless
+        result[2].is_a?(Hash) && errors.match(result[2]['body'].to_s)
+      # Split errors into a list, but keep the delimiter as part of the message.
+      error_list =
+        (result[2]['body'].split(errors) - ['']).each_slice(2).map(&:join)
+      error_list.each do |msg|
+        next if ignore_message && msg.to_s.include?(ignore_message)
+        fail result[2]['body']
+      end
+    end
+
+    def set_args_keys_default
+      keys = { vlan: @vlan_id }
+      @set_args = keys
+    end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @set_args.merge!(hash) unless hash.empty?
+    end
+
+    def fabric_control
+      config_get('vlan', 'fabric_control', vlan: @vlan_id)
+    end
+
+    def fabric_control=(val)
+      no_cmd = (val) ? '' : 'no'
+      result = config_set('vlan', 'fabric_control', vlan:  @vlan_id,
+                                                    state: no_cmd)
+      cli_error_check(result)
+    end
+
+    def default_fabric_control
+      config_get_default('vlan', 'fabric_control')
     end
 
     def fabricpath_feature
@@ -83,17 +115,16 @@ module Cisco
     def mode
       result = config_get('vlan', 'mode', @vlan_id)
       return default_mode if result.nil?
-      case result
-      when /fabricpath/i
-        return :fabricpath
-      when /ce/i
-        return :CE
-      end
+      # Note: The yaml definition for this property
+      # uses 'multiple' as a workaround for a bug
+      # in the N7k nxapi code which displays
+      # the 'show vlan' output twice.
+      result[0].downcase! if result[0][/FABRICPATH/]
+      result[0]
     end
 
     def mode=(str)
-      str = str.to_s
-      if str.empty?
+      if str == default_mode
         config_set('vlan', 'mode', @vlan_id, 'no', '')
       else
         if 'fabricpath' == str
@@ -105,7 +136,7 @@ module Cisco
     end
 
     def default_mode
-      config_get_default('vlan', 'mode').to_sym
+      config_get_default('vlan', 'mode')
     end
 
     def vlan_name
@@ -180,7 +211,7 @@ module Cisco
       interfaces = {}
       all_interfaces.each do |name, i|
         next unless i.switchport_mode == :access
-        next unless i.access_vlan == @vlan_id
+        next unless i.access_vlan.to_i == @vlan_id.to_i
         interfaces[name] = i
       end
       interfaces
@@ -203,6 +234,98 @@ module Cisco
 
     def default_mapped_vni
       config_get_default('vlan', 'mapped_vni')
+    end
+
+    def private_vlan_type
+      return nil unless Feature.private_vlan_enabled?
+      config_get('vlan', 'private_vlan_type', id: @vlan_id)
+    end
+
+    def private_vlan_type=(type)
+      Feature.private_vlan_enable
+      fail TypeError unless type && type.is_a?(String)
+
+      if type == default_private_vlan_type
+        return if private_vlan_type.empty?
+        set_args_keys(state: 'no', type: private_vlan_type)
+        ignore_msg = 'Warning: Private-VLAN CLI removed'
+      else
+        set_args_keys(state: '', type: type)
+        ignore_msg = 'Warning: Private-VLAN CLI entered'
+      end
+      result = config_set('vlan', 'private_vlan_type', @set_args)
+      cli_error_check(result, ignore_msg)
+    end
+
+    def default_private_vlan_type
+      config_get_default('vlan', 'private_vlan_type')
+    end
+
+    def private_vlan_association
+      return nil unless Feature.private_vlan_enabled?
+      config_get('vlan', 'private_vlan_association', id: @vlan_id)
+    end
+
+    def private_vlan_association=(vlan_list)
+      Feature.private_vlan_enable
+      vlan_list_delta(private_vlan_association, vlan_list)
+    end
+
+    def default_private_vlan_association
+      config_get_default('vlan', 'private_vlan_association')
+    end
+
+    # --------------------------
+    # vlan_list_delta is a helper function for the private_vlan_association
+    # property. It walks the delta hash and adds/removes each target private
+    # vlan.
+    # This api is used by private vlan to prepare the input to the setter
+    # method. The input can be in the following formats for vlans:
+    # 10-12,14. Prepare_array api is transforming this input into a flat array.
+    # In the example above the returned array will be 10, 11, 12, 14. Prepare
+    # array is first splitting the input on ',' and the than expanding the vlan
+    # range element like 10-12 into a flat array. The final result will
+    # be a  flat array.
+    # This way we can later used the lib utility to check the delta from
+    # the input vlan value and the vlan configured to apply the right config.
+
+    def vlan_list_delta(is_list, should_list)
+      new_list = []
+      should_list.each do |item|
+        if item.include?(',')
+          new_list.push(item.split(','))
+        else
+          new_list.push(item)
+        end
+      end
+      new_list.flatten!
+      new_list.sort!
+
+      new_list.each { |item| item.gsub!('-', '..') }
+
+      should_list_new = []
+      new_list.each do |elem|
+        if elem.include?('..')
+          elema = elem.split('..').map { |d| Integer(d) }
+          elema.sort!
+          tr = elema[0]..elema[1]
+          tr.to_a.each do |item|
+            should_list_new.push(item.to_s)
+          end
+        else
+          should_list_new.push(elem)
+        end
+      end
+
+      delta_hash = Utils.delta_add_remove(should_list_new, is_list)
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |vlans|
+          state = (action == :add) ? '' : 'no'
+          set_args_keys(state: state, vlans: vlans)
+          result = config_set('vlan', 'private_vlan_association', @set_args)
+          cli_error_check(result)
+        end
+      end
     end
   end # class
 end # module

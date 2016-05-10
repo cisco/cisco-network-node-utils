@@ -41,6 +41,19 @@ destroy:
   ios_xr:
     set_value: 'no vrf <vrf>'
 
+mhost_default_interface:
+  _exclude: [nexus]
+  get_value: '/^mhost <afi> default-interface (\S+)$/'
+  set_value: '<state> mhost <afi> default-interface <intf>'
+  default_value: ''
+
+remote_route_filtering:
+  _exclude: [nexus]
+  kind: boolean
+  get_value: '/^remote-route-filtering disable$/'
+  set_value: '<state> remote-route-filtering disable'
+  default_value: true
+
 route_distinguisher:
   # Only configurable under BGP in IOS XR, not under VRF context
   _exclude: [ios_xr]
@@ -62,3 +75,10 @@ vni: # TBD Should this move to the vni provider as vrf_vni?
     get_value: '/^vni (\d+)$/'
     set_value: '<state> vni <id>'
     default_value: false
+
+vpn_id:
+  _exclude: [nexus]
+  get_value: '/^vpn id (\S+)$/'
+  set_value: '<state> vpn id <vpnid>'
+  default_value: ''
+

@@ -6,45 +6,53 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Itd
+  * itd_device_group (@saichint)
+  * itd_device_group_node (@saichint)
+  * itd_service (@saichint)
 * Spanning Tree
   * stp_global (@saichint)
+* Bridge Domain
+  * bridge_domain (@rkorlepa)
+  * bridge_domain_vni (@rkorlepa)
+* Encapsulation Profile
+  * vni_encapsulation_profile (@rkorlepa)
 
 #### NetDev Resources
 *
 
 ### Added
 
-* Added client support for gRPC on IOS XR.
-* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+* Added a new property fabric-control for vlan MT-FULL fabricpath
+* Added support for bdi interfaces to interface provider.
+* Added a new node util to handle bridge domain range cli for member vni
+* Added Bridge Domain, VNI and encapsulation profile node utils for MT-FULL on Nexus 7k.
 * Minitests can declare the YAML feature they are exercising, and if the feature is `_exclude`d on the node under test, the test case will automatically be skipped in full.
 * CliErrors raised by any `NodeUtil` subclass or instance will automatically prepend the `to_s` method output to make troubleshooting easier.
-* Add IOS XR support for the following classes:
-  * bgp
-  * bgp_af
-  * bgp_neighbor
-  * bgp_neighbor_af
-  * command_config
-  * dns_domain (@glennmatthews)
-  * domain_name (@glennmatthews)
-  * interface
-  * name_server (@glennmatthews)
-  * ntp_config (@jonnytpuppet)
-  * ntp_server (@jonnytpuppet)
-  * platform (@glennmatthews)
 * `test_feature` minitest
 * Extend interface with attributes:
   * `ipv4_forwarding`
   * `stp_bpdufilter`, `stp_bpduguard`, `stp_cost`, `stp_guard`, `stp_link_type`, `stp_mst_cost`
   * `stp_mst_port_priority`, `stp_port_priority`, `stp_port_type`, `stp_vlan_cost`, `stp_vlan_port_priority`
+  * `switchport_private_vlan_trunk_allowed_vlan`, `switchport_private_vlan_trunk_native_vlan`
+  * `switchport_mode_private_vlan_host`, `switchport_mode_private_vlan_host_association`
+  * `switchport_mode_private_vlan_host_promiscous`, `switchport_mode_private_vlan_trunk_promiscous`, `switchport_mode_private_vlan_trunk_secondary`
+  * `switchport_private_vlan_association_trunk`, `switchport_private_vlan_mapping_trunk`
+  * `private_vlan_mapping`
+* Extend Feature class with a class method to list feature compatible interfaces
+* Extend vdc with interface_membership methods
 * Extend vpc with vpc+ attributes on Nexus 5k/6k/7k:
-  * `fabricpath_emulated_switch_id` 
+  * `fabricpath_emulated_switch_id`
   * `fabricpath_multicast_load_balance` (only on Nexus 7k)
   * `port_channel_limit` (only on Nexus 7k)
+* Extend vlan with attributes:
+  * `private_vlan_association`, `private_vlan_type`
+* Added N3k native support for portchannel_global
 
 ### Changed
 
 * Major refactor and enhancement of `CommandReference` YAML files:
-  - Filtering by platform is now by platform name only (`nexus`, `ios_xr`)
+  - Filtering by platform is now by platform name only.
   - Replaced `config_get(_token)?(_append)?` with `get_command`, `get_context`, and `get_value`
   - Replaced `config_set(_append)?` with `set_context`, and `set_value`
   - Individual token values can be explicitly marked as optional (e.g., VRF context); tokens not marked as optional are mandatory.
@@ -53,6 +61,9 @@ Changelog
 * Improved minitest logging CLI.
   - `ruby test_foo.rb -l debug` instead of `ruby test_foo.rb -- <host> <user> <pass> debug`
   - `rake test TESTOPTS='--log-level=debug'`
+* Client connectivity is now specified in `/etc/cisco_node_utils.yaml` or `~/cisco_node_utils.yaml` instead of environment variables or command-line arguments to minitest.
+  - `ruby test_foo.rb -e <node name defined in YAML>`
+  - `rake test TESTOPTS='--environment=default'`
 
 ### Fixed
 
@@ -62,6 +73,7 @@ Changelog
 
 ### Removed
 * Removed `Node.lazy_connect` internal API.
+* Removed `vni` node util class
 
 ## [v1.2.0]
 
@@ -172,7 +184,11 @@ Changelog
   * `vpc_id`, `vpc_peer_link`
   * switchport mode `fabricpath`
 * Extend vrf with attributes:
+  * `mhost_ipv4`
+  * `mhost_ipv6`
+  * `remote_route_filtering`
   * `vni`
+  * `vpn_id`
 * Extend vlan with attribute:
   * `mode`
 
@@ -279,6 +295,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1

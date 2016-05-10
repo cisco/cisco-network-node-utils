@@ -1,9 +1,0 @@
-# fex
----
-feature:
-  get_command: "show feature-set"
-  get_value: '/^fex[\s\d]+(\w+)/'
-  set_value: "%s feature-set fex"
-
-feature_install:
-  set_value: "%s install feature-set fex"

@@ -51,6 +51,7 @@ class TestSvi < CiscoTestCase
 
   def teardown
     remove_all_svis
+    config_no_warn('no feature private-vlan')
     super
   end
 
@@ -63,6 +64,55 @@ class TestSvi < CiscoTestCase
     s = config("#{state}system default interface-vlan autostate")
     if s[/Invalid input/] # rubocop:disable Style/GuardClause
       skip("'system default interface-vlan autostate' is not supported")
+    end
+  end
+
+  def test_private_vlan_mapping
+    if validate_property_excluded?('interface',
+                                   'private_vlan_mapping')
+      assert_nil(svi.private_vlan_mapping)
+      return
+    end
+    input = %w(10-20 30)
+    result = ['10-20,30']
+    svi.private_vlan_mapping = input
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
+
+    input = %w(11-13)
+    result = %w(11-13)
+    svi.private_vlan_mapping = input
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
+
+    input = []
+    result = []
+    svi.private_vlan_mapping = input
+    input = svi.private_vlan_mapping
+    assert_equal(input, result,
+                 'Err: wrong config for svi pvlan mapping')
+  end
+
+  def test_private_vlan_mapping_bad_args
+    if validate_property_excluded?('interface',
+                                   'private_vlan_mapping')
+      assert_nil(svi.private_vlan_mapping)
+      return
+    end
+    input = %w(10 20)
+    result = ['10,20']
+    svi.private_vlan_mapping = input
+    input = svi.private_vlan_mapping
+    assert_equal(result,
+                 svi.private_vlan_mapping,
+                 'Error: svi private mapping not configured')
+
+    input = %w(23)
+    assert_raises(RuntimeError,
+                  'svi pvlan mapping did not raise RuntimeError') do
+      svi.private_vlan_mapping = input
     end
   end
 

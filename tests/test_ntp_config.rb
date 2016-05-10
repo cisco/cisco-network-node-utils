@@ -28,7 +28,11 @@ class TestNtpConfig < CiscoTestCase
 
   def no_ntpconfig
     # Turn the feature off for a clean test.
-    config("no ntp source-interface #{interfaces[0]}")
+    if platform == :ios_xr
+      config("no ntp source #{interfaces[0]}")
+    else
+      config("no ntp source-interface #{interfaces[0]}")
+    end
   end
 
   # TESTS

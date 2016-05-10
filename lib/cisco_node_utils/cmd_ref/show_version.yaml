@@ -50,18 +50,19 @@ last_reset_reason:
   get_value: "rr_reason"
 
 last_reset_time:
-  _exclude: [ios_xr]
+  _exclude: [N3k, ios_xr]
   kind: string
   default_value: ''
   get_value: "rr_ctime"
 
 system_image:
-  nexus:
-    get_value: "kick_file_name"
-  ios_xr:
-    get_value: '/IOS XR.*Version (.*)$/' 
-  N7k:
+  get_value: "kick_file_name"
+  N5k: &sys_img_isan
     get_value: "isan_file_name"
+  N6k: *sys_img_isan
+  N7k: *sys_img_isan
+  ios_xr:
+    get_value: '/IOS XR.*Version (.*)$/'
 
 uptime:
   # TODO: redundant with show_system, uptime?

@@ -120,21 +120,19 @@ class TestNodeExt < CiscoTestCase
   def test_get_product_description
     product_description = node.product_description
 
-    if platform == :nexus
-      command = 'show version'
-      # Hardware
-      #   cisco Nexus9000 C9396PX Chassis
-      #
-      # Other variants for the line of interest:
-      #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
-      #                                          ^-module_id-ignore!-^
-      #   cisco Nexus3000 C3132Q Chassis
-      #   cisco N3K-C3048TP-1GE
-      pattern = /Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/
-    elsif platform == :ios_xr
-      command = 'show inventory | inc "Rack 0"'
-      pattern = /DESCR: "(.*)"/
-    end
+    command = node.cmd_ref.lookup('show_version', 'description').get_command
+
+    # Hardware
+    #   cisco Nexus9000 C9396PX Chassis
+    #
+    # Other variants for the line of interest:
+    #   cisco Nexus9000 C9504 (4 Slot) Chassis ("Supervisor Module")
+    #                                          ^-module_id-ignore!-^
+    #   cisco Nexus3000 C3132Q Chassis
+    #   cisco N3K-C3048TP-1GE
+    pattern = /Hardware\n  cisco (([^(\n]+|\(\d+ Slot\))+\w+)/ if
+      platform[/nexus/]
+    pattern = /DESCR: "(.*)"/ if platform[/ios_xr/]
 
     assert_output_check(command: command,
                         pattern: pattern,
@@ -171,11 +169,14 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_os_version
-    if platform == :nexus
-      pattern = /.*NXOS:\s+version (.*)\n/
-    elsif platform == :ios_xr
-      pattern = /IOS XR.*Version (.*)$/
-    end
+    # /N(5|6|7)/
+    #   system:    version 7.3(0)D1(1) [build 7.3(0)D1(1)]
+    # /N(3|8|9)/
+    #   NXOS: version 7.0(3)I3(1) [build 7.0(3)I3(1)]
+
+    pattern = /(?:system|NXOS):\s+version (.*)\n/ if platform[/nexus/]
+    pattern = /IOS XR.*Version (.*)$/ if platform[/ios_xr/]
+
     assert_output_check(command: 'show version',
                         pattern: pattern,
                         check:   node.os_version,
@@ -267,7 +268,8 @@ class TestNodeExt < CiscoTestCase
       configured_domain_name = nil
     end
 
-    config("no #{@domain} #{configured_domain_name}")
+    config("no #{@domain} #{configured_domain_name}") unless
+      configured_domain_name.nil?
 
     domain_name = node.domain_name
     assert_equal('', domain_name)
@@ -303,18 +305,9 @@ class TestNodeExt < CiscoTestCase
 
   def test_get_system_uptime
     node.cache_flush
-    pattern = /
-      .*System\suptime.*
-      (?:(\d+)\sdays,?\s?)?
-      (?:(\d+)\shours,?\s?)?
-      (?:(\d+)\sminutes,?\s?)?
-      (?:(\d+)\sseconds)?
-    /x
-    if platform == :ios_xr
-      cmd = 'show version'
-    elsif platform == :nexus
-      cmd = 'show system uptime | no-more'
-    end
+
+    cmd = node.cmd_ref.lookup('show_system', 'uptime').get_command
+    pattern = node.cmd_ref.lookup('show_system', 'uptime').get_value
 
     md = assert_show_match(command: cmd, pattern: pattern)
     node_uptime = node.system_uptime
@@ -331,26 +324,18 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_last_reset_time
-    if platform == :ios_xr
+    if validate_property_excluded?('show_version', 'last_reset_time')
       assert_nil(node.last_reset_time)
       return
     end
-    last_reset_time = node.last_reset_time
-    # N9k doesn't provide this info at present.
-    if !last_reset_time.empty?
-      assert_output_check(command: 'show version',
-                          pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
-                          check:   last_reset_time,
-                          msg:     'Error, Last reset time does not match')
-    else
-      refute_show_match(command: 'show version',
+    assert_output_check(command: 'show version',
                         pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
-                        msg:     'output found in ASCII but not in node')
-    end
+                        check:   node.last_reset_time,
+                        msg:     'Error, Last reset time does not match')
   end
 
   def test_get_last_reset_reason
-    if platform == :ios_xr
+    if validate_property_excluded?('show_version', 'last_reset_reason')
       assert_nil(node.last_reset_reason)
       return
     end
@@ -361,7 +346,7 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_system_cpu_utilization
-    if platform == :ios_xr
+    if validate_property_excluded?('system', 'resources')
       assert_nil(node.system_cpu_utilization)
       return
     end
@@ -376,23 +361,37 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_boot
-    if platform == :ios_xr
+    if validate_property_excluded?('show_version', 'boot_image')
       assert_nil(node.boot)
       return
     end
+
+    # /N(5|6|7)/
+    #   kickstart image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
+    # /N(3|8|9)/
+    #   NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+
+    pattern = /(?:kickstart|NXOS) image file is:\s+(.*)$/
     assert_output_check(command: 'show version',
-                        pattern: /.*NXOS image file is: (.*)$.*/,
+                        pattern: pattern,
                         check:   node.boot,
                         msg:     'Error, Kickstart Image does not match')
   end
 
   def test_get_system
-    if platform == :ios_xr
+    if validate_property_excluded?('system', 'resources')
       assert_nil(node.system)
       return
     end
+
+    # /N(5|6|7)/
+    # system image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
+    # /N(3|8|9)/
+    # NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+
+    pattern = /(?:system|NXOS) image file is:\s+(.*)$/
     assert_output_check(command: 'show version',
-                        pattern: /.*(?:system|NXOS) image file is: (.*)$.*/,
+                        pattern: pattern,
                         check:   node.system,
                         msg:     'Error, System Image does not match')
   end

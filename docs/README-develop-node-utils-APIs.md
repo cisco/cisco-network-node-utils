@@ -96,6 +96,8 @@ or (if you don't have admin/root privileges and have used `--user-install` to in
 ~/.gem/ruby/$RUBY_VERSION/bin/bundle install --path ~/.gem
 ```
 
+Optionally create the file `~/cisco_node_utils.yaml` to specify how the test scripts will connect to your Nexus VM or other node under test. Refer to the project [README](../README.md#configuration) for details.
+
 If you intend to contribute your code back to the project then you should install the git hooks that are checked in with the project source code.  These hooks check your commits for conformance with various style guidelines.  To install them in your local repository (or to update them to match the files currently in the repository, in case they are out of sync), simply run the `update-hooks` script:
 
 ```bash
@@ -182,7 +184,7 @@ feature:
 maximum_paths:
   # This is an integer property
   kind: int
-  context: 
+  context:
     - 'router eigrp <name>'
   get_command: 'show running eigrp all'
   get_value: 'maximum-paths (\d+)'
@@ -491,10 +493,10 @@ class TestRouterEigrp < CiscoTestCase
 end
 ```
 
-Now run the test:
+Now run the test (see [README-test-execution](README-test-execution.md) for detailed instructions):
 
 ```bash
-% ruby test_router_eigrp.rb -v -- 192.168.0.1 admin admin
+% ruby test_router_eigrp.rb -v --environment my_nexus_vm
 Run options: -v -- --seed 56593
 
 # Running:

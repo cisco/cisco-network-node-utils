@@ -104,12 +104,18 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def ingress_replication_supported?
+      node.cmd_ref.supports?('vxlan_vtep_vni', 'ingress_replication')
+    end
+
     def ingress_replication
       config_get('vxlan_vtep_vni', 'ingress_replication', @get_args)
     end
 
     def remove_add_ingress_replication(protocol)
-      if ingress_replication.empty?
+      # Note: ingress-replication is not supported on all platforms.
+      # Use to_s.empty check to also handle nil check.
+      if ingress_replication.to_s.empty?
         set_args_keys(state: '', protocol: protocol)
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       else
@@ -171,7 +177,7 @@ module Cisco
         ip_end = '' if ip_end.nil?
         # Since multicast group and ingress replication are exclusive
         # properties, remove ingress replication first
-        unless ingress_replication.empty?
+        if ingress_replication_supported? && !ingress_replication.empty?
           set_args_keys(state: 'no', protocol: ingress_replication)
           config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
         end
@@ -214,7 +220,9 @@ module Cisco
       if state
         set_args_keys(state: '')
         # Host reachability must be enabled for this property
-        VxlanVtep.new(@name).host_reachability = 'evpn'
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
         config_set('vxlan_vtep_vni', 'suppress_arp', @set_args)
       else
         set_args_keys(state: 'no')
@@ -229,6 +237,30 @@ module Cisco
 
     def default_suppress_arp
       config_get_default('vxlan_vtep_vni', 'suppress_arp')
+    end
+
+    def suppress_uuc
+      config_get('vxlan_vtep_vni', 'suppress_uuc', @get_args)
+    end
+
+    def suppress_uuc=(state)
+      if state
+        set_args_keys(state: '')
+        # Host reachability must be enabled for this property
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'"
+        end
+        config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args)
+      else
+        set_args_keys(state: 'no')
+        # Remove suppress-uuc only if it is configured. Note that for
+        # suppress-uuc, default is 'false' which is no suppress-uuc.
+        config_set('vxlan_vtep_vni', 'suppress_uuc', @set_args) if suppress_uuc
+      end
+    end
+
+    def default_suppress_uuc
+      config_get_default('vxlan_vtep_vni', 'suppress_uuc')
     end
   end
 end
