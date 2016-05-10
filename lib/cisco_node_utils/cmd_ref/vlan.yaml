@@ -39,6 +39,11 @@ mapped_vni:
   set_value:  '<state> vn-segment <vni> ; end'
   default_value: ''
 
+mapped_vni_requires_nv_overlay:
+  _exclude: [N3k, N7k, N8k, N9k]
+  kind: boolean
+  default_value: true
+
 mode:
   _exclude: [N3k, N9k]
   multiple: true
