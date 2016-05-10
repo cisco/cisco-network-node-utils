@@ -224,5 +224,127 @@ module Cisco
       end
       lranges.to_s.gsub('..', '-').delete('[').delete(']').delete(' ')
     end
+
+    # normalize_range_array
+    #
+    # Given a list of ranges, merge any overlapping ranges and normalize the
+    # them as a string that can be used directly on the switch.
+    #
+    # Note: The ranges are converted to ruby ranges for easy merging,
+    # then converted back to a cli-syntax ranges.
+    #
+    # Accepts an array or string:
+    #   ["2-5", "9", "4-6"]  -or-  '2-5, 9, 4-6'  -or-  ["2-5, 9, 4-6"]
+    # Returns a merged and ordered range:
+    #   ["2-6", "9"]
+    #
+    def self.normalize_range_array(range)
+      return range if range.nil? || range.empty?
+
+      # Handle string within an array: ["2-5, 9, 4-6"] to '2-5, 9, 4-6'
+      range = range.shift if range.is_a?(Array) && range.length == 1
+
+      # Handle string only: '2-5, 9, 4-6' to ["2-5", "9", "4-6"]
+      range = range.split(',') if range.is_a?(String)
+
+      # Convert to ruby-syntax ranges
+      range = dash_range_to_ruby_range(range)
+
+      # Sort & Merge
+      merged = merge_range(range)
+
+      # Convert back to cli dash-syntax
+      ruby_range_to_dash_range(merged)
+    end
+
+    # Convert a cli-dash-syntax range to ruby-range. This is useful for
+    # preparing inputs to merge_range().
+    #
+    # Inputs an array or string of dash-syntax ranges -> returns an array
+    # of ruby ranges.
+    #
+    # Accepts an array or string: ["2-5", "9", "4-6"] or '2-5, 9, 4-6'
+    # Returns an array of ranges: [2..5, 9..9, 4..6]
+    #
+    def self.dash_range_to_ruby_range(range)
+      range = range.split(',') if range.is_a?(String)
+      range.map! do |rng|
+        if rng[/-/]
+          # '2-5' -> 2..5
+          rng.split('-').inject { |a, e| a.to_i..e.to_i }
+        else
+          # '9' -> 9..9
+          rng.to_i..rng.to_i
+        end
+      end
+      range
+    end
+
+    # Convert a ruby-range to cli-dash-syntax.
+    #
+    # Inputs an array of ruby ranges -> returns an array or string of
+    # dash-syntax ranges.
+    #
+    # when (:array)  [2..6, 9..9]  ->  ['2-6', '9']
+    #
+    # when (:string)  [2..6, 9..9]  ->  '2-6, 9'
+    #
+    def self.ruby_range_to_dash_range(range, type=:array)
+      fail unless range.is_a?(Array)
+      range.map! do |r|
+        if r.first == r.last
+          # 9..9 -> '9'
+          r.first.to_s
+        else
+          # 2..6 -> '2-6'
+          r.first.to_s + '-' + r.last.to_s
+        end
+      end
+      return range.join(', ') if type == :string
+      range
+    end
+
+    # Convert a dash-range set into individual elements.
+    # This is useful for preparing inputs to delta_add_remove().
+    #
+    # Inputs an array or string of dash-ranges:
+    #  ["2-5", "9", "4-6"] or '2-5, 9, 4-6' or ['2-5, 9, 4-6']
+    # Returns an array of range elements:
+    #  ["2", "3", "4", "5", "6", "9"]
+    #
+    def self.dash_range_to_elements(range)
+      range = range.shift if range.is_a?(Array) && range.length == 1
+      range = range.split(',') if range.is_a?(String)
+
+      final = []
+      range = dash_range_to_ruby_range(range)
+      range.each do |rng|
+        # 2..5 maps to ["2", "3", "4", "5"]
+        final << rng.map(&:to_s)
+      end
+      final.flatten.uniq.sort
+    end
+
+    # Merge overlapping ranges.
+    #
+    # Inputs an array of ruby ranges:         [2..5, 9..9, 4..6]
+    # Returns an array of merged ruby ranges: [2..6, 9..9]
+    #
+    def self.merge_range(range)
+      # sort to lowest range 'first' values:
+      #    [2..5, 9..9, 4..6]  ->  [2..5, 4..6, 9..9]
+      range = range.sort_by(&:first)
+
+      *merged = range.shift
+      range.each do |r|
+        lastr = merged[-1]
+        if lastr.last >= r.first - 1
+          merged[-1] = lastr.first..[r.last, lastr.last].max
+        else
+          merged.push(r)
+        end
+      end
+      merged
+    end # merge_range
   end # class Utils
 end   # module Cisco

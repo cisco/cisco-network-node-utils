@@ -263,12 +263,15 @@ module Cisco
 
     def private_vlan_association
       return nil unless Feature.private_vlan_enabled?
-      config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      range = config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      Utils.normalize_range_array(range)
     end
 
-    def private_vlan_association=(vlan_list)
+    def private_vlan_association=(range)
       Feature.private_vlan_enable
-      vlan_list_delta(private_vlan_association, vlan_list)
+      is = Utils.dash_range_to_elements(private_vlan_association)
+      should = Utils.dash_range_to_elements(range)
+      association_delta(is, should)
     end
 
     def default_private_vlan_association
@@ -276,48 +279,12 @@ module Cisco
     end
 
     # --------------------------
-    # vlan_list_delta is a helper function for the private_vlan_association
+    # association_delta is a helper function for the private_vlan_association
     # property. It walks the delta hash and adds/removes each target private
     # vlan.
-    # This api is used by private vlan to prepare the input to the setter
-    # method. The input can be in the following formats for vlans:
-    # 10-12,14. Prepare_array api is transforming this input into a flat array.
-    # In the example above the returned array will be 10, 11, 12, 14. Prepare
-    # array is first splitting the input on ',' and the than expanding the vlan
-    # range element like 10-12 into a flat array. The final result will
-    # be a  flat array.
-    # This way we can later used the lib utility to check the delta from
-    # the input vlan value and the vlan configured to apply the right config.
-
-    def vlan_list_delta(is_list, should_list)
-      new_list = []
-      should_list.each do |item|
-        if item.include?(',')
-          new_list.push(item.split(','))
-        else
-          new_list.push(item)
-        end
-      end
-      new_list.flatten!
-      new_list.sort!
-
-      new_list.each { |item| item.gsub!('-', '..') }
-
-      should_list_new = []
-      new_list.each do |elem|
-        if elem.include?('..')
-          elema = elem.split('..').map { |d| Integer(d) }
-          elema.sort!
-          tr = elema[0]..elema[1]
-          tr.to_a.each do |item|
-            should_list_new.push(item.to_s)
-          end
-        else
-          should_list_new.push(elem)
-        end
-      end
-
-      delta_hash = Utils.delta_add_remove(should_list_new, is_list)
+    def association_delta(is, should)
+      delta_hash = Utils.delta_add_remove(should, is)
+      Cisco::Logger.debug("association_delta: #{@vlan_id}: #{delta_hash}")
       [:add, :remove].each do |action|
         delta_hash[action].each do |vlans|
           state = (action == :add) ? '' : 'no'
