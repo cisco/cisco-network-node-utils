@@ -607,63 +607,55 @@ class TestVlan < CiscoTestCase
 
   def test_private_vlan_multi_isolate_community_association
     vlan_list = %w(100 101 102 104 105 200 201 202)
-    result = %w(101 104 105 200 202)
     v1 = Vlan.new(vlan_list[0])
 
     pv_type = 'primary'
     if validate_property_excluded?('vlan', 'private_vlan_type')
       assert_nil(v1.private_vlan_type)
-      assert_raises(Cisco::UnsupportedError) do
-        v1.private_vlan_type = pv_type
-      end
+      assert_raises(Cisco::UnsupportedError) { v1.private_vlan_type = pv_type }
       return
-    else
-      v2 = Vlan.new(vlan_list[1])
-      v3 = Vlan.new(vlan_list[2])
-      v4 = Vlan.new(vlan_list[3])
-      v5 = Vlan.new(vlan_list[4])
-      v6 = Vlan.new(vlan_list[5])
-      v7 = Vlan.new(vlan_list[6])
-
-      v1.private_vlan_type = pv_type
-      assert_equal(pv_type, v1.private_vlan_type)
-
-      pv_type = 'isolated'
-      v2.private_vlan_type = pv_type
-      assert_equal(pv_type, v2.private_vlan_type)
-
-      pv_type = 'isolated'
-      v3.private_vlan_type = pv_type
-      assert_equal(pv_type, v3.private_vlan_type)
-
-      pv_type = 'community'
-      v4.private_vlan_type = pv_type
-      assert_equal(pv_type, v4.private_vlan_type)
-
-      pv_type = 'community'
-      v5.private_vlan_type = pv_type
-      assert_equal(pv_type, v5.private_vlan_type)
-
-      pv_type = 'community'
-      v6.private_vlan_type = pv_type
-      assert_equal(pv_type, v6.private_vlan_type)
-
-      pv_type = 'primary'
-      v7.private_vlan_type = pv_type
-      assert_equal(pv_type, v7.private_vlan_type)
-
-      v1.private_vlan_association = ['101', '104-105', '200', '202']
-
-      assert_equal(result, v1.private_vlan_association)
-
-      v1.private_vlan_association = ['101', '103-105', '108']
-
-      result = %w(101 103 104 105 108)
-      assert_equal(result, v1.private_vlan_association)
-
-      v1.private_vlan_association = ['101', '103-105', '108']
-      result = %w(101 103 104 105 108)
-      assert_equal(result, v1.private_vlan_association)
     end
+
+    v2 = Vlan.new(vlan_list[1])
+    v3 = Vlan.new(vlan_list[2])
+    v4 = Vlan.new(vlan_list[3])
+    v5 = Vlan.new(vlan_list[4])
+    v6 = Vlan.new(vlan_list[5])
+    v7 = Vlan.new(vlan_list[6])
+
+    v1.private_vlan_type = pv_type
+    assert_equal(pv_type, v1.private_vlan_type)
+
+    pv_type = 'isolated'
+    v2.private_vlan_type = pv_type
+    assert_equal(pv_type, v2.private_vlan_type)
+
+    pv_type = 'isolated'
+    v3.private_vlan_type = pv_type
+    assert_equal(pv_type, v3.private_vlan_type)
+
+    pv_type = 'community'
+    v4.private_vlan_type = pv_type
+    assert_equal(pv_type, v4.private_vlan_type)
+
+    pv_type = 'community'
+    v5.private_vlan_type = pv_type
+    assert_equal(pv_type, v5.private_vlan_type)
+
+    pv_type = 'community'
+    v6.private_vlan_type = pv_type
+    assert_equal(pv_type, v6.private_vlan_type)
+
+    pv_type = 'primary'
+    v7.private_vlan_type = pv_type
+    assert_equal(pv_type, v7.private_vlan_type)
+
+    v1.private_vlan_association = %w(101 104 105 200 202)
+    result = %w(101 104-105 200 202)
+    assert_equal(result, v1.private_vlan_association)
+
+    v1.private_vlan_association = %w(101 103 104-105 108)
+    result = %w(101 103-105 108)
+    assert_equal(result, v1.private_vlan_association)
   end
 end
