@@ -44,11 +44,8 @@ mapped_vni_requires_nv_overlay:
   N5k: &requires_nv_overlay_true
     default_only: true
   N6k: *requires_nv_overlay_true
-  N3k: &requires_nv_overlay_false
+  else:
     default_only: false
-  N7k: *requires_nv_overlay_false
-  N8k: *requires_nv_overlay_false
-  N9k: *requires_nv_overlay_false
 
 mode:
   _exclude: [N3k, N9k]
