@@ -382,7 +382,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
   end
 
   def test_switchport_autostate_enabled_access
-    config("interface ethernet #{interfaces_id[0]}",
+    config("interface #{interfaces[0]}",
            'switchport',
            'switchport autostate exclude')
 
@@ -404,7 +404,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
 
   def test_switchport_autostate_enabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}",
+    config("interface #{interfaces[0]}",
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
@@ -420,7 +420,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
 
   def test_switchport_autostate_disabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}",
+    config("interface #{interfaces[0]}",
            'no switchport autostate exclude')
 
     refute(interface.switchport_autostate_exclude,
@@ -509,7 +509,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
   def test_switchport_vtp_enabled_access
     platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
-    config("interface ethernet #{interfaces_id[0]}", 'vtp')
+    config("interface #{interfaces[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
@@ -517,7 +517,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
 
   def test_switchport_vtp_disabled_access
     interface.switchport_mode = :access
-    config("interface ethernet #{interfaces_id[0]}", 'no vtp')
+    config("interface #{interfaces[0]}", 'no vtp')
 
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
@@ -525,7 +525,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
 
   def test_switchport_vtp_enabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}", 'vtp')
+    config("interface #{interfaces[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, trunk, vtp not enabled')

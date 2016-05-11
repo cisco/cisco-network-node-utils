@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2016 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ class TestInterfaceSwitchport < CiscoTestCase
   end
 
   def cleanup
-    remove_svis
     cleanup_pvlan_intfs
     remove_all_vlans
     config_no_warn('no feature private-vlan', 'no feature vtp')
@@ -58,7 +57,7 @@ end
 
 # TestSwitchport - general interface switchport tests.
 class TestSwitchport < TestInterfaceSwitchport
-  def test_interface_switchport_private_host_mode
+  def test_switchport_private_host_mode
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
       assert_raises(Cisco::UnsupportedError) do
@@ -78,7 +77,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_private_trunk_promisc
+  def test_switchport_private_trunk_promisc
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
@@ -92,7 +91,7 @@ class TestSwitchport < TestInterfaceSwitchport
            'Err: Switchport mode, not as expected')
   end
 
-  def test_interface_switchport_private_trunk_secondary
+  def test_switchport_private_trunk_secondary
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
@@ -106,7 +105,7 @@ class TestSwitchport < TestInterfaceSwitchport
            'Err: Switchport mode, not as expected')
   end
 
-  def test_interface_no_switchport_private_host_mode
+  def test_no_switchport_private_host_mode
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
       assert_raises(Cisco::UnsupportedError) do
@@ -129,7 +128,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_no_switchport_private_trunk_mode
+  def test_no_switchport_private_trunk_mode
     if validate_property_excluded?(
       'interface',
       'switchport_mode_private_vlan_trunk_secondary')
@@ -146,7 +145,7 @@ class TestSwitchport < TestInterfaceSwitchport
            'Err: Switchport mode not disabled')
   end
 
-  def test_interface_switchport_private_host_association
+  def test_switchport_private_host_association
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
       assert_raises(Cisco::UnsupportedError) do
@@ -172,7 +171,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: switchport private host_association not configured')
   end
 
-  def test_interface_switchport_pvlan_host_assoc_change
+  def test_switchport_pvlan_host_assoc_change
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
       assert_raises(Cisco::UnsupportedError) do
@@ -217,7 +216,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: switchport private host_association not configured')
   end
 
-  def test_interface_switchport_no_pvlan_host_assoc
+  def test_switchport_no_pvlan_host_assoc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -247,7 +246,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: switchport private host_association not configured')
   end
 
-  def test_interface_switchport_pvlan_host_assoc_default
+  def test_switchport_pvlan_host_assoc_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -261,7 +260,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: host association failed')
   end
 
-  def test_interface_switchport_pvlan_host_assoc_bad_arg
+  def test_switchport_pvlan_host_assoc_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -296,7 +295,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_pvlan_host_primisc_default
+  def test_switchport_pvlan_host_primisc_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -310,7 +309,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: promisc association failed')
   end
 
-  def test_interface_switchport_private_host_promisc
+  def test_switchport_private_host_promisc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -365,7 +364,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Error: switchport private host promisc not configured')
   end
 
-  def test_interface_switchport_private_host_promisc_bad_arg
+  def test_switchport_private_host_promisc_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -412,7 +411,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_no_switchport_private_host_promisc
+  def test_no_switchport_private_host_promisc
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -442,7 +441,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Error: switchport private host promisc not configured')
   end
 
-  def test_interface_switchport_pvlan_trunk_allow_default
+  def test_switchport_pvlan_trunk_allow_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -456,7 +455,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: trunk allowed vlan failed')
   end
 
-  def test_interface_switchport_pvlan_trunk_allow_bad_arg
+  def test_switchport_pvlan_trunk_allow_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -476,7 +475,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_pvlan_trunk_allow
+  def test_switchport_pvlan_trunk_allow
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -508,7 +507,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Error: switchport private trunk allow vlan not configured')
   end
 
-  def test_interface_switchport_pvlan_trunk_native_vlan_bad_arg
+  def test_switchport_pvlan_trunk_native_vlan_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -528,7 +527,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_pvlan_trunk_native_default
+  def test_switchport_pvlan_trunk_native_default
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -542,7 +541,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: trunk native vlan failed')
   end
 
-  def test_interface_switchport_pvlan_trunk_native_vlan
+  def test_switchport_pvlan_trunk_native_vlan
     if validate_property_excluded?('interface',
                                    'switchport_mode_private_vlan_host')
 
@@ -573,7 +572,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Error: switchport private trunk native vlan not configured')
   end
 
-  def test_interface_switchport_pvlan_association_trunk
+  def test_switchport_pvlan_association_trunk
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
       assert_nil(interface.switchport_private_vlan_association_trunk)
@@ -605,7 +604,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: wrong config for switchport private trunk association')
   end
 
-  def test_interface_switchport_pvlan_trunk_assoc_vlan_bad_arg
+  def test_switchport_pvlan_trunk_assoc_vlan_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
       assert_nil(interface.switchport_private_vlan_association_trunk)
@@ -633,7 +632,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_pvlan_trunk_assocciation_default
+  def test_switchport_pvlan_trunk_assocciation_default
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_association_trunk')
       assert_nil(interface.switchport_private_vlan_association_trunk)
@@ -644,7 +643,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: association trunk failed')
   end
 
-  def test_interface_switchport_pvlan_mapping_trunk_default
+  def test_switchport_pvlan_mapping_trunk_default
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
 
@@ -656,7 +655,7 @@ class TestSwitchport < TestInterfaceSwitchport
                  'Err: mapping trunk failed')
   end
 
-  def test_interface_switchport_pvlan_mapping_trunk
+  def test_switchport_pvlan_mapping_trunk
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
       assert_nil(interface.switchport_private_vlan_mapping_trunk)
@@ -688,7 +687,7 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(input, interface.switchport_private_vlan_mapping_trunk)
   end
 
-  def test_interface_switchport_pvlan_mapping_trunk_bad_arg
+  def test_switchport_pvlan_mapping_trunk_bad_arg
     if validate_property_excluded?('interface',
                                    'switchport_private_vlan_mapping_trunk')
       assert_nil(interface.switchport_private_vlan_mapping_trunk)
