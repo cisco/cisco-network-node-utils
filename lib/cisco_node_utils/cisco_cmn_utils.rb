@@ -231,7 +231,7 @@ module Cisco
     # them as a string that can be used directly on the switch.
     #
     # Note: The ranges are converted to ruby ranges for easy merging,
-    # then converted back to a cli-syntax ranges.
+    # then converted back to a cli-syntax range.
     #
     # Accepts an array or string:
     #   ["2-5", "9", "4-6"]  -or-  '2-5, 9, 4-6'  -or-  ["2-5, 9, 4-6"]
