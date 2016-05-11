@@ -91,6 +91,10 @@ module Cisco
       case opt
       when :private_vlan_any
         return false if config_get('interface', 'private_vlan_any', name: id)
+
+      else
+        # opt is just a basic pattern filter (:ethernet, :loopback, etc)
+        return false if id.match(opt.to_s)
       end
       true
     end
