@@ -221,7 +221,13 @@ module Cisco
       config_get('vlan', 'mapped_vni', vlan: @vlan_id)
     end
 
+    def requires_nv_overlay?
+      config_get('vlan', 'mapped_vni_requires_nv_overlay')
+    end
+
     def mapped_vni=(vni)
+      # Some platforms require feature nv_overlay to be enabled first.
+      Feature.nv_overlay_enable if requires_nv_overlay?
       Feature.vn_segment_vlan_based_enable
       # Remove the existing mapping first as cli doesn't support overwriting.
       config_set('vlan', 'mapped_vni', vlan: @vlan_id,
