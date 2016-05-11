@@ -40,9 +40,15 @@ mapped_vni:
   default_value: ''
 
 mapped_vni_requires_nv_overlay:
-  _exclude: [N3k, N7k, N8k, N9k]
   kind: boolean
-  default_value: true
+  N5k: &requires_nv_overlay_true
+    default_only: true
+  N6k: *requires_nv_overlay_true
+  N3k: &requires_nv_overlay_false
+    default_only: false
+  N7k: *requires_nv_overlay_false
+  N8k: *requires_nv_overlay_false
+  N9k: *requires_nv_overlay_false
 
 mode:
   _exclude: [N3k, N9k]
