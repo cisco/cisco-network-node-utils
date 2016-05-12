@@ -712,21 +712,18 @@ class TestInterface < CiscoTestCase
       return
     end
 
-    # Note that 'speed' and 'negotiate' are tightly coupled
+    # Note that 'speed' and 'negotiate auto' are tightly coupled
     # When speed is 'auto', set negotiate auto to 'true'
     # When speed is static value, turn off negotiate auto
-    pattern = /^\s+negotiate auto/
     interface.speed = speed
     if speed == 'auto'
       interface.negotiate_auto = true
       assert(interface.negotiate_auto,
              "#{interface.name} negotiate auto value should be true")
-      assert_show_match(pattern: pattern)
     else
       interface.negotiate_auto = false
       refute(interface.negotiate_auto,
              "#{interface.name} negotiate auto value should be false")
-      refute_show_match(pattern: pattern)
     end
   end
 
@@ -736,6 +733,7 @@ class TestInterface < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) do
         member.channel_group = 10
       end
+      return
     end
 
     # Clean up any stale config first
