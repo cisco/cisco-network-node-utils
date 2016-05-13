@@ -227,19 +227,19 @@ module Cisco
 
     # normalize_range_array
     #
-    # Given a list of ranges, merge any overlapping ranges and normalize the
-    # them as a string that can be used directly on the switch.
+    # Given a list of ranges, merge any overlapping ranges and sort them.
     #
     # Note: The ranges are converted to ruby ranges for easy merging,
     # then converted back to a cli-syntax range.
     #
     # Accepts an array or string:
     #   ["2-5", "9", "4-6"]  -or-  '2-5, 9, 4-6'  -or-  ["2-5, 9, 4-6"]
-    # Returns a merged and ordered range:
-    #   ["2-6", "9"]
+    # Returns a merged and ordered range as an array or string:
+    #   ["2-6", "9"] -or- '2-6,9'
     #
-    def self.normalize_range_array(range)
+    def self.normalize_range_array(range, fmt=:array)
       return range if range.nil? || range.empty?
+      range = range.clone
 
       # Handle string within an array: ["2-5, 9, 4-6"] to '2-5, 9, 4-6'
       range = range.shift if range.is_a?(Array) && range.length == 1
@@ -254,7 +254,10 @@ module Cisco
       merged = merge_range(range)
 
       # Convert back to cli dash-syntax
-      ruby_range_to_dash_range(merged)
+      merged_array = ruby_range_to_dash_range(merged)
+
+      return merged_array.join(',') if fmt == :string
+      merged_array
     end
 
     # Convert a cli-dash-syntax range to ruby-range. This is useful for
@@ -313,6 +316,7 @@ module Cisco
     #  ["2", "3", "4", "5", "6", "9"]
     #
     def self.dash_range_to_elements(range)
+      return [] if range.nil?
       range = range.shift if range.is_a?(Array) && range.length == 1
       range = range.split(',') if range.is_a?(String)
 
