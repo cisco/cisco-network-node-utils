@@ -59,6 +59,9 @@ module Cisco
         # cannot remove default local, so do nothing in this case
         unless m == :local && @name == 'default'
           unless node.product_id[/N8/]
+            # TBD: These 'no' commands currently error on N8k
+            #   no aaa authentication login console local
+            #   no aaa authentication login console none
             config_set('aaa_auth_login_service', 'method',
                        'no', @name, m_str)
           end
