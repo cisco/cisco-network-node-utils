@@ -17,7 +17,7 @@
 #
 #                        WARNING! WARNING! WARNING!
 #
-# This file contains deprecated methods that will be removed with version 2.0
+# This file contains deprecated methods that will be removed with version 2.0.0
 #
 ###############################################################################
 

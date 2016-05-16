@@ -23,18 +23,21 @@ require_relative 'interface_DEPRECATED'
 # Cisco provider module
 module Cisco
   IF_SWITCHPORT_MODE = {
-    disabled:    '',
-    access:      'access',
-    trunk:       'trunk',
-    fex_fabric:  'fex-fabric',
-    tunnel:      'dot1q-tunnel',
-    fabricpath:  'fabricpath',
+    disabled:   '',
+    access:     'access',
+    trunk:      'trunk',
+    fex_fabric: 'fex-fabric',
+    tunnel:     'dot1q-tunnel',
+    fabricpath: 'fabricpath',
+  }
 
-    # DEPRECATED KEYS (REMOVE THESE WITH RELEASE 2.0.0)
+  # REMOVE THIS HASH WITH RELEASE 2.0.0
+  IF_DEPRECATED = {
     host:        'host',
     promiscuous: 'promiscuous',
     secondary:   'secondary',
   }
+  IF_SWITCHPORT_MODE.merge!(IF_DEPRECATED)
 
   # Interface - node utility class for general interface config management
   class Interface < Cisco::InterfaceDeprecated
