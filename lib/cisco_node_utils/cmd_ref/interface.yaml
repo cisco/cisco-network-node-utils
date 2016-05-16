@@ -229,10 +229,11 @@ pvlan_any:
 
 # Be aware of similar vlan-mapping tags:
 # 'vlan_mapping' is the non-pvlan version of this command
-# 'pvlan_mapping' is the non-switchport private-vlan version
-# 'switchport_pvlan_mapping' is the switchport-pvlan version
-# 'switchport_pvlan_mapping_trunk' is the switchport-pvlan-trunk version
+# 'pvlan_mapping' is the SVI private-vlan command
+# 'switchport_pvlan_mapping' is the switchport-pvlan-host command
+# 'switchport_pvlan_mapping_trunk' is the switchport-pvlan-trunk command
 pvlan_mapping:
+  # SVI-only property
   _exclude: [ios_xr, N8k]
   get_value: '/^private-vlan mapping (.*)/'
   set_value: "<state> private-vlan mapping <vlan>"
@@ -431,8 +432,9 @@ switchport_pvlan_mapping:
 
 switchport_pvlan_mapping_trunk:
   _exclude: [ios_xr, N3k, N8k]
+  multiple:
   get_value: '/^switchport private-vlan mapping trunk (\d+) (.*)$/'
-  set_value: "<state> switchport private-vlan mapping trunk <primary> <vlan>"
+  set_value: "<state> switchport private-vlan mapping trunk <primary> <range>"
   default_value: []
 
 switchport_pvlan_promiscuous:

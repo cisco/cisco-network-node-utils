@@ -197,7 +197,7 @@ class CiscoTestCase < TestCase
 
   def remove_all_svis
     Interface.interfaces(:vlan).each do |svi, obj|
-      next if svi == '1'
+      next if svi == 'vlan1'
       obj.destroy
     end
   end

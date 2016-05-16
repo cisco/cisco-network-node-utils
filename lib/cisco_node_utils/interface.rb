@@ -1044,11 +1044,60 @@ module Cisco
 
     # Input: An array of primary vlan and range of vlans: ['44', '3-4,6']
     def switchport_pvlan_mapping=(primary_and_range)
-      pvlan_range_delta(primary_and_range, 'switchport_pvlan_mapping')
+      switchport_pvlan_mapping_delta(primary_and_range)
     end
 
     def default_switchport_pvlan_mapping
       config_get_default('interface', 'switchport_pvlan_mapping')
+    end
+
+    # --------------------------
+    # Find the is/should delta and add/remove commands as needed.
+    #
+    # Inputs:
+    # primary_and_range: An array of primary vlan and range of vlans
+    def switchport_pvlan_mapping_delta(primary_and_range)
+      # Enable switchport mode and feature private-vlan
+      pvlan_enable
+      primary, should_range = primary_and_range
+
+      # primary changes require removing the entire command first
+      is_range = switchport_pvlan_mapping_remove?(primary)
+
+      # convert ranges to individual elements
+      is = Utils.dash_range_to_elements(is_range)
+      should = Utils.dash_range_to_elements(should_range)
+
+      # create the delta hash and apply the changes
+      delta_hash = Utils.delta_add_remove(should, is)
+      Cisco::Logger.debug('switchport_pvlan_mapping_delta: '\
+                          "#{primary}: #{delta_hash}")
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |vlan|
+          state = (action == :add) ? '' : 'no'
+          cli_error_check(
+            config_set('interface', 'switchport_pvlan_mapping',
+                       name: @name, state: state, primary: primary, vlan: vlan))
+        end
+      end
+    end
+
+    # --------------------------
+    # switchport_pvlan_mapping_remove?
+    # This is a helper to check if command needs to be removed entirely.
+    #
+    # should_primary: the new primary vlan value
+    #        Returns: the current vlan range
+    def switchport_pvlan_mapping_remove?(should_primary)
+      is_primary, is_range = switchport_pvlan_mapping
+
+      if (is_primary != should_primary) && !is_primary.nil?
+        cli_error_check(
+          config_set('interface', 'switchport_pvlan_mapping',
+                     name: @name, state: 'no', primary: '', vlan: ''))
+        is_range = []
+      end
+      is_range
     end
 
     # --------------------------
@@ -1057,9 +1106,10 @@ module Cisco
       config_get('interface', 'switchport_pvlan_mapping_trunk', name: @name)
     end
 
-    # Input: An array of primary vlan and range of vlans: ['44', '3-4,6']
-    def switchport_pvlan_mapping_trunk=(primary_and_range)
-      pvlan_range_delta(primary_and_range, 'switchport_pvlan_mapping_trunk')
+    # Input: A nested array of primary vlan and range of vlans:
+    # [['44', '3-4,6'], ['99', '199']]
+    def switchport_pvlan_mapping_trunk=(should)
+      switchport_pvlan_mapping_trunk_delta(should)
     end
 
     def default_switchport_pvlan_mapping_trunk
@@ -1067,54 +1117,37 @@ module Cisco
     end
 
     # --------------------------
-    # pvlan_range_delta is a helper function for private-vlan mapping
-    # properties. It creates and walks a delta hash, then adds/removes
-    # each vlan from the range.
+    # switchport_pvlan_mapping_trunk_delta(should)
     #
-    # Inputs:
-    # primary_and_range: An array of primary vlan and range of vlans
-    #              prop: The getter name to use with config_set
-    def pvlan_range_delta(primary_and_range, prop)
+    # Find the is/should delta and add/remove commands as needed.
+    # The 'should' value is a nested array of primary vlan and secondary
+    # ranges; e.g.:
+    #   [['44', '144-145'], ['99', '199-201']
+    #
+    def switchport_pvlan_mapping_trunk_delta(should)
       # Enable switchport mode and feature private-vlan
       pvlan_enable
-      primary, should_range = primary_and_range
 
-      # primary changes require removing the entire command first
-      is_range = pvlan_remove_mapping_command?(prop, primary)
+      # Handle single-level arrays if found: [pri, range] -> [[pri,range]]
+      should = [should] if !should.empty? && (Utils.depth(should) == 1)
 
-      # convert ranges to individual elements
-      is = Utils.dash_range_to_elements(is_range)
-      should = Utils.dash_range_to_elements(should_range)
-
-      # create the delta hash and apply the changes
-      delta_hash = Utils.delta_add_remove(should, is)
-      Cisco::Logger.debug("xx_delta: #{@primary}: #{delta_hash}")
-      [:add, :remove].each do |action|
-        delta_hash[action].each do |vlan|
-          state = (action == :add) ? '' : 'no'
-          keys = { name: @name, state: state, primary: primary, vlan: vlan }
-          cli_error_check(config_set('interface', prop, keys))
+      is = switchport_pvlan_mapping_trunk
+      delta_hash = Utils.delta_add_remove(should, is, :updates_not_allowed)
+      Cisco::Logger.debug("switchport_pvlan_mapping_trunk_delta: #{delta_hash}")
+      [:remove, :add].each do |action|
+        delta_hash[action].each do |pri_and_range|
+          pri, range = pri_and_range
+          if action == :add
+            state = ''
+          else
+            state = 'no'
+            range = ''
+          end
+          cli_error_check(
+            config_set('interface', 'switchport_pvlan_mapping_trunk',
+                       name: @name, state: state, primary: pri, range: range))
         end
       end
-    end
-
-    # --------------------------
-    # pvlan_remove_mapping_command?
-    # This is a helper to check if command needs to be removed entirely.
-    #
-    #           prop: getter property name
-    # should_primary: the new primary vlan value
-    #        Returns: the current vlan range
-    def pvlan_remove_mapping_command?(prop, should_primary)
-      is_primary, is_range = send(prop)
-
-      if (is_primary != should_primary) && !is_primary.nil?
-        cli_error_check(
-          config_set('interface', prop,
-                     name: @name, state: 'no', primary: '', vlan: ''))
-        is_range = []
-      end
-      is_range
     end
 
     # --------------------------
@@ -1242,6 +1275,7 @@ module Cisco
 
       is = Utils.dash_range_to_elements(pvlan_mapping)
       should = Utils.dash_range_to_elements(range)
+
       pvlan_mapping_delta(is, should)
     end
 

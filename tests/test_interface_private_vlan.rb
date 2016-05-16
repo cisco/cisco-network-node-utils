@@ -130,11 +130,13 @@ class TestInterfacePrivateVlan < CiscoTestCase
     refute(i.switchport_pvlan_trunk_secondary)
   end
 
-  # Helper to setup vlan association prerequisites
-  def vlan_associate(pri, sec)
-    Vlan.new(sec).private_vlan_type = 'community'
+  # Helper to setup vlan associations
+  def vlan_associate(pri, range)
     Vlan.new(pri).private_vlan_type = 'primary'
-    Vlan.new(pri).private_vlan_association = sec
+    secondaries = Utils.dash_range_to_elements(range)
+    secondaries.each { |vlan| Vlan.new(vlan).private_vlan_type = 'community' }
+
+    Vlan.new(pri).private_vlan_association = range
   end
 
   def test_switchport_pvlan_host_association
@@ -228,7 +230,13 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_mapping)
 
     # Setup prerequisites
-    vlan_associate('2', '3')
+    vlan_associate('2', '3-4')
+
+    i.switchport_pvlan_mapping = %w(2 3)
+    assert_equal(%w(2 3), i.switchport_pvlan_mapping)
+
+    i.switchport_pvlan_mapping = %w(2 3-4)
+    assert_equal(%w(2 3-4), i.switchport_pvlan_mapping)
 
     i.switchport_pvlan_mapping = %w(2 3)
     assert_equal(%w(2 3), i.switchport_pvlan_mapping)
@@ -241,25 +249,53 @@ class TestInterfacePrivateVlan < CiscoTestCase
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_mapping_trunk')
       assert_raises(Cisco::UnsupportedError) do
-        i.switchport_pvlan_mapping_trunk = ['2', '10-11,4-7,8']
+        i.switchport_pvlan_mapping_trunk = [['2', '10-11']]
       end
       return
     end
-
     default = i.default_switchport_pvlan_mapping_trunk
     assert_equal(default, i.switchport_pvlan_mapping_trunk)
 
+    # Basic, non-nested array
     i.switchport_pvlan_mapping_trunk = ['2', '10-11,4-7,8']
-    assert_equal(['2', '4-8,10-11'], i.switchport_pvlan_mapping_trunk)
+    assert_equal([['2', '4-8,10-11']], i.switchport_pvlan_mapping_trunk)
 
     # Same primary, but change range
+
     i.switchport_pvlan_mapping_trunk = ['2', '11,4-6,8']
-    assert_equal(['2', '4-6,8,11'], i.switchport_pvlan_mapping_trunk)
+    assert_equal([['2', '4-6,8,11']], i.switchport_pvlan_mapping_trunk)
 
     # Change primary
-    i.switchport_pvlan_mapping_trunk = ['3', '11,4-6,8']
-    assert_equal(['3', '4-6,8,11'], i.switchport_pvlan_mapping_trunk)
+    array = ['3', '4-6,8,11']
+    i.switchport_pvlan_mapping_trunk = array
+    assert_equal([array], i.switchport_pvlan_mapping_trunk)
 
+    # Multiple: basic
+    nest = Array[%w(4 14), %w(5 25)]
+    i.switchport_pvlan_mapping_trunk = nest
+    assert_equal(nest, i.switchport_pvlan_mapping_trunk)
+
+    # Multiple: change only one range
+    nest = Array[%w(4 14), %w(5 7-9)]
+    i.switchport_pvlan_mapping_trunk = nest
+    assert_equal(nest, i.switchport_pvlan_mapping_trunk)
+
+    # Multiple: Move part of one range to a new primary
+    nest = Array[%w(4 14), %w(5 7,9), %w(6 8)]
+    i.switchport_pvlan_mapping_trunk = nest
+    assert_equal(nest, i.switchport_pvlan_mapping_trunk)
+
+    # Multiple: Move part of one range from one primary to an existing primary
+    nest = Array[%w(3 14), %w(5 7,9), %w(6 8)]
+    i.switchport_pvlan_mapping_trunk = nest
+    assert_equal(nest, i.switchport_pvlan_mapping_trunk)
+
+    # Multiple: Leave out a set while changing another
+    nest = Array[%w(5 7), %w(6 8-9,11)]
+    i.switchport_pvlan_mapping_trunk = nest
+    assert_equal(nest, i.switchport_pvlan_mapping_trunk)
+
+    # Explicitly set the default
     i.switchport_pvlan_mapping_trunk = default
     assert_equal(default, i.switchport_pvlan_mapping_trunk)
   end
