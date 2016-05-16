@@ -64,7 +64,7 @@ name:
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
-private_vlan_association:
+pvlan_association:
   _exclude: [N8k]
   multiple: true
   get_command: "show vlan private-vlan"
@@ -73,7 +73,7 @@ private_vlan_association:
   set_value: "<state> private-vlan association <vlans> ; end"
   default_value: []
 
-private_vlan_type:
+pvlan_type:
   _exclude: [N8k]
   kind: string
   get_command: 'show vlan private-vlan type'
