@@ -4,6 +4,13 @@ Changelog
 ## [v1.3.1]
 
 ### Changed
+* Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:
+
+| Old Name | New Name(s) |
+|:---|:---:|
+| `private_vlan_association`                      | `pvlan_association`
+| `private_vlan_type`                             | `pvlan_type`
+
 * Deprecated `interface` private-vlan properties and replaced with new methods. New files `interface_DEPRECATED.rb` and `DEPRECATED.yaml` have been created to store the deprecated methods. The old -> new properties are:
 
 | Old Name | New Name(s) |
