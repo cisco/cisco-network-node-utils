@@ -11,7 +11,7 @@ _template:
     get_command: "show running interface all"
 
 private_vlan_any:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'pvlan_any'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_any'
   multiple:
   get_value: '/switchport private-vlan/'
 
@@ -26,7 +26,7 @@ private_vlan_association:
   default_value: []
 
 private_vlan_mapping:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'pvlan_mapping'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_mapping'
   _exclude: [ios_xr, N8k]
   multiple: true
   get_value: '/^private-vlan mapping (.*)$/'
@@ -44,14 +44,14 @@ private_vlan_type:
   default_value: ""
 
 switchport_mode_private_vlan_host:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_host'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_host'
   _exclude: [ios_xr, N8k]
   get_value: '/^switchport mode private-vlan (.*)$/'
   set_value: "<state> switchport mode private-vlan <mode>"
   default_value: :disabled
 
 switchport_mode_private_vlan_host_association:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_host_association'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_host_association'
   _exclude: [ios_xr, N8k]
   multiple: true
   get_value: '/^switchport private-vlan host-association (.*)$/'
@@ -59,7 +59,7 @@ switchport_mode_private_vlan_host_association:
   default_value: []
 
 switchport_mode_private_vlan_host_promiscous:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_promiscuous'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_promiscuous'
   _exclude: [ios_xr, N8k]
   multiple: true
   get_value: '/^switchport private-vlan mapping (\d+.*)$/'
@@ -67,14 +67,14 @@ switchport_mode_private_vlan_host_promiscous:
   default_value: []
 
 switchport_mode_private_vlan_trunk_promiscuous:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_trunk_promiscuous'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_promiscuous'
   _exclude: [ios_xr, N3k, N8k]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk promiscuous$/'
   default_value: false
 
 switchport_mode_private_vlan_trunk_secondary:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_trunk_secondary'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_secondary'
   _exclude: [ios_xr, N3k, N8k]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk secondary$/'
@@ -82,7 +82,7 @@ switchport_mode_private_vlan_trunk_secondary:
   default_value: false
 
 switchport_private_vlan_association_trunk:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_trunk_association'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_association'
   _exclude: [ios_xr, N3k, N8k]
   multiple: true
   #get_value: '/^switchport private-vlan association trunk (.*) (.*)$/'
@@ -91,7 +91,7 @@ switchport_private_vlan_association_trunk:
   default_value: []
 
 switchport_private_vlan_mapping_trunk:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_mapping_trunk'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_mapping_trunk'
   _exclude: [ios_xr, N3k, N8k]
   multiple: true
   get_value: '/^switchport private-vlan mapping trunk (.*)$/'
@@ -99,7 +99,7 @@ switchport_private_vlan_mapping_trunk:
   default_value: []
 
 switchport_private_vlan_trunk_allowed_vlan:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_trunk_allowed_vlan'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_allowed_vlan'
   _exclude: [ios_xr, N8k]
   multiple: true
   get_value: '/^switchport private-vlan trunk allowed vlan (.*)$/'
@@ -107,7 +107,7 @@ switchport_private_vlan_trunk_allowed_vlan:
   default_value: []
 
 switchport_private_vlan_trunk_native_vlan:
-  # DEPRECATED (REMOVING AT 2.0.0). USE 'switchport_pvlan_trunk_native_vlan'
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_native_vlan'
   _exclude: [ios_xr, N8k]
   kind: int
   get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
