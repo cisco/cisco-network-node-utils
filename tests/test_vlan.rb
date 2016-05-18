@@ -349,13 +349,13 @@ class TestVlan < CiscoTestCase
 
   def test_mode_with_pvlan
     v = Vlan.new(1000)
-    if validate_property_excluded?('vlan', 'private_vlan_type') ||
+    if validate_property_excluded?('vlan', 'pvlan_type') ||
        validate_property_excluded?('vlan', 'mode')
-      features = 'private_vlan_type and/or vlan mode'
+      features = 'pvlan_type and/or vlan mode'
       skip("Skip test: Features #{features} are not supported on this device")
     end
     result = 'CE'
-    v.private_vlan_type = 'primary'
+    v.pvlan_type = 'primary'
     assert_equal(result, v.mode)
   end
 end

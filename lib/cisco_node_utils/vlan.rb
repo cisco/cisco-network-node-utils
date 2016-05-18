@@ -19,13 +19,14 @@ require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
 require_relative 'feature'
+require_relative 'vlan_DEPRECATED'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
   VLAN_NAME_SIZE = 33
 
   # Vlan - node utility class for VLAN configuration management
-  class Vlan < NodeUtil
+  class Vlan < Cisco::VlanDeprecated
     attr_reader :vlan_id
 
     def initialize(vlan_id, instantiate=true)
@@ -242,50 +243,50 @@ module Cisco
       config_get_default('vlan', 'mapped_vni')
     end
 
-    def private_vlan_type
+    def pvlan_type
       return nil unless Feature.private_vlan_enabled?
-      config_get('vlan', 'private_vlan_type', id: @vlan_id)
+      config_get('vlan', 'pvlan_type', id: @vlan_id)
     end
 
-    def private_vlan_type=(type)
+    def pvlan_type=(type)
       Feature.private_vlan_enable
       fail TypeError unless type && type.is_a?(String)
 
-      if type == default_private_vlan_type
-        return if private_vlan_type.empty?
-        set_args_keys(state: 'no', type: private_vlan_type)
+      if type == default_pvlan_type
+        return if pvlan_type.empty?
+        set_args_keys(state: 'no', type: pvlan_type)
         ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
         set_args_keys(state: '', type: type)
         ignore_msg = 'Warning: Private-VLAN CLI entered'
       end
-      result = config_set('vlan', 'private_vlan_type', @set_args)
+      result = config_set('vlan', 'pvlan_type', @set_args)
       cli_error_check(result, ignore_msg)
     end
 
-    def default_private_vlan_type
-      config_get_default('vlan', 'private_vlan_type')
+    def default_pvlan_type
+      config_get_default('vlan', 'pvlan_type')
     end
 
-    def private_vlan_association
+    def pvlan_association
       return nil unless Feature.private_vlan_enabled?
-      range = config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      range = config_get('vlan', 'pvlan_association', id: @vlan_id)
       Utils.normalize_range_array(range)
     end
 
-    def private_vlan_association=(range)
+    def pvlan_association=(range)
       Feature.private_vlan_enable
-      is = Utils.dash_range_to_elements(private_vlan_association)
+      is = Utils.dash_range_to_elements(pvlan_association)
       should = Utils.dash_range_to_elements(range)
       association_delta(is, should)
     end
 
     def default_private_vlan_association
-      config_get_default('vlan', 'private_vlan_association')
+      config_get_default('vlan', 'pvlan_association')
     end
 
     # --------------------------
-    # association_delta is a helper function for the private_vlan_association
+    # association_delta is a helper function for the pvlan_association
     # property. It walks the delta hash and adds/removes each target private
     # vlan.
     def association_delta(is, should)
@@ -295,7 +296,7 @@ module Cisco
         delta_hash[action].each do |vlans|
           state = (action == :add) ? '' : 'no'
           set_args_keys(state: state, vlans: vlans)
-          result = config_set('vlan', 'private_vlan_association', @set_args)
+          result = config_set('vlan', 'pvlan_association', @set_args)
           cli_error_check(result)
         end
       end

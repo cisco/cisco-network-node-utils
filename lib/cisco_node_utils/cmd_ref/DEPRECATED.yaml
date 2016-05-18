@@ -15,6 +15,17 @@ private_vlan_any:
   multiple:
   get_value: '/switchport private-vlan/'
 
+private_vlan_association:
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_association'
+  _exclude: [N8k]
+  multiple: true
+  get_command: "show vlan private-vlan"
+  get_context: ~
+  get_value: '/^<id>\s+(\d+)/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan association <vlans> ; end"
+  default_value: []
+
 private_vlan_mapping:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_mapping'
   _exclude: [ios_xr, N8k]
@@ -22,6 +33,17 @@ private_vlan_mapping:
   get_value: '/^private-vlan mapping (.*)$/'
   set_value: "<state> private-vlan mapping <vlans>"
   default_value: []
+
+private_vlan_type:
+  # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_type'
+  _exclude: [N8k]
+  kind: string
+  get_command: 'show vlan private-vlan type'
+  get_context: ~
+  get_value: '/^<id>\s+(\S+)/'
+  set_context: ['vlan <vlan>']
+  set_value: "<state> private-vlan <type> ; end"
+  default_value: ""
 
 switchport_mode_private_vlan_host:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_host'
