@@ -13,8 +13,11 @@ board:
 
 boot_image:
   _exclude: [ios_xr]
-  nexus:
-    get_value: "kick_file_name"
+  get_value: "kick_file_name"
+  N5k: &sys_img_isan
+    get_value: "isan_file_name"
+  N6k: *sys_img_isan
+  N7k: *sys_img_isan
 
 cpu:
   nexus:
