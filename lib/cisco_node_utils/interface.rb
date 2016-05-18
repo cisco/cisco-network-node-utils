@@ -1267,9 +1267,10 @@ module Cisco
     # --------------------------
     # This is an SVI property.
     # <state> private-vlan mapping <range>  # ex. range = ['2-4,9']
+    # Always returns an array.
     def pvlan_mapping
       range = config_get('interface', 'pvlan_mapping', name: @name)
-      range.empty? ? range : range.delete(' ')
+      range.empty? ? range : [range.delete(' ')]
     end
 
     def pvlan_mapping=(range)
