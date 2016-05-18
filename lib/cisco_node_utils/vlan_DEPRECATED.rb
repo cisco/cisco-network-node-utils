@@ -20,6 +20,10 @@
 # This file contains deprecated methods that will be removed with version 2.0.0
 #
 ###############################################################################
+
+require_relative 'node_util'
+require 'logger'
+
 module Cisco
   # Vlan - node utility class for VLAN configuration management
   class VlanDeprecated < NodeUtil

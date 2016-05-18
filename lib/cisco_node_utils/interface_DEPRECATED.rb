@@ -21,20 +21,21 @@
 #
 ###############################################################################
 
+require_relative 'node_util'
 require 'logger'
 
 # Cisco provider module
 module Cisco
-  PVLAN_PROPERTY = {
-    host_promisc:  'switchport_mode_private_vlan_host_promiscous',
-    allow_vlan:    'switchport_private_vlan_trunk_allowed_vlan',
-    trunk_assoc:   'switchport_private_vlan_association_trunk',
-    mapping_trunk: 'switchport_private_vlan_mapping_trunk',
-    vlan_mapping:  'private_vlan_mapping',
-  }
-
   # Interface - node utility class for general interface config management
   class InterfaceDeprecated < NodeUtil
+    PVLAN_PROPERTY = {
+      host_promisc:  'switchport_mode_private_vlan_host_promiscous',
+      allow_vlan:    'switchport_private_vlan_trunk_allowed_vlan',
+      trunk_assoc:   'switchport_private_vlan_association_trunk',
+      mapping_trunk: 'switchport_private_vlan_mapping_trunk',
+      vlan_mapping:  'private_vlan_mapping',
+    }
+
     def deprecation_warning(method, new_prop=nil)
       if new_prop.nil?
         new_prop = ''

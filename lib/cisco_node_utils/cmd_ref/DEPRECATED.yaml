@@ -73,6 +73,7 @@ switchport_mode_private_vlan_trunk_promiscuous:
   _exclude: [ios_xr, N3k, N8k]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk promiscuous$/'
+  set_value: "<state> switchport mode private-vlan trunk promiscuous"
   default_value: false
 
 switchport_mode_private_vlan_trunk_secondary:
