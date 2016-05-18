@@ -46,7 +46,7 @@ module Cisco
       warn "
       #########################################################################
        WARNING: Method '#{method.to_s.delete('=')}'
-       is deprecated and should not be used. The replacement method is:
+       is deprecated and should not be used.
        #{new_prop}
       #########################################################################
       "
