@@ -23,6 +23,25 @@ module Cisco
     # however, for test purposes it is sometimes convenient to support
     # feature disablement for cleanup purposes.
     # ---------------------------
+    def self.bfd_enable
+      return if bfd_enabled?
+      config_set('feature', 'bfd', state: '')
+    end
+
+    def self.bfd_disable
+      return unless bfd_enabled?
+      config_set('feature', 'bfd', state: 'no')
+    end
+
+    def self.bfd_enabled?
+      config_get('feature', 'bfd')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    # ---------------------------
     def self.bgp_enable
       return if bgp_enabled?
       config_set('feature', 'bgp')
