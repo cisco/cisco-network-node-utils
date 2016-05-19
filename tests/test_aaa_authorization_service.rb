@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'yaml'
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
@@ -67,16 +68,18 @@ class TestAaaAuthorizationService < CiscoTestCase
     Regexp.new(p)
   end
 
-  # Method to pre-configure a valid tacacs server and aaa group.  This
-  # group can be included in the testing such access to the device
-  # never is compromised.
+  # Method to pre-configure the user-defined tacacs server in tacacs_server.yaml
   def preconfig_tacacs_server_access(group_name)
-    config('tacacs-server key testing123',
-           'tacacs-server host 10.122.197.197 key testing123',
+    path = File.expand_path('../tacacs_server.yaml', __FILE__)
+    skip('Cannot find tacacs_server.yaml') unless File.file?(path)
+    cfg = YAML.load(File.read(path))
+    valid_cfg?(cfg)
+    config("tacacs-server key #{cfg['key']}",
+           "tacacs-server host #{cfg['host']} key #{cfg['key']}",
            "aaa group server tacacs+ #{group_name}",
-           'server 10.122.197.197',
-           'use-vrf management',
-           'source-interface mgmt0',
+           "server #{cfg['host']}",
+           "use-vrf #{cfg['vrf']}",
+           "source-interface #{cfg['intf']}",
            'aaa authentication login ascii-authentication')
   end
 
@@ -90,6 +93,14 @@ class TestAaaAuthorizationService < CiscoTestCase
 
   def tacacs_groups
     %w(tac_group bxb100 sjc200 rtp10)
+  end
+
+  def valid_cfg?(cfg)
+    skip('tacacs_server.yaml file is empty') unless cfg
+    msg = 'Missing key in tacacs_server.yaml'
+    %w(host key vrf intf).each do |key|
+      skip("#{msg}: #{key}") if cfg[key].nil?
+    end
   end
 
   def test_create_unsupported_type
