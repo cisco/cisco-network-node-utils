@@ -8,7 +8,7 @@ _template:
 bfd:
   kind: boolean
   get_value: '/^feature bfd$/'
-  set_value: "<state> feature bfd"
+  set_value: "feature bfd"
 
 bgp:
   kind: boolean
