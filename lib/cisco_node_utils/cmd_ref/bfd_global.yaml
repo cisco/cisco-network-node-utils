@@ -1,0 +1,115 @@
+# bfd_global
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config bfd"
+  context: ~
+
+common_echo_rx_interval:
+_exclude: [N5k, N6k]
+  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
+
+common_interval:
+  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
+
+common_slow_timer:
+_exclude: [N5k, N6k]
+  set_value: '<state> bfd <protocol> slow-timer <timer>'
+
+echo_interface:
+_exclude: [N5k, N6k]
+  kind: int
+  get_value: '/^bfd echo-interface loopback(\d+)$/'
+  set_value: '<state> bfd echo-interface loopback <intf>'
+  default_value: false
+
+echo_rx_interval:
+_exclude: [N5k, N6k]
+  kind: int
+  get_value: '/^bfd echo-rx-interval (\d+)$/'
+  N3k: &rx_interval_250
+    default_value: 250
+  N7k: &rx_interval_50
+    default_value: 50
+  N8k: *interval_50
+  N9k: *interval_50
+
+fabricpath_interval:
+_exclude: [N3k, N8k, N9k]
+  get_value: '/^bfd fabricpath interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+
+fabricpath_slow_timer:
+_exclude: [N3k, N8k, N9k]
+  get_value: '/^bfd fabricpath slow-timer (\d+)$/'
+
+fabricpath_vlan:
+_exclude: [N3k, N8k, N9k]
+  kind: int
+  get_value: '/^bfd fabricpath vlan (\d+)$/'
+  set_value: '<state> bfd fabricpath vlan <vlan>'
+  default_value: 1
+
+interval:
+  kind: int
+  get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  N3k: &interval_250
+    default_value: 250
+  N5k: &interval_50
+    default_value: 50
+  N6k: *interval_50
+  N7k: *interval_50
+  N8k: *interval_50
+  N9k: *interval_50
+
+ipv4_echo_rx_interval:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv4 echo-rx-interval (\d+)$/'
+
+ipv4_interval:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv4 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+
+ipv4_slow_timer:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv4 slow-timer (\d+)$/'
+
+ipv6_echo_rx_interval:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv6 echo-rx-interval (\d+)$/'
+
+ipv6_interval:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv6 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+
+ipv6_slow_timer:
+_exclude: [N5k, N6k]
+  get_value: '/^bfd ipv6 slow-timer (\d+)$/'
+
+min_rx:
+  kind: int
+  N3k: &min_rx_250
+    default_value: 250
+  N5k: &min_rx_50
+    default_value: 50
+  N6k: *min_rx_250
+  N7k: *min_rx_250
+  N8k: *min_rx_250
+  N9k: *min_rx_250
+
+multiplier:
+  kind: int
+  default_value: 3
+
+slow_timer:
+  kind: int
+  get_value: '/^bfd slow-timer (\d+)$/'
+  default_value: 2000
+
+startup_timer:
+_exclude: [N5k, N6k, N7k]
+  kind: int
+  get_value: '/^bfd startup-timer (\d+)$/'
+  set_value: '<state> bfd startup-timer <timer>'
+  default_value: 5
+
