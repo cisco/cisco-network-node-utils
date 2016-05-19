@@ -61,4 +61,34 @@ class TestBfdGlobal < CiscoTestCase
     assert_equal(bg.default_echo_interface, bg.echo_interface)
     config 'no interface loopback 10'
   end
+
+  def test_fabricpath_vlan
+    bg = BfdGlobal.new('default')
+    if validate_property_excluded?('bfd_global', 'fabricpath_vlan')
+      assert_nil(bg.fabricpath_vlan)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.fabricpath_vlan = 100
+      end
+      return
+    end
+    bg.fabricpath_vlan = 100
+    assert_equal(100, bg.fabricpath_vlan)
+    bg.fabricpath_vlan = bg.default_fabricpath_vlan
+    assert_equal(bg.default_fabricpath_vlan, bg.fabricpath_vlan)
+  end
+
+  def test_startup_timer
+    bg = BfdGlobal.new('default')
+    if validate_property_excluded?('bfd_global', 'startup_timer')
+      assert_nil(bg.startup_timer)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.startup_timer = 25
+      end
+      return
+    end
+    bg.startup_timer = 25
+    assert_equal(100, bg.startup_timer)
+    bg.startup_timer = bg.default_startup_timer
+    assert_equal(bg.default_startup_timer, bg.startup_timer)
+  end
 end
