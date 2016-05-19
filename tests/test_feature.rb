@@ -62,6 +62,11 @@ class TestFeature < CiscoTestCase
   ###################
   # Feature tests   #
   ###################
+
+  def test_bfd
+    feature('bfd')
+  end
+
   def test_bgp
     feature('bgp')
   end

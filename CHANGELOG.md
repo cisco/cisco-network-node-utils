@@ -6,6 +6,8 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Bidirectional Forwarding Detection
+  * bfd (@saichint)
 * Itd
   * itd_device_group (@saichint)
   * itd_device_group_node (@saichint)
