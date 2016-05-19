@@ -3,5 +3,6 @@
 services:
   _exclude: [ios_xr]
   multiple: true
+  get_data_format: nxapi_structured
   get_command: 'show virtual-service detail'
   get_context: ["TABLE_detail", "ROW_detail"]
