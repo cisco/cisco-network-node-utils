@@ -1,0 +1,64 @@
+# Copyright (c) 2016 Cisco and/or its affiliates.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require_relative 'ciscotest'
+require_relative '../lib/cisco_node_utils/bfd_global'
+
+include Cisco
+# TestBfdGlobal - Minitest for general functionality
+# of the BfdGlobal class.
+class TestBfdGlobal < CiscoTestCase
+  @skip_unless_supported = 'bfd_global'
+  # Tests
+
+  def setup
+    super
+    config 'no feature bfd'
+  end
+
+  def teardown
+    config 'no feature bfd'
+    super
+  end
+
+  def test_create_destroy
+    assert_empty(BfdGlobal.globals)
+
+    # create
+    bg = BfdGlobal.new('default')
+    assert_equal('default', bg.name)
+    refute_empty(BfdGlobal.globals)
+
+    # destroy
+    bg.destroy
+    assert_empty(BfdGlobal.globals)
+  end
+
+  def test_echo_interface
+    bg = BfdGlobal.new('default')
+    if validate_property_excluded?('bfd_global', 'echo_interface')
+      assert_nil(bg.echo_interface)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.echo_interface = 10
+      end
+      return
+    end
+    config 'interface loopback 10'
+    bg.echo_interface = 10
+    assert_equal(10, bg.echo_interface)
+    bg.echo_interface = bg.default_echo_interface
+    assert_equal(bg.default_echo_interface, bg.echo_interface)
+    config 'no interface loopback 10'
+  end
+end
