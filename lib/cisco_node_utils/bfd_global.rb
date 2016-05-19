@@ -383,5 +383,84 @@ module Cisco
     def fabricpath_multiplier
       interval_get('fabricpath')[2]
     end
+
+    def interval=(val)
+      @set_args[:intv] = val
+      @set_args[:protocol] = ''
+    end
+
+    def ipv4_interval=(val)
+      @set_args[:intv] = val
+      @set_args[:protocol] = 'ipv4'
+    end
+
+    def ipv6_interval=(val)
+      @set_args[:intv] = val
+      @set_args[:protocol] = 'ipv6'
+    end
+
+    def fabricpath_interval=(val)
+      @set_args[:intv] = val
+      @set_args[:protocol] = 'fabricpath'
+    end
+
+    def min_rx=(val)
+      @set_args[:mrx] = val
+      @set_args[:protocol] = ''
+    end
+
+    def ipv4_min_rx=(val)
+      @set_args[:mrx] = val
+      @set_args[:protocol] = 'ipv4'
+    end
+
+    def ipv6_min_rx=(val)
+      @set_args[:mrx] = val
+      @set_args[:protocol] = 'ipv6'
+    end
+
+    def fabricpath_min_rx=(val)
+      @set_args[:mrx] = val
+      @set_args[:protocol] = 'fabricpath'
+    end
+
+    def multiplier=(val)
+      @set_args[:mult] = val
+      @set_args[:protocol] = ''
+    end
+
+    def ipv4_multiplier=(val)
+      @set_args[:mult] = val
+      @set_args[:protocol] = 'ipv4'
+    end
+
+    def ipv6_multiplier=(val)
+      @set_args[:mult] = val
+      @set_args[:protocol] = 'ipv6'
+    end
+
+    def fabricpath_multiplier=(val)
+      @set_args[:mult] = val
+      @set_args[:protocol] = 'fabricpath'
+    end
+
+    def interval_set(attrs)
+      set_args_keys(attrs)
+      [:interval,
+       :protocol,
+       :min_rx,
+       :multiplier,
+      ].each do |p|
+        attrs[p] = '' if attrs[p].nil?
+        send(p.to_s + '=', attrs[p])
+      end
+      @set_args[:state] = ''
+      @set_args[:state] = 'no' if
+        @set_args[:intv] == default_interval &&
+        @set_args[:mrx] == default_min_rx &&
+        @set_args[mult] == default_multiplier
+      config_set('itd_service', 'load_balance', @set_args)
+      set_args_keys_default
+    end
   end # class
 end # module
