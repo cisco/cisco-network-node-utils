@@ -44,6 +44,7 @@ module Cisco
 
     def create
       Feature.bfd_enable
+      set_args_keys_default
     end
 
     def destroy
