@@ -221,8 +221,12 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_virtual_services
+    if validate_property_excluded?('virtual_service', 'services')
+      assert_nil(node.config_get('virtual_service', 'services'))
+      return
+    end
     # Only run this test if a virtual-service is installed
-    if @device.cmd('show virtual-service global')[/services installed : 0$/]
+    if config('show virtual-service global')[/services installed : 0$/]
       skip('This test requires a virtual-service to be installed')
     end
     # this would be beyond ugly to parse from ascii, utilize config_get
