@@ -555,7 +555,7 @@ class TestStpGlobal < CiscoTestCase
       'vlan_port_priority' => [%w(2-4,6,8-12 224), %w(14 32)],
     }
     proplist.each do |k, v|
-      assert_raises(RuntimeError, 'foo') do
+      assert_raises(RuntimeError, "#{@intf}: #{k} => #{v}") do
         @intf.send("stp_#{k}=", v)
       end
     end

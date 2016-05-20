@@ -25,12 +25,7 @@ module Cisco
     # ---------------------------
     def self.bfd_enable
       return if bfd_enabled?
-      config_set('feature', 'bfd', state: '')
-    end
-
-    def self.bfd_disable
-      return unless bfd_enabled?
-      config_set('feature', 'bfd', state: 'no')
+      config_set('feature', 'bfd')
     end
 
     def self.bfd_enabled?

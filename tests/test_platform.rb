@@ -221,6 +221,14 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_virtual_services
+    if validate_property_excluded?('virtual_service', 'services')
+      assert_nil(node.config_get('virtual_service', 'services'))
+      return
+    end
+    # Only run this test if a virtual-service is installed
+    if config('show virtual-service global')[/services installed : 0$/]
+      skip('This test requires a virtual-service to be installed')
+    end
     # this would be beyond ugly to parse from ascii, utilize config_get
     vir_arr = node.config_get('virtual_service', 'services')
     vir_arr = [vir_arr] if vir_arr.is_a? Hash

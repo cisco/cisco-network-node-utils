@@ -66,7 +66,7 @@ class TestSwitchport < TestInterfaceSwitchport
     config("#{state} system default switchport shutdown")
   end
 
-  def test_interface_get_access_vlan
+  def test_access_vlan
     interface.switchport_mode = :disabled
     if platform == :ios_xr
       assert_raises(Cisco::UnsupportedError) do
@@ -79,7 +79,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_get_access_vlan_switchport_disabled
+  def test_access_vlan_switchport_disabled
     interface.switchport_mode = :disabled
     if platform == :ios_xr
       assert_nil(interface.access_vlan)
@@ -88,7 +88,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_get_access_vlan_switchport_trunk
+  def test_access_vlan_switchport_trunk
     interface.switchport_mode = :disabled
     if platform == :ios_xr
       assert_raises(Cisco::UnsupportedError) do
@@ -101,24 +101,22 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_switchport_vtp_disabled_feature_disabled_eth1_1
+  def test_sw_vtp_disabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
-  end
 
-  def test_switchport_vtp_disabled_feature_disabled_mgmt_intf
+    # mgmt
     interface = Interface.new(mgmt_intf)
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
-  end
 
-  def test_switchport_vtp_disabled_unsupported_mode_disabled
+    # no switchport
     interface.switchport_mode = :disabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_switchport_vtp_disabled_unsupported_mode_fex
+  def test_sw_vtp_disabled_fex
     if validate_property_excluded?('feature', 'fex')
       assert_raises(Cisco::UnsupportedError) do
         Feature.fex_enable
@@ -140,18 +138,16 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(msg.downcase, e.message)
   end
 
-  def test_switchport_autostate_disabled_feature_disabled_eth1_1
+  def test_sw_autostate_disabled
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
-  end
 
-  def test_switchport_autostate_disabled_feature_disabled_mgmt_intf
+    # mgmt
     interface = Interface.new(mgmt_intf)
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
-  end
 
-  def test_switchport_autostate_disabled_unsupported_mode
+    # no switchport
     if platform == :ios_xr
       assert_nil(interface.switchport_autostate_exclude)
     else
@@ -161,7 +157,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_raise_error_switchport_not_enabled
+  def test_sw_mode_disabled
     if platform == :ios_xr
       assert_raises(Cisco::UnsupportedError) do
         interface.switchport_autostate_exclude = true
@@ -175,18 +171,16 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_mode_invalid
+  def test_sw_mode_invalid
     assert_raises(ArgumentError) { interface.switchport_mode = :unknown }
-  end
 
-  def test_interface_switchport_mode_not_supported
     interface = Interface.new(mgmt_intf)
     assert_raises(Cisco::CliError, Cisco::UnsupportedError) do
       interface.switchport_mode = :access
     end
   end
 
-  def test_interface_switchport_mode_valid
+  def test_sw_mode_valid
     if platform == :ios_xr
       # We don't support any switchport modes on IOS XR
       # but we allow the user to set :disabled since that's the default.
@@ -229,7 +223,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_mode_valid_fex
+  def test_sw_mode_valid_fex
     if validate_property_excluded?('feature', 'fex')
       assert_raises(Cisco::UnsupportedError) do
         Feature.fex_enable
@@ -247,7 +241,7 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(interface.switchport_mode, :fex_fabric)
   end
 
-  def test_interface_switchport_trunk_allowed_vlan
+  def test_sw_trunk_allowed_vlan
     if platform == :ios_xr
       assert_nil(interface.default_switchport_trunk_allowed_vlan)
       assert_nil(interface.switchport_trunk_allowed_vlan)
@@ -289,7 +283,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_interface_switchport_trunk_native_vlan
+  def test_sw_trunk_native_vlan
     if platform == :ios_xr
       assert_nil(interface.switchport_trunk_native_vlan)
       assert_nil(interface.default_switchport_trunk_native_vlan)
@@ -316,7 +310,7 @@ class TestSwitchport < TestInterfaceSwitchport
     end
   end
 
-  def test_system_default_switchport_on_off
+  def test_sys_def_switchport_on_off
     if platform == :nexus
       system_default_switchport('')
       assert(interface.system_default_switchport,
@@ -333,7 +327,7 @@ class TestSwitchport < TestInterfaceSwitchport
     flunk(e.message)
   end
 
-  def test_system_default_switchport_shutdown_on_off
+  def test_sys_def_switchport_shutdown_on_off
     if platform == :nexus
       system_default_switchport_shutdown('no ')
       refute(interface.system_default_switchport_shutdown,
@@ -346,7 +340,7 @@ class TestSwitchport < TestInterfaceSwitchport
            'Test for enabled - failed')
   end
 
-  def test_interface_svi_command_on_non_vlan
+  def test_svi_command_on_non_vlan
     assert_raises(RuntimeError) { interface.svi_autostate = true }
     assert_raises(RuntimeError) { interface.svi_management = true }
   end
@@ -376,13 +370,13 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
     ref
   end
 
-  def test_switchport_autostate_disabled_feature_enabled
+  def test_sw_autostate_disabled_feature_enabled
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_enabled_access
-    config("interface ethernet #{interfaces_id[0]}",
+  def test_sw_autostate_enabled_access
+    config("interface #{interfaces[0]}",
            'switchport',
            'switchport autostate exclude')
 
@@ -397,14 +391,14 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
     end
   end
 
-  def test_switchport_autostate_disabled_access
+  def test_sw_autostate_disabled_access
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_enabled_trunk
+  def test_sw_autostate_enabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}",
+    config("interface #{interfaces[0]}",
            'switchport autostate exclude')
 
     cmd_ref = cmd_ref_switchport_autostate_exclude
@@ -418,16 +412,16 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
     end
   end
 
-  def test_switchport_autostate_disabled_trunk
+  def test_sw_autostate_disabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}",
+    config("interface #{interfaces[0]}",
            'no switchport autostate exclude')
 
     refute(interface.switchport_autostate_exclude,
            'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_access
+  def test_sw_autostate_access
     # switchport must be enabled to configure autostate
     interface.switchport_enable(true)
 
@@ -445,7 +439,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
                  'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_trunk
+  def test_sw_autostate_trunk
     interface.switchport_mode = :trunk
 
     # switchport must be enabled to configure autostate
@@ -465,7 +459,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
                  'Error: interface, access, autostate exclude not disabled')
   end
 
-  def test_switchport_autostate_unsupported_mode_disabled
+  def test_sw_autostate_unsupported_mode_disabled
     interface.switchport_mode = :disabled
 
     assert_raises RuntimeError do
@@ -476,7 +470,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
     end
   end
 
-  def test_set_switchport_autostate_true_unsupported_mgmt_intf
+  def test_sw_autostate_true_unsupported_mgmt_intf
     interface = Interface.new(mgmt_intf)
     assert_raises RuntimeError do
       interface.switchport_autostate_exclude = true
@@ -501,43 +495,43 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
     super
   end
 
-  def test_switchport_vtp_disabled_feature_enabled
+  def test_sw_vtp_disabled_feature_enabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_switchport_vtp_enabled_access
+  def test_sw_vtp_enabled_access
     platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
-    config("interface ethernet #{interfaces_id[0]}", 'vtp')
+    config("interface #{interfaces[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
   end
 
-  def test_switchport_vtp_disabled_access
+  def test_sw_vtp_disabled_access
     interface.switchport_mode = :access
-    config("interface ethernet #{interfaces_id[0]}", 'no vtp')
+    config("interface #{interfaces[0]}", 'no vtp')
 
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_switchport_vtp_enabled_trunk
+  def test_sw_vtp_enabled_trunk
     interface.switchport_mode = :trunk
-    config("interface ethernet #{interfaces_id[0]}", 'vtp')
+    config("interface #{interfaces[0]}", 'vtp')
 
     assert(interface.switchport_vtp,
            'Error: interface, trunk, vtp not enabled')
   end
 
-  def test_switchport_vtp_disabled_trunk
+  def test_sw_vtp_disabled_trunk
     interface.switchport_mode = :trunk
     refute(interface.switchport_vtp,
            'Error: interface, trunk, vtp not disabled')
   end
 
-  def test_set_switchport_vtp_default_access
+  def test_sw_vtp_default_access
     platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
 
@@ -554,7 +548,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
            'Error:(3) mode :access, vtp should be default (false)')
   end
 
-  def test_set_switchport_vtp_default_trunk
+  def test_sw_vtp_default_trunk
     interface.switchport_mode = :trunk
     interface.switchport_vtp = interface.default_switchport_vtp
     refute(interface.switchport_vtp,
@@ -569,7 +563,7 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
            'Error:(3) mode :trunk, vtp should be default (false)')
   end
 
-  def test_set_switchport_vtp_true_access
+  def test_sw_vtp_true_access
     platform_supports_vtp_switchport_access?
     interface.switchport_mode = :access
     interface.switchport_vtp = true
@@ -577,20 +571,20 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
            'Error: interface, access, vtp not enabled')
   end
 
-  def test_set_switchport_vtp_true_trunk
+  def test_sw_vtp_true_trunk
     interface.switchport_mode = :trunk
     interface.switchport_vtp = true
     assert(interface.switchport_vtp,
            'Error: interface, access, vtp not enabled')
   end
 
-  def test_set_switchport_vtp_true_unsupported_mode_disabled
+  def test_sw_vtp_true_unsupported_mode_disabled
     interface.switchport_mode = :disabled
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp is enabled')
   end
 
-  def test_set_switchport_vtp_true_unsupported_mgmt_intf
+  def test_sw_vtp_true_unsupported_mgmt_intf
     interface = Interface.new(mgmt_intf)
 
     interface.switchport_vtp = true
@@ -598,28 +592,28 @@ class TestInterfaceSwitchportVtp < TestInterfaceSwitchport
            'Error: interface, access, vtp is enabled')
   end
 
-  def test_set_switchport_vtp_false_access
+  def test_sw_vtp_false_access
     interface.switchport_mode = :access
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_set_switchport_vtp_false_trunk
+  def test_sw_vtp_false_trunk
     interface.switchport_mode = :trunk
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   end
 
-  def test_set_switchport_vtp_false_unsupported_mode_disabled
+  def test_sw_vtp_false_unsupported_mode_disabled
     interface.switchport_mode = :disabled
     interface.switchport_vtp = false
     refute(interface.switchport_vtp,
            'Error: mode :disabled, vtp should be false')
   end
 
-  def test_default_switchport_vtp
+  def test_sw_vtp_switchport_modes
     [:access, :disabled].each do |mode|
       interface.switchport_mode = mode
       interface.switchport_vtp = interface.default_switchport_vtp

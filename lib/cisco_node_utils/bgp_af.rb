@@ -29,6 +29,8 @@ module Cisco
       err_msg = '"af" argument must be an array of two string values ' \
         'containing an afi + safi tuple'
       fail ArgumentError, err_msg unless af.is_a?(Array) || af.length == 2
+      err_msg = '"vrf" argument must be "default" for l2vpn address-family'
+      fail ArgumentError, err_msg if vrf != 'default' && af[1][/evpn/]
       @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @afi, @safi = af
