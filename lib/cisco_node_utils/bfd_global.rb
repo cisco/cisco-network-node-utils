@@ -299,7 +299,7 @@ module Cisco
 
     def common_interval(protocol)
       @get_args[:protocol] = protocol
-      config_get('bfd_global', 'interval', @get_args)
+      config_get('bfd_global', 'common_interval', @get_args).map(&:to_i)
     end
 
     def interval
@@ -352,78 +352,94 @@ module Cisco
 
     def interval=(val)
       @set_args[:intv] = val
-      @set_args[:protocol] = ''
     end
 
     def ipv4_interval=(val)
       @set_args[:intv] = val
-      @set_args[:protocol] = 'ipv4'
     end
 
     def ipv6_interval=(val)
       @set_args[:intv] = val
-      @set_args[:protocol] = 'ipv6'
     end
 
     def fabricpath_interval=(val)
       @set_args[:intv] = val
-      @set_args[:protocol] = 'fabricpath'
     end
 
     def min_rx=(val)
       @set_args[:mrx] = val
-      @set_args[:protocol] = ''
     end
 
     def ipv4_min_rx=(val)
       @set_args[:mrx] = val
-      @set_args[:protocol] = 'ipv4'
     end
 
     def ipv6_min_rx=(val)
       @set_args[:mrx] = val
-      @set_args[:protocol] = 'ipv6'
     end
 
     def fabricpath_min_rx=(val)
       @set_args[:mrx] = val
-      @set_args[:protocol] = 'fabricpath'
     end
 
     def multiplier=(val)
       @set_args[:mult] = val
-      @set_args[:protocol] = ''
     end
 
     def ipv4_multiplier=(val)
       @set_args[:mult] = val
-      @set_args[:protocol] = 'ipv4'
     end
 
     def ipv6_multiplier=(val)
       @set_args[:mult] = val
-      @set_args[:protocol] = 'ipv6'
     end
 
     def fabricpath_multiplier=(val)
       @set_args[:mult] = val
-      @set_args[:protocol] = 'fabricpath'
     end
 
-    def interval_params_set(attrs)
-      set_args_keys(attrs)
-      [:interval,
-       :min_rx,
-       :multiplier,
-      ].each do |p|
-        send(p.to_s + '=', attrs[p])
+    def interval_params_set(attrs, protocol)
+      if protocol.empty?
+        set_args_keys(attrs)
+        [:interval,
+         :min_rx,
+         :multiplier,
+        ].each do |p|
+          send(p.to_s + '=', attrs[p])
+        end
+        @set_args[:protocol] = ''
+      else
+        case protocol.to_sym
+        when :ipv4
+          set_args_keys(attrs)
+          [:ipv4_interval,
+           :ipv4_min_rx,
+           :ipv4_multiplier,
+          ].each do |p|
+            send(p.to_s + '=', attrs[p])
+          end
+          @set_args[:protocol] = 'ipv4'
+        when :ipv6
+          set_args_keys(attrs)
+          [:ipv6_interval,
+           :ipv6_min_rx,
+           :ipv6_multiplier,
+          ].each do |p|
+            send(p.to_s + '=', attrs[p])
+          end
+          @set_args[:protocol] = 'ipv6'
+        when :fabricpath
+          set_args_keys(attrs)
+          [:fabricpath_interval,
+           :fabricpath_min_rx,
+           :fabricpath_multiplier,
+          ].each do |p|
+            send(p.to_s + '=', attrs[p])
+          end
+          @set_args[:protocol] = 'fabricpath'
+        end
       end
-      @set_args[:state] = ''
-      @set_args[:state] = 'no' if
-        @set_args[:intv] == default_interval &&
-        @set_args[:mrx] == default_min_rx &&
-        @set_args[:mult] == default_multiplier
-      config_set('itd_service', 'load_balance', @set_args)
+      config_set('bfd_global', 'common_interval', @set_args)
       set_args_keys_default
     end
   end # class

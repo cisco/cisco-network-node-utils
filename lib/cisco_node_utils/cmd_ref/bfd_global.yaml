@@ -6,6 +6,10 @@ _template:
   get_command: "show running-config bfd"
   context: ~
 
+common_interval:
+  get_value: '/^bfd <protocol>interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  set_value: 'bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
+
 echo_interface:
   _exclude: [N5k, N6k]
   kind: int
@@ -41,8 +45,6 @@ fabricpath_vlan:
 
 interval:
   kind: int
-  get_value: '/^bfd <protocol>interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
   N3k: &interval_250
     default_value: 250
   N5k: &interval_50
@@ -64,10 +66,10 @@ min_rx:
     default_value: 250
   N5k: &min_rx_50
     default_value: 50
-  N6k: *min_rx_250
-  N7k: *min_rx_250
-  N8k: *min_rx_250
-  N9k: *min_rx_250
+  N6k: *min_rx_50
+  N7k: *min_rx_50
+  N8k: *min_rx_50
+  N9k: *min_rx_50
 
 multiplier:
   kind: int

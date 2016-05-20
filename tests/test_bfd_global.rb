@@ -154,7 +154,7 @@ class TestBfdGlobal < CiscoTestCase
       min_rx:     bg.default_min_rx,
       multiplier: bg.default_multiplier,
     }.merge!(props)
-    bg.interval_params_set(test_hash)
+    bg.interval_params_set(test_hash, '')
     bg
   end
 
@@ -165,5 +165,92 @@ class TestBfdGlobal < CiscoTestCase
     assert_equal(100, bg.interval)
     assert_equal(100, bg.min_rx)
     assert_equal(25, bg.multiplier)
+    bg = interval_params_helper(interval:   bg.default_interval,
+                                min_rx:     bg.default_min_rx,
+                                multiplier: bg.default_multiplier)
+    assert_equal(bg.default_interval, bg.interval)
+    assert_equal(bg.default_min_rx, bg.min_rx)
+    assert_equal(bg.default_multiplier, bg.multiplier)
+  end
+
+  def ipv4_interval_params_helper(props)
+    bg = BfdGlobal.new('default')
+    test_hash = {
+      ipv4_interval:   bg.default_ipv4_interval,
+      ipv4_min_rx:     bg.default_ipv4_min_rx,
+      ipv4_multiplier: bg.default_ipv4_multiplier,
+    }.merge!(props)
+    bg.interval_params_set(test_hash, 'ipv4')
+    bg
+  end
+
+  def test_ipv4_interval_params
+    bg = ipv4_interval_params_helper(ipv4_interval:   200,
+                                     ipv4_min_rx:     200,
+                                     ipv4_multiplier: 50)
+    assert_equal(200, bg.ipv4_interval)
+    assert_equal(200, bg.ipv4_min_rx)
+    assert_equal(50, bg.ipv4_multiplier)
+    bg = ipv4_interval_params_helper(
+      ipv4_interval:   bg.default_ipv4_interval,
+      ipv4_min_rx:     bg.default_ipv4_min_rx,
+      ipv4_multiplier: bg.default_ipv4_multiplier)
+    assert_equal(bg.default_ipv4_interval, bg.ipv4_interval)
+    assert_equal(bg.default_ipv4_min_rx, bg.ipv4_min_rx)
+    assert_equal(bg.default_ipv4_multiplier, bg.ipv4_multiplier)
+  end
+
+  def ipv6_interval_params_helper(props)
+    bg = BfdGlobal.new('default')
+    test_hash = {
+      ipv6_interval:   bg.default_ipv6_interval,
+      ipv6_min_rx:     bg.default_ipv6_min_rx,
+      ipv6_multiplier: bg.default_ipv6_multiplier,
+    }.merge!(props)
+    bg.interval_params_set(test_hash, 'ipv6')
+    bg
+  end
+
+  def test_ipv6_interval_params
+    bg = ipv6_interval_params_helper(ipv6_interval:   500,
+                                     ipv6_min_rx:     500,
+                                     ipv6_multiplier: 30)
+    assert_equal(500, bg.ipv6_interval)
+    assert_equal(500, bg.ipv6_min_rx)
+    assert_equal(30, bg.ipv6_multiplier)
+    bg = ipv6_interval_params_helper(
+      ipv6_interval:   bg.default_ipv6_interval,
+      ipv6_min_rx:     bg.default_ipv6_min_rx,
+      ipv6_multiplier: bg.default_ipv6_multiplier)
+    assert_equal(bg.default_ipv6_interval, bg.ipv6_interval)
+    assert_equal(bg.default_ipv6_min_rx, bg.ipv6_min_rx)
+    assert_equal(bg.default_ipv6_multiplier, bg.ipv6_multiplier)
+  end
+
+  def fabricpath_interval_params_helper(props)
+    bg = BfdGlobal.new('default')
+    test_hash = {
+      fabricpath_interval:   bg.default_fabricpath_interval,
+      fabricpath_min_rx:     bg.default_fabricpath_min_rx,
+      fabricpath_multiplier: bg.default_fabricpath_multiplier,
+    }.merge!(props)
+    bg.interval_params_set(test_hash, 'fabricpath')
+    bg
+  end
+
+  def test_fabricpath_interval_params
+    bg = fabricpath_interval_params_helper(fabricpath_interval:   750,
+                                           fabricpath_min_rx:     350,
+                                           fabricpath_multiplier: 45)
+    assert_equal(750, bg.fabricpath_interval)
+    assert_equal(350, bg.fabricpath_min_rx)
+    assert_equal(45, bg.fabricpath_multiplier)
+    bg = fabricpath_interval_params_helper(
+      fabricpath_interval:   bg.default_fabricpath_interval,
+      fabricpath_min_rx:     bg.default_fabricpath_min_rx,
+      fabricpath_multiplier: bg.default_fabricpath_multiplier)
+    assert_equal(bg.default_fabricpath_interval, bg.fabricpath_interval)
+    assert_equal(bg.default_fabricpath_min_rx, bg.fabricpath_min_rx)
+    assert_equal(bg.default_fabricpath_multiplier, bg.fabricpath_multiplier)
   end
 end
