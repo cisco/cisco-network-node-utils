@@ -6,17 +6,6 @@ _template:
   get_command: "show running-config bfd"
   context: ~
 
-common_echo_rx_interval:
-  _exclude: [N5k, N6k]
-  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
-
-common_interval:
-  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
-
-common_slow_timer:
-  _exclude: [N5k, N6k]
-  set_value: '<state> bfd <protocol> slow-timer <timer>'
-
 echo_interface:
   _exclude: [N5k, N6k]
   kind: int
@@ -27,7 +16,8 @@ echo_interface:
 echo_rx_interval:
   _exclude: [N5k, N6k]
   kind: int
-  get_value: '/^bfd echo-rx-interval (\d+)$/'
+  get_value: '/^bfd <protocol>echo-rx-interval (\d+)$/'
+  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
   N3k: &rx_interval_250
     default_value: 250
   N7k: &rx_interval_50
@@ -37,11 +27,10 @@ echo_rx_interval:
 
 fabricpath_interval:
   _exclude: [N3k, N8k, N9k]
-  get_value: '/^bfd fabricpath interval (\d+) min_rx (\d+) multiplier (\d+)$/'
 
 fabricpath_slow_timer:
   _exclude: [N3k, N8k, N9k]
-  get_value: '/^bfd fabricpath slow-timer (\d+)$/'
+  kind: int
 
 fabricpath_vlan:
   _exclude: [N3k, N8k, N9k]
@@ -52,7 +41,8 @@ fabricpath_vlan:
 
 interval:
   kind: int
-  get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  get_value: '/^bfd <protocol>interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
   N3k: &interval_250
     default_value: 250
   N5k: &interval_50
@@ -62,29 +52,11 @@ interval:
   N8k: *interval_50
   N9k: *interval_50
 
-ipv4_echo_rx_interval:
-  _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv4 echo-rx-interval (\d+)$/'
-
 ipv4_interval:
   _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv4 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-
-ipv4_slow_timer:
-  _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv4 slow-timer (\d+)$/'
-
-ipv6_echo_rx_interval:
-  _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv6 echo-rx-interval (\d+)$/'
 
 ipv6_interval:
   _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv6 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-
-ipv6_slow_timer:
-  _exclude: [N5k, N6k]
-  get_value: '/^bfd ipv6 slow-timer (\d+)$/'
 
 min_rx:
   kind: int
@@ -103,7 +75,8 @@ multiplier:
 
 slow_timer:
   kind: int
-  get_value: '/^bfd slow-timer (\d+)$/'
+  get_value: '/^bfd <protocol>slow-timer (\d+)$/'
+  set_value: '<state> bfd <protocol> slow-timer <timer>'
   default_value: 2000
 
 startup_timer:
