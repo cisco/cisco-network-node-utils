@@ -496,43 +496,43 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_interface_create_name_nil
+  def test_create_name_nil
     assert_raises(TypeError) do
       Interface.new(nil)
     end
   end
 
-  def test_interface_create_name_invalid
+  def test_create_name_invalid
     assert_raises(TypeError) do
       Interface.new(node)
     end
   end
 
-  def test_interface_create_does_not_exist
+  def test_create_does_not_exist
     assert_raises(CliError) do
       Interface.new('bogus')
     end
   end
 
-  def test_interface_create_valid
+  def test_create_valid
     interface = Interface.new(interfaces[0])
     assert_equal(interfaces[0].downcase, interface.name)
   end
 
-  def test_interface_description_nil
+  def test_description_nil
     interface = Interface.new(interfaces[0])
     assert_raises(TypeError) do
       interface.description = nil
     end
   end
 
-  def test_interface_description_zero_length
+  def test_description_zero_length
     interface = Interface.new(interfaces[0])
     interface.description = ''
     assert_equal('', interface.description)
   end
 
-  def test_interface_description_valid
+  def test_description_valid
     interface = Interface.new(interfaces[0])
     description = 'This is a test description ! '
     interface.description = description
@@ -551,7 +551,7 @@ class TestInterface < CiscoTestCase
     subif.destroy
   end
 
-  def test_interface_mtu_change
+  def test_mtu_change
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     interface.mtu = 1520
@@ -562,13 +562,13 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_mtu, interface.mtu)
   end
 
-  def test_interface_mtu_invalid
+  def test_mtu_invalid
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     assert_raises(Cisco::CliError) { interface.mtu = 'hello' }
   end
 
-  def test_interface_mtu_valid
+  def test_mtu_valid
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
     interface.mtu = 1550
@@ -653,7 +653,7 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.duplex, interface.default_duplex)
   end
 
-  def test_interface_shutdown_valid
+  def test_shutdown_valid
     interface = Interface.new(interfaces[0])
     interface.shutdown = true
     assert(interface.shutdown, 'Error: shutdown state is not true')
@@ -670,14 +670,14 @@ class TestInterface < CiscoTestCase
                'Error: svi_management should be nil when interface is ethernet')
   end
 
-  #   def test_interface_get_prefix_list_when_switchport
+  #   def test_get_prefix_list_when_switchport
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     addresses = interface.prefixes
   #     assert_empty(addresses)
   #   end
   #
-  #   def test_interface_get_prefix_list_with_ipv4_address_assignment
+  #   def test_get_prefix_list_with_ipv4_address_assignment
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -690,7 +690,7 @@ class TestInterface < CiscoTestCase
   #     prefixes = nil
   #   end
   #
-  #   def test_interface_get_prefix_list_with_ipv6_address_assignment
+  #   def test_get_prefix_list_with_ipv6_address_assignment
   #     interface = Interface.new(interfaces[0] )
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -703,7 +703,7 @@ class TestInterface < CiscoTestCase
   #     prefixes = nil
   #   end
   #
-  #   def test_interface_prefix_list_with_both_ip4_and_ipv6_address_assignments
+  #   def test_prefix_list_with_both_ip4_and_ipv6_address_assignments
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -825,7 +825,7 @@ class TestInterface < CiscoTestCase
     refute_empty(Interface.interfaces, 'Error: interfaces collection empty')
   end
 
-  def test_interface_ipv4_addr_mask_set_address_invalid
+  def test_ipv4_addr_mask_set_address_invalid
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(Cisco::CliError) do
@@ -833,7 +833,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_interface_ipv4_addr_mask_set_netmask_invalid
+  def test_ipv4_addr_mask_set_netmask_invalid
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(Cisco::CliError) do
@@ -921,7 +921,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_interface_ipv4_address
+  def test_ipv4_address
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     address = '8.7.1.1'
@@ -976,7 +976,7 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length default get value mismatch')
   end
 
-  def test_interface_ipv4_address_getter_with_preconfig
+  def test_ipv4_address_getter_with_preconfig
     address = '8.7.1.1'
     length = 15
     ifname = interfaces[0]
@@ -993,7 +993,7 @@ class TestInterface < CiscoTestCase
     interface_ipv4_config(ifname, address, length, false)
   end
 
-  def test_interface_ipv4_address_getter_with_preconfig_secondary
+  def test_ipv4_address_getter_with_preconfig_secondary
     address = '8.7.1.1'
     length = 15
     sec_address = '1.1.2.5'
@@ -1014,27 +1014,27 @@ class TestInterface < CiscoTestCase
     interface_ipv4_config(ifname, address, length, false, false)
   end
 
-  def test_interface_ipv4_arp_timeout
+  def test_ipv4_arp_timeout
     unless platform == :ios_xr
       # Setup
       config_no_warn('no interface vlan11')
-      int = Interface.new('vlan11')
+      svi = Interface.new('vlan11')
 
       # Test default
-      assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+      assert_equal(svi.default_ipv4_arp_timeout, svi.ipv4_arp_timeout)
       # Test non-default
-      int.ipv4_arp_timeout = 300
-      assert_equal(300, int.ipv4_arp_timeout)
+      svi.ipv4_arp_timeout = 300
+      assert_equal(300, svi.ipv4_arp_timeout)
       # Set back to default
-      int.ipv4_arp_timeout = int.default_ipv4_arp_timeout
-      assert_equal(int.default_ipv4_arp_timeout, int.ipv4_arp_timeout)
+      svi.ipv4_arp_timeout = svi.default_ipv4_arp_timeout
+      assert_equal(svi.default_ipv4_arp_timeout, svi.ipv4_arp_timeout)
     end
     # Attempt to configure on a non-vlan interface
-    nonvlanint = create_interface
-    assert_raises(RuntimeError) { nonvlanint.ipv4_arp_timeout = 300 }
+    nonsvi = create_interface
+    assert_raises(RuntimeError) { nonsvi.ipv4_arp_timeout = 300 }
   end
 
-  def test_interface_ipv4_forwarding
+  def test_ipv4_forwarding
     intf = interfaces[0]
     i = Interface.new(intf)
 
@@ -1065,7 +1065,7 @@ class TestInterface < CiscoTestCase
     assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
   end
 
-  def test_interface_fabric_forwarding_anycast_gateway
+  def test_fabric_forwarding_anycast_gateway
     # Ensure N7k has compatible interface
     mt_full_interface? if node.product_id[/N7/]
 
@@ -1120,7 +1120,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_interface_ipv4_proxy_arp
+  def test_ipv4_proxy_arp
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
 
@@ -1157,7 +1157,7 @@ class TestInterface < CiscoTestCase
                  'Error: ip proxy-arp default get value mismatch')
   end
 
-  def test_interface_ipv4_redirects
+  def test_ipv4_redirects
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
 
@@ -1304,7 +1304,7 @@ class TestInterface < CiscoTestCase
 
   # NOTE - Changes to this method may require new validation methods
   #        to be created or existing ones to be modified.
-  def test_interface_ipv4_all_interfaces
+  def test_ipv4_all_interfaces
     inttype_h = interface_test_data
 
     # Set system defaults to "factory" values prior to initial test.
@@ -1357,7 +1357,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_interface_vrf_default
+  def test_vrf_default
     interface = Interface.new('loopback1')
     assert_empty(interface.vrf)
     interface.vrf = 'foo'
@@ -1366,18 +1366,18 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.vrf, interface.default_vrf)
   end
 
-  def test_interface_vrf_invalid_type
+  def test_vrf_invalid_type
     interface = Interface.new('loopback1')
     assert_raises(TypeError) { interface.vrf = 1 }
   end
 
-  def test_interface_vrf_exceeds_max_length
+  def test_vrf_exceeds_max_length
     interface = Interface.new('loopback1')
     long_string = 'a' * (IF_VRF_MAX_LENGTH + 1)
     assert_raises(Cisco::CliError) { interface.vrf = long_string }
   end
 
-  def test_interface_vrf_override
+  def test_vrf_override
     interface = Interface.new('loopback1')
     vrf1 = 'test1'
     vrf2 = 'test2'
@@ -1387,7 +1387,7 @@ class TestInterface < CiscoTestCase
     interface.destroy
   end
 
-  def test_interface_vrf_valid
+  def test_vrf_valid
     interface = Interface.new('loopback1')
     vrf = 'test'
     interface.vrf = vrf
