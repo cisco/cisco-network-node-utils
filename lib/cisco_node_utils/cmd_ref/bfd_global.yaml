@@ -3,12 +3,20 @@
 _exclude: [ios_xr]
 
 _template:
-  get_command: "show running-config bfd"
+  get_command: "show running-config bfd all"
   context: ~
+
+common_echo_rx_interval:
+  get_value: '/^bfd <protocol>echo-rx-interval (\d+)$/'
+  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
 
 common_interval:
   get_value: '/^bfd <protocol>interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: 'bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
+  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
+
+common_slow_timer:
+  get_value: '/^bfd <protocol>slow-timer (\d+)$/'
+  set_value: '<state> bfd <protocol> slow-timer <timer>'
 
 echo_interface:
   _exclude: [N5k, N6k]
@@ -20,21 +28,12 @@ echo_interface:
 echo_rx_interval:
   _exclude: [N5k, N6k]
   kind: int
-  get_value: '/^bfd <protocol>echo-rx-interval (\d+)$/'
-  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
   N3k: &rx_interval_250
     default_value: 250
   N7k: &rx_interval_50
     default_value: 50
   N8k: *rx_interval_50
   N9k: *rx_interval_50
-
-fabricpath_interval:
-  _exclude: [N3k, N8k, N9k]
-
-fabricpath_slow_timer:
-  _exclude: [N3k, N8k, N9k]
-  kind: int
 
 fabricpath_vlan:
   _exclude: [N3k, N8k, N9k]
@@ -54,12 +53,6 @@ interval:
   N8k: *interval_50
   N9k: *interval_50
 
-ipv4_interval:
-  _exclude: [N5k, N6k]
-
-ipv6_interval:
-  _exclude: [N5k, N6k]
-
 min_rx:
   kind: int
   N3k: &min_rx_250
@@ -77,8 +70,6 @@ multiplier:
 
 slow_timer:
   kind: int
-  get_value: '/^bfd <protocol>slow-timer (\d+)$/'
-  set_value: '<state> bfd <protocol> slow-timer <timer>'
   default_value: 2000
 
 startup_timer:
@@ -88,3 +79,14 @@ startup_timer:
   set_value: '<state> bfd startup-timer <timer>'
   default_value: 5
 
+type:
+  kind: string
+  N3k: &ip
+    default_only: 'ip'
+  N5k: &fabric
+    default_only: 'fabric'
+  N6k: *fabric
+  N7k: &ip_fabric
+    default_only: 'ip_fabric'
+  N8k: *ip
+  N9k: *ip

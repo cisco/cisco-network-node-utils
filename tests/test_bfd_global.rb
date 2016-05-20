@@ -33,8 +33,6 @@ class TestBfdGlobal < CiscoTestCase
   end
 
   def test_create_destroy
-    assert_empty(BfdGlobal.globals)
-
     # create
     bg = BfdGlobal.new('default')
     assert_equal('default', bg.name)
@@ -42,7 +40,7 @@ class TestBfdGlobal < CiscoTestCase
 
     # destroy
     bg.destroy
-    assert_empty(BfdGlobal.globals)
+    assert_nil(bg.name)
   end
 
   def test_echo_interface
@@ -94,13 +92,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_echo_rx_interval
     bg = BfdGlobal.new('default')
-    if validate_property_excluded?('bfd_global', 'echo_rx_interval')
-      assert_nil(bg.echo_rx_interval)
-      assert_raises(Cisco::UnsupportedError) do
-        bg.echo_rx_interval = 300
-      end
-      return
-    end
+    skip('Test not supported on this platform') if bg.type == 'fabric'
     bg.echo_rx_interval = 300
     assert_equal(300, bg.echo_rx_interval)
     bg.echo_rx_interval = bg.default_echo_rx_interval
@@ -117,14 +109,24 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_slow_timer
     bg = BfdGlobal.new('default')
-    bg.slow_timer = 2000
-    assert_equal(2000, bg.slow_timer)
+    bg.slow_timer = 5000
+    assert_equal(5000, bg.slow_timer)
     bg.slow_timer = bg.default_slow_timer
     assert_equal(bg.default_slow_timer, bg.slow_timer)
+  end
+
+  def test_ipv4_slow_timer
+    bg = BfdGlobal.new('default')
+    skip('Test not supported on this platform') if bg.type == 'fabric'
     bg.ipv4_slow_timer = 10_000
     assert_equal(10_000, bg.ipv4_slow_timer)
     bg.ipv4_slow_timer = bg.default_ipv4_slow_timer
     assert_equal(bg.default_ipv4_slow_timer, bg.ipv4_slow_timer)
+  end
+
+  def test_ipv6_slow_timer
+    bg = BfdGlobal.new('default')
+    skip('Test not supported on this platform') if bg.type == 'fabric'
     bg.ipv6_slow_timer = 25_000
     assert_equal(25_000, bg.ipv6_slow_timer)
     bg.ipv6_slow_timer = bg.default_ipv6_slow_timer
@@ -133,14 +135,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_fabricpath_slow_timer
     bg = BfdGlobal.new('default')
-    if validate_property_excluded?('bfd_global', 'fabricpath_slow_timer')
-      skip('Test not supported on this platform')
-      # assert_nil(bg.fabricpath_slow_timer)
-      # assert_raises(Cisco::UnsupportedError) do
-      #  bg.fabricpath_slow_timer = 15000
-      # end
-      return
-    end
+    skip('Test not supported on this platform') if bg.type == 'ip'
     bg.fabricpath_slow_timer = 15_000
     assert_equal(15_000, bg.fabricpath_slow_timer)
     bg.fabricpath_slow_timer = bg.default_fabricpath_slow_timer
@@ -175,6 +170,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def ipv4_interval_params_helper(props)
     bg = BfdGlobal.new('default')
+    skip('Test not supported on this platform') if bg.type == 'fabric'
     test_hash = {
       ipv4_interval:   bg.default_ipv4_interval,
       ipv4_min_rx:     bg.default_ipv4_min_rx,
@@ -202,6 +198,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def ipv6_interval_params_helper(props)
     bg = BfdGlobal.new('default')
+    skip('Test not supported on this platform') if bg.type == 'fabric'
     test_hash = {
       ipv6_interval:   bg.default_ipv6_interval,
       ipv6_min_rx:     bg.default_ipv6_min_rx,
@@ -229,6 +226,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def fabricpath_interval_params_helper(props)
     bg = BfdGlobal.new('default')
+    skip('Test not supported on this platform') if bg.type == 'ip'
     test_hash = {
       fabricpath_interval:   bg.default_fabricpath_interval,
       fabricpath_min_rx:     bg.default_fabricpath_min_rx,
