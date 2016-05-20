@@ -157,11 +157,11 @@ class TestInterfacePrivateVlan < CiscoTestCase
 
   # Helper to setup vlan associations
   def vlan_associate(pri, range)
-    Vlan.new(pri).private_vlan_type = 'primary'
+    Vlan.new(pri).pvlan_type = 'primary'
     secondaries = Utils.dash_range_to_elements(range)
-    secondaries.each { |vlan| Vlan.new(vlan).private_vlan_type = 'community' }
+    secondaries.each { |vlan| Vlan.new(vlan).pvlan_type = 'community' }
 
-    Vlan.new(pri).private_vlan_association = range
+    Vlan.new(pri).pvlan_association = range
   end
 
   def test_switchport_pvlan_host_association
