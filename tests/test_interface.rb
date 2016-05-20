@@ -251,8 +251,21 @@ class TestInterface < CiscoTestCase
                "Error: #{interface.name} shutdown is not false")
 
         interface.shutdown = true
-        assert(interface.shutdown,
-               "Error: #{interface.name} shutdown is not true")
+        # On some platforms, a small delay is needed after setting the
+        # shutdown property before the new state can be retrieved by
+        # the getter.
+        # TBD: Likely a bug in nxapi, but it's not reproducable using
+        # the nxapi sandbox.
+        begin
+          assert(interface.shutdown,
+                 "Error: #{interface.name} shutdown is not true")
+        rescue Minitest::Assertion
+          sleep 1
+          node.cache_flush
+          tries ||= 1
+          retry unless (tries += 1) > 5
+          raise
+        end
 
         # Test default shutdown state
         if k.downcase.include?('ethernet') # Ethernet interfaces
