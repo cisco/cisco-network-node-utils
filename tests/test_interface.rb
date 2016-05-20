@@ -254,7 +254,7 @@ class TestInterface < CiscoTestCase
         # On some platforms, a small delay is needed after setting the
         # shutdown property before the new state can be retrieved by
         # the getter.
-        # TBD: Likely a bug in nxapi, but it's not reproducable using
+        # TBD: Likely a bug in nxapi, but it's not reproducible using
         # the nxapi sandbox.
         begin
           assert(interface.shutdown,
