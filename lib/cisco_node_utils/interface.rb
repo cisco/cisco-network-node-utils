@@ -838,7 +838,6 @@ module Cisco
     end
 
     def switchport_enable(val=true)
-      return if switchport
       config_set('interface', 'switchport', name: @name, state: val ? '' : 'no')
     end
 
