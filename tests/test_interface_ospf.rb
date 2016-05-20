@@ -339,7 +339,6 @@ class TestInterfaceOspf < CiscoTestCase
       pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
       msg:     "'ip router ospf #{ospf.name} default area' not configured")
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     create_interfaceospf(ospf, ifname, area)
@@ -353,7 +352,6 @@ class TestInterfaceOspf < CiscoTestCase
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     interface1 = create_interfaceospf(ospf, ifname, area)
@@ -361,7 +359,6 @@ class TestInterfaceOspf < CiscoTestCase
                  "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                  'not configured')
 
-    # delete ospf instance from interfaces_id[2]
     interface1.destroy
     refute_show_match(
       command: show_cmd(ifname),

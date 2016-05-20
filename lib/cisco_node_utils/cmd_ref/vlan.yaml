@@ -24,15 +24,28 @@ fabric_control:
   default_value: false
 
 mapped_vni:
-  N3k: &mapped_vni_n3k_n9k
-    kind: int
+  _exclude: [N7k]
+  N3k: &mapped_vni_n3_8_9k
     get_command: 'show running vlan'
-    get_context: ['/^vlan <vlan>$/']
-    get_value: '/^vn-segment (\d+)$/'
-    set_context: ['vlan <vlan>']
-    set_value:  '<state> vn-segment <vni> ; end'
-    default_value: ''
-  N9k: *mapped_vni_n3k_n9k
+  N8k: *mapped_vni_n3_8_9k
+  N9k: *mapped_vni_n3_8_9k
+  N5k: &mapped_vni_n5_6k
+    get_command: 'show running vlan 1-4094'
+  N6k: *mapped_vni_n5_6k
+  kind: int
+  get_context: ['/^vlan <vlan>$/']
+  get_value: '/^vn-segment (\d+)$/'
+  set_context: ['vlan <vlan>']
+  set_value:  '<state> vn-segment <vni> ; end'
+  default_value: ''
+
+mapped_vni_requires_nv_overlay:
+  kind: boolean
+  N5k: &requires_nv_overlay_true
+    default_only: true
+  N6k: *requires_nv_overlay_true
+  else:
+    default_only: false
 
 mode:
   _exclude: [N3k, N9k]
@@ -51,7 +64,7 @@ name:
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
-private_vlan_association:
+pvlan_association:
   _exclude: [N8k]
   multiple: true
   get_command: "show vlan private-vlan"
@@ -60,7 +73,7 @@ private_vlan_association:
   set_value: "<state> private-vlan association <vlans> ; end"
   default_value: []
 
-private_vlan_type:
+pvlan_type:
   _exclude: [N8k]
   kind: string
   get_command: 'show vlan private-vlan type'
