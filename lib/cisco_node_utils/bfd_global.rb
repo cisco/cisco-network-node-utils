@@ -47,6 +47,7 @@ module Cisco
       set_args_keys_default
     end
 
+    # Reset everything back to default
     def destroy
       self.echo_interface = default_echo_interface
       config_set('bfd_global', 'common_echo_rx_interval', state: 'no',
@@ -68,7 +69,8 @@ module Cisco
       config_set('bfd_global', 'startup_timer', state: 'no', timer: '') if
       startup_timer
       config_set('bfd_global', 'common_interval', state: 'no',
-                 protocol: '', intv: 50, mrx: 50, mult: 3)
+                 protocol: '', intv: 50, mrx: 50, mult: 3) unless
+      type == 'ip' # this is workaround due to a bug on nexus platform
       config_set('bfd_global', 'common_interval', state: 'no',
                  protocol: 'ipv4', intv: 50, mrx: 50, mult: 3) unless
       type == 'fabric'
@@ -123,6 +125,11 @@ module Cisco
       config_get_default('bfd_global', 'echo_interface')
     end
 
+    # there are multiple variations of the CLI for echo_rx_interval
+    # the difference is only in protocol
+    # bfd echo-rx-interval 50
+    # bfd ipv4 echo-rx-interval 50
+    # bfd ipv6 echo-rx-interval 50
     def common_echo_rx_interval_get(protocol)
       @get_args[:protocol] = protocol
       config_get('bfd_global', 'common_echo_rx_interval', @get_args).to_i
@@ -171,6 +178,12 @@ module Cisco
       config_get_default('bfd_global', 'echo_rx_interval')
     end
 
+    # there are multiple variations of the CLI for slow-timer
+    # the difference is only in protocol
+    # bfd slow-timer 2000
+    # bfd ipv4 slow-timer 2000
+    # bfd ipv6 slow-timer 2000
+    # bfd fabricpath slow-timer 2000
     def common_slow_timer_get(protocol)
       @get_args[:protocol] = protocol
       config_get('bfd_global', 'common_slow_timer', @get_args).to_i
@@ -307,6 +320,12 @@ module Cisco
       config_get_default('bfd_global', 'multiplier')
     end
 
+    # there are multiple variations of the CLI for interval related CLI
+    # the difference is only in protocol
+    # bfd interval 50 min_rx 50 multiplier 3
+    # bfd ipv4 interval 50 min_rx 50 multiplier 3
+    # bfd ipv6 interval 50 min_rx 50 multiplier 3
+    # bfd fabricpath interval 50 min_rx 50 multiplier 3
     def interval_params_get(protocol)
       @get_args[:protocol] = protocol
       config_get('bfd_global', 'common_interval', @get_args).map(&:to_i)
