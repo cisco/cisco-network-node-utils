@@ -19,7 +19,6 @@ common_slow_timer:
   set_value: '<state> bfd <protocol> slow-timer <timer>'
 
 echo_interface:
-  _exclude: [N5k, N6k]
   kind: int
   get_value: '/^bfd echo-interface loopback(\d+)$/'
   set_value: '<state> bfd echo-interface loopback <intf>'

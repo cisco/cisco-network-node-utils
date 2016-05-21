@@ -45,13 +45,6 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_echo_interface
     bg = BfdGlobal.new('default')
-    if validate_property_excluded?('bfd_global', 'echo_interface')
-      assert_nil(bg.echo_interface)
-      assert_raises(Cisco::UnsupportedError) do
-        bg.echo_interface = 10
-      end
-      return
-    end
     config 'interface loopback 10'
     bg.echo_interface = 10
     assert_equal(10, bg.echo_interface)
