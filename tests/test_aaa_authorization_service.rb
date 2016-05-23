@@ -74,13 +74,13 @@ class TestAaaAuthorizationService < CiscoTestCase
     skip('Cannot find tests/tacacs_server.yaml') unless File.file?(path)
     cfg = YAML.load(File.read(path))
     valid_cfg?(cfg)
-    config("tacacs-server key #{cfg['key']}",
-           "tacacs-server host #{cfg['host']} key #{cfg['key']}",
+    config("tacacs-server host #{cfg['host']} key #{cfg['key']}",
            "aaa group server tacacs+ #{group_name}",
            "server #{cfg['host']}",
            "use-vrf #{cfg['vrf']}",
            "source-interface #{cfg['intf']}",
            'aaa authentication login ascii-authentication')
+    valid_server?(cfg['host'])
   end
 
   def prefix
@@ -101,6 +101,13 @@ class TestAaaAuthorizationService < CiscoTestCase
     %w(host key vrf intf).each do |key|
       skip("#{msg}: #{key}") if cfg[key].nil?
     end
+  end
+
+  def valid_server?(host)
+    test_aaa = config("test aaa server tacacs+ #{host} test test")
+    # Valid tacacs server will return message regarding user authentication
+    valid = test_aaa[/^user has \S+ authenticat(ed|ion)/]
+    fail("Host '#{host}' is not a valid tacacs server") unless valid
   end
 
   def test_create_unsupported_type
