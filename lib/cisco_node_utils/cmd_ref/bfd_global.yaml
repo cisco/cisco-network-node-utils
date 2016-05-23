@@ -26,22 +26,9 @@ echo_rx_interval:
 
 fabricpath_interval:
   _exclude: [N3k, N8k, N9k]
-  kind: int
-  default_value: 50
-
-fabricpath_interval_param:
   get_value: '/^bfd fabricpath interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd fabricpath interval <intv> min_rx <mrx> multiplier <mult>'
-
-fabricpath_min_rx:
-  _exclude: [N3k, N8k, N9k]
-  kind: int
-  default_value: 50
-
-fabricpath_multiplier:
-  _exclude: [N3k, N8k, N9k]
-  kind: int
-  default_value: 3
+  default_value: ['50', '50', '3']
 
 fabricpath_slow_timer:
   _exclude: [N3k, N8k, N9k]
@@ -58,19 +45,16 @@ fabricpath_vlan:
   default_value: 1
 
 interval:
-  kind: int
+  get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  set_value: '<state> bfd interval <intv> min_rx <mrx> multiplier <mult>'
   N3k: &interval_250
-    default_value: 250
+    default_value: ['250', '250', '3']
   N5k: &interval_50
-    default_value: 50
+    default_value: ['50', '50', '3']
   N6k: *interval_50
   N7k: *interval_50
   N8k: *interval_50
   N9k: *interval_50
-
-interval_param:
-  get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd interval <intv> min_rx <mrx> multiplier <mult>'
 
 ipv4_echo_rx_interval:
   _exclude: [N5k, N6k]
@@ -86,34 +70,17 @@ ipv4_echo_rx_interval:
 
 ipv4_interval:
   _exclude: [N5k, N6k]
-  kind: int
+  get_value: '/^bfd ipv4 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
+  set_value: '<state> bfd ipv4 interval <intv> min_rx <mrx> multiplier <mult>'
   N3k: &ipv4_interval_250
-    default_value: 250
+    default_value: ['250', '250', '3']
   N7k: &ipv4_interval_50
-    default_value: 50
+    default_value: ['50', '50', '3']
   N8k: *ipv4_interval_50
   N9k: *ipv4_interval_50
 
-ipv4_interval_param:
-  get_value: '/^bfd ipv4 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd ipv4 interval <intv> min_rx <mrx> multiplier <mult>'
-
-ipv4_min_rx:
-  _exclude: [N5k, N6k]
-  kind: int
-  N3k: &ipv4_min_rx_250
-    default_value: 250
-  N7k: &ipv4_min_rx_50
-    default_value: 50
-  N8k: *ipv4_min_rx_50
-  N9k: *ipv4_min_rx_50
-
-ipv4_multiplier:
-  _exclude: [N5k, N6k]
-  kind: int
-  default_value: 3
-
 ipv4_slow_timer:
+  _exclude: [N5k, N6k]
   kind: int
   get_value: '/^bfd ipv4 slow-timer (\d+)$/'
   set_value: '<state> bfd ipv4 slow-timer <timer>'
@@ -133,32 +100,14 @@ ipv6_echo_rx_interval:
 
 ipv6_interval:
   _exclude: [N5k, N6k]
-  kind: int
-  N3k: &ipv6_interval_250
-    default_value: 250
-  N7k: &ipv6_interval_50
-    default_value: 50
-  N8k: *ipv6_interval_50
-  N9k: *ipv6_interval_50
-
-ipv6_interval_param:
   get_value: '/^bfd ipv6 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd ipv6 interval <intv> min_rx <mrx> multiplier <mult>'
-
-ipv6_min_rx:
-  _exclude: [N5k, N6k]
-  kind: int
-  N3k: &ipv6_min_rx_250
-    default_value: 250
-  N7k: &ipv6_min_rx_50
-    default_value: 50
-  N8k: *ipv6_min_rx_50
-  N9k: *ipv6_min_rx_50
-
-ipv6_multiplier:
-  _exclude: [N5k, N6k]
-  kind: int
-  default_value: 3
+  N3k: &ipv6_interval_250
+    default_value: ['250', '250', '3']
+  N7k: &ipv6_interval_50
+    default_value: ['50', '50', '3']
+  N8k: *ipv6_interval_50
+  N9k: *ipv6_interval_50
 
 ipv6_slow_timer:
   _exclude: [N5k, N6k]
@@ -166,21 +115,6 @@ ipv6_slow_timer:
   get_value: '/^bfd ipv6 slow-timer (\d+)$/'
   set_value: '<state> bfd ipv6 slow-timer <timer>'
   default_value: 2000
-
-min_rx:
-  kind: int
-  N3k: &min_rx_250
-    default_value: 250
-  N5k: &min_rx_50
-    default_value: 50
-  N6k: *min_rx_50
-  N7k: *min_rx_50
-  N8k: *min_rx_50
-  N9k: *min_rx_50
-
-multiplier:
-  kind: int
-  default_value: 3
 
 slow_timer:
   kind: int

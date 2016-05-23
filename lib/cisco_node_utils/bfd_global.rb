@@ -56,14 +56,11 @@ module Cisco
       self.fabricpath_slow_timer = default_fabricpath_slow_timer if
       fabricpath_slow_timer
       self.startup_timer = default_startup_timer if startup_timer
-      config_set('bfd_global', 'interval', state: 'no',
-                 intv: 50, mrx: 50, mult: 3)
-      config_set('bfd_global', 'ipv4_interval', state: 'no',
-                 intv: 50, mrx: 50, mult: 3) if ipv4_interval
-      config_set('bfd_global', 'ipv6_interval', state: 'no',
-                 intv: 50, mrx: 50, mult: 3) if ipv6_interval
-      config_set('bfd_global', 'fabricpath_interval', state: 'no',
-                 intv: 50, mrx: 50, mult: 3) if fabricpath_interval
+      self.interval = default_interval
+      self.ipv4_interval = default_ipv4_interval if ipv4_interval
+      self.ipv6_interval = default_ipv6_interval if ipv6_interval
+      self.fabricpath_interval = default_fabricpath_interval if
+      fabricpath_interval
       @name = nil
       set_args_keys_default
     end
@@ -254,212 +251,73 @@ module Cisco
       config_get_default('bfd_global', 'fabricpath_interval')
     end
 
-    def default_min_rx
-      config_get_default('bfd_global', 'min_rx')
-    end
-
-    def default_ipv4_min_rx
-      config_get_default('bfd_global', 'ipv4_min_rx')
-    end
-
-    def default_ipv6_min_rx
-      config_get_default('bfd_global', 'ipv6_min_rx')
-    end
-
-    def default_fabricpath_min_rx
-      config_get_default('bfd_global', 'fabricpath_min_rx')
-    end
-
-    def default_multiplier
-      config_get_default('bfd_global', 'multiplier')
-    end
-
-    def default_ipv4_multiplier
-      config_get_default('bfd_global', 'ipv4_multiplier')
-    end
-
-    def default_ipv6_multiplier
-      config_get_default('bfd_global', 'ipv6_multiplier')
-    end
-
-    def default_fabricpath_multiplier
-      config_get_default('bfd_global', 'fabricpath_multiplier')
-    end
-
-    def interval_get
-      config_get('bfd_global', 'interval_param', @get_args).map(&:to_i)
-    end
-
-    def ipv4_interval_get
-      config_get('bfd_global', 'ipv4_interval_param', @get_args).map(&:to_i)
-    end
-
-    def ipv6_interval_get
-      config_get('bfd_global', 'ipv6_interval_param', @get_args).map(&:to_i)
-    end
-
-    def fabricpath_interval_get
-      config_get('bfd_global',
-                 'fabricpath_interval_param', @get_args).map(&:to_i)
-    end
-
+    # interval is an array of interval, min_rx and multiplier
     def interval
-      interval_get[0]
+      config_get('bfd_global', 'interval', @get_args)
     end
 
+    # ipv4_interval is an array of ipv4_interval, ipv4_min_rx and
+    # ipv4_multiplier
     def ipv4_interval
-      ipv4_interval_get[0]
+      config_get('bfd_global', 'ipv4_interval', @get_args)
     end
 
+    # ipv6_interval is an array of ipv6_interval, ipv6_min_rx and
+    # ipv6_multiplier
     def ipv6_interval
-      ipv6_interval_get[0]
+      config_get('bfd_global', 'ipv6_interval', @get_args)
     end
 
+    # fabricpath_interval is an array of fabricpath_interval,
+    # fabricpath_min_rx and fabricpath_multiplier
     def fabricpath_interval
-      fabricpath_interval_get[0]
+      config_get('bfd_global', 'fabricpath_interval', @get_args)
     end
 
-    def min_rx
-      interval_get[1]
-    end
-
-    def ipv4_min_rx
-      ipv4_interval_get[1]
-    end
-
-    def ipv6_min_rx
-      ipv6_interval_get[1]
-    end
-
-    def fabricpath_min_rx
-      fabricpath_interval_get[1]
-    end
-
-    def multiplier
-      interval_get[2]
-    end
-
-    def ipv4_multiplier
-      ipv4_interval_get[2]
-    end
-
-    def ipv6_multiplier
-      ipv6_interval_get[2]
-    end
-
-    def fabricpath_multiplier
-      fabricpath_interval_get[2]
-    end
-
-    def interval=(val)
-      @set_args[:intv] = val
-    end
-
-    def ipv4_interval=(val)
-      @set_args[:intv] = val
-    end
-
-    def ipv6_interval=(val)
-      @set_args[:intv] = val
-    end
-
-    def fabricpath_interval=(val)
-      @set_args[:intv] = val
-    end
-
-    def min_rx=(val)
-      @set_args[:mrx] = val
-    end
-
-    def ipv4_min_rx=(val)
-      @set_args[:mrx] = val
-    end
-
-    def ipv6_min_rx=(val)
-      @set_args[:mrx] = val
-    end
-
-    def fabricpath_min_rx=(val)
-      @set_args[:mrx] = val
-    end
-
-    def multiplier=(val)
-      @set_args[:mult] = val
-    end
-
-    def ipv4_multiplier=(val)
-      @set_args[:mult] = val
-    end
-
-    def ipv6_multiplier=(val)
-      @set_args[:mult] = val
-    end
-
-    def fabricpath_multiplier=(val)
-      @set_args[:mult] = val
-    end
-
-    def interval_set(attrs)
-      set_args_keys(attrs)
-      [:interval,
-       :min_rx,
-       :multiplier,
-      ].each do |p|
-        send(p.to_s + '=', attrs[p])
-      end
-      @set_args[:state] = 'no' if
-        @set_args[:intv] == default_interval &&
-        @set_args[:mrx] == default_min_rx &&
-        @set_args[:mult] == default_multiplier
-      config_set('bfd_global', 'interval_param', @set_args)
+    # interval is an array of interval, min_rx and multiplier
+    # ex: ['100', '100', '25']
+    def interval=(arr)
+      @set_args[:state] = 'no' if arr == default_interval
+      @set_args[:intv] = arr[0]
+      @set_args[:mrx] = arr[1]
+      @set_args[:mult] = arr[2]
+      config_set('bfd_global', 'interval', @set_args)
       set_args_keys_default
     end
 
-    def ipv4_interval_set(attrs)
-      set_args_keys(attrs)
-      [:ipv4_interval,
-       :ipv4_min_rx,
-       :ipv4_multiplier,
-      ].each do |p|
-        send(p.to_s + '=', attrs[p])
-      end
-      @set_args[:state] = 'no' if
-        @set_args[:intv] == default_ipv4_interval &&
-        @set_args[:mrx] == default_ipv4_min_rx &&
-        @set_args[:mult] == default_ipv4_multiplier
-      config_set('bfd_global', 'ipv4_interval_param', @set_args)
+    # ipv4_interval is an array of ipv4_interval, ipv4_min_rx and
+    # ipv4_multiplier
+    # ex: ['100', '100', '25']
+    def ipv4_interval=(arr)
+      @set_args[:state] = 'no' if arr == default_ipv4_interval
+      @set_args[:intv] = arr[0]
+      @set_args[:mrx] = arr[1]
+      @set_args[:mult] = arr[2]
+      config_set('bfd_global', 'ipv4_interval', @set_args)
       set_args_keys_default
     end
 
-    def ipv6_interval_set(attrs)
-      set_args_keys(attrs)
-      [:ipv6_interval,
-       :ipv6_min_rx,
-       :ipv6_multiplier,
-      ].each do |p|
-        send(p.to_s + '=', attrs[p])
-      end
-      @set_args[:state] = 'no' if
-        @set_args[:intv] == default_ipv6_interval &&
-        @set_args[:mrx] == default_ipv6_min_rx &&
-        @set_args[:mult] == default_ipv6_multiplier
-      config_set('bfd_global', 'ipv6_interval_param', @set_args)
+    # ipv6_interval is an array of ipv6_interval, ipv6_min_rx and
+    # ipv6_multiplier
+    # ex: ['100', '100', '25']
+    def ipv6_interval=(arr)
+      @set_args[:state] = 'no' if arr == default_ipv6_interval
+      @set_args[:intv] = arr[0]
+      @set_args[:mrx] = arr[1]
+      @set_args[:mult] = arr[2]
+      config_set('bfd_global', 'ipv6_interval', @set_args)
       set_args_keys_default
     end
 
-    def fabricpath_interval_set(attrs)
-      set_args_keys(attrs)
-      [:fabricpath_interval,
-       :fabricpath_min_rx,
-       :fabricpath_multiplier,
-      ].each do |p|
-        send(p.to_s + '=', attrs[p])
-      end
-      @set_args[:state] = 'no' if
-        @set_args[:intv] == default_fabricpath_interval &&
-        @set_args[:mrx] == default_fabricpath_min_rx &&
-        @set_args[:mult] == default_fabricpath_multiplier
-      config_set('bfd_global', 'fabricpath_interval_param', @set_args)
+    # fabricpath_interval is an array of fabricpath_interval,
+    # fabricpath_min_rx and fabricpath_multiplier
+    # ex: ['100', '100', '25']
+    def fabricpath_interval=(arr)
+      @set_args[:state] = 'no' if arr == default_fabricpath_interval
+      @set_args[:intv] = arr[0]
+      @set_args[:mrx] = arr[1]
+      @set_args[:mult] = arr[2]
+      config_set('bfd_global', 'fabricpath_interval', @set_args)
       set_args_keys_default
     end
   end # class
