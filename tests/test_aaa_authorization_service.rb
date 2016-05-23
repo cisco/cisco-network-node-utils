@@ -68,7 +68,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     Regexp.new(p)
   end
 
-  # Method to pre-configure the user-defined tacacs server in tacacs_server.yaml
+  # Pre-configure the user-defined tacacs server in tests/tacacs_server.yaml
   def preconfig_tacacs_server_access(group_name)
     path = File.expand_path('../tacacs_server.yaml', __FILE__)
     skip('Cannot find tests/tacacs_server.yaml') unless File.file?(path)
