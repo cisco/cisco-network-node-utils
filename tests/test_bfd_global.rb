@@ -85,19 +85,45 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_echo_rx_interval
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'fabric'
+    if validate_property_excluded?('bfd_global', 'echo_rx_interval')
+      assert_nil(bg.echo_rx_interval)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.echo_rx_interval = 300
+      end
+      return
+    end
     bg.echo_rx_interval = 300
     assert_equal(300, bg.echo_rx_interval)
     bg.echo_rx_interval = bg.default_echo_rx_interval
     assert_equal(bg.default_echo_rx_interval, bg.echo_rx_interval)
+  end
+
+  def test_ipv4_echo_rx_interval
+    bg = BfdGlobal.new('default')
+    if validate_property_excluded?('bfd_global', 'ipv4_echo_rx_interval')
+      assert_nil(bg.ipv4_echo_rx_interval)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.ipv4_echo_rx_interval = 100
+      end
+      return
+    end
     bg.ipv4_echo_rx_interval = 100
     assert_equal(100, bg.ipv4_echo_rx_interval)
     bg.ipv4_echo_rx_interval = bg.default_ipv4_echo_rx_interval
     assert_equal(bg.default_ipv4_echo_rx_interval, bg.ipv4_echo_rx_interval)
-    bg.ipv6_echo_rx_interval = 200
-    assert_equal(200, bg.ipv6_echo_rx_interval)
+  end
+
+  def test_ipv6_echo_rx_interval
+    bg = BfdGlobal.new('default')
+    if validate_property_excluded?('bfd_global', 'ipv6_echo_rx_interval')
+      assert_nil(bg.ipv6_echo_rx_interval)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.ipv6_echo_rx_interval = 100
+      end
+      return
+    end
+    bg.ipv6_echo_rx_interval = 100
+    assert_equal(100, bg.ipv6_echo_rx_interval)
     bg.ipv6_echo_rx_interval = bg.default_ipv6_echo_rx_interval
     assert_equal(bg.default_ipv6_echo_rx_interval, bg.ipv6_echo_rx_interval)
   end
@@ -112,9 +138,13 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_ipv4_slow_timer
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'fabric'
+    if validate_property_excluded?('bfd_global', 'ipv4_slow_timer')
+      assert_nil(bg.ipv4_slow_timer)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.ipv4_slow_timer = 10_000
+      end
+      return
+    end
     bg.ipv4_slow_timer = 10_000
     assert_equal(10_000, bg.ipv4_slow_timer)
     bg.ipv4_slow_timer = bg.default_ipv4_slow_timer
@@ -123,9 +153,13 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_ipv6_slow_timer
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'fabric'
+    if validate_property_excluded?('bfd_global', 'ipv6_slow_timer')
+      assert_nil(bg.ipv6_slow_timer)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.ipv6_slow_timer = 25_000
+      end
+      return
+    end
     bg.ipv6_slow_timer = 25_000
     assert_equal(25_000, bg.ipv6_slow_timer)
     bg.ipv6_slow_timer = bg.default_ipv6_slow_timer
@@ -134,9 +168,13 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_fabricpath_slow_timer
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'ip'
+    if validate_property_excluded?('bfd_global', 'fabricpath_slow_timer')
+      assert_nil(bg.fabricpath_slow_timer)
+      assert_raises(Cisco::UnsupportedError) do
+        bg.fabricpath_slow_timer = 15_000
+      end
+      return
+    end
     bg.fabricpath_slow_timer = 15_000
     assert_equal(15_000, bg.fabricpath_slow_timer)
     bg.fabricpath_slow_timer = bg.default_fabricpath_slow_timer
@@ -145,15 +183,12 @@ class TestBfdGlobal < CiscoTestCase
 
   def interval_params_helper(props)
     bg = BfdGlobal.new('default')
-    # this skip is due to bug on the nxos platform, it will be
-    # removed after it is fixed
-    skip('Test not supported on this platform') if bg.type == 'ip'
     test_hash = {
       interval:   bg.default_interval,
       min_rx:     bg.default_min_rx,
       multiplier: bg.default_multiplier,
     }.merge!(props)
-    bg.interval_params_set(test_hash, '')
+    bg.interval_set(test_hash)
     bg
   end
 
@@ -174,15 +209,14 @@ class TestBfdGlobal < CiscoTestCase
 
   def ipv4_interval_params_helper(props)
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'fabric'
+    skip('Test not supported on this platform') if
+    validate_property_excluded?('bfd_global', 'ipv4_interval')
     test_hash = {
       ipv4_interval:   bg.default_ipv4_interval,
       ipv4_min_rx:     bg.default_ipv4_min_rx,
       ipv4_multiplier: bg.default_ipv4_multiplier,
     }.merge!(props)
-    bg.interval_params_set(test_hash, 'ipv4')
+    bg.ipv4_interval_set(test_hash)
     bg
   end
 
@@ -204,15 +238,14 @@ class TestBfdGlobal < CiscoTestCase
 
   def ipv6_interval_params_helper(props)
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'fabric'
+    skip('Test not supported on this platform') if
+    validate_property_excluded?('bfd_global', 'ipv6_interval')
     test_hash = {
       ipv6_interval:   bg.default_ipv6_interval,
       ipv6_min_rx:     bg.default_ipv6_min_rx,
       ipv6_multiplier: bg.default_ipv6_multiplier,
     }.merge!(props)
-    bg.interval_params_set(test_hash, 'ipv6')
+    bg.ipv6_interval_set(test_hash)
     bg
   end
 
@@ -234,15 +267,14 @@ class TestBfdGlobal < CiscoTestCase
 
   def fabricpath_interval_params_helper(props)
     bg = BfdGlobal.new('default')
-    # cannot use validate_property_excluded? for common properties
-    # which differ only in protocol so skip it
-    skip('Test not supported on this platform') if bg.type == 'ip'
+    skip('Test not supported on this platform') if
+    validate_property_excluded?('bfd_global', 'fabricpath_interval')
     test_hash = {
       fabricpath_interval:   bg.default_fabricpath_interval,
       fabricpath_min_rx:     bg.default_fabricpath_min_rx,
       fabricpath_multiplier: bg.default_fabricpath_multiplier,
     }.merge!(props)
-    bg.interval_params_set(test_hash, 'fabricpath')
+    bg.fabricpath_interval_set(test_hash)
     bg
   end
 

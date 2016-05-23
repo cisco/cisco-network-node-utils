@@ -27,8 +27,9 @@ module Cisco
     def initialize(name, instantiate=true)
       fail ArgumentError unless name.to_s == 'default'
       @name = name.downcase
+      set_args_keys_default
 
-      create if instantiate
+      Feature.bfd_enable if instantiate
     end
 
     def to_s
@@ -42,44 +43,27 @@ module Cisco
       hash
     end
 
-    def create
-      Feature.bfd_enable
-      set_args_keys_default
-    end
-
     # Reset everything back to default
     def destroy
       self.echo_interface = default_echo_interface
-      config_set('bfd_global', 'common_echo_rx_interval', state: 'no',
-                 protocol: '', rxi: '') unless type == 'fabric'
-      config_set('bfd_global', 'common_echo_rx_interval', state: 'no',
-                 protocol: 'ipv4', rxi: '') unless type == 'fabric'
-      config_set('bfd_global', 'common_echo_rx_interval', state: 'no',
-                 protocol: 'ipv6', rxi: '') unless type == 'fabric'
-      config_set('bfd_global', 'fabricpath_vlan', state: 'no', vlan: '') if
-      fabricpath_vlan
-      config_set('bfd_global', 'common_slow_timer', state: 'no',
-                 protocol: '', timer: 1000)
-      config_set('bfd_global', 'common_slow_timer', state: 'no',
-                 protocol: 'ipv4', timer: '') unless type == 'fabric'
-      config_set('bfd_global', 'common_slow_timer', state: 'no',
-                 protocol: 'ipv6', timer: '') unless type == 'fabric'
-      config_set('bfd_global', 'common_slow_timer', state: 'no',
-                 protocol: 'fabricpath', timer: '') unless type == 'ip'
-      config_set('bfd_global', 'startup_timer', state: 'no', timer: '') if
-      startup_timer
-      config_set('bfd_global', 'common_interval', state: 'no',
-                 protocol: '', intv: 50, mrx: 50, mult: 3) unless
-      type == 'ip' # this is workaround due to a bug on nexus platform
-      config_set('bfd_global', 'common_interval', state: 'no',
-                 protocol: 'ipv4', intv: 50, mrx: 50, mult: 3) unless
-      type == 'fabric'
-      config_set('bfd_global', 'common_interval', state: 'no',
-                 protocol: 'ipv6', intv: 50, mrx: 50, mult: 3) unless
-      type == 'fabric'
-      config_set('bfd_global', 'common_interval', state: 'no',
-                 protocol: 'fabricpath', intv: 50, mrx: 50, mult: 3) unless
-      type == 'ip'
+      self.echo_rx_interval = default_echo_rx_interval if echo_rx_interval
+      self.ipv4_echo_rx_interval = default_ipv4_echo_rx_interval if
+      ipv4_echo_rx_interval
+      self.fabricpath_vlan = default_fabricpath_vlan if fabricpath_vlan
+      self.slow_timer = default_slow_timer if slow_timer
+      self.ipv4_slow_timer = default_ipv4_slow_timer if ipv4_slow_timer
+      self.ipv6_slow_timer = default_ipv6_slow_timer if ipv6_slow_timer
+      self.fabricpath_slow_timer = default_fabricpath_slow_timer if
+      fabricpath_slow_timer
+      self.startup_timer = default_startup_timer if startup_timer
+      config_set('bfd_global', 'interval', state: 'no',
+                 intv: 50, mrx: 50, mult: 3)
+      config_set('bfd_global', 'ipv4_interval', state: 'no',
+                 intv: 50, mrx: 50, mult: 3) if ipv4_interval
+      config_set('bfd_global', 'ipv6_interval', state: 'no',
+                 intv: 50, mrx: 50, mult: 3) if ipv6_interval
+      config_set('bfd_global', 'fabricpath_interval', state: 'no',
+                 intv: 50, mrx: 50, mult: 3) if fabricpath_interval
       @name = nil
       set_args_keys_default
     end
@@ -101,10 +85,6 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    def type
-      config_get('bfd_global', 'type', @get_args)
-    end
-
     def echo_interface
       config_get('bfd_global', 'echo_interface', @get_args)
     end
@@ -125,29 +105,15 @@ module Cisco
       config_get_default('bfd_global', 'echo_interface')
     end
 
-    # there are multiple variations of the CLI for echo_rx_interval
-    # the difference is only in protocol
-    # bfd echo-rx-interval 50
-    # bfd ipv4 echo-rx-interval 50
-    # bfd ipv6 echo-rx-interval 50
-    def common_echo_rx_interval_get(protocol)
-      @get_args[:protocol] = protocol
-      config_get('bfd_global', 'common_echo_rx_interval', @get_args).to_i
-    end
-
-    def common_echo_rx_interval_set(protocol, val)
-      @set_args[:rxi] = val
-      @set_args[:protocol] = protocol
-      config_set('bfd_global', 'common_echo_rx_interval', @set_args)
-      set_args_keys_default
-    end
-
     def echo_rx_interval
-      common_echo_rx_interval_get('')
+      config_get('bfd_global', 'echo_rx_interval', @get_args)
     end
 
     def echo_rx_interval=(val)
-      common_echo_rx_interval_set('', val)
+      @set_args[:state] = 'no' if val == default_echo_rx_interval
+      @set_args[:rxi] = val
+      config_set('bfd_global', 'echo_rx_interval', @set_args)
+      set_args_keys_default
     end
 
     def default_echo_rx_interval
@@ -155,53 +121,44 @@ module Cisco
     end
 
     def ipv4_echo_rx_interval
-      common_echo_rx_interval_get('ipv4 ')
+      config_get('bfd_global', 'ipv4_echo_rx_interval', @get_args)
     end
 
     def ipv4_echo_rx_interval=(val)
-      common_echo_rx_interval_set('ipv4', val)
-    end
-
-    def default_ipv4_echo_rx_interval
-      config_get_default('bfd_global', 'echo_rx_interval')
-    end
-
-    def ipv6_echo_rx_interval
-      common_echo_rx_interval_get('ipv6 ')
-    end
-
-    def ipv6_echo_rx_interval=(val)
-      common_echo_rx_interval_set('ipv6', val)
-    end
-
-    def default_ipv6_echo_rx_interval
-      config_get_default('bfd_global', 'echo_rx_interval')
-    end
-
-    # there are multiple variations of the CLI for slow-timer
-    # the difference is only in protocol
-    # bfd slow-timer 2000
-    # bfd ipv4 slow-timer 2000
-    # bfd ipv6 slow-timer 2000
-    # bfd fabricpath slow-timer 2000
-    def common_slow_timer_get(protocol)
-      @get_args[:protocol] = protocol
-      config_get('bfd_global', 'common_slow_timer', @get_args).to_i
-    end
-
-    def common_slow_timer_set(protocol, val)
-      @set_args[:timer] = val
-      @set_args[:protocol] = protocol
-      config_set('bfd_global', 'common_slow_timer', @set_args)
+      @set_args[:state] = 'no' if val == default_ipv4_echo_rx_interval
+      @set_args[:rxi] = val
+      config_set('bfd_global', 'ipv4_echo_rx_interval', @set_args)
       set_args_keys_default
     end
 
+    def default_ipv4_echo_rx_interval
+      config_get_default('bfd_global', 'ipv4_echo_rx_interval')
+    end
+
+    def ipv6_echo_rx_interval
+      config_get('bfd_global', 'ipv6_echo_rx_interval', @get_args)
+    end
+
+    def ipv6_echo_rx_interval=(val)
+      @set_args[:state] = 'no' if val == default_ipv6_echo_rx_interval
+      @set_args[:rxi] = val
+      config_set('bfd_global', 'ipv6_echo_rx_interval', @set_args)
+      set_args_keys_default
+    end
+
+    def default_ipv6_echo_rx_interval
+      config_get_default('bfd_global', 'ipv6_echo_rx_interval')
+    end
+
     def slow_timer
-      common_slow_timer_get('')
+      config_get('bfd_global', 'slow_timer', @get_args)
     end
 
     def slow_timer=(val)
-      common_slow_timer_set('', val)
+      @set_args[:state] = 'no' if val == default_slow_timer
+      @set_args[:timer] = val
+      config_set('bfd_global', 'slow_timer', @set_args)
+      set_args_keys_default
     end
 
     def default_slow_timer
@@ -209,39 +166,48 @@ module Cisco
     end
 
     def ipv4_slow_timer
-      common_slow_timer_get('ipv4 ')
+      config_get('bfd_global', 'ipv4_slow_timer', @get_args)
     end
 
     def ipv4_slow_timer=(val)
-      common_slow_timer_set('ipv4', val)
+      @set_args[:state] = 'no' if val == default_ipv4_slow_timer
+      @set_args[:timer] = val
+      config_set('bfd_global', 'ipv4_slow_timer', @set_args)
+      set_args_keys_default
     end
 
     def default_ipv4_slow_timer
-      config_get_default('bfd_global', 'slow_timer')
+      config_get_default('bfd_global', 'ipv4_slow_timer')
     end
 
     def ipv6_slow_timer
-      common_slow_timer_get('ipv6 ')
+      config_get('bfd_global', 'ipv6_slow_timer', @get_args)
     end
 
     def ipv6_slow_timer=(val)
-      common_slow_timer_set('ipv6', val)
+      @set_args[:state] = 'no' if val == default_ipv6_slow_timer
+      @set_args[:timer] = val
+      config_set('bfd_global', 'ipv6_slow_timer', @set_args)
+      set_args_keys_default
     end
 
     def default_ipv6_slow_timer
-      config_get_default('bfd_global', 'slow_timer')
+      config_get_default('bfd_global', 'ipv6_slow_timer')
     end
 
     def fabricpath_slow_timer
-      common_slow_timer_get('fabricpath ')
+      config_get('bfd_global', 'fabricpath_slow_timer', @get_args)
     end
 
     def fabricpath_slow_timer=(val)
-      common_slow_timer_set('fabricpath', val)
+      @set_args[:state] = 'no' if val == default_fabricpath_slow_timer
+      @set_args[:timer] = val
+      config_set('bfd_global', 'fabricpath_slow_timer', @set_args)
+      set_args_keys_default
     end
 
     def default_fabricpath_slow_timer
-      config_get_default('bfd_global', 'slow_timer')
+      config_get_default('bfd_global', 'fabricpath_slow_timer')
     end
 
     def startup_timer
@@ -277,15 +243,15 @@ module Cisco
     end
 
     def default_ipv4_interval
-      config_get_default('bfd_global', 'interval')
+      config_get_default('bfd_global', 'ipv4_interval')
     end
 
     def default_ipv6_interval
-      config_get_default('bfd_global', 'interval')
+      config_get_default('bfd_global', 'ipv6_interval')
     end
 
     def default_fabricpath_interval
-      config_get_default('bfd_global', 'interval')
+      config_get_default('bfd_global', 'fabricpath_interval')
     end
 
     def default_min_rx
@@ -293,15 +259,15 @@ module Cisco
     end
 
     def default_ipv4_min_rx
-      config_get_default('bfd_global', 'min_rx')
+      config_get_default('bfd_global', 'ipv4_min_rx')
     end
 
     def default_ipv6_min_rx
-      config_get_default('bfd_global', 'min_rx')
+      config_get_default('bfd_global', 'ipv6_min_rx')
     end
 
     def default_fabricpath_min_rx
-      config_get_default('bfd_global', 'min_rx')
+      config_get_default('bfd_global', 'fabricpath_min_rx')
     end
 
     def default_multiplier
@@ -309,74 +275,80 @@ module Cisco
     end
 
     def default_ipv4_multiplier
-      config_get_default('bfd_global', 'multiplier')
+      config_get_default('bfd_global', 'ipv4_multiplier')
     end
 
     def default_ipv6_multiplier
-      config_get_default('bfd_global', 'multiplier')
+      config_get_default('bfd_global', 'ipv6_multiplier')
     end
 
     def default_fabricpath_multiplier
-      config_get_default('bfd_global', 'multiplier')
+      config_get_default('bfd_global', 'fabricpath_multiplier')
     end
 
-    # there are multiple variations of the CLI for interval related CLI
-    # the difference is only in protocol
-    # bfd interval 50 min_rx 50 multiplier 3
-    # bfd ipv4 interval 50 min_rx 50 multiplier 3
-    # bfd ipv6 interval 50 min_rx 50 multiplier 3
-    # bfd fabricpath interval 50 min_rx 50 multiplier 3
-    def interval_params_get(protocol)
-      @get_args[:protocol] = protocol
-      config_get('bfd_global', 'common_interval', @get_args).map(&:to_i)
+    def interval_get
+      config_get('bfd_global', 'interval_param', @get_args).map(&:to_i)
+    end
+
+    def ipv4_interval_get
+      config_get('bfd_global', 'ipv4_interval_param', @get_args).map(&:to_i)
+    end
+
+    def ipv6_interval_get
+      config_get('bfd_global', 'ipv6_interval_param', @get_args).map(&:to_i)
+    end
+
+    def fabricpath_interval_get
+      config_get('bfd_global',
+                 'fabricpath_interval_param', @get_args).map(&:to_i)
     end
 
     def interval
-      interval_params_get('')[0]
+      interval_get[0]
     end
 
     def ipv4_interval
-      interval_params_get('ipv4 ')[0]
+      ipv4_interval_get[0]
     end
 
     def ipv6_interval
-      interval_params_get('ipv6 ')[0]
+      ipv6_interval_get[0]
     end
 
     def fabricpath_interval
-      interval_params_get('fabricpath ')[0]
+      fabricpath_interval_get[0]
     end
 
     def min_rx
-      interval_params_get('')[1]
+      interval_get[1]
     end
 
     def ipv4_min_rx
-      interval_params_get('ipv4 ')[1]
+      ipv4_interval_get[1]
     end
 
     def ipv6_min_rx
-      interval_params_get('ipv6 ')[1]
+      ipv6_interval_get[1]
     end
 
     def fabricpath_min_rx
-      interval_params_get('fabricpath ')[1]
+      fabricpath_interval_get[1]
     end
 
     def multiplier
-      interval_params_get('')[2]
+      interval_get[2]
     end
 
     def ipv4_multiplier
-      interval_params_get('ipv4 ')[2]
+      ipv4_interval_get[2]
     end
 
     def ipv6_multiplier
-      interval_params_get('ipv6 ')[2]
+      ipv6_interval_get[2]
     end
 
     def fabricpath_multiplier
-      interval_params_get('fabricpath ')[2]
+      fabricpath_interval_get[2]
     end
 
     def interval=(val)
@@ -427,48 +399,67 @@ module Cisco
       @set_args[:mult] = val
     end
 
-    def interval_params_set(attrs, protocol)
-      if protocol.empty?
-        set_args_keys(attrs)
-        [:interval,
-         :min_rx,
-         :multiplier,
-        ].each do |p|
-          send(p.to_s + '=', attrs[p])
-        end
-        @set_args[:protocol] = ''
-      else
-        case protocol.to_sym
-        when :ipv4
-          set_args_keys(attrs)
-          [:ipv4_interval,
-           :ipv4_min_rx,
-           :ipv4_multiplier,
-          ].each do |p|
-            send(p.to_s + '=', attrs[p])
-          end
-          @set_args[:protocol] = 'ipv4'
-        when :ipv6
-          set_args_keys(attrs)
-          [:ipv6_interval,
-           :ipv6_min_rx,
-           :ipv6_multiplier,
-          ].each do |p|
-            send(p.to_s + '=', attrs[p])
-          end
-          @set_args[:protocol] = 'ipv6'
-        when :fabricpath
-          set_args_keys(attrs)
-          [:fabricpath_interval,
-           :fabricpath_min_rx,
-           :fabricpath_multiplier,
-          ].each do |p|
-            send(p.to_s + '=', attrs[p])
-          end
-          @set_args[:protocol] = 'fabricpath'
-        end
+    def interval_set(attrs)
+      set_args_keys(attrs)
+      [:interval,
+       :min_rx,
+       :multiplier,
+      ].each do |p|
+        send(p.to_s + '=', attrs[p])
       end
-      config_set('bfd_global', 'common_interval', @set_args)
+      @set_args[:state] = 'no' if
+        @set_args[:intv] == default_interval &&
+        @set_args[:mrx] == default_min_rx &&
+        @set_args[:mult] == default_multiplier
+      config_set('bfd_global', 'interval_param', @set_args)
+      set_args_keys_default
+    end
+
+    def ipv4_interval_set(attrs)
+      set_args_keys(attrs)
+      [:ipv4_interval,
+       :ipv4_min_rx,
+       :ipv4_multiplier,
+      ].each do |p|
+        send(p.to_s + '=', attrs[p])
+      end
+      @set_args[:state] = 'no' if
+        @set_args[:intv] == default_ipv4_interval &&
+        @set_args[:mrx] == default_ipv4_min_rx &&
+        @set_args[:mult] == default_ipv4_multiplier
+      config_set('bfd_global', 'ipv4_interval_param', @set_args)
+      set_args_keys_default
+    end
+
+    def ipv6_interval_set(attrs)
+      set_args_keys(attrs)
+      [:ipv6_interval,
+       :ipv6_min_rx,
+       :ipv6_multiplier,
+      ].each do |p|
+        send(p.to_s + '=', attrs[p])
+      end
+      @set_args[:state] = 'no' if
+        @set_args[:intv] == default_ipv6_interval &&
+        @set_args[:mrx] == default_ipv6_min_rx &&
+        @set_args[:mult] == default_ipv6_multiplier
+      config_set('bfd_global', 'ipv6_interval_param', @set_args)
+      set_args_keys_default
+    end
+
+    def fabricpath_interval_set(attrs)
+      set_args_keys(attrs)
+      [:fabricpath_interval,
+       :fabricpath_min_rx,
+       :fabricpath_multiplier,
+      ].each do |p|
+        send(p.to_s + '=', attrs[p])
+      end
+      @set_args[:state] = 'no' if
+        @set_args[:intv] == default_fabricpath_interval &&
+        @set_args[:mrx] == default_fabricpath_min_rx &&
+        @set_args[:mult] == default_fabricpath_multiplier
+      config_set('bfd_global', 'fabricpath_interval_param', @set_args)
       set_args_keys_default
     end
   end # class
