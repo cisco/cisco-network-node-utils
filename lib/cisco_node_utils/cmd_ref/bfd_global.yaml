@@ -6,33 +6,11 @@ _template:
   get_command: "show running-config bfd all"
   context: ~
 
-common_echo_rx_interval:
-  get_value: '/^bfd <protocol>echo-rx-interval (\d+)$/'
-  set_value: '<state> bfd <protocol> echo-rx-interval <rxi>'
-
-common_interval:
-  get_value: '/^bfd <protocol>interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd <protocol> interval <intv> min_rx <mrx> multiplier <mult>'
-
-common_slow_timer:
-  get_value: '/^bfd <protocol>slow-timer (\d+)$/'
-  set_value: '<state> bfd <protocol> slow-timer <timer>'
-
 echo_interface:
   kind: int
   get_value: '/^bfd echo-interface loopback(\d+)$/'
   set_value: '<state> bfd echo-interface loopback <intf>'
   default_value: false
-
-echo_rx_interval:
-  _exclude: [N5k, N6k]
-  kind: int
-  N3k: &rx_interval_250
-    default_value: 250
-  N7k: &rx_interval_50
-    default_value: 50
-  N8k: *rx_interval_50
-  N9k: *rx_interval_50
 
 fabricpath_vlan:
   _exclude: [N3k, N8k, N9k]
@@ -41,51 +19,9 @@ fabricpath_vlan:
   set_value: '<state> bfd fabricpath vlan <vlan>'
   default_value: 1
 
-interval:
-  kind: int
-  N3k: &interval_250
-    default_value: 250
-  N5k: &interval_50
-    default_value: 50
-  N6k: *interval_50
-  N7k: *interval_50
-  N8k: *interval_50
-  N9k: *interval_50
-
-min_rx:
-  kind: int
-  N3k: &min_rx_250
-    default_value: 250
-  N5k: &min_rx_50
-    default_value: 50
-  N6k: *min_rx_50
-  N7k: *min_rx_50
-  N8k: *min_rx_50
-  N9k: *min_rx_50
-
-multiplier:
-  kind: int
-  default_value: 3
-
-slow_timer:
-  kind: int
-  default_value: 2000
-
 startup_timer:
   _exclude: [N5k, N6k, N7k]
   kind: int
   get_value: '/^bfd startup-timer (\d+)$/'
   set_value: '<state> bfd startup-timer <timer>'
   default_value: 5
-
-type:
-  kind: string
-  N3k: &ip
-    default_only: 'ip'
-  N5k: &fabric
-    default_only: 'fabric'
-  N6k: *fabric
-  N7k: &ip_fabric
-    default_only: 'ip_fabric'
-  N8k: *ip
-  N9k: *ip
