@@ -27,8 +27,9 @@ module Cisco
     def initialize(name, instantiate=true)
       fail ArgumentError unless name.to_s == 'default'
       @name = name.downcase
+      set_args_keys_default
 
-      create if instantiate
+      Feature.bfd_enable if instantiate
     end
 
     def to_s
@@ -40,11 +41,6 @@ module Cisco
       hash['default'] = BfdGlobal.new('default', false) if
         Feature.bfd_enabled?
       hash
-    end
-
-    def create
-      Feature.bfd_enable
-      set_args_keys_default
     end
 
     # Reset everything back to default
