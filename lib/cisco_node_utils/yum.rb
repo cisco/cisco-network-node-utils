@@ -34,7 +34,6 @@ module Cisco
         version = arch = '' if name_arch == pkg
         # Check for match
         if pkg.match(name_arch) && pkg.match(version) && pkg.match(arch)
-          puts "Found package: #{name_arch}, #{version}, #{arch}"
           return true
         end
       end
