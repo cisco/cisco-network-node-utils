@@ -71,7 +71,7 @@ class TestAaaAuthorizationService < CiscoTestCase
   # Method to pre-configure the user-defined tacacs server in tacacs_server.yaml
   def preconfig_tacacs_server_access(group_name)
     path = File.expand_path('../tacacs_server.yaml', __FILE__)
-    skip('Cannot find tacacs_server.yaml') unless File.file?(path)
+    skip('Cannot find tests/tacacs_server.yaml') unless File.file?(path)
     cfg = YAML.load(File.read(path))
     valid_cfg?(cfg)
     config("tacacs-server key #{cfg['key']}",
@@ -96,8 +96,8 @@ class TestAaaAuthorizationService < CiscoTestCase
   end
 
   def valid_cfg?(cfg)
-    skip('tacacs_server.yaml file is empty') unless cfg
-    msg = 'Missing key in tacacs_server.yaml'
+    skip('tests/tacacs_server.yaml file is empty') unless cfg
+    msg = 'Missing key in tests/tacacs_server.yaml'
     %w(host key vrf intf).each do |key|
       skip("#{msg}: #{key}") if cfg[key].nil?
     end
