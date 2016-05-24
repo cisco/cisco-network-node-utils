@@ -107,7 +107,8 @@ class TestAaaAuthorizationService < CiscoTestCase
     test_aaa = config("test aaa server tacacs+ #{host} test test")
     # Valid tacacs server will return message regarding user authentication
     valid = test_aaa[/^user has \S+ authenticat(ed|ion)/]
-    fail("Host '#{host}' is not a valid tacacs server") unless valid
+    fail "Host '#{host}' is either not a valid tacacs server " \
+          'or not reachable' unless valid
   end
 
   def test_create_unsupported_type
