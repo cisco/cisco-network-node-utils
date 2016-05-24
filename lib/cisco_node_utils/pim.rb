@@ -45,6 +45,7 @@ module Cisco
     def self.pims
       afis = %w(ipv4) # TBD: No support for ipv6 at this time
       hash_final = {}
+      return hash_final unless Feature.pim_enabled?
       afis.each do |afi|
         hash_final[afi] = {}
         default_vrf = 'default'
