@@ -32,7 +32,7 @@ class TestRouterOspfArea < CiscoTestCase
   end
 
   def test_ospf_area_properties
-    ospf_area = RouterOspfArea.new('green','testvrf1','5.5.5.5')
+    ospf_area = RouterOspfArea.new('green', 'testvrf1', '5.5.5.5')
     # Check authentication property
     assert_equal(ospf_area.default_authentication, ospf_area.authentication,
                  'Error: Area Authentication is not initialized to default')
@@ -59,5 +59,4 @@ class TestRouterOspfArea < CiscoTestCase
                  'Error: Area filter_list_out has not been set to test_map_out')
     ospf_area.destroy
   end
-
 end
