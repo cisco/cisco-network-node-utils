@@ -24,31 +24,18 @@ module Cisco
   class BfdGlobal < NodeUtil
     attr_reader :name
 
-    def initialize(name, instantiate=true)
-      fail ArgumentError unless name.to_s == 'default'
-      @name = name.downcase
+    def initialize(instantiate=true)
       set_args_keys_default
 
       Feature.bfd_enable if instantiate
     end
 
-    def to_s
-      "bfd_global #{name}"
-    end
-
-    def self.globals
-      hash = {}
-      hash['default'] = BfdGlobal.new('default', false) if
-        Feature.bfd_enabled?
-      hash
-    end
-
     # Reset everything back to default
     def destroy
+      return unless Feature.bfd_enabled?
       self.echo_interface = default_echo_interface
       self.fabricpath_vlan = default_fabricpath_vlan if fabricpath_vlan
       self.startup_timer = default_startup_timer if startup_timer
-      @name = nil
       set_args_keys_default
     end
 
@@ -73,15 +60,10 @@ module Cisco
     end
 
     def echo_interface=(val)
-      if val
-        @set_args[:intf] = val
-      else
-        @set_args[:state] = 'no'
-        @set_args[:intf] = echo_interface
-      end
+      set_args_keys(intf:  val ? val : echo_interface,
+                    state: val ? '' : 'no')
       config_set('bfd_global', 'echo_interface', @set_args) if
-      @set_args[:intf]
-      set_args_keys_default
+        @set_args[:intf]
     end
 
     def default_echo_interface
@@ -93,10 +75,9 @@ module Cisco
     end
 
     def startup_timer=(val)
-      @set_args[:state] = 'no' if val == default_startup_timer
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_startup_timer ? 'no' : '')
       config_set('bfd_global', 'startup_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_startup_timer
@@ -108,10 +89,9 @@ module Cisco
     end
 
     def fabricpath_vlan=(val)
-      @set_args[:state] = 'no' if val == default_fabricpath_vlan
-      @set_args[:vlan] = val
+      set_args_keys(vlan:  val,
+                    state: val == default_fabricpath_vlan ? 'no' : '')
       config_set('bfd_global', 'fabricpath_vlan', @set_args)
-      set_args_keys_default
     end
 
     def default_fabricpath_vlan

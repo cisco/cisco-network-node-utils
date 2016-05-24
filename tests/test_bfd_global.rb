@@ -34,17 +34,20 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_create_destroy
     # create
-    bg = BfdGlobal.new('default')
-    assert_equal('default', bg.name)
-    refute_empty(BfdGlobal.globals)
+    bg = BfdGlobal.new
+    assert_equal(true, Feature.bfd_enabled?)
 
     # destroy
     bg.destroy
-    assert_nil(bg.name)
+    assert_equal(bg.echo_interface, bg.default_echo_interface)
+    assert_equal(bg.fabricpath_vlan, bg.default_fabricpath_vlan) if
+      bg.fabricpath_vlan
+    assert_equal(bg.startup_timer, bg.default_startup_timer) if
+      bg.startup_timer
   end
 
   def test_echo_interface
-    bg = BfdGlobal.new('default')
+    bg = BfdGlobal.new
     config 'interface loopback 10'
     bg.echo_interface = 10
     assert_equal(10, bg.echo_interface)
@@ -54,7 +57,7 @@ class TestBfdGlobal < CiscoTestCase
   end
 
   def test_fabricpath_vlan
-    bg = BfdGlobal.new('default')
+    bg = BfdGlobal.new
     if validate_property_excluded?('bfd_global', 'fabricpath_vlan')
       assert_nil(bg.fabricpath_vlan)
       assert_raises(Cisco::UnsupportedError) do
@@ -69,7 +72,7 @@ class TestBfdGlobal < CiscoTestCase
   end
 
   def test_startup_timer
-    bg = BfdGlobal.new('default')
+    bg = BfdGlobal.new
     if validate_property_excluded?('bfd_global', 'startup_timer')
       assert_nil(bg.startup_timer)
       assert_raises(Cisco::UnsupportedError) do
