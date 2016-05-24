@@ -24,53 +24,39 @@ module Cisco
   class BfdGlobal < NodeUtil
     attr_reader :name
 
-    def initialize(name, instantiate=true)
-      fail ArgumentError unless name.to_s == 'default'
-      @name = name.downcase
+    def initialize(instantiate=true)
       set_args_keys_default
 
       Feature.bfd_enable if instantiate
     end
 
-    def to_s
-      "bfd_global #{name}"
-    end
-
-    def self.globals
-      hash = {}
-      hash['default'] = BfdGlobal.new('default', false) if
-        Feature.bfd_enabled?
-      hash
-    end
-
     # Reset everything back to default
     def destroy
+      return unless Feature.bfd_enabled?
       self.echo_interface = default_echo_interface
       self.echo_rx_interval = default_echo_rx_interval if echo_rx_interval
       self.ipv4_echo_rx_interval = default_ipv4_echo_rx_interval if
-      ipv4_echo_rx_interval
+        ipv4_echo_rx_interval
       self.ipv6_echo_rx_interval = default_ipv6_echo_rx_interval if
-      ipv6_echo_rx_interval
+        ipv6_echo_rx_interval
       self.fabricpath_vlan = default_fabricpath_vlan if fabricpath_vlan
-      self.slow_timer = default_slow_timer if slow_timer
+      self.slow_timer = default_slow_timer
       self.ipv4_slow_timer = default_ipv4_slow_timer if ipv4_slow_timer
       self.ipv6_slow_timer = default_ipv6_slow_timer if ipv6_slow_timer
       self.fabricpath_slow_timer = default_fabricpath_slow_timer if
-      fabricpath_slow_timer
+        fabricpath_slow_timer
       self.startup_timer = default_startup_timer if startup_timer
-      self.interval = default_interval
       self.ipv4_interval = default_ipv4_interval if ipv4_interval
       self.ipv6_interval = default_ipv6_interval if ipv6_interval
       self.fabricpath_interval = default_fabricpath_interval if
-      fabricpath_interval
-      @name = nil
+        fabricpath_interval
+      self.interval = default_interval
       set_args_keys_default
     end
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      keys = { name: @name }
-      keys[:state] = ''
+      keys = { state: '' }
       @get_args = @set_args = keys
     end
 
@@ -89,15 +75,10 @@ module Cisco
     end
 
     def echo_interface=(val)
-      if val
-        @set_args[:intf] = val
-      else
-        @set_args[:state] = 'no'
-        @set_args[:intf] = echo_interface
-      end
+      set_args_keys(intf:  val ? val : echo_interface,
+                    state: val ? '' : 'no')
       config_set('bfd_global', 'echo_interface', @set_args) if
-      @set_args[:intf]
-      set_args_keys_default
+        @set_args[:intf]
     end
 
     def default_echo_interface
@@ -109,10 +90,9 @@ module Cisco
     end
 
     def echo_rx_interval=(val)
-      @set_args[:state] = 'no' if val == default_echo_rx_interval
-      @set_args[:rxi] = val
+      set_args_keys(rxi:   val,
+                    state: val == default_echo_rx_interval ? 'no' : '')
       config_set('bfd_global', 'echo_rx_interval', @set_args)
-      set_args_keys_default
     end
 
     def default_echo_rx_interval
@@ -124,10 +104,9 @@ module Cisco
     end
 
     def ipv4_echo_rx_interval=(val)
-      @set_args[:state] = 'no' if val == default_ipv4_echo_rx_interval
-      @set_args[:rxi] = val
+      set_args_keys(rxi:   val,
+                    state: val == default_ipv4_echo_rx_interval ? 'no' : '')
       config_set('bfd_global', 'ipv4_echo_rx_interval', @set_args)
-      set_args_keys_default
     end
 
     def default_ipv4_echo_rx_interval
@@ -139,10 +118,9 @@ module Cisco
     end
 
     def ipv6_echo_rx_interval=(val)
-      @set_args[:state] = 'no' if val == default_ipv6_echo_rx_interval
-      @set_args[:rxi] = val
+      set_args_keys(rxi:   val,
+                    state: val == default_ipv6_echo_rx_interval ? 'no' : '')
       config_set('bfd_global', 'ipv6_echo_rx_interval', @set_args)
-      set_args_keys_default
     end
 
     def default_ipv6_echo_rx_interval
@@ -154,10 +132,9 @@ module Cisco
     end
 
     def slow_timer=(val)
-      @set_args[:state] = 'no' if val == default_slow_timer
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_slow_timer ? 'no' : '')
       config_set('bfd_global', 'slow_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_slow_timer
@@ -169,10 +146,9 @@ module Cisco
     end
 
     def ipv4_slow_timer=(val)
-      @set_args[:state] = 'no' if val == default_ipv4_slow_timer
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_ipv4_slow_timer ? 'no' : '')
       config_set('bfd_global', 'ipv4_slow_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_ipv4_slow_timer
@@ -184,10 +160,9 @@ module Cisco
     end
 
     def ipv6_slow_timer=(val)
-      @set_args[:state] = 'no' if val == default_ipv6_slow_timer
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_ipv6_slow_timer ? 'no' : '')
       config_set('bfd_global', 'ipv6_slow_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_ipv6_slow_timer
@@ -199,10 +174,9 @@ module Cisco
     end
 
     def fabricpath_slow_timer=(val)
-      @set_args[:state] = 'no' if val == default_fabricpath_slow_timer
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_fabricpath_slow_timer ? 'no' : '')
       config_set('bfd_global', 'fabricpath_slow_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_fabricpath_slow_timer
@@ -214,9 +188,9 @@ module Cisco
     end
 
     def startup_timer=(val)
-      @set_args[:timer] = val
+      set_args_keys(timer: val,
+                    state: val == default_startup_timer ? 'no' : '')
       config_set('bfd_global', 'startup_timer', @set_args)
-      set_args_keys_default
     end
 
     def default_startup_timer
@@ -228,9 +202,9 @@ module Cisco
     end
 
     def fabricpath_vlan=(val)
-      @set_args[:vlan] = val
+      set_args_keys(vlan:  val,
+                    state: val == default_fabricpath_vlan ? 'no' : '')
       config_set('bfd_global', 'fabricpath_vlan', @set_args)
-      set_args_keys_default
     end
 
     def default_fabricpath_vlan
@@ -279,48 +253,36 @@ module Cisco
     # interval is an array of interval, min_rx and multiplier
     # ex: ['100', '100', '25']
     def interval=(arr)
-      @set_args[:state] = 'no' if arr == default_interval
-      @set_args[:intv] = arr[0]
-      @set_args[:mrx] = arr[1]
-      @set_args[:mult] = arr[2]
+      set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
+                    state: arr == default_interval ? 'no' : '')
       config_set('bfd_global', 'interval', @set_args)
-      set_args_keys_default
     end
 
     # ipv4_interval is an array of ipv4_interval, ipv4_min_rx and
     # ipv4_multiplier
     # ex: ['100', '100', '25']
     def ipv4_interval=(arr)
-      @set_args[:state] = 'no' if arr == default_ipv4_interval
-      @set_args[:intv] = arr[0]
-      @set_args[:mrx] = arr[1]
-      @set_args[:mult] = arr[2]
+      set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
+                    state: arr == default_ipv4_interval ? 'no' : '')
       config_set('bfd_global', 'ipv4_interval', @set_args)
-      set_args_keys_default
     end
 
     # ipv6_interval is an array of ipv6_interval, ipv6_min_rx and
     # ipv6_multiplier
     # ex: ['100', '100', '25']
     def ipv6_interval=(arr)
-      @set_args[:state] = 'no' if arr == default_ipv6_interval
-      @set_args[:intv] = arr[0]
-      @set_args[:mrx] = arr[1]
-      @set_args[:mult] = arr[2]
+      set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
+                    state: arr == default_ipv6_interval ? 'no' : '')
       config_set('bfd_global', 'ipv6_interval', @set_args)
-      set_args_keys_default
     end
 
     # fabricpath_interval is an array of fabricpath_interval,
     # fabricpath_min_rx and fabricpath_multiplier
     # ex: ['100', '100', '25']
     def fabricpath_interval=(arr)
-      @set_args[:state] = 'no' if arr == default_fabricpath_interval
-      @set_args[:intv] = arr[0]
-      @set_args[:mrx] = arr[1]
-      @set_args[:mult] = arr[2]
+      set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
+                    state: arr == default_fabricpath_interval ? 'no' : '')
       config_set('bfd_global', 'fabricpath_interval', @set_args)
-      set_args_keys_default
     end
   end # class
 end # module
