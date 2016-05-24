@@ -8,6 +8,21 @@ _template:
     - "router ospf <name>"
     - "(?)vrf <vrf>"
 
+area:
+  multiple: true
+  get_value: '/^area\s+(\S+)/'
+
+area_authentication:
+  get_value: '/^area <area> authentication (\S+)/'
+  set_value: '<state> area <area> authentication <auth_type>'
+  default_value: ~ 
+
+area_default_cost:
+  kind: int
+  get_value: '/^area <area> default-cost (\d+)/'
+  set_value: '<state> area <area> default-cost <cost>'
+  default_value: ~
+
 auto_cost:
   get_value: '/^auto-cost reference-bandwidth (\d+)\s*(\S+)?$/'
   set_value: "auto-cost reference-bandwidth <cost> <type>"
@@ -18,6 +33,16 @@ default_metric:
   get_value: '/^default-metric (\d+)?$/'
   set_value: "<state> default-metric <metric>"
   default_value: 0
+
+filter_list_in:
+  get_value: '/^area <area> filter-list route-map (\S+) in/'
+  set_value: '<state> area <area> filter-list route-map <route_map> in'
+  default_value: ~
+
+filter_list_out:
+  get_value: '/^area <area> filter-list route-map (\S+) out/'
+  set_value: '<state> area <area> filter-list route-map <route_map> out'
+  default_value: ~
 
 log_adjacency:
   auto_default: false
