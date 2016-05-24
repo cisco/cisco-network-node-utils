@@ -1,0 +1,6 @@
+# Tacacs server configuration for test_aaa_authorization_service.rb
+# Tacacs server must be set up with external access for test to run
+host: '10.122.197.197'
+key:  'testing123'
+vrf:  'management'
+intf: 'mgmt0'
