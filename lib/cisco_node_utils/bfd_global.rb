@@ -49,6 +49,8 @@ module Cisco
       self.echo_rx_interval = default_echo_rx_interval if echo_rx_interval
       self.ipv4_echo_rx_interval = default_ipv4_echo_rx_interval if
       ipv4_echo_rx_interval
+      self.ipv6_echo_rx_interval = default_ipv6_echo_rx_interval if
+      ipv6_echo_rx_interval
       self.fabricpath_vlan = default_fabricpath_vlan if fabricpath_vlan
       self.slow_timer = default_slow_timer if slow_timer
       self.ipv4_slow_timer = default_ipv4_slow_timer if ipv4_slow_timer
