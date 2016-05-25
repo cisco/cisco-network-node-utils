@@ -49,10 +49,12 @@ class TestBfdGlobal < CiscoTestCase
   def test_echo_interface
     bg = BfdGlobal.new
     config 'interface loopback 10'
-    bg.echo_interface = 10
-    assert_equal(10, bg.echo_interface)
-    bg.echo_interface = bg.default_echo_interface
-    assert_equal(bg.default_echo_interface, bg.echo_interface)
+    default = bg.default_echo_interface
+    assert_equal(default, bg.echo_interface)
+    bg.echo_interface = 'loopback10'
+    assert_equal('loopback10', bg.echo_interface)
+    bg.echo_interface = default
+    assert_equal(default, bg.echo_interface)
     config 'no interface loopback 10'
   end
 
@@ -65,6 +67,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_fabricpath_vlan, bg.fabricpath_vlan)
     bg.fabricpath_vlan = 100
     assert_equal(100, bg.fabricpath_vlan)
     bg.fabricpath_vlan = bg.default_fabricpath_vlan
@@ -80,6 +83,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_startup_timer, bg.startup_timer)
     bg.startup_timer = 25
     assert_equal(25, bg.startup_timer)
     bg.startup_timer = bg.default_startup_timer
