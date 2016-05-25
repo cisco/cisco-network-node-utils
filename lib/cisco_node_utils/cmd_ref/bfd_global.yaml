@@ -7,9 +7,9 @@ _template:
   context: ~
 
 echo_interface:
-  kind: int
-  get_value: '/^bfd echo-interface loopback(\d+)$/'
-  set_value: '<state> bfd echo-interface loopback <intf>'
+  kind: string
+  get_value: '/^bfd echo-interface (.*)$/'
+  set_value: '<state> bfd echo-interface <intf>'
   default_value: false
 
 echo_rx_interval:
@@ -45,6 +45,7 @@ fabricpath_vlan:
   default_value: 1
 
 interval:
+  _exclude: [N8k, N9k] # TBD: bug on n8k, n9k this is not working now
   get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd interval <intv> min_rx <mrx> multiplier <mult>'
   N3k: &interval_250

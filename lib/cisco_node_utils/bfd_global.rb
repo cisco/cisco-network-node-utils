@@ -33,6 +33,7 @@ module Cisco
     # Reset everything back to default
     def destroy
       return unless Feature.bfd_enabled?
+      self.interval = default_interval if interval
       self.echo_interface = default_echo_interface
       self.echo_rx_interval = default_echo_rx_interval if echo_rx_interval
       self.ipv4_echo_rx_interval = default_ipv4_echo_rx_interval if
@@ -50,7 +51,6 @@ module Cisco
       self.ipv6_interval = default_ipv6_interval if ipv6_interval
       self.fabricpath_interval = default_fabricpath_interval if
         fabricpath_interval
-      self.interval = default_interval
       set_args_keys_default
     end
 

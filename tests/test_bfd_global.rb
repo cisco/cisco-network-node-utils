@@ -39,6 +39,7 @@ class TestBfdGlobal < CiscoTestCase
 
     # destroy
     bg.destroy
+    assert_equal(bg.interval, bg.default_interval) if bg.interval
     assert_equal(bg.echo_interface, bg.default_echo_interface)
     assert_equal(bg.echo_rx_interval, bg.default_echo_rx_interval) if
       bg.echo_rx_interval
@@ -57,7 +58,6 @@ class TestBfdGlobal < CiscoTestCase
       bg.fabricpath_slow_timer
     assert_equal(bg.startup_timer, bg.default_startup_timer) if
       bg.startup_timer
-    assert_equal(bg.interval, bg.default_interval)
     assert_equal(bg.ipv4_interval, bg.default_ipv4_interval) if
       bg.ipv4_interval
     assert_equal(bg.ipv6_interval, bg.default_ipv6_interval) if
@@ -69,10 +69,12 @@ class TestBfdGlobal < CiscoTestCase
   def test_echo_interface
     bg = BfdGlobal.new
     config 'interface loopback 10'
-    bg.echo_interface = 10
-    assert_equal(10, bg.echo_interface)
-    bg.echo_interface = bg.default_echo_interface
-    assert_equal(bg.default_echo_interface, bg.echo_interface)
+    default = bg.default_echo_interface
+    assert_equal(default, bg.echo_interface)
+    bg.echo_interface = 'loopback10'
+    assert_equal('loopback10', bg.echo_interface)
+    bg.echo_interface = default
+    assert_equal(default, bg.echo_interface)
     config 'no interface loopback 10'
   end
 
@@ -85,6 +87,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_fabricpath_vlan, bg.fabricpath_vlan)
     bg.fabricpath_vlan = 100
     assert_equal(100, bg.fabricpath_vlan)
     bg.fabricpath_vlan = bg.default_fabricpath_vlan
@@ -100,6 +103,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_startup_timer, bg.startup_timer)
     bg.startup_timer = 25
     assert_equal(25, bg.startup_timer)
     bg.startup_timer = bg.default_startup_timer
@@ -115,6 +119,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.echo_rx_interval, bg.echo_rx_interval)
     bg.echo_rx_interval = 300
     assert_equal(300, bg.echo_rx_interval)
     bg.echo_rx_interval = bg.default_echo_rx_interval
@@ -130,6 +135,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_ipv4_echo_rx_interval, bg.ipv4_echo_rx_interval)
     bg.ipv4_echo_rx_interval = 100
     assert_equal(100, bg.ipv4_echo_rx_interval)
     bg.ipv4_echo_rx_interval = bg.default_ipv4_echo_rx_interval
@@ -145,6 +151,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_ipv6_echo_rx_interval, bg.ipv6_echo_rx_interval)
     bg.ipv6_echo_rx_interval = 100
     assert_equal(100, bg.ipv6_echo_rx_interval)
     bg.ipv6_echo_rx_interval = bg.default_ipv6_echo_rx_interval
@@ -153,6 +160,7 @@ class TestBfdGlobal < CiscoTestCase
 
   def test_slow_timer
     bg = BfdGlobal.new
+    assert_equal(bg.default_slow_timer, bg.slow_timer)
     bg.slow_timer = 5000
     assert_equal(5000, bg.slow_timer)
     bg.slow_timer = bg.default_slow_timer
@@ -168,6 +176,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_ipv4_slow_timer, bg.ipv4_slow_timer)
     bg.ipv4_slow_timer = 10_000
     assert_equal(10_000, bg.ipv4_slow_timer)
     bg.ipv4_slow_timer = bg.default_ipv4_slow_timer
@@ -183,6 +192,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_ipv6_slow_timer, bg.ipv6_slow_timer)
     bg.ipv6_slow_timer = 25_000
     assert_equal(25_000, bg.ipv6_slow_timer)
     bg.ipv6_slow_timer = bg.default_ipv6_slow_timer
@@ -198,6 +208,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.default_fabricpath_slow_timer, bg.fabricpath_slow_timer)
     bg.fabricpath_slow_timer = 15_000
     assert_equal(15_000, bg.fabricpath_slow_timer)
     bg.fabricpath_slow_timer = bg.default_fabricpath_slow_timer
@@ -214,6 +225,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.interval, bg.default_interval)
     bg.interval = arr
     assert_equal(arr, bg.interval)
     bg.interval = bg.default_interval
@@ -230,6 +242,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.ipv4_interval, bg.default_ipv4_interval)
     bg.ipv4_interval = arr
     assert_equal(arr, bg.ipv4_interval)
     bg.ipv4_interval = bg.default_ipv4_interval
@@ -246,6 +259,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.ipv6_interval, bg.default_ipv6_interval)
     bg.ipv6_interval = arr
     assert_equal(arr, bg.ipv6_interval)
     bg.ipv6_interval = bg.default_ipv6_interval
@@ -262,6 +276,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
+    assert_equal(bg.fabricpath_interval, bg.default_fabricpath_interval)
     bg.fabricpath_interval = arr
     assert_equal(arr, bg.fabricpath_interval)
     bg.fabricpath_interval = bg.default_fabricpath_interval
