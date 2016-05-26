@@ -1,0 +1,27 @@
+# bfd_global
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config bfd all"
+  context: ~
+
+echo_interface:
+  kind: string
+  get_value: '/^bfd echo-interface (.*)$/'
+  set_value: '<state> bfd echo-interface <intf>'
+  default_value: false
+
+fabricpath_vlan:
+  _exclude: [N3k, N8k, N9k]
+  kind: int
+  get_value: '/^bfd fabricpath vlan (\d+)$/'
+  set_value: '<state> bfd fabricpath vlan <vlan>'
+  default_value: 1
+
+startup_timer:
+  _exclude: [N5k, N6k, N7k]
+  kind: int
+  get_value: '/^bfd startup-timer (\d+)$/'
+  set_value: '<state> bfd startup-timer <timer>'
+  default_value: 5
