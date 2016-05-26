@@ -21,7 +21,7 @@ module Cisco
   class SnmpNotificationReceiver < NodeUtil
     attr_reader :name
 
-    def initialize(name,
+    def initialize(name, # rubocop:disable CyclomaticComplexity, MethodLength, PerceivedComplexity, LineLength
                    instantiate:      true,
                    type:             '',
                    version:          '',
@@ -81,11 +81,19 @@ module Cisco
       end
 
       return if vrf.empty?
-      config_set('snmp_notification_receiver',
-                 'vrf',
-                 ip:   name,
-                 vrf:  vrf,
-                 port: port.empty? ? '' : "udp-port #{port}")
+      if platform == :nexus
+        config_set('snmp_notification_receiver',
+                   'vrf',
+                   ip:   name,
+                   vrf:  vrf,
+                   port: port.empty? ? '' : "udp-port #{port}")
+      else
+        config_set('snmp_notification_receiver',
+                   'vrf',
+                   vrf:      vrf,
+                   ip:       name,
+                   username: username)
+      end
     end
 
     def self.receivers
@@ -146,7 +154,17 @@ module Cisco
     end
 
     def vrf
-      config_get('snmp_notification_receiver', 'vrf', @name)
+      if platform == :nexus
+        config_get('snmp_notification_receiver', 'vrf', @name)
+      else
+        # get all vrf
+        all_vrf = config_get('snmp_notification_receiver', 'vrf_all')
+        all_vrf.each do |vrf|
+          vrf_list = config_get('snmp_notification_receiver', 'vrf_values', vrf: vrf) # rubocop:disable Metrics/LineLength
+          # if vrf contains @name return vrf
+          return vrf if vrf_list.include?(@name)
+        end
+      end
     end
 
     def source_interface

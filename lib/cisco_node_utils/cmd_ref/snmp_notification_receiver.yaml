@@ -1,52 +1,66 @@
 # snmp_notification_receiver
 ---
-_exclude: [ios_xr]
+_template:
+  nexus:
+    get_command: "show running-config snmp all"
+  ios_xr:
+    get_command: "show running-config snmp"
 
 port:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.*version.* udp-port (\d+).*$/'
   default_value: null
 
 receivers:
-  get_command: "show running snmp all"
   get_value: '/^snmp-server host (\S+) (traps|informs)/'
   set_value: "<state> snmp-server host <ip> <type> version <version> <security> <username> <udp_port>"
   multiple:
 
 security:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.* version 3 (auth|noauth|priv).*$/'
   default_value: null
 
 source_interface:
-  get_command: "show running-config snmp all"
-  get_value: '/^snmp-server host %s.* source-interface (\S+).*$/'
-  set_value: "snmp-server host <ip> source-interface <source_interface> <port>"
-  default_value: null
+  nexus:
+    get_value: '/^snmp-server host %s.* source-interface (\S+).*$/'
+    set_value: "snmp-server host <ip> source-interface <source_interface> <port>"
+    default_value: null
+  ios_xr:
+    get_value: '/^snmp-server trap-source (\S+).*$/'
+    set_value: "snmp-server trap-source <source_interface>"
 
 type:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s (traps|informs).*$/'
   default_value: null
 
 username:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.*version.* (\S+)$/'
   default_value: null
 
 username_with_port:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.*version.* (\S+) udp-port/'
   default_value: null
 
 version:
-  get_command: "show running-config snmp all"
   get_value: '/^snmp-server host %s.* version (\S+).*$/'
   default_value: null
 
 vrf:
-  get_command: "show running-config snmp all"
-  get_value: '/^snmp-server host %s.* use-vrf (\S+).*$/'
-  set_value: "snmp-server host <ip> use-vrf <vrf> <port>"
-  default_value: null
+  nexus:
+    get_value: '/^snmp-server host %s.* use-vrf (\S+).*$/'
+    set_value: "snmp-server host <ip> use-vrf <vrf> <port>"
+    default_value: null
+  ios_xr:
+    set_value: "snmp-server vrf <vrf> host <ip> <username>"
+    default_value: null
 
+vrf_all:
+  _exclude: [nexus]
+  get_value: '/^snmp-server vrf (\S+).*/'
+  multiple:
+
+vrf_values:
+  _exclude: [nexus]
+  context: ['snmp-server vrf <vrf>']
+  get_value: '/^host (\S+).*$/'
+  default_value: null
+  multiple:

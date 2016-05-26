@@ -27,13 +27,13 @@ class TestSnmpNotificationReceiver < CiscoTestCase
     # setup runs at the beginning of each test
     super
     no_snmpnotificationreceiver
-    config('vrf context red')
+    config('vrf context red') if platform == :nexus
   end
 
   def teardown
     # teardown runs at the end of each test
     no_snmpnotificationreceiver
-    config('no vrf context red')
+    config('no vrf context red') if platform == :nexus
     super
   end
 
@@ -95,7 +95,7 @@ class TestSnmpNotificationReceiver < CiscoTestCase
     assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
     assert_equal(interfaces[0].downcase,
-                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface)
     assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
     assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
     assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
@@ -140,7 +140,7 @@ class TestSnmpNotificationReceiver < CiscoTestCase
     assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
     assert_equal(interfaces[0].downcase,
-                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) if platform == :nexus # rubocop:disable Metrics/LineLength
     assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
     assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
     assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
