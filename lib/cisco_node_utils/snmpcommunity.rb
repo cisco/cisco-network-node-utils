@@ -22,10 +22,23 @@ module Cisco
     @communities = nil
 
     def initialize(name, group, instantiate=true)
-      fail TypeError unless name.is_a?(String) && group.is_a?(String)
+      fail TypeError unless name.is_a?(String)
+      fail TypeError unless group.is_a?(String)
       @name = name
       return unless instantiate
-      config_set('snmp_community', 'community', '', name, group)
+      if platform == :nexus
+        config_set('snmp_community', 'community',
+                   state: '',
+                   name:  @name,
+                   group: group)
+      else
+        config_set('snmp_community', 'community',
+                   state: '',
+                   name:  @name)
+        # create the mapping for group
+        config_set('snmp_community', 'group_simple', state: '', group: group)
+        config_set('snmp_community', 'group_community_mapping', name: @name, group: group) # rubocop:disable Metrics/LineLength
+      end
     end
 
     def self.communities
@@ -41,7 +54,10 @@ module Cisco
 
     def destroy
       # CLI requires specifying a group even for "no" commands
-      config_set('snmp_community', 'community', 'no', @name, 'null')
+      config_set('snmp_community', 'community',
+                 state: 'no',
+                 name:  @name,
+                 group: 'null')
     end
 
     # name is read only
@@ -50,12 +66,22 @@ module Cisco
     #  end
 
     def group
-      config_get('snmp_community', 'group', @name)
+      if platform == :nexus
+        config_get('snmp_community', 'group', name: @name)
+      else
+        config_get('snmp_community', 'group_community_mapping', name: @name)
+      end
     end
 
     def group=(group)
       fail TypeError unless group.is_a?(String)
-      config_set('snmp_community', 'group', @name, group)
+      if platform == :nexus
+        config_set('snmp_community', 'group', name: @name, group: group)
+      else
+        # create the mapping
+        config_set('snmp_community', 'group_simple', group: group)
+        config_set('snmp_community', 'group_community_mapping', name: @name, group: group) # rubocop:disable Metrics/LineLength
+      end
     end
 
     def self.default_group
@@ -63,16 +89,16 @@ module Cisco
     end
 
     def acl
-      config_get('snmp_community', 'acl', @name)
+      config_get('snmp_community', 'acl', name: @name)
     end
 
     def acl=(acl)
       fail TypeError unless acl.is_a?(String)
       if acl.empty?
         acl = self.acl
-        config_set('snmp_community', 'acl', 'no', @name, acl) unless acl.empty?
+        config_set('snmp_community', 'acl', state: 'no', name: @name, acl: acl) unless acl.empty? # rubocop:disable Metrics/LineLength
       else
-        config_set('snmp_community', 'acl', '', @name, acl)
+        config_set('snmp_community', 'acl', state: '', name: @name, acl: acl)
       end
     end
 
