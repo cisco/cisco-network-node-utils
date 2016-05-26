@@ -1,25 +1,49 @@
 # snmp_community
 ---
-_exclude: [ios_xr]
 
 acl:
-  get_command: "show running snmp all"
-  get_value: '/^snmp-server community %s use-acl (.*)$/'
-  set_value: "%s snmp-server community %s use-acl %s"
-  default_value: ""
+  nexus:
+    get_command: "show running snmp all"
+    get_value: '/^snmp-server community <name> use-acl (.*)$/'
+    set_value: "<state> snmp-server community <name> use-acl <acl>"
+    default_value: ""
+  ios_xr:
+    get_command: "show running snmp"
+    get_value: '/^snmp-server community <name> IPv4 (.*)$/'
+    set_value: "<state> snmp-server community <name> <acl>"
+    default_value: ""
 
 all_communities:
-  multiple: true
-  get_command: "show running snmp all"
-  get_value: '/^snmp-server community (\S+) /'
+  nexus:
+    multiple: true
+    get_command: "show running snmp all"
+    get_value: '/^snmp-server community (\S+) /'
+  ios_xr:
+    multiple: true
+    get_command: "show running-config snmp"
+    get_value: '/^snmp-server community (\S+)/'
 
 community:
-  get_command: "show running snmp all"
-  get_value: '/^snmp-server community (%s) group .*$/'
-  set_value: "%s snmp-server community %s group %s"
+  nexus:
+    get_command: "show running snmp all"
+    get_value: '/^snmp-server community (%s) group .*$/'
+    set_value: "<state> snmp-server community <name> group <group>"
+  ios_xr:
+    get_command: "show running-config snmp"
+    get_value: '/^snmp-server community (%s) .*$/'
+    set_value: "<state> snmp-server community <name>"
 
 group:
-  get_command: "show running snmp all"
-  get_value: '/^snmp-server community %s group (.*)$/'
-  set_value: "snmp-server community %s group %s"
-  default_value: "network-operator"
+    get_command: "show running snmp all"
+    get_value: '/^snmp-server community <name> group (.*)$/'
+    set_value: "snmp-server community <name> group <group>"
+    default_value: "network-operator"
+
+group_community_mapping:
+    get_command: "show running snmp"
+    get_value: '/^snmp-server community-map <name> target-list (.*)$/'
+    set_value: "snmp-server community-map <name> target-list <group>"
+
+group_simple:
+    get_command: "show running snmp"
+    set_value: "snmp-server group <group> v3 noauth"
