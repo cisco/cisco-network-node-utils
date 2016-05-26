@@ -228,30 +228,35 @@ module Cisco
     end
 
     # interval is an array of interval, min_rx and multiplier
+    # CLI: bfd interval 100 min_rx 100 multiplier 25
     def interval
       config_get('bfd_global', 'interval', @get_args)
     end
 
     # ipv4_interval is an array of ipv4_interval, ipv4_min_rx and
     # ipv4_multiplier
+    # CLI: bfd ipv4 interval 100 min_rx 100 multiplier 25
     def ipv4_interval
       config_get('bfd_global', 'ipv4_interval', @get_args)
     end
 
     # ipv6_interval is an array of ipv6_interval, ipv6_min_rx and
     # ipv6_multiplier
+    # CLI: bfd ipv6 interval 100 min_rx 100 multiplier 25
     def ipv6_interval
       config_get('bfd_global', 'ipv6_interval', @get_args)
     end
 
     # fabricpath_interval is an array of fabricpath_interval,
     # fabricpath_min_rx and fabricpath_multiplier
+    # CLI: bfd fabricpath interval 100 min_rx 100 multiplier 25
     def fabricpath_interval
       config_get('bfd_global', 'fabricpath_interval', @get_args)
     end
 
     # interval is an array of interval, min_rx and multiplier
     # ex: ['100', '100', '25']
+    # CLI: bfd interval 100 min_rx 100 multiplier 25
     def interval=(arr)
       set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
                     state: arr == default_interval ? 'no' : '')
@@ -261,6 +266,7 @@ module Cisco
     # ipv4_interval is an array of ipv4_interval, ipv4_min_rx and
     # ipv4_multiplier
     # ex: ['100', '100', '25']
+    # CLI: bfd ipv4 interval 100 min_rx 100 multiplier 25
     def ipv4_interval=(arr)
       set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
                     state: arr == default_ipv4_interval ? 'no' : '')
@@ -270,6 +276,7 @@ module Cisco
     # ipv6_interval is an array of ipv6_interval, ipv6_min_rx and
     # ipv6_multiplier
     # ex: ['100', '100', '25']
+    # CLI: bfd ipv6 interval 100 min_rx 100 multiplier 25
     def ipv6_interval=(arr)
       set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
                     state: arr == default_ipv6_interval ? 'no' : '')
@@ -279,6 +286,7 @@ module Cisco
     # fabricpath_interval is an array of fabricpath_interval,
     # fabricpath_min_rx and fabricpath_multiplier
     # ex: ['100', '100', '25']
+    # CLI: bfd fabricpath interval 100 min_rx 100 multiplier 25
     def fabricpath_interval=(arr)
       set_args_keys(intv: arr[0], mrx: arr[1], mult: arr[2],
                     state: arr == default_fabricpath_interval ? 'no' : '')
