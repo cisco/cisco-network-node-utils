@@ -39,31 +39,24 @@ class TestBfdGlobal < CiscoTestCase
 
     # destroy
     bg.destroy
-    assert_equal(bg.interval, bg.default_interval) if bg.interval
-    assert_equal(bg.echo_interface, bg.default_echo_interface)
-    assert_equal(bg.echo_rx_interval, bg.default_echo_rx_interval) if
-      bg.echo_rx_interval
-    assert_equal(bg.ipv4_echo_rx_interval, bg.default_ipv4_echo_rx_interval) if
-      bg.ipv4_echo_rx_interval
-    assert_equal(bg.ipv6_echo_rx_interval, bg.default_ipv6_echo_rx_interval) if
-      bg.ipv6_echo_rx_interval
-    assert_equal(bg.fabricpath_vlan, bg.default_fabricpath_vlan) if
-      bg.fabricpath_vlan
-    assert_equal(bg.slow_timer, bg.default_slow_timer)
-    assert_equal(bg.ipv4_slow_timer, bg.default_ipv4_slow_timer) if
-      bg.ipv4_slow_timer
-    assert_equal(bg.ipv6_slow_timer, bg.default_ipv6_slow_timer) if
-      bg.ipv6_slow_timer
-    assert_equal(bg.fabricpath_slow_timer, bg.default_fabricpath_slow_timer) if
-      bg.fabricpath_slow_timer
-    assert_equal(bg.startup_timer, bg.default_startup_timer) if
-      bg.startup_timer
-    assert_equal(bg.ipv4_interval, bg.default_ipv4_interval) if
-      bg.ipv4_interval
-    assert_equal(bg.ipv6_interval, bg.default_ipv6_interval) if
-      bg.ipv6_interval
-    assert_equal(bg.fabricpath_interval, bg.default_fabricpath_interval) if
-      bg.fabricpath_interval
+    [:interval,
+     :ipv4_interval,
+     :ipv6_interval,
+     :fabricpath_interval,
+     :echo_interface,
+     :echo_rx_interval,
+     :ipv4_echo_rx_interval,
+     :ipv6_echo_rx_interval,
+     :fabricpath_vlan,
+     :slow_timer,
+     :ipv4_slow_timer,
+     :ipv6_slow_timer,
+     :fabricpath_slow_timer,
+     :startup_timer,
+    ].each do |prop|
+      assert_equal(bg.send("default_#{prop}"), bg.send("#{prop}")) if
+        bg.send("#{prop}")
+    end
   end
 
   def test_echo_interface
@@ -119,7 +112,7 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
-    assert_equal(bg.echo_rx_interval, bg.echo_rx_interval)
+    assert_equal(bg.default_echo_rx_interval, bg.echo_rx_interval)
     bg.echo_rx_interval = 300
     assert_equal(300, bg.echo_rx_interval)
     bg.echo_rx_interval = bg.default_echo_rx_interval
@@ -225,11 +218,11 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
-    assert_equal(bg.interval, bg.default_interval)
+    assert_equal(bg.default_interval, bg.interval)
     bg.interval = arr
     assert_equal(arr, bg.interval)
     bg.interval = bg.default_interval
-    assert_equal(bg.interval, bg.default_interval)
+    assert_equal(bg.default_interval, bg.interval)
   end
 
   def test_ipv4_interval
@@ -242,11 +235,11 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
-    assert_equal(bg.ipv4_interval, bg.default_ipv4_interval)
+    assert_equal(bg.default_ipv4_interval, bg.ipv4_interval)
     bg.ipv4_interval = arr
     assert_equal(arr, bg.ipv4_interval)
     bg.ipv4_interval = bg.default_ipv4_interval
-    assert_equal(bg.ipv4_interval, bg.default_ipv4_interval)
+    assert_equal(bg.default_ipv4_interval, bg.ipv4_interval)
   end
 
   def test_ipv6_interval
@@ -259,11 +252,11 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
-    assert_equal(bg.ipv6_interval, bg.default_ipv6_interval)
+    assert_equal(bg.default_ipv6_interval, bg.ipv6_interval)
     bg.ipv6_interval = arr
     assert_equal(arr, bg.ipv6_interval)
     bg.ipv6_interval = bg.default_ipv6_interval
-    assert_equal(bg.ipv6_interval, bg.default_ipv6_interval)
+    assert_equal(bg.default_ipv6_interval, bg.ipv6_interval)
   end
 
   def test_fabricpath_interval
@@ -276,10 +269,10 @@ class TestBfdGlobal < CiscoTestCase
       end
       return
     end
-    assert_equal(bg.fabricpath_interval, bg.default_fabricpath_interval)
+    assert_equal(bg.default_fabricpath_interval, bg.fabricpath_interval)
     bg.fabricpath_interval = arr
     assert_equal(arr, bg.fabricpath_interval)
     bg.fabricpath_interval = bg.default_fabricpath_interval
-    assert_equal(bg.fabricpath_interval, bg.default_fabricpath_interval)
+    assert_equal(bg.default_fabricpath_interval, bg.fabricpath_interval)
   end
 end

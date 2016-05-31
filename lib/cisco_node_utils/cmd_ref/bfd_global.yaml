@@ -17,17 +17,15 @@ echo_rx_interval:
   kind: int
   get_value: '/^bfd echo-rx-interval (\d+)$/'
   set_value: '<state> bfd echo-rx-interval <rxi>'
-  N3k: &rx_interval_250
+  N3k:
     default_value: 250
-  N7k: &rx_interval_50
+  else:
     default_value: 50
-  N8k: *rx_interval_50
-  N9k: *rx_interval_50
 
 fabricpath_interval:
   _exclude: [N3k, N8k, N9k]
   get_value: '/^bfd fabricpath interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd fabricpath interval <intv> min_rx <mrx> multiplier <mult>'
+  set_value: '<state> bfd fabricpath interval <interval> min_rx <min_rx> multiplier <multiplier>'
   default_value: ['50', '50', '3']
 
 fabricpath_slow_timer:
@@ -47,38 +45,30 @@ fabricpath_vlan:
 interval:
   _exclude: [N8k, N9k] # TBD: bug on n8k, n9k this is not working now
   get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd interval <intv> min_rx <mrx> multiplier <mult>'
-  N3k: &interval_250
+  set_value: '<state> bfd interval <interval> min_rx <min_rx> multiplier <multiplier>'
+  N3k:
     default_value: ['250', '250', '3']
-  N5k: &interval_50
+  else:
     default_value: ['50', '50', '3']
-  N6k: *interval_50
-  N7k: *interval_50
-  N8k: *interval_50
-  N9k: *interval_50
 
 ipv4_echo_rx_interval:
   _exclude: [N5k, N6k]
   kind: int
   get_value: '/^bfd ipv4 echo-rx-interval (\d+)$/'
   set_value: '<state> bfd ipv4 echo-rx-interval <rxi>'
-  N3k: &ipv4_rx_interval_250
+  N3k:
     default_value: 250
-  N7k: &ipv4_rx_interval_50
+  else:
     default_value: 50
-  N8k: *ipv4_rx_interval_50
-  N9k: *ipv4_rx_interval_50
 
 ipv4_interval:
   _exclude: [N5k, N6k]
   get_value: '/^bfd ipv4 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd ipv4 interval <intv> min_rx <mrx> multiplier <mult>'
-  N3k: &ipv4_interval_250
+  set_value: '<state> bfd ipv4 interval <interval> min_rx <min_rx> multiplier <multiplier>'
+  N3k:
     default_value: ['250', '250', '3']
-  N7k: &ipv4_interval_50
+  else:
     default_value: ['50', '50', '3']
-  N8k: *ipv4_interval_50
-  N9k: *ipv4_interval_50
 
 ipv4_slow_timer:
   _exclude: [N5k, N6k]
@@ -92,23 +82,19 @@ ipv6_echo_rx_interval:
   kind: int
   get_value: '/^bfd ipv6 echo-rx-interval (\d+)$/'
   set_value: '<state> bfd ipv6 echo-rx-interval <rxi>'
-  N3k: &ipv6_rx_interval_250
+  N3k:
     default_value: 250
-  N7k: &ipv6_rx_interval_50
+  else:
     default_value: 50
-  N8k: *ipv6_rx_interval_50
-  N9k: *ipv6_rx_interval_50
 
 ipv6_interval:
   _exclude: [N5k, N6k]
   get_value: '/^bfd ipv6 interval (\d+) min_rx (\d+) multiplier (\d+)$/'
-  set_value: '<state> bfd ipv6 interval <intv> min_rx <mrx> multiplier <mult>'
-  N3k: &ipv6_interval_250
+  set_value: '<state> bfd ipv6 interval <interval> min_rx <min_rx> multiplier <multiplier>'
+  N3k:
     default_value: ['250', '250', '3']
-  N7k: &ipv6_interval_50
+  else:
     default_value: ['50', '50', '3']
-  N8k: *ipv6_interval_50
-  N9k: *ipv6_interval_50
 
 ipv6_slow_timer:
   _exclude: [N5k, N6k]
