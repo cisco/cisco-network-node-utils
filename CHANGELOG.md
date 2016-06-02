@@ -11,8 +11,8 @@ Changelog
 
 ### Added
 
-#### Cisco Resources
-* Added a new property bfd for cisco_bgp_neighbor
+* Extend cisco_bgp_neighbor with attributes:
+   * `bfd`
 
 ## [v1.3.1]
 
