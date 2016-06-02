@@ -9,6 +9,11 @@ Changelog
 * Bidirectional Forwarding Detection
   * bfd (@saichint)
 
+### Added
+
+* Extend cisco_bgp_neighbor with attributes:
+   * `bfd`
+
 ## [v1.3.1]
 
 ### Changed
