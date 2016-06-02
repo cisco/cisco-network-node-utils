@@ -268,7 +268,7 @@ class TestBgpNeighbor < CiscoTestCase
   def test_bfd
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
-      if platform == :ios_xr
+      if validate_property_excluded?('bgp_neighbor', 'bfd')
         assert_nil(neighbor.bfd)
         assert_nil(neighbor.default_bfd)
         assert_raises(Cisco::UnsupportedError) do
