@@ -20,6 +20,13 @@ all_neighbors:
     - "(?)vrf <vrf>"
   get_value: '/^neighbor (\S+)$/'
 
+bfd:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^bfd$/'
+  set_value: '<state> bfd'
+  default_value: false
+
 capability_negotiation:
   _exclude: [ios_xr]
   auto_default: false
