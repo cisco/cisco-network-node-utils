@@ -11,7 +11,7 @@ Changelog
 
 ### Added
 
-* Extend cisco_bgp_neighbor with attributes:
+* Extend bgp_neighbor with attributes:
    * `bfd`
 
 ## [v1.3.1]
