@@ -21,7 +21,7 @@ module Cisco
   class SnmpNotificationReceiver < NodeUtil
     attr_reader :name
 
-    def initialize(name, # rubocop:disable CyclomaticComplexity, MethodLength, PerceivedComplexity, LineLength
+    def initialize(name, # rubocop:disable CyclomaticComplexity, MethodLength, PerceivedComplexity, LineLength, AbcSize
                    instantiate:      true,
                    type:             '',
                    version:          '',
@@ -67,7 +67,7 @@ module Cisco
                  state:    '',
                  ip:       name,
                  type:     type,
-                 version:  version,
+                 version:  version.empty? ? '' : "version #{version}",
                  security: security,
                  username: username,
                  udp_port: port.empty? ? '' : "udp-port #{port}")
@@ -121,7 +121,7 @@ module Cisco
                  state:    'no',
                  ip:       name,
                  type:     type,
-                 version:  version,
+                 version:  version.nil? ? '' : "version #{version}",
                  security: security.nil? ? '' : "#{security}",
                  username: username,
                  udp_port: port.nil? ? '' : "udp-port #{port}")
