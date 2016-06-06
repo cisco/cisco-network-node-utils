@@ -3,7 +3,7 @@
 _exclude: [ios_xr]
 
 _template:
-  get_command: "show running ospf | include area"
+  get_command: "show running ospf | no-more"
   context:
     - "router ospf <name>"
     - "(?)vrf <vrf>"
@@ -13,7 +13,7 @@ areas:
   get_value: '/^area\s+(\S+)/'
 
 authentication:
-  get_value: '/^area <area> authentication ?(.*)$/'
+  get_value: '/^area <area> authentication(?:\s+\S+)?$/'
   set_value: '<state> area <area> authentication <auth>'
   default_value: false
 
@@ -40,6 +40,6 @@ range:
   default_value: []
 
 stub:
-  get_value: '/^area <area> stub ?(.*)$/'
+  get_value: '/^area <area> stub(?:\s+\S+)?$/'
   set_value: '<state> area <area> stub <stub>'
   default_value: false

@@ -17,8 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddr'
 require_relative 'node_util'
-require_relative 'ipaddr'
 require_relative 'router_ospf'
 require_relative 'router_ospf_vrf'
 
@@ -55,25 +55,23 @@ module Cisco
       hash_final = {}
       RouterOspf.routers.each do |instance|
         name = instance[0]
-        area_ids = config_get('ospf_area', 'area', name: name)
+        area_ids = config_get('ospf_area', 'areas', name: name)
         unless area_ids.nil?
           area_ids.uniq.each do |area|
-            hash_tmp[name]['default'][area] =
+            hash_final[name]['default'][area] =
               RouterOspfArea.new(name, vrf, area, false)
           end
         end
         vrf_ids = config_get('ospf', 'vrf', name: name)
-        unless vrf_ids.nil?
-          vrf_ids.each do |vrf|
-            area_ids = config_get('ospf_area', 'area', name: name, vrf: vrf)
-            next if area_ids.nil?
-            area_ids.uniq.each do |area|
-              hash_tmp[name][vrf][area] =
-                RouterOspfArea.new(name, vrf, area, false)
-            end
+        next if vrf_ids.nil?
+        vrf_ids.each do |vrf|
+          area_ids = config_get('ospf_area', 'areas', name: name, vrf: vrf)
+          next if area_ids.nil?
+          area_ids.uniq.each do |area|
+            hash_final[name][vrf][area] =
+              RouterOspfArea.new(name, vrf, area, false)
           end
         end
-        hash_final.merge!(hash_tmp)
       end
       hash_final
     end
@@ -119,7 +117,7 @@ module Cisco
     def authentication
       auth = config_get('ospf_area', 'authentication', @get_args)
       return auth unless auth
-      (auth == 'message-digest') ? 'md5' : 'clear_text'
+      auth.include?('message-digest') ? 'md5' : 'clear_text'
     end
 
     def authentication=(val)
@@ -153,8 +151,9 @@ module Cisco
     end
 
     def filter_list_in=(val)
+      return if filter_list_in == false && val == false
       state = val ? '' : 'no'
-      rm = val ? val : ''
+      rm = val ? val : filter_list_in
       set_args_keys(state: state, route_map: rm)
       config_set('ospf_area', 'filter_list_in', @set_args)
     end
@@ -168,8 +167,9 @@ module Cisco
     end
 
     def filter_list_out=(val)
+      return if filter_list_out == false && val == false
       state = val ? '' : 'no'
-      rm = val ? val : ''
+      rm = val ? val : filter_list_out
       set_args_keys(state: state, route_map: rm)
       config_set('ospf_area', 'filter_list_out', @set_args)
     end
@@ -181,11 +181,17 @@ module Cisco
     def stub
       stu = config_get('ospf_area', 'stub', @get_args)
       return stu unless stu
-      (stu == 'no-summary') ? 'no_summary' : 'summary'
+      stu.include?('no-summary') ? 'no_summary' : 'summary'
     end
 
     def stub=(val)
-      state = val ? '' : 'no'
+      # we need to reset stub property first
+      state = 'no'
+      stu = ''
+      set_args_keys(state: state, stub: stu)
+      config_set('ospf_area', 'stub', @set_args)
+      return unless val # go further only if the val is not false
+      state = ''
       stu = (val == 'no_summary') ? 'no-summary' : ''
       set_args_keys(state: state, stub: stu)
       config_set('ospf_area', 'stub', @set_args)
