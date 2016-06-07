@@ -280,6 +280,13 @@ class TestSwitchport < TestInterfaceSwitchport
 
       interface.switchport_trunk_allowed_vlan = '20, 30'
       assert_equal('20,30', interface.switchport_trunk_allowed_vlan)
+
+      vlans = '500-528,530,532,534,587,590-593'
+      config("interface #{interface.name}",
+             "switchport trunk allowed vlan #{vlans}",
+             'switchport trunk allowed vlan add 597')
+      # 'vlan add' does not always change vlan id range immediately
+      assert_match(Regexp.new(vlans), interface.switchport_trunk_allowed_vlan)
     end
   end
 
