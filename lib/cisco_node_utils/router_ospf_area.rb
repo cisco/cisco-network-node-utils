@@ -136,8 +136,8 @@ module Cisco
     end
 
     def default_cost=(val)
-      state = val ? '' : 'no'
-      cost = val ? val : ''
+      state = val == default_default_cost ? 'no' : ''
+      cost = val == default_default_cost ? '' : val
       set_args_keys(state: state, cost: cost)
       config_set('ospf_area', 'default_cost', @set_args)
     end
@@ -185,11 +185,7 @@ module Cisco
         llist = []
         params = line.split
         llist[0] = params[0]
-        if line.include?('not-advertise')
-          llist[1] = true
-        else
-          llist[1] = false
-        end
+        line.include?('not-advertise') ? llist[1] = true : llist[1] = false
         if line.include?('cost')
           llist[2] = params[params.index('cost') + 1]
         else
@@ -215,18 +211,9 @@ module Cisco
         config_set('ospf_area', 'range', @set_args)
       end
       set_list.each do |ip, not_advertise, cval|
-        if not_advertise
-          na = 'not-advertise'
-        else
-          na = ''
-        end
-        if cval
-          cost = 'cost'
-          value = cval
-        else
-          cost = ''
-          value = ''
-        end
+        na = not_advertise ? 'not-advertise' : ''
+        cost = cval ? 'cost' : ''
+        value = cval ? cval : ''
         set_args_keys(state: '', ip: ip, not_advertise: na,
                       cost: cost, value: value)
         config_set('ospf_area', 'range', @set_args)
@@ -244,11 +231,13 @@ module Cisco
     end
 
     def stub=(val)
-      # we need to reset stub property first
-      state = 'no'
-      stu = ''
-      set_args_keys(state: state, stub: stu)
-      config_set('ospf_area', 'stub', @set_args)
+      if stub
+        # we need to reset stub property first
+        state = 'no'
+        stu = ''
+        set_args_keys(state: state, stub: stu)
+        config_set('ospf_area', 'stub', @set_args)
+      end
       return unless val # go further only if the val is not false
       state = ''
       stu = (val == 'no_summary') ? 'no-summary' : ''

@@ -21,7 +21,7 @@ default_cost:
   kind: int
   get_value: '/^area <area> default-cost (\d+)$/'
   set_value: '<state> area <area> default-cost <cost>'
-  default_value: false
+  default_value: 1
 
 filter_list_in:
   get_value: '/^area <area> filter-list route-map (\S+) in$/'

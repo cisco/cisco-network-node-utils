@@ -146,4 +146,27 @@ class TestRouterOspfArea < CiscoTestCase
     av.range = av.default_range
     assert_equal(av.default_range, av.range)
   end
+
+  def test_destroy
+    ad = create_routerospfarea_default
+    ad.authentication = 'md5'
+    ad.default_cost = 2000
+    ad.filter_list_in = 'abc'
+    ad.filter_list_out = 'efg'
+    ranges = [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
+              ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, '450']]
+    ad.range = ranges
+    ad.stub = 'no_summary'
+    # destroy
+    ad.destroy
+    [:authentication,
+     :default_cost,
+     :filter_list_in,
+     :filter_list_out,
+     :range,
+     :stub,
+    ].each do |prop|
+      assert_equal(ad.send("default_#{prop}"), ad.send("#{prop}"))
+    end
+  end
 end
