@@ -35,8 +35,8 @@ filter_list_out:
 
 range:
   multiple: true
-  get_value: '/^area <area> range .+$/'
-  set_value: '<state> area <area> range <ip> <not_advertise> <cost>'
+  get_value: '/^area <area> range (\S+)\s*(?:(not-advertise))?\s*(?:cost (\d+))?$/'
+  set_value: '<state> area <area> range <ip> <not_advertise> <cost> <value>'
   default_value: []
 
 stub:

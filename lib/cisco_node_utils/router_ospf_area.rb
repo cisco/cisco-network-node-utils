@@ -178,6 +178,59 @@ module Cisco
       config_get_default('ospf_area', 'filter_list_out')
     end
 
+    def range
+      list = []
+      get_list = config_get('ospf_area', 'range', @get_args)
+      get_list.each do |array|
+        llist = []
+        llist[0] = array[0]
+        llist[1] = llist[2] = ''
+        if array.length == 2
+          if array[1] == 'not-advertise'
+            llist[1] = true
+          else
+            llist[2] = array[1]
+          end
+        elsif array.length == 3
+          llist[1] = true
+          llist[2] = array[2]
+        end
+        list << llist
+      end
+      list
+    end
+
+    def range=(set_list)
+      cur_list = range
+      # reset the current ranges first
+      cur_list.each do |ip, _not_advertise, _cval|
+        set_args_keys(state: 'no', ip: ip, not_advertise: '',
+                      cost: '', value: '')
+        config_set('ospf_area', 'range', @set_args)
+      end
+      set_list.each do |ip, not_advertise, cval|
+        if not_advertise
+          na = 'not-advertise'
+        else
+          na = ''
+        end
+        if cval
+          cost = 'cost'
+          value = cval
+        else
+          cost = ''
+          value = ''
+        end
+        set_args_keys(state: '', ip: ip, not_advertise: na,
+                      cost: cost, value: value)
+        config_set('ospf_area', 'range', @set_args)
+      end
+    end
+
+    def default_range
+      config_get_default('ospf_area', 'range')
+    end
+
     def stub
       stu = config_get('ospf_area', 'stub', @get_args)
       return stu unless stu

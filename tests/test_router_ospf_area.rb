@@ -29,7 +29,7 @@ class TestRouterOspfArea < CiscoTestCase
   end
 
   def teardown
-    remove_all_ospfs
+    # remove_all_ospfs
     super
   end
 
@@ -119,5 +119,16 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal('summary', av.stub)
     av.stub = av.default_stub
     assert_equal(av.default_stub, av.stub)
+  end
+
+  def test_range
+    ad = create_routerospfarea_default
+    assert_equal(ad.default_range, ad.range)
+    ranges = [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
+              ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, 450]]
+    ad.range = ranges
+    assert_equal(ranges, ad.range)
+    ad.range = ad.default_range
+    assert_equal(ad.default_range, ad.range)
   end
 end
