@@ -55,6 +55,7 @@ module Cisco
       hash_final = {}
       RouterOspf.routers.each do |instance|
         name = instance[0]
+        # get all area ids under default vrf
         area_ids = config_get('ospf_area', 'areas', name: name)
         unless area_ids.nil?
           area_ids.uniq.each do |area|
@@ -65,6 +66,7 @@ module Cisco
         vrf_ids = config_get('ospf', 'vrf', name: name)
         next if vrf_ids.nil?
         vrf_ids.each do |vrf|
+          # get all area ids under each vrf
           area_ids = config_get('ospf_area', 'areas', name: name, vrf: vrf)
           next if area_ids.nil?
           area_ids.uniq.each do |area|
@@ -93,11 +95,14 @@ module Cisco
     def create
       # create RouterOspfVrf only
       # area_id is used at each config cli, not as a context
+      # ex: area 1.1.1.1 default-cost 1000
+      # area 1.1.1.1 authentication message-digest
       RouterOspfVrf.new(@router, @vrf)
     end
 
     def destroy
       return unless Feature.ospf_enabled?
+      # reset every property back to default
       [:authentication,
        :default_cost,
        :filter_list_in,
@@ -114,6 +119,9 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # CLI can be either of the following or none
+    # area 1.1.1.1 authentication
+    # area 1.1.1.1 authentication message-digest
     def authentication
       auth = config_get('ospf_area', 'authentication', @get_args)
       return auth unless auth
@@ -131,6 +139,8 @@ module Cisco
       config_get_default('ospf_area', 'authentication')
     end
 
+    # CLI can be the following or none
+    # area 1.1.1.1 default-cost 1000
     def default_cost
       config_get('ospf_area', 'default_cost', @get_args)
     end
@@ -146,6 +156,8 @@ module Cisco
       config_get_default('ospf_area', 'default_cost')
     end
 
+    # CLI can be the following or none
+    # area 1.1.1.1 filter-list route-map aaa in
     def filter_list_in
       config_get('ospf_area', 'filter_list_in', @get_args)
     end
@@ -162,6 +174,8 @@ module Cisco
       config_get_default('ospf_area', 'filter_list_in')
     end
 
+    # CLI can be the following or none
+    # area 1.1.1.1 filter-list route-map bbb out
     def filter_list_out
       config_get('ospf_area', 'filter_list_out', @get_args)
     end
@@ -178,6 +192,20 @@ module Cisco
       config_get_default('ospf_area', 'filter_list_out')
     end
 
+    # range can take multiple values for the same vrf
+    # area 1.1.1.1 range 10.3.0.0/32
+    # area 1.1.1.1 range 10.3.0.1/32
+    # area 1.1.1.1 range 10.3.3.0/24
+    # area 1.1.1.1 range 10.3.0.0/16 not-advertise cost 23
+    # sometimes the not-advertise and cost are reversed in the
+    # show command for reasons unknown!
+    # area 1.1.1.1 range 10.3.0.0/16 cost 23 not-advertise
+    # use positional way of getting the values as it is
+    # simple and there are only two properties which are
+    # optional. ip is mandatory
+    # the return list is of the form [ip, not-advertise, cost]
+    # ex: [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
+    #      ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, '450']]
     def range
       list = []
       ranges = config_get('ospf_area', 'range', @get_args)
@@ -197,19 +225,21 @@ module Cisco
     end
 
     def range=(set_list)
+      # fail if set_list contains duplicate ip values
       ip_list = []
       set_list.each do |ip, _not_advertise, _cval|
         ip_list << ip
       end
       fail ArgumentError, 'Duplicate ip values for range' unless
         ip_list.size == ip_list.uniq.size
+      # reset the current ranges first due to bug CSCuz98937
       cur_list = range
-      # reset the current ranges first
       cur_list.each do |ip, _not_advertise, _cval|
         set_args_keys(state: 'no', ip: ip, not_advertise: '',
                       cost: '', value: '')
         config_set('ospf_area', 'range', @set_args)
       end
+      # now set the range from the set_list
       set_list.each do |ip, not_advertise, cval|
         na = not_advertise ? 'not-advertise' : ''
         cost = cval ? 'cost' : ''
@@ -224,6 +254,9 @@ module Cisco
       config_get_default('ospf_area', 'range')
     end
 
+    # CLI can be either of the following or none
+    # area 1.1.1.1 stub
+    # area 1.1.1.1 stub no-summary
     def stub
       stu = config_get('ospf_area', 'stub', @get_args)
       return stu unless stu
@@ -238,7 +271,7 @@ module Cisco
         set_args_keys(state: state, stub: stu)
         config_set('ospf_area', 'stub', @set_args)
       end
-      return unless val # go further only if the val is not false
+      return unless val # stop if the val is false
       state = ''
       stu = (val == 'no_summary') ? 'no-summary' : ''
       set_args_keys(state: state, stub: stu)

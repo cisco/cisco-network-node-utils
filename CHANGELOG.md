@@ -8,6 +8,8 @@ Changelog
 #### Cisco Resources
 * Bidirectional Forwarding Detection
   * bfd (@saichint)
+* OSPF
+  * ospf_area (@saichint)
 
 ### Added
 
