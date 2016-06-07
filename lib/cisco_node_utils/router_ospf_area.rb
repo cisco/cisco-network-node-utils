@@ -180,20 +180,20 @@ module Cisco
 
     def range
       list = []
-      get_list = config_get('ospf_area', 'range', @get_args)
-      get_list.each do |array|
+      ranges = config_get('ospf_area', 'range', @get_args)
+      ranges.each do |line|
         llist = []
-        llist[0] = array[0]
-        llist[1] = llist[2] = ''
-        if array.length == 2
-          if array[1] == 'not-advertise'
-            llist[1] = true
-          else
-            llist[2] = array[1]
-          end
-        elsif array.length == 3
+        params = line.split
+        llist[0] = params[0]
+        if line.include?('not-advertise')
           llist[1] = true
-          llist[2] = array[2]
+        else
+          llist[1] = false
+        end
+        if line.include?('cost')
+          llist[2] = params[params.index('cost') + 1]
+        else
+          llist[2] = false
         end
         list << llist
       end
@@ -201,6 +201,12 @@ module Cisco
     end
 
     def range=(set_list)
+      ip_list = []
+      set_list.each do |ip, _not_advertise, _cval|
+        ip_list << ip
+      end
+      fail ArgumentError, 'Duplicate ip values for range' unless
+        ip_list.size == ip_list.uniq.size
       cur_list = range
       # reset the current ranges first
       cur_list.each do |ip, _not_advertise, _cval|
