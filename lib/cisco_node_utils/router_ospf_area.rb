@@ -115,6 +115,11 @@ module Cisco
       set_args_keys_default
     end
 
+    def ==(other)
+      (ospf_router == other.ospf_router) &&
+        (vrf_name == other.vrf_name) && (area_id == other.area_id)
+    end
+
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
