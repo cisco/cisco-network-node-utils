@@ -82,9 +82,8 @@ module Cisco
 
     # Helper method to delete @set_args hash keys
     def set_args_keys_default
-      @set_args = { name: @router }
+      @set_args = { name: @router, area: @area_id }
       @set_args[:vrf] = @vrf unless @vrf == 'default'
-      @set_args[:area] = @area_id
       @get_args = @set_args
     end
 
