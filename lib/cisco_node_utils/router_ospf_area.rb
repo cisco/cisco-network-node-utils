@@ -27,7 +27,7 @@ module Cisco
   class RouterOspfArea < NodeUtil
     attr_reader :router, :vrf, :area_id
 
-    def initialize(ospf_router, vrf_name, area_id, instantiate=true)
+    def initialize(ospf_router, vrf_name, area_id)
       fail TypeError unless ospf_router.is_a?(String)
       fail TypeError unless vrf_name.is_a?(String)
       fail TypeError unless area_id.is_a?(String)
@@ -48,19 +48,20 @@ module Cisco
       @area_id = area_id
 
       set_args_keys_default
-      create if instantiate
     end
 
     def self.areas
-      hash_final = {}
+      hash = {}
       RouterOspf.routers.each do |instance|
         name = instance[0]
         # get all area ids under default vrf
         area_ids = config_get('ospf_area', 'areas', name: name)
         unless area_ids.nil?
+          hash[name] = {}
+          hash[name]['default'] = {}
           area_ids.uniq.each do |area|
-            hash_final[name]['default'][area] =
-              RouterOspfArea.new(name, vrf, area, false)
+            hash[name]['default'][area] =
+              RouterOspfArea.new(name, 'default', area)
           end
         end
         vrf_ids = config_get('ospf', 'vrf', name: name)
@@ -69,13 +70,15 @@ module Cisco
           # get all area ids under each vrf
           area_ids = config_get('ospf_area', 'areas', name: name, vrf: vrf)
           next if area_ids.nil?
+          hash[name] = {} if hash.empty?
+          hash[name][vrf] = {}
           area_ids.uniq.each do |area|
-            hash_final[name][vrf][area] =
-              RouterOspfArea.new(name, vrf, area, false)
+            hash[name][vrf][area] =
+              RouterOspfArea.new(name, vrf, area)
           end
         end
       end
-      hash_final
+      hash
     end
 
     # Helper method to delete @set_args hash keys
@@ -90,14 +93,6 @@ module Cisco
     def set_args_keys(hash={})
       set_args_keys_default
       @set_args = @get_args.merge!(hash) unless hash.empty?
-    end
-
-    def create
-      # create RouterOspfVrf only
-      # area_id is used at each config cli, not as a context
-      # ex: area 1.1.1.1 default-cost 1000
-      # area 1.1.1.1 authentication message-digest
-      RouterOspfVrf.new(@router, @vrf)
     end
 
     def destroy
@@ -129,7 +124,7 @@ module Cisco
     # area 1.1.1.1 authentication message-digest
     def authentication
       auth = config_get('ospf_area', 'authentication', @get_args)
-      return auth unless auth
+      return default_authentication unless auth
       auth.include?('message-digest') ? 'md5' : 'clear_text'
     end
 
@@ -264,7 +259,7 @@ module Cisco
     # area 1.1.1.1 stub no-summary
     def stub
       stu = config_get('ospf_area', 'stub', @get_args)
-      return stu unless stu
+      return default_stub unless stu
       stu.include?('no-summary') ? 'no_summary' : 'summary'
     end
 

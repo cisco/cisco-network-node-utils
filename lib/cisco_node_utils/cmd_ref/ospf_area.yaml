@@ -13,6 +13,11 @@ areas:
   get_value: '/^area\s+(\S+)/'
 
 authentication:
+  # the config can be 'area <area> authentication' or
+  # 'area <area> authentication message-digest' or
+  # no authentication config at all so need to grab the
+  # optional match to get the whole config for checking
+  # the mode
   get_value: '/^area <area> authentication(?:\s+\S+)?$/'
   set_value: '<state> area <area> authentication <auth>'
   default_value: false
