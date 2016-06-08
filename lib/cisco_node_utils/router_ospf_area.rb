@@ -52,11 +52,10 @@ module Cisco
 
     def self.areas
       hash = {}
-      RouterOspf.routers.each do |instance|
-        name = instance[0]
+      RouterOspf.routers.each do |name, _obj|
         # get all area ids under default vrf
         area_ids = config_get('ospf_area', 'areas', name: name)
-        unless area_ids.nil?
+        if area_ids
           hash[name] = {}
           hash[name]['default'] = {}
           area_ids.uniq.each do |area|
@@ -70,7 +69,7 @@ module Cisco
           # get all area ids under each vrf
           area_ids = config_get('ospf_area', 'areas', name: name, vrf: vrf)
           next if area_ids.nil?
-          hash[name] = {} if hash.empty?
+          hash[name] ||= {}
           hash[name][vrf] = {}
           area_ids.uniq.each do |area|
             hash[name][vrf][area] =
@@ -97,7 +96,6 @@ module Cisco
 
     def destroy
       return unless Feature.ospf_enabled?
-      # reset every property back to default
       [:authentication,
        :default_cost,
        :filter_list_in,
@@ -105,7 +103,8 @@ module Cisco
        :range,
        :stub,
       ].each do |prop|
-        send("#{prop}=", send("default_#{prop}"))
+        send("#{prop}=", send("default_#{prop}")) unless
+          send("#{prop}") == send("default_#{prop}")
       end
       set_args_keys_default
     end
@@ -204,8 +203,10 @@ module Cisco
     # simple and there are only two properties which are
     # optional. ip is mandatory
     # the return list is of the form [ip, not-advertise, cost]
-    # ex: [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
-    #      ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, '450']]
+    # ex: [['10.3.0.0/16', 'not-advertise', '23'],
+    #      ['10.3.0.0/32', 'not-advertise'],
+    #      ['10.3.0.1/32'],
+    #      ['10.3.3.0/24', '450']]
     def range
       list = []
       ranges = config_get('ospf_area', 'range', @get_args)
@@ -213,11 +214,10 @@ module Cisco
         llist = []
         params = line.split
         llist[0] = params[0]
-        line.include?('not-advertise') ? llist[1] = true : llist[1] = false
+        llist[1] = 'not_advertise' if line.include?('not-advertise')
         if line.include?('cost')
-          llist[2] = params[params.index('cost') + 1]
-        else
-          llist[2] = false
+          arr_index = llist[1].nil? ? 1 : 2
+          llist[arr_index] = params[params.index('cost') + 1]
         end
         list << llist
       end
@@ -240,10 +240,15 @@ module Cisco
         config_set('ospf_area', 'range', @set_args)
       end
       # now set the range from the set_list
-      set_list.each do |ip, not_advertise, cval|
-        na = not_advertise ? 'not-advertise' : ''
+      set_list.each do |ip, noadv, cval|
+        na = noadv == 'not_advertise' ? 'not-advertise' : ''
         cost = cval ? 'cost' : ''
         value = cval ? cval : ''
+        # in case of 2 variables, ip and cost
+        if noadv && noadv != 'not_advertise'
+          cost = 'cost'
+          value = noadv
+        end
         set_args_keys(state: '', ip: ip, not_advertise: na,
                       cost: cost, value: value)
         config_set('ospf_area', 'range', @set_args)

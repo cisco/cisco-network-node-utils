@@ -124,23 +124,29 @@ class TestRouterOspfArea < CiscoTestCase
   def test_range
     ad = create_routerospfarea_default
     assert_equal(ad.default_range, ad.range)
-    ranges = [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
-              ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, '450']]
+    ranges = [['10.3.0.0/16', 'not_advertise', '23'],
+              ['10.3.0.0/32', 'not_advertise'],
+              ['10.3.0.1/32'],
+              ['10.3.3.0/24', '450']]
     ad.range = ranges
     assert_equal(ranges, ad.range)
-    ranges = [['10.3.0.0/16', true, '23'], ['10.3.3.0/24', false, '450']]
+    ranges = [['10.3.0.0/16', 'not_advertise', '23'],
+              ['10.3.3.0/24', '450']]
     ad.range = ranges
     assert_equal(ranges, ad.range)
     ad.range = ad.default_range
     assert_equal(ad.default_range, ad.range)
     av = create_routerospfarea_vrf
     assert_equal(av.default_range, av.range)
-    ranges = [['10.3.0.0/16', false, '8000'], ['10.3.0.0/32', true, false],
-              ['10.3.0.1/32', false, false], ['10.3.3.0/24', true, '10212']]
+    ranges = [['10.3.0.0/16', '8000'],
+              ['10.3.0.0/32', 'not_advertise'],
+              ['10.3.0.1/32'],
+              ['10.3.3.0/24', 'not_advertise', '10212']]
     av.range = ranges
     assert_equal(ranges, av.range)
-    ranges = [['10.3.0.0/16', false, '4989'], ['10.3.1.1/32', false, false],
-              ['10.3.3.0/24', true, '76376']]
+    ranges = [['10.3.0.0/16', '4989'],
+              ['10.3.1.1/32'],
+              ['10.3.3.0/24', 'not_advertise', '76376']]
     av.range = ranges
     assert_equal(ranges, av.range)
     av.range = av.default_range
@@ -149,15 +155,28 @@ class TestRouterOspfArea < CiscoTestCase
 
   def test_destroy
     ad = create_routerospfarea_default
+    # destroy without changing any properties
+    ad.destroy
+    [:authentication,
+     :default_cost,
+     :filter_list_in,
+     :filter_list_out,
+     :range,
+     :stub,
+    ].each do |prop|
+      assert_equal(ad.send("default_#{prop}"), ad.send("#{prop}"))
+    end
     ad.authentication = 'md5'
     ad.default_cost = 2000
     ad.filter_list_in = 'abc'
     ad.filter_list_out = 'efg'
-    ranges = [['10.3.0.0/16', true, '23'], ['10.3.0.0/32', true, false],
-              ['10.3.0.1/32', false, false], ['10.3.3.0/24', false, '450']]
+    ranges = [['10.3.0.0/16', 'not_advertise', '23'],
+              ['10.3.0.0/32', 'not_advertise'],
+              ['10.3.0.1/32'],
+              ['10.3.3.0/24', '450']]
     ad.range = ranges
     ad.stub = 'no_summary'
-    # destroy
+    # destroy after changing properties
     ad.destroy
     [:authentication,
      :default_cost,
