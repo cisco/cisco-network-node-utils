@@ -30,22 +30,15 @@ module Cisco
     def initialize(ospf_router, vrf_name, area_id)
       fail TypeError unless ospf_router.is_a?(String)
       fail TypeError unless vrf_name.is_a?(String)
-      fail TypeError unless area_id.is_a?(String)
       fail ArgumentError unless ospf_router.length > 0
       fail ArgumentError unless vrf_name.length > 0
-      fail ArgumentError unless area_id.length > 0
-
-      # check the area_id is a proper ipv4 address
-      fail ArgumentError if (begin
-                               IPAddr.new(area_id)
-                             rescue
-                               nil
-                             end).nil?
-      fail ArgumentError unless IPAddr.new(area_id).ipv4?
+      @area_id = area_id.to_s
+      fail ArgumentError if @area_id.empty?
+      # Convert to dot-notation
 
       @router = ospf_router
       @vrf = vrf_name
-      @area_id = area_id
+      @area_id = IPAddr.new(area_id.to_i, Socket::AF_INET) unless @area_id[/\./]
 
       set_args_keys_default
     end
@@ -258,32 +251,42 @@ module Cisco
       config_get_default('ospf_area', 'range')
     end
 
-    # CLI can be either of the following or none
-    # area 1.1.1.1 stub
-    # area 1.1.1.1 stub no-summary
     def stub
-      stu = config_get('ospf_area', 'stub', @get_args)
-      return default_stub unless stu
-      stu.include?('no-summary') ? 'no_summary' : 'summary'
+      config_get('ospf_area', 'stub', @get_args)
     end
 
     def stub=(val)
-      if stub
-        # we need to reset stub property first
-        state = 'no'
-        stu = ''
-        set_args_keys(state: state, stub: stu)
-        config_set('ospf_area', 'stub', @set_args)
-      end
-      return unless val # stop if the val is false
-      state = ''
-      stu = (val.to_s == 'no_summary') ? 'no-summary' : ''
-      set_args_keys(state: state, stub: stu)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
       config_set('ospf_area', 'stub', @set_args)
     end
 
     def default_stub
       config_get_default('ospf_area', 'stub')
+    end
+
+    def stub_no_summary
+      config_get('ospf_area', 'stub_no_summary', @get_args)
+    end
+
+    def stub_no_summary=(val)
+      if val
+        state = ''
+        set_args_keys(state: state)
+        config_set('ospf_area', 'stub_no_summary', @set_args)
+      else
+        if stub
+          # reset and set stub
+          set_args_keys(state: 'no')
+          config_set('ospf_area', 'stub', @set_args)
+          set_args_keys(state: '')
+          config_set('ospf_area', 'stub', @set_args)
+        end
+      end
+    end
+
+    def default_stub_no_summary
+      config_get_default('ospf_area', 'stub_no_summary')
     end
   end # class
 end # module

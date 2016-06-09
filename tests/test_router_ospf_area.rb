@@ -26,10 +26,12 @@ class TestRouterOspfArea < CiscoTestCase
     super
     remove_all_ospfs if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+    config 'feature ospf'
   end
 
   def teardown
     remove_all_ospfs
+    config 'no feature ospf'
     super
   end
 
@@ -39,8 +41,28 @@ class TestRouterOspfArea < CiscoTestCase
   end
 
   def create_routerospfarea_vrf(router='Wolfpack', name='blue',
-                                area_id='1.1.1.1')
+                                area_id='1450')
     RouterOspfArea.new(router, name, area_id)
+  end
+
+  def test_collection_size
+    ad = create_routerospfarea_default
+    ad.stub = true
+    assert_equal(1, RouterOspfArea.areas['Wolfpack'].size)
+    av = create_routerospfarea_vrf
+    av.stub = true
+    assert_equal(2, RouterOspfArea.areas['Wolfpack'].size)
+    av.destroy
+    # on n8k (only) , we cannot remove "area <area> default-cost 1",
+    # unless the entire ospf router is removed. The default value of
+    # default_cost is 1 and so this is just a cosmetic issue but
+    # need to skip the below test as the size will be wrong.
+    # platform as the size will be wrong.
+    assert_equal(1, RouterOspfArea.areas['Wolfpack'].size) unless
+      /N8/ =~ node.product_id
+    ad.destroy
+    assert_empty(RouterOspfArea.areas) unless
+      /N8/ =~ node.product_id
   end
 
   def test_authentication
@@ -105,20 +127,34 @@ class TestRouterOspfArea < CiscoTestCase
   def test_stub
     ad = create_routerospfarea_default
     assert_equal(ad.default_stub, ad.stub)
-    ad.stub = 'no_summary'
-    assert_equal('no_summary', ad.stub)
-    ad.stub = 'summary'
-    assert_equal('summary', ad.stub)
+    assert_equal(ad.default_stub_no_summary, ad.stub_no_summary)
+    ad.stub = true
+    assert_equal(true, ad.stub)
+    assert_equal(ad.default_stub_no_summary, ad.stub_no_summary)
+    ad.stub_no_summary = true
+    assert_equal(true, ad.stub_no_summary)
+    assert_equal(true, ad.stub)
+    ad.stub_no_summary = ad.default_stub_no_summary
+    assert_equal(ad.default_stub_no_summary, ad.stub_no_summary)
+    assert_equal(true, ad.stub)
     ad.stub = ad.default_stub
     assert_equal(ad.default_stub, ad.stub)
+    assert_equal(ad.default_stub_no_summary, ad.stub_no_summary)
     av = create_routerospfarea_vrf
     assert_equal(av.default_stub, av.stub)
-    av.stub = 'no_summary'
-    assert_equal('no_summary', av.stub)
-    av.stub = 'summary'
-    assert_equal('summary', av.stub)
+    assert_equal(av.default_stub_no_summary, av.stub_no_summary)
+    av.stub = true
+    assert_equal(true, av.stub)
+    assert_equal(av.default_stub_no_summary, av.stub_no_summary)
+    av.stub_no_summary = true
+    assert_equal(true, av.stub_no_summary)
+    assert_equal(true, av.stub)
+    av.stub_no_summary = av.default_stub_no_summary
+    assert_equal(av.default_stub_no_summary, av.stub_no_summary)
+    assert_equal(true, av.stub)
     av.stub = av.default_stub
     assert_equal(av.default_stub, av.stub)
+    assert_equal(av.default_stub_no_summary, av.stub_no_summary)
   end
 
   def test_range
@@ -163,6 +199,7 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_out,
      :range,
      :stub,
+     :stub_no_summary,
     ].each do |prop|
       assert_equal(ad.send("default_#{prop}"), ad.send("#{prop}"))
     end
@@ -175,7 +212,8 @@ class TestRouterOspfArea < CiscoTestCase
               ['10.3.0.1/32'],
               ['10.3.3.0/24', '450']]
     ad.range = ranges
-    ad.stub = 'no_summary'
+    ad.stub = true
+    ad.stub_no_summary = true
     # destroy after changing properties
     ad.destroy
     [:authentication,
@@ -184,6 +222,7 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_out,
      :range,
      :stub,
+     :stub_no_summary,
     ].each do |prop|
       assert_equal(ad.send("default_#{prop}"), ad.send("#{prop}"))
     end

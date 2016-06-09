@@ -45,6 +45,13 @@ range:
   default_value: []
 
 stub:
-  get_value: '/^area <area> stub(?:\s+\S+)?$/'
-  set_value: '<state> area <area> stub <stub>'
+  kind: boolean
+  get_value: '/^area <area> stub/'
+  set_value: '<state> area <area> stub'
+  default_value: false
+
+stub_no_summary:
+  kind: boolean
+  get_value: '/^area <area> stub no-summary$/'
+  set_value: '<state> area <area> stub no-summary'
   default_value: false
