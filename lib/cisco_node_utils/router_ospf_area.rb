@@ -128,7 +128,7 @@ module Cisco
 
     def authentication=(val)
       state = val ? '' : 'no'
-      auth = (val == 'md5') ? 'message-digest' : ''
+      auth = (val.to_s == 'md5') ? 'message-digest' : ''
       set_args_keys(state: state, auth: auth)
       config_set('ospf_area', 'authentication', @set_args)
     end
@@ -277,7 +277,7 @@ module Cisco
       end
       return unless val # stop if the val is false
       state = ''
-      stu = (val == 'no_summary') ? 'no-summary' : ''
+      stu = (val.to_s == 'no_summary') ? 'no-summary' : ''
       set_args_keys(state: state, stub: stu)
       config_set('ospf_area', 'stub', @set_args)
     end
