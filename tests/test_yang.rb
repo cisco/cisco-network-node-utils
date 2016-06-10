@@ -129,6 +129,15 @@ class TestYang < CiscoTestCase
   NO_VRFS = '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}'
   PATH_VRFS = '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}'
 
+  def self.runnable_methods
+    return [:all_skipped] unless platform == :ios_xr
+    super
+  end
+
+  def all_skipped
+    skip 'Node under test does not appear to use the gRPC client'
+  end
+
   def setup
     super
     clear_vrfs
@@ -140,6 +149,7 @@ class TestYang < CiscoTestCase
   end
 
   def clear_vrfs
+    return unless platform == :ios_xr
     current_vrfs = node.get_yang(PATH_VRFS)
 
     # remove all vrfs
