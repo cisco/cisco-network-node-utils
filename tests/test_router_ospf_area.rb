@@ -57,7 +57,7 @@ class TestRouterOspfArea < CiscoTestCase
     # unless the entire ospf router is removed. The default value of
     # default_cost is 1 and so this is just a cosmetic issue but
     # need to skip the below test as the size will be wrong.
-    # platform as the size will be wrong.
+    # platform as the size will be wrong. bug ID: CSCva04066
     assert_equal(1, RouterOspfArea.areas['Wolfpack'].size) unless
       /N8/ =~ node.product_id
     ad.destroy
