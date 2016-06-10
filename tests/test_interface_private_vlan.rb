@@ -323,10 +323,12 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_trunk_allowed_vlan)
 
     vlans = '500-528,530,532,534,587,590-593'
+    all_vlans = '500-528,530,532,534,587,590-593,597-598'
     config("interface #{i.name}",
            "switchport private-vlan trunk allowed vlan #{vlans}",
-           'switchport private-vlan trunk allowed vlan add 597')
-    assert_equal(vlans + ',597', i.switchport_pvlan_trunk_allowed_vlan)
+           'switchport private-vlan trunk allowed vlan add 597',
+           'switchport private-vlan trunk allowed vlan add 598')
+    assert_equal(all_vlans, i.switchport_pvlan_trunk_allowed_vlan)
   end
 
   def test_switchport_pvlan_trunk_native_vlan
