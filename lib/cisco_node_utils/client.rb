@@ -22,7 +22,7 @@ end
 require_relative 'client/client'
 
 # Try to load known extensions
-extensions = ['client/nxapi',
+extensions = [#'client/nxapi',
               'client/grpc',
              ]
 extensions.each do |ext|

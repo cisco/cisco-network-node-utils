@@ -213,6 +213,36 @@ class Cisco::Client
     # to be implemented by subclasses
   end
 
+  # Retrieve JSON YANG config from the device for the specified path.
+  # @param yang_path [String] The node path from which to retrieve configuration
+  def get_yang(_yang_path)
+    fail Cisco::RequestNotSupported
+    # to be implemented by subclasses
+  end
+
+  # Merge the specified JSON YANG config with the running config
+  # on the device.
+  # @param yang [String] The desired YANG configuration
+  def merge_yang(_yang)
+    fail Cisco::RequestNotSupported
+    # to be implemented by subclasses
+  end
+
+  # Replace the running config on the device with the specified
+  # JSON YANG config.
+  # @param yang [String] The desired YANG configuration
+  def replace_yang(_yang)
+    fail Cisco::RequestNotSupported
+    # to be implemented by subclasses
+  end
+
+  # Delete the specified JSON YANG config from the device.
+  # @param yang [String] The YANG configuration to delete.
+  def delete_yang(_yang)
+    fail Cisco::RequestNotSupported
+    # to be implemented by subclasses
+  end
+
   private
 
   # Set the list of data formats supported by this client.
