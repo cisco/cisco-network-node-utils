@@ -7,12 +7,16 @@ _template:
     get_command: "show running-config snmp"
 
 port:
-  get_value: '/^snmp-server host %s.*version.* udp-port (\d+).*$/'
-  default_value: null
+  nexus:
+    get_value: '/^snmp-server host %s.*version.* udp-port (\d+).*$/'
+    default_value: null
+  ios_xr:
+    get_value: '/^snmp-server host %s.* udp-port (\d+).*$/'
+    default_value: null
 
 receivers:
   get_value: '/^snmp-server host (\S+) (traps|informs)/'
-  set_value: "<state> snmp-server host <ip> <type> version <version> <security> <username> <udp_port>"
+  set_value: "<state> snmp-server host <ip> <type> <version> <security> <username> <udp_port>"
   multiple:
 
 security:
@@ -37,8 +41,12 @@ username:
   default_value: null
 
 username_with_port:
-  get_value: '/^snmp-server host %s.*version.* (\S+) udp-port/'
-  default_value: null
+  nexus:
+    get_value: '/^snmp-server host %s.*version.* (\S+) udp-port/'
+    default_value: null
+  ios_xr:
+    get_value: '/^snmp-server host %s.* (\S+) udp-port/'
+    default_value: null
 
 version:
   get_value: '/^snmp-server host %s.* version (\S+).*$/'
