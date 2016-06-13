@@ -167,9 +167,11 @@ class Cisco::Client
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param context [String, Array<String>] Context for the configuration
   # @param values [String, Array<String>] Actual configuration to set
+  # @param kwargs data-format-specific args
   def set(data_format: :cli,
           context:     nil,
-          values:      nil)
+          values:      nil,
+          **_kwargs)
     # subclasses will generally want to call Client.munge_to_array()
     # on context and/or values before calling super()
     fail Cisco::RequestNotSupported unless self.supports?(data_format)
@@ -210,36 +212,6 @@ class Cisco::Client
       unless context.nil? || context.empty?
     Cisco::Logger.debug("  to get value:     #{value}") \
       unless value.nil?
-    # to be implemented by subclasses
-  end
-
-  # Retrieve JSON YANG config from the device for the specified path.
-  # @param yang_path [String] The node path from which to retrieve configuration
-  def get_yang(_yang_path)
-    fail Cisco::RequestNotSupported
-    # to be implemented by subclasses
-  end
-
-  # Merge the specified JSON YANG config with the running config
-  # on the device.
-  # @param yang [String] The desired YANG configuration
-  def merge_yang(_yang)
-    fail Cisco::RequestNotSupported
-    # to be implemented by subclasses
-  end
-
-  # Replace the running config on the device with the specified
-  # JSON YANG config.
-  # @param yang [String] The desired YANG configuration
-  def replace_yang(_yang)
-    fail Cisco::RequestNotSupported
-    # to be implemented by subclasses
-  end
-
-  # Delete the specified JSON YANG config from the device.
-  # @param yang [String] The YANG configuration to delete.
-  def delete_yang(_yang)
-    fail Cisco::RequestNotSupported
     # to be implemented by subclasses
   end
 

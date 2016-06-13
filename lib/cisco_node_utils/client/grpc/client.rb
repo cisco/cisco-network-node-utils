@@ -37,7 +37,7 @@ class Cisco::Client::GRPC < Cisco::Client
     kwargs[:host] ||= '127.0.0.1'
     kwargs[:port] ||= 57_400
     # rubocop:disable Style/HashSyntax
-    super(data_formats: [:cli],
+    super(data_formats: [:cli, :yang_json],
           platform:     :ios_xr,
           **kwargs)
     # rubocop:enable Style/HashSyntax
@@ -85,36 +85,46 @@ class Cisco::Client::GRPC < Cisco::Client
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param context [Array<String>] Zero or more configuration commands used
   #                to enter the desired CLI sub-mode
-  # @param values [Array<String>] One or more commands to enter within the
-  #   CLI sub-mode.
+  # @param values [Array<String>] One or more commands to execute /
+  #                               config strings to send
+  # @param kwargs data-format-specific args
   def set(data_format: :cli,
           context:     nil,
-          values:      nil)
+          values:      nil,
+          **kwargs)
     context = munge_to_array(context)
     values = munge_to_array(values)
     super
-    # IOS XR lets us concatenate submode commands together.
-    # This makes it possible to guarantee we are in the correct context:
-    #   context: ['foo', 'bar'], values: ['baz', 'bat']
-    #   ---> values: ['foo bar baz', 'foo bar bat']
-    # However, there's a special case for 'no' commands:
-    #   context: ['foo', 'bar'], values: ['no baz']
-    #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
-    context = context.join(' ')
-    unless context.empty?
-      values.map! do |cmd|
-        match = cmd[/^\s*no\s+(.*)/, 1]
-        if match
-          cmd = "no #{context} #{match}"
-        else
-          cmd = "#{context} #{cmd}"
-        end
-        cmd
+    if data_format == :yang_json
+      mode = kwargs[:mode] || :merge_config
+      fail ArgumentError unless YANG_SET_MODE.include? mode
+      values.each do |yang|
+        yang_req(@config, mode.to_s, ConfigArgs.new(yangjson: yang))
       end
+    else
+      # IOS XR lets us concatenate submode commands together.
+      # This makes it possible to guarantee we are in the correct context:
+      #   context: ['foo', 'bar'], values: ['baz', 'bat']
+      #   ---> values: ['foo bar baz', 'foo bar bat']
+      # However, there's a special case for 'no' commands:
+      #   context: ['foo', 'bar'], values: ['no baz']
+      #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
+      context = context.join(' ')
+      unless context.empty?
+        values.map! do |cmd|
+          match = cmd[/^\s*no\s+(.*)/, 1]
+          if match
+            cmd = "no #{context} #{match}"
+          else
+            cmd = "#{context} #{cmd}"
+          end
+          cmd
+        end
+      end
+      # CliConfigArgs wants a newline-separated string of commands
+      args = CliConfigArgs.new(cli: values.join("\n"))
+      req(@config, 'cli_config', args)
     end
-    # CliConfigArgs wants a newline-separated string of commands
-    args = CliConfigArgs.new(cli: values.join("\n"))
-    req(@config, 'cli_config', args)
   end
 
   def get(data_format: :cli,
@@ -123,9 +133,14 @@ class Cisco::Client::GRPC < Cisco::Client
           value:       nil)
     super
     fail ArgumentError if command.nil?
-    args = ShowCmdArgs.new(cli: command)
-    output = req(@exec, 'show_cmd_text_output', args)
-    self.class.filter_cli(cli_output: output, context: context, value: value)
+
+    if data_format == :yang_json
+      yang_req(@config, 'get_config', ConfigGetArgs.new(yangpathjson: command))
+    else
+      args = ShowCmdArgs.new(cli: command)
+      output = req(@exec, 'show_cmd_text_output', args)
+      self.class.filter_cli(cli_output: output, context: context, value: value)
+    end
   end
 
   def req(stub, type, args)
@@ -168,36 +183,6 @@ class Cisco::Client::GRPC < Cisco::Client
     else
       raise Cisco::ClientError, e.details
     end
-  end
-
-  # Retrieve JSON YANG config from the device for the specified path.
-  # @param yang [String] The node path from which to retrieve configuration
-  def get_yang(yang_path)
-    fail ArgumentError if yang_path.nil?
-    yang_req(@config, 'get_config', ConfigGetArgs.new(yangpathjson: yang_path))
-  end
-
-  # Merge the specified JSON YANG config with the running config
-  # on the device.
-  # @param yang [String] The desired YANG configuration
-  def merge_yang(yang)
-    fail ArgumentError if yang.nil?
-    yang_req(@config, 'merge_config', ConfigArgs.new(yangjson: yang))
-  end
-
-  # Replace the running config on the device with the specified
-  # JSON YANG config.
-  # @param yang [String] The desired YANG configuration
-  def replace_yang(yang)
-    fail ArgumentError if yang.nil?
-    yang_req(@config, 'replace_config', ConfigArgs.new(yangjson: yang))
-  end
-
-  # Delete the specified JSON YANG config from the device.
-  # @param yang [String] The YANG configuration to delete.
-  def delete_yang(yang)
-    fail ArgumentError if yang.nil?
-    yang_req(@config, 'delete_config', ConfigArgs.new(yangjson: yang))
   end
 
   # Send a YANG request via gRPC

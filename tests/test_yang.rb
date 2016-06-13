@@ -171,7 +171,7 @@ class TestYang < CiscoTestCase
 
     node.replace_yang(GREEN_VRF) # create a single VRF
     assert(node.get_yang(PATH_VRFS).match('GREEN'),
-           'Did not find the BLUE vrf')
+           'Did not find the GREEN vrf')
     refute(node.get_yang(PATH_VRFS).match('BLUE'),
            'Found the BLUE vrf')
   end
