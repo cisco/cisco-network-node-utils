@@ -237,70 +237,70 @@ class TestYang < CiscoTestCase
 
   def test_merge_diff
     # ensure we think that a merge is needed (in-sinc = false)
-    refute(Yang.insync_for_merge(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_merge?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in-sync')
 
     node.merge_yang(BLUE_VRF) # create the blue VRF
 
     # ensure we think that a merge is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_merge(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_merge?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     # ensure we think that the merge is needed (in-sinc = false)
-    refute(Yang.insync_for_merge(RED_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_merge?(RED_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in-sync')
 
     node.merge_yang(RED_VRF) # create the red VRF
 
     # ensure we think that a merge is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_merge(RED_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_merge?(RED_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     node.merge_yang(GREEN_VRF) # create green VRF
     # ensure we think that a merge is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_merge(GREEN_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_merge?(GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
   end
 
   def test_replace_diff
     # ensure we think that a merge is needed (in-sinc = false)
-    refute(Yang.insync_for_replace(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_replace?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in-sync')
 
     node.replace_yang(BLUE_VRF) # create the blue VRF
     # ensure we think that a replace is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_replace(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_replace?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     node.replace_yang(RED_VRF) # create the red VRF
     # ensure we think that a replace is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_replace(RED_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_replace?(RED_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     node.replace_yang(GREEN_VRF) # create green VRF
     # ensure we think that a replace is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_replace(GREEN_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_replace?(GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     node.merge_yang(BLUE_VRF)
 
     # ensure we think that a replace is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_replace(BLUE_GREEN_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_replace?(BLUE_GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected in sync')
     # ensure we think that a replace is needed (in-sinc = true)
-    refute(Yang.insync_for_replace(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_replace?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in sync')
-    refute(Yang.insync_for_replace(GREEN_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_replace?(GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in sync')
 
     node.replace_yang(BLUE_VRF)
     # ensure we think that a replace is NOT needed (in-sinc = true)
-    assert(Yang.insync_for_replace(BLUE_VRF, node.get_yang(PATH_VRFS)),
+    assert(Yang.insync_for_replace?(BLUE_VRF, node.get_yang(PATH_VRFS)),
            'Expected in-sync')
     # ensure we think that a replace is needed (in-sinc = true)
-    refute(Yang.insync_for_replace(GREEN_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_replace?(GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in-sync')
-    refute(Yang.insync_for_replace(BLUE_GREEN_VRF, node.get_yang(PATH_VRFS)),
+    refute(Yang.insync_for_replace?(BLUE_GREEN_VRF, node.get_yang(PATH_VRFS)),
            'Expected not in-sync')
   end
 
@@ -311,12 +311,12 @@ class TestYang < CiscoTestCase
     node.merge_yang(BLUE_VRF_PROPERTIES1)
 
     # ensure that new leaves are merged with old.
-    assert(Yang.insync_for_merge(BLUE_VRF_PROPERTIES2,
+    assert(Yang.insync_for_merge?(BLUE_VRF_PROPERTIES2,
                                  node.get_yang(PATH_VRFS)), 'Expected in-sync')
 
     # update description and vpn-id
     node.merge_yang(BLUE_VRF_PROPERTIES3)
-    assert(Yang.insync_for_merge(BLUE_VRF_PROPERTIES3,
+    assert(Yang.insync_for_merge?(BLUE_VRF_PROPERTIES3,
                                  node.get_yang(PATH_VRFS)), 'Expected in-sync')
   end
 
@@ -327,13 +327,13 @@ class TestYang < CiscoTestCase
     node.replace_yang(BLUE_VRF_PROPERTIES1)
 
     # ensure that new properties are replaced by old.
-    assert(Yang.insync_for_replace(BLUE_VRF_PROPERTIES1,
+    assert(Yang.insync_for_replace?(BLUE_VRF_PROPERTIES1,
                                    node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     # replace description and vpn-id
     node.replace_yang(BLUE_VRF_PROPERTIES3)
-    assert(Yang.insync_for_replace(BLUE_VRF_PROPERTIES3,
+    assert(Yang.insync_for_replace?(BLUE_VRF_PROPERTIES3,
                                    node.get_yang(PATH_VRFS)),
            'Expected in-sync')
   end
@@ -357,8 +357,8 @@ class TestYang < CiscoTestCase
   end
 
   def assert_yang_equal(expected, actual)
-    equal = Yang.insync_for_replace(expected, actual) &&
-            Yang.insync_for_replace(actual, expected)
+    equal = Yang.insync_for_replace?(expected, actual) &&
+            Yang.insync_for_replace?(actual, expected)
     assert(equal,
            "Expected: '#{expected}',\n"\
            "Actual: '#{actual}',\n",

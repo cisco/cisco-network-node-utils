@@ -29,7 +29,7 @@ module Cisco
 
     # Given a current and target YANG configuration, returns true if
     # the configurations are in-sync, relative to a "merge_config" action
-    def self.insync_for_merge(target, current)
+    def self.insync_for_merge?(target, current)
       target_hash = self.empty?(target) ? {} : JSON.parse(target)
       current_hash = self.empty?(current) ? {} : JSON.parse(current)
 
@@ -38,7 +38,7 @@ module Cisco
 
     # Given a current and target YANG configuration, returns true if
     # the configuration are in-sync, relative to a "replace_config" action
-    def self.insync_for_replace(target, current)
+    def self.insync_for_replace?(target, current)
       target_hash = self.empty?(target) ? {} : JSON.parse(target)
       current_hash = self.empty?(current) ? {} : JSON.parse(current)
 
