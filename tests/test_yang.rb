@@ -312,12 +312,12 @@ class TestYang < CiscoTestCase
 
     # ensure that new leaves are merged with old.
     assert(Yang.insync_for_merge?(BLUE_VRF_PROPERTIES2,
-                                 node.get_yang(PATH_VRFS)), 'Expected in-sync')
+                                  node.get_yang(PATH_VRFS)), 'Expected in-sync')
 
     # update description and vpn-id
     node.merge_yang(BLUE_VRF_PROPERTIES3)
     assert(Yang.insync_for_merge?(BLUE_VRF_PROPERTIES3,
-                                 node.get_yang(PATH_VRFS)), 'Expected in-sync')
+                                  node.get_yang(PATH_VRFS)), 'Expected in-sync')
   end
 
   def test_replace_leaves
@@ -328,13 +328,13 @@ class TestYang < CiscoTestCase
 
     # ensure that new properties are replaced by old.
     assert(Yang.insync_for_replace?(BLUE_VRF_PROPERTIES1,
-                                   node.get_yang(PATH_VRFS)),
+                                    node.get_yang(PATH_VRFS)),
            'Expected in-sync')
 
     # replace description and vpn-id
     node.replace_yang(BLUE_VRF_PROPERTIES3)
     assert(Yang.insync_for_replace?(BLUE_VRF_PROPERTIES3,
-                                   node.get_yang(PATH_VRFS)),
+                                    node.get_yang(PATH_VRFS)),
            'Expected in-sync')
   end
 
