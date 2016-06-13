@@ -282,13 +282,9 @@ class TestSwitchport < TestInterfaceSwitchport
 
       # Some images have behavior where 'vlan add' is separate line
       # This behavior is triggered for vlan ranges that exceed character limit
-      vlans = '500-528,530,532,534,587,590-593'
-      all_vlans = vlans + ',597-598'
-      config("interface #{interface.name}",
-             "switchport trunk allowed vlan #{vlans}",
-             'switchport trunk allowed vlan add 597',
-             'switchport trunk allowed vlan add 598')
-      assert_equal(all_vlans, interface.switchport_trunk_allowed_vlan)
+      vlans = '500-528,530,532,534,587,590-593,597-598,600,602,604'
+      interface.switchport_trunk_allowed_vlan = vlans
+      assert_equal(vlans, interface.switchport_trunk_allowed_vlan)
     end
   end
 
@@ -368,7 +364,7 @@ class TestInterfaceSwitchportSvi < TestInterfaceSwitchport
   end
 
   def teardown
-    svi.destroy unless platform == :ios_xr
+    svi.destroy unless platform == :ios_xr || svi.nil?
     super
   end
 
