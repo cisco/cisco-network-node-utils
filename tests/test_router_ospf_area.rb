@@ -189,6 +189,29 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(av.default_range, av.range)
   end
 
+  def test_nssa_translate_type7
+    ad = create_routerospfarea_default
+    assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'never'
+    assert_equal('never', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'supress_fa'
+    assert_equal('supress_fa', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'always_supress_fa'
+    assert_equal('always_supress_fa', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = ad.default_nssa_translate_type7
+    assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
+    av = create_routerospfarea_vrf
+    assert_equal(av.default_nssa_translate_type7, av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'never'
+    assert_equal('never', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'supress_fa'
+    assert_equal('supress_fa', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'always_supress_fa'
+    assert_equal('always_supress_fa', av.nssa_translate_type7)
+    av.nssa_translate_type7 = av.default_nssa_translate_type7
+    assert_equal(av.default_nssa_translate_type7, av.nssa_translate_type7)
+  end
+
   def test_destroy
     ad = create_routerospfarea_default
     # destroy without changing any properties
@@ -198,6 +221,7 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa_translate_type7,
      :stub,
      :stub_no_summary,
     ].each do |prop|
@@ -211,6 +235,7 @@ class TestRouterOspfArea < CiscoTestCase
               ['10.3.0.0/32', 'not_advertise'],
               ['10.3.0.1/32'],
               ['10.3.3.0/24', '450']]
+    ad.nssa_translate_type7 = 'never'
     ad.range = ranges
     ad.stub = true
     ad.stub_no_summary = true
@@ -221,6 +246,7 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa_translate_type7,
      :stub,
      :stub_no_summary,
     ].each do |prop|

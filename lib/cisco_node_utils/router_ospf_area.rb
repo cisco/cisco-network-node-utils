@@ -92,6 +92,7 @@ module Cisco
        :default_cost,
        :filter_list_in,
        :filter_list_out,
+       :nssa_translate_type7,
        :range,
        :stub,
       ].each do |prop|
@@ -181,6 +182,31 @@ module Cisco
 
     def default_filter_list_out
       config_get_default('ospf_area', 'filter_list_out')
+    end
+
+    # CLI can be the following or none
+    # area 1.1.1.1 nssa translate type7 always
+    # area 1.1.1.1 nssa translate type7 always supress-fa
+    # area 1.1.1.1 nssa translate type7 never
+    # area 1.1.1.1 nssa translate type7 supress-fa
+    def nssa_translate_type7
+      str = config_get('ospf_area', 'nssa_translate_type7', @get_args)
+      str = 'always_supress_fa' if str == 'always supress-fa'
+      str = 'supress_fa' if str == 'supress-fa'
+      str
+    end
+
+    def nssa_translate_type7=(val)
+      state = val ? '' : 'no'
+      value = val ? val : ''
+      value = 'always supress-fa' if val.to_s == 'always_supress_fa'
+      value = 'supress-fa' if val.to_s == 'supress_fa'
+      set_args_keys(state: state, value: value)
+      config_set('ospf_area', 'nssa_translate_type7', @set_args)
+    end
+
+    def default_nssa_translate_type7
+      config_get_default('ospf_area', 'nssa_translate_type7')
     end
 
     # range can take multiple values for the same vrf
