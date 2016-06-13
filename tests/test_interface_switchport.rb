@@ -55,7 +55,6 @@ end
 # TestSwitchport - general interface switchport tests.
 class TestSwitchport < TestInterfaceSwitchport
   DEFAULT_IF_ACCESS_VLAN = 1
-  DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN = '1-4094'
   DEFAULT_IF_SWITCHPORT_NATIVE_VLAN = 1
 
   def system_default_switchport(state='')
@@ -257,7 +256,7 @@ class TestSwitchport < TestInterfaceSwitchport
     else
       interface.switchport_enable
       interface.switchport_trunk_allowed_vlan = 'all'
-      assert_equal(DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
+      assert_equal(interface.default_switchport_trunk_allowed_vlan,
                    interface.switchport_trunk_allowed_vlan)
 
       interface.switchport_trunk_allowed_vlan = '20'
@@ -268,7 +267,7 @@ class TestSwitchport < TestInterfaceSwitchport
 
       interface.switchport_trunk_allowed_vlan =
         interface.default_switchport_trunk_allowed_vlan
-      assert_equal(DEFAULT_IF_SWITCHPORT_ALLOWED_VLAN,
+      assert_equal(interface.default_switchport_trunk_allowed_vlan,
                    interface.switchport_trunk_allowed_vlan)
 
       assert_raises(RuntimeError) do
@@ -280,6 +279,16 @@ class TestSwitchport < TestInterfaceSwitchport
 
       interface.switchport_trunk_allowed_vlan = '20, 30'
       assert_equal('20,30', interface.switchport_trunk_allowed_vlan)
+
+      # Some images have behavior where 'vlan add' is separate line
+      # This behavior is triggered for vlan ranges that exceed character limit
+      vlans = '500-528,530,532,534,587,590-593'
+      all_vlans = vlans + ',597-598'
+      config("interface #{interface.name}",
+             "switchport trunk allowed vlan #{vlans}",
+             'switchport trunk allowed vlan add 597',
+             'switchport trunk allowed vlan add 598')
+      assert_equal(all_vlans, interface.switchport_trunk_allowed_vlan)
     end
   end
 
