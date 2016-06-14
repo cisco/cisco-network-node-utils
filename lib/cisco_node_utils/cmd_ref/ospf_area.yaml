@@ -38,6 +38,30 @@ filter_list_out:
   set_value: '<state> area <area> filter-list route-map <route_map> out'
   default_value: false
 
+nssa:
+  multiple: true
+  get_value: '/^area <area> nssa(.*)$/'
+  set_value: '<state> area <area> nssa <no_summary> <no_redistribution> <default_information_originate> <route_map> <rm>'
+
+nssa_def_info_originate:
+  kind: boolean
+  default_value: false
+
+nssa_enable:
+  kind: boolean
+  default_value: false
+
+nssa_no_redistribution:
+  kind: boolean
+  default_value: false
+
+nssa_no_summary:
+  kind: boolean
+  default_value: false
+
+nssa_route_map:
+  default_value: false
+
 nssa_translate_type7:
   get_value: '/^area <area> nssa translate type7 (.*)$/'
   set_value: '<state> area <area> nssa translate type7 <value>'

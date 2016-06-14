@@ -92,6 +92,7 @@ module Cisco
        :default_cost,
        :filter_list_in,
        :filter_list_out,
+       :nssa_enable,
        :nssa_translate_type7,
        :range,
        :stub,
@@ -182,6 +183,124 @@ module Cisco
 
     def default_filter_list_out
       config_get_default('ospf_area', 'filter_list_out')
+    end
+
+    # CLI can be the following or none
+    # area 1.1.1.1 nssa
+    # the above command can be appended with no-summary and/or
+    # no-redistribution and/or default-information-originate.
+    # route-map <map> can be appended with default-information-originate
+    def nssa
+      hash = {}
+      output = config_get('ospf_area', 'nssa', @get_args)
+      return hash if output.nil?
+      output.each do |line|
+        next if line.include?('translate')
+        hash[:nssa_enable] = true
+        hash[:no_summary] = true if line.include?('no-summary')
+        hash[:no_redistribution] = true if line.include?('no-redistribution')
+        hash[:def_info_origin] = true if
+          line.include?('default-information-originate')
+        if line.include?('route-map')
+          params = line.split
+          hash[:route_map] = params[params.index('route-map') + 1]
+        end
+      end
+      hash
+    end
+
+    def nssa_enable
+      hash = nssa
+      ne = hash[:nssa_enable] ? hash[:nssa_enable] : default_nssa_enable
+      ne
+    end
+
+    def default_nssa_enable
+      config_get_default('ospf_area', 'nssa_enable')
+    end
+
+    def nssa_def_info_originate
+      hash = nssa
+      ndio = default_nssa_def_info_originate
+      ndio = hash[:def_info_origin] if hash[:def_info_origin]
+      ndio
+    end
+
+    def default_nssa_def_info_originate
+      config_get_default('ospf_area', 'nssa_def_info_originate')
+    end
+
+    def nssa_no_redistribution
+      hash = nssa
+      nnr = default_nssa_no_redistribution
+      nnr = hash[:no_redistribution] if hash[:no_redistribution]
+      nnr
+    end
+
+    def default_nssa_no_redistribution
+      config_get_default('ospf_area', 'nssa_no_redistribution')
+    end
+
+    def nssa_no_summary
+      hash = nssa
+      nns = default_nssa_no_summary
+      nns = hash[:no_summary] if hash[:no_summary]
+      nns
+    end
+
+    def default_nssa_no_summary
+      config_get_default('ospf_area', 'nssa_no_summary')
+    end
+
+    def nssa_route_map
+      hash = nssa
+      nrm = default_nssa_route_map
+      nrm = hash[:route_map] if hash[:route_map]
+      nrm
+    end
+
+    def default_nssa_route_map
+      config_get_default('ospf_area', 'nssa_route_map')
+    end
+
+    def nssa_set(enable, def_info_originate, no_redistribution,
+                 no_summary, route_map)
+      if nssa_enable
+        # reset nssa first
+        @set_args[:state] = 'no'
+        @set_args[:no_summary] = ''
+        @set_args[:no_redistribution] = ''
+        @set_args[:default_information_originate] = ''
+        @set_args[:route_map] = ''
+        @set_args[:rm] = ''
+        config_set('ospf_area', 'nssa', @set_args)
+      end
+      return unless enable
+      @set_args[:state] = ''
+      if no_summary
+        @set_args[:no_summary] = 'no-summary'
+      else
+        @set_args[:no_summary] = ''
+      end
+      if no_redistribution
+        @set_args[:no_redistribution] = 'no-redistribution'
+      else
+        @set_args[:no_redistribution] = ''
+      end
+      if def_info_originate
+        @set_args[:default_information_originate] =
+          'default-information-originate'
+      else
+        @set_args[:default_information_originate] = ''
+      end
+      if route_map
+        @set_args[:route_map] = 'route-map'
+        @set_args[:rm] = route_map
+      else
+        @set_args[:route_map] = ''
+        @set_args[:rm] = ''
+      end
+      config_set('ospf_area', 'nssa', @set_args)
     end
 
     # CLI can be the following or none

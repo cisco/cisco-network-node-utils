@@ -189,6 +189,232 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(av.default_range, av.range)
   end
 
+  def test_nssa
+    ad = create_routerospfarea_default
+    assert_equal(ad.default_nssa_enable, ad.nssa_enable)
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(ad.default_nssa_enable,
+                ad.default_nssa_def_info_originate,
+                ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(ad.default_nssa_enable, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    av = create_routerospfarea_vrf
+    assert_equal(av.default_nssa_enable, av.nssa_enable)
+    av.nssa_set(true, av.default_nssa_def_info_originate,
+                av.default_nssa_no_redistribution,
+                av.default_nssa_no_summary,
+                av.default_nssa_route_map)
+    assert_equal(true, av.nssa_enable)
+    assert_equal(av.default_nssa_def_info_originate, av.nssa_def_info_originate)
+    assert_equal(av.default_nssa_no_redistribution, av.nssa_no_redistribution)
+    assert_equal(av.default_nssa_no_summary, av.nssa_no_summary)
+    assert_equal(av.default_nssa_route_map, av.nssa_route_map)
+
+    av.nssa_set(av.default_nssa_enable,
+                av.default_nssa_def_info_originate,
+                av.default_nssa_no_redistribution,
+                av.default_nssa_no_summary,
+                av.default_nssa_route_map)
+    assert_equal(av.default_nssa_enable, av.nssa_enable)
+    assert_equal(av.default_nssa_def_info_originate, av.nssa_def_info_originate)
+    assert_equal(av.default_nssa_no_redistribution, av.nssa_no_redistribution)
+    assert_equal(av.default_nssa_no_summary, av.nssa_no_summary)
+    assert_equal(av.default_nssa_route_map, av.nssa_route_map)
+  end
+
+  def test_nssa_default_vrf_others
+    ad = create_routerospfarea_default
+    ad.nssa_set(true, true,
+                ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                true, ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                true, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true,
+                ad.default_nssa_no_summary,
+                'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true, true, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                true, true,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                true, ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                ad.default_nssa_no_redistribution, true,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+  end
+
+  def test_nssa_non_default_vrf_others
+    ad = create_routerospfarea_vrf
+    ad.nssa_set(true, true,
+                ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                true, ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
+                true, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true,
+                ad.default_nssa_no_summary,
+                'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, true, true, true, 'aaa')
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                true, true,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                true, ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                ad.default_nssa_no_redistribution, true,
+                ad.default_nssa_route_map)
+    assert_equal(true, ad.nssa_enable)
+    assert_equal(ad.default_nssa_def_info_originate, ad.nssa_def_info_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+  end
+
   def test_nssa_translate_type7
     ad = create_routerospfarea_default
     assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
@@ -235,6 +461,10 @@ class TestRouterOspfArea < CiscoTestCase
               ['10.3.0.0/32', 'not_advertise'],
               ['10.3.0.1/32'],
               ['10.3.3.0/24', '450']]
+    ad.nssa_set(true, ad.default_nssa_def_info_originate,
+                ad.default_nssa_no_redistribution,
+                ad.default_nssa_no_summary,
+                ad.default_nssa_route_map)
     ad.nssa_translate_type7 = 'never'
     ad.range = ranges
     ad.stub = true
