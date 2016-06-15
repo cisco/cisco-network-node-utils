@@ -1,0 +1,30 @@
+# tacacs_global.yaml
+---
+encryption:
+  set_value: "<state> tacacs-server key <option> <key>"
+
+key:
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
+  default_value: ""
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"
+
+key_format:
+  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
+  default_value: 0
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"
+
+timeout:
+  kind: int
+  get_value: '/tacacs-server timeout\s+(\d+)/'
+  set_value: "<state> tacacs-server timeout <timeout>"
+  default_value: 5
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"
