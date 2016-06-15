@@ -22,7 +22,7 @@ DEFAULT_TACACS_SERVER_HOST_TIMEOUT = 0
 DEFAULT_TACACS_SERVER_HOST_ENCRYPTION_PASSWORD = ''
 
 # TestTacacsServerHost - Minitest for TacacsServerHost node utility
-class TestTacacsServerHost < CiscoTestCase
+class TestTacacsSvrHost < CiscoTestCase
   @skip_unless_supported = 'tacacs_server_host'
 
   def setup
@@ -44,7 +44,7 @@ class TestTacacsServerHost < CiscoTestCase
            'no aaa group server tacacs blue')
   end
 
-  def test_tacacsserverhost_collection_empty
+  def test_collection_empty
     hosts = TacacsServerHost.hosts
     hosts.each_value(&:destroy)
     hosts = TacacsServerHost.hosts
@@ -52,7 +52,7 @@ class TestTacacsServerHost < CiscoTestCase
     assert_empty(hosts, 'Error: Tacacs Host collection is not empty')
   end
 
-  def test_tacacsserverhost_collection
+  def test_collection
     hosts_hash = {}
     hosts_hash['4.4.4.4'] = 1138
     hosts_hash['5.5.5.5'] = DEFAULT_TACACS_SERVER_HOST_PORT
@@ -80,21 +80,18 @@ class TestTacacsServerHost < CiscoTestCase
     hosts_hash.each_key { |name| hosts[name].destroy }
   end
 
-  def test_tacacsserverhost_create_server_nil
+  def test_negative
     assert_raises(TypeError) { TacacsServerHost.new(nil) }
-  end
-
-  def test_tacacsserverhost_create_name_zero_length
     assert_raises(ArgumentError) { TacacsServerHost.new('') }
   end
 
-  def test_tacacsserverhost_create_valid
+  def test_create
     host = TacacsServerHost.new(@host_name)
     assert_show_match(msg: 'Error: Tacacs Host not created')
     host.destroy
   end
 
-  def test_tacacsserverhost_destroy
+  def test_destroy
     host = TacacsServerHost.new(@host_name)
     assert_show_match(msg: 'Error: Tacacs Host not created')
     host.destroy
@@ -102,7 +99,7 @@ class TestTacacsServerHost < CiscoTestCase
     refute_show_match(msg: 'Error: Tacacs Host still present')
   end
 
-  def test_tacacsserverhost_get_name
+  def test_name
     host = TacacsServerHost.new(@host_name)
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
     assert_equal(@host_name, line.captures[0],
@@ -112,7 +109,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_name_preconfigured
+  def test_name_preconfigured
     config("tacacs-server host #{@host_name}")
 
     line = assert_show_match(msg: 'Error: Tacacs Host not found')
@@ -127,7 +124,7 @@ class TestTacacsServerHost < CiscoTestCase
     hosts.each_value(&:destroy)
   end
 
-  def test_tacacsserverhost_get_name_formats
+  def test_name_formats
     host_name = 'testhost.example.com'
     host_ip = '192.168.1.1'
 
@@ -159,7 +156,7 @@ class TestTacacsServerHost < CiscoTestCase
     hosts.each_value(&:destroy)
   end
 
-  def test_tacacsserverhost_get_port
+  def test_port_get
     host = TacacsServerHost.new(@host_name)
 
     # not previously configured
@@ -177,7 +174,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_default_port
+  def test_port_default
     host = TacacsServerHost.new(@host_name)
 
     port = DEFAULT_TACACS_SERVER_HOST_PORT
@@ -186,7 +183,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_set_port
+  def test_port_set
     return if platform == :ios_xr
 
     host = TacacsServerHost.new(@host_name)
@@ -202,7 +199,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_timeout
+  def test_timeout_get
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*timeout'")[/^tacacs.*timeout.*$/]
     config("no #{s}") if s
@@ -221,7 +218,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_default_timeout
+  def test_timeout_default
     host = TacacsServerHost.new(@host_name)
 
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
@@ -230,7 +227,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_set_timeout
+  def test_timeout_set
     host = TacacsServerHost.new(@host_name)
 
     timeout = 30
@@ -249,7 +246,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_unset_timeout
+  def test_timeout_unset
     host = TacacsServerHost.new(@host_name)
 
     timeout = DEFAULT_TACACS_SERVER_HOST_TIMEOUT
@@ -261,7 +258,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_encryption_type
+  def test_encryption_type
     host = TacacsServerHost.new(@host_name)
 
     # when not configured
@@ -279,7 +276,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_default_encryption_type
+  def test_encryption_type_default
     host = TacacsServerHost.new(@host_name)
 
     assert_equal(TACACS_SERVER_ENC_NONE,
@@ -288,7 +285,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_encryption_password
+  def test_encryption_password
     host = TacacsServerHost.new(@host_name)
 
     # when not configured
@@ -312,7 +309,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_get_default_encryption_password
+  def test_encryption_password_default
     host = TacacsServerHost.new(@host_name)
 
     assert_equal('', TacacsServerHost.default_encryption_password,
@@ -320,7 +317,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_set_key
+  def test_key
     host = TacacsServerHost.new(@host_name)
 
     enctype = TACACS_SERVER_ENC_NONE
@@ -352,7 +349,7 @@ class TestTacacsServerHost < CiscoTestCase
     host.destroy
   end
 
-  def test_tacacsserverhost_unset_key
+  def test_key_unset
     # Cleanup first
     s = @device.cmd("show run | i 'tacacs.*host'")[/^tacacs.*host.*$/]
     config("no #{s}") if s
@@ -360,7 +357,7 @@ class TestTacacsServerHost < CiscoTestCase
     host = TacacsServerHost.new(@host_name)
 
     # First configure key value. Whether that can be passed
-    # will be decided by test_tacacsserverhost_set_key
+    # will be decided by test_key
     enctype = TACACS_SERVER_ENC_NONE
     pass = 'TEST'
     host.encryption_key_set(enctype, pass)
@@ -393,7 +390,7 @@ class TestTacacsServerHost < CiscoTestCase
            'no tacacs-server host 8.8.8.8 port 33')
   end
 
-  def test_create_destroy_single_with_duplicates
+  def test_duplicates
     return if platform != :ios_xr
     setup_duplicates
 
