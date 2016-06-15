@@ -105,9 +105,11 @@ class Cisco::Client::NXAPI < Cisco::Client
   #   used to enter the desired CLI sub-mode
   # @param values [String, Array<String>] One or more commands
   #   to enter within the CLI sub-mode.
+  # @param kwargs data-format-specific args
   def set(data_format: :cli,
           context: nil,
-          values: nil)
+          values: nil,
+          **_kwargs)
     # we don't currently support nxapi_structured for configuration
     fail Cisco::RequestNotSupported if data_format == :nxapi_structured
     context = munge_to_array(context)
