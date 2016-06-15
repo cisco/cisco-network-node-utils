@@ -65,13 +65,13 @@ class TestSnmpUser < CiscoTestCase
 
   ## test cases starts here
 
-  def test_snmpuser_collection_not_empty
+  def test_collection_not_empty
     create_user('tester')
     refute_empty(SnmpUser.users,
                  'SnmpUser collection is empty')
   end
 
-  def test_snmpuser_create_invalid_args
+  def test_create_invalid_args
     args_list = [
       ['Empty name',
        ['', ['network-admin'],
@@ -91,7 +91,7 @@ class TestSnmpUser < CiscoTestCase
     end
   end
 
-  def test_snmpuser_create_invalid_cli
+  def test_create_invalid_cli
     args_list = [
       ['Cleartext password with localized key',
        ['userv3testauthsha1', ['network-admin'],
@@ -135,7 +135,7 @@ class TestSnmpUser < CiscoTestCase
     assert(found_tester2)
   end
 
-  def test_snmpuser_create_with_single_group_noauth_nopriv
+  def test_noauth_nopriv
     name = 'userv3test2'
     groups = ['network-admin']
     snmpuser = SnmpUser.new(name,
@@ -149,7 +149,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_multi_group_noauth_nopriv
+  def test_noauth_nopriv_multi
     name = 'userv3test3'
     groups = ['network-admin', 'vdc-admin']
     snmpuser = SnmpUser.new(name,
@@ -165,7 +165,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_destroy
+  def test_destroy
     name = 'userv3testdestroy'
     group = 'network-operator'
     create_user(name, group)
@@ -184,7 +184,7 @@ class TestSnmpUser < CiscoTestCase
     assert_nil(SnmpUser.users[name])
   end
 
-  def test_snmpuser_auth_password_equal_invalid_param
+  def test_auth_pw_equal_invalid_param
     name = 'testV3PwEqualInvalid2'
     auth_pw = 'TeSt297534'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -193,7 +193,7 @@ class TestSnmpUser < CiscoTestCase
     refute(SnmpUser.users[name].auth_password_equal?('', false))
   end
 
-  def test_snmpuser_auth_priv_password_equal_invalid_param
+  def test_auth_priv_pw_equal_invalid_param
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-admin auth md5 #{auth_pw} priv #{auth_pw}")
@@ -204,7 +204,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('', false))
   end
 
-  def test_snmpuser_auth_password_equal_priv_invalid_param
+  def test_auth_pw_equal_priv_invalid_param
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-operator auth md5 #{auth_pw} priv #{auth_pw}")
@@ -215,7 +215,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('', false))
   end
 
-  def test_snmpuser_auth_password_not_equal
+  def test_auth_pw_not_equal
     name = 'testV3PwEqual'
     auth_pw = 'xxwwpass0r!f'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -225,7 +225,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.auth_password_equal?('xxwwpass0r!', false))
   end
 
-  def test_snmpuser_auth_password_equal
+  def test_auth_pw_equal
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -234,7 +234,7 @@ class TestSnmpUser < CiscoTestCase
     assert(SnmpUser.users[name].auth_password_equal?(auth_pw, false))
   end
 
-  def test_snmpuser_auth_priv_password_equal_empty
+  def test_auth_priv_pw_equal_empty
     name = 'testV3PwEmpty'
     create_user(name, 'network-admin')
     # nil and "" are treated interchangeably
@@ -244,7 +244,7 @@ class TestSnmpUser < CiscoTestCase
     assert(SnmpUser.users[name].priv_password_equal?(nil, false))
   end
 
-  def test_snmpuser_auth_password_equal_localizedkey
+  def test_auth_pw_equal_localizedkey
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     create_user(name, "network-admin auth md5 #{auth_pw} localizedkey")
@@ -256,7 +256,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.auth_password_equal?('0xFe6c', true))
   end
 
-  def test_snmpuser_auth_priv_password_equal_localizedkey
+  def test_auth_priv_pw_equal_localizedkey
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     priv_pw = '0x29916eac22d90362598abef1b9045018'
@@ -270,7 +270,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('0x2291', true))
   end
 
-  def test_snmpuser_auth_priv_des_password_equal
+  def test_auth_priv_des_pw_equal
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
     priv_pw = 'WWXXPaas0wrf'
@@ -282,7 +282,7 @@ class TestSnmpUser < CiscoTestCase
     assert(snmpuser.priv_password_equal?(priv_pw, false))
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_nopriv
+  def test_auth_md5_nopriv
     name = 'userv3test5'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -298,7 +298,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_nopriv_pw_localized
+  def test_auth_md5_nopriv_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -316,7 +316,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_sha_nopriv
+  def test_auth_sha_nopriv
     name = 'userv3testsha'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -334,7 +334,7 @@ class TestSnmpUser < CiscoTestCase
 
   # If the auth pw is in hex and localized key param in constructor is false,
   # then the pw got localized by the device again.
-  def test_create_1_group_auth_sha_nopriv_pw_localized_localizedkey_false
+  def test_auth_sha_nopriv_pw_localized_false
     name = 'userv3testauthsha3'
     groups = ['network-admin']
     auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -351,7 +351,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_sha_nopriv_pw_localized
+  def test_auth_sha_nopriv_pw_localized
     name = 'userv3testauthsha4'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -367,7 +367,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_priv_des
+  def test_auth_md5_priv_des
     name = 'userv3test6'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -384,7 +384,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_priv_des_pw_localized
+  def test_auth_md5_priv_des_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -403,7 +403,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_priv_aes128
+  def test_auth_md5_priv_aes128
     name = 'userv3test7'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -420,7 +420,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_priv_aes128_pw_localized
+  def test_auth_md5_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -439,7 +439,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_sha_priv_des
+  def test_auth_sha_priv_des
     name = 'userv3test8'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -456,7 +456,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_md5_priv_sha_pw_localized
+  def test_auth_md5_priv_sha_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -475,7 +475,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_sha_priv_aes128
+  def test_auth_sha_priv_aes128
     name = 'userv3test9'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -492,7 +492,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_with_single_group_auth_sha_priv_aes128_pw_localized
+  def test_auth_sha_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -511,7 +511,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_create_destroy_with_engine_id
+  def test_create_destroy_with_engine_id
     name = 'test_with_engine_id'
     auth_pw = 'XXWWPass0wrf'
     priv_pw = 'XXWWPass0wrf'
@@ -538,7 +538,7 @@ class TestSnmpUser < CiscoTestCase
     assert_nil(SnmpUser.users["#{name} #{engine_id}"])
   end
 
-  def test_snmpuser_authpassword
+  def test_authpassword
     name = 'test_authpassword'
     auth_pw = '0x123456'
     snmpuser = SnmpUser.new(name, [''], :md5, auth_pw, :none, '', true, '')
@@ -548,7 +548,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_authpassword_with_engineid
+  def test_authpassword_with_engineid
     name = 'test_authpassword'
     auth_pw = '0x123456'
     engine_id = '128:12:12:12:12'
@@ -560,7 +560,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_privpassword
+  def test_privpassword
     name = 'test_privpassword'
     priv_password = '0x123456'
     snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
@@ -577,7 +577,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_privpassword_with_engineid
+  def test_privpassword_with_engineid
     name = 'test_privpassword2'
     priv_password = '0x123456'
     engine_id = '128:12:12:12:12'
@@ -594,7 +594,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_auth_password_equal_with_engineid
+  def test_auth_password_equal_with_engineid
     name = 'test_authpass_equal'
     auth_pass = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
@@ -608,7 +608,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_priv_password_equal_with_engineid
+  def test_priv_password_equal_with_engineid
     name = 'test_privpass_equal'
     priv_pass = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
@@ -626,31 +626,31 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_snmpuser_default_groups
+  def test_default_groups
     groups = [DEFAULT_SNMP_USER_GROUP_NAME]
     assert_equal(groups, SnmpUser.default_groups,
                  'Error: Wrong default groups')
   end
 
-  def test_snmpuser_default_auth_protocol
+  def test_default_auth_protocol
     assert_equal(:md5,
                  SnmpUser.default_auth_protocol,
                  'Error: Wrong default auth protocol')
   end
 
-  def test_snmpuser_default_auth_password
+  def test_default_auth_password
     assert_equal(DEFAULT_SNMP_USER_AUTH_PASSWORD,
                  SnmpUser.default_auth_password,
                  'Error: Wrong default auth password')
   end
 
-  def test_snmpuser_default_priv_protocol
+  def test_default_priv_protocol
     assert_equal(:des,
                  SnmpUser.default_priv_protocol,
                  'Error: Wrong default priv protocol')
   end
 
-  def test_snmpuser_default_priv_password
+  def test_default_priv_password
     assert_equal(DEFAULT_SNMP_USER_PRIV_PASSWORD,
                  SnmpUser.default_priv_password,
                  'Error: Wrong default priv password')
