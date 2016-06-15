@@ -49,7 +49,6 @@ module Cisco
       !needs_something?(:replace, should_hash, is_hash)
     end
 
-
     # usage:
     #   needs_something?(op, should, run)
     #
