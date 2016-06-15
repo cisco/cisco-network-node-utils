@@ -18,7 +18,7 @@ require_relative '../lib/cisco_node_utils/itd_device_group'
 include Cisco
 # TestInterface - Minitest for general functionality
 # of the ItdDeviceGroup class.
-class TestItdDeviceGroup < CiscoTestCase
+class TestItdDevGrp < CiscoTestCase
   @skip_unless_supported = 'itd_device_group'
   # Tests
 

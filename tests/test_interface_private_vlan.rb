@@ -20,7 +20,7 @@ include Cisco
 
 # TestInterfacePrivateVlan
 # Parent class for specific types of switchport tests (below)
-class TestInterfacePrivateVlan < CiscoTestCase
+class TestInterfacePVlan < CiscoTestCase
   # rubocop:disable Style/ClassVars
   @@pre_clean_needed = true
   attr_reader :i
@@ -79,7 +79,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, svi.pvlan_mapping)
   end
 
-  def test_switchport_pvlan_host
+  def test_sw_pvlan_host
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_host')
       assert_raises(Cisco::UnsupportedError) do
@@ -98,7 +98,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     refute(i.switchport_pvlan_host)
   end
 
-  def test_switchport_pvlan_promiscuous
+  def test_sw_pvlan_promiscuous
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_promiscuous')
       assert_raises(Cisco::UnsupportedError) do
@@ -117,7 +117,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     refute(i.switchport_pvlan_promiscuous)
   end
 
-  def test_switchport_pvlan_trunk_promiscuous
+  def test_sw_pvlan_trunk_promiscuous
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_promiscuous')
       assert_raises(Cisco::UnsupportedError) do
@@ -136,7 +136,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     refute(i.switchport_pvlan_trunk_promiscuous)
   end
 
-  def test_switchport_pvlan_trunk_secondary
+  def test_sw_pvlan_trunk_secondary
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_secondary')
       assert_raises(Cisco::UnsupportedError) do
@@ -164,7 +164,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     Vlan.new(pri).pvlan_association = range
   end
 
-  def test_switchport_pvlan_host_association
+  def test_sw_pvlan_host_association
     # Supports single instance of [pri, sec]
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_host_association')
@@ -187,7 +187,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_host_association)
   end
 
-  def test_switchport_pvlan_trunk_association
+  def test_sw_pvlan_trunk_association
     # Supports multiple instances of [[pri, sec], [pri2, sec2]]
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_association')
@@ -218,7 +218,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_trunk_association)
   end
 
-  def test_switchport_pvlan_mapping
+  def test_sw_pvlan_mapping
     if validate_property_excluded?('interface', 'switchport_pvlan_mapping')
       assert_raises(Cisco::UnsupportedError) do
         i.switchport_pvlan_mapping = ['2', '10-11,4-7,8']
@@ -245,7 +245,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_mapping)
   end
 
-  def test_switchport_pvlan_mapping_trunk
+  def test_sw_pvlan_mapping_trunk
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_mapping_trunk')
       assert_raises(Cisco::UnsupportedError) do
@@ -300,7 +300,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(default, i.switchport_pvlan_mapping_trunk)
   end
 
-  def test_switchport_pvlan_trunk_allowed_vlan
+  def test_sw_pvlan_trunk_allowed_vlan
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_allowed_vlan')
       assert_raises(Cisco::UnsupportedError) do
@@ -327,7 +327,7 @@ class TestInterfacePrivateVlan < CiscoTestCase
     assert_equal(vlans, i.switchport_pvlan_trunk_allowed_vlan)
   end
 
-  def test_switchport_pvlan_trunk_native_vlan
+  def test_sw_pvlan_trunk_native_vlan
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_native_vlan')
       assert_raises(Cisco::UnsupportedError) do

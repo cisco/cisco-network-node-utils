@@ -670,14 +670,14 @@ class TestInterface < CiscoTestCase
                'Error: svi_management should be nil when interface is ethernet')
   end
 
-  #   def test_get_prefix_list_when_switchport
+  #   def test_prefix_list_when_switchport
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     addresses = interface.prefixes
   #     assert_empty(addresses)
   #   end
   #
-  #   def test_get_prefix_list_with_ipv4_address_assignment
+  #   def test_prefix_list_with_ipv4
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -690,7 +690,7 @@ class TestInterface < CiscoTestCase
   #     prefixes = nil
   #   end
   #
-  #   def test_get_prefix_list_with_ipv6_address_assignment
+  #   def test_prefix_list_with_ipv6
   #     interface = Interface.new(interfaces[0] )
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -703,7 +703,7 @@ class TestInterface < CiscoTestCase
   #     prefixes = nil
   #   end
   #
-  #   def test_prefix_list_with_both_ip4_and_ipv6_address_assignments
+  #   def test_prefix_list_with_ipv4_ipv6
   #     interface = Interface.new(interfaces[0])
   #     interface.switchport_mode = :access
   #     interface.switchport_mode = :disabled if platform == :nexus
@@ -825,7 +825,7 @@ class TestInterface < CiscoTestCase
     refute_empty(Interface.interfaces, 'Error: interfaces collection empty')
   end
 
-  def test_ipv4_addr_mask_set_address_invalid
+  def test_ipv4_addr_mask_set_inv
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(Cisco::CliError) do
@@ -833,7 +833,7 @@ class TestInterface < CiscoTestCase
     end
   end
 
-  def test_ipv4_addr_mask_set_netmask_invalid
+  def test_ipv4_addr_mask_set_inv_mask
     interface = create_interface
     interface.switchport_mode = :disabled if platform == :nexus
     assert_raises(Cisco::CliError) do
@@ -976,7 +976,7 @@ class TestInterface < CiscoTestCase
                  'Error: ipv4 netmask length default get value mismatch')
   end
 
-  def test_ipv4_address_getter_with_preconfig
+  def test_ipv4_addr_preconfig
     address = '8.7.1.1'
     length = 15
     ifname = interfaces[0]
@@ -993,7 +993,7 @@ class TestInterface < CiscoTestCase
     interface_ipv4_config(ifname, address, length, false)
   end
 
-  def test_ipv4_address_getter_with_preconfig_secondary
+  def test_ipv4_addr_preconfig_sec
     address = '8.7.1.1'
     length = 15
     sec_address = '1.1.2.5'
@@ -1065,7 +1065,7 @@ class TestInterface < CiscoTestCase
     assert_equal(i.default_ipv4_forwarding, i.ipv4_forwarding)
   end
 
-  def test_fabric_forwarding_anycast_gateway
+  def test_ff_anycast_gateway_mac
     # Ensure N7k has compatible interface
     mt_full_interface? if node.product_id[/N7/]
 
