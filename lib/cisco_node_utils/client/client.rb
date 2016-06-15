@@ -167,9 +167,11 @@ class Cisco::Client
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param context [String, Array<String>] Context for the configuration
   # @param values [String, Array<String>] Actual configuration to set
+  # @param kwargs data-format-specific args
   def set(data_format: :cli,
           context:     nil,
-          values:      nil)
+          values:      nil,
+          **_kwargs)
     # subclasses will generally want to call Client.munge_to_array()
     # on context and/or values before calling super()
     fail Cisco::RequestNotSupported unless self.supports?(data_format)

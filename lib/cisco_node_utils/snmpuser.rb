@@ -241,7 +241,7 @@ module Cisco
         # Retrieve password hashes
         hashed_pw = SnmpUser.auth_password('dummy_user', @engine_id)
         if hashed_pw.nil?
-          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
+          fail "SNMP dummy user 'dummy_user' #{@engine_id} was configured " \
                "but password is missing?\n" \
                + @@node.get(command: 'show run snmp all')
         end
@@ -289,7 +289,7 @@ module Cisco
         dummyau = SnmpUser.auth_password('dummy_user', @engine_id)
         hashed_pw = SnmpUser.priv_password('dummy_user', @engine_id)
         if hashed_pw.nil?
-          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
+          fail "SNMP dummy user 'dummy_user' #{@engine_id} was configured " \
                "but password is missing?\n" \
                + @@node.get(command: 'show run snmp all')
         end

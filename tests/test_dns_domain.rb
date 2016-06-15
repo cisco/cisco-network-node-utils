@@ -51,7 +51,7 @@ class TestDnsDomain < CiscoTestCase
 
   # TESTS
 
-  def test_dnsdomain_create_destroy_single
+  def test_create_destroy_single
     id = 'aoeu.com'
     refute_includes(Cisco::DnsDomain.dnsdomains, id)
 
@@ -63,7 +63,7 @@ class TestDnsDomain < CiscoTestCase
     refute_includes(Cisco::DnsDomain.dnsdomains, id)
   end
 
-  def test_dnsdomain_create_destroy_multiple
+  def test_create_destroy_multiple
     id1 = 'aoeu.com'
     id2 = 'asdf.com'
     refute_includes(Cisco::DnsDomain.dnsdomains, id1)
@@ -83,7 +83,7 @@ class TestDnsDomain < CiscoTestCase
     refute_includes(Cisco::DnsDomain.dnsdomains, id2)
   end
 
-  def test_dnsdomain_create_destroy_single_vrf
+  def test_create_destroy_single_vrf
     id = 'aoeu.com'
     vrf = 'test'
     non_vrf = Cisco::DnsDomain.new(id)
@@ -100,7 +100,7 @@ class TestDnsDomain < CiscoTestCase
     non_vrf.destroy
   end
 
-  def test_dnsdomain_create_destroy_multiple_vrf
+  def test_create_destroy_multiple_vrf
     id1 = 'aoeu.com'
     id2 = 'asdf.com'
     vrf = 'test'
