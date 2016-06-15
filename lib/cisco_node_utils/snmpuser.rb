@@ -75,7 +75,7 @@ module Cisco
 
       if platform == :ios_xr && instantiate
         fail TypeError \
-          unless version.is_a?(Symbol) && [:v1, :v2c, :v3].include?(version)
+          unless [:v1, :v2c, :v3].include?(version)
 
         fail TypeError \
           if groups.length > 1
@@ -169,9 +169,8 @@ module Cisco
                    priv:         priv_str,
                    localizedKey: local_str,
                    engineId:     engineidstr)
+        SnmpUser.users.delete(@name + ' ' + @engine_id)
       end
-
-      SnmpUser.users.delete(@name + ' ' + @engine_id) if platform != :ios_xr
     end
 
     attr_reader :name
