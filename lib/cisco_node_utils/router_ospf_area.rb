@@ -27,13 +27,15 @@ module Cisco
   class RouterOspfArea < NodeUtil
     attr_reader :router, :vrf, :area_id
 
-    def initialize(ospf_router, vrf_name, area_id)
+    def initialize(ospf_router, vrf_name, area_id, instantiate=true)
       fail TypeError unless ospf_router.is_a?(String)
       fail TypeError unless vrf_name.is_a?(String)
       fail ArgumentError unless ospf_router.length > 0
       fail ArgumentError unless vrf_name.length > 0
       @area_id = area_id.to_s
       fail ArgumentError if @area_id.empty?
+
+      Feature.ospf_enable if instantiate
       # Convert to dot-notation
 
       @router = ospf_router
@@ -53,7 +55,7 @@ module Cisco
           hash[name]['default'] = {}
           area_ids.uniq.each do |area|
             hash[name]['default'][area] =
-              RouterOspfArea.new(name, 'default', area)
+              RouterOspfArea.new(name, 'default', area, false)
           end
         end
         vrf_ids = config_get('ospf', 'vrf', name: name)
@@ -66,7 +68,7 @@ module Cisco
           hash[name][vrf] = {}
           area_ids.uniq.each do |area|
             hash[name][vrf][area] =
-              RouterOspfArea.new(name, vrf, area)
+              RouterOspfArea.new(name, vrf, area, false)
           end
         end
       end
