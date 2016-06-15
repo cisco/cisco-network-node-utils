@@ -18,7 +18,7 @@ require_relative '../lib/cisco_node_utils/itd_device_group'
 include Cisco
 # TestInterface - Minitest for general functionality
 # of the ItdDeviceGroup class.
-class TestItdDeviceGroup < CiscoTestCase
+class TestItdDevGrp < CiscoTestCase
   @skip_unless_supported = 'itd_device_group'
   # Tests
 
@@ -32,7 +32,7 @@ class TestItdDeviceGroup < CiscoTestCase
     super
   end
 
-  def test_itd_device_group_create_destroy
+  def test_create_destroy
     skip_nexus_i2_image?
     i1 = ItdDeviceGroup.new('abc')
     i2 = ItdDeviceGroup.new('BCD')

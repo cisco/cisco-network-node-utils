@@ -20,7 +20,7 @@ require_relative '../lib/cisco_node_utils/vlan'
 include Cisco
 
 # TestVlan - Minitest for Vlan node utility
-class TestVlan < CiscoTestCase
+class TestVlanPVlan < CiscoTestCase
   @skip_unless_supported = 'vlan'
 
   @@cleaned = false # rubocop:disable Style/ClassVars
@@ -45,7 +45,7 @@ class TestVlan < CiscoTestCase
     cleanup
   end
 
-  def test_pvlan_type_default
+  def test_type_default
     config_no_warn('no feature vtp')
     config_no_warn('feature private-vlan')
     v1 = Vlan.new(100)
@@ -57,7 +57,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_default
+  def test_association_default
     config_no_warn('no feature vtp')
     config_no_warn('feature private-vlan')
     v1 = Vlan.new(100)
@@ -70,7 +70,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_primary
+  def test_type_primary
     v1 = Vlan.new(100)
     pv_type = 'primary'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -130,7 +130,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_isolated
+  def test_type_isolated
     v1 = Vlan.new(100)
     pv_type = 'isolated'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -144,7 +144,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_community
+  def test_type_community
     v1 = Vlan.new(100)
     pv_type = 'community'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -158,7 +158,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_isolated_primary
+  def test_type_isolated_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -177,7 +177,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_isolated_community_primary
+  def test_type_isolated_community_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -200,7 +200,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_isolated_to_primary
+  def test_type_change_isolated_to_primary
     v1 = Vlan.new(100)
     pv_type = 'isolated'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -218,7 +218,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_isolated_to_community
+  def test_type_change_isolated_to_community
     v1 = Vlan.new(100)
     pv_type = 'isolated'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -236,7 +236,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_community_to_isolated
+  def test_type_change_community_to_isolated
     v1 = Vlan.new(100)
     pv_type = 'community'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -254,7 +254,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_community_to_primary
+  def test_type_change_community_to_primary
     v1 = Vlan.new(100)
     pv_type = 'community'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -272,7 +272,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_primary_to_isolated
+  def test_type_change_primary_to_isolated
     v1 = Vlan.new(100)
     pv_type = 'primary'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -290,7 +290,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_type_change_primary_to_community
+  def test_type_change_primary_to_community
     v1 = Vlan.new(100)
     pv_type = 'primary'
     if validate_property_excluded?('vlan', 'pvlan_type')
@@ -308,7 +308,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_isolate_association
+  def test_isolate_association
     vlan_list = %w(100 101)
     result = ['101']
     v1 = Vlan.new(vlan_list[0])
@@ -333,7 +333,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_community_association
+  def test_community_association
     vlan_list = %w(100 101)
     result = ['101']
     v1 = Vlan.new(vlan_list[0])
@@ -358,7 +358,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_failure
+  def test_association_failure
     vlan_list = %w(100 101 200)
     result = %w(101 200)
     v1 = Vlan.new(vlan_list[0])
@@ -395,7 +395,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_operational_and_not_operational
+  def test_association_ops
     vlan_list = %w(100 101 200)
     result = %w(101 200)
 
@@ -423,7 +423,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_vlan_not_configured
+  def test_association_vlan_not_configured
     vlan_list = %w(100 101 200)
     result = %w(101 200)
     v1 = Vlan.new(vlan_list[0])
@@ -447,7 +447,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_add_vlan
+  def test_association_add_vlan
     vlan_list = %w(100 101)
     result = ['101']
     v1 = Vlan.new(vlan_list[0])
@@ -471,7 +471,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_association_remove_vlan
+  def test_association_remove_vlan
     vlan_list = %w(100 101 200)
     result = %w(101 200)
     v1 = Vlan.new(vlan_list[0])
@@ -576,7 +576,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_isolate_community_association
+  def test_isolate_community_association
     vlan_list = %w(100 101 200)
     result = %w(101 200)
     v1 = Vlan.new(vlan_list[0])
@@ -605,7 +605,7 @@ class TestVlan < CiscoTestCase
     end
   end
 
-  def test_pvlan_multi_isolate_community_association
+  def test_multi_isolate_community_association
     vlan_list = %w(100 101 102 104 105 200 201 202)
     v1 = Vlan.new(vlan_list[0])
 

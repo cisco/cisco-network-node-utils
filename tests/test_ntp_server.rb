@@ -40,7 +40,7 @@ class TestNtpServer < CiscoTestCase
 
   # TESTS
 
-  def test_ntpserver_create_destroy_single_ipv4
+  def test_ipv4
     id = '130.88.203.12'
     refute_includes(Cisco::NtpServer.ntpservers, id)
 
@@ -52,7 +52,7 @@ class TestNtpServer < CiscoTestCase
     refute_includes(Cisco::NtpServer.ntpservers, id)
   end
 
-  def test_ntpserver_create_destroy_single_ipv6
+  def test_ipv6
     id = '2003::5'
     refute_includes(Cisco::NtpServer.ntpservers, id)
 
@@ -64,7 +64,7 @@ class TestNtpServer < CiscoTestCase
     refute_includes(Cisco::NtpServer.ntpservers, id)
   end
 
-  def test_ntpserver_create_destroy_multiple
+  def test_multiple
     id1 = '130.88.203.12'
     id2 = '2003::5'
     refute_includes(Cisco::NtpServer.ntpservers, id1)

@@ -67,7 +67,7 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def test_prop_nil_when_ethernet
+  def test_prop_nil_when_eth
     skip_autostate_test?
     intf = Interface.new(interfaces[0])
     assert_nil(intf.svi_autostate,
@@ -112,6 +112,8 @@ class TestSvi < CiscoTestCase
   end
 
   def test_get_autostate
+    # TBD: autostate is also tested in test_interface_switchport.rb so remove
+    # tests from one or the other
     skip_autostate_test?
 
     config('interface vlan 23', 'no autostate')
@@ -184,14 +186,14 @@ class TestSvi < CiscoTestCase
     end
   end
 
-  def test_create_interface_description
+  def test_description
     description = 'Test description'
     svi.description = description
     assert_equal(description, svi.description,
                  'Error: Description not configured')
   end
 
-  def test_system_default_svi_autostate_on_off
+  def test_sys_def_svi_autostate
     skip_autostate_test?
     interface = Interface.new(interfaces[0])
 

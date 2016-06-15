@@ -19,7 +19,7 @@ require_relative '../lib/cisco_node_utils/bridge_domain'
 include Cisco
 
 # TestBdi - Minitest for Interface configuration of BDI interfaces.
-class TestBdi < CiscoTestCase
+class TestInterfaceBdi < CiscoTestCase
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
   attr_reader :bdi
 
@@ -57,7 +57,7 @@ platform")
     super
   end
 
-  def test_create_and_check_all_properties
+  def test_bdi
     # Check all the default values
     assert_equal(@bdi.default_vrf, @bdi.vrf)
     assert_equal(@bdi.default_ipv4_address, @bdi.ipv4_address)

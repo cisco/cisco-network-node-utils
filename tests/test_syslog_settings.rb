@@ -41,7 +41,7 @@ class TestSyslogSettings < CiscoTestCase
 
   # TESTS
 
-  def test_syslogsettings_create
+  def test_create
     syslog_setting = Cisco::SyslogSettings.new('default')
 
     if platform == :ios_xr

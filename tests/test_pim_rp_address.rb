@@ -147,7 +147,7 @@ class TestPimRpAddress < CiscoTestCase
 
   # Tests single invalid rp address under vrf default
   #---------------------------------------------------
-  def test_single_invalid_rpaddr_single_vrf
+  def test_rpaddr
     %w(ipv4).each do |afi|
       create_single_invalid_rpaddr_single_vrf(afi)
     end

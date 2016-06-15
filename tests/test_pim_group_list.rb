@@ -31,7 +31,7 @@ require_relative '../lib/cisco_node_utils/pim_group_list'
 include Cisco
 
 # TestPim - Minitest for PimGrouplist
-class TestPimGroupList < CiscoTestCase
+class TestPimGrpLst < CiscoTestCase
   @skip_unless_supported = 'pim'
 
   # Enables feature pim
@@ -142,42 +142,6 @@ class TestPimGroupList < CiscoTestCase
   def test_all_group_lists
     %w(ipv4).each do |afi|
       all_group_lists(afi)
-    end
-  end
-
-  # Creates single invalid rp address single grouplist vrf default
-  #---------------------------------------------------------------
-  def create_single_invalid_rpaddr_single_grouplist_single_vrf(afi)
-    rp_addr = '256.256.256.256'
-    grouplist = '224.0.0.0/8'
-    assert_raises(CliError) do
-      PimGroupList.new(afi, 'default', rp_addr, grouplist)
-    end
-  end
-
-  # Tests single invalid rp address single grouplist vrf default
-  #---------------------------------------------------------------
-  def test_single_invalid_rpaddr_single_grouplist_single_vrf
-    %w(ipv4).each do |afi|
-      create_single_invalid_rpaddr_single_grouplist_single_vrf(afi)
-    end
-  end
-
-  # Creates single rp address single invalid grouplist single vrf
-  #---------------------------------------------------------------
-  def create_single_rpaddr_single_invalid_grouplist_single_vrf(afi)
-    rp_addr = '25.25.25.25'
-    grouplist = '25.0.0.0/8'
-    assert_raises(CliError) do
-      PimGroupList.new(afi, 'red', rp_addr, grouplist)
-    end
-  end
-
-  # Tests single rp address single invalid grouplist single vrf
-  #---------------------------------------------------------------
-  def test_single_rpaddr_single_invalid_grouplist_single_vrf
-    %w(ipv4).each do |afi|
-      create_single_rpaddr_single_invalid_grouplist_single_vrf(afi)
     end
   end
 end
