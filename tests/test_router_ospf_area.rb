@@ -26,7 +26,6 @@ class TestRouterOspfArea < CiscoTestCase
     super
     remove_all_ospfs if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
-    config 'feature ospf'
   end
 
   def teardown
