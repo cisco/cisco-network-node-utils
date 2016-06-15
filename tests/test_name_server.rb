@@ -49,7 +49,7 @@ class TestNameServer < CiscoTestCase
 
   # TESTS
 
-  def test_nameserver_create_destroy_single_ipv4
+  def test_ipv4
     id = '7.7.7.7'
     refute_includes(Cisco::NameServer.nameservers, id)
 
@@ -61,7 +61,7 @@ class TestNameServer < CiscoTestCase
     refute_includes(Cisco::NameServer.nameservers, id)
   end
 
-  def test_nameserver_create_destroy_single_ipv6
+  def test_ipv6
     id = '2001:4860:4860::7777'
     refute_includes(Cisco::NameServer.nameservers, id)
 
@@ -73,7 +73,7 @@ class TestNameServer < CiscoTestCase
     refute_includes(Cisco::NameServer.nameservers, id)
   end
 
-  def test_router_create_destroy_multiple
+  def test_multiple
     id1 = '7.7.7.7'
     id2 = '2001:4860:4860::7777'
     refute_includes(Cisco::NameServer.nameservers, id1)

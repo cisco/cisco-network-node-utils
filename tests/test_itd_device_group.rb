@@ -32,7 +32,7 @@ class TestItdDevGrp < CiscoTestCase
     super
   end
 
-  def test_itd_device_group_create_destroy
+  def test_create_destroy
     skip_nexus_i2_image?
     i1 = ItdDeviceGroup.new('abc')
     i2 = ItdDeviceGroup.new('BCD')

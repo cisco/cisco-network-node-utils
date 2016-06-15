@@ -81,7 +81,7 @@ class TestPim < CiscoTestCase
 
   # Tests single ssm range none under default vrf
   #-----------------------------------------------
-  def test_single_ssm_range_single_vrf
+  def test_ssm_range
     %w(ipv4).each do |afi|
       create_single_ssm_range_single_vrf(afi)
     end
@@ -98,7 +98,7 @@ class TestPim < CiscoTestCase
 
   # Tests single ssm range none under default vrf
   #-----------------------------------------------
-  def test_single_ssm_range_none_single_vrf
+  def test_ssm_range_none
     %w(ipv4).each do |afi|
       create_single_ssm_range_none_single_vrf(afi)
     end
@@ -123,7 +123,7 @@ class TestPim < CiscoTestCase
 
   # Tests multiple ssm ranges under different vrfs
   #-----------------------------------------------
-  def test_multiple_ssm_range_multiple_vrfs
+  def test_ssm_range_multiple
     %w(ipv4).each do |afi|
       create_multiple_ssm_range_multiple_vrfs(afi)
     end
@@ -153,7 +153,7 @@ class TestPim < CiscoTestCase
 
   # Tests multiple ssm ranges overwrite under different vrfs
   #-----------------------------------------------
-  def test_multiple_ssm_range_overwrite_multiple_vrfs
+  def test_ssm_range_multiple_overwrite
     %w(ipv4).each do |afi|
       create_multiple_ssm_range_overwrite_multiple_vrfs(afi)
     end
@@ -171,7 +171,7 @@ class TestPim < CiscoTestCase
 
   # Tests single invalid ssm range under vrf default
   #---------------------------------------------------
-  def test_single_invalid_ssm_range_single_vrf
+  def test_ssm_range_inv
     %w(ipv4).each do |afi|
       create_single_invalid_ssm_range_single_vrf(afi)
     end

@@ -70,7 +70,7 @@ class TestVlan < CiscoTestCase
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
-  def test_create_and_destroy
+  def test_create_destroy
     v = Vlan.new(1000)
     vlans = Vlan.vlans
     assert(vlans.key?('1000'), 'Error: failed to create vlan 1000')
