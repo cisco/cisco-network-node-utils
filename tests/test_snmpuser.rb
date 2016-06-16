@@ -375,7 +375,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth md5 #{auth_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
@@ -441,7 +441,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth sha #{auth_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
@@ -488,7 +488,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth md5 #{auth_pw} priv #{priv_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
@@ -536,7 +536,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth md5 #{auth_pw} priv aes-128 #{priv_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
@@ -584,7 +584,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth sha #{auth_pw} priv #{priv_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
@@ -632,7 +632,7 @@ class TestSnmpUser < CiscoTestCase
       cmd = 'show running-config snmp-server'
     else
       pat = "#{user_pat(name)} auth sha #{auth_pw} priv aes-128 #{priv_pw} localizedkey"
-      cmd = 'show run snmp all | in #{name} | no-more'
+      cmd = "show run snmp all | in #{name} | no-more"
     end
 
     assert_show_match(
