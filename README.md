@@ -90,7 +90,7 @@ An example configuration file (illustrating each of the above scenarios) is prov
 The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`. Currently there are two subclasses:
 
 * `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
-* `Cisco::Client::GRPC` - client for communicating with IOS XR 6.0.0 and later, using gRPC.
+* `Cisco::Client::GRPC` - client for communicating with IOS XR 6.0.1 and later, using gRPC.
 
 For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
