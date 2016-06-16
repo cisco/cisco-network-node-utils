@@ -124,35 +124,38 @@ provider classes, and not directly call into `CommandReference` or `Node`.
 
 ## <a name="examples">Examples</a>
 
-
 These utilities can be used directly on a Cisco device (as used by Puppet
 and Chef) or can run on a workstation and point to a Cisco device (as used
 by the included minitest suite).  The Client and Node APIs will read
 connection information (host, username, etc.) from a
-[configuration file](#configuration). When creating a Client or Node,
-you can specify the label of the node in the config file to connect to (if no
-label is specified, "default" is assumed). If a configuration file cannot be
+[configuration file](#configuration). When creating a Client
+you can choose which device in the config file to connect to by specifying a label
+(if no label is specified, "default" is assumed). If a configuration file cannot be
 found, the Client or Node will attempt to connect to the local device.
+
+*Note: Entries in the configuration file can specify local or remote devices.*
+
+### Cisco Nexus Device (supports CLI configuration)
 
 #### Low-level Client API
 
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the "default" node in the config file
-client = Cisco::Client.create()
+# Create a connection to the following nodes:
+# - 'default' device defined in the cisco_node_utils.yaml file
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+client1 = Cisco::Client.create()
+client2 = Cisco::Client.create('n9k')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-# get a connection to the "nxapi_remote" node in the config file
-#client = Cisco::Client.create('nxapi_remote')
+# Use connections to get and set device state.
+client1.set(values: 'feature vtp')
+client1.set(values: 'vtp domain mycompany.com')
+puts client1.get(command: 'show vtp status | inc Domain')
 
-# via cli
-version = client.get(command: 'show version')
-client.set(values: 'vtp domain mycompany.com')
-
-# via yang
-bgp_cfg = client.get(data_format: :yang_json, command: '{"Cisco-IOS-XR-ipv4-bgp-cfg:bgp": [null]}')
-client.set(data_format: :yang_json,
-           values: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"BLUE","create":[null]}]}}')
+puts client2.get(command: 'show version')
 ```
 
 #### High-level Node API
@@ -160,19 +163,73 @@ client.set(data_format: :yang_json,
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the "default" node in the config file
+# Create a connection to the following:
+# - 'default' device defined in the cisco_node_utils.yaml
 node = Cisco::Node.instance()
+# OR:
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+# Cisco::Environment.default_environment_name = 'n9k'
+# node = Cisco::Node.instance()
 
-# get a connection to the "nxapi_remote" node in the config file
-#node = Cisco::Node.instance('nxapi_remote')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-# via cli
-version = node.config_get("show_version", "system_image")
-node.config_set("vtp", "domain", "mycompany.com")
+# Use connection to get and set device state.
+node.config_set('feature', 'vtp', state: '')
+node.config_set('vtp', 'domain', domain: 'mycompany.com')
+puts node.config_get('vtp', 'domain')
+```
+
+### Cisco IOS XR Device (supports CLI and YANG configuration)
+
+#### Low-level Client API
+
+```ruby
+require 'cisco_node_utils'
+
+# Create a connection to the following nodes:
+# - 'default' device defined in the cisco_node_utils.yaml file
+# - 'xrv9k' device defined in the cisco_node_utils.yaml file
+client1 = Cisco::Client.create()
+client2 = Cisco::Client.create('xrv9k')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
+
+# Use connections to get and set device state.
+# via CLI
+client1.set(values: 'vrf blue')
+puts client1.get(command: 'show run vrf')
+
+# via YANG
+client2.set(data_format: :yang_json,
+            values: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"red", "create":[null]}]}}')
+puts client2.get(data_format: :yang_json, command: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}')
+```
+
+#### High-level Node API
+
+```ruby
+require 'cisco_node_utils'
+
+# Create a connection to the following:
+# - 'default' device defined in the cisco_node_utils.yaml
+node = Cisco::Node.instance()
+# OR:
+# - 'xrv9k' device defined in the cisco_node_utils.yaml file
+# Cisco::Environment.default_environment_name = 'xrv9k'
+# node = Cisco::Node.instance()
+
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
+
+# Use connection to get and set device state.
+# via CLI
+node.config_set('vrf', 'create', vrf: 'blue')
+puts node.config_get('vrf', 'all_vrfs')
 
 # via yang
-bgp_cfg = node.get_yang('{"Cisco-IOS-XR-ipv4-bgp-cfg:bgp": [null]}')
-node.merge_yang('{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"RED", "create":[null]}]}}')
+node.merge_yang('{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"red", "create":[null]}]}}')
+puts node.get_yang('{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}')
 ```
 
 
