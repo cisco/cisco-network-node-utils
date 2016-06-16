@@ -92,7 +92,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_create_invalid_cli
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     args_list = [
       ['Cleartext password with localized key',
@@ -115,7 +115,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_engine_id_valid_and_none
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     create_user('tester', 'auth sha XXWWPass0wrf engineID 22:22:22:22:23:22')
     create_user('tester2')
@@ -162,7 +162,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_noauth_nopriv_multi
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'userv3test3'
     groups = ['network-admin', 'vdc-admin']
@@ -212,9 +212,8 @@ class TestSnmpUser < CiscoTestCase
     assert_nil(SnmpUser.users[name])
   end
 
-
   def test_auth_pw_equal_invalid_param
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqualInvalid2'
     auth_pw = 'TeSt297534'
@@ -225,7 +224,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_priv_pw_equal_invalid_param
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
@@ -238,7 +237,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_pw_equal_priv_invalid_param
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
@@ -251,7 +250,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_pw_not_equal
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqual'
     auth_pw = 'xxwwpass0r!f'
@@ -263,7 +262,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_pw_equal
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
@@ -274,7 +273,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_priv_pw_equal_empty
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEmpty'
     create_user(name, 'network-admin')
@@ -286,7 +285,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_pw_equal_localizedkey
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -300,7 +299,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_priv_pw_equal_localizedkey
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -316,7 +315,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_priv_des_pw_equal
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
@@ -330,7 +329,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_md5_nopriv
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3test5'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -343,7 +343,7 @@ class TestSnmpUser < CiscoTestCase
 
     assert_show_match(
       pattern: /#{user_pat(name)} auth md5 \S+ localizedkey/,
-      command: 'show run snmp all | in #{name} | no-more')
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
@@ -377,7 +377,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_sha_nopriv
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3testsha'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -396,7 +397,8 @@ class TestSnmpUser < CiscoTestCase
   # If the auth pw is in hex and localized key param in constructor is false,
   # then the pw got localized by the device again.
   def test_auth_sha_nopriv_pw_localized_false
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3testauthsha3'
     groups = ['network-admin']
     auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -441,7 +443,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_md5_priv_des
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3test6'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -488,7 +491,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_md5_priv_aes128
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3test7'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -535,7 +539,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_sha_priv_des
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'userv3test8'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -582,7 +587,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_sha_priv_aes128
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'userv3test9'
     groups = ['network-admin']
@@ -630,7 +635,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_create_destroy_with_engine_id
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'test_with_engine_id'
     auth_pw = 'XXWWPass0wrf'
     priv_pw = 'XXWWPass0wrf'
@@ -669,7 +675,8 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_authpassword_with_engineid
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
+
     name = 'test_authpassword'
     auth_pw = '0x123456'
     engine_id = '128:12:12:12:12'
@@ -701,7 +708,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_privpassword_with_engineid
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'test_privpassword2'
     priv_password = '0x123456'
@@ -720,7 +727,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_auth_password_equal_with_engineid
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'test_authpass_equal'
     auth_pass = 'XXWWPass0wrf'
@@ -736,7 +743,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_priv_password_equal_with_engineid
-    return if platform == :ios_xr
+    skip if platform == :ios_xr
 
     name = 'test_privpass_equal'
     priv_pass = 'XXWWPass0wrf'
