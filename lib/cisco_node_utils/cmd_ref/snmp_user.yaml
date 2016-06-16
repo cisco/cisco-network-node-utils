@@ -72,7 +72,7 @@ user:
     set_value: "<state> snmp-server user <name> <group> <version> <auth> <priv>"
   nexus:
     get_command: "show run snmp all | i 'snmp-server user'"
-    set_value: "<state> snmp-server user <name> <group> <version> <auth> <priv> <localizedKey> <engineId>"
+    set_value: "<state> snmp-server user <name> <group> <auth> <priv> <localizedKey> <engineId>"
 
 version:
   _exclude: [nexus]

@@ -60,7 +60,15 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def user_pat(name, group='network-admin', version='')
-    group ? /snmp-server user #{name} #{group} #{version}/ : /snmp-server user #{name}/
+    if group
+      if !version.empty?
+        /snmp-server user #{name} #{group} #{version}/
+      else
+        /snmp-server user #{name} #{group}/
+      end
+    else
+      /snmp-server user #{name}/
+    end
   end
 
   # test cases starts here
