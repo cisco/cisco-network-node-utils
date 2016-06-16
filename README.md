@@ -151,7 +151,7 @@ client.set(values: 'vtp domain mycompany.com')
 
 # via yang
 bgp_cfg = client.get(data_format: :yang_json, command: '{"Cisco-IOS-XR-ipv4-bgp-cfg:bgp": [null]}')
-client.set(data_format: :yang_json, 
+client.set(data_format: :yang_json,
            values: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"BLUE","create":[null]}]}}')
 ```
 
