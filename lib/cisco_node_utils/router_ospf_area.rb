@@ -192,6 +192,7 @@ module Cisco
     # the above command can be appended with no-summary and/or
     # no-redistribution and/or default-information-originate.
     # route-map <map> can be appended with default-information-originate
+    # Basically, every property this CLI configures is optional
     def nssa
       hash = {}
       output = config_get('ospf_area', 'nssa', @get_args)

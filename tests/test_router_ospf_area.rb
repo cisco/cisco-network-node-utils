@@ -423,6 +423,8 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal('supress_fa', ad.nssa_translate_type7)
     ad.nssa_translate_type7 = 'always_supress_fa'
     assert_equal('always_supress_fa', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'always'
+    assert_equal('always', ad.nssa_translate_type7)
     ad.nssa_translate_type7 = ad.default_nssa_translate_type7
     assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
     av = create_routerospfarea_vrf
@@ -433,6 +435,8 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal('supress_fa', av.nssa_translate_type7)
     av.nssa_translate_type7 = 'always_supress_fa'
     assert_equal('always_supress_fa', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'always'
+    assert_equal('always', av.nssa_translate_type7)
     av.nssa_translate_type7 = av.default_nssa_translate_type7
     assert_equal(av.default_nssa_translate_type7, av.nssa_translate_type7)
   end
@@ -460,10 +464,7 @@ class TestRouterOspfArea < CiscoTestCase
               ['10.3.0.0/32', 'not_advertise'],
               ['10.3.0.1/32'],
               ['10.3.3.0/24', '450']]
-    ad.nssa_set(true, ad.default_nssa_def_info_originate,
-                ad.default_nssa_no_redistribution,
-                ad.default_nssa_no_summary,
-                ad.default_nssa_route_map)
+    ad.nssa_set(true, true, true, true, 'aaa')
     ad.nssa_translate_type7 = 'never'
     ad.range = ranges
     ad.stub = true
@@ -475,6 +476,11 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa_def_info_originate,
+     :nssa_enable,
+     :nssa_no_redistribution,
+     :nssa_no_summary,
+     :nssa_route_map,
      :nssa_translate_type7,
      :stub,
      :stub_no_summary,
