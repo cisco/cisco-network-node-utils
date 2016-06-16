@@ -296,12 +296,11 @@ module Cisco
       else
         @set_args[:default_information_originate] = ''
       end
-      if route_map
-        @set_args[:route_map] = 'route-map'
-        @set_args[:rm] = route_map
-      else
+      @set_args[:rm] = route_map
+      if route_map == default_nssa_route_map
         @set_args[:route_map] = ''
-        @set_args[:rm] = ''
+      else
+        @set_args[:route_map] = 'route-map'
       end
       config_set('ospf_area', 'nssa', @set_args)
     end

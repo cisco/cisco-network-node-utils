@@ -60,7 +60,7 @@ nssa_no_summary:
   default_value: false
 
 nssa_route_map:
-  default_value: false
+  default_value: ''
 
 nssa_translate_type7:
   get_value: '/^area <area> nssa translate type7 (.*)$/'
