@@ -52,7 +52,7 @@ class TestRouterOspfArea < CiscoTestCase
     av.stub = true
     assert_equal(2, RouterOspfArea.areas['Wolfpack'].size)
     av.destroy
-    # on n8k (only) , we cannot remove "area <area> default-cost 1",
+    # on n8k (only), we cannot remove "area <area> default-cost 1",
     # unless the entire ospf router is removed. The default value of
     # default_cost is 1 and so this is just a cosmetic issue but
     # need to skip the below test as the size will be wrong.
@@ -238,12 +238,17 @@ class TestRouterOspfArea < CiscoTestCase
 
   def test_nssa_default_vrf_others
     ad = create_routerospfarea_default
+    # on n8k (only), we cannot configure
+    # "area <area> nssa default-information-originate",
+    # properly if we reset it first. It is only configuring nssa
+    # but not the other parameters. bug ID: CSCva11482
     ad.nssa_set(true, true,
                 ad.default_nssa_no_redistribution,
                 ad.default_nssa_no_summary,
                 ad.default_nssa_route_map)
     assert_equal(true, ad.nssa_enable)
-    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_def_info_originate) unless
+      /N8/ =~ node.product_id
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
@@ -251,10 +256,12 @@ class TestRouterOspfArea < CiscoTestCase
     ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
                 ad.default_nssa_no_summary, 'aaa')
     assert_equal(true, ad.nssa_enable)
-    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_def_info_originate) unless
+      /N8/ =~ node.product_id
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
-    assert_equal('aaa', ad.nssa_route_map)
+    assert_equal('aaa', ad.nssa_route_map) unless
+      /N8/ =~ node.product_id
 
     ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
                 true, ad.default_nssa_route_map)
@@ -327,12 +334,17 @@ class TestRouterOspfArea < CiscoTestCase
 
   def test_nssa_non_default_vrf_others
     ad = create_routerospfarea_vrf
+    # on n8k (only), we cannot configure
+    # "area <area> nssa default-information-originate",
+    # properly if we reset it first. It is only configuring nssa
+    # but not the other parameters. bug ID: CSCva11482
     ad.nssa_set(true, true,
                 ad.default_nssa_no_redistribution,
                 ad.default_nssa_no_summary,
                 ad.default_nssa_route_map)
     assert_equal(true, ad.nssa_enable)
-    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_def_info_originate) unless
+      /N8/ =~ node.product_id
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
@@ -340,10 +352,12 @@ class TestRouterOspfArea < CiscoTestCase
     ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
                 ad.default_nssa_no_summary, 'aaa')
     assert_equal(true, ad.nssa_enable)
-    assert_equal(true, ad.nssa_def_info_originate)
+    assert_equal(true, ad.nssa_def_info_originate) unless
+      /N8/ =~ node.product_id
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
-    assert_equal('aaa', ad.nssa_route_map)
+    assert_equal('aaa', ad.nssa_route_map) unless
+      /N8/ =~ node.product_id
 
     ad.nssa_set(true, true, ad.default_nssa_no_redistribution,
                 true, ad.default_nssa_route_map)
@@ -450,6 +464,11 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa_def_info_originate,
+     :nssa_enable,
+     :nssa_no_redistribution,
+     :nssa_no_summary,
+     :nssa_route_map,
      :nssa_translate_type7,
      :stub,
      :stub_no_summary,
