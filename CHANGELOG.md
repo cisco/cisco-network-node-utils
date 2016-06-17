@@ -15,6 +15,9 @@ Changelog
 
 * Extend bgp_neighbor with attributes:
    * `bfd`
+* Added client support for gRPC on IOS XR.
+* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+
 
 ## [v1.3.1]
 
