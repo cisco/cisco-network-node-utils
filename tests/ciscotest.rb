@@ -100,7 +100,7 @@ class CiscoTestCase < TestCase
 
   def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(warn_match, *args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit')
     else
       result = super
     end

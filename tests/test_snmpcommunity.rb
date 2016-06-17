@@ -312,7 +312,7 @@ class TestSnmpCommunity < CiscoTestCase
     if platform != :ios_xr
       line = assert_show_match(
         pattern: /snmp-server community\s#{name}\suse-acl\s\S+/)
-      acl = line.to_s.gsub(/snmp-server community\s#{name}\suse-acl\s/, '').strip # rubocop:disable Metrics/LineLength
+      acl = line.to_s.gsub(/snmp-server community\s#{name}\suse-acl\s/, '').strip
       assert_equal(snmpcommunity.acl, acl)
     else
       line = assert_show_match(
