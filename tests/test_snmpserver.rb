@@ -96,7 +96,6 @@ class TestSnmpServer < CiscoTestCase
 
   def test_contact_special_chars
     snmpserver = SnmpServer.new
-    # newcontact = "Test{}(%tuvy@_cisco contact$#!@1234^&*()_+"
     newcontact = 'user@example.com @$%&}test ]|[#_@test contact'
     snmpserver.contact = newcontact
     if platform == :nexus
