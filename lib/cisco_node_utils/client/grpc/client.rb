@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require_relative '../client'
+require_relative '../../constants'
 Cisco::Client.silence_warnings do
   require 'grpc'
 end
@@ -97,7 +98,7 @@ class Cisco::Client::GRPC < Cisco::Client
     super
     if data_format == :yang_json
       mode = kwargs[:mode] || :merge_config
-      fail ArgumentError unless YANG_SET_MODE.include? mode
+      fail ArgumentError unless Cisco::YANG_SET_MODE.include? mode
       values.each do |yang|
         yang_req(@config, mode.to_s, ConfigArgs.new(yangjson: yang))
       end
