@@ -70,7 +70,7 @@ class TestVlan < CiscoTestCase
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
-  def test_create_and_destroy
+  def test_create_destroy
     v = Vlan.new(1000)
     vlans = Vlan.vlans
     assert(vlans.key?('1000'), 'Error: failed to create vlan 1000')
@@ -290,6 +290,12 @@ class TestVlan < CiscoTestCase
   end
 
   def test_mapped_vnis
+    if validate_property_excluded?('vlan', 'mapped_vni')
+      assert_raises(Cisco::UnsupportedError) do
+        Vlan.new(100).mapped_vni = 10_000
+      end
+      return
+    end
     # Map
     v1 = Vlan.new(100)
     vni1 = 10_000
@@ -343,13 +349,13 @@ class TestVlan < CiscoTestCase
 
   def test_mode_with_pvlan
     v = Vlan.new(1000)
-    if validate_property_excluded?('vlan', 'private_vlan_type') ||
+    if validate_property_excluded?('vlan', 'pvlan_type') ||
        validate_property_excluded?('vlan', 'mode')
-      features = 'private_vlan_type and/or vlan mode'
+      features = 'pvlan_type and/or vlan mode'
       skip("Skip test: Features #{features} are not supported on this device")
     end
     result = 'CE'
-    v.private_vlan_type = 'primary'
+    v.pvlan_type = 'primary'
     assert_equal(result, v.mode)
   end
 end

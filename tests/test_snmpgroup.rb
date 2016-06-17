@@ -20,12 +20,12 @@ class TestSnmpGroup < CiscoTestCase
   @skip_unless_supported = 'snmp_group'
 
   # NXOS snmp groups will not be empty
-  def test_snmpgroup_collection_not_empty
+  def test_collection_not_empty
     snmpgroups = SnmpGroup.groups
     refute_empty(snmpgroups)
   end
 
-  def test_snmpgroup_collection_valid
+  def test_collection_valid
     snmpgroups = SnmpGroup.groups
     s = @device.cmd('show snmp group | include Role | no-more')
     snmpgroups.each_value do |snmpgroup|
@@ -35,13 +35,13 @@ class TestSnmpGroup < CiscoTestCase
     end
   end
 
-  def test_snmpgroup_exists_with_name_empty
+  def test_exists_with_name_empty
     assert_raises(ArgumentError) do
       SnmpGroup.exists?('')
     end
   end
 
-  def test_snmpgroup_exists_with_name_invalid
+  def test_exists_with_name_invalid
     name = 'group-dummy'
     exist = SnmpGroup.exists?(name)
     s = @device.cmd('show snmp group | in Role | no-more')
@@ -49,13 +49,13 @@ class TestSnmpGroup < CiscoTestCase
     assert_equal(exist, !line.nil?)
   end
 
-  def test_snmpgroup_exists_with_name_bad_type
+  def test_exists_with_name_bad_type
     assert_raises(TypeError) do
       SnmpGroup.exists?(:not_a_string)
     end
   end
 
-  def test_snmpgroup_exists_with_name_valid
+  def test_exists_with_name_valid
     name = 'network-admin'
     exist = SnmpGroup.exists?(name)
     s = @device.cmd('show snmp group | in Role | no-more')
@@ -63,7 +63,7 @@ class TestSnmpGroup < CiscoTestCase
     assert_equal(exist, !line.nil?)
   end
 
-  def test_snmpgroup_get_name
+  def test_get_name
     name = 'network-operator'
     snmpgroup = SnmpGroup.new(name)
     assert_equal(snmpgroup.name, name)

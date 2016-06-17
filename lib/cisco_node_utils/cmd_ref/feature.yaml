@@ -5,6 +5,11 @@ _exclude: [ios_xr]
 _template:
   get_command: "show running | i ^feature"
 
+bfd:
+  kind: boolean
+  get_value: '/^feature bfd$/'
+  set_value: "feature bfd"
+
 bgp:
   kind: boolean
   get_value: '/^feature bgp$/'

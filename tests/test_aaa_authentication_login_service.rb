@@ -20,15 +20,8 @@ AAA_AUTH_LOGIN_SERVICE_METHOD_LOCAL = :local
 AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED = :unselected
 
 # Test class for AAA Authentication Login Service
-class TestAaaAuthenticationLoginService < CiscoTestCase
+class TestAaaAuthenLoginSvc < CiscoTestCase
   @skip_unless_supported = 'aaa_auth_login_service'
-
-  def setup
-    super
-    # TBD: Remove once CSCuz44696 is resolved.
-    skip('This test is not currently supported on 7.0(3)I3 images') if
-      node.os_version[/7.0\(3\)I3\(/]
-  end
 
   def unconfig_tacacs
     config('no feature tacacs+')
@@ -85,7 +78,8 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
       aaaauthloginservice.nil?
   end
 
-  def test_collection_with_service_default
+  # Test with service default
+  def test_collection_svc_def
     unconfig_aaa
     aaaauthloginservice_list = AaaAuthenticationLoginService.services
     refute_empty(aaaauthloginservice_list,
@@ -107,7 +101,8 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     aaaauthloginservices_default
   end
 
-  def test_collection_with_service_default_and_console
+  # Test with service default and console
+  def test_collection_svc_def_con
     unconfig_aaa
     # preconfig console
     config('aaa authentication login console none')
@@ -143,7 +138,8 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     aaaauthloginservices_default
   end
 
-  def test_collection_with_service_default_and_console_with_group
+  # Test with service default and console with group
+  def test_collection_svc_def_con_grp
     # preconfig servers
     servers = %w(group1 group2)
     config_tacacs_servers(servers)

@@ -88,6 +88,20 @@ module Cisco
       @set_args = @set_args.merge!(hash) unless hash.empty?
     end
 
+    def bfd=(val)
+      set_args_keys(state: (val) ? '' : 'no')
+      Feature.bfd_enable
+      config_set('bgp_neighbor', 'bfd', @set_args)
+    end
+
+    def bfd
+      config_get('bgp_neighbor', 'bfd', @get_args)
+    end
+
+    def default_bfd
+      config_get_default('bgp_neighbor', 'bfd')
+    end
+
     def description=(desc)
       fail TypeError unless desc.is_a?(String)
       desc.strip!

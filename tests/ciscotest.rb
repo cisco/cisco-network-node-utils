@@ -100,7 +100,7 @@ class CiscoTestCase < TestCase
 
   def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(warn_match, *args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit')
     else
       result = super
     end
@@ -165,19 +165,6 @@ class CiscoTestCase < TestCase
     @@interfaces
   end
 
-  def interfaces_id
-    unless @@interfaces_id
-      # rubocop:disable Style/ClassVars
-      @@interfaces_id = []
-      interfaces.each do |interface|
-        id = interface.split('ethernet')[1]
-        @@interfaces_id << id
-      end
-      # rubocop:enable Style/ClassVars
-    end
-    @@interfaces_id
-  end
-
   # Remove all router bgps.
   def remove_all_bgps
     require_relative '../lib/cisco_node_utils/bgp'
@@ -208,10 +195,18 @@ class CiscoTestCase < TestCase
     end
   end
 
+  def remove_all_svis
+    Interface.interfaces(:vlan).each do |svi, obj|
+      next if svi == 'vlan1'
+      obj.destroy
+    end
+  end
+
   # This testcase will remove all the vlans existing in the system
   # specifically in cleanup for minitests
   def remove_all_vlans
     remove_all_bridge_domains
+    remove_all_svis
     Vlan.vlans.each do |vlan, obj|
       # skip reserved vlan
       next if vlan == '1'
@@ -225,6 +220,8 @@ class CiscoTestCase < TestCase
     require_relative '../lib/cisco_node_utils/vrf'
     Vrf.vrfs.each do |vrf, obj|
       next if vrf[/management/]
+      # TBD: Remove vrf workaround below after CSCuz56697 is resolved
+      config 'vrf context ' + vrf if node.product_id[/N8/]
       obj.destroy
     end
   end

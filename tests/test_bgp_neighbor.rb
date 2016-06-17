@@ -265,6 +265,26 @@ class TestBgpNeighbor < CiscoTestCase
     end
   end
 
+  def test_bfd
+    %w(default test_vrf).each do |vrf|
+      neighbor = create_neighbor(vrf)
+      if validate_property_excluded?('bgp_neighbor', 'bfd')
+        assert_nil(neighbor.bfd)
+        assert_nil(neighbor.default_bfd)
+        assert_raises(Cisco::UnsupportedError) do
+          neighbor.bfd = true
+        end
+      else
+        check = [false, true, neighbor.default_bfd]
+        check.each do |value|
+          neighbor.bfd = value
+          assert_equal(value, neighbor.bfd)
+        end
+      end
+      neighbor.destroy
+    end
+  end
+
   def test_ebgp_multihop
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)

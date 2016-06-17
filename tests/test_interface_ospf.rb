@@ -154,13 +154,13 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_create_routerospf_nil
+  def test_routerospf_nil
     assert_raises(TypeError) do
       InterfaceOspf.new(interfaces[0], nil, '0.0.0.0')
     end
   end
 
-  def test_create_interface_name_zero_length
+  def test_name_zero_length
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
@@ -168,7 +168,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_create_interface_area_zero_length
+  def test_area_zero_length
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
@@ -176,7 +176,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_routerospf_create_valid
+  def test_routerospf
     ospf = create_routerospf
     ifname = interfaces[1]
     area = '0.0.0.0'
@@ -215,13 +215,13 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     "'passive interface' not removed")
   end
 
-  def test_routerospf_get_parent
+  def test_get_parent
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     assert_equal(ospf.name, interface.ospf_name)
   end
 
-  def test_cost_invalid_range
+  def test_cost_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     # upper range
@@ -250,7 +250,7 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'Error: default cost set failed')
   end
 
-  def test_hello_interval_invalid_range
+  def test_hello_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     # upper range
@@ -263,7 +263,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_hello_interval
+  def test_hello
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     interval = 90
@@ -280,7 +280,7 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'Error: default hello-interval set failed')
   end
 
-  def test_dead_interval_invalid_range
+  def test_dead_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
@@ -297,7 +297,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_dead_interval
+  def test_dead
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     interval = 150
@@ -314,7 +314,7 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     'Error: default dead-interval set failed')
   end
 
-  def test_passive_interface
+  def test_passive
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
@@ -331,7 +331,7 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'default passive interface set failed')
   end
 
-  def test_create_valid_multiple
+  def test_mult
     # ospf and interfaces[0]
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
@@ -339,7 +339,6 @@ class TestInterfaceOspf < CiscoTestCase
       pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
       msg:     "'ip router ospf #{ospf.name} default area' not configured")
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     create_interfaceospf(ospf, ifname, area)
@@ -348,12 +347,11 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     "'ip router ospf #{ospf.name} area #{area}' is not configured")
   end
 
-  def test_create_multiple_delete_one
+  def test_mult_delete_one
     # ospf and interfaces[0]
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     interface1 = create_interfaceospf(ospf, ifname, area)
@@ -361,7 +359,6 @@ class TestInterfaceOspf < CiscoTestCase
                  "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                  'not configured')
 
-    # delete ospf instance from interfaces_id[2]
     interface1.destroy
     refute_show_match(
       command: show_cmd(ifname),
@@ -434,7 +431,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_collection_multiple_interface
+  def test_collect_mult_intf
     s = config('int port-channel 42', 'descr foo')
     known_failure = s[/ERROR:.*port channel not present/]
     refute(known_failure, 'ERROR: port channel not present')
@@ -577,7 +574,7 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(encr, interface.message_digest_encryption_type)
   end
 
-  def test_message_digest_key_invalid_password
+  def test_message_digest_key_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 

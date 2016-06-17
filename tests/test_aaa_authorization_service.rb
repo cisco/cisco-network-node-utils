@@ -16,15 +16,12 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
 # TestAaaAuthorizationService - Minitest for AaaAuthorizationService util
-class TestAaaAuthorizationService < CiscoTestCase
+class TestAaaAuthorSvc < CiscoTestCase
   @skip_unless_supported = 'aaa_authorization_service'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    # TBD: Remove once CSCuz44696 is resolved.
-    skip('This test is not currently supported on 7.0(3)I3 images') if
-      node.os_version[/7.0\(3\)I3\(/]
 
     cleanup_aaa if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
@@ -95,57 +92,57 @@ class TestAaaAuthorizationService < CiscoTestCase
     %w(tac_group bxb100 sjc200 rtp10)
   end
 
-  def test_create_unsupported_type
+  def test_unsupported_type
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:none, 'default')
     end
   end
 
-  def test_create_nil_type
+  def test_nil_type
     assert_raises(TypeError) do
       AaaAuthorizationService.new(nil, 'default')
     end
   end
 
-  def test_create_invalid_type
+  def test_type_inv
     assert_raises(TypeError) do
       AaaAuthorizationService.new('test', 'default')
     end
   end
 
-  def test_create_invalid_range_type
+  def test_range_type_inv
     assert_raises(TypeError) do
       AaaAuthorizationService.new(34, 'default')
     end
   end
 
-  def test_create_invalid_service
+  def test_svc_inv
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:commands, 'test')
     end
   end
 
-  def test_create_empty_service
+  def test_empty_svc
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:commands, '')
     end
   end
 
-  def test_create_commands_default
+  def test_cmds_def
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_create_commands_console
+  def test_cmds_con
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_create_config_commands_default
+  def test_cfg_cmds_def
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating ' \
@@ -153,7 +150,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy unless aaa_a_service.nil?
   end
 
-  def test_create_config_commands_console
+  def test_cfg_cmds_con
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     refute_nil(aaa_a_service,
                'Error: AaaAuthorizationService creating commands default')
@@ -174,11 +171,11 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_collection_invalid
+  def test_collect_inv
     assert_nil(AaaAuthorizationService.services['TEST'])
   end
 
-  def test_collection_services_type_commands
+  def test_collect_svc_cmds
     type = :commands
     collection = AaaAuthorizationService.services[type]
 
@@ -210,7 +207,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
   end
 
-  def test_collection_services_type_config_commands
+  def test_collect_svc_cfg_cmds
     type = :config_commands
     collection = AaaAuthorizationService.services[type]
 
@@ -241,7 +238,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     end
   end
 
-  def test_type_commands_default_console_group
+  def test_type_cmds_def_con_grp
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization commands default group group2 group1 local'
     cmd2 = 'aaa authorization commands console group group1 local'
@@ -294,7 +291,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     config("no #{cmd2}")
   end
 
-  def test_type_config_commands_default_console_group
+  def test_type_cfg_cmds_def_con_grp
     # Preconfig AAA Authorization
     cmd1 = 'aaa authorization config-commands default group group2 group1 local'
     cmd2 = 'aaa authorization config-commands console group group1 local'
@@ -345,7 +342,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     config("no #{cmd2}")
   end
 
-  def test_get_default_method
+  def test_get_def_method
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
     assert_equal(:local, aaa_a_service.default_method,
@@ -373,7 +370,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_collection_groups_commands_default
+  def test_collect_grps_cmds_def
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -409,7 +406,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_equal(:local, aaa_a_service.method)
   end
 
-  def test_collection_groups_commands_console
+  def test_collect_grps_cmds_con
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -443,7 +440,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_equal(:local, aaa_a_service.method)
   end
 
-  def test_collection_groups_config_commands_default
+  def test_collect_grps_cfg_cmds_def
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
 
@@ -477,7 +474,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_equal(:local, aaa_a_service.method)
   end
 
-  def test_collection_groups_config_commands_console
+  def test_collect_grps_cfg_cmds_con
     type = :config_commands
     aaa_a_service = AaaAuthorizationService.new(type, 'console')
 
@@ -511,7 +508,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_equal(:local, aaa_a_service.method)
   end
 
-  def test_get_default_groups
+  def test_get_def_grps
     groups = []
     type = :commands
     aaa_a_service = AaaAuthorizationService.new(type, 'default')
@@ -544,7 +541,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_commands_default_unselected_single
+  def test_cmds_def_unselected_single
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
@@ -552,7 +549,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_default_unselected_multi
+  def test_cmds_def_unselected_multi
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
 
@@ -560,7 +557,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_default_local_multi
+  def test_cmds_def_local_multi
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
 
@@ -568,7 +565,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_default_all_default
+  def test_cmds_def_all_def
     aaa_a_service = AaaAuthorizationService.new(:commands, 'default')
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
@@ -578,7 +575,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_console_unselected_single
+  def test_cmds_con_unselected_single
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
@@ -586,7 +583,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_console_unselected_multi
+  def test_cmds_con_unselected_multi
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
 
@@ -594,7 +591,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_console_local_multi
+  def test_cmds_con_local_multi
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
 
@@ -602,7 +599,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commans_console_all_default
+  def test_cmds_con_all_def
     aaa_a_service = AaaAuthorizationService.new(:commands, 'console')
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
@@ -612,7 +609,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_default_unselected_single
+  def test_cfg_cmds_def_unselected_single
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
@@ -620,7 +617,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_default_unselected_multi
+  def test_cfg_cmds_def_unselected_multi
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
 
@@ -628,7 +625,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_default_local_multi
+  def test_cfg_cmds_def_local_multi
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
 
@@ -636,7 +633,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_default_all_default
+  def test_cfg_cmds_def_all_def
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'default')
 
     method = aaa_a_service.default_method
@@ -647,7 +644,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_console_unselected_single
+  def test_cfg_cmds_con_unselected_single
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0], :unselected)
 
@@ -655,7 +652,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_console_unselected_multi
+  def test_cfg_cmds_con_unselected_multi
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :unselected)
 
@@ -663,7 +660,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_console_local_multi
+  def test_cfg_cmds_con_local_multi
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     aaa_a_service.groups_method_set(tacacs_groups[0..2], :local)
 
@@ -671,7 +668,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_config_commands_console_all_default
+  def test_cfg_cmds_con_all_def
     aaa_a_service = AaaAuthorizationService.new(:config_commands, 'console')
     method = aaa_a_service.default_method
     groups = aaa_a_service.default_groups
@@ -681,7 +678,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     assert_show_match(command: show_cmd, pattern: p)
   end
 
-  def test_commands_invalid_groups_method_set_groups
+  def test_cmds_grps_method_set_inv
     # Commands, with service default
     type = :commands
     service = 'default'
@@ -725,7 +722,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_config_commands_invalid_set_groups
+  def test_cfg_cmds_set_grps_inv
     # Commands, with service default
     type = :config_commands
     service = 'default'
@@ -769,7 +766,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_commands_invalid_method
+  def test_cmds_method_inv
     # Commands, with service default
     type = :commands
     service = 'default'
@@ -807,7 +804,7 @@ class TestAaaAuthorizationService < CiscoTestCase
     aaa_a_service.destroy
   end
 
-  def test_config_commands_invalid_method
+  def test_cfg_cmds_method_inv
     # Commands, with service default
     type = :config_commands
     service = 'default'

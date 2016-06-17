@@ -6,6 +6,49 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Bidirectional Forwarding Detection
+  * bfd (@saichint)
+* OSPF
+  * ospf_area (@saichint)
+
+### Added
+
+* Extend bgp_neighbor with attributes:
+   * `bfd`
+* Added client support for gRPC on IOS XR.
+* Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+
+
+## [v1.3.1]
+
+### Changed
+* Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:
+
+| Old Name | New Name(s) |
+|:---|:---:|
+| `private_vlan_association`                      | `pvlan_association`
+| `private_vlan_type`                             | `pvlan_type`
+
+* Deprecated `interface` private-vlan properties and replaced with new methods. New files `interface_DEPRECATED.rb` and `DEPRECATED.yaml` have been created to store the deprecated methods. The old -> new properties are:
+
+| Old Name | New Name(s) |
+|:---|:---:|
+| `private_vlan_mapping`                          | `pvlan_mapping`
+| `switchport_mode_private_vlan_host`             | `switchport_pvlan_host`, `switchport_pvlan_promiscuous`,
+| `switchport_mode_private_vlan_host_association` | `switchport_pvlan_host_association`
+| `switchport_mode_private_vlan_host_promiscous`  | `switchport_pvlan_mapping`
+| `switchport_mode_private_vlan_trunk_promiscuous`| `switchport_pvlan_trunk_promiscuous`
+| `switchport_mode_private_vlan_trunk_secondary`  | `switchport_pvlan_trunk_secondary`
+| `switchport_private_vlan_association_trunk`     | `switchport_pvlan_trunk_association`
+| `switchport_private_vlan_mapping_trunk`         | `switchport_pvlan_mapping_trunk`
+| `switchport_private_vlan_trunk_allowed_vlan`    | `switchport_pvlan_trunk_allowed_vlan`
+| `switchport_private_vlan_trunk_native_vlan`     | `switchport_pvlan_trunk_native_vlan`
+
+## [v1.3.0]
+
+### New feature support
+
+#### Cisco Resources
 * Itd
   * itd_device_group (@saichint)
   * itd_device_group_node (@saichint)

@@ -37,7 +37,7 @@ class TestNtpConfig < CiscoTestCase
 
   # TESTS
 
-  def test_ntpconfig_create_destroy_single
+  def test_create_destroy
     id = 'default'
 
     ntp = Cisco::NtpConfig.new(id)

@@ -41,7 +41,7 @@ class TestInterfacePortChannel < CiscoTestCase
     InterfacePortChannel.new(ifname)
   end
 
-  def test_get_set_port_hash_distribution
+  def test_port_hash_distribution
     skip('Platform does not support this property') if n6k_platform?
     interface = create_port_channel
     interface.port_hash_distribution = 'adaptive'
@@ -54,7 +54,7 @@ class TestInterfacePortChannel < CiscoTestCase
                  interface.port_hash_distribution)
   end
 
-  def test_get_set_lacp_graceful_convergence
+  def test_lacp_graceful_convergence
     interface = create_port_channel
     interface.lacp_graceful_convergence = false
     assert_equal(false, interface.lacp_graceful_convergence)
@@ -64,7 +64,7 @@ class TestInterfacePortChannel < CiscoTestCase
                  interface.lacp_graceful_convergence)
   end
 
-  def test_get_set_lacp_min_links
+  def test_lacp_min_links
     interface = create_port_channel
     interface.lacp_min_links = 5
     assert_equal(5, interface.lacp_min_links)
@@ -73,7 +73,7 @@ class TestInterfacePortChannel < CiscoTestCase
                  interface.lacp_min_links)
   end
 
-  def test_get_set_lacp_max_bundle
+  def test_lacp_max_bundle
     interface = create_port_channel
     interface.lacp_max_bundle = 10
     assert_equal(10, interface.lacp_max_bundle)
@@ -83,7 +83,7 @@ class TestInterfacePortChannel < CiscoTestCase
                  interface.lacp_max_bundle)
   end
 
-  def test_get_set_lacp_suspend_individual
+  def test_lacp_suspend_individual
     interface = create_port_channel
     interface.lacp_suspend_individual = false
     assert_equal(false, interface.lacp_suspend_individual)
@@ -93,7 +93,7 @@ class TestInterfacePortChannel < CiscoTestCase
                  interface.lacp_suspend_individual)
   end
 
-  def test_get_set_port_load_defer
+  def test_port_load_defer
     skip('Platform does not support this property') if n6k_platform?
     interface = create_port_channel
     interface.port_load_defer = true

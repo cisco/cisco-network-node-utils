@@ -1,49 +1,64 @@
 # snmp_user
 ---
-_exclude: [ios_xr]
-
 _template:
   multiple: true
+  ios_xr:
+    get_command: "show running-config snmp-server"
+  nexus:
+    get_command: "show run snmp all"
 
 auth_password:
-  get_command: "show run snmp all"
-  get_value: '/snmp-server user (\S+) \S+ auth \S+ (\S+)/'
+  ios_xr:
+    get_value: '/snmp-server user (\S+) \S+ \S+ auth \S+ \S+ (\S+)/'
+  nexus:
+    get_value: '/snmp-server user (\S+) \S+ auth \S+ (\S+)/'
   default_value: ""
 
 # The getter format will not have group info if engine id is configured.
 auth_password_with_engine_id:
-  get_command: "show run snmp all"
-  get_value: '/snmp-server user (\S+) auth \S+ (\S+) .*engineID (\S+)/'
+  _exclude: [ios_xr]
+  nexus:
+    get_value: '/snmp-server user (\S+) auth \S+ (\S+) .*engineID (\S+)/'
   default_value: ""
 
 auth_protocol:
   default_value: "md5"
+  ios_xr:
+    get_value: '/snmp-server user (\S+) \S+ \S+ auth (\S+)'
   N9k:
     # TODO: is this really N9K-specific?
     get_value: "auth"
 
 engine_id:
+  _exclude: [ios_xr]
   default_value: ""
 
 group:
   default_value: "network-operator"
+  ios_xr:
+    get_value: '/snmp-server user (\S+) (\S+)'
   N9k:
     # TODO: is this really N9K-specific?
     get_value: "group"
 
 priv_password:
-  get_command: "show run snmp all"
-  get_value: '/snmp-server user (\S+) \S+ auth \S+ \S+ priv.*(0x\S+)/'
+  ios_xr:
+    get_value: '/snmp-server user (\S+).*priv.*encrypted (\S+)/'
+  nexus:
+    get_value: '/snmp-server user (\S+) \S+ auth \S+ \S+ priv.*(0x\S+)/'
   default_value: ""
 
 # The getter format will not have group info if engine id is configured.
 priv_password_with_engine_id:
-  get_command: "show run snmp all"
-  get_value: '/snmp-server user (\S+) auth \S+ \S+ priv .*(0x\S+) .*engineID (\S+)/'
+  _exclude: [ios_xr]
+  nexus:
+    get_value: '/snmp-server user (\S+) auth \S+ \S+ priv .*(0x\S+) .*engineID (\S+)/'
   default_value: ""
 
 priv_protocol:
   default_value: "des"
+  ios_xr:
+    get_value: '/snmp-server user (\S+).*priv (3des|aes 128|aes 192|aes 256|des56)/'
   N9k:
     # TODO: is this really N9K-specific?
     get_value: "priv"
@@ -52,6 +67,15 @@ priv_protocol:
 # [no] snmp-server user <user> [group] [auth {md5|sha} <passwd1> \
 #       [priv [aes-128] <passwd2>] [localizedkey] [engineID <id>]]
 user:
-  get_command: "show run snmp all | i 'snmp-server user'"
-  get_value: '/^snmp.server user (.*)$/'
-  set_value: "%s snmp-server user %s %s %s %s %s %s"
+  get_value: '/^snmp-server user (.*)$/'
+  ios_xr:
+    set_value: "<state> snmp-server user <name> <group> <version> <auth> <priv>"
+  nexus:
+    get_command: "show run snmp all | i 'snmp-server user'"
+    set_value: "<state> snmp-server user <name> <group> <auth> <priv> <localizedKey> <engineId>"
+
+version:
+  _exclude: [nexus]
+  get_value: '/snmp-server user (\S+) \S+ (\S+)/'
+  default_value: ""
+

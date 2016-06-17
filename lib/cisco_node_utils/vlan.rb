@@ -19,13 +19,14 @@ require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
 require_relative 'feature'
+require_relative 'vlan_DEPRECATED'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
   VLAN_NAME_SIZE = 33
 
   # Vlan - node utility class for VLAN configuration management
-  class Vlan < NodeUtil
+  class Vlan < Cisco::VlanDeprecated
     attr_reader :vlan_id
 
     def initialize(vlan_id, instantiate=true)
@@ -221,7 +222,13 @@ module Cisco
       config_get('vlan', 'mapped_vni', vlan: @vlan_id)
     end
 
+    def requires_nv_overlay?
+      config_get('vlan', 'mapped_vni_requires_nv_overlay')
+    end
+
     def mapped_vni=(vni)
+      # Some platforms require feature nv_overlay to be enabled first.
+      Feature.nv_overlay_enable if requires_nv_overlay?
       Feature.vn_segment_vlan_based_enable
       # Remove the existing mapping first as cli doesn't support overwriting.
       config_set('vlan', 'mapped_vni', vlan: @vlan_id,
@@ -236,93 +243,60 @@ module Cisco
       config_get_default('vlan', 'mapped_vni')
     end
 
-    def private_vlan_type
+    def pvlan_type
       return nil unless Feature.private_vlan_enabled?
-      config_get('vlan', 'private_vlan_type', id: @vlan_id)
+      config_get('vlan', 'pvlan_type', id: @vlan_id)
     end
 
-    def private_vlan_type=(type)
+    def pvlan_type=(type)
       Feature.private_vlan_enable
       fail TypeError unless type && type.is_a?(String)
 
-      if type == default_private_vlan_type
-        return if private_vlan_type.empty?
-        set_args_keys(state: 'no', type: private_vlan_type)
+      if type == default_pvlan_type
+        return if pvlan_type.empty?
+        set_args_keys(state: 'no', type: pvlan_type)
         ignore_msg = 'Warning: Private-VLAN CLI removed'
       else
         set_args_keys(state: '', type: type)
         ignore_msg = 'Warning: Private-VLAN CLI entered'
       end
-      result = config_set('vlan', 'private_vlan_type', @set_args)
+      result = config_set('vlan', 'pvlan_type', @set_args)
       cli_error_check(result, ignore_msg)
     end
 
-    def default_private_vlan_type
-      config_get_default('vlan', 'private_vlan_type')
+    def default_pvlan_type
+      config_get_default('vlan', 'pvlan_type')
     end
 
-    def private_vlan_association
+    def pvlan_association
       return nil unless Feature.private_vlan_enabled?
-      config_get('vlan', 'private_vlan_association', id: @vlan_id)
+      range = config_get('vlan', 'pvlan_association', id: @vlan_id)
+      Utils.normalize_range_array(range)
     end
 
-    def private_vlan_association=(vlan_list)
+    def pvlan_association=(range)
       Feature.private_vlan_enable
-      vlan_list_delta(private_vlan_association, vlan_list)
+      is = Utils.dash_range_to_elements(pvlan_association)
+      should = Utils.dash_range_to_elements(range)
+      association_delta(is, should)
     end
 
     def default_private_vlan_association
-      config_get_default('vlan', 'private_vlan_association')
+      config_get_default('vlan', 'pvlan_association')
     end
 
     # --------------------------
-    # vlan_list_delta is a helper function for the private_vlan_association
+    # association_delta is a helper function for the pvlan_association
     # property. It walks the delta hash and adds/removes each target private
     # vlan.
-    # This api is used by private vlan to prepare the input to the setter
-    # method. The input can be in the following formats for vlans:
-    # 10-12,14. Prepare_array api is transforming this input into a flat array.
-    # In the example above the returned array will be 10, 11, 12, 14. Prepare
-    # array is first splitting the input on ',' and the than expanding the vlan
-    # range element like 10-12 into a flat array. The final result will
-    # be a  flat array.
-    # This way we can later used the lib utility to check the delta from
-    # the input vlan value and the vlan configured to apply the right config.
-
-    def vlan_list_delta(is_list, should_list)
-      new_list = []
-      should_list.each do |item|
-        if item.include?(',')
-          new_list.push(item.split(','))
-        else
-          new_list.push(item)
-        end
-      end
-      new_list.flatten!
-      new_list.sort!
-
-      new_list.each { |item| item.gsub!('-', '..') }
-
-      should_list_new = []
-      new_list.each do |elem|
-        if elem.include?('..')
-          elema = elem.split('..').map { |d| Integer(d) }
-          elema.sort!
-          tr = elema[0]..elema[1]
-          tr.to_a.each do |item|
-            should_list_new.push(item.to_s)
-          end
-        else
-          should_list_new.push(elem)
-        end
-      end
-
-      delta_hash = Utils.delta_add_remove(should_list_new, is_list)
+    def association_delta(is, should)
+      delta_hash = Utils.delta_add_remove(should, is)
+      Cisco::Logger.debug("association_delta: #{@vlan_id}: #{delta_hash}")
       [:add, :remove].each do |action|
         delta_hash[action].each do |vlans|
           state = (action == :add) ? '' : 'no'
           set_args_keys(state: state, vlans: vlans)
-          result = config_set('vlan', 'private_vlan_association', @set_args)
+          result = config_set('vlan', 'pvlan_association', @set_args)
           cli_error_check(result)
         end
       end

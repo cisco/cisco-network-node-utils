@@ -17,6 +17,7 @@
 # limitations under the License.
 
 require_relative '../client'
+require_relative '../../constants'
 Cisco::Client.silence_warnings do
   require 'grpc'
 end
@@ -37,7 +38,7 @@ class Cisco::Client::GRPC < Cisco::Client
     kwargs[:host] ||= '127.0.0.1'
     kwargs[:port] ||= 57_400
     # rubocop:disable Style/HashSyntax
-    super(data_formats: [:cli],
+    super(data_formats: [:cli, :yang_json],
           platform:     :ios_xr,
           **kwargs)
     # rubocop:enable Style/HashSyntax
@@ -85,36 +86,46 @@ class Cisco::Client::GRPC < Cisco::Client
   # @param data_format one of Cisco::DATA_FORMATS. Default is :cli
   # @param context [Array<String>] Zero or more configuration commands used
   #                to enter the desired CLI sub-mode
-  # @param values [Array<String>] One or more commands to enter within the
-  #   CLI sub-mode.
+  # @param values [Array<String>] One or more commands to execute /
+  #                               config strings to send
+  # @param kwargs data-format-specific args
   def set(data_format: :cli,
           context:     nil,
-          values:      nil)
+          values:      nil,
+          **kwargs)
     context = munge_to_array(context)
     values = munge_to_array(values)
     super
-    # IOS XR lets us concatenate submode commands together.
-    # This makes it possible to guarantee we are in the correct context:
-    #   context: ['foo', 'bar'], values: ['baz', 'bat']
-    #   ---> values: ['foo bar baz', 'foo bar bat']
-    # However, there's a special case for 'no' commands:
-    #   context: ['foo', 'bar'], values: ['no baz']
-    #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
-    context = context.join(' ')
-    unless context.empty?
-      values.map! do |cmd|
-        match = cmd[/^\s*no\s+(.*)/, 1]
-        if match
-          cmd = "no #{context} #{match}"
-        else
-          cmd = "#{context} #{cmd}"
-        end
-        cmd
+    if data_format == :yang_json
+      mode = kwargs[:mode] || :merge_config
+      fail ArgumentError unless Cisco::YANG_SET_MODE.include? mode
+      values.each do |yang|
+        yang_req(@config, mode.to_s, ConfigArgs.new(yangjson: yang))
       end
+    else
+      # IOS XR lets us concatenate submode commands together.
+      # This makes it possible to guarantee we are in the correct context:
+      #   context: ['foo', 'bar'], values: ['baz', 'bat']
+      #   ---> values: ['foo bar baz', 'foo bar bat']
+      # However, there's a special case for 'no' commands:
+      #   context: ['foo', 'bar'], values: ['no baz']
+      #   ---> values: ['no foo bar baz'] ---- the 'no' goes at the start
+      context = context.join(' ')
+      unless context.empty?
+        values.map! do |cmd|
+          match = cmd[/^\s*no\s+(.*)/, 1]
+          if match
+            cmd = "no #{context} #{match}"
+          else
+            cmd = "#{context} #{cmd}"
+          end
+          cmd
+        end
+      end
+      # CliConfigArgs wants a newline-separated string of commands
+      args = CliConfigArgs.new(cli: values.join("\n"))
+      req(@config, 'cli_config', args)
     end
-    # CliConfigArgs wants a newline-separated string of commands
-    args = CliConfigArgs.new(cli: values.join("\n"))
-    req(@config, 'cli_config', args)
   end
 
   def get(data_format: :cli,
@@ -123,9 +134,14 @@ class Cisco::Client::GRPC < Cisco::Client
           value:       nil)
     super
     fail ArgumentError if command.nil?
-    args = ShowCmdArgs.new(cli: command)
-    output = req(@exec, 'show_cmd_text_output', args)
-    self.class.filter_cli(cli_output: output, context: context, value: value)
+
+    if data_format == :yang_json
+      yang_req(@config, 'get_config', ConfigGetArgs.new(yangpathjson: command))
+    else
+      args = ShowCmdArgs.new(cli: command)
+      output = req(@exec, 'show_cmd_text_output', args)
+      self.class.filter_cli(cli_output: output, context: context, value: value)
+    end
   end
 
   def req(stub, type, args)
@@ -170,6 +186,51 @@ class Cisco::Client::GRPC < Cisco::Client
     end
   end
 
+  # Send a YANG request via gRPC
+  def yang_req(stub, type, args)
+    debug "Sending '#{type}' request:"
+    if args.is_a?(ConfigGetArgs)
+      debug "  with yangpathjson: #{args.yangpathjson}"
+    elsif args.is_a?(ConfigArgs)
+      debug " with yangjson: #{args.yangjson}"
+    end
+
+    output = Cisco::Client.silence_warnings do
+      response = stub.send(type, args,
+                           timeout:  @timeout,
+                           username: @username,
+                           password: @password)
+      # gRPC server may split the response into multiples
+      response = response.is_a?(Enumerator) ? response.to_a : [response]
+      debug "Got responses: #{response.map(&:class).join(', ')}"
+      debug "response: #{response}"
+      # Check for errors first
+      handle_errors(args, response.select { |r| !r.errors.empty? })
+
+      # If we got here, no errors occurred
+      handle_response(args, response)
+    end
+    return output
+
+  rescue ::GRPC::BadStatus => e
+    warn "gRPC error '#{e.code}' during '#{type}' request: "
+    if args.is_a?(ConfigGetArgs)
+      debug "  with yangpathjson: #{args.yangpathjson}"
+    elsif args.is_a?(ConfigArgs)
+      debug " with yangjson: #{args.yangjson}"
+    end
+
+    warn "  '#{e.details}'"
+    case e.code
+    when ::GRPC::Core::StatusCodes::UNAVAILABLE
+      raise Cisco::ConnectionRefused, "Connection refused: #{e.details}"
+    when ::GRPC::Core::StatusCodes::UNAUTHENTICATED
+      raise Cisco::AuthenticationFailed, e.details
+    else
+      raise Cisco::ClientError, e.details
+    end
+  end
+
   def handle_response(args, replies)
     klass = replies[0].class
     unless replies.all? { |r| r.class == klass }
@@ -187,6 +248,12 @@ class Cisco::Client::GRPC < Cisco::Client
       replies.each { |r| debug "  jsonoutput:\n#{r.jsonoutput}" }
       output = replies.map(&:jsonoutput).join("\n---\n")
     when /CliConfigReply/
+      # nothing to process
+      output = ''
+    when /ConfigGetReply/
+      replies.each { |r| debug "  yangjson:\n#{r.yangjson}" }
+      output = replies.map(&:yangjson).join('')
+    when /ConfigReply/
       # nothing to process
       output = ''
     else
@@ -242,6 +309,11 @@ class Cisco::Client::GRPC < Cisco::Client
   def handle_text_error(args, msg)
     if /^Disallowed commands:/ =~ msg
       fail Cisco::RequestNotSupported, msg
+    elsif args.is_a?(ConfigGetArgs) || args.is_a?(ConfigArgs)
+      fail Cisco::YangError.new( # rubocop:disable Style/RaiseArgs
+        rejected_input: args.yangpathjson,
+        error:          msg,
+      )
     else
       fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
         rejected_input: args.cli,
@@ -277,7 +349,8 @@ class Cisco::Client::GRPC < Cisco::Client
     msg = msg['error'] unless msg.is_a?(Array)
     msg.each do |m|
       type = m['error-type']
-      message = m['error-message']
+      message = m['error-message'] || m['error-tag']
+      message += ': ' + m['error-path'] if m['error-path']
       if type == 'protocol' && message == 'Failed authentication'
         fail Cisco::AuthenticationFailed, message
       elsif type == 'application'
@@ -293,16 +366,22 @@ class Cisco::Client::GRPC < Cisco::Client
         # foo
         # bar
         #
-        match = /\n\n(.*)\n\n\Z/m.match(message)
-        if match.nil?
-          rejected = '(unknown, see error message)'
+        if m['error-path']
+          fail Cisco::YangError.new( # rubocop:disable Style/RaiseArgs
+            message
+          )
         else
-          rejected = match[1].split("\n")
+          match = /\n\n(.*)\n\n\Z/m.match(message)
+          if match.nil?
+            rejected = '(unknown, see error message)'
+          else
+            rejected = match[1].split("\n")
+          end
+          fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
+            rejected_input: rejected,
+            clierror:       message,
+          )
         end
-        fail Cisco::CliError.new( # rubocop:disable Style/RaiseArgs
-          rejected_input: rejected,
-          clierror:       message,
-        )
       else
         fail Cisco::ClientError, message
       end

@@ -419,7 +419,7 @@ class TestStpGlobal < CiscoTestCase
                  global.vlan_designated_priority)
   end
 
-  def test_interface_stp_bpdufilter_change
+  def test_intf_stp_bpdufilter_change
     @intf.stp_bpdufilter = 'enable'
     assert_equal('enable', @intf.stp_bpdufilter)
     @intf.stp_bpdufilter = 'disable'
@@ -429,7 +429,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_bpdufilter)
   end
 
-  def test_interface_stp_bpduguard_change
+  def test_intf_stp_bpduguard_change
     @intf.stp_bpduguard = 'enable'
     assert_equal('enable', @intf.stp_bpduguard)
     @intf.stp_bpduguard = 'disable'
@@ -439,7 +439,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_bpduguard)
   end
 
-  def test_interface_stp_cost_change
+  def test_intf_stp_cost_change
     @intf.stp_cost = 2000
     assert_equal(2000, @intf.stp_cost)
     @intf.stp_cost = @intf.default_stp_cost
@@ -447,7 +447,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_cost)
   end
 
-  def test_interface_stp_guard_change
+  def test_intf_stp_guard_change
     @intf.stp_guard = 'loop'
     assert_equal('loop', @intf.stp_guard)
     @intf.stp_guard = 'none'
@@ -459,7 +459,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_guard)
   end
 
-  def test_interface_stp_link_type_change
+  def test_intf_stp_link_type_change
     @intf.stp_link_type = 'shared'
     assert_equal('shared', @intf.stp_link_type)
     @intf.stp_link_type = 'point-to-point'
@@ -469,7 +469,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_link_type)
   end
 
-  def test_interface_stp_port_priority_change
+  def test_intf_stp_port_priority_change
     @intf.stp_port_priority = 32
     assert_equal(32, @intf.stp_port_priority)
     @intf.stp_port_priority = @intf.default_stp_port_priority
@@ -477,7 +477,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_port_priority)
   end
 
-  def test_interface_stp_port_type_change
+  def test_intf_stp_port_type_change
     @intf.switchport_mode = :disabled
     @intf.switchport_mode = :trunk
     @intf.stp_port_type = 'edge'
@@ -493,7 +493,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_port_type)
   end
 
-  def test_interface_stp_mst_cost_change
+  def test_intf_stp_mst_cost_change
     @intf.stp_mst_cost = @intf.default_stp_mst_cost
     assert_equal(@intf.default_stp_mst_cost,
                  @intf.stp_mst_cost)
@@ -505,7 +505,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_mst_cost)
   end
 
-  def test_interface_stp_mst_port_priority_change
+  def test_intf_stp_mst_port_priority_change
     @intf.stp_mst_port_priority = @intf.default_stp_mst_port_priority
     assert_equal(@intf.default_stp_mst_port_priority,
                  @intf.stp_mst_port_priority)
@@ -517,7 +517,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_mst_port_priority)
   end
 
-  def test_interface_stp_vlan_cost_change
+  def test_intf_stp_vlan_cost_change
     @intf.stp_vlan_cost = @intf.default_stp_vlan_cost
     assert_equal(@intf.default_stp_vlan_cost,
                  @intf.stp_vlan_cost)
@@ -529,7 +529,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_vlan_cost)
   end
 
-  def test_interface_stp_vlan_port_priority_change
+  def test_intf_stp_vlan_port_priority_change
     @intf.stp_vlan_port_priority = @intf.default_stp_vlan_port_priority
     assert_equal(@intf.default_stp_vlan_port_priority,
                  @intf.stp_vlan_port_priority)
@@ -541,7 +541,7 @@ class TestStpGlobal < CiscoTestCase
                  @intf.stp_vlan_port_priority)
   end
 
-  def test_interface_stp_props_switchport_disabled
+  def test_intf_stp_props_switchport_disabled
     @intf.switchport_enable(false)
     proplist = {
       'bpdufilter'         => 'enable',
@@ -555,7 +555,7 @@ class TestStpGlobal < CiscoTestCase
       'vlan_port_priority' => [%w(2-4,6,8-12 224), %w(14 32)],
     }
     proplist.each do |k, v|
-      assert_raises(RuntimeError, 'foo') do
+      assert_raises(RuntimeError, "#{@intf}: #{k} => #{v}") do
         @intf.send("stp_#{k}=", v)
       end
     end

@@ -46,115 +46,56 @@ class TestSnmpServer < CiscoTestCase
     end
   end
 
-  def test_snmpserver_aaa_user_cache_timeout_set_invalid_upper_range
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    assert_raises(Cisco::CliError) do
-      snmpserver.aaa_user_cache_timeout = 86_401
+  def test_aaa_user_cache_timeout
+    if validate_property_excluded?('snmp_server', 'aaa_user_cache_timeout')
+      assert_raises(Cisco::UnsupportedError) do
+        SnmpServer.new.aaa_user_cache_timeout = 1400
+      end
+      return
     end
+
+    s = SnmpServer.new
+    # initial
+    default = s.default_aaa_user_cache_timeout
+    assert_equal(default, s.aaa_user_cache_timeout)
+
+    # non-default
+    s.aaa_user_cache_timeout = 1400
+    assert_equal(1400, s.aaa_user_cache_timeout)
+
+    # default
+    s.aaa_user_cache_timeout = default
+    assert_equal(default, s.aaa_user_cache_timeout)
+
+    # negative tests
+    assert_raises(Cisco::CliError) { s.aaa_user_cache_timeout = 86_401 }
+    assert_raises(Cisco::CliError) { s.aaa_user_cache_timeout = 0 }
   end
 
-  def test_snmpserver_aaa_user_cache_timeout_set_invalid_lower_range
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    assert_raises(Cisco::CliError) do
-      snmpserver.aaa_user_cache_timeout = 0
-    end
+  def test_contact
+    s = SnmpServer.new
+    # initial
+    default = s.default_contact
+    assert_equal(default, s.contact)
+
+    # non-default
+    s.contact = 'minitest'
+    assert_equal('minitest', s.contact)
+
+    # default
+    s.contact = default
+    assert_equal(default, s.contact)
+
+    # empty
+    s.contact = ''
+    assert_equal('', s.contact)
+
+    # negative test
+    assert_raises(TypeError) { s.contact = 123 }
   end
 
-  def test_snmpserver_aaa_user_cache_timeout_set_valid
-    return if platform != :nexus
+  def test_contact_special_chars
     snmpserver = SnmpServer.new
-    newtimeout = 1400
-    snmpserver.aaa_user_cache_timeout = newtimeout
-    line = assert_show_match(
-      pattern: /snmp-server aaa-user cache-timeout (\d+)/)
-    timeout = line.to_s.split(' ').last.to_i
-    assert_equal(timeout, newtimeout)
-    # set to default
-    snmpserver.aaa_user_cache_timeout =
-      snmpserver.default_aaa_user_cache_timeout
-  end
-
-  def test_snmpserver_aaa_user_cache_timeout_set_default_valid
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    snmpserver.aaa_user_cache_timeout =
-      snmpserver.default_aaa_user_cache_timeout
-    line = assert_show_match(
-      pattern: /snmp-server aaa-user cache-timeout (\d+)/)
-    timeout = line.to_s.split(' ').last.to_i
-    assert_equal(timeout, snmpserver.aaa_user_cache_timeout)
-  end
-
-  def test_snmpserver_aaa_user_cache_timeout_get
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    line = assert_show_match(
-      pattern: /snmp-server aaa-user cache-timeout (\d+)/)
-    timeout = line.to_s.split(' ').last.to_i
-    assert_equal(timeout, snmpserver.aaa_user_cache_timeout)
-  end
-
-  def test_snmpserver_sys_contact_get
-    snmpserver = SnmpServer.new
-    snmpserver.contact = 'test-contact'
-    if platform == :nexus
-      line = assert_show_match(command: 'show snmp | no-more',
-                               pattern: /sys contact: [^\n\r]+/)
-      contact = ''
-      contact = line.to_s.gsub('sys contact:', '').strip unless line.nil?
-    else
-      line = assert_show_match(command: 'show running-config snmp-server',
-                               pattern: /snmp-server contact [^\n\r]+/)
-      contact = ''
-      contact = line.to_s.gsub('snmp-server contact', '').strip unless line.nil?
-    end
-    # puts "contact : #{line}, #{snmpserver.contact}"
-    assert_equal(contact, snmpserver.contact)
-    # set to default
-    snmpserver.contact = snmpserver.default_contact
-  end
-
-  def test_snmpserver_sys_contact_set_invalid
-    snmpserver = SnmpServer.new
-    assert_raises(TypeError) do
-      snmpserver.contact = 123
-    end
-  end
-
-  def test_snmpserver_sys_contact_set_zero_length
-    snmpserver = SnmpServer.new
-    newcontact = ''
-    snmpserver.contact = newcontact
-    assert_equal(newcontact, snmpserver.contact)
-    # set to default
-    snmpserver.contact = snmpserver.default_contact
-  end
-
-  def test_snmpserver_sys_contact_set_valid
-    snmpserver = SnmpServer.new
-    newcontact = 'mvenkata_test# contact'
-    snmpserver.contact = newcontact
-    if platform == :nexus
-      line = assert_show_match(command: 'show snmp | no-more',
-                               pattern: /sys contact: [^\n\r]+/)
-      # puts "line: #{line}"
-      contact = line.to_s.gsub('sys contact:', '').strip
-    else
-      line = assert_show_match(command: 'show running-config snmp-server',
-                               pattern: /snmp-server contact [^\n\r]+/)
-      contact = ''
-      contact = line.to_s.gsub('snmp-server contact', '').strip unless line.nil?
-    end
-    assert_equal(contact, newcontact)
-    # set to default
-    snmpserver.contact = snmpserver.default_contact
-  end
-
-  def test_snmpserver_sys_contact_set_special_chars
-    snmpserver = SnmpServer.new
-    # newcontact = "Test{}(%tuvy@_cisco contact$#!@1234^&*()_+"
     newcontact = 'user@example.com @$%&}test ]|[#_@test contact'
     snmpserver.contact = newcontact
     if platform == :nexus
@@ -173,74 +114,29 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.contact = snmpserver.default_contact
   end
 
-  def test_snmpserver_sys_contact_set_default
-    snmpserver = SnmpServer.new
-    snmpserver.contact = snmpserver.default_contact
-    if platform == :nexus
-      line = assert_show_match(command: 'show snmp | no-more',
-                               pattern: /sys contact: [^\n\r]*/)
-      contact = ''
-      contact = line.to_s.gsub('sys contact:', '').strip unless line.nil?
-    else
-      refute_show_match(command: 'show running-config snmp-server',
-                        pattern: /snmp-server contact [^\n\r]+/)
-      contact = ''
-    end
-    assert_equal(contact, snmpserver.default_contact)
+  def test_location
+    s = SnmpServer.new
+    # initial
+    default = s.default_location
+    assert_equal(default, s.location)
+
+    # non-default
+    s.location = 'minitest'
+    assert_equal('minitest', s.location)
+
+    # default
+    s.location = default
+    assert_equal(default, s.location)
+
+    # empty
+    s.location = ''
+    assert_equal('', s.location)
+
+    # negative test
+    assert_raises(TypeError) { s.location = 123 }
   end
 
-  def test_snmpserver_sys_location_get
-    snmpserver = SnmpServer.new
-    test_location = 'test-location'
-    # set location
-    snmpserver.location = test_location
-    if platform == :nexus
-      assert_show_match(command: 'show snmp | no-more',
-                        pattern: /sys location: [^\n\r]+/)
-    else
-      assert_show_match(command: 'show running-config snmp-server',
-                        pattern: /snmp-server location [^\n\r]+/)
-    end
-
-    # puts "location : #{location}, #{snmpserver.location}"
-    assert_equal(test_location, snmpserver.location)
-    # set to default
-    snmpserver.location = snmpserver.default_location
-  end
-
-  def test_snmpserver_sys_location_set_invalid
-    snmpserver = SnmpServer.new
-    assert_raises(TypeError) do
-      snmpserver.location = 123
-    end
-  end
-
-  def test_snmpserver_sys_location_set_zero_length
-    snmpserver = SnmpServer.new
-    newlocation = ''
-    snmpserver.location = newlocation
-    assert_equal(newlocation, snmpserver.location)
-  end
-
-  def test_snmpserver_sys_location_set_valid
-    snmpserver = SnmpServer.new
-    newlocation = 'bxb-300-2-1 test location'
-    snmpserver.location = newlocation
-    if platform == :nexus
-      line = assert_show_match(command: 'show snmp | no-more',
-                               pattern: /sys location: [^\n\r]+/)
-      location = line.to_s.gsub('sys location:', '').strip
-    else
-      line = assert_show_match(command: 'show running-config snmp-server',
-                               pattern: /snmp-server location [^\n\r]+/)
-      location = line.to_s.gsub('snmp-server location', '').strip
-    end
-    assert_equal(location, newlocation)
-    # set to default
-    snmpserver.location = snmpserver.default_location
-  end
-
-  def test_snmpserver_sys_location_set_special_chars
+  def test_location_special_chars
     snmpserver = SnmpServer.new
     newlocation = 'bxb-300 2nd floor test !$%^33&&*) location'
     snmpserver.location = newlocation
@@ -258,151 +154,95 @@ class TestSnmpServer < CiscoTestCase
     snmpserver.location = snmpserver.default_location
   end
 
-  def test_snmpserver_sys_location_set_default
-    snmpserver = SnmpServer.new
-    snmpserver.location = snmpserver.default_location
-    if platform == :nexus
-      line = assert_show_match(command: 'show snmp | no-more',
-                               pattern: /sys location: [^\n\r]+/)
-      location = ''
-      location = line.to_s.gsub('sys location:', '').strip unless line.nil?
-    else
-      refute_show_match(command: 'show running-config snmp-server',
-                        pattern: /snmp-server location [^\n\r]+/)
-      location = ''
+  def test_packet_size
+    if validate_property_excluded?('snmp_server', 'packet_size')
+      assert_raises(Cisco::UnsupportedError) do
+        SnmpServer.new.packet_size = 2000
+      end
+      return
     end
-    assert_equal(location, snmpserver.location)
-    # set to default
-    snmpserver.location = snmpserver.default_location
+
+    s = SnmpServer.new
+    # initial
+    default = s.default_packet_size
+    assert_equal(default, s.packet_size)
+
+    # non-default
+    s.packet_size = 1400
+    assert_equal(1400, s.packet_size)
+
+    # default
+    s.packet_size = default
+    assert_equal(default, s.packet_size)
+
+    # negative tests
+    assert_raises(Cisco::CliError) { s.packet_size = 17_383 } # upper bound
+    assert_raises(Cisco::CliError) { s.packet_size = 480 }    # lower bound
   end
 
-  def test_snmpserver_packetsize_get
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    snmpserver.packet_size = 2000
-    line = assert_show_match(pattern: /snmp-server packetsize (\d+)/)
-    packetsize = 0
-    packetsize = line.to_s.split(' ').last.to_i unless line.nil?
-    assert_equal(packetsize, snmpserver.packet_size)
-    # unset to default
-    snmpserver.packet_size = 0
-  end
-
-  def test_snmpserver_packetsize_set_invalid_upper_range
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    newpacketsize = 17_383
-    assert_raises(Cisco::CliError) do
-      snmpserver.packet_size = newpacketsize
+  def test_global_enforce_priv
+    if validate_property_excluded?('snmp_server', 'global_enforce_priv')
+      assert_raises(Cisco::UnsupportedError) do
+        SnmpServer.new.global_enforce_priv = true
+      end
+      return
     end
+
+    s = SnmpServer.new
+    # initial
+    default = s.default_global_enforce_priv
+    assert_equal(default, s.global_enforce_priv?)
+
+    # non-default
+    s.global_enforce_priv = !default
+    assert_equal(!default, s.global_enforce_priv?)
+
+    # default
+    s.global_enforce_priv = default
+    assert_equal(default, s.global_enforce_priv?)
   end
 
-  def test_snmpserver_packetsize_set_invalid_lower_range
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    newpacketsize = 480
-    assert_raises(Cisco::CliError) do
-      snmpserver.packet_size = newpacketsize
+  def test_protocol
+    if validate_property_excluded?('snmp_server', 'protocol')
+      assert_raises(Cisco::UnsupportedError) do
+        SnmpServer.new.protocol = true
+      end
+      return
     end
+
+    s = SnmpServer.new
+    # initial
+    default = s.default_protocol
+    assert_equal(default, s.protocol?)
+
+    # non-default
+    s.protocol = !default
+    assert_equal(!default, s.protocol?)
+
+    # default
+    s.protocol = default
+    assert_equal(default, s.protocol?)
   end
 
-  def test_snmpserver_packetsize_set_valid
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    newpacketsize = 1600
-    snmpserver.packet_size = newpacketsize
-    line = assert_show_match(pattern: /snmp-server packetsize (\d+)/)
-    packetsize = line.to_s.split(' ').last.to_i
-    assert_equal(packetsize, newpacketsize)
-    # unset to default
-    snmpserver.packet_size = 0
-  end
-
-  def test_snmpserver_packetsize_set_default
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    refute_show_match(pattern: /snmp-server packetsize (\d+)/)
-    assert_equal(0, snmpserver.packet_size,
-                 'Error: Snmp Server, packet size not default')
-
-    snmpserver.packet_size = 850
-    line = assert_show_match(pattern: /snmp-server packetsize (\d+)/)
-    packetsize = line.to_s.split(' ').last.to_i
-    assert_equal(packetsize, snmpserver.packet_size,
-                 'Error: Snmp Server, packet size not default')
-
-    snmpserver.packet_size = snmpserver.default_packet_size
-    # TODO: this seems weird, why is default_packet_size not 0 as above?
-    line = assert_show_match(pattern: /snmp-server packetsize (\d+)/)
-    packetsize = line.to_s.split(' ').last.to_i
-    assert_equal(packetsize, snmpserver.packet_size,
-                 'Error: Snmp Server, packet size not default')
-    # set to default
-    snmpserver.packet_size = 0
-  end
-
-  def test_snmpserver_packetsize_unset
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-
-    # Get orginal packet size
-    org_packet_size = snmpserver.packet_size
-    snmpserver.packet_size = 0
-    refute_show_match(pattern: /snmp-server packetsize (\d+)/)
-    assert_equal(0, snmpserver.packet_size,
-                 'Error: Snmp Server, packet size not unset')
-
-    # Restore packet size
-    snmpserver.packet_size = org_packet_size
-    assert_equal(org_packet_size, snmpserver.packet_size,
-                 'Error: Snmp Server, packet size not restored')
-    # set to default
-    snmpserver.packet_size = 0
-  end
-
-  def test_snmpserver_global_enforce_priv
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    default = snmpserver.default_global_enforce_priv
-    snmpserver.global_enforce_priv = default
-    if default == true
-      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
-      assert(snmpserver.global_enforce_priv?)
-
-      snmpserver.global_enforce_priv = false
-      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
-      refute(snmpserver.global_enforce_priv?)
-    else
-      assert_show_match(pattern: /^no snmp-server globalEnforcePriv/)
-      refute(snmpserver.global_enforce_priv?)
-
-      snmpserver.global_enforce_priv = true
-      assert_show_match(pattern: /^snmp-server globalEnforcePriv/)
-      assert(snmpserver.global_enforce_priv?)
+  def test_tcp_session_auth
+    if validate_property_excluded?('snmp_server', 'tcp_session_auth')
+      assert_raises(Cisco::UnsupportedError) do
+        SnmpServer.new.tcp_session_auth = true
+      end
+      return
     end
-    # Cleanup
-    snmpserver.global_enforce_priv = snmpserver.default_global_enforce_priv
-  end
 
-  def test_snmpserver_protocol_get_set
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    snmpserver.protocol = false
-    assert_equal(false, snmpserver.protocol?)
-    snmpserver.protocol =
-      snmpserver.default_protocol
-    assert_equal(snmpserver.default_protocol,
-                 snmpserver.protocol?)
-  end
+    s = SnmpServer.new
+    # initial
+    default = s.default_tcp_session_auth
+    assert_equal(default, s.tcp_session_auth?)
 
-  def test_snmpserver_tcp_session_auth_get_set
-    return if platform != :nexus
-    snmpserver = SnmpServer.new
-    snmpserver.tcp_session_auth = false
-    assert_equal(false, snmpserver.tcp_session_auth?)
-    snmpserver.tcp_session_auth =
-      snmpserver.default_tcp_session_auth
-    assert_equal(snmpserver.default_tcp_session_auth,
-                 snmpserver.tcp_session_auth?)
+    # non-default
+    s.tcp_session_auth = !default
+    assert_equal(!default, s.tcp_session_auth?)
+
+    # default
+    s.tcp_session_auth = default
+    assert_equal(default, s.tcp_session_auth?)
   end
 end

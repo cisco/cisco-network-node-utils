@@ -51,7 +51,7 @@ class TestDomainName < CiscoTestCase
 
   # TESTS
 
-  def test_domainname_create_replace_destroy
+  def test_create_replace_destroy
     name1 = 'test.abc'
     name2 = 'test.xyz'
     refute_includes(Cisco::DomainName.domainnames, name1)
@@ -72,7 +72,7 @@ class TestDomainName < CiscoTestCase
     refute_includes(Cisco::DomainName.domainnames, name2)
   end
 
-  def test_domainname_create_replace_destroy_vrf
+  def test_create_replace_destroy_vrf
     name1 = 'test.abc'
     name2 = 'test.xyz'
     vrf = 'test'
