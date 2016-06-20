@@ -1,6 +1,6 @@
 inherit_from: ../.rubocop.yml
 
-# Baseline code complexity metrics for the lib/ subdirectory:
+# Baseline code complexity metrics for the bin/ subdirectory:
 
 Metrics/AbcSize:
   Max: 49
