@@ -52,7 +52,7 @@ class TestRouterOspfArea < CiscoTestCase
     av.stub = true
     assert_equal(2, RouterOspfArea.areas['Wolfpack'].size)
     av.destroy
-    # on n8k (only) , we cannot remove "area <area> default-cost 1",
+    # on n8k (only), we cannot remove "area <area> default-cost 1",
     # unless the entire ospf router is removed. The default value of
     # default_cost is 1 and so this is just a cosmetic issue but
     # need to skip the below test as the size will be wrong.
@@ -188,6 +188,201 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(av.default_range, av.range)
   end
 
+  def test_nssa
+    hash = {}
+    ad = create_routerospfarea_default
+    assert_equal(ad.default_nssa, ad.nssa)
+    hash[:nssa] = true
+    hash[:no_summary] = ''
+    hash[:no_redistribution] = ''
+    hash[:default_information_originate] = ''
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    hash = {}
+    ad.nssa_set(hash)
+    assert_equal(ad.default_nssa, ad.nssa)
+    assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    av = create_routerospfarea_vrf
+    assert_equal(av.default_nssa, av.nssa)
+    hash[:nssa] = true
+    hash[:no_summary] = ''
+    hash[:no_redistribution] = ''
+    hash[:default_information_originate] = ''
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    av.nssa_set(hash)
+    assert_equal(true, av.nssa)
+    assert_equal(av.default_nssa_default_originate, av.nssa_default_originate)
+    assert_equal(av.default_nssa_no_redistribution, av.nssa_no_redistribution)
+    assert_equal(av.default_nssa_no_summary, av.nssa_no_summary)
+    assert_equal(av.default_nssa_route_map, av.nssa_route_map)
+
+    hash = {}
+    av.nssa_set(hash)
+    assert_equal(av.default_nssa, av.nssa)
+    assert_equal(av.default_nssa_default_originate, av.nssa_default_originate)
+    assert_equal(av.default_nssa_no_redistribution, av.nssa_no_redistribution)
+    assert_equal(av.default_nssa_no_summary, av.nssa_no_summary)
+    assert_equal(av.default_nssa_route_map, av.nssa_route_map)
+  end
+
+  def nssa_helper(ad)
+    hash = {}
+    hash[:nssa] = true
+    hash[:no_summary] = ''
+    hash[:no_redistribution] = ''
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    hash[:default_information_originate] = 'default-information-originate'
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert(ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    # on n8k (only), we cannot configure
+    # "area <area> nssa default-information-originate",
+    # properly if we reset it first. It is only configuring nssa
+    # but not the other parameters. bug ID: CSCva11482
+    hash[:route_map] = 'route-map'
+    hash[:rm] = 'aaa'
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    if node.product_id[/N8/]
+      refute(ad.nssa_default_originate)
+    else
+      assert(ad.nssa_default_originate)
+    end
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    if node.product_id[/N8/]
+      refute_equal('aaa', ad.nssa_route_map)
+    else
+      assert_equal('aaa', ad.nssa_route_map)
+    end
+
+    hash[:no_summary] = 'no-summary'
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(true, ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    hash[:route_map] = 'route-map'
+    hash[:rm] = 'aaa'
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(true, ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    hash[:no_redistribution] = 'no-redistribution'
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    hash[:no_summary] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(true, ad.nssa_default_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    hash[:route_map] = 'route-map'
+    hash[:rm] = 'aaa'
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(true, ad.nssa_default_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    hash[:no_summary] = 'no-summary'
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(true, ad.nssa_default_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal('aaa', ad.nssa_route_map)
+
+    hash[:route_map] = ''
+    hash[:rm] = ''
+    hash[:default_information_originate] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    hash[:no_summary] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
+    assert_equal(true, ad.nssa_no_redistribution)
+    assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+
+    hash[:no_summary] = 'no-summary'
+    hash[:no_redistribution] = ''
+    ad.nssa_set(hash)
+    assert_equal(true, ad.nssa)
+    assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
+    assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
+    assert_equal(true, ad.nssa_no_summary)
+    assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
+  end
+
+  def test_nssa_non_default_vrf_others
+    nssa_helper(create_routerospfarea_vrf)
+  end
+
+  def test_nssa_default_vrf_others
+    nssa_helper(create_routerospfarea_default)
+  end
+
+  def test_nssa_translate_type7
+    ad = create_routerospfarea_default
+    assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'never'
+    assert_equal('never', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'supress_fa'
+    assert_equal('supress_fa', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'always_supress_fa'
+    assert_equal('always_supress_fa', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = 'always'
+    assert_equal('always', ad.nssa_translate_type7)
+    ad.nssa_translate_type7 = ad.default_nssa_translate_type7
+    assert_equal(ad.default_nssa_translate_type7, ad.nssa_translate_type7)
+    av = create_routerospfarea_vrf
+    assert_equal(av.default_nssa_translate_type7, av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'never'
+    assert_equal('never', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'supress_fa'
+    assert_equal('supress_fa', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'always_supress_fa'
+    assert_equal('always_supress_fa', av.nssa_translate_type7)
+    av.nssa_translate_type7 = 'always'
+    assert_equal('always', av.nssa_translate_type7)
+    av.nssa_translate_type7 = av.default_nssa_translate_type7
+    assert_equal(av.default_nssa_translate_type7, av.nssa_translate_type7)
+  end
+
   def test_destroy
     ad = create_routerospfarea_default
     # destroy without changing any properties
@@ -197,6 +392,12 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa,
+     :nssa_default_originate,
+     :nssa_no_redistribution,
+     :nssa_no_summary,
+     :nssa_route_map,
+     :nssa_translate_type7,
      :stub,
      :stub_no_summary,
     ].each do |prop|
@@ -210,6 +411,16 @@ class TestRouterOspfArea < CiscoTestCase
               ['10.3.0.0/32', 'not_advertise'],
               ['10.3.0.1/32'],
               ['10.3.3.0/24', '450']]
+    hash = {}
+    hash[:nssa] = true
+    hash[:default_information_originate] = 'default-information-originate'
+    hash[:no_summary] = 'no-summary'
+    hash[:no_redistribution] = 'no-redistribution'
+    hash[:route_map] = 'route-map'
+    hash[:rm] = 'aaa'
+    ad.nssa_set(hash)
+
+    ad.nssa_translate_type7 = 'never'
     ad.range = ranges
     ad.stub = true
     ad.stub_no_summary = true
@@ -220,6 +431,12 @@ class TestRouterOspfArea < CiscoTestCase
      :filter_list_in,
      :filter_list_out,
      :range,
+     :nssa,
+     :nssa_default_originate,
+     :nssa_no_redistribution,
+     :nssa_no_summary,
+     :nssa_route_map,
+     :nssa_translate_type7,
      :stub,
      :stub_no_summary,
     ].each do |prop|
