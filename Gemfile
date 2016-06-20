@@ -7,3 +7,4 @@ gemspec
 # but we need them for Bundler to use.
 gem 'net_http_unix'
 gem 'grpc'
+gem 'pry'
