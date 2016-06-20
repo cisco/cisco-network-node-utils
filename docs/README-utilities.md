@@ -32,7 +32,7 @@ Usage: show_running_yang [options] [file_or_directory_path]
     -d, --debug                      Enable debug-level logging
     -v, --verbose                    Enable verbose messages
     -h, --help                       Print this help
-    
+
 [xrv9k:~]$ show_running_yang
 [xrv9k:~]$ show_running_yang /pkg/yang/Cisco-IOS-XR-ipv4-bgp-cfg.yang
 ```
