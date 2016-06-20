@@ -131,12 +131,14 @@ class Cisco::Client::GRPC < Cisco::Client
   def get(data_format: :cli,
           command:     nil,
           context:     nil,
-          value:       nil)
+          value:       nil,
+          **kwargs)
     super
     fail ArgumentError if command.nil?
 
     if data_format == :yang_json
-      yang_req(@config, 'get_config', ConfigGetArgs.new(yangpathjson: command))
+      mode = kwargs[:mode] || :get_config
+      yang_req(@config, mode, ConfigGetArgs.new(yangpathjson: command))
     else
       args = ShowCmdArgs.new(cli: command)
       output = req(@exec, 'show_cmd_text_output', args)
@@ -251,6 +253,9 @@ class Cisco::Client::GRPC < Cisco::Client
       # nothing to process
       output = ''
     when /ConfigGetReply/
+      replies.each { |r| debug "  yangjson:\n#{r.yangjson}" }
+      output = replies.map(&:yangjson).join('')
+    when /GetOperReply/
       replies.each { |r| debug "  yangjson:\n#{r.yangjson}" }
       output = replies.map(&:yangjson).join('')
     when /ConfigReply/
