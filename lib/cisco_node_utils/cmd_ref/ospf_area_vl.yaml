@@ -15,9 +15,6 @@ dead_interval:
   set_value: 'dead-interval <interval>'
   default_value: 40
 
-destroy:
-  set_value: 'no area <area> virtual-link <vl>'
-
 hello_interval:
   kind: int
   get_value: '/^hello-interval (\d+)$/'
@@ -38,4 +35,8 @@ transmit_delay:
 
 virtual_links:
   multiple: true
+  context:
+    - "router ospf <name>"
+    - "(?)vrf <vrf>"
   get_value: '/^area (\S+) virtual-link (\S+)$/'
+  set_value: '<state> area <area> virtual-link <vl>'

@@ -18,6 +18,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'router_ospf_vrf'
 
 module Cisco
   # node_utils class for ospf_area
@@ -34,27 +35,27 @@ module Cisco
       fail ArgumentError if @area_id.empty?
       fail ArgumentError unless virtual_link.length > 0
 
-      Feature.ospf_enable if instantiate
       # Convert to dot-notation
-
       @router = ospf_router
       @vrf = vrf_name
       @area_id = IPAddr.new(area_id.to_i, Socket::AF_INET) unless @area_id[/\./]
       @vl = virtual_link
 
       set_args_keys_default
+      create if instantiate
     end
 
     def self.virtual_links
       hash = {}
       RouterOspf.routers.each do |name, _obj|
         # get all virtual_links under default vrf
-        links = config_get('ospf_area', 'virtual_links', name: name)
-        unless links.empty?
+        links = config_get('ospf_area_vl', 'virtual_links', name: name)
+        unless links.nil?
           hash[name] = {}
           hash[name]['default'] = {}
           links.each do |area, vl|
-            hash[name]['default'][vl] =
+            avl = area + '_' + vl
+            hash[name]['default'][avl] =
               RouterOspfAreaVirtualLink.new(name, 'default', area, vl, false)
           end
         end
@@ -62,12 +63,14 @@ module Cisco
         next if vrf_ids.nil?
         vrf_ids.each do |vrf|
           # get all virtual_links under each vrf
-          links = config_get('ospf_area', 'virtual_links', name: name, vrf: vrf)
-          next if links.empty?
+          links = config_get('ospf_area_vl', 'virtual_links',
+                             name: name, vrf: vrf)
+          next if links.nil?
           hash[name] ||= {}
           hash[name][vrf] = {}
           links.each do |area, vl|
-            hash[name][vrf][vl] =
+            avl = area + '_' + vl
+            hash[name][vrf][avl] =
               RouterOspfAreaVirtualLink.new(name, vrf, area, vl, false)
           end
         end
@@ -88,10 +91,17 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
+    # Create one router ospf area virtual-link instance
+    def create
+      RouterOspfVrf.new(@router, @vrf)
+      set_args_keys(state: '')
+      config_set('ospf_area_vl', 'virtual_links', @set_args)
+    end
+
     def destroy
       return unless Feature.ospf_enabled?
-      config_set('ospf_area_vl', 'destroy', @set_args)
-      set_args_keys_default
+      set_args_keys(state: 'no')
+      config_set('ospf_area_vl', 'virtual_links', @set_args)
     end
 
     def ==(other)
