@@ -47,6 +47,7 @@ Cisco Nexus N3k  | NX-OS  | 7.0(3)I2(1) and later
 Cisco Nexus N5k  | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N6k  | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N7k  | NX-OS  | 7.3(0)D1(1) and later
+Cisco XRv9k      | IOS-XR | 6.0.1 and later
 
 Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can obtain a copy of a virtual Nexus N9000/N3000 by sending their [cisco.com](http://cisco.com) user ID in an email to <get-n9kv@cisco.com>. If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
@@ -61,9 +62,9 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## Configuration
+## <a name="configuration">Configuration</a>
 
-This gem may require configuration in order to be used. Two configuration file locations are supported:
+Depending on the installation environment (Linux, NX-OS, or IOS XR), this gem may require configuration in order to be used. Two configuration file locations are supported:
 
 * `/etc/cisco_node_utils.yaml` (system and/or root user configuration)
 * `~/cisco_node_utils.yaml` (per-user configuration)
@@ -72,10 +73,13 @@ If both files exist and are readable, configuration in the user-specific file wi
 
 This file specifies the host, port, username, and/or password to be used to connect to one or more nodes.
 
-* When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
-  - A node labeled as `default` will be the default node to test against.
-  - Nodes with other names can be selected at test execution time.
-  - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
+* When installing this gem on NX-OS nodes, this file is generally not needed, as the default client behavior is sufficient.		 +* When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
+* When installing this gem on IOS XR nodes, this file needs to specify an IOS XR administrator `username` and `password` for the local (`default`) node. Additionally, if the gRPC server is configured to listen on a port other than its default of 57400, the `port` number must be specified in this file. *For security purposes, it is highly recommended that access to this file be restricted to only the owning user (`chmod 0600`).*
+* When developing for or testing this gem, this file can specify one or more NX-OS and/or IOS XR nodes to run tests against. In this case:
+    - A node labeled as `default` will be the default node to test against.
+    - Nodes with other names can be selected at test execution time.
+    - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
+    - IOS XR nodes must be defined with a `host`, `username`, and `password`, plus a `port` if the gRPC server is listening on a non-default port.
 
 An example configuration file (illustrating each of the above scenarios) is provided with this gem at [`docs/cisco_node_utils.yaml.example`](docs/cisco_node_utils.yaml.example).
 
@@ -83,9 +87,10 @@ An example configuration file (illustrating each of the above scenarios) is prov
 
 ### Client
 
-The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`.
+The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`. Currently there are two subclasses:
 
 * `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
+* `Cisco::Client::GRPC` - client for communicating with IOS XR 6.0.1 and later, using gRPC.
 
 For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
@@ -95,7 +100,7 @@ The `Node` class is a singleton which wraps around the `Client` class to provide
 
 ### CommandReference
 
-The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG) or hardware differences (Nexus N9k vs. Nexus N3k). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
+The `CommandReference` class abstracts away the differences between various supported `Node` types, be that API differences (CLI vs. YANG), platform differences (NX-OS vs. IOS XR), or hardware differences (Nexus N9k vs. Nexus N3k). A series of YAML files describe various `feature` groupings. Each file describes a set of `attributes` of the given feature and the specifics of how to inspect and manage these attributes for any supported `Node` types.  When a `Node` is connected, the platform identification of the Node is used to construct a `CommandReference` instance containing a set of `CmdRef` objects specific to this `Node`. The `Node` APIs `config_set`, `config_get`, and `config_get_default` all rely on the `CmdRef`.
 
 See also [README_YAML](lib/cisco_node_utils/cmd_ref/README_YAML.md).
 
@@ -119,23 +124,38 @@ provider classes, and not directly call into `CommandReference` or `Node`.
 
 ## <a name="examples">Examples</a>
 
-
 These utilities can be used directly on a Cisco device (as used by Puppet
 and Chef) or can run on a workstation and point to a Cisco device (as used
-by the included minitest suite).
+by the included minitest suite).  The Client and Node APIs will read
+connection information (host, username, etc.) from a
+[configuration file](#configuration). When creating a Client
+you can choose which device in the config file to connect to by specifying a label
+(if no label is specified, "default" is assumed). If a configuration file cannot be
+found, the Client or Node will attempt to connect to the local device.
 
-### Usage on a Cisco device
+*Note: Entries in the configuration file can specify local or remote devices.*
+
+### Cisco Nexus Device (supports CLI configuration)
 
 #### Low-level Client API
 
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the local device
-client = Cisco::Client.create()
+# Create a connection to the following nodes:
+# - 'default' device defined in the cisco_node_utils.yaml file
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+client1 = Cisco::Client.create()
+client2 = Cisco::Client.create('n9k')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-client.get(command: 'show version')
-client.set(values: 'vtp domain mycompany.com')
+# Use connections to get and set device state.
+client1.set(values: 'feature vtp')
+client1.set(values: 'vtp domain mycompany.com')
+puts client1.get(command: 'show vtp status | inc Domain')
+
+puts client2.get(command: 'show version')
 ```
 
 #### High-level Node API
@@ -143,25 +163,47 @@ client.set(values: 'vtp domain mycompany.com')
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the local device
+# Create a connection to the following:
+# - 'default' device defined in the cisco_node_utils.yaml
 node = Cisco::Node.instance()
+# OR:
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+# Cisco::Environment.default_environment_name = 'n9k'
+# node = Cisco::Node.instance()
 
-version = node.config_get("show_version", "system_image")
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-node.config_set("vtp", "domain", "mycompany.com")
+# Use connection to get and set device state.
+node.config_set('feature', 'vtp', state: '')
+node.config_set('vtp', 'domain', domain: 'mycompany.com')
+puts node.config_get('vtp', 'domain')
 ```
 
-### Remote usage
+### Cisco IOS XR Device (supports CLI and YANG configuration)
 
 #### Low-level Client API
 
 ```ruby
 require 'cisco_node_utils'
 
-client = Cisco::Client.create('n3k.mycompany.com', 'username', 'password')
+# Create a connection to the following nodes:
+# - 'default' device defined in the cisco_node_utils.yaml file
+# - 'xrv9k' device defined in the cisco_node_utils.yaml file
+client1 = Cisco::Client.create()
+client2 = Cisco::Client.create('xrv9k')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-client.get(command: 'show version')
-client.set(values: 'vtp domain mycompany.com')
+# Use connections to get and set device state.
+# via CLI
+client1.set(values: 'vrf blue')
+puts client1.get(command: 'show run vrf')
+
+# via YANG
+client2.set(data_format: :yang_json,
+            values: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"red", "create":[null]}]}}')
+puts client2.get(data_format: :yang_json, command: '{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}')
 ```
 
 #### High-level Node API
@@ -169,11 +211,25 @@ client.set(values: 'vtp domain mycompany.com')
 ```ruby
 require 'cisco_node_utils'
 
-node = Cisco::Node.new("n3k.mycompany.com", "username", "password")
+# Create a connection to the following:
+# - 'default' device defined in the cisco_node_utils.yaml
+node = Cisco::Node.instance()
+# OR:
+# - 'xrv9k' device defined in the cisco_node_utils.yaml file
+# Cisco::Environment.default_environment_name = 'xrv9k'
+# node = Cisco::Node.instance()
 
-version = node.config_get("show_version", "system_image")
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-node.config_set("vtp", "domain", "mycompany.com")
+# Use connection to get and set device state.
+# via CLI
+node.config_set('vrf', 'create', vrf: 'blue')
+puts node.config_get('vrf', 'all_vrfs')
+
+# via yang
+node.merge_yang('{"Cisco-IOS-XR-infra-rsi-cfg:vrfs":{"vrf":[{"vrf-name":"red", "create":[null]}]}}')
+puts node.get_yang('{"Cisco-IOS-XR-infra-rsi-cfg:vrfs": [null]}')
 ```
 
 

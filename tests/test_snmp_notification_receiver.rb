@@ -58,13 +58,13 @@ class TestSnmpNotifRcvr < CiscoTestCase
                                           username:         'ab',
                                           port:             '45',
                                           vrf:              'red',
-                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
+                                          source_interface: interfaces[0].downcase)
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
     assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
     assert_equal(interfaces[0].downcase,
-                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) # rubocop:disable Metrics/LineLength
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface)
     assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
     assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
     assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
@@ -89,7 +89,7 @@ class TestSnmpNotifRcvr < CiscoTestCase
                                           username:         'ab',
                                           port:             '45',
                                           vrf:              'red',
-                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
+                                          source_interface: interfaces[0].downcase)
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
     assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
@@ -123,7 +123,7 @@ class TestSnmpNotifRcvr < CiscoTestCase
                                           username:         'ab',
                                           port:             '45',
                                           vrf:              'red',
-                                          source_interface: interfaces[0].downcase) # rubocop:disable Metrics/LineLength
+                                          source_interface: interfaces[0].downcase)
 
     receiver2 = \
       Cisco::SnmpNotificationReceiver.new(id2,
@@ -134,13 +134,13 @@ class TestSnmpNotifRcvr < CiscoTestCase
                                           username:         'cd',
                                           port:             '46',
                                           vrf:              'red',
-                                          source_interface: interfaces[1].downcase) # rubocop:disable Metrics/LineLength
+                                          source_interface: interfaces[1].downcase)
 
     assert_includes(Cisco::SnmpNotificationReceiver.receivers, id)
     assert_equal(receiver, Cisco::SnmpNotificationReceiver.receivers[id])
 
     assert_equal(interfaces[0].downcase,
-                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) if platform == :nexus # rubocop:disable Metrics/LineLength
+                 Cisco::SnmpNotificationReceiver.receivers[id].source_interface) if platform == :nexus
     assert_equal('45', Cisco::SnmpNotificationReceiver.receivers[id].port)
     assert_equal('informs', Cisco::SnmpNotificationReceiver.receivers[id].type)
     assert_equal('ab', Cisco::SnmpNotificationReceiver.receivers[id].username)
@@ -152,7 +152,7 @@ class TestSnmpNotifRcvr < CiscoTestCase
     assert_equal(receiver2, Cisco::SnmpNotificationReceiver.receivers[id2])
 
     assert_equal(interfaces[1].downcase,
-                 Cisco::SnmpNotificationReceiver.receivers[id2].source_interface) # rubocop:disable Metrics/LineLength
+                 Cisco::SnmpNotificationReceiver.receivers[id2].source_interface)
     assert_equal('46', Cisco::SnmpNotificationReceiver.receivers[id2].port)
     assert_equal('traps', Cisco::SnmpNotificationReceiver.receivers[id2].type)
     assert_equal('cd', Cisco::SnmpNotificationReceiver.receivers[id2].username)

@@ -94,6 +94,8 @@ module Cisco
        :default_cost,
        :filter_list_in,
        :filter_list_out,
+       :nssa,
+       :nssa_translate_type7,
        :range,
        :stub,
       ].each do |prop|
@@ -183,6 +185,116 @@ module Cisco
 
     def default_filter_list_out
       config_get_default('ospf_area', 'filter_list_out')
+    end
+
+    # CLI can be the following or none
+    # area 1.1.1.1 nssa
+    # the above command can be appended with no-summary and/or
+    # no-redistribution and/or default-information-originate.
+    # route-map <map> can be appended with default-information-originate
+    # Basically, every property this CLI configures is optional
+    # example manifest:
+    # nssa                    => true,
+    # nssa_default_originate  => true,
+    # nssa_no_redistribution  => false,
+    # nssa_no_summary         => false,
+    # nssa_route_map          => 'aaa',
+    def nssa_get
+      hash = {}
+      output = config_get('ospf_area', 'nssa_get', @get_args)
+      return hash if output.nil?
+      output.each do |line|
+        next if line.include?('translate')
+        hash[:nssa] = true
+        hash[:no_summary] = true if line.include?('no-summary')
+        hash[:no_redistribution] = true if line.include?('no-redistribution')
+        hash[:def_info_origin] = true if
+          line.include?('default-information-originate')
+        if line.include?('route-map')
+          params = line.split
+          hash[:route_map] = params[params.index('route-map') + 1]
+        end
+      end
+      hash
+    end
+
+    def nssa
+      nssa_get[:nssa].nil? ? false : true
+    end
+
+    def default_nssa
+      config_get_default('ospf_area', 'nssa')
+    end
+
+    def nssa_default_originate
+      nssa_get[:def_info_origin].nil? ? false : true
+    end
+
+    def default_nssa_default_originate
+      config_get_default('ospf_area', 'nssa_default_originate')
+    end
+
+    def nssa_no_redistribution
+      nssa_get[:no_redistribution].nil? ? false : true
+    end
+
+    def default_nssa_no_redistribution
+      config_get_default('ospf_area', 'nssa_no_redistribution')
+    end
+
+    def nssa_no_summary
+      nssa_get[:no_summary].nil? ? false : true
+    end
+
+    def default_nssa_no_summary
+      config_get_default('ospf_area', 'nssa_no_summary')
+    end
+
+    def nssa_route_map
+      nssa_get[:route_map].nil? ? '' : nssa_get[:route_map]
+    end
+
+    def default_nssa_route_map
+      config_get_default('ospf_area', 'nssa_route_map')
+    end
+
+    def nssa_set(hash)
+      # The nssa cli is additive so it must be removed altogether
+      # when making changes.
+      config_set('ospf_area', 'nssa_destroy', @set_args) if nssa
+      return if hash.empty?
+
+      # Process each nssa property
+      @set_args[:state] = ''
+      hash.keys.each do |k|
+        @set_args[k] = hash[k]
+      end
+      config_set('ospf_area', 'nssa_set', @set_args)
+    end
+
+    # CLI can be the following or none
+    # area 1.1.1.1 nssa translate type7 always
+    # area 1.1.1.1 nssa translate type7 always supress-fa
+    # area 1.1.1.1 nssa translate type7 never
+    # area 1.1.1.1 nssa translate type7 supress-fa
+    def nssa_translate_type7
+      str = config_get('ospf_area', 'nssa_translate_type7', @get_args)
+      str = 'always_supress_fa' if str == 'always supress-fa'
+      str = 'supress_fa' if str == 'supress-fa'
+      str
+    end
+
+    def nssa_translate_type7=(val)
+      state = val ? '' : 'no'
+      value = val ? val : ''
+      value = 'always supress-fa' if val.to_s == 'always_supress_fa'
+      value = 'supress-fa' if val.to_s == 'supress_fa'
+      set_args_keys(state: state, value: value)
+      config_set('ospf_area', 'nssa_translate_type7', @set_args)
+    end
+
+    def default_nssa_translate_type7
+      config_get_default('ospf_area', 'nssa_translate_type7')
     end
 
     # range can take multiple values for the same vrf
