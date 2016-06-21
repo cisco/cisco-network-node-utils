@@ -82,4 +82,64 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     vvl5.destroy
     assert_empty(RouterOspfAreaVirtualLink.virtual_links)
   end
+
+  def test_dead_interval
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_dead_interval, dvl.dead_interval)
+    dvl.dead_interval = 500
+    assert_equal(500, dvl.dead_interval)
+    dvl.dead_interval = dvl.default_dead_interval
+    assert_equal(dvl.default_dead_interval, dvl.dead_interval)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_dead_interval, vvl.dead_interval)
+    vvl.dead_interval = 1000
+    assert_equal(1000, vvl.dead_interval)
+    vvl.dead_interval = vvl.default_dead_interval
+    assert_equal(vvl.default_dead_interval, vvl.dead_interval)
+  end
+
+  def test_hello_interval
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_hello_interval, dvl.hello_interval)
+    dvl.hello_interval = 1500
+    assert_equal(1500, dvl.hello_interval)
+    dvl.hello_interval = dvl.default_hello_interval
+    assert_equal(dvl.default_hello_interval, dvl.hello_interval)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_hello_interval, vvl.hello_interval)
+    vvl.hello_interval = 2000
+    assert_equal(2000, vvl.hello_interval)
+    vvl.hello_interval = vvl.default_hello_interval
+    assert_equal(vvl.default_hello_interval, vvl.hello_interval)
+  end
+
+  def test_retransmit_interval
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_retransmit_interval, dvl.retransmit_interval)
+    dvl.retransmit_interval = 200
+    assert_equal(200, dvl.retransmit_interval)
+    dvl.retransmit_interval = dvl.default_retransmit_interval
+    assert_equal(dvl.default_retransmit_interval, dvl.retransmit_interval)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_retransmit_interval, vvl.retransmit_interval)
+    vvl.retransmit_interval = 10_000
+    assert_equal(10_000, vvl.retransmit_interval)
+    vvl.retransmit_interval = vvl.default_retransmit_interval
+    assert_equal(vvl.default_retransmit_interval, vvl.retransmit_interval)
+  end
+
+  def test_transmit_delay
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_transmit_delay, dvl.transmit_delay)
+    dvl.transmit_delay = 250
+    assert_equal(250, dvl.transmit_delay)
+    dvl.transmit_delay = dvl.default_transmit_delay
+    assert_equal(dvl.default_transmit_delay, dvl.transmit_delay)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_transmit_delay, vvl.transmit_delay)
+    vvl.transmit_delay = 400
+    assert_equal(400, vvl.transmit_delay)
+    vvl.transmit_delay = vvl.default_transmit_delay
+    assert_equal(vvl.default_transmit_delay, vvl.transmit_delay)
+  end
 end
