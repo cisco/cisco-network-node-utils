@@ -163,8 +163,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     assert_equal(dvl.default_authentication, dvl.authentication)
     dvl.authentication = 'md5'
     assert_equal('md5', dvl.authentication)
-    dvl.authentication = 'clear_text'
-    assert_equal('clear_text', dvl.authentication)
+    dvl.authentication = 'cleartext'
+    assert_equal('cleartext', dvl.authentication)
     dvl.authentication = 'null'
     assert_equal('null', dvl.authentication)
     dvl.authentication = dvl.default_authentication
@@ -173,8 +173,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     assert_equal(vvl.default_authentication, vvl.authentication)
     vvl.authentication = 'md5'
     assert_equal('md5', vvl.authentication)
-    vvl.authentication = 'clear_text'
-    assert_equal('clear_text', vvl.authentication)
+    vvl.authentication = 'cleartext'
+    assert_equal('cleartext', vvl.authentication)
     vvl.authentication = 'null'
     assert_equal('null', vvl.authentication)
     vvl.authentication = vvl.default_authentication

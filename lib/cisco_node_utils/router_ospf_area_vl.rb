@@ -126,7 +126,7 @@ module Cisco
       elsif auth.include?('null')
         return 'null'
       else
-        return 'clear_text'
+        return 'cleartext'
       end
     end
 
