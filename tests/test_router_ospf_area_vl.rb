@@ -30,8 +30,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
   end
 
   def teardown
-    # remove_all_ospfs
-    # config 'no feature ospf'
+    remove_all_ospfs
+    config 'no feature ospf'
     super
   end
 
