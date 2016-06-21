@@ -1,0 +1,41 @@
+# ospf_area_vl
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running ospf | no-more"
+  context:
+    - "router ospf <name>"
+    - "(?)vrf <vrf>"
+    - "area <area> virtual-link <vl>"
+
+dead_interval:
+  kind: int
+  get_value: '/^dead-interval (\d+)$/'
+  set_value: 'dead-interval <interval>'
+  default_value: 40
+
+destroy:
+  set_value: 'no area <area> virtual-link <vl>'
+
+hello_interval:
+  kind: int
+  get_value: '/^hello-interval (\d+)$/'
+  set_value: 'hello-interval <interval>'
+  default_value: 10
+
+retransmit_interval:
+  kind: int
+  get_value: '/^retransmit-interval (\d+)$/'
+  set_value: 'retransmit-interval <interval>'
+  default_value: 5
+
+transmit_delay:
+  kind: int
+  get_value: '/^transmit-delay (\d+)$/'
+  set_value: 'transmit-delay <delay>'
+  default_value: 1
+
+virtual_links:
+  multiple: true
+  get_value: '/^area (\S+) virtual-link (\S+)$/'
