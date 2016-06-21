@@ -142,4 +142,42 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     vvl.transmit_delay = vvl.default_transmit_delay
     assert_equal(vvl.default_transmit_delay, vvl.transmit_delay)
   end
+
+  def test_auth_key_chain
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_auth_key_chain, dvl.auth_key_chain)
+    dvl.auth_key_chain = 'testing123'
+    assert_equal('testing123', dvl.auth_key_chain)
+    dvl.auth_key_chain = dvl.default_auth_key_chain
+    assert_equal(dvl.default_auth_key_chain, dvl.auth_key_chain)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_auth_key_chain, vvl.auth_key_chain)
+    vvl.auth_key_chain = 'awesome'
+    assert_equal('awesome', vvl.auth_key_chain)
+    vvl.auth_key_chain = vvl.default_auth_key_chain
+    assert_equal(vvl.default_auth_key_chain, vvl.auth_key_chain)
+  end
+
+  def test_authentication
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_authentication, dvl.authentication)
+    dvl.authentication = 'md5'
+    assert_equal('md5', dvl.authentication)
+    dvl.authentication = 'clear_text'
+    assert_equal('clear_text', dvl.authentication)
+    dvl.authentication = 'null'
+    assert_equal('null', dvl.authentication)
+    dvl.authentication = dvl.default_authentication
+    assert_equal(dvl.default_authentication, dvl.authentication)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_authentication, vvl.authentication)
+    vvl.authentication = 'md5'
+    assert_equal('md5', vvl.authentication)
+    vvl.authentication = 'clear_text'
+    assert_equal('clear_text', vvl.authentication)
+    vvl.authentication = 'null'
+    assert_equal('null', vvl.authentication)
+    vvl.authentication = vvl.default_authentication
+    assert_equal(vvl.default_authentication, vvl.authentication)
+  end
 end

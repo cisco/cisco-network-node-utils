@@ -114,6 +114,54 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # CLI can be either of the following or none
+    # authentication
+    # authentication message-digest
+    # authentication null
+    def authentication
+      auth = config_get('ospf_area_vl', 'authentication', @get_args)
+      return default_authentication unless auth
+      if auth.include?('message-digest')
+        return 'md5'
+      elsif auth.include?('null')
+        return 'null'
+      else
+        return 'clear_text'
+      end
+    end
+
+    def authentication=(val)
+      state = val ? '' : 'no'
+      if val.to_s == 'md5'
+        auth = 'message-digest'
+      elsif val.to_s == 'null'
+        auth = 'null'
+      else
+        auth = ''
+      end
+      set_args_keys(state: state, auth: auth)
+      config_set('ospf_area_vl', 'authentication', @set_args)
+    end
+
+    def default_authentication
+      config_get_default('ospf_area_vl', 'authentication')
+    end
+
+    def auth_key_chain
+      config_get('ospf_area_vl', 'auth_key_chain', @get_args)
+    end
+
+    def auth_key_chain=(val)
+      state = val ? '' : 'no'
+      id = val ? val : ''
+      set_args_keys(state: state, key_id: id)
+      config_set('ospf_area_vl', 'auth_key_chain', @set_args)
+    end
+
+    def default_auth_key_chain
+      config_get_default('ospf_area_vl', 'auth_key_chain')
+    end
+
     def dead_interval
       config_get('ospf_area_vl', 'dead_interval', @get_args)
     end
