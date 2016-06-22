@@ -162,6 +162,31 @@ module Cisco
       config_get_default('ospf_area_vl', 'auth_key_chain')
     end
 
+    def authentication_key_encryption_type
+      Encryption.cli_to_symbol(
+        config_get('ospf_area_vl', 'authentication_key_enc_type', @get_args))
+    end
+
+    def default_authentication_key_encryption_type
+      Encryption.cli_to_symbol(
+        config_get_default('ospf_area_vl', 'authentication_key_enc_type'))
+    end
+
+    def authentication_key_password
+      config_get('ospf_area_vl', 'authentication_key_password', @get_args)
+    end
+
+    def default_authentication_key_password
+      config_get_default('ospf_area_vl', 'authentication_key_password')
+    end
+
+    def authentication_key_set(enctype, pw)
+      state = pw.empty? ? 'no' : ''
+      enctype = pw.empty? ? '' : Encryption.symbol_to_cli(enctype)
+      set_args_keys(state: state, enctype: enctype, password: pw)
+      config_set('ospf_area_vl', 'authentication_key_set', @set_args)
+    end
+
     def dead_interval
       config_get('ospf_area_vl', 'dead_interval', @get_args)
     end

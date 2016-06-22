@@ -24,6 +24,17 @@ authentication:
   set_value: '<state> authentication <auth>'
   default_value: false
 
+authentication_key_enc_type:
+  get_value: '/^authentication-key (\d+)/'
+  default_value: '0'
+
+authentication_key_password:
+  get_value: '/^authentication-key \d+ (\S+)/'
+  default_value: ''
+
+authentication_key_set:
+  set_value: "<state> authentication-key <enctype> <password>"
+
 dead_interval:
   kind: int
   get_value: '/^dead-interval (\d+)$/'

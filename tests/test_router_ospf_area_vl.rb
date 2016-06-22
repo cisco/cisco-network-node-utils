@@ -180,4 +180,49 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     vvl.authentication = vvl.default_authentication
     assert_equal(vvl.default_authentication, vvl.authentication)
   end
+
+  def test_authentication_key
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_authentication_key_encryption_type,
+                 dvl.authentication_key_encryption_type)
+    assert_equal(dvl.default_authentication_key_password,
+                 dvl.authentication_key_password)
+    encr = :"3des"
+    encr_pw = '762bc328e3bdf235'
+    dvl.authentication_key_set(encr, encr_pw)
+    assert_equal(encr, dvl.authentication_key_encryption_type)
+    assert_equal(encr_pw, dvl.authentication_key_password)
+    encr = :cisco_type_7
+    encr_pw = '12345678901234567890'
+    dvl.authentication_key_set(encr, encr_pw)
+    assert_equal(encr, dvl.authentication_key_encryption_type)
+    assert_equal(encr_pw, dvl.authentication_key_password)
+    dvl.authentication_key_set(dvl.default_authentication_key_encryption_type,
+                               dvl.default_authentication_key_password)
+    assert_equal(dvl.default_authentication_key_encryption_type,
+                 dvl.authentication_key_encryption_type)
+    assert_equal(dvl.default_authentication_key_password,
+                 dvl.authentication_key_password)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_authentication_key_encryption_type,
+                 vvl.authentication_key_encryption_type)
+    assert_equal(vvl.default_authentication_key_password,
+                 vvl.authentication_key_password)
+    encr = :"3des"
+    encr_pw = '1347c56888deb142'
+    vvl.authentication_key_set(encr, encr_pw)
+    assert_equal(encr, vvl.authentication_key_encryption_type)
+    assert_equal(encr_pw, vvl.authentication_key_password)
+    encr = :cisco_type_7
+    encr_pw = '046E1803362E595C260E0B240619050A2D'
+    vvl.authentication_key_set(encr, encr_pw)
+    assert_equal(encr, vvl.authentication_key_encryption_type)
+    assert_equal(encr_pw, vvl.authentication_key_password)
+    vvl.authentication_key_set(vvl.default_authentication_key_encryption_type,
+                               vvl.default_authentication_key_password)
+    assert_equal(vvl.default_authentication_key_encryption_type,
+                 vvl.authentication_key_encryption_type)
+    assert_equal(vvl.default_authentication_key_password,
+                 vvl.authentication_key_password)
+  end
 end
