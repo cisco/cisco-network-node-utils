@@ -47,6 +47,25 @@ hello_interval:
   set_value: 'hello-interval <interval>'
   default_value: 10
 
+message_digest_key_alg_type:
+  get_value: '/^message-digest-key \d+ (\S+)/'
+  default_value: 'md5'
+
+message_digest_key_enc_type:
+  get_value: '/^message-digest-key \d+ \S+ (\d+)/'
+  default_value: '0'
+
+message_digest_key_id:
+  kind: int
+  get_value: '/^message-digest-key (\d+)/'
+
+message_digest_key_password:
+  get_value: '/^message-digest-key \d+ \S+ \d+ (\S+)/'
+  default_value: ''
+
+message_digest_key_set:
+  set_value: "<state> message-digest-key <keyid> <algtype> <enctype> <password>"
+
 retransmit_interval:
   kind: int
   get_value: '/^retransmit-interval (\d+)$/'

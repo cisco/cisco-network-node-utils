@@ -187,6 +187,57 @@ module Cisco
       config_set('ospf_area_vl', 'authentication_key_set', @set_args)
     end
 
+    def message_digest_algorithm_type
+      config_get('ospf_area_vl', 'message_digest_key_alg_type',
+                 @get_args).to_sym
+    end
+
+    def default_message_digest_algorithm_type
+      config_get_default('ospf_area_vl',
+                         'message_digest_key_alg_type').to_sym
+    end
+
+    def message_digest_encryption_type
+      Encryption.cli_to_symbol(
+        config_get('ospf_area_vl', 'message_digest_key_enc_type', @get_args))
+    end
+
+    def default_message_digest_encryption_type
+      Encryption.cli_to_symbol(
+        config_get_default('ospf_area_vl', 'message_digest_key_enc_type'))
+    end
+
+    def message_digest_key_id
+      config_get('ospf_area_vl', 'message_digest_key_id', @get_args)
+    end
+
+    def message_digest_password
+      config_get('ospf_area_vl', 'message_digest_key_password', @get_args)
+    end
+
+    def default_message_digest_password
+      config_get_default('ospf_area_vl', 'message_digest_key_password')
+    end
+
+    def message_digest_key_set(keyid, algtype, enctype, pw)
+      return if pw.empty? && message_digest_password.empty?
+      # To remove the configuration, the entire previous
+      # configuration must be given with 'no' cmd
+      state = pw.empty? ? 'no' : ''
+      algtype = pw.empty? ? message_digest_algorithm_type : algtype.to_s
+      if pw.empty?
+        enctype = Encryption.symbol_to_cli(
+          message_digest_encryption_type.to_sym)
+      else
+        enctype = Encryption.symbol_to_cli(enctype)
+      end
+      keyid = pw.empty? ? message_digest_key_id : keyid
+      pw = pw.empty? ? message_digest_password : pw
+      set_args_keys(state: state, keyid: keyid, algtype: algtype,
+                    enctype: enctype, password: pw)
+      config_set('ospf_area_vl', 'message_digest_key_set', @set_args)
+    end
+
     def dead_interval
       config_get('ospf_area_vl', 'dead_interval', @get_args)
     end

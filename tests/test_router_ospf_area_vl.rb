@@ -225,4 +225,72 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     assert_equal(vvl.default_authentication_key_password,
                  vvl.authentication_key_password)
   end
+
+  def test_message_digest_key
+    dvl = create_routerospfarea_default_virtual_link
+    assert_equal(dvl.default_message_digest_algorithm_type,
+                 dvl.message_digest_algorithm_type)
+    assert_equal(dvl.default_message_digest_encryption_type,
+                 dvl.message_digest_encryption_type)
+    assert_equal(dvl.default_message_digest_password,
+                 dvl.message_digest_password)
+    key = 45
+    alg = :md5
+    encr = :"3des"
+    encr_pw = '1347c56888deb142'
+    dvl.message_digest_key_set(key, alg, encr, encr_pw)
+    assert_equal(key, dvl.message_digest_key_id)
+    assert_equal(alg, dvl.message_digest_algorithm_type)
+    assert_equal(encr, dvl.message_digest_encryption_type)
+    assert_equal(encr_pw, dvl.message_digest_password)
+    key = 200
+    encr = :cisco_type_7
+    encr_pw = '046E1803362E595C260E0B240619050A2D'
+    dvl.message_digest_key_set(key, alg, encr, encr_pw)
+    assert_equal(key, dvl.message_digest_key_id)
+    assert_equal(alg, dvl.message_digest_algorithm_type)
+    assert_equal(encr, dvl.message_digest_encryption_type)
+    assert_equal(encr_pw, dvl.message_digest_password)
+    dvl.message_digest_key_set(key, dvl.default_message_digest_algorithm_type,
+                               dvl.default_message_digest_encryption_type,
+                               dvl.default_message_digest_password)
+    assert_equal(dvl.default_message_digest_algorithm_type,
+                 dvl.message_digest_algorithm_type)
+    assert_equal(dvl.default_message_digest_encryption_type,
+                 dvl.message_digest_encryption_type)
+    assert_equal(dvl.default_message_digest_password,
+                 dvl.message_digest_password)
+    vvl = create_routerospfarea_vrf_virtual_link
+    assert_equal(vvl.default_message_digest_algorithm_type,
+                 vvl.message_digest_algorithm_type)
+    assert_equal(vvl.default_message_digest_encryption_type,
+                 vvl.message_digest_encryption_type)
+    assert_equal(vvl.default_message_digest_password,
+                 vvl.message_digest_password)
+    key = 82
+    encr = :"3des"
+    encr_pw = '762bc328e3bdf235'
+    vvl.message_digest_key_set(key, alg, encr, encr_pw)
+    assert_equal(key, vvl.message_digest_key_id)
+    assert_equal(alg, vvl.message_digest_algorithm_type)
+    assert_equal(encr, vvl.message_digest_encryption_type)
+    assert_equal(encr_pw, vvl.message_digest_password)
+    key = 5
+    encr = :cisco_type_7
+    encr_pw = '12345678901234567890'
+    vvl.message_digest_key_set(key, alg, encr, encr_pw)
+    assert_equal(key, vvl.message_digest_key_id)
+    assert_equal(alg, vvl.message_digest_algorithm_type)
+    assert_equal(encr, vvl.message_digest_encryption_type)
+    assert_equal(encr_pw, vvl.message_digest_password)
+    vvl.message_digest_key_set(key, vvl.default_message_digest_algorithm_type,
+                               vvl.default_message_digest_encryption_type,
+                               vvl.default_message_digest_password)
+    assert_equal(vvl.default_message_digest_algorithm_type,
+                 vvl.message_digest_algorithm_type)
+    assert_equal(vvl.default_message_digest_encryption_type,
+                 vvl.message_digest_encryption_type)
+    assert_equal(vvl.default_message_digest_password,
+                 vvl.message_digest_password)
+  end
 end
