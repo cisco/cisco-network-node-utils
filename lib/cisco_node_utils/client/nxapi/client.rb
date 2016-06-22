@@ -132,11 +132,13 @@ class Cisco::Client::NXAPI < Cisco::Client
   # @param command [String] the show command to execute
   # @param context [String, Array<String>] Context to refine the results
   # @param value [String] Specific key to look up
+  # @param kwargs data-format-specific args
   # @return [String, Hash]
   def get(data_format: :cli,
           command:     nil,
           context:     nil,
-          value:       nil)
+          value:       nil,
+          **_kwargs)
     context = munge_to_array(context)
     super
     if data_format == :cli
