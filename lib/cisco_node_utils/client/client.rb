@@ -197,11 +197,13 @@ class Cisco::Client
   # @param command [String] the get command to execute
   # @param context [String, Array<String>] Context to refine/filter the results
   # @param value [String, Regexp] Specific key or regexp to look up
+  # @param kwargs data-format-specific args
   # @return [String, Hash, nil] The state found, or nil if not found.
   def get(data_format: :cli,
           command:     nil,
           context:     nil,
-          value:       nil)
+          value:       nil,
+          **_kwargs)
     # subclasses will generally want to call Client.munge_to_array()
     # on context and/or value before calling super()
     fail Cisco::RequestNotSupported unless self.supports?(data_format)
