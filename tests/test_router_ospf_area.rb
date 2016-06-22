@@ -69,16 +69,16 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(ad.default_authentication, ad.authentication)
     ad.authentication = 'md5'
     assert_equal('md5', ad.authentication)
-    ad.authentication = 'clear_text'
-    assert_equal('clear_text', ad.authentication)
+    ad.authentication = 'cleartext'
+    assert_equal('cleartext', ad.authentication)
     ad.authentication = ad.default_authentication
     assert_equal(ad.default_authentication, ad.authentication)
     av = create_routerospfarea_vrf
     assert_equal(av.default_authentication, av.authentication)
     av.authentication = 'md5'
     assert_equal('md5', av.authentication)
-    av.authentication = 'clear_text'
-    assert_equal('clear_text', av.authentication)
+    av.authentication = 'cleartext'
+    assert_equal('cleartext', av.authentication)
     av.authentication = av.default_authentication
     assert_equal(av.default_authentication, av.authentication)
   end
@@ -193,11 +193,6 @@ class TestRouterOspfArea < CiscoTestCase
     ad = create_routerospfarea_default
     assert_equal(ad.default_nssa, ad.nssa)
     hash[:nssa] = true
-    hash[:no_summary] = ''
-    hash[:no_redistribution] = ''
-    hash[:default_information_originate] = ''
-    hash[:route_map] = ''
-    hash[:rm] = ''
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
@@ -216,11 +211,6 @@ class TestRouterOspfArea < CiscoTestCase
     av = create_routerospfarea_vrf
     assert_equal(av.default_nssa, av.nssa)
     hash[:nssa] = true
-    hash[:no_summary] = ''
-    hash[:no_redistribution] = ''
-    hash[:default_information_originate] = ''
-    hash[:route_map] = ''
-    hash[:rm] = ''
     av.nssa_set(hash)
     assert_equal(true, av.nssa)
     assert_equal(av.default_nssa_default_originate, av.nssa_default_originate)
@@ -240,24 +230,18 @@ class TestRouterOspfArea < CiscoTestCase
   def nssa_helper(ad)
     hash = {}
     hash[:nssa] = true
-    hash[:no_summary] = ''
-    hash[:no_redistribution] = ''
-    hash[:route_map] = ''
-    hash[:rm] = ''
-    hash[:default_information_originate] = 'default-information-originate'
+    hash[:nssa_default_originate] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert(ad.nssa_default_originate)
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-
     # on n8k (only), we cannot configure
     # "area <area> nssa default-information-originate",
     # properly if we reset it first. It is only configuring nssa
     # but not the other parameters. bug ID: CSCva11482
-    hash[:route_map] = 'route-map'
-    hash[:rm] = 'aaa'
+    hash[:nssa_route_map] = 'aaa'
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     if node.product_id[/N8/]
@@ -272,19 +256,15 @@ class TestRouterOspfArea < CiscoTestCase
     else
       assert_equal('aaa', ad.nssa_route_map)
     end
-
-    hash[:no_summary] = 'no-summary'
-    hash[:route_map] = ''
-    hash[:rm] = ''
+    hash[:nssa_no_summary] = true
+    hash.delete(:nssa_route_map)
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(true, ad.nssa_default_originate)
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(true, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-
-    hash[:route_map] = 'route-map'
-    hash[:rm] = 'aaa'
+    hash[:nssa_route_map] = 'aaa'
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(true, ad.nssa_default_originate)
@@ -292,54 +272,61 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(true, ad.nssa_no_summary)
     assert_equal('aaa', ad.nssa_route_map)
 
-    hash[:no_redistribution] = 'no-redistribution'
-    hash[:route_map] = ''
-    hash[:rm] = ''
-    hash[:no_summary] = ''
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_default_originate] = true
+    hash[:nssa_no_redistribution] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(true, ad.nssa_default_originate)
     assert_equal(true, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-
-    hash[:route_map] = 'route-map'
-    hash[:rm] = 'aaa'
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_default_originate] = true
+    hash[:nssa_no_redistribution] = true
+    hash[:nssa_route_map] = 'aaa'
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(true, ad.nssa_default_originate)
     assert_equal(true, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal('aaa', ad.nssa_route_map)
-
-    hash[:no_summary] = 'no-summary'
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_default_originate] = true
+    hash[:nssa_no_redistribution] = true
+    hash[:nssa_route_map] = 'aaa'
+    hash[:nssa_no_summary] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(true, ad.nssa_default_originate)
     assert_equal(true, ad.nssa_no_redistribution)
     assert_equal(true, ad.nssa_no_summary)
     assert_equal('aaa', ad.nssa_route_map)
-
-    hash[:route_map] = ''
-    hash[:rm] = ''
-    hash[:default_information_originate] = ''
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_no_redistribution] = true
+    hash[:nssa_no_summary] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
     assert_equal(true, ad.nssa_no_redistribution)
     assert_equal(true, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-
-    hash[:no_summary] = ''
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_no_redistribution] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)
     assert_equal(true, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-
-    hash[:no_summary] = 'no-summary'
-    hash[:no_redistribution] = ''
+    hash = {}
+    hash[:nssa] = true
+    hash[:nssa_no_summary] = true
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
     assert_equal(ad.default_nssa_default_originate, ad.nssa_default_originate)

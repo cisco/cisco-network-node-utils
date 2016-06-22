@@ -65,7 +65,7 @@ nssa_route_map:
   default_value: ''
 
 nssa_set:
-  set_value: '<state> area <area> nssa <no_summary> <no_redistribution> <default_information_originate> <route_map> <rm>'
+  set_value: '<state> area <area> nssa <nssa_no_summary> <nssa_no_redistribution> <nssa_default_originate> <nssa_route_map>'
 
 nssa_translate_type7:
   get_value: '/^area <area> nssa translate type7 (.*)$/'
