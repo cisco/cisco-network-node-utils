@@ -120,7 +120,7 @@ module Cisco
     def authentication
       auth = config_get('ospf_area', 'authentication', @get_args)
       return default_authentication unless auth
-      auth.include?('message-digest') ? 'md5' : 'clear_text'
+      auth.include?('message-digest') ? 'md5' : 'cleartext'
     end
 
     def authentication=(val)
@@ -264,9 +264,19 @@ module Cisco
       config_set('ospf_area', 'nssa_destroy', @set_args) if nssa
       return if hash.empty?
 
-      # Process each nssa property
       @set_args[:state] = ''
+      @set_args[:nssa_no_summary] = ''
+      @set_args[:nssa_no_redistribution] = ''
+      @set_args[:nssa_default_originate] = ''
+      @set_args[:nssa_route_map] = ''
+      # Process each nssa property
       hash.keys.each do |k|
+        hash[k] = 'default-information-originate' if
+          k == :nssa_default_originate
+        hash[k] = 'no-summary' if k == :nssa_no_summary
+        hash[k] = 'no-redistribution' if k == :nssa_no_redistribution
+        hash[k] = "route-map #{hash[:nssa_route_map]}" if
+          k == :nssa_route_map
         @set_args[k] = hash[k]
       end
       config_set('ospf_area', 'nssa_set', @set_args)
