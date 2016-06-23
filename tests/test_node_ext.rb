@@ -379,7 +379,7 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_system
-    if validate_property_excluded?('system', 'resources')
+    if validate_property_excluded?('show_version', 'system_image')
       assert_nil(node.system)
       return
     end
@@ -388,9 +388,17 @@ class TestNodeExt < CiscoTestCase
     # system image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
     # /N(3|8|9)/
     # NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+    # /ios_xr/
+    # xrv9k-xr-6.1.1.19I version=6.1.1.19I [Boot image]
 
-    pattern = /(?:system|NXOS) image file is:\s+(.*)$/
-    assert_output_check(command: 'show version',
+    if platform[/ios_xr/]
+      cmd = 'show install active'
+      pattern = /^\s*(\S*)\s*version.*\[Boot image\]$/
+    else
+      cmd = 'show version'
+      pattern = /(?:system|NXOS) image file is:\s+(.*)$/
+    end
+    assert_output_check(command: cmd,
                         pattern: pattern,
                         check:   node.system,
                         msg:     'Error, System Image does not match')

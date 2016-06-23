@@ -29,7 +29,7 @@ source_interface:
     set_value: "snmp-server host <ip> source-interface <source_interface> <port>"
     default_value: null
   ios_xr:
-    get_value: '/^snmp-server trap-source (\S+).*$/'
+    get_value: '/^snmp-server trap-source IPv\d (\S+).*$/'
     set_value: "snmp-server trap-source <source_interface>"
 
 type:
