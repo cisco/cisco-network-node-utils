@@ -54,6 +54,7 @@ module Cisco
           hash[name] = {}
           hash[name]['default'] = {}
           links.each do |area, vl|
+            # combine area and virtual-link strings for uniqueness
             avl = area + '_' + vl
             hash[name]['default'][avl] =
               RouterOspfAreaVirtualLink.new(name, 'default', area, vl, false)
@@ -69,6 +70,7 @@ module Cisco
           hash[name] ||= {}
           hash[name][vrf] = {}
           links.each do |area, vl|
+            # combine area and virtual-link strings for uniqueness
             avl = area + '_' + vl
             hash[name][vrf][avl] =
               RouterOspfAreaVirtualLink.new(name, vrf, area, vl, false)
