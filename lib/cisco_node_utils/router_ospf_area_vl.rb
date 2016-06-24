@@ -211,6 +211,10 @@ module Cisco
       config_get('ospf_area_vl', 'message_digest_key_id', @get_args)
     end
 
+    def default_message_digest_key_id
+      config_get_default('ospf_area_vl', 'message_digest_key_id')
+    end
+
     def message_digest_password
       config_get('ospf_area_vl', 'message_digest_key_password', @get_args)
     end

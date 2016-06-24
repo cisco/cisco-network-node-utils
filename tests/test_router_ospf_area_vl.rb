@@ -232,6 +232,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
                  dvl.message_digest_algorithm_type)
     assert_equal(dvl.default_message_digest_encryption_type,
                  dvl.message_digest_encryption_type)
+    assert_equal(dvl.default_message_digest_key_id,
+                 dvl.message_digest_key_id)
     assert_equal(dvl.default_message_digest_password,
                  dvl.message_digest_password)
     key = 45
@@ -251,13 +253,16 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
     assert_equal(alg, dvl.message_digest_algorithm_type)
     assert_equal(encr, dvl.message_digest_encryption_type)
     assert_equal(encr_pw, dvl.message_digest_password)
-    dvl.message_digest_key_set(key, dvl.default_message_digest_algorithm_type,
+    dvl.message_digest_key_set(dvl.message_digest_key_id,
+                               dvl.default_message_digest_algorithm_type,
                                dvl.default_message_digest_encryption_type,
                                dvl.default_message_digest_password)
     assert_equal(dvl.default_message_digest_algorithm_type,
                  dvl.message_digest_algorithm_type)
     assert_equal(dvl.default_message_digest_encryption_type,
                  dvl.message_digest_encryption_type)
+    assert_equal(dvl.default_message_digest_key_id,
+                 dvl.message_digest_key_id)
     assert_equal(dvl.default_message_digest_password,
                  dvl.message_digest_password)
     vvl = create_routerospfarea_vrf_virtual_link
@@ -265,6 +270,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
                  vvl.message_digest_algorithm_type)
     assert_equal(vvl.default_message_digest_encryption_type,
                  vvl.message_digest_encryption_type)
+    assert_equal(vvl.default_message_digest_key_id,
+                 vvl.message_digest_key_id)
     assert_equal(vvl.default_message_digest_password,
                  vvl.message_digest_password)
     key = 82
@@ -290,6 +297,8 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
                  vvl.message_digest_algorithm_type)
     assert_equal(vvl.default_message_digest_encryption_type,
                  vvl.message_digest_encryption_type)
+    assert_equal(vvl.default_message_digest_key_id,
+                 vvl.message_digest_key_id)
     assert_equal(vvl.default_message_digest_password,
                  vvl.message_digest_password)
   end

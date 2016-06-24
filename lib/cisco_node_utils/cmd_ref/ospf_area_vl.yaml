@@ -58,6 +58,7 @@ message_digest_key_enc_type:
 message_digest_key_id:
   kind: int
   get_value: '/^message-digest-key (\d+)/'
+  default_value: 0
 
 message_digest_key_password:
   get_value: '/^message-digest-key \d+ \S+ \d+ (\S+)/'
