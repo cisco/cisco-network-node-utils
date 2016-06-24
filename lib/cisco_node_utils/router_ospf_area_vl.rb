@@ -180,6 +180,10 @@ module Cisco
       config_get_default('ospf_area_vl', 'authentication_key_password')
     end
 
+    # example CLI:
+    # authentication-key 3 3109a60f51374a0d
+    # To remove the authentication-key altogether,
+    # set the password to empty string
     def authentication_key_set(enctype, pw)
       state = pw.empty? ? 'no' : ''
       enctype = pw.empty? ? '' : Encryption.symbol_to_cli(enctype)
@@ -223,6 +227,10 @@ module Cisco
       config_get_default('ospf_area_vl', 'message_digest_key_password')
     end
 
+    # example CLI:
+    # message-digest-key 39 md5 7 046E1803362E595C260E0B240619050A2D
+    # To remove the message-digest-key altogether,
+    # set the password to empty string
     def message_digest_key_set(keyid, algtype, enctype, pw)
       return if pw.empty? && message_digest_password.empty?
       # To remove the configuration, the entire previous
