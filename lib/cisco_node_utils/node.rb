@@ -229,6 +229,11 @@ module Cisco
       @client.get(data_format: :yang_json, command: yang_path)
     end
 
+    # Retrieve JSON YANG operational data for the specified path.
+    def get_yang_oper(yang_path)
+      @client.get(data_format: :yang_json, command: yang_path, mode: :get_oper)
+    end
+
     # @return [String] such as "Cisco Nexus Operating System (NX-OS) Software"
     def os
       o = config_get('show_version', 'header')
@@ -260,7 +265,7 @@ module Cisco
           # No support for structured output for this command yet
           output = get(command:     'show inventory',
                        data_format: :cli)
-          return /NAME: "Rack 0".*\nPID: (\S+)/.match(output)[1]
+          return /NAME: .*\nPID: (\S+)/.match(output)[1]
         end
       end
     end

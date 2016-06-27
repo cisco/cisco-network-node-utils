@@ -17,6 +17,7 @@ Changelog
    * `bfd`
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
+* Added `bin/show_running_yang` utility to retrieve yang configuration from XR devices.
 
 
 ## [v1.3.1]
