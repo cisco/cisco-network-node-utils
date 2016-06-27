@@ -15,12 +15,12 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/router_ospf'
 require_relative '../lib/cisco_node_utils/router_ospf_vrf'
-require_relative '../lib/cisco_node_utils/router_ospf_area_vl'
+require_relative '../lib/cisco_node_utils/router_ospf_area_vlink'
 
 # TestRouterOspfAreaVirtualLink - Minitest for RouterOspfAreaVirtualLink
 # node utility class
 class TestRouterOspfAreaVirtualLink < CiscoTestCase
-  @skip_unless_supported = 'ospf_area_vl'
+  @skip_unless_supported = 'ospf_area_vlink'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
@@ -31,7 +31,6 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
 
   def teardown
     remove_all_ospfs
-    config 'no feature ospf'
     super
   end
 
@@ -51,27 +50,21 @@ class TestRouterOspfAreaVirtualLink < CiscoTestCase
 
   def test_collection_size
     dvl1 = create_routerospfarea_default_virtual_link
-    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default'].size)
-    dvl2 = create_routerospfarea_default_virtual_link('Wolfpack', 'default',
-                                                      '1.1.1.1', '5.5.5.5')
-    assert_equal(2, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default'].size)
-    dvl3 = create_routerospfarea_default_virtual_link('Wolfpack', 'default',
-                                                      '6.6.6.6', '5.5.5.5')
-    assert_equal(3, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default'].size)
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default']['1.1.1.1'].size)
+    dvl2 = create_routerospfarea_default_virtual_link('Wolfpack', 'default', '1.1.1.1', '5.5.5.5')
+    assert_equal(2, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default']['1.1.1.1'].size)
+    dvl3 = create_routerospfarea_default_virtual_link('Wolfpack', 'default', '6.6.6.6', '5.5.5.5')
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['default']['6.6.6.6'].size)
     vvl1 = create_routerospfarea_vrf_virtual_link
-    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['blue'].size)
-    vvl2 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'blue',
-                                                  '1000', '5.5.5.5')
-    assert_equal(2, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['blue'].size)
-    vvl3 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red',
-                                                  '1000', '5.5.5.5')
-    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red'].size)
-    vvl4 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red',
-                                                  '2000', '5.5.5.5')
-    assert_equal(2, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red'].size)
-    vvl5 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red',
-                                                  '2000', '2.2.2.2')
-    assert_equal(3, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red'].size)
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['blue']['0.0.5.170'].size)
+    vvl2 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'blue', '1000', '5.5.5.5')
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['blue']['0.0.3.232'].size)
+    vvl3 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red', '1000', '5.5.5.5')
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red']['0.0.3.232'].size)
+    vvl4 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red', '2000', '5.5.5.5')
+    assert_equal(1, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red']['0.0.7.208'].size)
+    vvl5 = create_routerospfarea_vrf_virtual_link('Wolfpack', 'red', '2000', '2.2.2.2')
+    assert_equal(2, RouterOspfAreaVirtualLink.virtual_links['Wolfpack']['red']['0.0.7.208'].size)
     dvl1.destroy
     dvl2.destroy
     dvl3.destroy

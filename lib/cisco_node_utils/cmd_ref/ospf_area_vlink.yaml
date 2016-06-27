@@ -1,4 +1,4 @@
-# ospf_area_vl
+# ospf_area_vlink
 ---
 _exclude: [ios_xr]
 
@@ -38,13 +38,13 @@ authentication_key_set:
 dead_interval:
   kind: int
   get_value: '/^dead-interval (\d+)$/'
-  set_value: 'dead-interval <interval>'
+  set_value: '<state> dead-interval <interval>'
   default_value: 40
 
 hello_interval:
   kind: int
   get_value: '/^hello-interval (\d+)$/'
-  set_value: 'hello-interval <interval>'
+  set_value: '<state> hello-interval <interval>'
   default_value: 10
 
 message_digest_key_alg_type:
@@ -70,13 +70,13 @@ message_digest_key_set:
 retransmit_interval:
   kind: int
   get_value: '/^retransmit-interval (\d+)$/'
-  set_value: 'retransmit-interval <interval>'
+  set_value: '<state> retransmit-interval <interval>'
   default_value: 5
 
 transmit_delay:
   kind: int
   get_value: '/^transmit-delay (\d+)$/'
-  set_value: 'transmit-delay <delay>'
+  set_value: '<state> transmit-delay <delay>'
   default_value: 1
 
 virtual_links:

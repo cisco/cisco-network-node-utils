@@ -21,7 +21,7 @@ require_relative 'node_util'
 require_relative 'router_ospf_vrf'
 
 module Cisco
-  # node_utils class for ospf_area
+  # node_utils class for ospf_area_vlink
   class RouterOspfAreaVirtualLink < NodeUtil
     attr_reader :router, :vrf, :area_id, :vl
 
@@ -49,14 +49,13 @@ module Cisco
       hash = {}
       RouterOspf.routers.each do |name, _obj|
         # get all virtual_links under default vrf
-        links = config_get('ospf_area_vl', 'virtual_links', name: name)
+        links = config_get('ospf_area_vlink', 'virtual_links', name: name)
         unless links.nil?
           hash[name] = {}
           hash[name]['default'] = {}
           links.each do |area, vl|
-            # combine area and virtual-link strings for uniqueness
-            avl = area + '_' + vl
-            hash[name]['default'][avl] =
+            hash[name]['default'][area] ||= {}
+            hash[name]['default'][area][vl] =
               RouterOspfAreaVirtualLink.new(name, 'default', area, vl, false)
           end
         end
@@ -64,15 +63,14 @@ module Cisco
         next if vrf_ids.nil?
         vrf_ids.each do |vrf|
           # get all virtual_links under each vrf
-          links = config_get('ospf_area_vl', 'virtual_links',
+          links = config_get('ospf_area_vlink', 'virtual_links',
                              name: name, vrf: vrf)
           next if links.nil?
           hash[name] ||= {}
           hash[name][vrf] = {}
           links.each do |area, vl|
-            # combine area and virtual-link strings for uniqueness
-            avl = area + '_' + vl
-            hash[name][vrf][avl] =
+            hash[name][vrf][area] ||= {}
+            hash[name][vrf][area][vl] =
               RouterOspfAreaVirtualLink.new(name, vrf, area, vl, false)
           end
         end
@@ -97,13 +95,13 @@ module Cisco
     def create
       RouterOspfVrf.new(@router, @vrf)
       set_args_keys(state: '')
-      config_set('ospf_area_vl', 'virtual_links', @set_args)
+      config_set('ospf_area_vlink', 'virtual_links', @set_args)
     end
 
     def destroy
       return unless Feature.ospf_enabled?
       set_args_keys(state: 'no')
-      config_set('ospf_area_vl', 'virtual_links', @set_args)
+      config_set('ospf_area_vlink', 'virtual_links', @set_args)
     end
 
     def ==(other)
@@ -121,7 +119,7 @@ module Cisco
     # authentication message-digest
     # authentication null
     def authentication
-      auth = config_get('ospf_area_vl', 'authentication', @get_args)
+      auth = config_get('ospf_area_vlink', 'authentication', @get_args)
       return default_authentication unless auth
       if auth.include?('message-digest')
         return 'md5'
@@ -142,44 +140,44 @@ module Cisco
         auth = ''
       end
       set_args_keys(state: state, auth: auth)
-      config_set('ospf_area_vl', 'authentication', @set_args)
+      config_set('ospf_area_vlink', 'authentication', @set_args)
     end
 
     def default_authentication
-      config_get_default('ospf_area_vl', 'authentication')
+      config_get_default('ospf_area_vlink', 'authentication')
     end
 
     def auth_key_chain
-      config_get('ospf_area_vl', 'auth_key_chain', @get_args)
+      config_get('ospf_area_vlink', 'auth_key_chain', @get_args)
     end
 
     def auth_key_chain=(val)
       state = val ? '' : 'no'
       id = val ? val : ''
       set_args_keys(state: state, key_id: id)
-      config_set('ospf_area_vl', 'auth_key_chain', @set_args)
+      config_set('ospf_area_vlink', 'auth_key_chain', @set_args)
     end
 
     def default_auth_key_chain
-      config_get_default('ospf_area_vl', 'auth_key_chain')
+      config_get_default('ospf_area_vlink', 'auth_key_chain')
     end
 
     def authentication_key_encryption_type
       Encryption.cli_to_symbol(
-        config_get('ospf_area_vl', 'authentication_key_enc_type', @get_args))
+        config_get('ospf_area_vlink', 'authentication_key_enc_type', @get_args))
     end
 
     def default_authentication_key_encryption_type
       Encryption.cli_to_symbol(
-        config_get_default('ospf_area_vl', 'authentication_key_enc_type'))
+        config_get_default('ospf_area_vlink', 'authentication_key_enc_type'))
     end
 
     def authentication_key_password
-      config_get('ospf_area_vl', 'authentication_key_password', @get_args)
+      config_get('ospf_area_vlink', 'authentication_key_password', @get_args)
     end
 
     def default_authentication_key_password
-      config_get_default('ospf_area_vl', 'authentication_key_password')
+      config_get_default('ospf_area_vlink', 'authentication_key_password')
     end
 
     # example CLI:
@@ -190,43 +188,43 @@ module Cisco
       state = pw.empty? ? 'no' : ''
       enctype = pw.empty? ? '' : Encryption.symbol_to_cli(enctype)
       set_args_keys(state: state, enctype: enctype, password: pw)
-      config_set('ospf_area_vl', 'authentication_key_set', @set_args)
+      config_set('ospf_area_vlink', 'authentication_key_set', @set_args)
     end
 
     def message_digest_algorithm_type
-      config_get('ospf_area_vl', 'message_digest_key_alg_type',
+      config_get('ospf_area_vlink', 'message_digest_key_alg_type',
                  @get_args).to_sym
     end
 
     def default_message_digest_algorithm_type
-      config_get_default('ospf_area_vl',
+      config_get_default('ospf_area_vlink',
                          'message_digest_key_alg_type').to_sym
     end
 
     def message_digest_encryption_type
       Encryption.cli_to_symbol(
-        config_get('ospf_area_vl', 'message_digest_key_enc_type', @get_args))
+        config_get('ospf_area_vlink', 'message_digest_key_enc_type', @get_args))
     end
 
     def default_message_digest_encryption_type
       Encryption.cli_to_symbol(
-        config_get_default('ospf_area_vl', 'message_digest_key_enc_type'))
+        config_get_default('ospf_area_vlink', 'message_digest_key_enc_type'))
     end
 
     def message_digest_key_id
-      config_get('ospf_area_vl', 'message_digest_key_id', @get_args)
+      config_get('ospf_area_vlink', 'message_digest_key_id', @get_args)
     end
 
     def default_message_digest_key_id
-      config_get_default('ospf_area_vl', 'message_digest_key_id')
+      config_get_default('ospf_area_vlink', 'message_digest_key_id')
     end
 
     def message_digest_password
-      config_get('ospf_area_vl', 'message_digest_key_password', @get_args)
+      config_get('ospf_area_vlink', 'message_digest_key_password', @get_args)
     end
 
     def default_message_digest_password
-      config_get_default('ospf_area_vl', 'message_digest_key_password')
+      config_get_default('ospf_area_vlink', 'message_digest_key_password')
     end
 
     # example CLI:
@@ -249,59 +247,67 @@ module Cisco
       pw = pw.empty? ? message_digest_password : pw
       set_args_keys(state: state, keyid: keyid, algtype: algtype,
                     enctype: enctype, password: pw)
-      config_set('ospf_area_vl', 'message_digest_key_set', @set_args)
+      config_set('ospf_area_vlink', 'message_digest_key_set', @set_args)
     end
 
     def dead_interval
-      config_get('ospf_area_vl', 'dead_interval', @get_args)
+      config_get('ospf_area_vlink', 'dead_interval', @get_args)
     end
 
     def dead_interval=(val)
-      set_args_keys(interval: val)
-      config_set('ospf_area_vl', 'dead_interval', @set_args)
+      state = val == default_dead_interval ? 'no' : ''
+      interval = val == default_dead_interval ? '' : val
+      set_args_keys(state: state, interval: interval)
+      config_set('ospf_area_vlink', 'dead_interval', @set_args)
     end
 
     def default_dead_interval
-      config_get_default('ospf_area_vl', 'dead_interval')
+      config_get_default('ospf_area_vlink', 'dead_interval')
     end
 
     def hello_interval
-      config_get('ospf_area_vl', 'hello_interval', @get_args)
+      config_get('ospf_area_vlink', 'hello_interval', @get_args)
     end
 
     def hello_interval=(val)
-      set_args_keys(interval: val)
-      config_set('ospf_area_vl', 'hello_interval', @set_args)
+      state = val == default_hello_interval ? 'no' : ''
+      interval = val == default_hello_interval ? '' : val
+      set_args_keys(state: state, interval: interval)
+      config_set('ospf_area_vlink', 'hello_interval', @set_args)
     end
 
     def default_hello_interval
-      config_get_default('ospf_area_vl', 'hello_interval')
+      config_get_default('ospf_area_vlink', 'hello_interval')
     end
 
     def retransmit_interval
-      config_get('ospf_area_vl', 'retransmit_interval', @get_args)
+      config_get('ospf_area_vlink', 'retransmit_interval', @get_args)
     end
 
     def retransmit_interval=(val)
-      set_args_keys(interval: val)
-      config_set('ospf_area_vl', 'retransmit_interval', @set_args)
+      state = val == default_retransmit_interval ? 'no' : ''
+      interval = val == default_retransmit_interval ? '' : val
+      set_args_keys(state: state, interval: interval)
+      config_set('ospf_area_vlink', 'retransmit_interval', @set_args)
     end
 
     def default_retransmit_interval
-      config_get_default('ospf_area_vl', 'retransmit_interval')
+      config_get_default('ospf_area_vlink', 'retransmit_interval')
     end
 
     def transmit_delay
-      config_get('ospf_area_vl', 'transmit_delay', @get_args)
+      config_get('ospf_area_vlink', 'transmit_delay', @get_args)
     end
 
     def transmit_delay=(val)
-      set_args_keys(delay: val)
-      config_set('ospf_area_vl', 'transmit_delay', @set_args)
+      state = val == default_transmit_delay ? 'no' : ''
+      delay = val == default_transmit_delay ? '' : val
+      set_args_keys(state: state, delay: delay)
+      config_set('ospf_area_vlink', 'transmit_delay', @set_args)
     end
 
     def default_transmit_delay
-      config_get_default('ospf_area_vl', 'transmit_delay')
+      config_get_default('ospf_area_vlink', 'transmit_delay')
     end
   end # class
 end # module
