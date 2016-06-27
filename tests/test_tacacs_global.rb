@@ -25,13 +25,14 @@ class TestTacacsGlobal < CiscoTestCase
   def setup
     # setup runs at the beginning of each test
     super
-    config_no_warn('feature tacacs+') if platform == :nexus
-    no_tacacs_global
+    config_no_warn('no feature tacacs+') if platform == :nexus
+    no_tacacs_global if platform == :ios_xr
   end
 
   def teardown
     # teardown runs at the end of each test
     no_tacacs_global
+    config_no_warn('no feature tacacs+') if platform == :nexus
     super
   end
 
