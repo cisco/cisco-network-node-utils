@@ -22,6 +22,7 @@ require_relative 'node_util'
 module Cisco
   # This Yum class provides cisco package management functions through nxapi.
   class Yum < NodeUtil
+    EXEC_IN_DEFAULT_NS = 'ip netns exec default'
     def self.decompose_name(file_name)
       # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
       name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
@@ -38,18 +39,23 @@ module Cisco
     end
 
     def self.validate(pkg)
-      file_name = pkg.strip.tr(':', '/').split('/').last
-      pkg_info = Yum.decompose_name(file_name)
-      if pkg_info.nil?
-        query_name = file_name
-      else
-        if pkg_info[3].nil?
-          query_name = pkg_info[1]
+      if platform == :nexus
+        file_name = pkg.strip.tr(':', '/').split('/').last
+        pkg_info = Yum.decompose_name(file_name)
+        if pkg_info.nil?
+          query_name = file_name
         else
-          query_name = "#{pkg_info[1]}.#{pkg_info[3]}"
+          if pkg_info[3].nil?
+            query_name = pkg_info[1]
+          else
+            query_name = "#{pkg_info[1]}.#{pkg_info[3]}"
+          end
         end
+        should_ver = pkg_info[2] if pkg_info && pkg_info[3]
+      else
+        query_name = pkg
+        should_ver = pkg.match(/^.*\d.*-([\d.]*)-r\d+.*/)[1]
       end
-      should_ver = pkg_info[2] if pkg_info && pkg_info[3]
       ver = query(query_name)
       if ver.nil? || (!should_ver.nil? && should_ver != ver)
         fail 'Failed to install the requested rpm'
@@ -66,27 +72,55 @@ module Cisco
     end
 
     def self.install(pkg, vrf=nil)
-      vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
-      config_set('yum', 'install', pkg, vrf)
-
-      # HACK: The current nxos host installer is a multi-part command
-      # which may fail at a later stage yet return a false positive;
-      # therefore a post-validation check is needed here to verify the
-      # actual outcome.
+      if platform == :nexus
+        vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
+        config_set('yum', 'install', pkg, vrf)
+      else
+        # ex pkg => xrv9k-k9sec-1.0.0.0-r61102I
+        rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install activate pkg 0x0 \
+          #{pkg}`
+        Cisco::Logger.debug "install activate #{pkg} : #{rc}"
+        rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
+        Cisco::Logger.debug "install commit : #{rc}"
+      end
+      # post-validation check to verify successful installation.
       validate(pkg)
     end
 
-    # returns version of package, or false if package doesn't exist
+    # returns version of package, or nil if package doesn't exist
     def self.query(pkg)
       fail TypeError unless pkg.is_a? String
       fail ArgumentError if pkg.empty?
-      b = config_get('yum', 'query', pkg)
-      fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
-      b.nil? ? nil : b.first
+      if platform == :nexus
+        b = config_get('yum', 'query', pkg)
+        fail "Multiple matching packages found for #{pkg}" if b && b.size > 1
+        b.nil? ? nil : b.first
+      else
+        # Optionally strip the version from package name.
+        gr = pkg.match(/^([a-z0-9]+-[a-z0-9]+)(-)?/)
+        if gr.nil?
+          nil
+        else
+          active_pkgs_list = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd show \
+          install active`
+          # Search for package in list of active packages.
+          active = active_pkgs_list.match(/^\s*#{gr[1]}-([\d\.]+)/)
+          active.nil? ? nil : active[1]
+        end
+      end
     end
 
     def self.remove(pkg)
-      config_set('yum', 'remove', pkg)
+      if platform == :nexus
+        config_set('yum', 'remove', pkg)
+      else
+        # ex pkg => xrv9k-k9sec-1.0.0.0-r61102I
+        rc = \
+          `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install deactivate pkg 0x0 #{pkg}`
+        Cisco::Logger.debug "install deactivate #{pkg} : #{rc}"
+        rc = `#{EXEC_IN_DEFAULT_NS} sdr_instcmd install commit sdr`
+        Cisco::Logger.debug "install commit sdr : #{rc}"
+      end
     end
   end
 end
