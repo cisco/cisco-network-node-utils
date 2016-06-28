@@ -10,6 +10,7 @@ Changelog
   * bfd (@saichint)
 * OSPF
   * ospf_area (@saichint)
+  * ospf_area_vlink (@saichint)
 
 ### Added
 

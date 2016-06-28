@@ -1,0 +1,88 @@
+# ospf_area_vlink
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running ospf | no-more"
+  context:
+    - "router ospf <name>"
+    - "(?)vrf <vrf>"
+    - "area <area> virtual-link <vl>"
+
+auth_key_chain:
+  get_value: '/^authentication key-chain (\S+)$/'
+  set_value: '<state> authentication key-chain <key_id>'
+  default_value: false
+
+authentication:
+  # the config can be 'authentication' or 'authentication message-digest'
+  # or 'authentication null' or
+  # no authentication config at all so need to grab the
+  # optional match to get the whole config for checking
+  # the mode
+  get_value: '/^authentication(?:\s+\S+)?$/'
+  set_value: '<state> authentication <auth>'
+  default_value: false
+
+authentication_key_enc_type:
+  get_value: '/^authentication-key (\d+)/'
+  default_value: '0'
+
+authentication_key_password:
+  get_value: '/^authentication-key \d+ (\S+)/'
+  default_value: ''
+
+authentication_key_set:
+  set_value: "<state> authentication-key <enctype> <password>"
+
+dead_interval:
+  kind: int
+  get_value: '/^dead-interval (\d+)$/'
+  set_value: '<state> dead-interval <interval>'
+  default_value: 40
+
+hello_interval:
+  kind: int
+  get_value: '/^hello-interval (\d+)$/'
+  set_value: '<state> hello-interval <interval>'
+  default_value: 10
+
+message_digest_key_alg_type:
+  get_value: '/^message-digest-key \d+ (\S+)/'
+  default_value: 'md5'
+
+message_digest_key_enc_type:
+  get_value: '/^message-digest-key \d+ \S+ (\d+)/'
+  default_value: '0'
+
+message_digest_key_id:
+  kind: int
+  get_value: '/^message-digest-key (\d+)/'
+  default_value: 0
+
+message_digest_key_password:
+  get_value: '/^message-digest-key \d+ \S+ \d+ (\S+)/'
+  default_value: ''
+
+message_digest_key_set:
+  set_value: "<state> message-digest-key <keyid> <algtype> <enctype> <password>"
+
+retransmit_interval:
+  kind: int
+  get_value: '/^retransmit-interval (\d+)$/'
+  set_value: '<state> retransmit-interval <interval>'
+  default_value: 5
+
+transmit_delay:
+  kind: int
+  get_value: '/^transmit-delay (\d+)$/'
+  set_value: '<state> transmit-delay <delay>'
+  default_value: 1
+
+virtual_links:
+  multiple: true
+  context:
+    - "router ospf <name>"
+    - "(?)vrf <vrf>"
+  get_value: '/^area (\S+) virtual-link (\S+)$/'
+  set_value: '<state> area <area> virtual-link <vl>'
