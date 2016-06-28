@@ -33,6 +33,7 @@ module Cisco
       fail ArgumentError,
            "This provider only accepts an id of 'default'" \
            unless name.eql?('default')
+      Feature.tacacs_enable unless Feature.tacacs_enabled?
       @name = name
     end
 
@@ -81,6 +82,11 @@ module Cisco
     def key
       match = config_get('tacacs_global', 'key')
       match.empty? ? TacacsGlobal.default_key : match[1]
+    end
+
+    # Get default encryption password
+    def self.default_key
+      config_get_default('tacacs_global', 'key')
     end
 
     def encryption_key_set(key_format, key)
