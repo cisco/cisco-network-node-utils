@@ -57,7 +57,7 @@ class TestInterfacePVlan < CiscoTestCase
   def test_pvlan_mapping
     if validate_property_excluded?('interface', 'feature_vlan')
       assert_raises(Cisco::UnsupportedError) do
-        svi = Interface.new('vlan13')
+        Interface.new('vlan13')
       end
       return
     end
