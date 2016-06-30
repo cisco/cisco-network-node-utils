@@ -65,7 +65,8 @@ system_image:
   N6k: *sys_img_isan
   N7k: *sys_img_isan
   ios_xr:
-    get_value: '/IOS XR.*Version (.*)$/'
+    get_command: 'sh install active'
+    get_value: '/^\s*(\S*)\s*version.*\[Boot image\]$/'
 
 uptime:
   # TODO: redundant with show_system, uptime?

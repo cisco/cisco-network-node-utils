@@ -44,6 +44,7 @@ class TestNxapi < TestCase
   end
 
   def cleanup
+    return if Cisco::Environment.environment[:port]
     config_no_warn('no interface loopback41', 'no interface loopback42')
   end
 
