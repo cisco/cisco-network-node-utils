@@ -12,5 +12,5 @@ feature-nested_bad_syntax:
 
 feature-input_too_long:
   command: |
-          router ospf bluethisoutputistolongwaytoolong
+          router ospf bluethisoutputistolongwaytoolongreallylong
 
