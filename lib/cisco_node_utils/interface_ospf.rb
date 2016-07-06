@@ -106,6 +106,7 @@ module Cisco
     # interface %s
     #   %s ip ospf authentication message-digest
     def message_digest=(enable)
+      return if enable == message_digest
       config_set('interface_ospf', 'message_digest', @interface.name,
                  enable ? '' : 'no')
     end
@@ -142,6 +143,10 @@ module Cisco
 
     def message_digest_password
       config_get('interface_ospf', 'message_digest_password', @interface.name)
+    end
+
+    def default_message_digest_password
+      config_get_default('interface_ospf', 'message_digest_password')
     end
 
     # interface %s
