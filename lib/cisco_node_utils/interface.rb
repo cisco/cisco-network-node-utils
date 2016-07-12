@@ -933,7 +933,11 @@ module Cisco
     end
 
     def switchport_trunk_allowed_vlan
-      config_get('interface', 'switchport_trunk_allowed_vlan', name: @name)
+      vlans = config_get('interface', 'switchport_trunk_allowed_vlan',
+                         name: @name)
+      vlans = vlans.join(',') if vlans.is_a?(Array)
+      vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
+      vlans
     end
 
     def switchport_trunk_allowed_vlan=(val)
@@ -1229,8 +1233,11 @@ module Cisco
     # Note that range is handled as a string because the entire range is
     # replaced instead of individually adding or removing vlans from the range.
     def switchport_pvlan_trunk_allowed_vlan
-      config_get('interface', 'switchport_pvlan_trunk_allowed_vlan',
-                 name: @name)
+      vlans = config_get('interface', 'switchport_pvlan_trunk_allowed_vlan',
+                         name: @name)
+      vlans = vlans.join(',') if vlans.is_a?(Array)
+      vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
+      vlans
     end
 
     def switchport_pvlan_trunk_allowed_vlan=(range)
