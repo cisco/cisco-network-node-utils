@@ -348,16 +348,9 @@ class TestNodeExt < CiscoTestCase
   def test_get_system_cpu_utilization
     if validate_property_excluded?('system', 'resources')
       assert_nil(node.system_cpu_utilization)
-      return
+    else
+      refute_nil(node.system_cpu_utilization)
     end
-    cpu_utilization = node.system_cpu_utilization
-    md = assert_show_match(
-      command: 'show system resources',
-      pattern: /.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/)
-    observed_cpu_utilization = md[1].to_f + md[2].to_f
-    delta = cpu_utilization - observed_cpu_utilization
-    assert(delta > -15.0 && delta < 15.0,
-           "Error: delta #{delta}, not +- 15.0")
   end
 
   def test_get_boot

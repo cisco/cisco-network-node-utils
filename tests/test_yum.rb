@@ -42,6 +42,12 @@ class TestYum < CiscoTestCase
     when /7.0\(4\)I4\(1\)/
       # TBD: Add Dublin Plus RPM when it becomes available.
       # info 'Testing Patch For Dublin Plus Release Image'
+    when /7.0\(3\)F1\(0.313\)/
+      # TBD: Update with actual fretta_camden release patch when ready
+      info 'Testing Patch For Fretta Camden Release Image'
+      @@pkg_filename = 'nxos.sample-n8k_EOR-1.0.0-7.0.3.F1.1.lib32_nxos.rpm'
+      @@pkg = 'nxos.sample-n8k_EOR'
+      @@pkg_ver = '1.0.0-7.0.3.F1.1'
     else
       skip "Available patches are not compatible with this image: #{@@pv}"
     end

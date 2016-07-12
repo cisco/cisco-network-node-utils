@@ -22,38 +22,22 @@ require_relative 'node_util'
 module Cisco
   # This Yum class provides cisco package management functions through nxapi.
   class Yum < NodeUtil
-    def self.decompose_name(file_name)
-      # ex: chef-12.0.0alpha.2+20150319.git.1.b6f-1.el5.x86_64.rpm
-      name_ver_arch_regex = /^([\w\-\+]+)-(\d+\..*)\.(\w{4,})(?:\.rpm)?$/
-
-      # ex n9000_sample-1.0.0-7.0.3.x86_64.rpm
-      name_ver_arch_regex_nx = /^(.*)-([\d\.]+-[\d\.]+)\.(\w{4,})\.rpm$/
-
-      # ex: b+z-ip2.x64_64
-      name_arch_regex = /^([\w\-\+]+)\.(\w+)$/
-
-      file_name.match(name_ver_arch_regex) ||
-        file_name.match(name_ver_arch_regex_nx) ||
-        file_name.match(name_arch_regex)
-    end
-
-    def self.validate(pkg)
-      file_name = pkg.strip.tr(':', '/').split('/').last
-      pkg_info = Yum.decompose_name(file_name)
-      if pkg_info.nil?
-        query_name = file_name
-      else
-        if pkg_info[3].nil?
-          query_name = pkg_info[1]
-        else
-          query_name = "#{pkg_info[1]}.#{pkg_info[3]}"
+    def self.validate_installed(pkg)
+      # Sample data returned from config_get('yum', 'query_all')
+      # ["nxos.sample-n8k_EOR.lib32_nxos", "1.0.0-7.0.3.F1.1", "@patching"],
+      patch_data = config_get('yum', 'query_all')
+      patch_data.each do |name_arch, version, _state|
+        # Separate name and architecture
+        next if name_arch.rindex('.').nil?
+        arch = name_arch.slice!(name_arch.rindex('.')..-1).delete('.')
+        # Version/Architecture info not available when only pkg name specified.
+        version = arch = '' if name_arch == pkg
+        # Check for match
+        if pkg.match(name_arch) && pkg.match(version) && pkg.match(arch)
+          return true
         end
       end
-      should_ver = pkg_info[2] if pkg_info && pkg_info[3]
-      ver = query(query_name)
-      if ver.nil? || (!should_ver.nil? && should_ver != ver)
-        fail 'Failed to install the requested rpm'
-      end
+      fail 'Failed to install the requested rpm'
     end
 
     def self.detect_vrf
@@ -61,6 +45,7 @@ module Cisco
       inode = File::Stat.new('/proc/self/ns/net').ino
       # -L reqd for guestshell's find command
       vrfname = File.basename(`find -L /var/run/netns/ -inum #{inode}`.chop)
+
       vrf = 'vrf ' + vrfname unless vrfname.empty?
       vrf
     end
@@ -73,7 +58,7 @@ module Cisco
       # which may fail at a later stage yet return a false positive;
       # therefore a post-validation check is needed here to verify the
       # actual outcome.
-      validate(pkg)
+      validate_installed(pkg)
     end
 
     # returns version of package, or false if package doesn't exist
