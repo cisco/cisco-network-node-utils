@@ -326,12 +326,9 @@ class TestNodeExt < CiscoTestCase
   def test_get_last_reset_time
     if validate_property_excluded?('show_version', 'last_reset_time')
       assert_nil(node.last_reset_time)
-      return
+    else
+      refute_nil(node.last_reset_time)
     end
-    assert_output_check(command: 'show version',
-                        pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
-                        check:   node.last_reset_time,
-                        msg:     'Error, Last reset time does not match')
   end
 
   def test_get_last_reset_reason
