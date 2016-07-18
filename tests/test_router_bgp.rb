@@ -1167,13 +1167,9 @@ class TestRouterBgp < CiscoTestCase
       bgp.suppress_fib_pending = false
       refute(bgp.suppress_fib_pending,
              'bgp suppress_fib_pending should be disabled')
+      bgp.suppress_fib_pending = bgp.default_suppress_fib_pending
+      assert_equal(bgp.default_suppress_fib_pending, bgp.suppress_fib_pending)
     end
-    bgp.destroy
-  end
-
-  def test_default_suppress_fib_pending
-    bgp = setup_default
-    assert_equal(bgp.default_suppress_fib_pending, bgp.suppress_fib_pending)
     bgp.destroy
   end
 
