@@ -258,7 +258,7 @@ class TestSnmpServer < CiscoTestCase
   def test_snmpserver_packetsize_set_default
     snmpserver = SnmpServer.new
     refute_show_match(pattern: /snmp-server packetsize (\d+)/)
-    assert_equal(0, snmpserver.packet_size,
+    assert_equal(snmpserver.default_packet_size, snmpserver.packet_size,
                  'Error: Snmp Server, packet size not default')
 
     snmpserver.packet_size = 850
@@ -268,13 +268,8 @@ class TestSnmpServer < CiscoTestCase
                  'Error: Snmp Server, packet size not default')
 
     snmpserver.packet_size = snmpserver.default_packet_size
-    # TODO: this seems weird, why is default_packet_size not 0 as above?
-    line = assert_show_match(pattern: /snmp-server packetsize (\d+)/)
-    packetsize = line.to_s.split(' ').last.to_i
-    assert_equal(packetsize, snmpserver.packet_size,
+    assert_equal(snmpserver.default_packet_size, snmpserver.packet_size,
                  'Error: Snmp Server, packet size not default')
-    # set to default
-    snmpserver.packet_size = 0
   end
 
   def test_snmpserver_packetsize_unset
@@ -284,7 +279,7 @@ class TestSnmpServer < CiscoTestCase
     org_packet_size = snmpserver.packet_size
     snmpserver.packet_size = 0
     refute_show_match(pattern: /snmp-server packetsize (\d+)/)
-    assert_equal(0, snmpserver.packet_size,
+    assert_equal(snmpserver.default_packet_size, snmpserver.packet_size,
                  'Error: Snmp Server, packet size not unset')
 
     # Restore packet size
