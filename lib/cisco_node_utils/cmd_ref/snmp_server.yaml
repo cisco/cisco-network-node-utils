@@ -36,7 +36,21 @@ packet_size:
   get_command: "show snmp internal globals"
   get_value: '/SNMP Max packet size :(\d+)/'
   set_value: "%s snmp-server packetsize %d"
-  default_value: 1500
+  N3k: &n3k_default_packet_size
+    # Prior to the 7.0(3)I4(1) release, the default packet size
+    # was incorrectly displayed as 0.  CSCuz14217 fixed this to
+    # corectly display 1500.
+    default_value: 1500
+  N9k: *n3k_default_packet_size
+  N5k: &n5k_default_packet_size
+    # N5|6|7k platforms still incorrectly display the packet
+    # size as 0. This value is therefore still used as the
+    # default. This yaml entry will be changed to match
+    # the n3|9k behavior when the issue is resolved.
+    default_value: 0
+  N6k: *n5k_default_packet_size
+  N7k: *n5k_default_packet_size
+  N8k: *n5k_default_packet_size
 
 protocol:
   kind: boolean
