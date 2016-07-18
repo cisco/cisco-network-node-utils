@@ -331,12 +331,12 @@ shutdown:
     default_value: false
 
 suppress_fib_pending:
-  # Note: Does not exist in IOS XR
-  nexus:
-    kind: boolean
-    get_value: 'suppress-fib-pending'
-    set_value: '<state> suppress-fib-pending'
-    default_value: false
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^(?:no )?suppress-fib-pending$/'
+  set_value: '<state> suppress-fib-pending'
+  default_value: true
+  auto_default: false
 
 timer_bestpath_limit:
   # Note: Does not exist in IOS XR
