@@ -54,7 +54,13 @@ source_intf_hold_down_time:
   kind: int
   get_value: '/^source-interface hold-down-time (\d+)$/'
   set_value: '<state> source-interface hold-down-time <time>'
-  default_value: ''
+  # This property is dependent on 'source-intf' and will not nvgen unless that
+  # command is also present. In I4 and older images the default_value was ''
+  # because the command did not nvgen with 'sh run int nve1 all'; in I4+ images
+  # this was changed and now the command appears (with 'show run all') with
+  # a value of 180. This is the correct behavior but it means that I4 and older
+  # images may experience an idempotence problem.
+  default_value: 180
 
 vni:
   set_value: '<state> member vni <vni> <assoc_vrf>'
