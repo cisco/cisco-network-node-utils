@@ -265,6 +265,12 @@ class TestAaaAuthorizationService < CiscoTestCase
            'aaa group server tacacs+ group2',
            cmd1)
 
+    # AAA authorization method 'local' is a prerequisite for this test but
+    # once configured by design is not allowed to be removed.  Remove 'local'
+    # from cmd1 and cmd2 for cleanup.
+    remove1 = cmd1.gsub('local', '')
+    remove2 = cmd2.gsub('local', '')
+
     type = :commands
     collection = AaaAuthorizationService.services[type]
     refute_empty(collection,
@@ -294,7 +300,7 @@ class TestAaaAuthorizationService < CiscoTestCase
 
     # only one of default or console can be configured at a time without
     # locking the CLI
-    config("no #{cmd1}", cmd2)
+    config("no #{remove1}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -307,7 +313,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups for ' \
                  'console in collection')
 
-    config("no #{cmd2}")
+    config("no #{remove2}")
   end
 
   def test_type_config_commands_default_console_group
@@ -317,6 +323,12 @@ class TestAaaAuthorizationService < CiscoTestCase
     config('aaa group server tacacs+ group1',
            'aaa group server tacacs+ group2',
            cmd1)
+
+    # AAA authorization method 'local' is a prerequisite for this test but
+    # once configured by design is not allowed to be removed.  Remove 'local'
+    # from cmd1 and cmd2 for cleanup.
+    remove1 = cmd1.gsub('local', '')
+    remove2 = cmd2.gsub('local', '')
 
     type = :config_commands
     collection = AaaAuthorizationService.services[type]
@@ -345,7 +357,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for default in collection')
 
-    config("no #{cmd1}", cmd2)
+    config("no #{remove1}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -358,7 +370,7 @@ class TestAaaAuthorizationService < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for console in collection')
 
-    config("no #{cmd2}")
+    config("no #{remove2}")
   end
 
   def test_get_default_method
