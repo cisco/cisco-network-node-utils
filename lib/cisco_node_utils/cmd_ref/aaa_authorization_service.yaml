@@ -19,6 +19,19 @@ method:
   set_value: "%s aaa authorization %s %s local"
   default_value: :local
 
+remove_local_auth:
+  # Used for determining if removal of authentication method
+  # 'local' is permitted.
+  kind: boolean
+  N3k: &remove_local_disallowed
+    default_only: false
+  N8k: *remove_local_disallowed
+  N9k: *remove_local_disallowed
+  N5k: &remove_local_allowed
+    default_only: true
+  N6k: *remove_local_allowed
+  N7k: *remove_local_allowed
+ 
 services:
   get_command: "show run aaa all"
   get_value: '/^aaa authorization (\S+) (\S+) .*(?:local)? ?$/'

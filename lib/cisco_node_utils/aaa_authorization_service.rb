@@ -39,6 +39,10 @@ module Cisco
       config_set('aaa_authorization_service', 'method', '', type_str, name)
     end
 
+    def self.remove_local_auth
+      config_get('aaa_authorization_service', 'remove_local_auth')
+    end
+
     def self.services
       servs = {}
       servs_arr = config_get('aaa_authorization_service', 'services')
