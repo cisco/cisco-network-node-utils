@@ -31,7 +31,7 @@ remove_local_auth:
     default_only: true
   N6k: *remove_local_allowed
   N7k: *remove_local_allowed
- 
+
 services:
   get_command: "show run aaa all"
   get_value: '/^aaa authorization (\S+) (\S+) .*(?:local)? ?$/'
