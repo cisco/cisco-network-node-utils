@@ -288,9 +288,10 @@ class CiscoTestCase < TestCase
     #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
     #   '2   6  Nexus 6xQSFP Ethernet Module  N5K-C5672UP-M6Q ok'
     #   '2   6  Nexus xxQSFP Ethernet Module  N6K-C6004-96Q/EF ok'
+    #   '2   4  Nexus 4xQSFP Ethernet Module  N6K-C6001-M4Q ok'
     if node.product_id[/N(5|6)K/]
       sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
-      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
+      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|600[14])/]
       skip('Unable to find compatible interface in chassis') if sh_mod.nil?
     elsif node.product_id[/N7K/]
       mt_full_interface?
