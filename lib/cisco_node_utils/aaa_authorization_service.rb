@@ -70,6 +70,8 @@ module Cisco
                      'no', t_str, @name)
         end
       else
+        # Removal of auth method local is not supported on all platforms.
+        m_str = AaaAuthorizationService.remove_local_auth ? m_str : ''
         config_set('aaa_authorization_service', 'groups',
                    'no', t_str, @name, g_str, m_str)
       end
