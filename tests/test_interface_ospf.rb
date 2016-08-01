@@ -139,6 +139,10 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.dead_interval,
                      'Error: get dead interval failed')
         assert_equal(node.config_get_default('interface_ospf',
+                                             'network_type_p2p'),
+                     interface.network_type_p2p,
+                     'Error: network type p2p get failed')
+        assert_equal(node.config_get_default('interface_ospf',
                                              'passive_interface'),
                      interface.passive_interface,
                      'Error: passive interface get failed')
@@ -210,6 +214,9 @@ class TestInterfaceOspf < CiscoTestCase
     # with default CLI still shows the value
     refute_show_match(pattern: /^\s+ip ospf dead-interval \S+/,
                       msg:     "'dead-interval' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf network_type_p2p/,
+                      msg:     "'network_type_p2p' not removed")
 
     refute_show_match(pattern: /^\s+ip ospf passive-interface/,
                       msg:     "'passive interface' not removed")
@@ -312,6 +319,17 @@ class TestInterfaceOspf < CiscoTestCase
     assert_show_match(
       pattern: /^\s+ip ospf dead-interval #{interface.default_dead_interval}/,
       msg:     'Error: default dead-interval set failed')
+  end
+
+  def test_network_type_p2p
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+
+    assert_equal(interface.default_network_type_p2p, interface.network_type_p2p)
+    interface.network_type_p2p = true
+    assert_equal(true, interface.network_type_p2p)
+    interface.network_type_p2p = interface.default_network_type_p2p
+    assert_equal(interface.default_network_type_p2p, interface.network_type_p2p)
   end
 
   def test_passive

@@ -92,6 +92,7 @@ module Cisco
       self.hello_interval = default_hello_interval
       config_set('interface_ospf', 'dead_interval',
                  @interface.name, 'no', '')
+      self.network_type_p2p = default_network_type_p2p
       self.passive_interface = default_passive_interface if passive_interface
     end
 
@@ -212,6 +213,22 @@ module Cisco
     def dead_interval=(interval)
       config_set('interface_ospf', 'dead_interval',
                  @interface.name, '', interval.to_i)
+    end
+
+    def default_network_type_p2p
+      config_get_default('interface_ospf', 'network_type_p2p')
+    end
+
+    def network_type_p2p
+      config_get('interface_ospf', 'network_type_p2p', @interface.name)
+    end
+
+    # interface %s
+    #   %s ip ospf passive-interface
+    def network_type_p2p=(enable)
+      fail TypeError unless enable == true || enable == false
+      config_set('interface_ospf', 'network_type_p2p', @interface.name,
+                 enable ? '' : 'no')
     end
 
     def default_passive_interface

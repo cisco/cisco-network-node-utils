@@ -54,6 +54,12 @@ message_digest_password:
   default_value: ~
   get_value: '/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/'
 
+network_type_p2p:
+  kind: boolean
+  get_value: '/^\s*ip ospf network point-to-point/'
+  set_value: "%s ip ospf network point-to-point"
+  default_value: false
+
 passive_interface:
   kind: boolean
   get_value: '/^\s*ip ospf passive-interface/'
