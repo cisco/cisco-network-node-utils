@@ -462,7 +462,7 @@ module Cisco
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
       if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
+        return 'size_disable' if match[0] == 'no '
         return 'size_' + match[1] if match[1]
       end
       default_event_history_events
