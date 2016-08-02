@@ -92,6 +92,7 @@ module Cisco
       self.hello_interval = default_hello_interval
       config_set('interface_ospf', 'dead_interval',
                  @interface.name, 'no', '')
+      self.bfd = default_bfd
       self.network_type_p2p = default_network_type_p2p
       self.passive_interface = default_passive_interface if passive_interface
     end
@@ -215,6 +216,29 @@ module Cisco
                  @interface.name, '', interval.to_i)
     end
 
+    def default_bfd
+      config_get_default('interface_ospf', 'bfd')
+    end
+
+    # CLI can be either of the following or none
+    # ip ospf bfd
+    # ip ospf bfd disable
+    def bfd
+      val = config_get('interface_ospf', 'bfd', @interface.name)
+      return default_bfd if val.nil?
+      val.include?('disable') ? false : true
+    end
+
+    # interface %s
+    #   %s ip ospf bfd %s
+    def bfd=(val)
+      Feature.bfd_enable
+      state = (val == default_bfd) ? 'no' : ''
+      disable = val ? '' : 'disable'
+      config_set('interface_ospf', 'bfd', @interface.name,
+                 state, disable)
+    end
+
     def default_network_type_p2p
       config_get_default('interface_ospf', 'network_type_p2p')
     end
@@ -224,11 +248,10 @@ module Cisco
     end
 
     # interface %s
-    #   %s ip ospf passive-interface
-    def network_type_p2p=(enable)
-      fail TypeError unless enable == true || enable == false
+    #   %s ip ospf network point-to-point
+    def network_type_p2p=(state)
       config_set('interface_ospf', 'network_type_p2p', @interface.name,
-                 enable ? '' : 'no')
+                 state ? '' : 'no')
     end
 
     def default_passive_interface

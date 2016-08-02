@@ -321,6 +321,18 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     'Error: default dead-interval set failed')
   end
 
+  def test_bfd
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_bfd, interface.bfd)
+    interface.bfd = true
+    assert_equal(true, interface.bfd)
+    interface.bfd = false
+    assert_equal(false, interface.bfd)
+    interface.bfd = interface.default_bfd
+    assert_equal(interface.default_bfd, interface.bfd)
+  end
+
   def test_network_type_p2p
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)

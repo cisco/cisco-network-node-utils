@@ -10,6 +10,16 @@ area:
   get_value: '/^\s*ip router ospf (\S+) area (\S+)/'
   set_value: "%s ip router ospf %s area %s"
 
+bfd:
+  # the config can be 'ip ospf bfd' or
+  # 'ip ospf bfd disable' or
+  # no config at all so need to grab the optional
+  # match to get the whole config for checking
+  # the mode
+  get_value: '/^\s*ip ospf bfd(?:\s+\S+)?$/'
+  set_value: '%s ip ospf bfd %s'
+  default_value: ~
+
 cost:
   kind: int
   get_value: '/^\s*ip ospf cost (\d+)/'
