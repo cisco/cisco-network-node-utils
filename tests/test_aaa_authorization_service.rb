@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'yaml'
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/aaa_authorization_service'
 
@@ -39,6 +40,7 @@ class TestAaaAuthorSvc < CiscoTestCase
   def cleanup_aaa
     cmds = config('show run aaa').scan(/^aaa auth.*/)
     cmds.each do |cmd|
+      cmd = strip_local(cmd) unless AaaAuthorizationService.remove_local_auth
       config("no #{cmd}")
     end
   end
@@ -54,6 +56,13 @@ class TestAaaAuthorSvc < CiscoTestCase
     config("#{state} feature tacacs+")
   end
 
+  def strip_local(config_string)
+    # AAA authorization method 'local' is a prerequisite for several tests in
+    # this suite but once configured by design is not allowed to be removed on
+    # certain nxos platforms.
+    config_string.gsub('local', '')
+  end
+
   # Helper method to get regexp for aaa authorization commands
   def get_pattern(cmd_type, service, groups, method=:unselected)
     cmd_type = cmd_type == :config_commands ? 'config-commands' : cmd_type.to_s
@@ -67,17 +76,19 @@ class TestAaaAuthorSvc < CiscoTestCase
     Regexp.new(p)
   end
 
-  # Method to pre-configure a valid tacacs server and aaa group.  This
-  # group can be included in the testing such access to the device
-  # never is compromised.
+  # Pre-configure the user-defined tacacs server in tests/tacacs_server.yaml
   def preconfig_tacacs_server_access(group_name)
-    config('tacacs-server key testing123',
-           'tacacs-server host 10.122.197.197 key testing123',
+    path = File.expand_path('../tacacs_server.yaml', __FILE__)
+    skip('Cannot find tests/tacacs_server.yaml') unless File.file?(path)
+    cfg = YAML.load(File.read(path))
+    valid_cfg?(cfg)
+    config("tacacs-server host #{cfg['host']} key #{cfg['key']}",
            "aaa group server tacacs+ #{group_name}",
-           'server 10.122.197.197',
-           'use-vrf management',
-           'source-interface mgmt0',
+           "server #{cfg['host']}",
+           "use-vrf #{cfg['vrf']}",
+           "source-interface #{cfg['intf']}",
            'aaa authentication login ascii-authentication')
+    valid_server?(cfg['host'])
   end
 
   def prefix
@@ -92,7 +103,23 @@ class TestAaaAuthorSvc < CiscoTestCase
     %w(tac_group bxb100 sjc200 rtp10)
   end
 
-  def test_unsupported_type
+  def valid_cfg?(cfg)
+    skip('tests/tacacs_server.yaml file is empty') unless cfg
+    msg = 'Missing key in tests/tacacs_server.yaml'
+    %w(host key vrf intf).each do |key|
+      skip("#{msg}: #{key}") if cfg[key].nil?
+    end
+  end
+
+  def valid_server?(host)
+    test_aaa = config("test aaa server tacacs+ #{host} test test")
+    # Valid tacacs server will return message regarding user authentication
+    valid = test_aaa[/^user has \S+ authenticat(ed|ion)/]
+    fail "Host '#{host}' is either not a valid tacacs server " \
+          'or not reachable' unless valid
+  end
+
+  def test_create_unsupported_type
     assert_raises(ArgumentError) do
       AaaAuthorizationService.new(:none, 'default')
     end
@@ -275,7 +302,7 @@ class TestAaaAuthorSvc < CiscoTestCase
 
     # only one of default or console can be configured at a time without
     # locking the CLI
-    config("no #{cmd1}", cmd2)
+    config("no #{strip_local(cmd1)}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -287,8 +314,6 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(groups, aaa_a_service.groups,
                  'Error: Invalid AaaAuthorizationService groups for ' \
                  'console in collection')
-
-    config("no #{cmd2}")
   end
 
   def test_type_cfg_cmds_def_con_grp
@@ -326,7 +351,7 @@ class TestAaaAuthorSvc < CiscoTestCase
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for default in collection')
 
-    config("no #{cmd1}", cmd2)
+    config("no #{strip_local(cmd1)}", cmd2)
 
     service = 'console'
     aaa_a_service = collection[service]
@@ -338,8 +363,6 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(groups, aaa_a_service.groups,
                  'Error: Invalid AaaAuthorizationService groups ' \
                  'for console in collection')
-
-    config("no #{cmd2}")
   end
 
   def test_get_def_method
@@ -386,8 +409,9 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
-    config('aaa authorization commands default group ' \
-           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
+    cmd0 = 'aaa authorization commands default group ' \
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local"
+    config(cmd0)
 
     conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
     assert_equal(conf_groups, aaa_a_service.groups)
@@ -396,11 +420,12 @@ class TestAaaAuthorSvc < CiscoTestCase
     # Mix default and console, but since our instance is for 'default'
     # service we should only get 'default' groups and not 'console'
     # groups.
-    aaa_cmd1 = 'aaa authorization commands default group ' \
-               "#{tacacs_groups.join(' ')} local"
-    aaa_cmd2 = 'aaa authorization commands console group ' \
-               "#{tacacs_groups[1..3].join(' ')} local"
-    config(aaa_cmd1, aaa_cmd2)
+    cmd1 = 'aaa authorization commands default group ' \
+           "#{tacacs_groups.join(' ')} local"
+    cmd2 = 'aaa authorization commands console group ' \
+           "#{tacacs_groups[1..3].join(' ')} local"
+
+    config(cmd1, cmd2)
 
     assert_equal(tacacs_groups, aaa_a_service.groups)
     assert_equal(:local, aaa_a_service.method)
@@ -420,8 +445,9 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
-    config('aaa authorization commands console group ' \
-           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
+    cmd0 = 'aaa authorization commands console group ' \
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local"
+    config(cmd0)
 
     conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
     assert_equal(conf_groups, aaa_a_service.groups)
@@ -430,11 +456,11 @@ class TestAaaAuthorSvc < CiscoTestCase
     # Mix default and console, but since our instance is for 'console'
     # service we should only get 'console' groups and not 'default'
     # groups.
-    aaa_cmd1 = 'aaa authorization commands console group ' \
+    cmd1 = 'aaa authorization commands console group ' \
                "#{tacacs_groups.join(' ')} local"
-    aaa_cmd2 = 'aaa authorization commands default group ' \
+    cmd2 = 'aaa authorization commands default group ' \
                "#{tacacs_groups[1..3].join(' ')} local"
-    config(aaa_cmd1, aaa_cmd2)
+    config(cmd1, cmd2)
 
     assert_equal(tacacs_groups, aaa_a_service.groups)
     assert_equal(:local, aaa_a_service.method)
@@ -454,8 +480,9 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
-    config('aaa authorization config-commands default group ' \
-           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
+    cmd0 = 'aaa authorization config-commands default group ' \
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local"
+    config(cmd0)
 
     conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
     assert_equal(conf_groups, aaa_a_service.groups)
@@ -464,11 +491,11 @@ class TestAaaAuthorSvc < CiscoTestCase
     # Mix default and console, but since our instance is for 'default'
     # service we should only get 'default' groups and not 'console'
     # groups.
-    aaa_cmd1 = 'aaa authorization config-commands default group ' \
-               "#{tacacs_groups.join(' ')} local"
-    aaa_cmd2 = 'aaa authorization config-commands console group ' \
-               "#{tacacs_groups[1..3].join(' ')} local"
-    config(aaa_cmd1, aaa_cmd2)
+    cmd1 = 'aaa authorization config-commands default group ' \
+           "#{tacacs_groups.join(' ')} local"
+    cmd2 = 'aaa authorization config-commands console group ' \
+           "#{tacacs_groups[1..3].join(' ')} local"
+    config(cmd1, cmd2)
 
     assert_equal(tacacs_groups, aaa_a_service.groups)
     assert_equal(:local, aaa_a_service.method)
@@ -488,8 +515,9 @@ class TestAaaAuthorSvc < CiscoTestCase
     assert_equal(:unselected, aaa_a_service.method)
 
     # Change the config to have different groups and method
-    config('aaa authorization config-commands console group ' \
-           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local")
+    cmd0 = 'aaa authorization config-commands console group ' \
+           "#{tacacs_groups[0]} #{tacacs_groups[3]} #{tacacs_groups[1]} local"
+    config(cmd0)
 
     conf_groups = [tacacs_groups[0], tacacs_groups[3], tacacs_groups[1]]
     assert_equal(conf_groups, aaa_a_service.groups)
@@ -498,11 +526,11 @@ class TestAaaAuthorSvc < CiscoTestCase
     # Mix default and console, but since our instance is for 'console'
     # service we should only get 'console' groups and not 'default'
     # groups.
-    aaa_cmd1 = 'aaa authorization config-commands console group ' \
-               "#{tacacs_groups.join(' ')} local"
-    aaa_cmd2 = 'aaa authorization config-commands default group ' \
-               "#{tacacs_groups[1..3].join(' ')} local"
-    config(aaa_cmd1, aaa_cmd2)
+    cmd1 = 'aaa authorization config-commands console group ' \
+           "#{tacacs_groups.join(' ')} local"
+    cmd2 = 'aaa authorization config-commands default group ' \
+           "#{tacacs_groups[1..3].join(' ')} local"
+    config(cmd1, cmd2)
 
     assert_equal(tacacs_groups, aaa_a_service.groups)
     assert_equal(:local, aaa_a_service.method)

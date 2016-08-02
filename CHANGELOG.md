@@ -19,9 +19,7 @@ Changelog
 * Added client support for gRPC on IOS XR.
 * Smart dependency installation - installing this gem will install `grpc` on IOS XR and Linux environments, but not on NX-OS environments.
 * Added `bin/show_running_yang` utility to retrieve yang configuration from XR devices.
-
-
-## [v1.3.1]
+* Cisco Nexus 8xxx platform support added to existing classes
 
 ### Changed
 * Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:

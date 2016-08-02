@@ -25,9 +25,6 @@ dup_host_mac_detection:
   get_value: '/^l2rib dup-host-mac-detection (\d+) (\d+)$/'
   set_value: "l2rib dup-host-mac-detection <host_moves> <timeout>"
 
-dup_host_mac_detection_default:
-  set_value: "l2rib dup-host-mac-detection default"
-
 dup_host_mac_detection_host_moves:
   default_value: 5
 

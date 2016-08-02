@@ -867,7 +867,8 @@ module Cisco
 
     # Supress Fib Pending (Getter/Setter/Default)
     def suppress_fib_pending
-      config_get('bgp', 'suppress_fib_pending', @get_args)
+      val = config_get('bgp', 'suppress_fib_pending', @get_args)
+      val.nil? ? false : val
     end
 
     def suppress_fib_pending=(enable)

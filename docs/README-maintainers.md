@@ -48,6 +48,7 @@ When we are considering publishing a new release, all of the following steps mus
     - N56xx
     - N6xxx
     - N7xxx
+    - N8xxx
     - N9xxx
 
 3. Triage any minitest failures.
