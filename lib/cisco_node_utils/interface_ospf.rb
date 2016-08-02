@@ -225,7 +225,7 @@ module Cisco
     # ip ospf bfd disable
     def bfd
       val = config_get('interface_ospf', 'bfd', @interface.name)
-      return default_bfd if val.nil?
+      return default_bfd if val == default_bfd
       val.include?('disable') ? false : true
     end
 
