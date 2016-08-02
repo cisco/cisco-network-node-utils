@@ -14,6 +14,15 @@ Changelog
 
 ### Added
 
+* Extend interface with attributes:
+   * `bfd_echo`
+* Extend interface_ospf with attributes:
+   * `bfd`
+   * `network_type_p2p`
+* Extend interface_portchannel with attributes:
+   * `bfd_per_link`
+* Extend router_ospf_vrf with attributes:
+   * `bfd`
 * Extend bgp_neighbor with attributes:
    * `bfd`
 * Added client support for gRPC on IOS XR.
