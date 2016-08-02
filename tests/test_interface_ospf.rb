@@ -139,6 +139,10 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.dead_interval,
                      'Error: get dead interval failed')
         assert_equal(node.config_get_default('interface_ospf',
+                                             'bfd'),
+                     interface.bfd,
+                     'Error: bfd get failed')
+        assert_equal(node.config_get_default('interface_ospf',
                                              'network_type_p2p'),
                      interface.network_type_p2p,
                      'Error: network type p2p get failed')
