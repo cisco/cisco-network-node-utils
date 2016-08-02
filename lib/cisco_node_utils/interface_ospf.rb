@@ -248,10 +248,12 @@ module Cisco
     end
 
     # interface %s
-    #   %s ip ospf network point-to-point
+    #   %s ip ospf network %s
     def network_type_p2p=(state)
+      no_cmd = state ? '' : 'no'
+      p2p = state ? 'point-to-point' : ''
       config_set('interface_ospf', 'network_type_p2p', @interface.name,
-                 state ? '' : 'no')
+                 no_cmd, p2p)
     end
 
     def default_passive_interface
