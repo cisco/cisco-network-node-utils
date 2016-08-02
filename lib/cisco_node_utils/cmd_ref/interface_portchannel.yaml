@@ -7,6 +7,12 @@ _template:
   get_context: ['/^interface %s$/i']
   set_context: ["interface %s"]
 
+bfd_per_link:
+  kind: boolean
+  get_value: '/^bfd per-link$/'
+  set_value: "%s bfd per-link"
+  default_value: false
+
 create:
   set_context: ~
   set_value: "interface %s"

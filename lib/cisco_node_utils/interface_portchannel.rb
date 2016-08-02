@@ -61,6 +61,21 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def bfd_per_link
+      config_get('interface_portchannel', 'bfd_per_link', @name)
+    end
+
+    def bfd_per_link=(state)
+      no_cmd = (state ? '' : 'no')
+      Feature.bfd_enable
+      config_set('interface_portchannel',
+                 'bfd_per_link', @name, no_cmd)
+    end
+
+    def default_bfd_per_link
+      config_get_default('interface_portchannel', 'bfd_per_link')
+    end
+
     def lacp_graceful_convergence
       config_get('interface_portchannel', 'lacp_graceful_convergence', @name)
     end
