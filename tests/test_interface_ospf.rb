@@ -219,7 +219,10 @@ class TestInterfaceOspf < CiscoTestCase
     refute_show_match(pattern: /^\s+ip ospf dead-interval \S+/,
                       msg:     "'dead-interval' not removed")
 
-    refute_show_match(pattern: /^\s+ip ospf network_type_p2p/,
+    refute_show_match(pattern: /^\s+ip ospf bfd \S+/,
+                      msg:     "'bfd' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf network point-to-point/,
                       msg:     "'network_type_p2p' not removed")
 
     refute_show_match(pattern: /^\s+ip ospf passive-interface/,
