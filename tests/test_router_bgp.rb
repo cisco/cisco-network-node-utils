@@ -610,6 +610,7 @@ class TestRouterBgp < CiscoTestCase
       bgp.send("event_history_#{opt}=", 'false')
       result = bgp.send("event_history_#{opt}")
       expected = (opt == :detail) ? bgp.default_event_history_detail : 'false'
+      expected = 'size_disable' if opt == :events
       assert_equal(expected, result,
                    "event_history_#{opt}: Failed to set state to False")
 
