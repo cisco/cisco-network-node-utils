@@ -1155,39 +1155,21 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_suppress_fib_pending
-    %w(test_default test_vrf).each do |t|
-      if t == 'test_default'
-        bgp = setup_default
-      else
-        bgp = setup_vrf
-      end
-      if platform == :ios_xr
-        assert_raises(Cisco::UnsupportedError) do
-          bgp.suppress_fib_pending = true
-        end
-      else
+    bgp = setup_default
+    if validate_property_excluded?('bgp', 'suppress_fib_pending')
+      assert_raises(Cisco::UnsupportedError) do
         bgp.suppress_fib_pending = true
-        assert(bgp.suppress_fib_pending,
-               "vrf #{@vrf}: bgp suppress_fib_pending should be enabled")
-        bgp.suppress_fib_pending = false
-        refute(bgp.suppress_fib_pending,
-               "vrf #{@vrf}: bgp suppress_fib_pending should be disabled")
       end
-      bgp.destroy
+    else
+      bgp.suppress_fib_pending = true
+      assert(bgp.suppress_fib_pending,
+             'bgp suppress_fib_pending should be enabled')
+      bgp.suppress_fib_pending = false
+      refute(bgp.suppress_fib_pending,
+             'bgp suppress_fib_pending should be disabled')
+      bgp.suppress_fib_pending = bgp.default_suppress_fib_pending
+      assert_equal(bgp.default_suppress_fib_pending, bgp.suppress_fib_pending)
     end
-  end
-
-  def test_suppress_fib_pending_not_configured
-    bgp = setup_default
-    refute(bgp.suppress_fib_pending,
-           'bgp suppress_fib_pending should be disabled')
-    bgp.destroy
-  end
-
-  def test_default_suppress_fib_pending
-    bgp = setup_default
-    refute(bgp.default_suppress_fib_pending,
-           'bgp suppress_fib_pending default value should be false')
     bgp.destroy
   end
 

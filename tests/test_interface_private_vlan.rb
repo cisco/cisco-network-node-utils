@@ -55,6 +55,7 @@ class TestInterfacePVlan < CiscoTestCase
   end
 
   def test_pvlan_mapping
+<<<<<<< HEAD
     if validate_property_excluded?('interface', 'feature_vlan')
       assert_raises(Cisco::UnsupportedError) do
         Interface.new('vlan13')
@@ -100,6 +101,47 @@ class TestInterfacePVlan < CiscoTestCase
     i.switchport_pvlan_host = true
     assert(i.switchport_pvlan_host)
 
+=======
+    # This is an SVI property
+    svi = Interface.new('vlan13')
+    if validate_property_excluded?('interface', 'pvlan_mapping')
+      assert_raises(Cisco::UnsupportedError) do
+        svi.pvlan_mapping = ['10-11,4-7,8']
+      end
+      return
+    end
+
+    default = svi.default_pvlan_mapping
+    assert_equal(default, svi.pvlan_mapping)
+
+    # Input can be Array or String
+    svi.pvlan_mapping = ['10-11,4-7,8']
+    assert_equal(['4-8,10-11'], svi.pvlan_mapping)
+
+    # Change range
+    svi.pvlan_mapping = '11,4-6,8'
+    assert_equal(['4-6,8,11'], svi.pvlan_mapping)
+
+    svi.pvlan_mapping = default
+    assert_equal(default, svi.pvlan_mapping)
+  end
+
+  def test_switchport_pvlan_host
+    if validate_property_excluded?('interface',
+                                   'switchport_pvlan_host')
+      assert_raises(Cisco::UnsupportedError) do
+        i.switchport_pvlan_host = true
+      end
+      return
+    end
+
+    assert_equal(i.default_switchport_pvlan_host,
+                 i.switchport_pvlan_host)
+
+    i.switchport_pvlan_host = true
+    assert(i.switchport_pvlan_host)
+
+>>>>>>> origin/release_1.3.1
     i.switchport_pvlan_host = false
     refute(i.switchport_pvlan_host)
   end

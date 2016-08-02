@@ -39,6 +39,7 @@ module Cisco
     def self.rp_addresses
       afis = %w(ipv4) # TBD ipv6
       hash = {}
+      return hash unless Feature.pim_enabled?
       afis.each do |afi|
         hash[afi] = {}
         default_vrf = 'default'
