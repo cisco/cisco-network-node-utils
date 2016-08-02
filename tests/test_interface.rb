@@ -551,6 +551,22 @@ class TestInterface < CiscoTestCase
     subif.destroy
   end
 
+  def test_bfd_echo
+    if validate_property_excluded?('interface', 'bfd_echo')
+      assert_nil(interface.bfd_echo)
+      assert_raises(Cisco::UnsupportedError) { interface.bfd_echo = false }
+      return
+    end
+    interface = Interface.new(interfaces[0])
+    assert_equal(interface.default_bfd_echo,
+                 interface.bfd_echo)
+    interface.bfd_echo = false
+    assert_equal(false, interface.bfd_echo)
+    interface.bfd_echo = interface.default_bfd_echo
+    assert_equal(interface.default_bfd_echo,
+                 interface.bfd_echo)
+  end
+
   def test_mtu_change
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled

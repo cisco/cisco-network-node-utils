@@ -173,6 +173,23 @@ module Cisco
       config_get_default('interface', 'access_vlan')
     end
 
+    def bfd_echo
+      config_get('interface', 'bfd_echo', name: @name)
+    end
+
+    def bfd_echo=(val)
+      fail ArgumentError, 'Interface Must be physical or port-channel' unless
+        @name[/eth|port/i]
+      state = (val ? '' : 'no')
+      Feature.bfd_enable
+      config_set('interface', 'bfd_echo',
+                 name: @name, state: state)
+    end
+
+    def default_bfd_echo
+      config_get_default('interface', 'bfd_echo')
+    end
+
     def description
       config_get('interface', 'description', name: @name)
     end
