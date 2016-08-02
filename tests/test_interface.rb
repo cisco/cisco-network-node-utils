@@ -552,12 +552,24 @@ class TestInterface < CiscoTestCase
   end
 
   def test_bfd_echo
+    interface = Interface.new(interfaces[0])
     if validate_property_excluded?('interface', 'bfd_echo')
       assert_nil(interface.bfd_echo)
       assert_raises(Cisco::UnsupportedError) { interface.bfd_echo = false }
       return
     end
-    interface = Interface.new(interfaces[0])
+    assert_equal(interface.default_bfd_echo,
+                 interface.bfd_echo)
+    interface.bfd_echo = false
+    assert_equal(false, interface.bfd_echo)
+    interface.bfd_echo = interface.default_bfd_echo
+    assert_equal(interface.default_bfd_echo,
+                 interface.bfd_echo)
+    # Clean up any stale config first
+    inf_name = "#{@port_channel}10"
+    Interface.new(inf_name).destroy
+
+    interface = Interface.new(inf_name)
     assert_equal(interface.default_bfd_echo,
                  interface.bfd_echo)
     interface.bfd_echo = false
