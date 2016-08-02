@@ -137,6 +137,25 @@ class TestSwitchport < TestInterfaceSwitchport
     assert_equal(msg.downcase, e.message)
   end
 
+  def test_sw_autostate_disabled
+    refute(interface.switchport_autostate_exclude,
+           'Error: interface, access, autostate exclude not disabled')
+
+    # mgmt
+    interface = Interface.new(mgmt_intf)
+    refute(interface.switchport_autostate_exclude,
+           'Error: interface, access, autostate exclude not disabled')
+
+    # no switchport
+    if platform == :ios_xr
+      assert_nil(interface.switchport_autostate_exclude)
+    else
+      interface.switchport_mode = :disabled
+      refute(interface.switchport_autostate_exclude,
+             'Error: interface, access, autostate exclude not disabled')
+    end
+  end
+
   def test_sw_mode_disabled
     if platform == :ios_xr
       assert_raises(Cisco::UnsupportedError) do

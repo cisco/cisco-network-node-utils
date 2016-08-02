@@ -1293,7 +1293,7 @@ module Cisco
     # Always returns an array.
     def pvlan_mapping
       range = config_get('interface', 'pvlan_mapping', name: @name)
-      return nil if range.nil?
+      return default_pvlan_mapping if range.nil?
       range.empty? ? range : [range.delete(' ')]
     end
 

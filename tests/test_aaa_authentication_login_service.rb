@@ -84,8 +84,6 @@ class TestAaaAuthenLoginSvc < CiscoTestCase
     aaaauthloginservice_list = AaaAuthenticationLoginService.services
     refute_empty(aaaauthloginservice_list,
                  'Error: service collection is not filled')
-    assert_equal(1, aaaauthloginservice_list.size,
-                 'Error:  collection not reporting correct ')
     assert(aaaauthloginservice_list.key?('default'),
            'Error:  collection does contain default')
     aaaauthloginservice_list.each do |name, aaaauthloginservice|
@@ -650,13 +648,6 @@ class TestAaaAuthenLoginSvc < CiscoTestCase
     aaaauthloginservice.groups_method_set(groups, method)
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: Regexp.new(prefix + groups.join(' ')))
-
-    # default group and method
-    method = aaaauthloginservice.default_method
-    groups = aaaauthloginservice.default_groups
-    aaaauthloginservice.groups_method_set(groups, method)
-    refute_show_match(command: 'show run aaa all | no-more',
-                      pattern: /^aaa authentication login console local/)
 
     aaaauthloginservice_detach(aaaauthloginservice)
     unconfig_tacacs

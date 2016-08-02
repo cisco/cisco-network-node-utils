@@ -31,7 +31,6 @@ module Cisco
 
     # dup-host-ip-addr-detection
     def dup_host_ip_addr_detection
-      return nil unless Feature.nv_overlay_evpn_enabled?
       match = config_get('overlay_global', 'dup_host_ip_addr_detection')
       if match.nil?
         default_dup_host_ip_addr_detection
@@ -99,16 +98,7 @@ module Cisco
 
     def dup_host_mac_detection_set(host_moves, timeout)
       set_args = { host_moves: host_moves, timeout: timeout }
-      if host_moves == default_dup_host_mac_detection_host_moves &&
-         timeout == default_dup_host_mac_detection_timeout
-        dup_host_mac_detection_default
-      else
-        config_set('overlay_global', 'dup_host_mac_detection', set_args)
-      end
-    end
-
-    def dup_host_mac_detection_default
-      config_set('overlay_global', 'dup_host_mac_detection_default')
+      config_set('overlay_global', 'dup_host_mac_detection', set_args)
     end
 
     def default_dup_host_mac_detection
@@ -126,7 +116,6 @@ module Cisco
 
     # anycast-gateway-mac
     def anycast_gateway_mac
-      return nil unless Feature.nv_overlay_evpn_enabled?
       mac = config_get('overlay_global', 'anycast_gateway_mac')
       mac.nil? || mac.empty? ? default_anycast_gateway_mac : mac.downcase
     end
