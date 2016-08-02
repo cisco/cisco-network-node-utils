@@ -423,9 +423,14 @@ class TestInterfaceOspf < CiscoTestCase
         end
         # puts "k1: #{k1}, k:  #{k},   area   #{v1[:area]}"
         cfg << "ip router ospf #{k} area #{v1[:area]}"
+        cfg << 'ip ospf bfd' if v1[:bfd]
+        cfg << 'ip ospf bfd disable' if v1[:bfd] == false
+        cfg << 'no ip ospf bfd' if v1[:bfd].nil?
         cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost] == 0
         cfg << "ip ospf hello-interval #{v1[:hello]}" unless v1[:hello].nil?
         cfg << "ip ospf dead-interval #{v1[:dead]}" unless v1[:dead].nil?
+        cfg << 'ip ospf network point-to-point' if v1[:p2p]
+        cfg << 'no ip ospf network' unless v1[:p2p]
         cfg << 'ip ospf passive-interface' if !v1[:pass].nil? &&
                                               v1[:pass] == true
         config(*cfg)
@@ -438,30 +443,37 @@ class TestInterfaceOspf < CiscoTestCase
     hash = {
       'ospfTest' => {
         interfaces[0].downcase => {
-          area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
+          area: '0.0.0.0', bfd: true, cost: 10, hello: 30,
+          dead: 120, p2p: true, pass: true },
         interfaces[1].downcase => {
-          area: '1.1.1.38', dead: 40, pass: false },
+          area: '1.1.1.38', bfd: false, dead: 40, p2p: true, pass: false },
         'vlan101'              => {
-          area: '2.2.2.101', cost: 5, hello: 20, dead: 80, pass: true },
+          area: '2.2.2.101', bfd: true, cost: 5, hello: 20, dead: 80,
+          p2p: true, pass: true },
       },
       'TestOspfInt' => {
         interfaces[2].downcase => {
           area: '0.0.0.19' },
         'vlan290'              => {
-          area: '2.2.2.29', cost: 200, hello: 30, dead: 120, pass: true },
+          area: '2.2.2.29', bfd: true, cost: 200, hello: 30,
+          dead: 120, p2p: false, pass: true },
         'port-channel100'      => {
-          area: '3.2.2.29', cost: 25, hello: 50, dead: 200, pass: false },
+          area: '3.2.2.29', bfd: false, cost: 25, hello: 50, dead: 200,
+          p2p: true, pass: false },
       },
     }
     # rubocop:enable Style/AlignHash
     # Set defaults
     hash.each_key do |name|
       hash[name].each_value do |hv|
+        hv[:bfd] ||= node.config_get_default('interface_ospf', 'bfd')
         hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
         hv[:hello] ||= node.config_get_default('interface_ospf',
                                                'hello_interval')
         hv[:dead] ||= node.config_get_default('interface_ospf',
                                               'dead_interval')
+        hv[:p2p] ||= node.config_get_default('interface_ospf',
+                                             'network_type_p2p')
         hv[:pass] ||= node.config_get_default('interface_ospf',
                                               'passive_interface')
       end
@@ -505,11 +517,14 @@ class TestInterfaceOspf < CiscoTestCase
           msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
+        assert_equal(hv[:bfd], interface.bfd, 'Error: get bfd failed')
         assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
         assert_equal(hv[:hello], interface.hello_interval,
                      'Error: get hello interval failed')
         assert_equal(hv[:dead], interface.dead_interval,
                      'Error: get dead interval failed')
+        assert_equal(hv[:p2p], interface.network_type_p2p,
+                     'Error: network_type_p2p get failed')
         assert_equal(hv[:pass], interface.passive_interface,
                      'Error: passive interface get failed')
       end
