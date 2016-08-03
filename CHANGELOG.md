@@ -18,7 +18,7 @@ Changelog
    * `bfd_echo`
 * Extend interface_ospf with attributes:
    * `bfd`
-   * `network_type_p2p`
+   * `network_type`
 * Extend interface_portchannel with attributes:
    * `bfd_per_link`
 * Extend router_ospf_vrf with attributes:
