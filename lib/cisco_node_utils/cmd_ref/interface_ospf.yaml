@@ -16,7 +16,7 @@ bfd:
   # no config at all so need to grab the optional
   # match to get the whole config for checking
   # the mode
-  get_value: '/^\s*ip ospf bfd(?:\s+\S+)?$/'
+  get_value: '/^\s*ip ospf bfd *(?:\S+)?$/'
   set_value: '%s ip ospf bfd %s'
   default_value: ~
 
@@ -64,11 +64,15 @@ message_digest_password:
   default_value: ~
   get_value: '/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/'
 
-network_type_p2p:
-  kind: boolean
-  get_value: '/^\s*ip ospf network point-to-point/'
+network_type:
+  get_value: '/^\s*ip ospf network (\S+)$/'
   set_value: "%s ip ospf network %s"
-  default_value: false
+
+network_type_default:
+  default_value: 'broadcast'
+
+network_type_loopback_default:
+  default_value: 'loopback'
 
 passive_interface:
   kind: boolean

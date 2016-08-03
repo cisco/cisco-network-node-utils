@@ -93,7 +93,7 @@ module Cisco
       config_set('interface_ospf', 'dead_interval',
                  @interface.name, 'no', '')
       self.bfd = default_bfd
-      self.network_type_p2p = default_network_type_p2p
+      self.network_type = default_network_type
       self.passive_interface = default_passive_interface if passive_interface
     end
 
@@ -216,22 +216,19 @@ module Cisco
                  @interface.name, '', interval.to_i)
     end
 
-    def default_bfd
-      config_get_default('interface_ospf', 'bfd')
-    end
-
     # CLI can be either of the following or none
     # ip ospf bfd
     # ip ospf bfd disable
     def bfd
       val = config_get('interface_ospf', 'bfd', @interface.name)
-      return default_bfd if val == default_bfd
+      return if val.nil?
       val.include?('disable') ? false : true
     end
 
     # interface %s
     #   %s ip ospf bfd %s
     def bfd=(val)
+      return if val == bfd
       Feature.bfd_enable
       state = (val == default_bfd) ? 'no' : ''
       disable = val ? '' : 'disable'
@@ -239,21 +236,35 @@ module Cisco
                  state, disable)
     end
 
-    def default_network_type_p2p
-      config_get_default('interface_ospf', 'network_type_p2p')
+    def default_bfd
+      config_get_default('interface_ospf', 'bfd')
     end
 
-    def network_type_p2p
-      config_get('interface_ospf', 'network_type_p2p', @interface.name)
+    def default_network_type
+      case @interface.name
+      when /loopback/i
+        lookup = 'network_type_loopback_default'
+      else
+        lookup = 'network_type_default'
+      end
+      config_get_default('interface_ospf', lookup)
+    end
+
+    def network_type
+      type = config_get('interface_ospf', 'network_type', @interface.name)
+      return 'p2p' if type == 'point-to-point'
+      return default_network_type if type.nil?
+      type
     end
 
     # interface %s
     #   %s ip ospf network %s
-    def network_type_p2p=(state)
-      no_cmd = state ? '' : 'no'
-      p2p = state ? 'point-to-point' : ''
-      config_set('interface_ospf', 'network_type_p2p', @interface.name,
-                 no_cmd, p2p)
+    def network_type=(type)
+      no_cmd = (type == default_network_type) ? 'no' : ''
+      network = (type == default_network_type) ? '' : type
+      network = 'point-to-point' if type == 'p2p'
+      config_set('interface_ospf', 'network_type', @interface.name,
+                 no_cmd, network)
     end
 
     def default_passive_interface

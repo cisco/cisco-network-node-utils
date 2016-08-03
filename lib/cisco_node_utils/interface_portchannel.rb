@@ -66,6 +66,7 @@ module Cisco
     end
 
     def bfd_per_link=(state)
+      return if state == bfd_per_link
       no_cmd = (state ? '' : 'no')
       Feature.bfd_enable
       config_set('interface_portchannel',

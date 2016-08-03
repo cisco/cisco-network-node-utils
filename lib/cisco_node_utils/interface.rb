@@ -178,8 +178,9 @@ module Cisco
     end
 
     def bfd_echo=(val)
-      fail ArgumentError, 'Interface Must be physical or port-channel' unless
+      fail ArgumentError, 'Interface Must be ethernet or port-channel' unless
         @name[/eth|port/i]
+      return if val == bfd_echo
       state = (val ? '' : 'no')
       Feature.bfd_enable
       config_set('interface', 'bfd_echo',

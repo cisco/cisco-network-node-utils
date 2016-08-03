@@ -113,6 +113,7 @@ module Cisco
     end
 
     def bfd=(state)
+      return if state == bfd
       no_cmd = (state ? '' : 'no')
       @set_args[:state] = no_cmd
       Feature.bfd_enable
