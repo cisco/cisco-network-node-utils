@@ -262,7 +262,7 @@ module Cisco
     def network_type=(type)
       no_cmd = (type == default_network_type) ? 'no' : ''
       network = (type == default_network_type) ? '' : type
-      network = 'point-to-point' if type == 'p2p'
+      network = 'point-to-point' if type.to_s == 'p2p'
       config_set('interface_ospf', 'network_type', @interface.name,
                  no_cmd, network)
     end
