@@ -181,7 +181,7 @@ end # Cisco
 
 options = { path: '/pkg/yang', environment: 'default' }
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage: show_running_yang [options] [file_or_directory_path]'
+  opts.banner = 'Usage: ruby show_running_yang.rb [options] [file_or_directory_path]'
 
   opts.on('-m', '--manifest', 'Output config in a form suitable '\
           'for inclusion in a Puppet manifest') do |_arg|
