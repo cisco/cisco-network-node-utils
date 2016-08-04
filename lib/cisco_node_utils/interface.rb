@@ -174,6 +174,7 @@ module Cisco
     end
 
     def bfd_echo
+      return nil unless Feature.bfd_enabled?
       config_get('interface', 'bfd_echo', name: @name)
     end
 
@@ -188,6 +189,7 @@ module Cisco
     end
 
     def default_bfd_echo
+      return nil unless Feature.bfd_enabled?
       config_get_default('interface', 'bfd_echo')
     end
 
