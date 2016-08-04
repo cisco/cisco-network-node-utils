@@ -41,6 +41,15 @@ class TestInterfacePortChannel < CiscoTestCase
     InterfacePortChannel.new(ifname)
   end
 
+  def test_bfd_per_link
+    interface = create_port_channel
+    assert_equal(interface.default_bfd_per_link, interface.bfd_per_link)
+    interface.bfd_per_link = true
+    assert_equal(true, interface.bfd_per_link)
+    interface.bfd_per_link = interface.default_bfd_per_link
+    assert_equal(interface.default_bfd_per_link, interface.bfd_per_link)
+  end
+
   def test_port_hash_distribution
     skip('Platform does not support this property') if n6k_platform?
     interface = create_port_channel

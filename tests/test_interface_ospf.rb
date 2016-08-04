@@ -139,6 +139,14 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.dead_interval,
                      'Error: get dead interval failed')
         assert_equal(node.config_get_default('interface_ospf',
+                                             'bfd'),
+                     interface.bfd,
+                     'Error: bfd get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'network_type_default'),
+                     interface.network_type,
+                     'Error: network type get failed')
+        assert_equal(node.config_get_default('interface_ospf',
                                              'passive_interface'),
                      interface.passive_interface,
                      'Error: passive interface get failed')
@@ -210,6 +218,12 @@ class TestInterfaceOspf < CiscoTestCase
     # with default CLI still shows the value
     refute_show_match(pattern: /^\s+ip ospf dead-interval \S+/,
                       msg:     "'dead-interval' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf bfd \S+/,
+                      msg:     "'bfd' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf network point-to-point/,
+                      msg:     "'network_type' not removed")
 
     refute_show_match(pattern: /^\s+ip ospf passive-interface/,
                       msg:     "'passive interface' not removed")
@@ -314,6 +328,40 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     'Error: default dead-interval set failed')
   end
 
+  def test_bfd
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_bfd, interface.bfd)
+    interface.bfd = true
+    assert_equal(true, interface.bfd)
+    interface.bfd = false
+    assert_equal(false, interface.bfd)
+    interface.bfd = interface.default_bfd
+    assert_equal(interface.default_bfd, interface.bfd)
+  end
+
+  def test_network_type
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+
+    assert_equal(interface.default_network_type, interface.network_type)
+    interface.network_type = 'p2p'
+    assert_equal('p2p', interface.network_type)
+    interface.network_type = interface.default_network_type
+    assert_equal(interface.default_network_type, interface.network_type)
+
+    # setup a loopback to use
+    config('interface loopback12')
+    interface = InterfaceOspf.new('loopback12', '12', '0.0.0.0')
+    assert_equal(interface.default_network_type, interface.network_type)
+    interface.network_type = 'p2p'
+    assert_equal('p2p', interface.network_type)
+    interface.network_type = interface.default_network_type
+    assert_equal(interface.default_network_type, interface.network_type)
+    # cleanup
+    config('no interface loopback12')
+  end
+
   def test_passive
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
@@ -386,9 +434,14 @@ class TestInterfaceOspf < CiscoTestCase
         end
         # puts "k1: #{k1}, k:  #{k},   area   #{v1[:area]}"
         cfg << "ip router ospf #{k} area #{v1[:area]}"
+        cfg << 'ip ospf bfd' if v1[:bfd]
+        cfg << 'ip ospf bfd disable' if v1[:bfd] == false
+        cfg << 'no ip ospf bfd' if v1[:bfd].nil?
         cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost] == 0
         cfg << "ip ospf hello-interval #{v1[:hello]}" unless v1[:hello].nil?
         cfg << "ip ospf dead-interval #{v1[:dead]}" unless v1[:dead].nil?
+        cfg << 'ip ospf network point-to-point' if v1[:net] == 'p2p'
+        cfg << 'no ip ospf network' if v1[:net] == 'broadcast'
         cfg << 'ip ospf passive-interface' if !v1[:pass].nil? &&
                                               v1[:pass] == true
         config(*cfg)
@@ -401,30 +454,37 @@ class TestInterfaceOspf < CiscoTestCase
     hash = {
       'ospfTest' => {
         interfaces[0].downcase => {
-          area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
+          area: '0.0.0.0', bfd: true, cost: 10, hello: 30,
+          dead: 120, net: 'p2p', pass: true },
         interfaces[1].downcase => {
-          area: '1.1.1.38', dead: 40, pass: false },
+          area: '1.1.1.38', bfd: false, dead: 40, net: 'p2p', pass: false },
         'vlan101'              => {
-          area: '2.2.2.101', cost: 5, hello: 20, dead: 80, pass: true },
+          area: '2.2.2.101', bfd: true, cost: 5, hello: 20, dead: 80,
+          net: 'p2p', pass: true },
       },
       'TestOspfInt' => {
         interfaces[2].downcase => {
           area: '0.0.0.19' },
         'vlan290'              => {
-          area: '2.2.2.29', cost: 200, hello: 30, dead: 120, pass: true },
+          area: '2.2.2.29', bfd: true, cost: 200, hello: 30,
+          dead: 120, net: 'broadcast', pass: true },
         'port-channel100'      => {
-          area: '3.2.2.29', cost: 25, hello: 50, dead: 200, pass: false },
+          area: '3.2.2.29', bfd: false, cost: 25, hello: 50, dead: 200,
+          net: 'p2p', pass: false },
       },
     }
     # rubocop:enable Style/AlignHash
     # Set defaults
     hash.each_key do |name|
       hash[name].each_value do |hv|
+        hv[:bfd] ||= node.config_get_default('interface_ospf', 'bfd')
         hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
         hv[:hello] ||= node.config_get_default('interface_ospf',
                                                'hello_interval')
         hv[:dead] ||= node.config_get_default('interface_ospf',
                                               'dead_interval')
+        hv[:net] ||= node.config_get_default('interface_ospf',
+                                             'network_type_default')
         hv[:pass] ||= node.config_get_default('interface_ospf',
                                               'passive_interface')
       end
@@ -468,11 +528,14 @@ class TestInterfaceOspf < CiscoTestCase
           msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
+        assert_equal(hv[:bfd], interface.bfd, 'Error: get bfd failed')
         assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
         assert_equal(hv[:hello], interface.hello_interval,
                      'Error: get hello interval failed')
         assert_equal(hv[:dead], interface.dead_interval,
                      'Error: get dead interval failed')
+        assert_equal(hv[:net], interface.network_type,
+                     'Error: network_type get failed')
         assert_equal(hv[:pass], interface.passive_interface,
                      'Error: passive interface get failed')
       end

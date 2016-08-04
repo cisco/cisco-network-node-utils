@@ -108,6 +108,23 @@ module Cisco
       config_get_default('ospf', 'auto_cost')
     end
 
+    def bfd
+      config_get('ospf', 'bfd', @get_args)
+    end
+
+    def bfd=(state)
+      return if state == bfd
+      no_cmd = (state ? '' : 'no')
+      @set_args[:state] = no_cmd
+      Feature.bfd_enable
+      config_set('ospf', 'bfd', @set_args)
+      delete_set_args_keys([:state])
+    end
+
+    def default_bfd
+      config_get_default('ospf', 'bfd')
+    end
+
     def default_metric
       config_get('ospf', 'default_metric', @get_args)
     end
