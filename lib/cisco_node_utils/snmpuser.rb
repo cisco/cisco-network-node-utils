@@ -18,10 +18,9 @@ module Cisco
   # SnmpUser - node utility class for SNMP user configuration management
   class SnmpUser < NodeUtil
     def initialize(name, groups, authproto, authpass, privproto,
-                   privpass, localizedkey, engineid, instantiate=true,
-                   version=nil)
+                   privpass, localizedkey, engineid, instantiate=true)
       initialize_validator(name, groups, authproto, authpass, privproto,
-                           privpass, engineid, version, instantiate)
+                           privpass, engineid, instantiate)
       @name = name
       @engine_id = engineid
 
@@ -33,7 +32,6 @@ module Cisco
       privprotostr = _priv_sym_to_str(privproto)
 
       return unless instantiate
-
       # Config string syntax:
       # [no] snmp-server user <user> [group] ...
       #      [auth {md5|sha} <passwd1>
@@ -42,28 +40,18 @@ module Cisco
       # Assume if multiple groups, apply all config to each
       groups = [''] if groups.empty?
       groups.each do |group|
-        if platform == :ios_xr
-          authstr = "auth #{authprotostr} encrypted #{authpass}"
-          privstr = "priv #{privprotostr} encrypted #{privpass}"
-        else
-          authstr = "auth #{authprotostr} #{authpass}"
-          privstr = "priv #{privprotostr} #{privpass}"
-        end
-
-        config_set('snmp_user', 'user',
-                   state:        '',
-                   name:         name,
-                   group:        group,
-                   version:      version.to_s,
-                   auth:         authpass.empty? ? '' : authstr,
-                   priv:         privpass.empty? ? '' : privstr,
-                   localizedKey: localizedkey ? 'localizedkey' : '',
-                   engineId:     engineid.empty? ? '' : "engineID #{engineid}")
+        config_set('snmp_user', 'user', '',
+                   name,
+                   group,
+                   authpass.empty? ? '' : "auth #{authprotostr} #{authpass}",
+                   privpass.empty? ? '' : "priv #{privprotostr} #{privpass}",
+                   localizedkey ? 'localizedkey' : '',
+                   engineid.empty? ? '' : "engineID #{engineid}")
       end
     end
 
     def initialize_validator(name, groups, authproto, authpass, privproto,
-                             privpass, engineid, version, instantiate)
+                             privpass, engineid, instantiate)
       fail TypeError unless name.is_a?(String) &&
                             groups.is_a?(Array) &&
                             authproto.is_a?(Symbol) &&
@@ -72,15 +60,6 @@ module Cisco
                             privpass.is_a?(String) &&
                             engineid.is_a?(String)
       fail ArgumentError if name.empty?
-
-      if platform == :ios_xr && instantiate
-        fail TypeError \
-          unless [:v1, :v2c, :v3].include?(version)
-
-        fail TypeError \
-          if groups.length > 1
-      end
-
       # empty password but protocol provided = bad
       # non-empty password and no protocol provided = bad
       if authpass.empty?
@@ -89,12 +68,9 @@ module Cisco
         fail ArgumentError unless [:sha, :md5].include?(authproto)
       end
       if privpass.empty?
-        fail ArgumentError \
-          if [:des, :aes128, :aes192, :aes256].include?(privproto) &&
-             instantiate
+        fail ArgumentError if [:des, :aes128].include?(privproto) && instantiate
       else
-        fail ArgumentError \
-          unless [:des, :aes128, :aes192, :aes256].include?(privproto)
+        fail ArgumentError unless [:des, :aes128].include?(privproto)
       end
     end
 
@@ -131,8 +107,7 @@ module Cisco
         users_hash[index] = SnmpUser.new(name, groups_arr.flatten, auth,
                                          '', priv, '', false,
                                          engineid,
-                                         false,
-                                         nil)
+                                         false)
       end
       users_hash
     end
@@ -148,29 +123,10 @@ module Cisco
       unless priv_password.nil? || priv_password.empty?
         priv_str = "priv #{_priv_sym_to_str(priv_protocol)} #{priv_password}"
       end
-
-      if platform == :ios_xr
-        groups.each do |group|
-          config_set('snmp_user', 'user',
-                     state:   'no',
-                     name:    @name,
-                     group:   group,
-                     version: version.to_s,
-                     auth:    '',
-                     priv:    '')
-        end
-      else
-        engineidstr = @engine_id.empty? ? '' : "engineID #{@engine_id}"
-        config_set('snmp_user', 'user',
-                   state:        'no',
-                   name:         @name,
-                   group:        '',
-                   auth:         auth_str,
-                   priv:         priv_str,
-                   localizedKey: local_str,
-                   engineId:     engineidstr)
-        SnmpUser.users.delete(@name + ' ' + @engine_id)
-      end
+      config_set('snmp_user', 'user', 'no',
+                 @name, '', auth_str, priv_str, local_str,
+                 @engine_id.empty? ? '' : "engineID #{@engine_id}")
+      SnmpUser.users.delete(@name + ' ' + @engine_id)
     end
 
     attr_reader :name
@@ -247,21 +203,6 @@ module Cisco
       config_get_default('snmp_user', 'priv_password')
     end
 
-    def self.version(name)
-      users = config_get('snmp_user', 'version')
-      unless users.nil? || users.empty?
-        users.each_entry { |user| return user[1] if user[0] == name }
-      end
-    end
-
-    def version
-      SnmpUser.version(@name)
-    end
-
-    def self.default_version
-      config_get_default('snmp_user', 'version')
-    end
-
     attr_reader :engine_id
 
     def self.default_engine_id
@@ -291,40 +232,25 @@ module Cisco
         # In this case passed in password is clear text while the running
         # config is hashed value. We need to hash the passed in clear text.
 
-        group = platform == :ios_xr ? 'network-operator' : ''
-        authstr = "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}"
-        engineidstr = @engine_id.empty? ? '' : "engineID #{@engine_id}"
         # Create dummy user
-        config_set('snmp_user', 'user',
-                   state:        '',
-                   name:         'dummy_user',
-                   group:        group,
-                   version:      'v3',
-                   auth:         authstr,
-                   priv:         '',
-                   localizedKey: '',
-                   engineId:     engineidstr)
+        config_set('snmp_user', 'user', '', 'dummy_user', '',
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}",
+                   '', '',
+                   @engine_id.empty? ? '' : "engineID #{@engine_id}")
 
         # Retrieve password hashes
         hashed_pw = SnmpUser.auth_password('dummy_user', @engine_id)
         if hashed_pw.nil?
-          fail "SNMP dummy user 'dummy_user' #{@engine_id} was configured " \
+          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
                "but password is missing?\n" \
                + @@node.get(command: 'show run snmp all')
         end
 
-        authstr = "auth #{_auth_sym_to_str(auth_protocol)} #{hashed_pw}"
-        engineidstr = @engine_id.empty? ? '' : "engineID #{@engine_id}"
         # Delete dummy user
-        config_set('snmp_user', 'user',
-                   state:        'no',
-                   name:         'dummy_user',
-                   group:        group,
-                   version:      'v3',
-                   auth:         authstr,
-                   priv:         '',
-                   localizedKey: 'localizedkey',
-                   engineId:     engineidstr)
+        config_set('snmp_user', 'user', 'no', 'dummy_user', '',
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{hashed_pw}",
+                   '', 'localizedkey',
+                   @engine_id.empty? ? '' : "engineID #{@engine_id}")
       end
       hashed_pw == current_pw
     end
@@ -352,42 +278,28 @@ module Cisco
         # In this case passed in password is clear text while the running
         # config is hashed value. We need to hash the passed in clear text.
 
-        group = platform == :ios_xr ? 'network-operator' : ''
-        authstr = "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}"
-        privstr = "priv #{_priv_sym_to_str(priv_protocol)} #{input_pw}"
-        engineidstr = @engine_id.empty? ? '' : "engineID #{@engine_id}"
         # Create dummy user
-        config_set('snmp_user', 'user',
-                   state:        '',
-                   name:         'dummy_user',
-                   group:        group,
-                   auth:         authstr,
-                   priv:         privstr,
-                   localizedKey: '',
-                   engineId:     engineidstr)
+        config_set('snmp_user', 'user', '', 'dummy_user', '',
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{input_pw}",
+                   "priv #{_priv_sym_to_str(priv_protocol)} #{input_pw}",
+                   '',
+                   @engine_id.empty? ? '' : "engineID #{@engine_id}")
 
         # Retrieve password hashes
         dummyau = SnmpUser.auth_password('dummy_user', @engine_id)
         hashed_pw = SnmpUser.priv_password('dummy_user', @engine_id)
         if hashed_pw.nil?
-          fail "SNMP dummy user 'dummy_user' #{@engine_id} was configured " \
+          fail "SNMP dummy user #{dummy_user} #{@engine_id} was configured " \
                "but password is missing?\n" \
                + @@node.get(command: 'show run snmp all')
         end
 
-        group = platform == :ios_xr ? 'network-operator' : ''
-        authstr = "auth #{_auth_sym_to_str(auth_protocol)} #{dummyau}"
-        privstr = "priv #{_priv_sym_to_str(priv_protocol)} #{hashed_pw}"
-        engineidstr = @engine_id.empty? ? '' : "engineID #{@engine_id}"
         # Delete dummy user
-        config_set('snmp_user', 'user',
-                   state:        'no',
-                   name:         'dummy_user',
-                   group:        group,
-                   auth:         authstr,
-                   priv:         privstr,
-                   localizedKey: 'localizedkey',
-                   engineId:     engineidstr)
+        config_set('snmp_user', 'user', 'no', 'dummy_user', '',
+                   "auth #{_auth_sym_to_str(auth_protocol)} #{dummyau}",
+                   "priv #{_priv_sym_to_str(priv_protocol)} #{hashed_pw}",
+                   'localizedkey',
+                   @engine_id.empty? ? '' : "engineID #{@engine_id}")
       end
       hashed_pw == current_pw
     end
@@ -408,13 +320,7 @@ module Cisco
       # privproto always comes after priv_index if priv exists
       pri = priv_index.nil? ? '' : lparams[priv_index + 1]
       # for the empty priv protocol default
-      if platform == :ios_xr
-        if pri == 'aes'
-          pri = "#{lparams[priv_index + 1]} #{lparams[priv_index + 2]}"
-        end
-      else
-        pri = 'des' unless pri.empty? || pri == 'aes-128'
-      end
+      pri = 'des' unless pri.empty? || pri == 'aes-128'
       auth = _auth_str_to_sym(aut)
       priv = _priv_str_to_sym(pri)
       user_var[:name] = name
@@ -455,15 +361,9 @@ module Cisco
     def _priv_sym_to_str(sym)
       case sym
       when :des
-        return 'des56'
-      when :'3des'
-        return '3des'
+        return '' # no protocol specified defaults to DES
       when :aes128
-        if platform == :ios_xr
-          return 'aes 128'
-        else
-          return 'aes-128'
-        end
+        return 'aes-128'
       else
         return ''
       end
@@ -490,30 +390,13 @@ module Cisco
     end
 
     def self._priv_str_to_sym(str)
-      if platform == :ios_xr
-        case str
-        when /3des/i
-          return :'3des'
-        when /des/i
-          return :des
-        when /aes 128/i
-          return :aes128
-        when /aes 192/i
-          return :aes192
-        when /aes 256/i
-          return :aes256
-        else
-          return :none
-        end
+      case str
+      when /des/i
+        return :des
+      when /aes/i
+        return :aes128
       else
-        case str
-        when /des/i
-          return :des
-        when /aes/i
-          return :aes128
-        else
-          return :none
-        end
+        return :none
       end
     end
   end

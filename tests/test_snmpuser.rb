@@ -33,7 +33,6 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def create_user(name, opts='')
-    opts = 'network-admin v1 IPv4 none' if opts == '' && platform == :ios_xr
     config("snmp-server user #{name} #{opts}")
     @test_users.push(name)
   end
@@ -60,39 +59,31 @@ class TestSnmpUser < CiscoTestCase
     assert_empty(delta, 'Users not deleted after test!')
   end
 
-  def user_pat(name, group='network-admin', version='')
-    if group
-      if !version.empty?
-        /snmp-server user #{name} #{group} #{version}/
-      else
-        /snmp-server user #{name} #{group}/
-      end
-    else
-      /snmp-server user #{name}/
-    end
+  def user_pat(name, group='network-admin')
+    group ? /snmp-server user #{name} #{group}/ : /snmp-server user #{name}/
   end
 
-  # test cases starts here
+  ## test cases starts here
 
-  def test_collection_not_empty
+  def test_snmpuser_collection_not_empty
     create_user('tester')
     refute_empty(SnmpUser.users,
                  'SnmpUser collection is empty')
   end
 
-  def test_create_invalid_args
+  def test_snmpuser_create_invalid_args
     args_list = [
       ['Empty name',
        ['', ['network-admin'],
-        :none, '', :none, '', false, '', true, :v3],
+        :none, '', :none, '', false, ''],
       ],
       ['Auth password but no authproto',
        ['userv3testUnknownAuth', ['network-admin'],
-        :none, 'test12345', :none, '', false, '', true, :v3],
+        :none, 'test12345', :none, '', false, ''],
       ],
       ['Priv password but no privproto',
        ['userv3testUnknownPriv', ['network-admin'],
-        :sha, 'test12345', :none, 'test12345', false, '', true, :v3],
+        :sha, 'test12345', :none, 'test12345', false, ''],
       ],
     ]
     args_list.each do |msg, args|
@@ -100,9 +91,7 @@ class TestSnmpUser < CiscoTestCase
     end
   end
 
-  def test_create_invalid_cli
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_invalid_cli
     args_list = [
       ['Cleartext password with localized key',
        ['userv3testauthsha1', ['network-admin'],
@@ -124,8 +113,6 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_engine_id_valid_and_none
-    skip if platform == :ios_xr
-
     create_user('tester', 'auth sha XXWWPass0wrf engineID 22:22:22:22:23:22')
     create_user('tester2')
 
@@ -148,7 +135,7 @@ class TestSnmpUser < CiscoTestCase
     assert(found_tester2)
   end
 
-  def test_noauth_nopriv
+  def test_snmpuser_create_with_single_group_noauth_nopriv
     name = 'userv3test2'
     groups = ['network-admin']
     snmpuser = SnmpUser.new(name,
@@ -156,23 +143,13 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             :none, '',
                             false,
-                            '',
-                            true,
-                            :v1)
-
-    if platform == :ios_xr
-      assert_show_match(pattern: user_pat(name),
-                        command: 'show running-config snmp-server')
-    else
-      assert_show_match(pattern: user_pat(name),
-                        command: 'show run snmp all | no-more')
-    end
+                            '')
+    assert_show_match(pattern: user_pat(name),
+                      command: 'show run snmp all | no-more')
     snmpuser.destroy
   end
 
-  def test_noauth_nopriv_multi
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_multi_group_noauth_nopriv
     name = 'userv3test3'
     groups = ['network-admin', 'vdc-admin']
     snmpuser = SnmpUser.new(name,
@@ -180,9 +157,7 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             :none, '',
                             false,
-                            '',
-                            true,
-                            :v1)
+                            '')
     s = @device.cmd('show run snmp all | no-more')
     groups.each do |group|
       assert_match(user_pat(name, group), s)
@@ -190,16 +165,10 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_destroy
+  def test_snmpuser_destroy
     name = 'userv3testdestroy'
     group = 'network-operator'
-    version = 'v3'
-
-    if platform == :ios_xr
-      create_user(name, "#{group} #{version}")
-    else
-      create_user(name, group)
-    end
+    create_user(name, group)
 
     # get user
     snmpuser = SnmpUser.users[name]
@@ -210,20 +179,12 @@ class TestSnmpUser < CiscoTestCase
     # check user got removed.
     sleep(5)
     node.cache_flush
-
-    if platform == :ios_xr
-      cmd = 'show running-config snmp-server'
-    else
-      cmd = 'show run snmp all | no-more'
-    end
-    refute_show_match(command: cmd,
+    refute_show_match(command: 'show run snmp all | no-more',
                       pattern: user_pat(name, group))
     assert_nil(SnmpUser.users[name])
   end
 
-  def test_auth_pw_equal_invalid_param
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_equal_invalid_param
     name = 'testV3PwEqualInvalid2'
     auth_pw = 'TeSt297534'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -232,9 +193,7 @@ class TestSnmpUser < CiscoTestCase
     refute(SnmpUser.users[name].auth_password_equal?('', false))
   end
 
-  def test_auth_priv_pw_equal_invalid_param
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_priv_password_equal_invalid_param
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-admin auth md5 #{auth_pw} priv #{auth_pw}")
@@ -245,9 +204,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('', false))
   end
 
-  def test_auth_pw_equal_priv_invalid_param
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_equal_priv_invalid_param
     name = 'testV3PwEqualInvalid'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-operator auth md5 #{auth_pw} priv #{auth_pw}")
@@ -258,9 +215,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('', false))
   end
 
-  def test_auth_pw_not_equal
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_not_equal
     name = 'testV3PwEqual'
     auth_pw = 'xxwwpass0r!f'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -270,9 +225,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.auth_password_equal?('xxwwpass0r!', false))
   end
 
-  def test_auth_pw_equal
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_equal
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
     create_user(name, "network-admin auth md5 #{auth_pw}")
@@ -281,9 +234,7 @@ class TestSnmpUser < CiscoTestCase
     assert(SnmpUser.users[name].auth_password_equal?(auth_pw, false))
   end
 
-  def test_auth_priv_pw_equal_empty
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_priv_password_equal_empty
     name = 'testV3PwEmpty'
     create_user(name, 'network-admin')
     # nil and "" are treated interchangeably
@@ -293,9 +244,7 @@ class TestSnmpUser < CiscoTestCase
     assert(SnmpUser.users[name].priv_password_equal?(nil, false))
   end
 
-  def test_auth_pw_equal_localizedkey
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_equal_localizedkey
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     create_user(name, "network-admin auth md5 #{auth_pw} localizedkey")
@@ -307,9 +256,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.auth_password_equal?('0xFe6c', true))
   end
 
-  def test_auth_priv_pw_equal_localizedkey
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_priv_password_equal_localizedkey
     name = 'testV3PwEqual'
     auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     priv_pw = '0x29916eac22d90362598abef1b9045018'
@@ -323,9 +270,7 @@ class TestSnmpUser < CiscoTestCase
     refute(snmpuser.priv_password_equal?('0x2291', true))
   end
 
-  def test_auth_priv_des_pw_equal
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_priv_des_password_equal
     name = 'testV3PwEqual'
     auth_pw = 'XXWWPass0wrf'
     priv_pw = 'WWXXPaas0wrf'
@@ -337,9 +282,7 @@ class TestSnmpUser < CiscoTestCase
     assert(snmpuser.priv_password_equal?(priv_pw, false))
   end
 
-  def test_auth_md5_nopriv
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_md5_nopriv
     name = 'userv3test5'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -349,45 +292,31 @@ class TestSnmpUser < CiscoTestCase
                             :none, '',
                             false, # clear text
                             '')
-
     assert_show_match(
       pattern: /#{user_pat(name)} auth md5 \S+ localizedkey/,
       command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_md5_nopriv_pw_localized
+  def test_snmpuser_create_with_single_group_auth_md5_nopriv_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '152A333B331A2A373B63223015' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
                             :none, '',
                             true, # localized
-                            '',
-                            true,
-                            :v3)
+                            '')
     assert_equal(snmpuser.name, name)
     assert_empty(snmpuser.engine_id)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth md5 encrypted 152A333B331A2A373B63223015"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth md5 #{auth_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_sha_nopriv
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_sha_nopriv
     name = 'userv3testsha'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -405,9 +334,7 @@ class TestSnmpUser < CiscoTestCase
 
   # If the auth pw is in hex and localized key param in constructor is false,
   # then the pw got localized by the device again.
-  def test_auth_sha_nopriv_pw_localized_false
-    skip if platform == :ios_xr
-
+  def test_create_1_group_auth_sha_nopriv_pw_localized_localizedkey_false
     name = 'userv3testauthsha3'
     groups = ['network-admin']
     auth_pw = '0xFe6cf9aea159c2c38e0a79ec23ed3cbb'
@@ -424,36 +351,23 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_sha_nopriv_pw_localized
+  def test_snmpuser_create_with_single_group_auth_sha_nopriv_pw_localized
     name = 'userv3testauthsha4'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '152A333B331A2A373B63223015' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,
                             :none, '',
                             true, # localized
-                            '',
-                            true,
-                            :v3)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth sha encrypted 152A333B331A2A373B63223015"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth sha #{auth_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
+                            '')
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_md5_priv_des
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_md5_priv_des
     name = 'userv3test6'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -470,38 +384,24 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_md5_priv_des_pw_localized
+  def test_snmpuser_create_with_single_group_auth_md5_priv_des_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '0307530A080824414B' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = platform == :ios_xr ? '12491D42475E5A' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
                             :des, priv_pw,
                             true, # localized
-                            '',
-                            true,
-                            :v3)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth md5 encrypted #{auth_pw} priv des56 encrypted #{priv_pw}"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth md5 #{auth_pw} priv #{priv_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
+                            '')
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
-
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} priv #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_md5_priv_aes128
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_md5_priv_aes128
     name = 'userv3test7'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -518,38 +418,24 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_md5_priv_aes128_pw_localized
+  def test_snmpuser_create_with_single_group_auth_md5_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '0307530A080824414B' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = platform == :ios_xr ? '12491D42475E5A' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :md5, auth_pw,
                             :aes128, priv_pw,
                             true, # localized
-                            '',
-                            true,
-                            :v3)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth md5 encrypted #{auth_pw} priv aes 128 encrypted #{priv_pw}"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth md5 #{auth_pw} priv aes-128 #{priv_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
+                            '')
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
-
+      pattern: /#{user_pat(name)} auth md5 #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_sha_priv_des
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_sha_priv_des
     name = 'userv3test8'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -566,38 +452,24 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_md5_priv_sha_pw_localized
+  def test_snmpuser_create_with_single_group_auth_md5_priv_sha_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '0307530A080824414B' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = platform == :ios_xr ? '12491D42475E5A' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,
                             :des, priv_pw,
                             true, # localized
-                            '',
-                            true,
-                            :v3)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth sha encrypted #{auth_pw} priv des56 encrypted #{priv_pw}"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth sha #{auth_pw} priv #{priv_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
+                            '')
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
-
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} priv #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_auth_sha_priv_aes128
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_with_single_group_auth_sha_priv_aes128
     name = 'userv3test9'
     groups = ['network-admin']
     auth_pw = 'XXWWPass0wrf'
@@ -614,49 +486,33 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_sha_priv_aes128_pw_localized
+  def test_snmpuser_create_with_single_group_auth_sha_priv_aes128_pw_localized
     name = 'userv3testauth'
     groups = ['network-admin']
-    auth_pw = platform == :ios_xr ? '0307530A080824414B' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
-    priv_pw = platform == :ios_xr ? '12491D42475E5A' : '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    auth_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
+    priv_pw = '0xfe6cf9aea159c2c38e0a79ec23ed3cbb'
     snmpuser = SnmpUser.new(name,
                             groups,
                             :sha, auth_pw,
                             :aes128, priv_pw,
                             true, # localized
-                            '',
-                            true,
-                            :v3)
-
-    if platform == :ios_xr
-      pat = "#{user_pat(name, groups[0], 'v3')} auth sha encrypted #{auth_pw} priv aes 128 encrypted #{priv_pw}"
-      cmd = 'show running-config snmp-server'
-    else
-      pat = "#{user_pat(name)} auth sha #{auth_pw} priv aes-128 #{priv_pw} localizedkey"
-      cmd = "show run snmp all | in #{name} | no-more"
-    end
-
+                            '')
     assert_show_match(
-      pattern: /#{pat}/,
-      command: cmd)
-
+      pattern: /#{user_pat(name)} auth sha #{auth_pw} priv aes-128 #{priv_pw} localizedkey/,
+      command: "show run snmp all | in #{name} | no-more")
     snmpuser.destroy
   end
 
-  def test_create_destroy_with_engine_id
-    skip if platform == :ios_xr
-
+  def test_snmpuser_create_destroy_with_engine_id
     name = 'test_with_engine_id'
     auth_pw = 'XXWWPass0wrf'
     priv_pw = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
     snmpuser = SnmpUser.new(name, [''], :md5, auth_pw, :des, priv_pw,
                             false, engine_id)
-
     assert_show_match(
       pattern: /snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
       command: "show run snmp all | in #{name} | no-more")
-
     user = SnmpUser.users["#{name} #{engine_id}"]
     refute_nil(user)
     assert_equal(snmpuser.name, user.name)
@@ -664,28 +520,23 @@ class TestSnmpUser < CiscoTestCase
     assert_equal(snmpuser.engine_id, engine_id)
     assert_equal(snmpuser.engine_id, user.engine_id)
     snmpuser.destroy
-
     refute_show_match(
       pattern: /snmp-server user #{name} auth \S+ \S+ priv .*\S+ localizedkey engineID #{engine_id}/,
       command: "show run snmp all | in #{name} | no-more")
-
     assert_nil(SnmpUser.users["#{name} #{engine_id}"])
   end
 
-  def test_authpassword
+  def test_snmpuser_authpassword
     name = 'test_authpassword'
-    auth_pw = platform == :ios_xr ? '0307530A080824414B' : '0x123456'
-    group = platform == :ios_xr ? 'network-operator' : ''
-    snmpuser = SnmpUser.new(name, [group], :md5, auth_pw, :none, '', true, '', true, :v3)
+    auth_pw = '0x123456'
+    snmpuser = SnmpUser.new(name, [''], :md5, auth_pw, :none, '', true, '')
 
     pw = snmpuser.auth_password
     assert_equal(auth_pw, pw)
     snmpuser.destroy
   end
 
-  def test_authpassword_with_engineid
-    skip if platform == :ios_xr
-
+  def test_snmpuser_authpassword_with_engineid
     name = 'test_authpassword'
     auth_pw = '0x123456'
     engine_id = '128:12:12:12:12'
@@ -697,28 +548,24 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_privpassword
+  def test_snmpuser_privpassword
     name = 'test_privpassword'
-    priv_password = platform == :ios_xr ? '12491D42475E5A' : '0x123456'
-    group = platform == :ios_xr ? 'network-operator' : ''
-
-    snmpuser = SnmpUser.new(name, [group], :md5, priv_password,
-                            :des, priv_password, true, '', true, :v3)
+    priv_password = '0x123456'
+    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+                            :des, priv_password, true, '')
 
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
     snmpuser.destroy
 
-    snmpuser = SnmpUser.new(name, [group], :md5, priv_password,
-                            :aes128, priv_password, true, '', true, :v3)
+    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+                            :aes128, priv_password, true, '')
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
     snmpuser.destroy
   end
 
-  def test_privpassword_with_engineid
-    skip if platform == :ios_xr
-
+  def test_snmpuser_privpassword_with_engineid
     name = 'test_privpassword2'
     priv_password = '0x123456'
     engine_id = '128:12:12:12:12'
@@ -735,9 +582,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_auth_password_equal_with_engineid
-    skip if platform == :ios_xr
-
+  def test_snmpuser_auth_password_equal_with_engineid
     name = 'test_authpass_equal'
     auth_pass = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
@@ -751,9 +596,7 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_priv_password_equal_with_engineid
-    skip if platform == :ios_xr
-
+  def test_snmpuser_priv_password_equal_with_engineid
     name = 'test_privpass_equal'
     priv_pass = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
@@ -771,31 +614,31 @@ class TestSnmpUser < CiscoTestCase
     snmpuser.destroy
   end
 
-  def test_default_groups
+  def test_snmpuser_default_groups
     groups = [DEFAULT_SNMP_USER_GROUP_NAME]
     assert_equal(groups, SnmpUser.default_groups,
                  'Error: Wrong default groups')
   end
 
-  def test_default_auth_protocol
+  def test_snmpuser_default_auth_protocol
     assert_equal(:md5,
                  SnmpUser.default_auth_protocol,
                  'Error: Wrong default auth protocol')
   end
 
-  def test_default_auth_password
+  def test_snmpuser_default_auth_password
     assert_equal(DEFAULT_SNMP_USER_AUTH_PASSWORD,
                  SnmpUser.default_auth_password,
                  'Error: Wrong default auth password')
   end
 
-  def test_default_priv_protocol
+  def test_snmpuser_default_priv_protocol
     assert_equal(:des,
                  SnmpUser.default_priv_protocol,
                  'Error: Wrong default priv protocol')
   end
 
-  def test_default_priv_password
+  def test_snmpuser_default_priv_password
     assert_equal(DEFAULT_SNMP_USER_PRIV_PASSWORD,
                  SnmpUser.default_priv_password,
                  'Error: Wrong default priv password')
