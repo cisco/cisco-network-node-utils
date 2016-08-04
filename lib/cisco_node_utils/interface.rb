@@ -175,13 +175,13 @@ module Cisco
 
     def bfd_echo
       return nil unless Feature.bfd_enabled?
-      return nil unless @name[/eth|port/i]
+      return nil if @name[/loop/i]
       config_get('interface', 'bfd_echo', name: @name)
     end
 
     def bfd_echo=(val)
-      fail ArgumentError, 'Interface Must be ethernet or port-channel' unless
-        @name[/eth|port/i]
+      fail ArgumentError, 'Interface cannot be loopback' if
+        @name[/loop/i]
       return if val == bfd_echo
       state = (val ? '' : 'no')
       Feature.bfd_enable
@@ -191,7 +191,7 @@ module Cisco
 
     def default_bfd_echo
       return nil unless Feature.bfd_enabled?
-      return nil unless @name[/eth|port/i]
+      return nil if @name[/loop/i]
       config_get_default('interface', 'bfd_echo')
     end
 
