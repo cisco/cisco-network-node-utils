@@ -21,7 +21,7 @@ Currently supports NX-OS nodes.
 
   spec.files         = `git ls-files -z`.split("\x0")
   # Files in bin/git are not executables as far as the Gem is concerned
-  spec.executables   = ['show_running_yang']
+  spec.executables   = []
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
