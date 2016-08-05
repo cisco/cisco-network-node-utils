@@ -462,7 +462,7 @@ module Cisco
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
       if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
+        return 'size_disable' if match[0] == 'no '
         return 'size_' + match[1] if match[1]
       end
       default_event_history_events
@@ -867,7 +867,8 @@ module Cisco
 
     # Supress Fib Pending (Getter/Setter/Default)
     def suppress_fib_pending
-      config_get('bgp', 'suppress_fib_pending', @get_args)
+      val = config_get('bgp', 'suppress_fib_pending', @get_args)
+      val.nil? ? false : val
     end
 
     def suppress_fib_pending=(enable)

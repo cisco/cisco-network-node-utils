@@ -11,5 +11,11 @@ query:
   # pass in the pkg name, retrieve version
   get_value: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
 
+query_all:
+  multiple: true
+  get_command: "show install packages"
+  get_value: '/^(\S+)\s+(\S+)\s+(\S+)$/'
+  default_value: []
+
 remove:
   set_value: "install deactivate %s"

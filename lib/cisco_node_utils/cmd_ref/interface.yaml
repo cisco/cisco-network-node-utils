@@ -21,6 +21,13 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)/'
 
+bfd_echo:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^(?:no )?bfd echo$/'
+  set_value: '<state> bfd echo'
+  default_value: true
+
 capabilities:
   _exclude: [ios_xr]
   multiple:
