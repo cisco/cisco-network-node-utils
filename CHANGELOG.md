@@ -18,7 +18,11 @@ Changelog
    * `bfd_echo`
 * Extend interface_ospf with attributes:
    * `bfd`
+   * `mtu_ignore`
    * `network_type`
+   * `priority`
+   * `shutdown`
+   * `transmit_delay`
 * Extend interface_portchannel with attributes:
    * `bfd_per_link`
 * Extend router_ospf_vrf with attributes:
