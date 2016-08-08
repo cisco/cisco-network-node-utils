@@ -143,9 +143,25 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.bfd,
                      'Error: bfd get failed')
         assert_equal(node.config_get_default('interface_ospf',
+                                             'mtu_ignore'),
+                     interface.mtu_ignore,
+                     'Error: mtu_ignore get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'priority'),
+                     interface.priority,
+                     'Error: priority get failed')
+        assert_equal(node.config_get_default('interface_ospf',
                                              'network_type_default'),
                      interface.network_type,
                      'Error: network type get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'shutdown'),
+                     interface.shutdown,
+                     'Error: shutdown get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'transmit_delay'),
+                     interface.transmit_delay,
+                     'Error: transmit_delay get failed')
         assert_equal(node.config_get_default('interface_ospf',
                                              'passive_interface'),
                      interface.passive_interface,
@@ -221,6 +237,18 @@ class TestInterfaceOspf < CiscoTestCase
 
     refute_show_match(pattern: /^\s+ip ospf bfd \S+/,
                       msg:     "'bfd' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf mtu-ignore \S+/,
+                      msg:     "'mtu_ignore' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf shutdown \S+/,
+                      msg:     "'shutdown' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf transmit-delay \S+/,
+                      msg:     "'transmit_delay' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf priority \S+/,
+                      msg:     "'priority' not removed")
 
     refute_show_match(pattern: /^\s+ip ospf network point-to-point/,
                       msg:     "'network_type' not removed")
@@ -340,6 +368,16 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(interface.default_bfd, interface.bfd)
   end
 
+  def test_mtu_ignore
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_mtu_ignore, interface.mtu_ignore)
+    interface.mtu_ignore = true
+    assert_equal(true, interface.mtu_ignore)
+    interface.mtu_ignore = interface.default_mtu_ignore
+    assert_equal(interface.default_mtu_ignore, interface.mtu_ignore)
+  end
+
   def test_network_type
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
@@ -377,6 +415,36 @@ class TestInterfaceOspf < CiscoTestCase
     interface.passive_interface = interface.default_passive_interface
     assert_show_match(pattern: /\s+no ip ospf passive-interface/,
                       msg:     'default passive interface set failed')
+  end
+
+  def test_priority
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_priority, interface.priority)
+    interface.priority = 100
+    assert_equal(100, interface.priority)
+    interface.priority = interface.default_priority
+    assert_equal(interface.default_priority, interface.priority)
+  end
+
+  def test_shutdown
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_shutdown, interface.shutdown)
+    interface.shutdown = true
+    assert_equal(true, interface.shutdown)
+    interface.shutdown = interface.default_shutdown
+    assert_equal(interface.default_shutdown, interface.shutdown)
+  end
+
+  def test_transmit_delay
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_transmit_delay, interface.transmit_delay)
+    interface.transmit_delay = 400
+    assert_equal(400, interface.transmit_delay)
+    interface.transmit_delay = interface.default_transmit_delay
+    assert_equal(interface.default_transmit_delay, interface.transmit_delay)
   end
 
   def test_mult
@@ -501,6 +569,7 @@ class TestInterfaceOspf < CiscoTestCase
     # enable feature ospf
     config('no feature ospf',
            'feature ospf',
+           'feature bfd',
            'feature interface-vlan',
            "default interface #{interfaces[0]}",
            "default interface #{interfaces[1]}",
@@ -544,6 +613,7 @@ class TestInterfaceOspf < CiscoTestCase
 
     # disable feature interface-vlan
     config('no feature interface-vlan')
+    config('no feature bfd')
     # clean up port channel
     ospf_h.each_value do |v|
       v.each_key do |k1|
