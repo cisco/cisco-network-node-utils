@@ -42,7 +42,7 @@ class TestPlatform < CiscoTestCase
     if platform == :ios_xr
       assert_nil(Platform.system_image)
     elsif platform == :nexus
-      s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
+      s = @device.cmd('show version | inc image | exc kickstart').scan(/ (\S+)$/).flatten.first
       assert_equal(s, Platform.system_image)
     end
   end
