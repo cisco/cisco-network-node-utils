@@ -93,8 +93,12 @@ module Cisco
       config_set('interface_ospf', 'dead_interval',
                  @interface.name, 'no', '')
       self.bfd = default_bfd
+      self.mtu_ignore = default_mtu_ignore
+      self.priority = default_priority
       self.network_type = default_network_type
       self.passive_interface = default_passive_interface if passive_interface
+      self.shutdown = default_shutdown
+      self.transmit_delay = default_transmit_delay
     end
 
     def default_message_digest
@@ -250,6 +254,21 @@ module Cisco
       config_get_default('interface_ospf', lookup)
     end
 
+    def mtu_ignore
+      config_get('interface_ospf', 'mtu_ignore', @interface.name)
+    end
+
+    # interface %s
+    #   %s ip ospf mtu-ignore
+    def mtu_ignore=(enable)
+      config_set('interface_ospf', 'mtu_ignore', @interface.name,
+                 enable ? '' : 'no')
+    end
+
+    def default_mtu_ignore
+      config_get_default('interface_ospf', 'mtu_ignore')
+    end
+
     def network_type
       type = config_get('interface_ospf', 'network_type', @interface.name)
       return 'p2p' if type == 'point-to-point'
@@ -281,6 +300,55 @@ module Cisco
       fail TypeError unless enable == true || enable == false
       config_set('interface_ospf', 'passive_interface', @interface.name,
                  enable ? '' : 'no')
+    end
+
+    def priority
+      config_get('interface_ospf', 'priority', @interface.name)
+    end
+
+    # interface %s
+    #   ip ospf priority %d
+    def priority=(val)
+      no_cmd = (val == default_priority) ? 'no' : ''
+      pri = (val == default_priority) ? '' : val
+      config_set('interface_ospf', 'priority',
+                 @interface.name, no_cmd, pri)
+    end
+
+    def default_priority
+      config_get_default('interface_ospf', 'priority')
+    end
+
+    def shutdown
+      config_get('interface_ospf', 'shutdown', @interface.name)
+    end
+
+    # interface %s
+    #   %s ip ospf shutdown
+    def shutdown=(state)
+      config_set('interface_ospf', 'shutdown', @interface.name,
+                 state ? '' : 'no')
+    end
+
+    def default_shutdown
+      config_get_default('interface_ospf', 'shutdown')
+    end
+
+    def transmit_delay
+      config_get('interface_ospf', 'transmit_delay', @interface.name)
+    end
+
+    # interface %s
+    #   ip ospf transmit-delay %d
+    def transmit_delay=(val)
+      no_cmd = (val == default_transmit_delay) ? 'no' : ''
+      delay = (val == default_transmit_delay) ? '' : val
+      config_set('interface_ospf', 'transmit_delay',
+                 @interface.name, no_cmd, delay)
+    end
+
+    def default_transmit_delay
+      config_get_default('interface_ospf', 'transmit_delay')
     end
   end
 end

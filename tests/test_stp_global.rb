@@ -24,7 +24,7 @@ class TestStpGlobal < CiscoTestCase
   def setup
     super
     config 'no spanning-tree mode'
-    config 'system bridge-domain none' if /N7/ =~ node.product_id
+    remove_all_vlans
     @intf = Interface.new(interfaces[0])
 
     # Only pre-clean interface on initial setup
@@ -35,7 +35,7 @@ class TestStpGlobal < CiscoTestCase
 
   def teardown
     config 'no spanning-tree mode'
-    config 'system bridge-domain none' if /N7/ =~ node.product_id
+    remove_all_vlans
     super
   end
 
