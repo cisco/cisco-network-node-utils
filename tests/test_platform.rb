@@ -115,15 +115,6 @@ class TestPlatform < CiscoTestCase
     assert_equal(s.gsub(/\d+ sec/, ''), Platform.uptime.gsub(/\d+ sec/, ''))
   end
 
-  def test_last_reset
-    if Utils.nexus_i2_image
-      # Platform issue CSCuy72214, uncertain if this will ever be fixed in I2
-      assert_nil(Platform.last_reset)
-    else
-      refute_nil(Platform.last_reset)
-    end
-  end
-
   def test_reset_reason
     s = @device.cmd('sh ver').scan(/Reason: (.*)/).flatten.first
     assert_equal(s, Platform.reset_reason)
