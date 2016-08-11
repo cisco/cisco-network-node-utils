@@ -189,10 +189,11 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the bds existing in the system
   # specifically in cleanup for minitests
   def remove_all_bridge_domains
-    config 'system bridge-domain none' if /N7/ =~ node.product_id
+    return unless /N7/ =~ node.product_id
     BridgeDomain.bds.each do |_bd, obj|
       obj.destroy
     end
+    config 'system bridge-domain none'
   end
 
   def remove_all_svis

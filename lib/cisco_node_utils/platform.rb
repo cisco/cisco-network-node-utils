@@ -28,7 +28,7 @@ module Cisco
 
     # ex: 'n3500-uk9.6.0.2.A3.0.40.bin'
     def self.system_image
-      config_get('show_version', 'boot_image')
+      config_get('show_version', 'system_image')
     end
 
     # Returns package hash with state values
