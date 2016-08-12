@@ -233,6 +233,86 @@ class CiscoTestCase < TestCase
     config(*cfg)
   end
 
+  # TBD: -- The following methods are a WIP --
+  #
+  # def find_compatible_intf(feature, opt=:raise_skip)
+  #   # Some platforms require specific linecards before allowing a feature to
+  #   # be enabled. This method will find a compatible interface or optionally
+  #   # raise a skip.
+  #   # TBD: This wants to become a common "compatible interface" checker to
+  #   # eventually replace all of the single-use methods.
+  #   intf = compatible_intf(feature)
+  #   if intf.nil? && opt[/raise_skip/]
+  #     skip("Unable to find compatible interface for 'feature #{feature}'")
+  #   end
+  #   intf
+  # end
+
+  # def compatible_intf(feature)
+  #   # The feat hash contains module restrictions for a given feature.
+  #   #  :mods - (optional) The module ids used in the 'limit-resource' config
+  #   #  :pids - A regex pattern for the line module product IDs (ref: 'sh mod')
+  #   feat = {}
+  #   if node.product_id[/N7K/]
+  #     feat = {
+  #       # nv overlay raises error unless solely F3
+  #       'nv overlay' => { mods: 'f3', pids: 'N7[K7]-F3' }
+  #     }
+  #   end
+  #   patterns = feat[feature]
+  #   return interfaces[0] if patterns.nil? #  No restrictions for this platform
+
+  #   # Check if module is present and usable; i.e. 'ok'
+  #   pids = patterns[:pids]
+  #   sh_mod_string = @device.cmd("show mod | i '^[0-9]+.*#{pids}.*ok'")
+  #   sh_mod = sh_mod_string[/^(\d+)\s.*#{pids}/]
+  #   slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+  #   return nil if slot.nil?
+  #   intf = "ethernet#{slot}/1"
+
+  #   # Check/Set VDC config. VDC platforms restrict module usage per vdc.
+  #   mods = patterns[:mods]
+  #   return intf if mods.nil? || !node.product_id[/N7K/]
+  #   vdc = Vdc.new(Vdc.default_vdc_name)
+  #   unless mods == vdc.limit_resource_module_type
+  #     # Update the allowed module types in this vdc
+  #     vdc.limit_resource_module_type = mods
+  #   end
+
+  #   # Return the first interface found in 'allocate interface' config, or nil
+  #   vdc.allocate_interface[%r{Ethernet#{slot}\/(\d+)}]
+  # end
+
+  def vdc_limit_f3_no_intf_needed(action=:set)
+    # This is a special-use method for N7Ks that don't have a physical F3.
+    #  1) There are some features that refuse to load unless the VDC is
+    #     limited to F3 only, but they will actually load if the config is
+    #     present, despite the fact that there are no physical F3s.
+    #  2) We have some tests that need these features but don't need interfaces.
+    #
+    # action = :set (enable limit F3 config), :clear (default limit config)
+    #
+    # The limit config should be removed after testing if the device does not
+    # have an actual F3.
+    return unless node.product_id[/N7K/]
+    vdc = Vdc.new(Vdc.default_vdc_name)
+    case action
+    when :set
+      return if vdc.limit_resource_module_type == 'f3'
+      vdc.limit_resource_module_type = 'f3'
+
+    when :clear
+      # Remove the config if there are no physical F3 cards
+      pids = 'N7[K7]-F3'
+      sh_mod_string = @device.cmd("show mod | i '^[0-9]+.*#{pids}'")
+      sh_mod = sh_mod_string[/^(\d+)\s.*#{pids}/]
+      if sh_mod.nil?
+        # It's safe to remove the config
+        vdc.limit_resource_module_type = ''
+      end
+    end
+  end
+
   # setup fabricpath env if possible and populate the interfaces array
   # otherwise cause a global skip
   def fabricpath_testenv_setup
