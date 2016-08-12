@@ -43,20 +43,25 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def teardown
+    # This teardown tries to preserve any non-test snmp-server user entries
+    # and only teardown the entries added by this test.
     unless @test_users.empty?
       cfg = @test_users.collect { |name| "no snmp-server user #{name}" }
       config(*cfg)
     end
     super
     delta = SnmpUser.users.keys - @@existing_users
-    # User deletion can take some time, for some reason
     unless delta.empty?
-      sleep(5)
-      node.cache_flush
-      delta = SnmpUser.users.keys - @@existing_users
+      # Some platforms are slow, wait for snmp-server user entries to be deleted
+      15.times do
+        sleep(1)
+        node.cache_flush
+        delta = SnmpUser.users.keys - @@existing_users
+        break if delta.empty?
+      end
     end
     @@existing_users = SnmpUser.users.keys # rubocop:disable Style/ClassVars
-    assert_empty(delta, 'Users not deleted after test!')
+    assert_empty(delta, 'teardown method did not clean up all users')
   end
 
   def user_pat(name, group='network-admin')
