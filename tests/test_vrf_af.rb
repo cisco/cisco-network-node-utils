@@ -111,7 +111,9 @@ class TestVrfAf < CiscoTestCase
   end
 
   def test_route_target
+    vdc_limit_f3_no_intf_needed(:set)
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_target(af) }
+    vdc_limit_f3_no_intf_needed(:clear)
   end
 
   def route_target(af)

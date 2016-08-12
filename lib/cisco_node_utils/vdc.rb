@@ -65,6 +65,12 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def allocate_interface
+      # TBD: This property is only partially implemented because it is currently
+      # only used for minitest & beaker.
+      config_get('vdc', 'allocate_interface', vdc: @vdc)
+    end
+
     def limit_resource_module_type
       str = config_get('vdc', 'limit_resource_module_type', vdc: @vdc)
       str.strip! unless str.nil?
