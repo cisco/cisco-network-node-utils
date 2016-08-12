@@ -42,7 +42,7 @@ class TestPlatform < CiscoTestCase
     if platform == :ios_xr
       assert_nil(Platform.system_image)
     elsif platform == :nexus
-      s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
+      s = @device.cmd('show version | inc image | exc kickstart').scan(/ (\S+)$/).flatten.first
       assert_equal(s, Platform.system_image)
     end
   end
@@ -113,15 +113,6 @@ class TestPlatform < CiscoTestCase
     s = @device.cmd('sh ver').scan(/uptime is (.*)/).flatten.first
     # compare without seconds
     assert_equal(s.gsub(/\d+ sec/, ''), Platform.uptime.gsub(/\d+ sec/, ''))
-  end
-
-  def test_last_reset
-    if Utils.nexus_i2_image
-      # Platform issue CSCuy72214, uncertain if this will ever be fixed in I2
-      assert_nil(Platform.last_reset)
-    else
-      refute_nil(Platform.last_reset)
-    end
   end
 
   def test_reset_reason
