@@ -22,13 +22,15 @@ method:
 remove_local_auth:
   # Used for determining if removal of authentication method
   # 'local' is permitted.
+  # TBD: remove local should be allowed on all platforms.
+  #   Change once CSCva88188 is resolved
   kind: boolean
-  N3k: &remove_local_disallowed
-    default_only: false
-  N8k: *remove_local_disallowed
-  N9k: *remove_local_disallowed
-  N5k: &remove_local_allowed
+  N3k: &remove_local_allowed
     default_only: true
+  N9k:
+    default_only: false
+  N8k: *remove_local_allowed
+  N5k: *remove_local_allowed
   N6k: *remove_local_allowed
   N7k: *remove_local_allowed
 
