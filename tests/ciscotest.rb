@@ -296,11 +296,12 @@ class CiscoTestCase < TestCase
     # have an actual F3.
     return unless node.product_id[/N7K/]
     vdc = Vdc.new(Vdc.default_vdc_name)
-    if action == :set
+    case action
+    when :set
       return if vdc.limit_resource_module_type == 'f3'
       vdc.limit_resource_module_type = 'f3'
 
-    elsif action == :clear
+    when :clear
       # Remove the config if there are no physical F3 cards
       pids = 'N7[K7]-F3'
       sh_mod_string = @device.cmd("show mod | i '^[0-9]+.*#{pids}'")
