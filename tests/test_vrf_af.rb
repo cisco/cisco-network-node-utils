@@ -111,15 +111,12 @@ class TestVrfAf < CiscoTestCase
   end
 
   def test_route_target
+    vdc_limit_f3_no_intf_needed(:set)
     [%w(ipv4 unicast), %w(ipv6 unicast)].each { |af| route_target(af) }
+    vdc_limit_f3_no_intf_needed(:clear)
   end
 
   def route_target(af)
-    #
-    # TBD: The evpn parts of this test need to check for compatible linecards to
-    # skip the evpn portions. Don't use vxlan_linecard? as that will cause all
-    # tests to be skipped.
-    #
     # Common tester for route-target properties. Tests evpn and non-evpn.
     #   route_target_both_auto
     #   route_target_both_auto_evpn

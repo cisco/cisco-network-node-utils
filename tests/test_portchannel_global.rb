@@ -42,7 +42,7 @@ class TestPortchannelGlobal < CiscoTestCase
     mode = config('show system switch-mode')
     # note: an n3k in n9k mode displays: 'system switch-mode n9k'
     patterns = ['system switch-mode n3k',
-                'Switch mode configuration is not not applicable']
+                'Switch mode configuration is not applicable']
     mode[Regexp.union(patterns)] ? true : false
   end
 
