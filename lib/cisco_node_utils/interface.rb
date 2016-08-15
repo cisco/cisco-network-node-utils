@@ -122,6 +122,7 @@ module Cisco
           next if k.nil? || v.nil?
           k.gsub!(/ \(.*\)/, '') # Remove any parenthetical text from key
           v.strip!
+          v.gsub!(%r{half/full}, 'half,full') if k == 'Duplex'
           hash[k] = v
         end
       end
