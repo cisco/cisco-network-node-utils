@@ -174,7 +174,7 @@ class TestVtp < CiscoTestCase
     end
   end
 
-  # this fails on n7k running helsinki image but it
+  # this fails on n7k running 7.3(0)D1.1 image but it
   # is fixed in later releases. The bugID is CSCuy87970
   # which is already verified.
   def test_password_special_characters
