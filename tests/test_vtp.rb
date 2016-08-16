@@ -87,9 +87,7 @@ class TestVtp < CiscoTestCase
     assert_raises(ArgumentError) { vtp_domain(nil) }
     assert_raises(ArgumentError) { vtp_domain('') }
 
-    # Create the same domain twice
     vtp = vtp_domain('accounting')
-    assert_raises(Cisco::CliError) { vtp_domain('accounting') }
 
     # Set password to nil
     assert_raises(TypeError) { vtp.password = nil }
@@ -176,6 +174,9 @@ class TestVtp < CiscoTestCase
     end
   end
 
+  # this fails on n7k running helsinki image but it
+  # is fixed in later releases. The bugID is CSCuy87970
+  # which is already verified.
   def test_password_special_characters
     vtp = vtp_domain('password')
     vtp.password = 'hello!//\\#%$x'
