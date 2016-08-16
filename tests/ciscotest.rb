@@ -108,10 +108,7 @@ class CiscoTestCase < TestCase
     result
   end
 
-  # this method takes the CliError exception and either
-  # raises the exception or ignores the exception
-  # As the error messages can vary a lot, the method takes
-  # the expected error message as well for comparison.
+  # Check exception and only fail if it does not contain message
   def check_and_raise_error(exception, message)
     fail exception unless exception.message.include?(message)
   end
