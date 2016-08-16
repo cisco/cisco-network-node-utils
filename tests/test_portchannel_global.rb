@@ -113,6 +113,8 @@ class TestPortchannelGlobal < CiscoTestCase
       global.resilient = global.default_resilient
       assert_equal(global.default_resilient, global.resilient)
     end
+  rescue Cisco::CliError => e
+    check_and_raise_error(e, 'This feature is not supported on this platform')
   end
 
   def test_load_balance_no_rotate
