@@ -108,6 +108,11 @@ class CiscoTestCase < TestCase
     result
   end
 
+  # Check exception and only fail if it does not contain message
+  def check_and_raise_error(exception, message)
+    fail exception unless exception.message.include?(message)
+  end
+
   def ip_address?(ip)
     return IPAddr.new(ip).ipv4?
   rescue IPAddr::InvalidAddressError
