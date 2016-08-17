@@ -117,6 +117,37 @@ class TestPortchannelGlobal < CiscoTestCase
     check_and_raise_error(e, 'This feature is not supported on this platform')
   end
 
+  def test_load_balance_no_rotate_no_symmetry
+    skip('Test not supported on this platform') unless n3k_in_n3k_mode?
+
+    global = create_portchannel_global
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-only', nil, nil, false, nil, nil)
+    assert_equal('src-dst',
+                 global.bundle_select)
+    assert_equal('ip-only',
+                 global.bundle_hash)
+    assert_equal(false, global.symmetry)
+    global.send(
+      :port_channel_load_balance=,
+      global.default_bundle_select,
+      global.default_bundle_hash,
+      nil,
+      nil,
+      global.default_symmetry,
+      nil,
+      nil)
+    assert_equal(
+      global.default_bundle_select,
+      global.bundle_select)
+    assert_equal(
+      global.default_bundle_hash,
+      global.bundle_hash)
+    assert_equal(
+      global.default_symmetry,
+      global.symmetry)
+  end
+
   def test_load_balance_no_rotate
     skip('Test not supported on this platform') unless n3k_in_n3k_mode?
 
@@ -146,6 +177,8 @@ class TestPortchannelGlobal < CiscoTestCase
     assert_equal(
       global.default_symmetry,
       global.symmetry)
+  rescue Cisco::CliError => e
+    check_and_raise_error(e, 'This command is only supported on T2 platforms.')
   end
 
   def test_load_balance_sym_concat_rot
