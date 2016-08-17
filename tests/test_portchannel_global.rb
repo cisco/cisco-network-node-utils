@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/portchannel_global'
+require_relative '../lib/cisco_node_utils/platform'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestPortchannelGlobal < CiscoTestCase
@@ -35,6 +36,11 @@ class TestPortchannelGlobal < CiscoTestCase
   def cleanup
     ethernet = node.product_id[/N(3|7|8|9)/] ? '' : 'ethernet'
     config_no_warn "no port-channel load-balance #{ethernet}"
+  end
+
+  def n3k_is_t2?
+    return unless /N3/ =~ node.product_id
+    Platform.chassis['descr'].include?('Nexus 31') ? true : false
   end
 
   def n3k_in_n3k_mode?
@@ -149,7 +155,8 @@ class TestPortchannelGlobal < CiscoTestCase
   end
 
   def test_load_balance_no_rotate
-    skip('Test not supported on this platform') unless n3k_in_n3k_mode?
+    skip('Test not supported on this platform') unless
+      n3k_is_t2? && n3k_in_n3k_mode?
 
     global = create_portchannel_global
     global.send(:port_channel_load_balance=,
@@ -177,8 +184,6 @@ class TestPortchannelGlobal < CiscoTestCase
     assert_equal(
       global.default_symmetry,
       global.symmetry)
-  rescue Cisco::CliError => e
-    check_and_raise_error(e, 'This command is only supported on T2 platforms.')
   end
 
   def test_load_balance_sym_concat_rot
