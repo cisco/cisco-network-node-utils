@@ -40,7 +40,7 @@ class TestPortchannelGlobal < CiscoTestCase
 
   def n3k_is_t2?
     return unless /N3/ =~ node.product_id
-    Platform.chassis['descr'].include?('Nexus 31') ? true : false
+    Platform.chassis['descr'][/(Nexus3000 C31|Nexus 31)/] ? true : false
   end
 
   def n3k_in_n3k_mode?
