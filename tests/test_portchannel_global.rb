@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/portchannel_global'
+require_relative '../lib/cisco_node_utils/platform'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestPortchannelGlobal < CiscoTestCase
@@ -35,6 +36,11 @@ class TestPortchannelGlobal < CiscoTestCase
   def cleanup
     ethernet = node.product_id[/N(3|7|8|9)/] ? '' : 'ethernet'
     config_no_warn "no port-channel load-balance #{ethernet}"
+  end
+
+  def n3k_is_t2?
+    return unless /N3/ =~ node.product_id
+    Platform.chassis['descr'][/(Nexus3000 C31|Nexus 31)/] ? true : false
   end
 
   def n3k_in_n3k_mode?
@@ -117,8 +123,40 @@ class TestPortchannelGlobal < CiscoTestCase
     check_and_raise_error(e, 'This feature is not supported on this platform')
   end
 
-  def test_load_balance_no_rotate
+  def test_load_balance_no_rotate_no_symmetry
     skip('Test not supported on this platform') unless n3k_in_n3k_mode?
+
+    global = create_portchannel_global
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-only', nil, nil, false, nil, nil)
+    assert_equal('src-dst',
+                 global.bundle_select)
+    assert_equal('ip-only',
+                 global.bundle_hash)
+    assert_equal(false, global.symmetry)
+    global.send(
+      :port_channel_load_balance=,
+      global.default_bundle_select,
+      global.default_bundle_hash,
+      nil,
+      nil,
+      global.default_symmetry,
+      nil,
+      nil)
+    assert_equal(
+      global.default_bundle_select,
+      global.bundle_select)
+    assert_equal(
+      global.default_bundle_hash,
+      global.bundle_hash)
+    assert_equal(
+      global.default_symmetry,
+      global.symmetry)
+  end
+
+  def test_load_balance_no_rotate
+    skip('Test not supported on this platform') unless
+      n3k_is_t2? && n3k_in_n3k_mode?
 
     global = create_portchannel_global
     global.send(:port_channel_load_balance=,
