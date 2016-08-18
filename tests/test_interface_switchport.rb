@@ -132,9 +132,7 @@ class TestSwitchport < TestInterfaceSwitchport
     refute(interface.switchport_vtp,
            'Error: interface, access, vtp not disabled')
   rescue Cisco::CliError => e
-    msg = "[#{interfaces[0]}] switchport_mode is not supported " \
-          'on this interface'
-    assert_equal(msg.downcase, e.message)
+    incompatible_interface?(e.message)
   end
 
   def test_sw_autostate_disabled
@@ -237,7 +235,8 @@ class TestSwitchport < TestInterfaceSwitchport
     end
 
     interface.switchport_mode = :fex_fabric
-    assert_equal(interface.switchport_mode, :fex_fabric)
+  rescue Cisco::CliError => e
+    incompatible_interface?(e.message)
   end
 
   def test_sw_trunk_allowed_vlan
