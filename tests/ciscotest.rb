@@ -144,6 +144,13 @@ class CiscoTestCase < TestCase
     flunk(message)
   end
 
+  def incompatible_interface?(msg)
+    patterns = ['switchport_mode is not supported on this interface',
+                'Configuration does not match the port capability']
+    assert_match(Regexp.union(patterns), msg,
+                 'Msg does not match known incompatibility messages')
+  end
+
   def validate_property_excluded?(feature, property)
     !node.cmd_ref.supports?(feature, property)
   end
