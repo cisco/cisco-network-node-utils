@@ -22,6 +22,11 @@ include Cisco
 class TestFeature < CiscoTestCase
   @skip_unless_supported = 'feature'
 
+  def teardown
+    # f3 cleanup for non-f3 N7k's
+    vdc_limit_f3_no_intf_needed(:clear)
+  end
+
   ###########
   # Helpers #
   ###########
@@ -178,6 +183,7 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.fabric_enable }
       return
     end
+    vdc_limit_f3_no_intf_needed(:set)
     fs = 'feature-set fabric'
     # Get current state of the feature-set
     feature_set_installed = Feature.fabric_installed?
@@ -196,6 +202,7 @@ class TestFeature < CiscoTestCase
     # Return testbed to pre-clean state
     config("no #{fs}") unless feature_enabled
     config("no install #{fs}") unless feature_set_installed
+    vdc_limit_f3_no_intf_needed(:clear)
   end
 
   def test_feature_set_fex
