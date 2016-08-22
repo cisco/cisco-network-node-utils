@@ -32,6 +32,10 @@ class TestYum < CiscoTestCase
     pkginfo = YAML.load(File.read(path))
 
     # rubocop:disable Style/ClassVars
+    #
+    # Replace [.,(,)] characters with '_' for yaml key lookup.
+    # Image Version before gsub: 7.0(3)I3(1) 
+    # Image Version after  gsub: 7_0_3_I3_1_ 
     @@pv = Platform.image_version.gsub(/[.()]/, '_')[/\S+/]
     info "Image version detected: #{Platform.image_version}"
     @@pkg_filename = pkginfo[@@pv]['filename']
