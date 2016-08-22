@@ -39,8 +39,8 @@ class TestYum < CiscoTestCase
     @@pkg_ver = pkginfo[@@pv]['version']
 
     @@incompatible_rpm_msg =
-      ": Sample rpm is compatible with NX-OS release version #{@@pv}."  \
-      'This test may fail with other versions.'
+      ": Sample rpm is compatible version #{Platform.image_version}."  \
+      'This test will fail with other versions.'
     # rubocop:enable Style/ClassVars
   end
 
