@@ -1,0 +1,25 @@
+# Sample Patch RPM's
+#
+
+# N3K and N9K Sample Patches
+
+7_0_3_I2_1_:
+  filename: 'n9000_sample-1.0.0-7.0.3.x86_64.rpm'
+  name:     'n9000_sample'
+  version:  '1.0.0-7.0.3'
+
+7_0_3_I3_1_:
+  filename: 'CSCuxdublin-1.0.0-7.0.3.I3.1.lib32_n9000.rpm'
+  name:     'CSCuxdublin'
+  version:  '1.0.0-7.0.3.I3.1'
+
+7_0_3_I4_1_:
+  filename: 'nxos.sample-n9k_EOR-1.0.0-7.0.3.I4.1.lib32_n9000.rpm'
+  name:     'nxos.sample-n9k_EOR'
+  version:  '1.0.0-7.0.3.I4.1'
+
+7_0_3_I5_1_:
+  filename: 'nxos.sample-n9k_EOR-1.0.0-7.0.3.I5.1.lib32_n9000.rpm'
+  name:     'nxos.sample-n9k_EOR'
+  version:  '1.0.0-7.0.3.I5.1'
+

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'yaml'
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/yum'
 require_relative '../lib/cisco_node_utils/platform'
@@ -26,31 +27,17 @@ class TestYum < CiscoTestCase
   @skip_unless_supported = 'yum'
 
   def select_pkg
+    path = File.expand_path('../yum_package.yaml', __FILE__)
+    skip('Cannot find tests/yum_package.yaml') unless File.file?(path)
+    pkginfo = YAML.load(File.read(path))
+
     # rubocop:disable Style/ClassVars
-    @@pv = Platform.image_version
-    case @@pv
-    when /7.0\(3\)I2\(1\)/
-      info 'Testing Patch For Camden Release Image'
-      @@pkg_filename = 'n9000_sample-1.0.0-7.0.3.x86_64.rpm'
-      @@pkg = 'n9000_sample'
-      @@pkg_ver = '1.0.0-7.0.3'
-    when /7.0\(3\)I3\(1\)/
-      info 'Testing Patch For Dublin Release Image'
-      @@pkg_filename = 'CSCuxdublin-1.0.0-7.0.3.I3.1.lib32_n9000.rpm'
-      @@pkg = 'CSCuxdublin'
-      @@pkg_ver = '1.0.0-7.0.3.I3.1'
-    when /7.0\(4\)I4\(1\)/
-      # TBD: Add Dublin Plus RPM when it becomes available.
-      # info 'Testing Patch For Dublin Plus Release Image'
-    when /7.0\(3\)F1\(0.313\)/
-      # TBD: Update with actual fretta_camden release patch when ready
-      info 'Testing Patch For Fretta Camden Release Image'
-      @@pkg_filename = 'nxos.sample-n8k_EOR-1.0.0-7.0.3.F1.1.lib32_nxos.rpm'
-      @@pkg = 'nxos.sample-n8k_EOR'
-      @@pkg_ver = '1.0.0-7.0.3.F1.1'
-    else
-      skip "Available patches are not compatible with this image: #{@@pv}"
-    end
+    @@pv = Platform.image_version.gsub(/[.()]/, '_')[/\S+/]
+    info "Image version detected: #{Platform.image_version}"
+    @@pkg_filename = pkginfo[@@pv]['filename']
+    @@pkg = pkginfo[@@pv]['name']
+    @@pkg_ver = pkginfo[@@pv]['version']
+
     @@incompatible_rpm_msg =
       ": Sample rpm is compatible with NX-OS release version #{@@pv}."  \
       'This test may fail with other versions.'
@@ -100,13 +87,13 @@ class TestYum < CiscoTestCase
     end
 
     # On dublin and later images, must specify the full rpm name.
-    package = @@pv[/7.0\(3\)I2\(1\)/] ? @@pkg : @@pkg_filename
+    package = @@pv[/7_0_3_I2_1_/] ? @@pkg : @@pkg_filename
     # Specify "management" vrf for install
     Yum.install(package, 'management')
     sleep 20
     assert(Yum.query(@@pkg), "failed to find installed package #{@@pkg}")
 
-    Yum.remove(package)
+    Yum.remove(@@pkg)
     sleep 20
     refute_show_match(command: "show install package | include #{@@pkg}",
                       pattern: /@patching/)
