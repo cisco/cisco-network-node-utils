@@ -39,7 +39,7 @@ class TestYum < CiscoTestCase
     @@pkg_ver = pkginfo[@@pv]['version']
 
     @@incompatible_rpm_msg =
-      ": Sample rpm is compatible version #{Platform.image_version}."  \
+      ": Sample rpm is compatible with version #{Platform.image_version}."  \
       'This test will fail with other versions.'
     # rubocop:enable Style/ClassVars
   end
