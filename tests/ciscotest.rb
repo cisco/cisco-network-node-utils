@@ -29,7 +29,8 @@ class CiscoTestCase < TestCase
   @@node = nil
   @@interfaces = nil
   @@interfaces_id = nil
-  # rubocop:enable Style/ClassVars
+  @@testcases = []
+  @@testcase_teardowns = 0
 
   # The feature (lib/cisco_node_utils/cmd_ref/<feature>.yaml) that this
   # test case is associated with, if applicable.
@@ -43,6 +44,7 @@ class CiscoTestCase < TestCase
   end
 
   def self.runnable_methods
+    @@testcases = super
     return super if skip_unless_supported.nil?
     return super if node.cmd_ref.supports?(skip_unless_supported)
     # If the entire feature under test is unsupported,
@@ -51,6 +53,20 @@ class CiscoTestCase < TestCase
     remove_method :teardown if instance_methods(false).include?(:teardown)
     [:all_skipped]
   end
+
+  def first_or_last_teardown
+    # Return true if this is the first or last teardown call.
+    # This hack is needed to prevent excessive post-test cleanups from
+    # occurring: e.g. a non-F3 N7k test class may require an expensive setup
+    # and teardown to enable/disable vdc settings; ideally this vdc setup
+    # would occur prior to the first test and vdc teardown only after the
+    # final test. Checks for first test case because we have to handle the
+    # -n option, which filters the list of runnable testcases.
+    # Note that Minitest.after_run is not a solution for this problem.
+    @@testcase_teardowns += 1
+    (@@testcase_teardowns == 1) || (@@testcase_teardowns == @@testcases.size)
+  end
+  # rubocop:enable Style/ClassVars
 
   def all_skipped
     skip("Skipping #{self.class}; feature " \
