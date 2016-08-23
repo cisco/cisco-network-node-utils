@@ -25,15 +25,10 @@ class TestOverlayGlobal < CiscoTestCase
 
   def setup
     super
-    vdc_limit_f3_no_intf_needed(:set)
+    vxlan_linecard?
+    vdc_lc_state('f3')
     config_no_warn('no feature fabric forwarding')
     config_no_warn('no nv overlay evpn')
-  end
-
-  def after_tests
-    config_no_warn('no feature fabric forwarding')
-    config_no_warn('no nv overlay evpn')
-    vdc_limit_f3_no_intf_needed(:clear)
   end
 
   def test_dup_host_ip_addr_detection
