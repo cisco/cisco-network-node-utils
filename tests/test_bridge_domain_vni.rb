@@ -24,7 +24,6 @@ class TestBridgeDomainVNI < CiscoTestCase
 
   def cleanup
     remove_all_vlans
-    remove_all_bridge_domains
     config_no_warn('no feature vni')
     BridgeDomainVNI.range_bds.each do |_bd, obj|
       obj.destroy
@@ -33,21 +32,18 @@ class TestBridgeDomainVNI < CiscoTestCase
 
   def setup
     super
+    vdc_limit_f3_no_intf_needed(:set)
     cleanup unless @@cleaned
     @@cleaned = true # rubocop:disable Style/ClassVars
-    mt_full_interface?
-    v = Vdc.new('default')
-    v.limit_resource_module_type = 'f3' unless
-      v.limit_resource_module_type == 'f3'
   end
 
   def teardown
     cleanup
+    vdc_limit_f3_no_intf_needed(:clear) if first_or_last_teardown
     super
   end
 
   def test_single_bd_member_vni
-    mt_full_interface?
     bd = BridgeDomainVNI.new('100')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
@@ -65,7 +61,6 @@ class TestBridgeDomainVNI < CiscoTestCase
   end
 
   def test_multiple_bd_member_vni
-    mt_full_interface?
     bd = BridgeDomainVNI.new('100-110, 150, 170-171 ')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')
@@ -83,7 +78,6 @@ class TestBridgeDomainVNI < CiscoTestCase
   end
 
   def test_member_vni_empty_assign
-    mt_full_interface?
     bd = BridgeDomainVNI.new(100)
     bd.member_vni = ''
     assert_equal(bd.default_member_vni, bd.member_vni,
@@ -92,7 +86,6 @@ class TestBridgeDomainVNI < CiscoTestCase
   end
 
   def test_overwrite_bd_member_vni
-    mt_full_interface?
     bd = BridgeDomainVNI.new('100-110')
     assert_equal(bd.default_member_vni, bd.member_vni,
                  'Error: Bridge-Domain is mapped to different vnis')

@@ -30,10 +30,10 @@ class TestOverlayGlobal < CiscoTestCase
     config_no_warn('no nv overlay evpn')
   end
 
-  def after_tests
+  def teardown
     config_no_warn('no feature fabric forwarding')
     config_no_warn('no nv overlay evpn')
-    vdc_limit_f3_no_intf_needed(:clear)
+    vdc_limit_f3_no_intf_needed(:clear) if first_or_last_teardown
   end
 
   def test_dup_host_ip_addr_detection

@@ -135,7 +135,8 @@ class TestYang < CiscoTestCase
   end
 
   def all_skipped
-    skip 'Node under test does not appear to use the gRPC client'
+    puts 'Node under test does not appear to use the gRPC client'
+    assert(validate_property_excluded?('yang', 'support'))
   end
 
   def setup
