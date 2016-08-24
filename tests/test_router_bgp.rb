@@ -1075,6 +1075,7 @@ class TestRouterBgp < CiscoTestCase
   def test_route_distinguisher
     skip_nexus_i2_image?
     remove_all_vrfs
+    vdc_limit_f3_no_intf_needed(:set)
 
     bgp = setup_vrf
     assert_empty(bgp.route_distinguisher,
@@ -1093,6 +1094,9 @@ class TestRouterBgp < CiscoTestCase
     assert_empty(bgp.route_distinguisher,
                  'bgp route_distinguisher should *NOT* be configured')
     bgp.destroy
+    remove_all_vrfs
+    vdc_limit_f3_no_intf_needed(:clear)
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
   end
 
   def test_router_id
