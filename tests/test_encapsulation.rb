@@ -23,16 +23,14 @@ class TestEncapsulation < CiscoTestCase
 
   def setup
     super
+    vdc_limit_f3_no_intf_needed(:set)
     return unless @@pre_clean_needed
-
-    # This provider requires MT-Full and a compatible linecard
-    mt_full_interface?
-    Vdc.new('default').limit_resource_module_type = 'f3'
     cleanup
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
+    vdc_limit_f3_no_intf_needed(:clear) if first_or_last_teardown
     cleanup
     super
   end
