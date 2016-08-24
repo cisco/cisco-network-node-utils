@@ -38,6 +38,9 @@ class TestYum < CiscoTestCase
     # Image Version after  gsub: 7_0_3_I3_1_
     @@pv = Platform.image_version.gsub(/[.()]/, '_')[/\S+/]
     info "Image version detected: #{Platform.image_version}"
+    skip("No pkginfo filename found for image version #{@@pv}") if
+      pkginfo[@@pv].nil?
+
     @@pkg_filename = pkginfo[@@pv]['filename']
     @@pkg = pkginfo[@@pv]['name']
     @@pkg_ver = pkginfo[@@pv]['version']
