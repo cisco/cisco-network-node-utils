@@ -27,37 +27,21 @@ class TestVxlanVtep < CiscoTestCase
     super
     skip('Platform does not support MT-full or MT-lite') unless
       VxlanVtep.mt_full_support || VxlanVtep.mt_lite_support
+    vdc_limit_f3_no_intf_needed(:set)
+    Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
   end
 
   def teardown
-    Feature.nv_overlay_disable
-    return unless Vdc.vdc_support
-    # Reset the vdc module type back to default
-    v = Vdc.new('default')
-    v.limit_resource_module_type = '' if v.limit_resource_module_type == 'f3'
-  end
-
-  def mt_full_env_setup
-    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
-    vxlan_linecard?
-    v = Vdc.new('default')
-    v.limit_resource_module_type = 'f3' unless
-      v.limit_resource_module_type == 'f3'
-    Feature.nv_overlay_disable
-  end
-
-  def mt_lite_env_setup
-    skip('Platform does not support MT-lite') unless VxlanVtep.mt_lite_support
-    vxlan_linecard?
-    Feature.nv_overlay_disable
-    config('no feature vn-segment-vlan-based')
+    if first_or_last_teardown
+      vdc_limit_f3_no_intf_needed(:clear)
+      config_no_warn('no nv overlay evpn ; no feature nv overlay')
+      config_no_warn('no feature vn-segment-vlan-based')
+    end
+    super
   end
 
   def test_create_destroy_one
     # VxlanVtep.new() will enable 'feature nv overlay'
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
-
     id = 'nve1'
     vtep = VxlanVtep.new(id)
     @default_show_command = "show running | i 'interface #{id}'"
@@ -74,11 +58,7 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_mt_full_create_destroy_multiple
-    if VxlanVtep.mt_full_support
-      mt_full_env_setup
-    else
-      skip('Platform does not support MT-full')
-    end
+    skip('Platform does not support MT-full') unless VxlanVtep.mt_full_support
 
     id1 = 'nve1'
     id2 = 'nve2'
@@ -110,14 +90,11 @@ class TestVxlanVtep < CiscoTestCase
 
   def test_create_negative
     # MT-lite supports a single nve int, MT-full supports 4.
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
     if VxlanVtep.mt_lite_support
       VxlanVtep.new('nve1')
       negative_id = 'nve2'
 
     elsif VxlanVtep.mt_full_support
-      mt_full_env_setup
       (1..4).each { |n| VxlanVtep.new("nve#{n}") }
       negative_id = 'nve5'
     end
@@ -128,9 +105,6 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_description
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
-
     vtep = VxlanVtep.new('nve1')
 
     # Set description to non-default value and verify
@@ -147,8 +121,6 @@ class TestVxlanVtep < CiscoTestCase
   def test_host_reachability
     skip("Test not supported on #{node.product_id}") if
       cmd_ref.lookup('vxlan_vtep', 'host_reachability').default_value.nil?
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
 
     vtep = VxlanVtep.new('nve1')
 
@@ -163,9 +135,6 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_shutdown
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
-
     vtep = VxlanVtep.new('nve1')
 
     vtep.shutdown = true
@@ -179,9 +148,6 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_source_interface
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
-
     vtep = VxlanVtep.new('nve1')
 
     # Set source_interface to non-default value
@@ -204,9 +170,6 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_source_interface_hold_down_time
-    mt_full_env_setup if VxlanVtep.mt_full_support
-    mt_lite_env_setup if VxlanVtep.mt_lite_support
-
     vtep = VxlanVtep.new('nve1')
     if validate_property_excluded?('vxlan_vtep', 'source_intf_hold_down_time')
       assert_nil(vtep.source_interface_hold_down_time)
