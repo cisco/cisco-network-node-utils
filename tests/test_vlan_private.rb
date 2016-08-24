@@ -25,12 +25,7 @@ class TestVlanPVlan < CiscoTestCase
 
   @@cleaned = false # rubocop:disable Style/ClassVars
   def cleanup
-    Vlan.vlans.each do |vlan, obj|
-      # skip reserved vlans
-      next if vlan == '1'
-      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
-      obj.destroy
-    end
+    remove_all_vlans
     config_no_warn('no feature vtp')
     config_no_warn('no feature private-vlan')
   end
