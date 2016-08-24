@@ -182,7 +182,7 @@ class CiscoTestCase < TestCase
       # rubocop:disable Style/ClassVars
       @@interfaces = []
       Interface.interfaces.each do |int, obj|
-        next unless /ethernet/.match(int)
+        next unless int[%r{ethernet[\d/]+$}] # exclude dot1q & non-eth
         next if address_match?(obj.ipv4_address)
         @@interfaces << int
       end
