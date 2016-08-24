@@ -21,32 +21,23 @@ include Cisco
 # TestVxlanVtepVni - Minitest for VxlanVtepVni node utility
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
-  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
-    return unless @@pre_clean_needed
-    # Disable features on initial cleanup only as it's too expensive
-    # to do a disable for every testcase.
-    Feature.nv_overlay_disable
+    vdc_limit_f3_no_intf_needed(:set) if VxlanVtep.mt_full_support
+    Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
     # nv overlay is slow on some platforms
     sleep 1
-    vxlan_linecard?
-    if VxlanVtep.mt_full_support
-      return unless Vdc.vdc_support
-      v = Vdc.new('default')
-      v.limit_resource_module_type = 'f3' unless
-        v.limit_resource_module_type == 'f3'
-    else
-      config_no_warn('no feature vn-segment-vlan-based')
-    end
     Feature.nv_overlay_enable
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
-    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    config_no_warn('no interface nve1')
+    if first_or_last_teardown
+      vdc_limit_f3_no_intf_needed(:clear)
+      config_no_warn('no nv overlay evpn ; no feature nv overlay')
+      config_no_warn('no feature vn-segment-vlan-based')
+    end
     super
   end
 
