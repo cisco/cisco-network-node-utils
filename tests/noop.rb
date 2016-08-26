@@ -1,5 +1,7 @@
 require_relative 'ciscotest'
 # NOOP class for CI development use only
 class Noop < CiscoTestCase
-  @skip_unless_supported = 'noop'
+  def test_noop
+    assert(true)
+  end
 end
