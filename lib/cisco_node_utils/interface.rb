@@ -420,6 +420,104 @@ module Cisco
       config_get_default('interface', ipv4_arp_timeout_lookup_string)
     end
 
+    def ipv4_dhcp_relay_addr
+      config_get('interface', 'ipv4_dhcp_relay_addr', name: @name)
+    end
+
+    def ipv4_dhcp_relay_addr=(list)
+      cur_list = ipv4_dhcp_relay_addr
+      unless cur_list.empty?
+        cur_list.each do |addr|
+          config_set('interface', 'ipv4_dhcp_relay_addr',
+                     name:  @name, state: 'no', addr: addr)
+        end
+      end
+      Feature.dhcp_enable unless list.empty?
+      list.each do |addr|
+        config_set('interface', 'ipv4_dhcp_relay_addr',
+                   name:  @name, state: '', addr: addr)
+      end
+    end
+
+    def default_ipv4_dhcp_relay_addr
+      config_get_default('interface', 'ipv4_dhcp_relay_addr')
+    end
+
+    def ipv4_dhcp_relay_info_trust
+      config_get('interface', 'ipv4_dhcp_relay_info_trust', name: @name)
+    end
+
+    def ipv4_dhcp_relay_info_trust=(state)
+      Feature.dhcp_enable if state
+      config_set('interface', 'ipv4_dhcp_relay_info_trust',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_dhcp_relay_info_trust
+      config_get_default('interface', 'ipv4_dhcp_relay_info_trust')
+    end
+
+    def ipv4_dhcp_relay_src_addr_hsrp
+      config_get('interface', 'ipv4_dhcp_relay_src_addr_hsrp', name: @name)
+    end
+
+    def ipv4_dhcp_relay_src_addr_hsrp=(state)
+      Feature.dhcp_enable if state
+      config_set('interface', 'ipv4_dhcp_relay_src_addr_hsrp',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_dhcp_relay_src_addr_hsrp
+      config_get_default('interface', 'ipv4_dhcp_relay_src_addr_hsrp')
+    end
+
+    def ipv4_dhcp_relay_src_intf
+      intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', name: @name)
+      return intf unless intf
+      index = intf.index(/[0-9]/)
+      intf.downcase.insert(index, ' ')
+    end
+
+    def ipv4_dhcp_relay_src_intf=(val)
+      state = val == default_ipv4_dhcp_relay_src_intf ? 'no' : ''
+      intf = val == default_ipv4_dhcp_relay_src_intf ? '' : val
+      Feature.dhcp_enable if state.empty?
+      config_set('interface', 'ipv4_dhcp_relay_src_intf',
+                 name:  @name, state: state, intf: intf)
+    end
+
+    def default_ipv4_dhcp_relay_src_intf
+      config_get_default('interface', 'ipv4_dhcp_relay_src_intf')
+    end
+
+    def ipv4_dhcp_relay_subnet_broadcast
+      config_get('interface', 'ipv4_dhcp_relay_subnet_broadcast', name: @name)
+    end
+
+    def ipv4_dhcp_relay_subnet_broadcast=(state)
+      Feature.dhcp_enable if state
+      config_set('interface', 'ipv4_dhcp_relay_subnet_broadcast',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_dhcp_relay_subnet_broadcast
+      config_get_default('interface', 'ipv4_dhcp_relay_subnet_broadcast')
+    end
+
+    def ipv4_dhcp_smart_relay
+      config_get('interface', 'ipv4_dhcp_smart_relay', name: @name)
+    end
+
+    def ipv4_dhcp_smart_relay=(state)
+      Feature.dhcp_enable if state
+      config_set('interface', 'ipv4_dhcp_smart_relay',
+                 name:  @name, state: state ? '' : 'no')
+    end
+
+    def default_ipv4_dhcp_smart_relay
+      config_get_default('interface', 'ipv4_dhcp_smart_relay')
+    end
+
     def ipv4_forwarding
       config_get('interface', 'ipv4_forwarding', name: @name)
     end
@@ -524,6 +622,48 @@ module Cisco
 
     def default_ipv6_acl_out
       config_get_default('interface', 'ipv6_acl_out')
+    end
+
+    def ipv6_dhcp_relay_addr
+      config_get('interface', 'ipv6_dhcp_relay_addr', name: @name)
+    end
+
+    def ipv6_dhcp_relay_addr=(list)
+      cur_list = ipv6_dhcp_relay_addr
+      unless cur_list.empty?
+        cur_list.each do |addr|
+          config_set('interface', 'ipv6_dhcp_relay_addr',
+                     name:  @name, state: 'no', addr: addr)
+        end
+      end
+      Feature.dhcp_enable unless list.empty?
+      list.each do |addr|
+        config_set('interface', 'ipv6_dhcp_relay_addr',
+                   name:  @name, state: '', addr: addr)
+      end
+    end
+
+    def default_ipv6_dhcp_relay_addr
+      config_get_default('interface', 'ipv6_dhcp_relay_addr')
+    end
+
+    def ipv6_dhcp_relay_src_intf
+      intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', name: @name)
+      return intf unless intf
+      index = intf.index(/[0-9]/)
+      intf.downcase.insert(index, ' ')
+    end
+
+    def ipv6_dhcp_relay_src_intf=(val)
+      state = val == default_ipv6_dhcp_relay_src_intf ? 'no' : ''
+      intf = val == default_ipv6_dhcp_relay_src_intf ? '' : val
+      Feature.dhcp_enable if state.empty?
+      config_set('interface', 'ipv6_dhcp_relay_src_intf',
+                 name:  @name, state: state, intf: intf)
+    end
+
+    def default_ipv6_dhcp_relay_src_intf
+      config_get_default('interface', 'ipv6_dhcp_relay_src_intf')
     end
 
     def feature_lacp?
@@ -647,6 +787,51 @@ module Cisco
         lookup = 'shutdown_unknown'
       end
       config_get_default('interface', lookup)
+    end
+
+    def storm_control_broadcast
+      config_get('interface', 'storm_control_broadcast', name: @name)
+    end
+
+    def storm_control_broadcast=(val)
+      state = val == default_storm_control_broadcast ? 'no' : ''
+      level = val == default_storm_control_broadcast ? '' : val
+      config_set('interface', 'storm_control_broadcast',
+                 name: @name, state: state, level: level)
+    end
+
+    def default_storm_control_broadcast
+      config_get_default('interface', 'storm_control_broadcast')
+    end
+
+    def storm_control_multicast
+      config_get('interface', 'storm_control_multicast', name: @name)
+    end
+
+    def storm_control_multicast=(val)
+      state = val == default_storm_control_multicast ? 'no' : ''
+      level = val == default_storm_control_multicast ? '' : val
+      config_set('interface', 'storm_control_multicast',
+                 name: @name, state: state, level: level)
+    end
+
+    def default_storm_control_multicast
+      config_get_default('interface', 'storm_control_multicast')
+    end
+
+    def storm_control_unicast
+      config_get('interface', 'storm_control_unicast', name: @name)
+    end
+
+    def storm_control_unicast=(val)
+      state = val == default_storm_control_unicast ? 'no' : ''
+      level = val == default_storm_control_unicast ? '' : val
+      config_set('interface', 'storm_control_unicast',
+                 name: @name, state: state, level: level)
+    end
+
+    def default_storm_control_unicast
+      config_get_default('interface', 'storm_control_unicast')
     end
 
     def stp_bpdufilter
