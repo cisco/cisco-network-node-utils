@@ -72,7 +72,14 @@ module Cisco
 
     def self.remove(pkg)
       config_set('yum', 'deactivate', pkg)
-      config_set('yum', 'remove', pkg)
+      # May not be able to remove the package immediately after
+      # deactivation.
+      try = 1
+      while try < 50
+        o = config_set('yum', 'remove', pkg)
+        break unless o[/.*operation is in progress, please try again later/]
+        sleep 1
+      end
     end
   end
 end
