@@ -71,6 +71,7 @@ module Cisco
     end
 
     def self.remove(pkg)
+      config_set('yum', 'deactivate', pkg)
       config_set('yum', 'remove', pkg)
     end
   end
