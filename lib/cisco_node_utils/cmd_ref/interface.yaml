@@ -344,14 +344,14 @@ speed:
     default_value: 'auto'
 
 storm_control_broadcast:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N7k]
   kind: string
   get_value: '/^storm-control broadcast level (.*)$/'
   set_value: "<state> storm-control broadcast level <level>"
   default_value: '100.00'
 
 storm_control_multicast:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N7k]
   kind: string
   get_value: '/^storm-control multicast level (.*)$/'
   set_value: "<state> storm-control multicast level <level>"
