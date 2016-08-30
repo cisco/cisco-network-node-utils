@@ -77,7 +77,7 @@ module Cisco
       try = 1
       while try < 50
         o = config_set('yum', 'remove', pkg)
-        break unless o[/.*operation is in progress, please try again later/]
+        break unless o[/operation is in progress, please try again later/]
         sleep 1
       end
     end
