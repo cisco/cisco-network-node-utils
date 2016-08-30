@@ -67,7 +67,7 @@ class TestYum < CiscoTestCase
 
       # Remnants of the package my still exist from a previous install attempt.
       info 'Executing test setup... Please be patient, this will take a while.'
-      steps = ["install deactivate #{@@pkg}", "install commit #{@@pkg}",
+      steps = ["install deactivate #{@@pkg}",
                "install remove #{@@pkg} forced",
                "install add bootflash:#{@@pkg_filename}"]
       steps.each do |step|
@@ -85,7 +85,7 @@ class TestYum < CiscoTestCase
       'this file can be found in the cisco_node_utils/tests directory' if @@skip
   end
 
-  def test_install_remove
+  def test_install_query_remove
     skip?
     if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
       @device.cmd("install deactivate #{@@pkg}")
@@ -95,15 +95,23 @@ class TestYum < CiscoTestCase
 
     # On dublin and later images, must specify the full rpm name.
     package = @@pv[/7_0_3_I2_1_/] ? @@pkg : @@pkg_filename
+
+    # INSTALL
     # Specify "management" vrf for install
     Yum.install(package, 'management')
     sleep 20
     assert(Yum.query(@@pkg), "failed to find installed package #{@@pkg}")
 
+    # QUERY INSTALLED
+    assert_equal(@@pkg_ver, Yum.query(@@pkg), @@incompatible_rpm_msg)
+
+    # REMOVE
     Yum.remove(@@pkg)
     sleep 20
-    refute_show_match(command: "show install package | include #{@@pkg}",
-                      pattern: /@patching/)
+
+    # QUERY REMOVED
+    assert_nil(Yum.query(@@pkg))
+
   rescue RuntimeError => e
     assert(false, e.message + @@incompatible_rpm_msg)
   end
@@ -120,21 +128,5 @@ class TestYum < CiscoTestCase
     assert_raises(RuntimeError) do
       Yum.install('also_not_real', 'management')
     end
-  end
-
-  def test_query
-    skip?
-    unless @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-      @device.cmd("install activate #{@@pkg}")
-      node.cache_flush
-      sleep 20
-    end
-    ver = Yum.query(@@pkg)
-    assert_equal(ver, @@pkg_ver, @@incompatible_rpm_msg)
-    @device.cmd("install deactivate #{@@pkg}")
-    node.cache_flush
-    sleep 20
-    ver = Yum.query(@@pkg)
-    assert_nil(ver)
   end
 end
