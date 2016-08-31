@@ -426,6 +426,7 @@ module Cisco
 
     def ipv4_dhcp_relay_addr=(list)
       cur_list = ipv4_dhcp_relay_addr
+      # remove the current addresses first
       unless cur_list.empty?
         cur_list.each do |addr|
           config_set('interface', 'ipv4_dhcp_relay_addr',
@@ -471,6 +472,9 @@ module Cisco
       config_get_default('interface', 'ipv4_dhcp_relay_src_addr_hsrp')
     end
 
+    # manifest will have 'ethernet 1/1', port-channel 100', vlan 2' etc.
+    # The show cmd returns 'Ethernet1/1', 'port-channel100', Vlan2, etc.
+    # so make this idempotent, normalize the output to match the input.
     def ipv4_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', name: @name)
       return intf unless intf
@@ -630,6 +634,7 @@ module Cisco
 
     def ipv6_dhcp_relay_addr=(list)
       cur_list = ipv6_dhcp_relay_addr
+      # remove the current addresses first
       unless cur_list.empty?
         cur_list.each do |addr|
           config_set('interface', 'ipv6_dhcp_relay_addr',
@@ -647,6 +652,9 @@ module Cisco
       config_get_default('interface', 'ipv6_dhcp_relay_addr')
     end
 
+    # manifest will have 'ethernet 1/1', port-channel 100', vlan 2' etc.
+    # The show cmd returns 'Ethernet1/1', 'port-channel100', Vlan2, etc.
+    # so make this idempotent, normalize the output to match the input.
     def ipv6_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', name: @name)
       return intf unless intf
