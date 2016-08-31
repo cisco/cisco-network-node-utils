@@ -2,6 +2,9 @@
 ---
 _exclude: [ios_xr]
 
+deactivate:
+  set_value: "install deactivate %s"
+
 install:
   set_value: "install add %s %s activate"
 
@@ -18,4 +21,4 @@ query_all:
   default_value: []
 
 remove:
-  set_value: "install deactivate %s"
+  set_value: "install remove %s forced"
