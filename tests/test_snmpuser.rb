@@ -103,10 +103,6 @@ class TestSnmpUser < CiscoTestCase
         :sha, 'test123456', :none, '', true, # localized key
         ''],
       ],
-      ['NX-OS Password must be at least 8 characters',
-       ['userv3testauthsha2', ['network-admin'],
-        :sha, 'test', :none, '', false, ''],
-      ],
       ['Invalid group name',
        ['userv3test', ['network-admin123'],
         :none, '', :none, '', false, ''],
