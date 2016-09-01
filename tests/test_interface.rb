@@ -64,6 +64,14 @@ class TestInterface < CiscoTestCase
 
   def teardown
     interface_ethernet_default(interfaces[0])
+    if first_or_last_teardown
+      config_no_warn('no feature pim')
+      config_no_warn('no feature dhcp')
+      config_no_warn('no feature bfd')
+      config_no_warn('no feature interface-vlan')
+      config_no_warn('no feature-set fabric')
+      config_no_warn('no install feature-set fabric')
+    end
     super
   end
 
