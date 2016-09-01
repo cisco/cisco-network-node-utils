@@ -94,7 +94,7 @@ class TestFeature < CiscoTestCase
   end
 
   def test_dhcp
-    feature('bfd')
+    feature('dhcp')
   end
 
   def test_fabric_forwarding
