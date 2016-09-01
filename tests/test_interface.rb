@@ -1552,17 +1552,17 @@ class TestInterface < CiscoTestCase
   def test_ipv4_dhcp_relay_addr
     interface = Interface.new(interfaces[0])
     interface.switchport_enable(false)
+    list = ['1.1.1.1', '2.2.2.2']
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_addr')
       assert_nil(interface.ipv4_dhcp_relay_addr)
       assert_nil(interface.default_ipv4_dhcp_relay_addr)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv4_dhcp_relay_addr = '1.1.1.1'
+        interface.ipv4_dhcp_relay_addr = list
       end
       return
     end
     assert_equal(interface.default_ipv4_dhcp_relay_addr,
                  interface.ipv4_dhcp_relay_addr)
-    list = ['1.1.1.1', '2.2.2.2']
     interface.ipv4_dhcp_relay_addr = list
     assert_equal(list, interface.ipv4_dhcp_relay_addr)
     interface.ipv4_dhcp_relay_addr =
@@ -1620,7 +1620,7 @@ class TestInterface < CiscoTestCase
       assert_nil(interface.ipv4_dhcp_relay_src_intf)
       assert_nil(interface.default_ipv4_dhcp_relay_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv4_dhcp_relay_src_intf = 'ethernet 1/2'
+        interface.ipv4_dhcp_relay_src_intf = 'port-channel 200'
       end
       return
     end
@@ -1679,17 +1679,17 @@ class TestInterface < CiscoTestCase
   def test_ipv6_dhcp_relay_addr
     interface = Interface.new(interfaces[0])
     interface.switchport_enable(false)
+    list = ['2000::11', '2000::12']
     if validate_property_excluded?('interface', 'ipv6_dhcp_relay_addr')
       assert_nil(interface.ipv6_dhcp_relay_addr)
       assert_nil(interface.default_ipv6_dhcp_relay_addr)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv6_dhcp_relay_addr = '2000::11'
+        interface.ipv6_dhcp_relay_addr = list
       end
       return
     end
     assert_equal(interface.default_ipv6_dhcp_relay_addr,
                  interface.ipv6_dhcp_relay_addr)
-    list = ['2000::11', '2000::12']
     interface.ipv6_dhcp_relay_addr = list
     assert_equal(list, interface.ipv6_dhcp_relay_addr)
     interface.ipv6_dhcp_relay_addr =
@@ -1705,7 +1705,7 @@ class TestInterface < CiscoTestCase
       assert_nil(interface.ipv6_dhcp_relay_src_intf)
       assert_nil(interface.default_ipv6_dhcp_relay_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv6_dhcp_relay_src_intf = 'ethernet 1/2'
+        interface.ipv6_dhcp_relay_src_intf = 'ethernet 2/1'
       end
       return
     end
