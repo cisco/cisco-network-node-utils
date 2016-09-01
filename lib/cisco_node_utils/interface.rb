@@ -472,14 +472,11 @@ module Cisco
       config_get_default('interface', 'ipv4_dhcp_relay_src_addr_hsrp')
     end
 
-    # manifest will have 'ethernet 1/1', port-channel 100', vlan 2' etc.
-    # The show cmd returns 'Ethernet1/1', 'port-channel100', Vlan2, etc.
-    # so make this idempotent, normalize the output to match the input.
     def ipv4_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', name: @name)
       return intf unless intf
-      index = intf.index(/[0-9]/)
-      intf.downcase.insert(index, ' ')
+      # Normalize by downcasing and removing white space
+      intf.downcase.delete(' ')
     end
 
     def ipv4_dhcp_relay_src_intf=(val)
@@ -652,14 +649,11 @@ module Cisco
       config_get_default('interface', 'ipv6_dhcp_relay_addr')
     end
 
-    # manifest will have 'ethernet 1/1', port-channel 100', vlan 2' etc.
-    # The show cmd returns 'Ethernet1/1', 'port-channel100', Vlan2, etc.
-    # so make this idempotent, normalize the output to match the input.
     def ipv6_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', name: @name)
       return intf unless intf
-      index = intf.index(/[0-9]/)
-      intf.downcase.insert(index, ' ')
+      # Normalize by downcasing and removing white space
+      intf.downcase.delete(' ')
     end
 
     def ipv6_dhcp_relay_src_intf=(val)

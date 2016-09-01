@@ -1491,7 +1491,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(true)
     if validate_property_excluded?('interface', 'storm_control_broadcast')
       assert_nil(interface.storm_control_broadcast)
-      assert_nil(interface.default_storm_control_broadcast)
       assert_raises(Cisco::UnsupportedError) do
         interface.storm_control_broadcast = '20.12'
       end
@@ -1512,7 +1511,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(true)
     if validate_property_excluded?('interface', 'storm_control_multicast')
       assert_nil(interface.storm_control_multicast)
-      assert_nil(interface.default_storm_control_multicast)
       assert_raises(Cisco::UnsupportedError) do
         interface.storm_control_multicast = '33.33'
       end
@@ -1533,7 +1531,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(true)
     if validate_property_excluded?('interface', 'storm_control_unicast')
       assert_nil(interface.storm_control_unicast)
-      assert_nil(interface.default_storm_control_unicast)
       assert_raises(Cisco::UnsupportedError) do
         interface.storm_control_unicast = '44.44'
       end
@@ -1555,7 +1552,6 @@ class TestInterface < CiscoTestCase
     list = ['1.1.1.1', '2.2.2.2']
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_addr')
       assert_nil(interface.ipv4_dhcp_relay_addr)
-      assert_nil(interface.default_ipv4_dhcp_relay_addr)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv4_dhcp_relay_addr = list
       end
@@ -1576,7 +1572,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_info_trust')
       assert_nil(interface.ipv4_dhcp_relay_info_trust)
-      assert_nil(interface.default_ipv4_dhcp_relay_info_trust)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv4_dhcp_relay_info_trust = true
       end
@@ -1597,7 +1592,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_src_addr_hsrp')
       assert_nil(interface.ipv4_dhcp_relay_src_addr_hsrp)
-      assert_nil(interface.default_ipv4_dhcp_relay_src_addr_hsrp)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv4_dhcp_relay_src_addr_hsrp = true
       end
@@ -1618,16 +1612,15 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_src_intf')
       assert_nil(interface.ipv4_dhcp_relay_src_intf)
-      assert_nil(interface.default_ipv4_dhcp_relay_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv4_dhcp_relay_src_intf = 'port-channel 200'
+        interface.ipv4_dhcp_relay_src_intf = 'port-channel200'
       end
       return
     end
     assert_equal(interface.default_ipv4_dhcp_relay_src_intf,
                  interface.ipv4_dhcp_relay_src_intf)
-    interface.ipv4_dhcp_relay_src_intf = 'port-channel 200'
-    assert_equal('port-channel 200', interface.ipv4_dhcp_relay_src_intf)
+    interface.ipv4_dhcp_relay_src_intf = 'port-channel200'
+    assert_equal('port-channel200', interface.ipv4_dhcp_relay_src_intf)
     interface.ipv4_dhcp_relay_src_intf =
       interface.default_ipv4_dhcp_relay_src_intf
     assert_equal(interface.default_ipv4_dhcp_relay_src_intf,
@@ -1639,7 +1632,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv4_dhcp_relay_subnet_broadcast')
       assert_nil(interface.ipv4_dhcp_relay_subnet_broadcast)
-      assert_nil(interface.default_ipv4_dhcp_relay_subnet_broadcast)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv4_dhcp_relay_subnet_broadcast = true
       end
@@ -1660,7 +1652,6 @@ class TestInterface < CiscoTestCase
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv4_dhcp_smart_relay')
       assert_nil(interface.ipv4_dhcp_smart_relay)
-      assert_nil(interface.default_ipv4_dhcp_smart_relay)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv4_dhcp_smart_relay = true
       end
@@ -1682,7 +1673,6 @@ class TestInterface < CiscoTestCase
     list = ['2000::11', '2000::12']
     if validate_property_excluded?('interface', 'ipv6_dhcp_relay_addr')
       assert_nil(interface.ipv6_dhcp_relay_addr)
-      assert_nil(interface.default_ipv6_dhcp_relay_addr)
       assert_raises(Cisco::UnsupportedError) do
         interface.ipv6_dhcp_relay_addr = list
       end
@@ -1699,20 +1689,20 @@ class TestInterface < CiscoTestCase
   end
 
   def test_ipv6_dhcp_relay_src_intf
-    interface = Interface.new(interfaces[0])
+    inf_name = interfaces[0]
+    interface = Interface.new(inf_name)
     interface.switchport_enable(false)
     if validate_property_excluded?('interface', 'ipv6_dhcp_relay_src_intf')
       assert_nil(interface.ipv6_dhcp_relay_src_intf)
-      assert_nil(interface.default_ipv6_dhcp_relay_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        interface.ipv6_dhcp_relay_src_intf = 'ethernet 2/1'
+        interface.ipv6_dhcp_relay_src_intf = inf_name
       end
       return
     end
     assert_equal(interface.default_ipv6_dhcp_relay_src_intf,
                  interface.ipv6_dhcp_relay_src_intf)
-    interface.ipv6_dhcp_relay_src_intf = 'ethernet 2/1'
-    assert_equal('ethernet 2/1', interface.ipv6_dhcp_relay_src_intf)
+    interface.ipv6_dhcp_relay_src_intf = inf_name
+    assert_equal(inf_name, interface.ipv6_dhcp_relay_src_intf)
     interface.ipv6_dhcp_relay_src_intf =
       interface.default_ipv6_dhcp_relay_src_intf
     assert_equal(interface.default_ipv6_dhcp_relay_src_intf,
