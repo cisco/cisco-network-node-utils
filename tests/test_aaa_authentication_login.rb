@@ -18,6 +18,29 @@ require_relative '../lib/cisco_node_utils/aaa_authentication_login'
 # Test class for AAA Authentication Login
 class TestAaaAuthenLogin < CiscoTestCase
   @skip_unless_supported = 'aaa_authentication_login'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
+  def setup
+    super
+    return unless @@pre_clean_needed
+    cleanup
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  end
+
+  def teardown
+    cleanup
+    super
+  end
+
+  def cleanup
+    # Remove any stale commands that may conflict with this testfile
+    s = @device.cmd("show run | i '^aaa authentication' | sed 's/^/no /'")
+    s.split("\n").each do |line|
+      next unless line[/no aaa/]
+      config_no_warn(line)
+    end
+  end
+
   # DEFAULT(:ascii_authentication)
   # => false
   # rubocop:disable Style/MethodName
