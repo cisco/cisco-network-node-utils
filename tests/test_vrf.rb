@@ -108,6 +108,8 @@ class TestVrf < CiscoTestCase
   end
 
   def test_description
+    return if defect?('7.3.0.(N1|D1).1.bin',
+                      'CSCuy36637: Cannot remove description')
     v = Vrf.new('test_description')
     desc = 'tested by minitest'
     v.description = desc

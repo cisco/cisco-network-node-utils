@@ -16,10 +16,11 @@ require 'ipaddr'
 require 'resolv'
 require_relative 'basetest'
 require_relative 'platform_info'
+require_relative '../lib/cisco_node_utils/bridge_domain'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/platform'
 require_relative '../lib/cisco_node_utils/vlan'
-require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
@@ -174,6 +175,16 @@ class CiscoTestCase < TestCase
   def skip_nexus_i2_image?
     skip("This property is not supported on Nexus 'I2' images") if
       Utils.nexus_i2_image
+  end
+
+  def system_image
+    @image ||= Platform.system_image
+  end
+
+  def defect?(pattern, msg)
+    return false unless system_image.match(Regexp.new(pattern))
+    puts "\n#{self.class}##{caller[0][/`.*'/][1..-2]} -> NOOP <- [#{msg}]"
+    true
   end
 
   def interfaces
