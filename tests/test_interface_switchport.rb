@@ -307,10 +307,6 @@ class TestSwitchport < TestInterfaceSwitchport
         interface.default_switchport_trunk_native_vlan
       assert_equal(DEFAULT_IF_SWITCHPORT_NATIVE_VLAN,
                    interface.switchport_trunk_native_vlan)
-
-      assert_raises(RuntimeError) do
-        interface.switchport_trunk_native_vlan = '20, 30'
-      end
     end
   end
 
