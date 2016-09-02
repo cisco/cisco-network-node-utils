@@ -21,24 +21,34 @@ include Cisco
 # TestVxlanVtepVni - Minitest for VxlanVtepVni node utility
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
     super
     vdc_limit_f3_no_intf_needed(:set) if VxlanVtep.mt_full_support
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
-    # nv overlay is slow on some platforms
-    sleep 1
+    feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
     if first_or_last_teardown
       vdc_limit_f3_no_intf_needed(:clear)
-      config_no_warn('no nv overlay evpn ; no feature nv overlay')
-      config_no_warn('no feature vn-segment-vlan-based')
+      feature_cleanup
     end
     super
+  end
+
+  def feature_cleanup
+    config_no_warn('no feature-set fabricpath')
+    config_no_warn('no feature vni')
+    config_no_warn('no feature vn-segment-vlan-based')
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
+    # Rapid nv feature toggle can cause failures on some platforms;
+    # symptom e.g. 'show runn | i ^feature' will hang
+    sleep 5
   end
 
   def test_create_with_existing

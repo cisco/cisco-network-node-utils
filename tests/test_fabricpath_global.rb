@@ -31,6 +31,7 @@ class TestFabricpathGlobal < CiscoTestCase
     return unless @@pre_clean_needed
     config_no_warn('no nv overlay evpn ; no feature nv overlay')
     remove_fabricpath_globals
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
