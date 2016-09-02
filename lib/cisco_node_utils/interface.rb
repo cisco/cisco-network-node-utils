@@ -474,9 +474,9 @@ module Cisco
 
     def ipv4_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', name: @name)
-      return intf unless intf
       # Normalize by downcasing and removing white space
-      intf.downcase.delete(' ')
+      intf = intf.downcase.delete(' ') if intf
+      intf
     end
 
     def ipv4_dhcp_relay_src_intf=(val)
@@ -651,9 +651,9 @@ module Cisco
 
     def ipv6_dhcp_relay_src_intf
       intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', name: @name)
-      return intf unless intf
       # Normalize by downcasing and removing white space
-      intf.downcase.delete(' ')
+      intf = intf.downcase.delete(' ') if intf
+      intf
     end
 
     def ipv6_dhcp_relay_src_intf=(val)
