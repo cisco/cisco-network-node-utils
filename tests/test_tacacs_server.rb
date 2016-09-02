@@ -63,6 +63,13 @@ class TestTacacsServer < CiscoTestCase
   def test_get_encryption_type
     if platform == :nexus
       config_no_warn('feature tacacs+')
+
+      # The tacacs-server key is 'sticky'.
+      # If a key is configured it will remain configured even if
+      # the tacacs feature is disabled so to be safe go ahead
+      # and remove any key that might exist before the test.d
+      config_no_warn('no tacacs-server key')
+
       encryption_type = TACACS_SERVER_ENC_UNKNOWN
       # Get encryption password when not configured
       tacacs = TacacsServer.new
