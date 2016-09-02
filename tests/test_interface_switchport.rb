@@ -269,10 +269,6 @@ class TestSwitchport < TestInterfaceSwitchport
       assert_equal(interface.default_switchport_trunk_allowed_vlan,
                    interface.switchport_trunk_allowed_vlan)
 
-      assert_raises(RuntimeError) do
-        interface.switchport_trunk_allowed_vlan = 'hello'
-      end
-
       interface.switchport_trunk_allowed_vlan = 'none'
       assert_equal('none', interface.switchport_trunk_allowed_vlan)
 
