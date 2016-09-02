@@ -149,34 +149,6 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_name_too_long
-    v = Vlan.new(1000)
-    name = 'a' * VLAN_NAME_SIZE
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
-      v.vlan_name = name
-    end
-    ref = cmd_ref.lookup('vlan', 'name')
-    assert(ref, 'Error, reference not found for vlan name')
-    v.destroy
-  end
-
-  def test_name_duplicate
-    # Testbed cleanup
-    v = Vlan.new(1000)
-    v.destroy
-    v = Vlan.new(1001)
-    v.destroy
-    # start test
-    v1 = Vlan.new(1000)
-    v1.vlan_name = 'test'
-    v2 = Vlan.new(1001)
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
-      v2.vlan_name = 'test'
-    end
-    v1.destroy
-    v2.destroy
-  end
-
   def test_state_invalid
     v = Vlan.new(1000)
     assert_raises(CliError) do
