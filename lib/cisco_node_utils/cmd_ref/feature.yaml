@@ -15,6 +15,11 @@ bgp:
   get_value: '/^feature bgp$/'
   set_value: "feature bgp"
 
+dhcp:
+  kind: boolean
+  get_value: '/^feature dhcp$/'
+  set_value: "feature dhcp"
+
 fabric:
   _exclude: [N3k, N8k, N9k]
   get_command: "show feature-set"

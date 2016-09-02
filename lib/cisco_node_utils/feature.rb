@@ -47,6 +47,20 @@ module Cisco
     end
 
     # ---------------------------
+    def self.dhcp_enable
+      return if dhcp_enabled?
+      config_set('feature', 'dhcp')
+    end
+
+    def self.dhcp_enabled?
+      config_get('feature', 'dhcp')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    # ---------------------------
     def self.fabric_enable
       # install feature-set and enable it
       return if fabric_enabled?

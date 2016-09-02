@@ -132,6 +132,47 @@ ipv4_arp_timeout:
 ipv4_arp_timeout_non_vlan_interfaces:
   default_only: ~
 
+ipv4_dhcp_relay_addr:
+  _exclude: [ios_xr]
+  multiple:
+  get_value: '/^ip dhcp relay address (.*) $/'
+  set_value: "<state> ip dhcp relay address <addr>"
+  default_value: []
+
+ipv4_dhcp_relay_info_trust:
+  _exclude: [ios_xr, N5k, N6k]
+  kind: boolean
+  get_value: '/^ip dhcp relay information trusted$/'
+  set_value: "<state> ip dhcp relay information trusted"
+  default_value: false
+
+ipv4_dhcp_relay_src_addr_hsrp:
+  _exclude: [ios_xr, N3k, N8k, N9k]
+  kind: boolean
+  get_value: '/^ip dhcp relay source-address hsrp$/'
+  set_value: "<state> ip dhcp relay source-address hsrp"
+  default_value: false
+
+ipv4_dhcp_relay_src_intf:
+  _exclude: [ios_xr]
+  get_value: '/^ip dhcp relay source-interface (.*)$/'
+  set_value: "<state> ip dhcp relay source-interface <intf>"
+  default_value: false
+
+ipv4_dhcp_relay_subnet_broadcast:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^ip dhcp relay subnet-broadcast$/'
+  set_value: "<state> ip dhcp relay subnet-broadcast"
+  default_value: false
+
+ipv4_dhcp_smart_relay:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^ip dhcp smart-relay$/'
+  set_value: "<state> ip dhcp smart-relay"
+  default_value: false
+
 ipv4_forwarding:
   _exclude: [ios_xr]
   kind: boolean
@@ -197,6 +238,19 @@ ipv6_acl_out:
     get_value: '/^ipv6 traffic-filter (\S+) out/'
     set_value: "<state> ipv6 traffic-filter <acl> out"
   default_value: ""
+
+ipv6_dhcp_relay_addr:
+  _exclude: [ios_xr]
+  multiple:
+  get_value: '/^ipv6 dhcp relay address (.*)$/'
+  set_value: "<state> ipv6 dhcp relay address <addr>"
+  default_value: []
+
+ipv6_dhcp_relay_src_intf:
+  _exclude: [ios_xr]
+  get_value: '/^ipv6 dhcp relay source-interface (.*)$/'
+  set_value: "<state> ipv6 dhcp relay source-interface <intf>"
+  default_value: false
 
 mtu_loopback:
   kind: boolean
@@ -288,6 +342,27 @@ speed:
   N6k: *non_auto
   else:
     default_value: 'auto'
+
+storm_control_broadcast:
+  _exclude: [ios_xr, N7k]
+  kind: string
+  get_value: '/^storm-control broadcast level (.*)$/'
+  set_value: "<state> storm-control broadcast level <level>"
+  default_value: '100.00'
+
+storm_control_multicast:
+  _exclude: [ios_xr, N7k]
+  kind: string
+  get_value: '/^storm-control multicast level (.*)$/'
+  set_value: "<state> storm-control multicast level <level>"
+  default_value: '100.00'
+
+storm_control_unicast:
+  _exclude: [ios_xr]
+  kind: string
+  get_value: '/^storm-control unicast level (.*)$/'
+  set_value: "<state> storm-control unicast level <level>"
+  default_value: '100.00'
 
 stp_bpdufilter:
   kind: string

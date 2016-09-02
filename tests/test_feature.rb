@@ -29,6 +29,7 @@ class TestFeature < CiscoTestCase
     ['no nv overlay evpn',
      'no feature bfd',
      'no feature bgp',
+     'no feature dhcp',
      'no feature fabric forwarding',
      'no feature-set fex',
      'no feature itd',
@@ -90,6 +91,10 @@ class TestFeature < CiscoTestCase
 
   def test_bgp
     feature('bgp')
+  end
+
+  def test_dhcp
+    feature('dhcp')
   end
 
   def test_fabric_forwarding
