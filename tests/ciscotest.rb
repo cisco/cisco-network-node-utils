@@ -183,7 +183,7 @@ class CiscoTestCase < TestCase
 
   def defect?(pattern, msg)
     return false unless system_image.match(Regexp.new(pattern))
-    msg = "#{self.class}##{caller[0][/`.*'/][1..-2]} -> NOOP <- [#{msg}]"
+    msg = "#{self.class}##{caller[0][/`.*'/][1..-2]} -> NOT TESTED <- [#{msg}]"
     Cisco::Logger.warn(msg)
     true
   end

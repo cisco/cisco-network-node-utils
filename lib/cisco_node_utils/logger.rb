@@ -45,6 +45,9 @@ module Cisco::Logger
       @@logger = Chef::Log # rubocop:disable Style/ClassVars
     else
       @@logger = Logger.new(STDOUT) # rubocop:disable Style/ClassVars
+      @@logger.formatter = proc do |severity, _datetime, _progname, msg|
+        "#{severity} -- : #{msg}\n"
+      end
       @@logger.level = Logger::INFO
 
       def level
