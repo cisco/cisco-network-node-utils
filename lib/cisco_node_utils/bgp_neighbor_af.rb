@@ -99,7 +99,10 @@ module Cisco
     # rubocop:enable Style/AccessorMethodNamefor
 
     def create
-      Feature.bgp_enable if platform == :nexus
+      if platform == :nexus
+        Feature.bgp_enable
+        Feature.nv_overlay_evpn_enable if @safi[/evpn/]
+      end
       set_args_keys(state: '')
       config_set('bgp_neighbor', 'af', @set_args)
     end
