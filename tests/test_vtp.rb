@@ -178,6 +178,8 @@ class TestVtp < CiscoTestCase
   # is fixed in later releases. The bugID is CSCuy87970
   # which is already verified.
   def test_password_special_characters
+    skip_legacy_defect?('7.3.0.(N1|D1).1.bin',
+                        'CSCuy87970: NXAPI incorrect backslash escape')
     vtp = vtp_domain('password')
     vtp.password = 'hello!//\\#%$x'
     assert_equal('hello!//\\#%$x', vtp.password)
