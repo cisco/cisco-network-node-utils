@@ -181,11 +181,9 @@ class CiscoTestCase < TestCase
     @image ||= Platform.system_image
   end
 
-  def defect?(pattern, msg)
-    return false unless system_image.match(Regexp.new(pattern))
-    msg = "#{self.class}##{caller[0][/`.*'/][1..-2]} -> NOT TESTED <- [#{msg}]"
-    Cisco::Logger.warn(msg)
-    true
+  def skip_legacy_defect?(pattern, msg)
+    msg = "Defect in legacy image: [#{msg}]"
+    skip(msg) if system_image.match(Regexp.new(pattern))
   end
 
   def interfaces
