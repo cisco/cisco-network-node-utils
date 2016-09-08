@@ -38,200 +38,216 @@ class TestDhcpRelayGlobal < CiscoTestCase
     DhcpRelayGlobal.new(name)
   end
 
-  def test_information_option
+  def test_ipv4_information_option
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_information_option, drg.information_option)
-    drg.information_option = true
-    assert_equal(true, drg.information_option)
-    drg.information_option = drg.default_information_option
-    assert_equal(drg.default_information_option, drg.information_option)
+    assert_equal(drg.default_ipv4_information_option, drg.ipv4_information_option)
+    drg.ipv4_information_option = true
+    assert_equal(true, drg.ipv4_information_option)
+    drg.ipv4_information_option = drg.default_ipv4_information_option
+    assert_equal(drg.default_ipv4_information_option, drg.ipv4_information_option)
   end
 
-  def test_information_option_trust
+  def test_ipv4_information_option_trust
     drg = create_dhcp_relay_global
     if validate_property_excluded?('dhcp_relay_global',
-                                   'information_option_trust')
-      assert_nil(drg.information_option_trust)
+                                   'ipv4_information_option_trust')
+      assert_nil(drg.ipv4_information_option_trust)
       assert_raises(Cisco::UnsupportedError) do
-        drg.information_option_trust = true
+        drg.ipv4_information_option_trust = true
       end
       return
     end
-    assert_equal(drg.default_information_option_trust,
-                 drg.information_option_trust)
-    drg.information_option_trust = true
-    assert_equal(true, drg.information_option_trust)
-    drg.information_option_trust = drg.default_information_option_trust
-    assert_equal(drg.default_information_option_trust,
-                 drg.information_option_trust)
+    assert_equal(drg.default_ipv4_information_option_trust,
+                 drg.ipv4_information_option_trust)
+    drg.ipv4_information_option_trust = true
+    assert_equal(true, drg.ipv4_information_option_trust)
+    drg.ipv4_information_option_trust = drg.default_ipv4_information_option_trust
+    assert_equal(drg.default_ipv4_information_option_trust,
+                 drg.ipv4_information_option_trust)
   end
 
-  def test_information_option_vpn
+  def test_ipv4_information_option_vpn
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_information_option_vpn,
-                 drg.information_option_vpn)
-    drg.information_option_vpn = true
-    assert_equal(true, drg.information_option_vpn)
-    drg.information_option_vpn = drg.default_information_option_vpn
-    assert_equal(drg.default_information_option_vpn,
-                 drg.information_option_vpn)
+    assert_equal(drg.default_ipv4_information_option_vpn,
+                 drg.ipv4_information_option_vpn)
+    drg.ipv4_information_option_vpn = true
+    assert_equal(true, drg.ipv4_information_option_vpn)
+    drg.ipv4_information_option_vpn = drg.default_ipv4_information_option_vpn
+    assert_equal(drg.default_ipv4_information_option_vpn,
+                 drg.ipv4_information_option_vpn)
   end
 
-  def test_information_trust_all
+  def test_ipv4_information_trust_all
     drg = create_dhcp_relay_global
     if validate_property_excluded?('dhcp_relay_global',
-                                   'information_trust_all')
-      assert_nil(drg.information_trust_all)
+                                   'ipv4_information_trust_all')
+      assert_nil(drg.ipv4_information_trust_all)
       assert_raises(Cisco::UnsupportedError) do
-        drg.information_trust_all = true
+        drg.ipv4_information_trust_all = true
       end
       return
     end
-    assert_equal(drg.default_information_trust_all,
-                 drg.information_trust_all)
-    drg.information_trust_all = true
-    assert_equal(true, drg.information_trust_all)
-    drg.information_trust_all = drg.default_information_trust_all
-    assert_equal(drg.default_information_trust_all,
-                 drg.information_trust_all)
+    assert_equal(drg.default_ipv4_information_trust_all,
+                 drg.ipv4_information_trust_all)
+    drg.ipv4_information_trust_all = true
+    assert_equal(true, drg.ipv4_information_trust_all)
+    drg.ipv4_information_trust_all = drg.default_ipv4_information_trust_all
+    assert_equal(drg.default_ipv4_information_trust_all,
+                 drg.ipv4_information_trust_all)
   end
 
-  def test_relay
+  def test_ipv4_relay
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_relay, drg.relay)
-    drg.relay = true
-    assert_equal(true, drg.relay)
-    drg.relay = false
-    assert_equal(false, drg.relay)
-    drg.relay = drg.default_relay
-    assert_equal(drg.default_relay, drg.relay)
+    assert_equal(drg.default_ipv4_relay, drg.ipv4_relay)
+    drg.ipv4_relay = true
+    assert_equal(true, drg.ipv4_relay)
+    drg.ipv4_relay = false
+    assert_equal(false, drg.ipv4_relay)
+    drg.ipv4_relay = drg.default_ipv4_relay
+    assert_equal(drg.default_ipv4_relay, drg.ipv4_relay)
   end
 
-  def test_smart_relay
+  def test_ipv4_smart_relay
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_smart_relay, drg.smart_relay)
-    drg.smart_relay = true
-    assert_equal(true, drg.smart_relay)
-    drg.smart_relay = drg.default_smart_relay
-    assert_equal(drg.default_smart_relay, drg.smart_relay)
+    assert_equal(drg.default_ipv4_smart_relay, drg.ipv4_smart_relay)
+    drg.ipv4_smart_relay = true
+    assert_equal(true, drg.ipv4_smart_relay)
+    drg.ipv4_smart_relay = drg.default_ipv4_smart_relay
+    assert_equal(drg.default_ipv4_smart_relay, drg.ipv4_smart_relay)
   end
 
-  def test_src_addr_hsrp
+  def test_ipv4_src_addr_hsrp
     drg = create_dhcp_relay_global
     if validate_property_excluded?('dhcp_relay_global',
-                                   'src_addr_hsrp')
-      assert_nil(drg.src_addr_hsrp)
+                                   'ipv4_src_addr_hsrp')
+      assert_nil(drg.ipv4_src_addr_hsrp)
       assert_raises(Cisco::UnsupportedError) do
-        drg.src_addr_hsrp = true
+        drg.ipv4_src_addr_hsrp = true
       end
       return
     end
-    assert_equal(drg.default_src_addr_hsrp,
-                 drg.src_addr_hsrp)
-    drg.src_addr_hsrp = true
-    assert_equal(true, drg.src_addr_hsrp)
-    drg.src_addr_hsrp = drg.default_src_addr_hsrp
-    assert_equal(drg.default_src_addr_hsrp,
-                 drg.src_addr_hsrp)
+    assert_equal(drg.default_ipv4_src_addr_hsrp,
+                 drg.ipv4_src_addr_hsrp)
+    drg.ipv4_src_addr_hsrp = true
+    assert_equal(true, drg.ipv4_src_addr_hsrp)
+    drg.ipv4_src_addr_hsrp = drg.default_ipv4_src_addr_hsrp
+    assert_equal(drg.default_ipv4_src_addr_hsrp,
+                 drg.ipv4_src_addr_hsrp)
   end
 
-  def test_src_intf
+  def test_ipv4_src_intf
     drg = create_dhcp_relay_global
-    if validate_property_excluded?('dhcp_relay_global', 'src_intf')
-      assert_nil(drg.src_intf)
+    if validate_property_excluded?('dhcp_relay_global', 'ipv4_src_intf')
+      assert_nil(drg.ipv4_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        drg.src_intf = 'port-channel200'
+        drg.ipv4_src_intf = 'port-channel200'
       end
       return
     end
-    assert_equal(drg.default_src_intf, drg.src_intf)
-    drg.src_intf = 'port-channel200'
-    assert_equal('port-channel200', drg.src_intf)
-    drg.src_intf = drg.default_src_intf
-    assert_equal(drg.default_src_intf, drg.src_intf)
+    assert_equal(drg.default_ipv4_src_intf, drg.ipv4_src_intf)
+    drg.ipv4_src_intf = 'port-channel200'
+    assert_equal('port-channel200', drg.ipv4_src_intf)
+    drg.ipv4_src_intf = drg.default_ipv4_src_intf
+    assert_equal(drg.default_ipv4_src_intf, drg.ipv4_src_intf)
   end
 
-  # TODO: old n3k skip
-  def test_sub_option_circuit_id_custom
+  def test_ipv4_sub_option_circuit_id_custom
+    skip_nexus_i2_image?
     drg = create_dhcp_relay_global
     if validate_property_excluded?('dhcp_relay_global',
-                                   'sub_option_circuit_id_custom')
-      assert_nil(drg.sub_option_circuit_id_custom)
+                                   'ipv4_sub_option_circuit_id_custom')
+      assert_nil(drg.ipv4_sub_option_circuit_id_custom)
       assert_raises(Cisco::UnsupportedError) do
-        drg.sub_option_circuit_id_custom = true
+        drg.ipv4_sub_option_circuit_id_custom = true
       end
       return
     end
-    assert_equal(drg.default_sub_option_circuit_id_custom,
-                 drg.sub_option_circuit_id_custom)
-    drg.sub_option_circuit_id_custom = true
-    assert_equal(true, drg.sub_option_circuit_id_custom)
-    drg.sub_option_circuit_id_custom = drg.default_sub_option_circuit_id_custom
-    assert_equal(drg.default_sub_option_circuit_id_custom,
-                 drg.sub_option_circuit_id_custom)
+    assert_equal(drg.default_ipv4_sub_option_circuit_id_custom,
+                 drg.ipv4_sub_option_circuit_id_custom)
+    drg.ipv4_sub_option_circuit_id_custom = true
+    assert_equal(true, drg.ipv4_sub_option_circuit_id_custom)
+    drg.ipv4_sub_option_circuit_id_custom = drg.default_ipv4_sub_option_circuit_id_custom
+    assert_equal(drg.default_ipv4_sub_option_circuit_id_custom,
+                 drg.ipv4_sub_option_circuit_id_custom)
   end
 
-  def test_sub_option_cisco
+  def test_ipv4_sub_option_circuit_id_string
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_sub_option_cisco, drg.sub_option_cisco)
-    drg.sub_option_cisco = true
-    assert_equal(true, drg.sub_option_cisco)
-    drg.sub_option_cisco = drg.default_sub_option_cisco
-    assert_equal(drg.default_sub_option_cisco, drg.sub_option_cisco)
+    if validate_property_excluded?('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string')
+      assert_nil(drg.ipv4_sub_option_circuit_id_string)
+      assert_raises(Cisco::UnsupportedError) do
+        drg.ipv4_sub_option_circuit_id_string = '%p%p'
+      end
+      return
+    end
+    assert_equal(drg.default_ipv4_sub_option_circuit_id_string, drg.ipv4_sub_option_circuit_id_string)
+    drg.ipv4_sub_option_circuit_id_string = '%p%p'
+    assert_equal('%p%p', drg.ipv4_sub_option_circuit_id_string)
+    drg.ipv4_sub_option_circuit_id_string = drg.default_ipv4_sub_option_circuit_id_string
+    assert_equal(drg.default_ipv4_sub_option_circuit_id_string, drg.ipv4_sub_option_circuit_id_string)
   end
 
-  def test_v6_option_cisco
+  def test_ipv4_sub_option_cisco
+    drg = create_dhcp_relay_global
+    assert_equal(drg.default_ipv4_sub_option_cisco, drg.ipv4_sub_option_cisco)
+    drg.ipv4_sub_option_cisco = true
+    assert_equal(true, drg.ipv4_sub_option_cisco)
+    drg.ipv4_sub_option_cisco = drg.default_ipv4_sub_option_cisco
+    assert_equal(drg.default_ipv4_sub_option_cisco, drg.ipv4_sub_option_cisco)
+  end
+
+  def test_ipv6_option_cisco
     drg = create_dhcp_relay_global
     if validate_property_excluded?('dhcp_relay_global',
-                                   'v6_option_cisco')
-      assert_nil(drg.v6_option_cisco)
+                                   'ipv6_option_cisco')
+      assert_nil(drg.ipv6_option_cisco)
       assert_raises(Cisco::UnsupportedError) do
-        drg.v6_option_cisco = true
+        drg.ipv6_option_cisco = true
       end
       return
     end
-    assert_equal(drg.default_v6_option_cisco,
-                 drg.v6_option_cisco)
-    drg.v6_option_cisco = true
-    assert_equal(true, drg.v6_option_cisco)
-    drg.v6_option_cisco = drg.default_v6_option_cisco
-    assert_equal(drg.default_v6_option_cisco,
-                 drg.v6_option_cisco)
+    assert_equal(drg.default_ipv6_option_cisco,
+                 drg.ipv6_option_cisco)
+    drg.ipv6_option_cisco = true
+    assert_equal(true, drg.ipv6_option_cisco)
+    drg.ipv6_option_cisco = drg.default_ipv6_option_cisco
+    assert_equal(drg.default_ipv6_option_cisco,
+                 drg.ipv6_option_cisco)
   end
 
-  def test_v6_option_vpn
+  def test_ipv6_option_vpn
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_v6_option_vpn, drg.v6_option_vpn)
-    drg.v6_option_vpn = true
-    assert_equal(true, drg.v6_option_vpn)
-    drg.v6_option_vpn = drg.default_v6_option_vpn
-    assert_equal(drg.default_v6_option_vpn, drg.v6_option_vpn)
+    assert_equal(drg.default_ipv6_option_vpn, drg.ipv6_option_vpn)
+    drg.ipv6_option_vpn = true
+    assert_equal(true, drg.ipv6_option_vpn)
+    drg.ipv6_option_vpn = drg.default_ipv6_option_vpn
+    assert_equal(drg.default_ipv6_option_vpn, drg.ipv6_option_vpn)
   end
 
-  def test_v6_relay
+  def test_ipv6_relay
     drg = create_dhcp_relay_global
-    assert_equal(drg.default_v6_relay, drg.v6_relay)
-    drg.v6_relay = true
-    assert_equal(true, drg.v6_relay)
-    drg.v6_relay = false
-    assert_equal(false, drg.v6_relay)
-    drg.v6_relay = drg.default_v6_relay
-    assert_equal(drg.default_v6_relay, drg.v6_relay)
+    assert_equal(drg.default_ipv6_relay, drg.ipv6_relay)
+    drg.ipv6_relay = true
+    assert_equal(true, drg.ipv6_relay)
+    drg.ipv6_relay = false
+    assert_equal(false, drg.ipv6_relay)
+    drg.ipv6_relay = drg.default_ipv6_relay
+    assert_equal(drg.default_ipv6_relay, drg.ipv6_relay)
   end
 
-  def test_v6_src_intf
+  def test_ipv6_src_intf
     drg = create_dhcp_relay_global
-    if validate_property_excluded?('dhcp_relay_global', 'v6_src_intf')
-      assert_nil(drg.v6_src_intf)
+    if validate_property_excluded?('dhcp_relay_global', 'ipv6_src_intf')
+      assert_nil(drg.ipv6_src_intf)
       assert_raises(Cisco::UnsupportedError) do
-        drg.v6_src_intf = 'loopback2'
+        drg.ipv6_src_intf = 'loopback2'
       end
       return
     end
-    assert_equal(drg.default_v6_src_intf, drg.v6_src_intf)
-    drg.v6_src_intf = 'loopback2 '
-    assert_equal('loopback2', drg.v6_src_intf)
-    drg.v6_src_intf = drg.default_v6_src_intf
-    assert_equal(drg.default_v6_src_intf, drg.v6_src_intf)
+    assert_equal(drg.default_ipv6_src_intf, drg.ipv6_src_intf)
+    drg.ipv6_src_intf = 'loopback2 '
+    assert_equal('loopback2', drg.ipv6_src_intf)
+    drg.ipv6_src_intf = drg.default_ipv6_src_intf
+    assert_equal(drg.default_ipv6_src_intf, drg.ipv6_src_intf)
   end
 end

@@ -50,208 +50,232 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    def information_option
-      config_get('dhcp_relay_global', 'information_option')
+    def ipv4_information_option
+      config_get('dhcp_relay_global', 'ipv4_information_option')
     end
 
-    def information_option=(val)
+    def ipv4_information_option=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'information_option', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_information_option', @set_args)
     end
 
-    def default_information_option
-      config_get_default('dhcp_relay_global', 'information_option')
+    def default_ipv4_information_option
+      config_get_default('dhcp_relay_global', 'ipv4_information_option')
     end
 
-    def information_option_trust
-      config_get('dhcp_relay_global', 'information_option_trust')
+    def ipv4_information_option_trust
+      config_get('dhcp_relay_global', 'ipv4_information_option_trust')
     end
 
-    def information_option_trust=(val)
+    def ipv4_information_option_trust=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'information_option_trust', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_information_option_trust',
+                 @set_args)
     end
 
-    def default_information_option_trust
-      config_get_default('dhcp_relay_global', 'information_option_trust')
+    def default_ipv4_information_option_trust
+      config_get_default('dhcp_relay_global', 'ipv4_information_option_trust')
     end
 
-    def information_option_vpn
-      config_get('dhcp_relay_global', 'information_option_vpn')
+    def ipv4_information_option_vpn
+      config_get('dhcp_relay_global', 'ipv4_information_option_vpn')
     end
 
-    def information_option_vpn=(val)
+    def ipv4_information_option_vpn=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'information_option_vpn', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_information_option_vpn', @set_args)
     end
 
-    def default_information_option_vpn
-      config_get_default('dhcp_relay_global', 'information_option_vpn')
+    def default_ipv4_information_option_vpn
+      config_get_default('dhcp_relay_global', 'ipv4_information_option_vpn')
     end
 
-    def information_trust_all
-      config_get('dhcp_relay_global', 'information_trust_all')
+    def ipv4_information_trust_all
+      config_get('dhcp_relay_global', 'ipv4_information_trust_all')
     end
 
-    def information_trust_all=(val)
+    def ipv4_information_trust_all=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'information_trust_all', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_information_trust_all', @set_args)
     end
 
-    def default_information_trust_all
-      config_get_default('dhcp_relay_global', 'information_trust_all')
+    def default_ipv4_information_trust_all
+      config_get_default('dhcp_relay_global', 'ipv4_information_trust_all')
     end
 
-    def relay
-      config_get('dhcp_relay_global', 'relay')
+    def ipv4_relay
+      config_get('dhcp_relay_global', 'ipv4_relay')
     end
 
-    def relay=(val)
+    def ipv4_relay=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'relay', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_relay', @set_args)
     end
 
-    def default_relay
-      config_get_default('dhcp_relay_global', 'relay')
+    def default_ipv4_relay
+      config_get_default('dhcp_relay_global', 'ipv4_relay')
     end
 
-    def smart_relay
-      config_get('dhcp_relay_global', 'smart_relay')
+    def ipv4_smart_relay
+      config_get('dhcp_relay_global', 'ipv4_smart_relay')
     end
 
-    def smart_relay=(val)
+    def ipv4_smart_relay=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'smart_relay', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_smart_relay', @set_args)
     end
 
-    def default_smart_relay
-      config_get_default('dhcp_relay_global', 'smart_relay')
+    def default_ipv4_smart_relay
+      config_get_default('dhcp_relay_global', 'ipv4_smart_relay')
     end
 
-    def src_addr_hsrp
-      config_get('dhcp_relay_global', 'src_addr_hsrp')
+    def ipv4_src_addr_hsrp
+      config_get('dhcp_relay_global', 'ipv4_src_addr_hsrp')
     end
 
-    def src_addr_hsrp=(val)
+    def ipv4_src_addr_hsrp=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'src_addr_hsrp', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_src_addr_hsrp', @set_args)
     end
 
-    def default_src_addr_hsrp
-      config_get_default('dhcp_relay_global', 'src_addr_hsrp')
+    def default_ipv4_src_addr_hsrp
+      config_get_default('dhcp_relay_global', 'ipv4_src_addr_hsrp')
     end
 
-    def src_intf
-      intf = config_get('dhcp_relay_global', 'src_intf')
+    def ipv4_src_intf
+      intf = config_get('dhcp_relay_global', 'ipv4_src_intf')
       # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
     end
 
-    def src_intf=(val)
-      state = val == default_src_intf ? 'no' : ''
-      intf = val == default_src_intf ? '' : val
+    def ipv4_src_intf=(val)
+      state = val == default_ipv4_src_intf ? 'no' : ''
+      intf = val == default_ipv4_src_intf ? '' : val
       set_args_keys(state: state, intf: intf)
-      config_set('dhcp_relay_global', 'src_intf', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_src_intf', @set_args)
     end
 
-    def default_src_intf
-      config_get_default('dhcp_relay_global', 'src_intf')
+    def default_ipv4_src_intf
+      config_get_default('dhcp_relay_global', 'ipv4_src_intf')
     end
 
-    def sub_option_circuit_id_custom
-      config_get('dhcp_relay_global', 'sub_option_circuit_id_custom')
+    def ipv4_sub_option_circuit_id_custom
+      config_get('dhcp_relay_global', 'ipv4_sub_option_circuit_id_custom')
     end
 
-    def sub_option_circuit_id_custom=(val)
+    def ipv4_sub_option_circuit_id_custom=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'sub_option_circuit_id_custom', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_sub_option_circuit_id_custom',
+                 @set_args)
     end
 
-    def default_sub_option_circuit_id_custom
-      config_get_default('dhcp_relay_global', 'sub_option_circuit_id_custom')
+    def default_ipv4_sub_option_circuit_id_custom
+      config_get_default('dhcp_relay_global',
+                         'ipv4_sub_option_circuit_id_custom')
     end
 
-    def sub_option_cisco
-      config_get('dhcp_relay_global', 'sub_option_cisco')
+    def ipv4_sub_option_circuit_id_string
+      str = config_get('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string')
+      # Normalize by removing white space
+      str.strip! if str
+      str
     end
 
-    def sub_option_cisco=(val)
+    def ipv4_sub_option_circuit_id_string=(val)
+      state = val == default_ipv4_sub_option_circuit_id_string ? 'no' : ''
+      format = val == default_ipv4_sub_option_circuit_id_string ? '' : 'format'
+      word = val == default_ipv4_sub_option_circuit_id_string ? '' : val
+      set_args_keys(state: state, format: format, word: word)
+      config_set('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string',
+                 @set_args)
+    end
+
+    def default_ipv4_sub_option_circuit_id_string
+      config_get_default('dhcp_relay_global',
+                         'ipv4_sub_option_circuit_id_string')
+    end
+
+    def ipv4_sub_option_cisco
+      config_get('dhcp_relay_global', 'ipv4_sub_option_cisco')
+    end
+
+    def ipv4_sub_option_cisco=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'sub_option_cisco', @set_args)
+      config_set('dhcp_relay_global', 'ipv4_sub_option_cisco', @set_args)
     end
 
-    def default_sub_option_cisco
-      config_get_default('dhcp_relay_global', 'sub_option_cisco')
+    def default_ipv4_sub_option_cisco
+      config_get_default('dhcp_relay_global', 'ipv4_sub_option_cisco')
     end
 
-    def v6_option_cisco
-      config_get('dhcp_relay_global', 'v6_option_cisco')
+    def ipv6_option_cisco
+      config_get('dhcp_relay_global', 'ipv6_option_cisco')
     end
 
-    def v6_option_cisco=(val)
+    def ipv6_option_cisco=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'v6_option_cisco', @set_args)
+      config_set('dhcp_relay_global', 'ipv6_option_cisco', @set_args)
     end
 
-    def default_v6_option_cisco
-      config_get_default('dhcp_relay_global', 'v6_option_cisco')
+    def default_ipv6_option_cisco
+      config_get_default('dhcp_relay_global', 'ipv6_option_cisco')
     end
 
-    def v6_option_vpn
-      config_get('dhcp_relay_global', 'v6_option_vpn')
+    def ipv6_option_vpn
+      config_get('dhcp_relay_global', 'ipv6_option_vpn')
     end
 
-    def v6_option_vpn=(val)
+    def ipv6_option_vpn=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'v6_option_vpn', @set_args)
+      config_set('dhcp_relay_global', 'ipv6_option_vpn', @set_args)
     end
 
-    def default_v6_option_vpn
-      config_get_default('dhcp_relay_global', 'v6_option_vpn')
+    def default_ipv6_option_vpn
+      config_get_default('dhcp_relay_global', 'ipv6_option_vpn')
     end
 
-    def v6_relay
-      config_get('dhcp_relay_global', 'v6_relay')
+    def ipv6_relay
+      config_get('dhcp_relay_global', 'ipv6_relay')
     end
 
-    def v6_relay=(val)
+    def ipv6_relay=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('dhcp_relay_global', 'v6_relay', @set_args)
+      config_set('dhcp_relay_global', 'ipv6_relay', @set_args)
     end
 
-    def default_v6_relay
-      config_get_default('dhcp_relay_global', 'v6_relay')
+    def default_ipv6_relay
+      config_get_default('dhcp_relay_global', 'ipv6_relay')
     end
 
-    def v6_src_intf
-      intf = config_get('dhcp_relay_global', 'v6_src_intf')
+    def ipv6_src_intf
+      intf = config_get('dhcp_relay_global', 'ipv6_src_intf')
       # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
     end
 
-    def v6_src_intf=(val)
-      state = val == default_v6_src_intf ? 'no' : ''
-      intf = val == default_v6_src_intf ? '' : val
+    def ipv6_src_intf=(val)
+      state = val == default_ipv6_src_intf ? 'no' : ''
+      intf = val == default_ipv6_src_intf ? '' : val
       set_args_keys(state: state, intf: intf)
-      config_set('dhcp_relay_global', 'v6_src_intf', @set_args)
+      config_set('dhcp_relay_global', 'ipv6_src_intf', @set_args)
     end
 
-    def default_v6_src_intf
-      config_get_default('dhcp_relay_global', 'v6_src_intf')
+    def default_ipv6_src_intf
+      config_get_default('dhcp_relay_global', 'ipv6_src_intf')
     end
   end # class
 end # module
