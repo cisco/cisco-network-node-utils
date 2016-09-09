@@ -254,19 +254,34 @@ module Cisco
     # @return [String] such as "N3K-C3048TP-1GE"
     def product_id
       if @cmd_ref
-        return config_get('inventory', 'productid')
+        prod = config_get('inventory', 'productid')
+        prod_qualifier(prod)
       else
         # We use this function to *find* the appropriate CommandReference
         if @client.platform == :nexus
           entries = get(command:     'show inventory',
                         data_format: :nxapi_structured)
-          return entries['TABLE_inv']['ROW_inv'][0]['productid']
+          prod = entries['TABLE_inv']['ROW_inv'][0]['productid']
+          prod_qualifier(prod)
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = get(command:     'show inventory',
                        data_format: :cli)
           return /NAME: .*\nPID: (\S+)/.match(output)[1]
         end
+      end
+    end
+
+    def prod_qualifier(prod)
+      # TBD: pass in the inventory result from the caller to avoid 2nd check
+      case prod
+      when /N9K/
+        # Append -R if fretta fabric present; assumes fabric check alone is enuf
+        inv = get(command: 'show inventory', data_format: :cli)
+        # prod + '-R' if inv[/N9K-C9...-FM/] # FAKE PATTERN FOR TESTING
+        prod + '-R' if inv[/N9K-C9...-FM-R/]
+      else
+        prod
       end
     end
 
