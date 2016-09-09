@@ -8,6 +8,8 @@ Changelog
 #### Cisco Resources
 * Bidirectional Forwarding Detection
   * bfd (@saichint)
+* Dynamic Host Configuration Protocol
+  * dhcp_relay_global (@saichint)
 * OSPF
   * ospf_area (@saichint)
   * ospf_area_vlink (@saichint)
