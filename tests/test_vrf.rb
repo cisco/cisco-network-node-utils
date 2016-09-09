@@ -24,6 +24,8 @@ class TestVrf < CiscoTestCase
 
   def setup
     super
+    puts "minitest: #{Vrf.new('test', false).default_description}"
+    exit
     remove_all_vrfs if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end

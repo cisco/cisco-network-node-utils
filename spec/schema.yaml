@@ -21,6 +21,7 @@ mapping:
           - 'N7k'
           - 'N8k'
           - 'N9k'
+          - 'N9k-R'
 
   =: &base # default rule - apply to all properties
     type: map
@@ -38,6 +39,7 @@ mapping:
       N7k: *base
       N8k: *base
       N9k: *base
+      N9k-R: *base
       # 'else' case if not matching any filter above
       else: *base
       # Generally applicable attributes
