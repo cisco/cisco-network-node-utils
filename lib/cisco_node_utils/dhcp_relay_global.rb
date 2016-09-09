@@ -46,6 +46,29 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
+    def destroy
+      return unless Feature.dhcp_enabled?
+      [:ipv4_information_option,
+       :ipv4_information_option_trust,
+       :ipv4_information_option_vpn,
+       :ipv4_information_trust_all,
+       :ipv4_relay,
+       :ipv4_smart_relay,
+       :ipv4_src_addr_hsrp,
+       :ipv4_src_intf,
+       :ipv4_sub_option_circuit_id_custom,
+       :ipv4_sub_option_circuit_id_string,
+       :ipv4_sub_option_cisco,
+       :ipv6_option_cisco,
+       :ipv6_option_vpn,
+       :ipv6_relay,
+       :ipv6_src_intf,
+      ].each do |prop|
+        send("#{prop}=", send("default_#{prop}")) if send prop
+      end
+      set_args_keys_default
+    end
+
     ########################################################
     #                      PROPERTIES                      #
     ########################################################

@@ -38,6 +38,32 @@ class TestDhcpRelayGlobal < CiscoTestCase
     DhcpRelayGlobal.new(name)
   end
 
+  def test_destroy
+    drg = create_dhcp_relay_global
+    assert_equal(true, Feature.dhcp_enabled?)
+
+    drg.destroy
+    [:ipv4_information_option,
+     :ipv4_information_option_trust,
+     :ipv4_information_option_vpn,
+     :ipv4_information_trust_all,
+     :ipv4_relay,
+     :ipv4_smart_relay,
+     :ipv4_src_addr_hsrp,
+     :ipv4_src_intf,
+     :ipv4_sub_option_circuit_id_custom,
+     :ipv4_sub_option_circuit_id_string,
+     :ipv4_sub_option_cisco,
+     :ipv6_option_cisco,
+     :ipv6_option_vpn,
+     :ipv6_relay,
+     :ipv6_src_intf,
+    ].each do |prop|
+      assert_equal(drg.send("default_#{prop}"), drg.send("#{prop}")) if
+        drg.send("#{prop}")
+    end
+  end
+
   def test_ipv4_information_option
     drg = create_dhcp_relay_global
     assert_equal(drg.default_ipv4_information_option, drg.ipv4_information_option)
