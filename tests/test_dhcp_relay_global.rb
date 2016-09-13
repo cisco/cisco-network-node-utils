@@ -35,7 +35,7 @@ class TestDhcpRelayGlobal < CiscoTestCase
   end
 
   def create_dhcp_relay_global
-    DhcpRelayGlobal.new(true)
+    DhcpRelayGlobal.new
   end
 
   def test_destroy
