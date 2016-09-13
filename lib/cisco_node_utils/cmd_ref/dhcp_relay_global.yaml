@@ -36,6 +36,11 @@ ipv4_relay:
   get_value: '/^ip dhcp relay$/'
   set_value: "<state> ip dhcp relay"
   N3k: &relay_default_true
+    # auto_default is set to false because when
+    # this property is set to false, we do not
+    # find the regex pattern and since the default_value
+    # is true, it should not return true as its real
+    # value is false.
     auto_default: false
     default_value: true
   N5k: &relay_default_false
@@ -100,6 +105,11 @@ ipv6_relay:
   get_value: '/^ipv6 dhcp relay$/'
   set_value: "<state> ipv6 dhcp relay"
   N3k: &v6_relay_default_true
+    # auto_default is set to false because when
+    # this property is set to false, we do not
+    # find the regex pattern and since the default_value
+    # is true, it should not return true as its real
+    # value is false.
     auto_default: false
     default_value: true
   N5k: &v6_relay_default_false

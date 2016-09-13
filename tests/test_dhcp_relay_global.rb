@@ -26,7 +26,7 @@ class TestDhcpRelayGlobal < CiscoTestCase
 
   def setup
     super
-    config_no_warn 'no feature dhcp'
+    config_no_warn('no feature dhcp')
   end
 
   def teardown
@@ -34,8 +34,8 @@ class TestDhcpRelayGlobal < CiscoTestCase
     super
   end
 
-  def create_dhcp_relay_global(name=DEFAULT_NAME)
-    DhcpRelayGlobal.new(name)
+  def create_dhcp_relay_global
+    DhcpRelayGlobal.new(true)
   end
 
   def test_destroy

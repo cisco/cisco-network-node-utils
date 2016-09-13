@@ -21,12 +21,8 @@ module Cisco
   class DhcpRelayGlobal < NodeUtil
     attr_reader :name
 
-    def initialize(name)
-      fail TypeError unless name.is_a?(String)
-      fail ArgumentError unless name == 'default'
-      @name = name.downcase
-
-      Feature.dhcp_enable
+    def initialize(instantiate=true)
+      Feature.dhcp_enable if instantiate
       set_args_keys_default
     end
 
