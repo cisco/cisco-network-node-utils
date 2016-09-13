@@ -1,0 +1,125 @@
+# dhcp_relay_global
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config dhcp | no-more"
+
+ipv4_information_option:
+  kind: boolean
+  get_value: '/^ip dhcp relay information option$/'
+  set_value: "<state> ip dhcp relay information option"
+  default_value: false
+
+ipv4_information_option_trust:
+  _exclude: [N5k, N6k]
+  kind: boolean
+  get_value: '/^ip dhcp relay information option trust$/'
+  set_value: "<state> ip dhcp relay information option trust"
+  default_value: false
+
+ipv4_information_option_vpn:
+  kind: boolean
+  get_value: '/^ip dhcp relay information option vpn$/'
+  set_value: "<state> ip dhcp relay information option vpn"
+  default_value: false
+
+ipv4_information_trust_all:
+  _exclude: [N5k, N6k]
+  kind: boolean
+  get_value: '/^ip dhcp relay information trust-all$/'
+  set_value: "<state> ip dhcp relay information trust-all"
+  default_value: false
+
+ipv4_relay:
+  kind: boolean
+  get_value: '/^ip dhcp relay$/'
+  set_value: "<state> ip dhcp relay"
+  N3k: &relay_default_true
+    # auto_default is set to false because when
+    # this property is set to false, we do not
+    # find the regex pattern and since the default_value
+    # is true, it should not return true as its real
+    # value is false.
+    auto_default: false
+    default_value: true
+  N5k: &relay_default_false
+    default_value: false
+  N6k: *relay_default_false
+  N7k: *relay_default_true
+  N8k: *relay_default_true
+  N9k: *relay_default_true
+
+ipv4_smart_relay:
+  kind: boolean
+  get_value: '/^ip dhcp smart-relay global$/'
+  set_value: "<state> ip dhcp smart-relay global"
+  default_value: false
+
+ipv4_src_addr_hsrp:
+  _exclude: [N3k, N8k, N9k]
+  kind: boolean
+  get_value: '/^ip dhcp relay source-address hsrp$/'
+  set_value: "<state> ip dhcp relay source-address hsrp"
+  default_value: false
+
+ipv4_src_intf:
+  get_value: '/^ip dhcp relay source-interface (.*)$/'
+  set_value: "<state> ip dhcp relay source-interface <intf>"
+  default_value: false
+
+ipv4_sub_option_circuit_id_custom:
+  _exclude: [N7k, N8k]
+  kind: boolean
+  get_value: '/^ip dhcp relay sub-option circuit-id customized$/'
+  set_value: "<state> ip dhcp relay sub-option circuit-id customized"
+  default_value: false
+
+ipv4_sub_option_circuit_id_string:
+  _exclude: [N5k, N6k, N7k, N8k, N9k]
+  get_value: '/^ip dhcp relay sub-option circuit-id format-type string format (.*)$/'
+  set_value: "<state> ip dhcp relay sub-option circuit-id format-type string <format> <word>"
+  default_value: false
+
+ipv4_sub_option_cisco:
+  kind: boolean
+  get_value: '/^ip dhcp relay sub-option type cisco$/'
+  set_value: "<state> ip dhcp relay sub-option type cisco"
+  default_value: false
+
+ipv6_option_cisco:
+  _exclude: [N5k, N6k]
+  kind: boolean
+  get_value: '/^ipv6 dhcp relay option type cisco$/'
+  set_value: "<state> ipv6 dhcp relay option type cisco"
+  default_value: false
+
+ipv6_option_vpn:
+  kind: boolean
+  get_value: '/^ipv6 dhcp relay option vpn$/'
+  set_value: "<state> ipv6 dhcp relay option vpn"
+  default_value: false
+
+ipv6_relay:
+  kind: boolean
+  get_value: '/^ipv6 dhcp relay$/'
+  set_value: "<state> ipv6 dhcp relay"
+  N3k: &v6_relay_default_true
+    # auto_default is set to false because when
+    # this property is set to false, we do not
+    # find the regex pattern and since the default_value
+    # is true, it should not return true as its real
+    # value is false.
+    auto_default: false
+    default_value: true
+  N5k: &v6_relay_default_false
+    default_value: false
+  N6k: *v6_relay_default_false
+  N7k: *v6_relay_default_true
+  N8k: *v6_relay_default_true
+  N9k: *v6_relay_default_true
+
+ipv6_src_intf:
+  get_value: '/^ipv6 dhcp relay source-interface (.*)$/'
+  set_value: "<state> ipv6 dhcp relay source-interface <intf>"
+  default_value: false
