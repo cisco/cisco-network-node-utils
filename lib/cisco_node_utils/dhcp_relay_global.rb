@@ -27,7 +27,9 @@ module Cisco
     end
 
     def self.globals
-      { 'default' => DhcpRelayGlobal.new('default') }
+      hash = {}
+      hash['default'] = DhcpRelayGlobal.new(false) if Feature.dhcp_enabled?
+      hash
     end
 
     # Helper method to delete @set_args hash keys
