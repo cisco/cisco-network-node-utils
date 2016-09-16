@@ -38,6 +38,11 @@ class TestDhcpRelayGlobal < CiscoTestCase
     DhcpRelayGlobal.new
   end
 
+  def test_collection_empty
+    drg = DhcpRelayGlobal.globals
+    assert_empty(drg)
+  end
+
   def test_destroy
     drg = create_dhcp_relay_global
     assert_equal(true, Feature.dhcp_enabled?)
