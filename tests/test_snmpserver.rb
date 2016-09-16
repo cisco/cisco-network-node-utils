@@ -155,6 +155,9 @@ class TestSnmpServer < CiscoTestCase
   end
 
   def test_packet_size
+    skip_legacy_defect?('7.0.3.I2.2e',
+                        'CSCuz14217: CLI shows default snmp packet-size incorrectly as 0')
+
     if validate_property_excluded?('snmp_server', 'packet_size')
       assert_raises(Cisco::UnsupportedError) do
         SnmpServer.new.packet_size = 2000
