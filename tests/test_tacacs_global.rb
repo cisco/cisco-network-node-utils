@@ -66,7 +66,9 @@ class TestTacacsGlobal < CiscoTestCase
 
     # second change
     key_format = 6
-    key = 'TEST_OTHER'
+
+    # Must use a valid type6 password: CSCvb36266
+    key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
     global.encryption_key_set(key_format, key)
     assert(!global.key.nil?)
     assert(key_format, global.key_format)
