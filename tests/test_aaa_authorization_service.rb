@@ -24,6 +24,8 @@ class TestAaaAuthorSvc < CiscoTestCase
   def setup
     super
 
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuz44696: Cannot configure aaa group server tacacs')
     cleanup_aaa if @@pre_clean_needed
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
     feature_tacacs
