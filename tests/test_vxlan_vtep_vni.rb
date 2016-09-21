@@ -111,6 +111,9 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_ingress_replication
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuy27700: Validation failed for vni mcast group configured')
+
     vni = VxlanVtepVni.new('nve1', '5000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.ingress_replication = 'bgp' }
@@ -139,6 +142,9 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_multicast_group
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuy27700: Validation failed for vni mcast group configured')
+
     vni1 = VxlanVtepVni.new('nve1', '6000')
     vni2 = VxlanVtepVni.new('nve1', '8001-8200')
 

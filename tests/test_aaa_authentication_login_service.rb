@@ -23,6 +23,12 @@ AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED = :unselected
 class TestAaaAuthenLoginSvc < CiscoTestCase
   @skip_unless_supported = 'aaa_auth_login_service'
 
+  def setup
+    super
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuz44696: Cannot configure aaa group server tacacs')
+  end
+
   def unconfig_tacacs
     config('no feature tacacs+')
   end
