@@ -580,9 +580,99 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
+  def test_event_history_cli_evergreen
+    bgp = setup_default
+    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
+    bgp.event_history_cli = 'true'
+    assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
+    bgp.event_history_cli = 'false'
+    assert_equal('false', bgp.event_history_cli)
+    bgp.event_history_cli = 'size_small'
+    assert_equal('size_small', bgp.event_history_cli)
+    bgp.event_history_cli = 'size_large'
+    assert_equal('size_large', bgp.event_history_cli)
+    bgp.event_history_cli = 'size_medium'
+    assert_equal('size_medium', bgp.event_history_cli)
+    bgp.event_history_cli = 'size_disable'
+    assert_equal('size_disable', bgp.event_history_cli)
+    bgp.event_history_cli = '100000'
+    assert_equal('100000', bgp.event_history_cli)
+    bgp.event_history_cli = bgp.default_event_history_cli
+    assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
+  end
+
+  def test_event_history_detail_evergreen
+    bgp = setup_default
+    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
+    bgp.event_history_detail = 'true'
+    assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
+    bgp.event_history_detail = 'false'
+    assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
+    bgp.event_history_detail = 'size_small'
+    assert_equal('size_small', bgp.event_history_detail)
+    bgp.event_history_detail = 'size_large'
+    assert_equal('size_large', bgp.event_history_detail)
+    bgp.event_history_detail = 'size_medium'
+    assert_equal('size_medium', bgp.event_history_detail)
+    bgp.event_history_detail = 'size_disable'
+    assert_equal('size_disable', bgp.event_history_detail)
+    bgp.event_history_detail = '100000'
+    assert_equal('100000', bgp.event_history_detail)
+    bgp.event_history_detail = bgp.default_event_history_detail
+    assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
+  end
+
+  def test_event_history_events_evergreen
+    bgp = setup_default
+    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    assert_equal(bgp.default_event_history_events, bgp.event_history_events)
+    bgp.event_history_events = 'true'
+    assert_equal(bgp.default_event_history_events, bgp.event_history_events)
+    bgp.event_history_events = 'false'
+    assert_equal('size_disable', bgp.event_history_events)
+    bgp.event_history_events = 'size_small'
+    assert_equal('size_small', bgp.event_history_events)
+    bgp.event_history_events = 'size_large'
+    assert_equal('size_large', bgp.event_history_events)
+    bgp.event_history_events = 'size_medium'
+    assert_equal('size_medium', bgp.event_history_events)
+    bgp.event_history_events = 'size_disable'
+    assert_equal('size_disable', bgp.event_history_events)
+    bgp.event_history_events = '100000'
+    assert_equal('100000', bgp.event_history_events)
+    bgp.event_history_events = bgp.default_event_history_events
+    assert_equal(bgp.default_event_history_events, bgp.event_history_events)
+  end
+
+  def test_event_history_periodic_evergreen
+    bgp = setup_default
+    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    assert_equal(bgp.default_event_history_periodic,
+                 bgp.event_history_periodic)
+    bgp.event_history_periodic = 'true'
+    assert_equal('true', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'false'
+    assert_equal('false', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'size_small'
+    assert_equal('size_small', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'size_large'
+    assert_equal('size_large', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'size_medium'
+    assert_equal('size_medium', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'size_disable'
+    assert_equal('size_disable', bgp.event_history_periodic)
+    bgp.event_history_periodic = '100000'
+    assert_equal('100000', bgp.event_history_periodic)
+    bgp.event_history_periodic = bgp.default_event_history_periodic
+    assert_equal(bgp.default_event_history_periodic,
+                 bgp.event_history_periodic)
+  end
+
   def test_event_history
     bgp = setup_default
-
+    skip('Test not supported on this platform') if Utils.nexus_evergreen?
     opts = [:cli, :detail, :events, :periodic]
     opts.each do |opt|
       if platform == :ios_xr # unsupported on XR

@@ -103,6 +103,14 @@ module Cisco
       true if Platform.image_version[/7.0.3.I2/]
     end
 
+    # Helper utility to check for evergreen
+    def self.nexus_evergreen?
+      require_relative 'platform'
+      return false if Platform.image_version[/7.0.3.I2|I3|I4/] ||
+                      Platform.chassis['pid'][/N(5|6|7|8)/]
+      true
+    end
+
     # Helper utility method for ip/prefix format networks.
     # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
     # we need to mask the address using the prefix length so that they
