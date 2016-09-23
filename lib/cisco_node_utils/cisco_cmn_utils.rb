@@ -103,12 +103,14 @@ module Cisco
       true if Platform.image_version[/7.0.3.I2/]
     end
 
-    # Helper utility to check for evergreen
-    def self.nexus_evergreen?
+    def self.image_version?(ver_regexp)
       require_relative 'platform'
-      return false if Platform.image_version[/7.0.3.I2|I3|I4/] ||
-                      Platform.chassis['pid'][/N(5|6|7|8)/]
-      true
+      return true if Platform.image_version[ver_regexp]
+    end
+
+    def self.chassis_pid?(ver_regexp)
+      require_relative 'platform'
+      return true if Platform.chassis['pid'][ver_regexp]
     end
 
     # Helper utility method for ip/prefix format networks.

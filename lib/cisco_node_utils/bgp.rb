@@ -515,10 +515,11 @@ module Cisco
     end
 
     def default_event_history_periodic
-      if Utils.nexus_evergreen?
-        config_get('bgp', 'event_history_periodic_bytes', @get_args)
-      else
+      if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
+         Utils.chassis_pid?(/N(5|6|7|8)/)
         config_get_default('bgp', 'event_history_periodic')
+      else
+        config_get('bgp', 'event_history_periodic_bytes', @get_args)
       end
     end
 

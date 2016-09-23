@@ -60,6 +60,12 @@ def setup_vrf
   create_bgp_vrf(@asnum, @vrf)
 end
 
+def newer_image_version?
+  return false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
+                  Utils.chassis_pid?(/N(5|6|7|8)/)
+  true
+end
+
 # TestRouterBgp - Minitest for RouterBgp class
 class TestRouterBgp < CiscoTestCase
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
@@ -580,9 +586,15 @@ class TestRouterBgp < CiscoTestCase
     bgp.destroy
   end
 
-  def test_event_history_cli_evergreen
+  def test_event_history_cli
     bgp = setup_default
-    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    if validate_property_excluded?('bgp', 'event_history_detail')
+      assert_nil(bgp.event_history_detail)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.event_history_detail = 'true'
+      end
+      return
+    end
     assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
     bgp.event_history_cli = 'true'
     assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
@@ -596,15 +608,23 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('size_medium', bgp.event_history_cli)
     bgp.event_history_cli = 'size_disable'
     assert_equal('size_disable', bgp.event_history_cli)
-    bgp.event_history_cli = '100000'
-    assert_equal('100000', bgp.event_history_cli)
+    if newer_image_version?
+      bgp.event_history_cli = '100000'
+      assert_equal('100000', bgp.event_history_cli)
+    end
     bgp.event_history_cli = bgp.default_event_history_cli
     assert_equal(bgp.default_event_history_cli, bgp.event_history_cli)
   end
 
-  def test_event_history_detail_evergreen
+  def test_event_history_detail
     bgp = setup_default
-    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    if validate_property_excluded?('bgp', 'event_history_detail')
+      assert_nil(bgp.event_history_detail)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.event_history_detail = 'true'
+      end
+      return
+    end
     assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
     bgp.event_history_detail = 'true'
     assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
@@ -618,15 +638,23 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('size_medium', bgp.event_history_detail)
     bgp.event_history_detail = 'size_disable'
     assert_equal('size_disable', bgp.event_history_detail)
-    bgp.event_history_detail = '100000'
-    assert_equal('100000', bgp.event_history_detail)
+    if newer_image_version?
+      bgp.event_history_detail = '100000'
+      assert_equal('100000', bgp.event_history_detail)
+    end
     bgp.event_history_detail = bgp.default_event_history_detail
     assert_equal(bgp.default_event_history_detail, bgp.event_history_detail)
   end
 
-  def test_event_history_events_evergreen
+  def test_event_history_events
     bgp = setup_default
-    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    if validate_property_excluded?('bgp', 'event_history_events')
+      assert_nil(bgp.event_history_events)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.event_history_events = 'true'
+      end
+      return
+    end
     assert_equal(bgp.default_event_history_events, bgp.event_history_events)
     bgp.event_history_events = 'true'
     assert_equal(bgp.default_event_history_events, bgp.event_history_events)
@@ -640,19 +668,25 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('size_medium', bgp.event_history_events)
     bgp.event_history_events = 'size_disable'
     assert_equal('size_disable', bgp.event_history_events)
-    bgp.event_history_events = '100000'
-    assert_equal('100000', bgp.event_history_events)
+    if newer_image_version?
+      bgp.event_history_events = '100000'
+      assert_equal('100000', bgp.event_history_events)
+    end
     bgp.event_history_events = bgp.default_event_history_events
     assert_equal(bgp.default_event_history_events, bgp.event_history_events)
   end
 
-  def test_event_history_periodic_evergreen
+  def test_event_history_periodic
     bgp = setup_default
-    skip('Test not supported on this platform') unless Utils.nexus_evergreen?
+    if validate_property_excluded?('bgp', 'event_history_periodic')
+      assert_nil(bgp.event_history_periodic)
+      assert_raises(Cisco::UnsupportedError) do
+        bgp.event_history_periodic = 'true'
+      end
+      return
+    end
     assert_equal(bgp.default_event_history_periodic,
                  bgp.event_history_periodic)
-    bgp.event_history_periodic = 'true'
-    assert_equal('true', bgp.event_history_periodic)
     bgp.event_history_periodic = 'false'
     assert_equal('false', bgp.event_history_periodic)
     bgp.event_history_periodic = 'size_small'
@@ -663,61 +697,18 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('size_medium', bgp.event_history_periodic)
     bgp.event_history_periodic = 'size_disable'
     assert_equal('size_disable', bgp.event_history_periodic)
-    bgp.event_history_periodic = '100000'
-    assert_equal('100000', bgp.event_history_periodic)
+    bgp.event_history_periodic = 'true'
+    if newer_image_version?
+      assert_equal('true', bgp.event_history_periodic)
+      bgp.event_history_periodic = '100000'
+      assert_equal('100000', bgp.event_history_periodic)
+    else
+      assert_equal(bgp.default_event_history_periodic,
+                   bgp.event_history_periodic)
+    end
     bgp.event_history_periodic = bgp.default_event_history_periodic
     assert_equal(bgp.default_event_history_periodic,
                  bgp.event_history_periodic)
-  end
-
-  def test_event_history
-    bgp = setup_default
-    skip('Test not supported on this platform') if Utils.nexus_evergreen?
-    opts = [:cli, :detail, :events, :periodic]
-    opts.each do |opt|
-      if platform == :ios_xr # unsupported on XR
-        assert_equal(nil, bgp.send("event_history_#{opt}"))
-        assert_equal(nil, bgp.send("default_event_history_#{opt}"))
-        assert_raises(Cisco::UnsupportedError) do
-          bgp.send("event_history_#{opt}=", 'true')
-        end
-        next
-      end
-      # Test basic true
-      bgp.send("event_history_#{opt}=", 'true')
-      set = bgp.send("default_event_history_#{opt}")
-      result = bgp.send("event_history_#{opt}")
-      assert_equal(set, result,
-                   "event_history_#{opt}: Failed to set to default state")
-
-      # Test true with size
-      bgp.send("event_history_#{opt}=", 'size_large')
-      result = bgp.send("event_history_#{opt}")
-      assert_equal('size_large', result,
-                   "event_history_#{opt}: Failed to set True with Size large")
-
-      # Test false with size
-      bgp.send("event_history_#{opt}=", 'false')
-      result = bgp.send("event_history_#{opt}")
-      expected = (opt == :detail) ? bgp.default_event_history_detail : 'false'
-      expected = 'size_disable' if opt == :events
-      assert_equal(expected, result,
-                   "event_history_#{opt}: Failed to set state to False")
-
-      # Test true with size, from false
-      bgp.send("event_history_#{opt}=", 'size_small')
-      result = bgp.send("event_history_#{opt}")
-      assert_equal('size_small', result,
-                   "event_history_#{opt}: Failed to set True with "\
-                   'Size from false state')
-
-      # Test default_state
-      set = bgp.send("default_event_history_#{opt}")
-      bgp.send("event_history_#{opt}=", set)
-      result = bgp.send("event_history_#{opt}")
-      assert_equal(set, result,
-                   "event_history_#{opt}: Failed to set state to default")
-    end
   end
 
   def test_fast_external_fallover
