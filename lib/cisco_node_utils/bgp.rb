@@ -416,24 +416,16 @@ module Cisco
       match = config_get('bgp', 'event_history_cli', @get_args)
       if match.is_a?(Array)
         return 'false' if match[0] == 'no '
-        if Utils.nexus_evergreen?
-          return default_event_history_cli unless match[1]
-          # check if the val is size in bytes
-          return match[1] if match[1] =~ /\A\d+\z/
+        if match[1]
+          return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
-        else
-          return 'size_' + match[1] if match[1]
         end
       end
       default_event_history_cli
     end
 
     def event_history_cli=(val)
-      size = val[/small|medium|large|disable/]
-      if Utils.nexus_evergreen?
-        # check if the val is size in bytes
-        size = val if val =~ /\A\d+\z/
-      end
+      size = val[/small|medium|large|disable|\A\d+\z/]
       @set_args[:size] = size.nil? ? '' : "size #{size}"
       @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_cli', @set_args)
@@ -451,24 +443,16 @@ module Cisco
       # This property requires auto_default=false
       if match.is_a?(Array)
         return 'false' if match[0] == 'no '
-        if Utils.nexus_evergreen?
-          return default_event_history_detail unless match[1]
-          # check if the val is size in bytes
-          return match[1] if match[1] =~ /\A\d+\z/
+        if match[1]
+          return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
-        else
-          return 'size_' + match[1] if match[1]
         end
       end
       default_event_history_detail
     end
 
     def event_history_detail=(val)
-      size = val[/small|medium|large|disable/]
-      if Utils.nexus_evergreen?
-        # check if the val is size in bytes
-        size = val if val =~ /\A\d+\z/
-      end
+      size = val[/small|medium|large|disable|\A\d+\z/]
       @set_args[:size] = size.nil? ? '' : "size #{size}"
       @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_detail', @set_args)
@@ -485,24 +469,16 @@ module Cisco
       match = config_get('bgp', 'event_history_events', @get_args)
       if match.is_a?(Array)
         return 'size_disable' if match[0] == 'no '
-        if Utils.nexus_evergreen?
-          return default_event_history_events unless match[1]
-          # check if the val is size in bytes
-          return match[1] if match[1] =~ /\A\d+\z/
+        if match[1]
+          return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
-        else
-          return 'size_' + match[1] if match[1]
         end
       end
       default_event_history_events
     end
 
     def event_history_events=(val)
-      size = val[/small|medium|large|disable/]
-      if Utils.nexus_evergreen?
-        # check if the val is size in bytes
-        size = val if val =~ /\A\d+\z/
-      end
+      size = val[/small|medium|large|disable|\A\d+\z/]
       @set_args[:size] = size.nil? ? '' : "size #{size}"
       @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_events', @set_args)
@@ -519,29 +495,19 @@ module Cisco
       match = config_get('bgp', 'event_history_periodic', @get_args)
       if match.is_a?(Array)
         return 'false' if match[0] == 'no '
-        if Utils.nexus_evergreen?
-          return 'true' unless match[1]
-          # check if the val is size in bytes
-          return match[1] if match[1] =~ /\A\d+\z/
+        if match[1]
+          return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
-        else
-          return 'size_' + match[1] if match[1]
         end
+      else
+        return default_event_history_periodic
       end
+      return 'true' unless default_event_history_periodic[/size/]
       default_event_history_periodic
     end
 
     def event_history_periodic=(val)
-      if Utils.nexus_evergreen?
-        # check if the val is size in bytes
-        if val =~ /\A\d+\z/
-          size = val
-        else
-          size = val[/small|medium|large|disable/] unless val[/false|true/]
-        end
-      else
-        size = val[/small|medium|large|disable/]
-      end
+      size = val[/small|medium|large|disable|\A\d+\z/] unless val[/false|true/]
       @set_args[:size] = size.nil? ? '' : "size #{size}"
       @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_periodic', @set_args)
