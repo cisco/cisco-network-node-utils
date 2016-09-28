@@ -171,6 +171,9 @@ event_history_periodic:
   set_value: '<state> event-history periodic <size>'
   default_value: 'size_small'
 
+event_history_periodic_bytes:
+  default_only: 'false'
+
 fast_external_fallover:
   kind: boolean
   default_value: true
