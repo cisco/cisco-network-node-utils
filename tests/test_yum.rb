@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'yaml'
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/yum'
 require_relative '../lib/cisco_node_utils/platform'
@@ -26,28 +27,27 @@ class TestYum < CiscoTestCase
   @skip_unless_supported = 'yum'
 
   def select_pkg
+    path = File.expand_path('../yum_package.yaml', __FILE__)
+    skip('Cannot find tests/yum_package.yaml') unless File.file?(path)
+    pkginfo = YAML.load(File.read(path))
+
     # rubocop:disable Style/ClassVars
-    @@pv = Platform.image_version
-    case @@pv
-    when /7.0\(3\)I2\(1\)/
-      info 'Testing Patch For Camden Release Image'
-      @@pkg_filename = 'n9000_sample-1.0.0-7.0.3.x86_64.rpm'
-      @@pkg = 'n9000_sample'
-      @@pkg_ver = '1.0.0-7.0.3'
-    when /7.0\(3\)I3\(1\)/
-      info 'Testing Patch For Dublin Release Image'
-      @@pkg_filename = 'CSCuxdublin-1.0.0-7.0.3.I3.1.lib32_n9000.rpm'
-      @@pkg = 'CSCuxdublin'
-      @@pkg_ver = '1.0.0-7.0.3.I3.1'
-    when /7.0\(4\)I4\(1\)/
-      # TBD: Add Dublin Plus RPM when it becomes available.
-      # info 'Testing Patch For Dublin Plus Release Image'
-    else
-      skip "Available patches are not compatible with this image: #{@@pv}"
-    end
+    #
+    # Replace [.,(,)] characters with '_' for yaml key lookup.
+    # Image Version before gsub: 7.0(3)I3(1)
+    # Image Version after  gsub: 7_0_3_I3_1_
+    @@pv = Platform.image_version.gsub(/[.()]/, '_')[/\S+/]
+    info "Image version detected: #{Platform.image_version}"
+    skip("No pkginfo filename found for image version #{@@pv}") if
+      pkginfo[@@pv].nil?
+
+    @@pkg_filename = pkginfo[@@pv]['filename']
+    @@pkg = pkginfo[@@pv]['name']
+    @@pkg_ver = pkginfo[@@pv]['version']
+
     @@incompatible_rpm_msg =
-      ": Sample rpm is compatible with NX-OS release version #{@@pv}."  \
-      'This test may fail with other versions.'
+      ": Sample rpm is compatible with version #{Platform.image_version}."  \
+      'This test will fail with other versions.'
     # rubocop:enable Style/ClassVars
   end
 
@@ -67,7 +67,7 @@ class TestYum < CiscoTestCase
 
       # Remnants of the package my still exist from a previous install attempt.
       info 'Executing test setup... Please be patient, this will take a while.'
-      steps = ["install deactivate #{@@pkg}", "install commit #{@@pkg}",
+      steps = ["install deactivate #{@@pkg}",
                "install remove #{@@pkg} forced",
                "install add bootflash:#{@@pkg_filename}"]
       steps.each do |step|
@@ -85,7 +85,7 @@ class TestYum < CiscoTestCase
       'this file can be found in the cisco_node_utils/tests directory' if @@skip
   end
 
-  def test_install_remove
+  def test_install_query_remove
     skip?
     if @device.cmd("show install package | include #{@@pkg}")[/@patching/]
       @device.cmd("install deactivate #{@@pkg}")
@@ -94,16 +94,24 @@ class TestYum < CiscoTestCase
     end
 
     # On dublin and later images, must specify the full rpm name.
-    package = @@pv[/7.0\(3\)I2\(1\)/] ? @@pkg : @@pkg_filename
+    package = @@pv[/7_0_3_I2_1_/] ? @@pkg : @@pkg_filename
+
+    # INSTALL
     # Specify "management" vrf for install
     Yum.install(package, 'management')
     sleep 20
     assert(Yum.query(@@pkg), "failed to find installed package #{@@pkg}")
 
-    Yum.remove(package)
+    # QUERY INSTALLED
+    assert_equal(@@pkg_ver, Yum.query(@@pkg), @@incompatible_rpm_msg)
+
+    # REMOVE
+    Yum.remove(@@pkg)
     sleep 20
-    refute_show_match(command: "show install package | include #{@@pkg}",
-                      pattern: /@patching/)
+
+    # QUERY REMOVED
+    assert_nil(Yum.query(@@pkg))
+
   rescue RuntimeError => e
     assert(false, e.message + @@incompatible_rpm_msg)
   end
@@ -120,21 +128,5 @@ class TestYum < CiscoTestCase
     assert_raises(RuntimeError) do
       Yum.install('also_not_real', 'management')
     end
-  end
-
-  def test_query
-    skip?
-    unless @device.cmd("show install package | include #{@@pkg}")[/@patching/]
-      @device.cmd("install activate #{@@pkg}")
-      node.cache_flush
-      sleep 20
-    end
-    ver = Yum.query(@@pkg)
-    assert_equal(ver, @@pkg_ver, @@incompatible_rpm_msg)
-    @device.cmd("install deactivate #{@@pkg}")
-    node.cache_flush
-    sleep 20
-    ver = Yum.query(@@pkg)
-    assert_nil(ver)
   end
 end

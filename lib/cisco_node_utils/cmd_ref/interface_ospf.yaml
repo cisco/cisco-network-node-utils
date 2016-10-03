@@ -10,6 +10,16 @@ area:
   get_value: '/^\s*ip router ospf (\S+) area (\S+)/'
   set_value: "%s ip router ospf %s area %s"
 
+bfd:
+  # the config can be 'ip ospf bfd' or
+  # 'ip ospf bfd disable' or
+  # no config at all so need to grab the optional
+  # match to get the whole config for checking
+  # the mode
+  get_value: '/^\s*ip ospf bfd *(?:\S+)?$/'
+  set_value: '%s ip ospf bfd %s'
+  default_value: ~
+
 cost:
   kind: int
   get_value: '/^\s*ip ospf cost (\d+)/'
@@ -54,8 +64,42 @@ message_digest_password:
   default_value: ~
   get_value: '/^\s*ip ospf message-digest-key \d+ \S+ \d+ (\S+)/'
 
+mtu_ignore:
+  kind: boolean
+  get_value: '/^\s*ip ospf mtu-ignore/'
+  set_value: "%s ip ospf mtu-ignore"
+  default_value: false
+
+network_type:
+  get_value: '/^\s*ip ospf network (\S+)$/'
+  set_value: "%s ip ospf network %s"
+
+network_type_default:
+  default_value: 'broadcast'
+
+network_type_loopback_default:
+  default_value: 'loopback'
+
 passive_interface:
   kind: boolean
   get_value: '/^\s*ip ospf passive-interface/'
   set_value: "%s ip ospf passive-interface"
   default_value: false
+
+priority:
+  kind: int
+  get_value: '/^\s*ip ospf priority (\d+)/'
+  set_value: "%s ip ospf priority %s"
+  default_value: 1
+
+shutdown:
+  kind: boolean
+  get_value: '/^\s*ip ospf shutdown/'
+  set_value: "%s ip ospf shutdown"
+  default_value: false
+
+transmit_delay:
+  kind: int
+  get_value: '/^\s*ip ospf transmit-delay (\d+)/'
+  set_value: "%s ip ospf transmit-delay %s"
+  default_value: 1

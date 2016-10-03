@@ -272,7 +272,7 @@ nsr:
   set_value: '<state> nsr'
 
 process_initialized:
-  _exclude: [ios_xr, N3k, N7k, N8k, N9k]
+  _exclude: [ios_xr, N3k, N7k, N9k]
   # bgp process initialization state
   kind: boolean
   context: ~
@@ -331,12 +331,12 @@ shutdown:
     default_value: false
 
 suppress_fib_pending:
-  # Note: Does not exist in IOS XR
-  nexus:
-    kind: boolean
-    get_value: 'suppress-fib-pending'
-    set_value: '<state> suppress-fib-pending'
-    default_value: false
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^(?:no )?suppress-fib-pending$/'
+  set_value: '<state> suppress-fib-pending'
+  default_value: true
+  auto_default: false
 
 timer_bestpath_limit:
   # Note: Does not exist in IOS XR

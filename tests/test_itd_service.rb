@@ -19,7 +19,7 @@ require_relative '../lib/cisco_node_utils/itd_service'
 include Cisco
 # TestInterface - Minitest for general functionality
 # of the ItdService class.
-class TestItdService < CiscoTestCase
+class TestItdSvc < CiscoTestCase
   @skip_unless_supported = 'itd_service'
   # Tests
 

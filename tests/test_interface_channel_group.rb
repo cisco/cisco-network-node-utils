@@ -16,7 +16,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface_channel_group'
 
 # TestInterface - Minitest for general functionality of the Interface class.
-class TestInterfaceChannelGroup < CiscoTestCase
+class TestInterfaceChanGrp < CiscoTestCase
   @@clean = false # rubocop:disable Style/ClassVars
   def setup
     super

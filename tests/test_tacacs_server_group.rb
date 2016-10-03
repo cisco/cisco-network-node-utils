@@ -17,15 +17,8 @@ require_relative '../lib/cisco_node_utils/tacacs_server_group'
 require_relative '../lib/cisco_node_utils/tacacs_server_host'
 
 # Test class for Tacacs Server Group
-class TestTacacsServerGroup < CiscoTestCase
+class TestTacacsSvrGrp < CiscoTestCase
   @skip_unless_supported = 'tacacs_server_group'
-
-  def setup
-    super
-    # TBD: Remove once CSCuz44696 is resolved.
-    skip('This test is not currently supported on 7.0(3)I3 images') if
-      node.os_version[/7.0\(3\)I3\(/]
-  end
 
   def clean_tacacs_config
     config('no feature tacacs',
@@ -141,7 +134,7 @@ class TestTacacsServerGroup < CiscoTestCase
     destroy_aaa_group(group_name3, 'tacacs+')
   end
 
-  def test_servers_tacacs
+  def test_servers
     clean_tacacs_config
     server_name1 = '1.1.1.1'
     server_name2 = '2.2.2.2'
@@ -164,25 +157,6 @@ class TestTacacsServerGroup < CiscoTestCase
            "Error: Collection does not contain #{server_name1}")
     assert(servers.include?(server_name2),
            "Error: Collection does not contain #{server_name2}")
-
-    detach_aaaservergroup(aaa_group)
-    detach_tacacsserverhost(server_name1)
-    detach_tacacsserverhost(server_name2)
-  end
-
-  def test_add_server_tacacs
-    server_name1 = '1.1.1.1'
-    server_name2 = '2.2.2.2'
-    create_tacacsserverhost(server_name1)
-    create_tacacsserverhost(server_name2)
-
-    aaa_group = TacacsServerGroup.new('Group1')
-    aaa_group.servers = [server_name1, server_name2]
-
-    assert_show_match(command: config_command,
-                      pattern: /server #{server_name1}/)
-    assert_show_match(command: config_command,
-                      pattern: /server #{server_name2}/)
 
     detach_aaaservergroup(aaa_group)
     detach_tacacsserverhost(server_name1)
@@ -389,7 +363,7 @@ class TestTacacsServerGroup < CiscoTestCase
     detach_aaaservergroup(aaa_group)
   end
 
-  def test_get_default_source_interface_tacacs
+  def test_source_interface
     # TODO
     return if validate_property_excluded?('tacacs_server_group',
                                           'source_interface')

@@ -274,6 +274,23 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.parent.destroy
   end
 
+  def test_bfd
+    routerospf = create_routerospf
+    vrf = create_routerospfvrf(routerospf.name)
+    vrf1 = create_routerospfvrf(routerospf.name, 'testvrf')
+    assert_equal(vrf.default_bfd, vrf.bfd)
+    assert_equal(vrf1.default_bfd, vrf1.bfd)
+    vrf.bfd = true
+    vrf1.bfd = true
+    assert_equal(true, vrf.bfd)
+    assert_equal(true, vrf1.bfd)
+    vrf.bfd = vrf.default_bfd
+    vrf1.bfd = vrf1.default_bfd
+    assert_equal(vrf.default_bfd, vrf.bfd)
+    assert_equal(vrf1.default_bfd, vrf1.bfd)
+    routerospf.destroy
+  end
+
   def test_default_metric
     vrf = create_routerospfvrf
     metric = 30_000

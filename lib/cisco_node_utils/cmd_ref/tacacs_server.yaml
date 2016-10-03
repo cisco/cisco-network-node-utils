@@ -1,8 +1,8 @@
 # tacacs_server
 ---
-_exclude: [ios_xr]
 
 deadtime:
+  _exclude: [ios_xr]
   kind: int
   get_command: "show run tacacs all"
   get_value: '/^tacacs-server deadtime\s+(\d+)/'
@@ -10,6 +10,7 @@ deadtime:
   default_value: 0
 
 directed_request:
+  _exclude: [ios_xr]
   kind: boolean
   # oddly, directed request must be retrieved from aaa output
   get_command: "show running aaa all"
@@ -18,26 +19,34 @@ directed_request:
   default_value: false
 
 encryption:
-  set_value: "%s tacacs-server key %d %s"
+  set_value: "<state> tacacs-server key <option> <key>"
 
 encryption_password:
-  get_command: "show run tacacs all"
   get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: ""
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"
 
 encryption_type:
   auto_default: false
-  get_command: "show run tacacs all"
   get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
   default_value: 0
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"
 
 feature:
+  _exclude: [ios_xr]
   kind: boolean
   get_command: "show run tacacs all"
   get_value: '/^feature tacacs/'
   set_value: "%s feature tacacs+"
 
 source_interface:
+  _exclude: [ios_xr]
   get_command: "show run tacacs all"
   get_value: '/(no)?\s*ip tacacs source-interface\s+(\S+)?/'
   set_value: "%s ip tacacs source-interface %s"
@@ -45,7 +54,10 @@ source_interface:
 
 timeout:
   kind: int
-  get_command: "show run tacacs all"
   get_value: '/tacacs-server timeout\s+(\d+)/'
-  set_value: "%s tacacs-server timeout %d"
+  set_value: "<state> tacacs-server timeout <timeout>"
   default_value: 5
+  nexus:
+    get_command: "show run tacacs all"
+  ios_xr:
+    get_command: "show running-config tacacs-server"

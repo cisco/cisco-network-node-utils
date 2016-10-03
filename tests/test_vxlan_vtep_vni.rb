@@ -25,29 +25,30 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def setup
     super
-    return unless @@pre_clean_needed
-    # Disable features on initial cleanup only as it's too expensive
-    # to do a disable for every testcase.
-    Feature.nv_overlay_disable
-    # nv overlay is slow on some platforms
-    sleep 1
-    vxlan_linecard?
-    if VxlanVtep.mt_full_support
-      return unless Vdc.vdc_support
-      v = Vdc.new('default')
-      v.limit_resource_module_type = 'f3' unless
-        v.limit_resource_module_type == 'f3'
-    else
-      config_no_warn('no feature vn-segment-vlan-based')
-    end
+    vdc_limit_f3_no_intf_needed(:set) if VxlanVtep.mt_full_support
+    Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
+    feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    config_no_warn('no interface nve1')
+    if first_or_last_teardown
+      vdc_limit_f3_no_intf_needed(:clear)
+      feature_cleanup
+    end
     super
+  end
+
+  def feature_cleanup
+    config_no_warn('no feature-set fabricpath')
+    config_no_warn('no feature vni')
+    config_no_warn('no feature vn-segment-vlan-based')
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
+    # Rapid nv feature toggle can cause failures on some platforms;
+    # symptom e.g. 'show runn | i ^feature' will hang
+    sleep 5
   end
 
   def test_create_with_existing
@@ -110,6 +111,9 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_ingress_replication
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuy27700: Validation failed for vni mcast group configured')
+
     vni = VxlanVtepVni.new('nve1', '5000')
     if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       assert_raises(Cisco::UnsupportedError) { vni.ingress_replication = 'bgp' }
@@ -138,6 +142,9 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_multicast_group
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuy27700: Validation failed for vni mcast group configured')
+
     vni1 = VxlanVtepVni.new('nve1', '6000')
     vni2 = VxlanVtepVni.new('nve1', '8001-8200')
 

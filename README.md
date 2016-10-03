@@ -61,9 +61,9 @@ To install the CiscoNodeUtils, use the following command:
 Alternatively, if you've checked the source out directly, you can call
 `rake install` from the root project directory.
 
-## Configuration
+## <a name="configuration">Configuration</a>
 
-This gem may require configuration in order to be used. Two configuration file locations are supported:
+Depending on the installation environment (Linux, NX-OS), this gem may require configuration in order to be used. Two configuration file locations are supported:
 
 * `/etc/cisco_node_utils.yaml` (system and/or root user configuration)
 * `~/cisco_node_utils.yaml` (per-user configuration)
@@ -72,12 +72,15 @@ If both files exist and are readable, configuration in the user-specific file wi
 
 This file specifies the host, port, username, and/or password to be used to connect to one or more nodes.
 
+* When installing this gem on NX-OS nodes, this file is generally not needed, as the default client behavior is sufficient.
 * When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
-  - A node labeled as `default` will be the default node to test against.
-  - Nodes with other names can be selected at test execution time.
-  - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
+    - A node labeled as `default` will be the default node to test against.
+    - Nodes with other names can be selected at test execution time.
+    - NX-OS nodes must be defined with a `host` (hostname or IP address), `username`, and `password`.
 
 An example configuration file (illustrating each of the above scenarios) is provided with this gem at [`docs/cisco_node_utils.yaml.example`](docs/cisco_node_utils.yaml.example).
+
+*For security purposes, it is highly recommended that access to this file be restricted to only the owning user (`chmod 0600`).*
 
 ## <a name="documentation">Documentation</a>
 
@@ -119,23 +122,38 @@ provider classes, and not directly call into `CommandReference` or `Node`.
 
 ## <a name="examples">Examples</a>
 
-
 These utilities can be used directly on a Cisco device (as used by Puppet
 and Chef) or can run on a workstation and point to a Cisco device (as used
-by the included minitest suite).
+by the included minitest suite).  The Client and Node APIs will read
+connection information (host, username, etc.) from a
+[configuration file](#configuration). When creating a Client
+you can choose which device in the config file to connect to by specifying a label
+(if no label is specified, "default" is assumed). If a configuration file cannot be
+found, the Client or Node will attempt to connect to the local device.
 
-### Usage on a Cisco device
+*Note: Entries in the configuration file can specify local or remote devices.*
+
+### Cisco Nexus Device (supports CLI configuration)
 
 #### Low-level Client API
 
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the local device
-client = Cisco::Client.create()
+# Create a connection to the following nodes:
+# - 'default' device defined in the cisco_node_utils.yaml file
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+client1 = Cisco::Client.create()
+client2 = Cisco::Client.create('n9k')
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-client.get(command: 'show version')
-client.set(values: 'vtp domain mycompany.com')
+# Use connections to get and set device state.
+client1.set(values: 'feature vtp')
+client1.set(values: 'vtp domain mycompany.com')
+puts client1.get(command: 'show vtp status | inc Domain')
+
+puts client2.get(command: 'show version')
 ```
 
 #### High-level Node API
@@ -143,39 +161,22 @@ client.set(values: 'vtp domain mycompany.com')
 ```ruby
 require 'cisco_node_utils'
 
-# get a connection to the local device
+# Create a connection to the following:
+# - 'default' device defined in the cisco_node_utils.yaml
 node = Cisco::Node.instance()
+# OR:
+# - 'n9k' device defined in the cisco_node_utils.yaml file
+# Cisco::Environment.default_environment_name = 'n9k'
+# node = Cisco::Node.instance()
 
-version = node.config_get("show_version", "system_image")
+# Warning: Make sure to exclude devices using the 'no_proxy' environment variable
+# to ensure successful remote connections.
 
-node.config_set("vtp", "domain", "mycompany.com")
+# Use connection to get and set device state.
+node.config_set('feature', 'vtp', state: '')
+node.config_set('vtp', 'domain', domain: 'mycompany.com')
+puts node.config_get('vtp', 'domain')
 ```
-
-### Remote usage
-
-#### Low-level Client API
-
-```ruby
-require 'cisco_node_utils'
-
-client = Cisco::Client.create('n3k.mycompany.com', 'username', 'password')
-
-client.get(command: 'show version')
-client.set(values: 'vtp domain mycompany.com')
-```
-
-#### High-level Node API
-
-```ruby
-require 'cisco_node_utils'
-
-node = Cisco::Node.new("n3k.mycompany.com", "username", "password")
-
-version = node.config_get("show_version", "system_image")
-
-node.config_set("vtp", "domain", "mycompany.com")
-```
-
 
 ## <a name="changelog">Changelog</a>
 

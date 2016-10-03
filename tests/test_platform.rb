@@ -42,7 +42,7 @@ class TestPlatform < CiscoTestCase
     if platform == :ios_xr
       assert_nil(Platform.system_image)
     elsif platform == :nexus
-      s = @device.cmd('show version | i image').scan(/ (\S+)$/).flatten.first
+      s = @device.cmd('show version | inc image | exc kickstart').scan(/ (\S+)$/).flatten.first
       assert_equal(s, Platform.system_image)
     end
   end
@@ -113,16 +113,6 @@ class TestPlatform < CiscoTestCase
     s = @device.cmd('sh ver').scan(/uptime is (.*)/).flatten.first
     # compare without seconds
     assert_equal(s.gsub(/\d+ sec/, ''), Platform.uptime.gsub(/\d+ sec/, ''))
-  end
-
-  def test_last_reset
-    s = @device.cmd('sh ver').scan(/usecs after\s+(.*)/).flatten.first
-    if Utils.nexus_i2_image
-      # Platform issue CSCuy72214, uncertain if this will ever be fixed in I2
-      assert_nil(Platform.last_reset)
-    else
-      assert_equal(s, Platform.last_reset)
-    end
   end
 
   def test_reset_reason
@@ -221,6 +211,14 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_virtual_services
+    if validate_property_excluded?('virtual_service', 'services')
+      assert_nil(node.config_get('virtual_service', 'services'))
+      return
+    end
+    # Only run this test if a virtual-service is installed
+    if config('show virtual-service global')[/services installed : 0$/]
+      skip('This test requires a virtual-service to be installed')
+    end
     # this would be beyond ugly to parse from ascii, utilize config_get
     vir_arr = node.config_get('virtual_service', 'services')
     vir_arr = [vir_arr] if vir_arr.is_a? Hash

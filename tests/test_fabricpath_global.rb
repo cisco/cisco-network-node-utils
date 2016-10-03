@@ -23,31 +23,30 @@ include Cisco
 # TestFabricpathGlobal - Minitest for Fabricpath Global node utils
 class TestFabricpathGlobal < CiscoTestCase
   @skip_unless_supported = 'fabricpath'
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
-    # setup runs at the beginning of each test
     super
-    fabricpath_testenv_setup
-    no_feature_fabricpath
+    vdc_limit_f3_no_intf_needed(:set)
+    return unless @@pre_clean_needed
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
+    remove_fabricpath_globals
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    # teardown runs at the end of each test
-    no_feature_fabricpath
+    remove_fabricpath_globals
+    if first_or_last_teardown
+      vdc_limit_f3_no_intf_needed(:clear)
+      config_no_warn('no feature-set fabricpath')
+    end
     super
   end
 
-  def no_feature_fabricpath
+  def remove_fabricpath_globals
     fg = FabricpathGlobal.globals
     fg.each { |_key, elem| elem.destroy } unless fg.empty?
   end
-
-  #  def no_feature_fabricpath
-  #    # Turn the feature off for a clean test.
-  #    config('no feature-set fabricpath')
-  #  end
-
-  # TESTS
 
   def test_create_destroy
     assert_empty(FabricpathGlobal.globals)

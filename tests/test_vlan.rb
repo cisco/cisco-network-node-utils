@@ -21,18 +21,7 @@ include Cisco
 # TestVlan - Minitest for Vlan node utility
 class TestVlan < CiscoTestCase
   @skip_unless_supported = 'vlan'
-
   @@cleaned = false # rubocop:disable Style/ClassVars
-  def cleanup
-    Vlan.vlans.each do |vlan, obj|
-      # skip reserved vlans
-      next if vlan == '1'
-      next if node.product_id[/N5K|N6K|N7K/] && (1002..1005).include?(vlan.to_i)
-      obj.destroy
-    end
-    interface_ethernet_default(interfaces[0])
-    config_no_warn('no feature vtp')
-  end
 
   def setup
     super
@@ -42,6 +31,17 @@ class TestVlan < CiscoTestCase
 
   def teardown
     cleanup
+  end
+
+  def cleanup
+    remove_all_vlans
+    interface_ethernet_default(interfaces[0])
+    config_no_warn('no feature vtp')
+  end
+
+  def overlay_cleanup
+    config_no_warn('no feature vn-segment-vlan-based')
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
   end
 
   def interface_ethernet_default(intf)
@@ -70,7 +70,7 @@ class TestVlan < CiscoTestCase
     assert_match(/Invalid value.non-numeric/, e.message)
   end
 
-  def test_create_and_destroy
+  def test_create_destroy
     v = Vlan.new(1000)
     vlans = Vlan.vlans
     assert(vlans.key?('1000'), 'Error: failed to create vlan 1000')
@@ -149,34 +149,6 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
-  def test_name_too_long
-    v = Vlan.new(1000)
-    name = 'a' * VLAN_NAME_SIZE
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
-      v.vlan_name = name
-    end
-    ref = cmd_ref.lookup('vlan', 'name')
-    assert(ref, 'Error, reference not found for vlan name')
-    v.destroy
-  end
-
-  def test_name_duplicate
-    # Testbed cleanup
-    v = Vlan.new(1000)
-    v.destroy
-    v = Vlan.new(1001)
-    v.destroy
-    # start test
-    v1 = Vlan.new(1000)
-    v1.vlan_name = 'test'
-    v2 = Vlan.new(1001)
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
-      v2.vlan_name = 'test'
-    end
-    v1.destroy
-    v2.destroy
-  end
-
   def test_state_invalid
     v = Vlan.new(1000)
     assert_raises(CliError) do
@@ -234,32 +206,26 @@ class TestVlan < CiscoTestCase
                                'present on any interfaces')
 
     # Add test vlan to 3 ethernet interfaces
-    vlan_intf_max = 3
-    vlan_intf_list = []
-    Interface.interfaces.each do |name, i|
-      next unless i.name[/ethernet/]
-      interface_ethernet_default(name)
+    vlan_intf_list = interfaces.first(3)
+    vlan_intf_list.each do |intf, i|
+      interface_ethernet_default(intf)
+      i = Interface.new(intf)
       i.switchport_mode = :access
       assert_equal(i.default_access_vlan, i.access_vlan,
-                   "access vlan is not default on #{name}")
+                   "access vlan is not default on #{intf}")
 
       v.add_interface(i)
       assert_equal(vlan_id, i.access_vlan,
-                   "access vlan #{vlan_id} not present on #{name}")
-      vlan_intf_list << name
-      break if vlan_intf_list.count == vlan_intf_max
+                   "access vlan #{vlan_id} not present on #{intf}")
     end
-    count = v.interfaces.count
-    assert_equal(vlan_intf_max, count,
-                 "vlan #{vlan_id} found on #{count} interfaces, "\
-                 "expected #{vlan_intf_max} total")
+    assert_equal(vlan_intf_list.count, v.interfaces.count)
 
     # Remove test vlan from interfaces
-    vlan_intf_list.each do |name|
-      i = Interface.new(name)
+    vlan_intf_list.each do |intf|
+      i = Interface.new(intf)
       v.remove_interface(i)
       assert_equal(i.default_access_vlan, i.access_vlan,
-                   "access vlan #{vlan_id} should not be present on #{name}")
+                   "access vlan #{vlan_id} should not be present on #{intf}")
     end
     assert_empty(v.interfaces, "access vlan #{vlan_id} should not be "\
                                'present on any interfaces')
@@ -290,6 +256,12 @@ class TestVlan < CiscoTestCase
   end
 
   def test_mapped_vnis
+    if validate_property_excluded?('vlan', 'mapped_vni')
+      assert_raises(Cisco::UnsupportedError) do
+        Vlan.new(100).mapped_vni = 10_000
+      end
+      return
+    end
     # Map
     v1 = Vlan.new(100)
     vni1 = 10_000
@@ -343,13 +315,39 @@ class TestVlan < CiscoTestCase
 
   def test_mode_with_pvlan
     v = Vlan.new(1000)
-    if validate_property_excluded?('vlan', 'private_vlan_type') ||
+    if validate_property_excluded?('vlan', 'pvlan_type') ||
        validate_property_excluded?('vlan', 'mode')
-      features = 'private_vlan_type and/or vlan mode'
+      features = 'pvlan_type and/or vlan mode'
       skip("Skip test: Features #{features} are not supported on this device")
     end
     result = 'CE'
-    v.private_vlan_type = 'primary'
+    v.pvlan_type = 'primary'
     assert_equal(result, v.mode)
+  end
+
+  def test_vlan_mode_fabricpath
+    if validate_property_excluded?('vlan', 'mode')
+      assert_raises(Cisco::UnsupportedError) { Vlan.new(2000).mode = 'foo' }
+      return
+    end
+    config_no_warn('no feature vn-segment-vlan-based')
+    config_no_warn('no nv overlay evpn ; no feature nv overlay')
+    # Test for valid mode
+    v = Vlan.new(2000)
+    default = v.default_mode
+    assert_equal(default, v.mode,
+                 'Mode should have been default value: #{default}')
+    v.mode = 'fabricpath'
+    assert_equal(:enabled, v.fabricpath_feature,
+                 'Fabricpath feature should have been enabled')
+    assert_equal('fabricpath', v.mode,
+                 'Mode should have been set to fabricpath')
+
+    # Test for invalid mode
+    v = Vlan.new(100)
+    assert_equal(default, v.mode,
+                 'Mode should have been default value: #{default}')
+
+    assert_raises(CliError) { v.mode = 'junk' }
   end
 end

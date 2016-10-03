@@ -88,6 +88,35 @@ module Cisco
     end
   end
 
+  # Extension of RequestFailed class specifically for YANG errors
+  class YangError < RequestFailed
+    def initialize(message=nil,
+                   error: nil,
+                   rejected_input:   nil,
+                   successful_input: [],
+                   **kwargs)
+      unless message
+        if rejected_input.is_a?(Array)
+          if rejected_input.length > 1
+            message = "The following configs were rejected:\n"
+            message += "  #{rejected_input.join("\n  ")}\n"
+          else
+            message = "The config '#{rejected_input.first}' was rejected "
+          end
+        else
+          message = "The config '#{rejected_input}' was rejected "
+        end
+
+        message += "with error:\n#{error}"
+      end
+      super(message,
+            :error => error,
+            :rejected_input => rejected_input,
+            :successful_input => successful_input,
+            **kwargs)
+    end
+  end
+
   # RequestNotSupported means we made a request that was validly
   # constructed but includes options that are unsupported.
   #

@@ -1,0 +1,91 @@
+# ospf_area
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running ospf | no-more"
+  context:
+    - "router ospf <name>"
+    - "(?)vrf <vrf>"
+
+areas:
+  multiple: true
+  get_value: '/^area\s+(\S+)/'
+
+authentication:
+  # the config can be 'area <area> authentication' or
+  # 'area <area> authentication message-digest' or
+  # no authentication config at all so need to grab the
+  # optional match to get the whole config for checking
+  # the mode
+  get_value: '/^area <area> authentication(?:\s+\S+)?$/'
+  set_value: '<state> area <area> authentication <auth>'
+  default_value: false
+
+default_cost:
+  kind: int
+  get_value: '/^area <area> default-cost (\d+)$/'
+  set_value: '<state> area <area> default-cost <cost>'
+  default_value: 1
+
+filter_list_in:
+  get_value: '/^area <area> filter-list route-map (\S+) in$/'
+  set_value: '<state> area <area> filter-list route-map <route_map> in'
+  default_value: false
+
+filter_list_out:
+  get_value: '/^area <area> filter-list route-map (\S+) out$/'
+  set_value: '<state> area <area> filter-list route-map <route_map> out'
+  default_value: false
+
+nssa:
+  kind: boolean
+  default_value: false
+
+nssa_default_originate:
+  kind: boolean
+  default_value: false
+
+nssa_destroy:
+  set_value: 'no area <area> nssa'
+
+nssa_get:
+  multiple: true
+  get_value: '/^area <area> nssa(.*)$/'
+
+nssa_no_redistribution:
+  kind: boolean
+  default_value: false
+
+nssa_no_summary:
+  kind: boolean
+  default_value: false
+
+nssa_route_map:
+  default_value: ''
+
+nssa_set:
+  set_value: '<state> area <area> nssa <nssa_no_summary> <nssa_no_redistribution> <nssa_default_originate> <nssa_route_map>'
+
+nssa_translate_type7:
+  get_value: '/^area <area> nssa translate type7 (.*)$/'
+  set_value: '<state> area <area> nssa translate type7 <value>'
+  default_value: false
+
+range:
+  multiple: true
+  get_value: '/^area <area> range (.*)$/'
+  set_value: '<state> area <area> range <ip> <not_advertise> <cost> <value>'
+  default_value: []
+
+stub:
+  kind: boolean
+  get_value: '/^area <area> stub/'
+  set_value: '<state> area <area> stub'
+  default_value: false
+
+stub_no_summary:
+  kind: boolean
+  get_value: '/^area <area> stub no-summary$/'
+  set_value: '<state> area <area> stub no-summary'
+  default_value: false

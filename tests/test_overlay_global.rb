@@ -25,11 +25,15 @@ class TestOverlayGlobal < CiscoTestCase
 
   def setup
     super
-    vxlan_linecard?
-    vdc_lc_state('f3')
+    vdc_limit_f3_no_intf_needed(:set)
     config_no_warn('no feature fabric forwarding')
     config_no_warn('no nv overlay evpn')
-    config_no_warn('l2rib dup-host-mac-detection default')
+  end
+
+  def teardown
+    config_no_warn('no feature fabric forwarding')
+    config_no_warn('no nv overlay evpn')
+    vdc_limit_f3_no_intf_needed(:clear) if first_or_last_teardown
   end
 
   def test_dup_host_ip_addr_detection
@@ -42,9 +46,10 @@ class TestOverlayGlobal < CiscoTestCase
       return
     end
 
-    # Before enabling 'nv overlay evpn', these properties do not exist
-    assert_nil(o.dup_host_ip_addr_detection_host_moves)
-    assert_nil(o.dup_host_ip_addr_detection_timeout)
+    assert_equal(o.default_dup_host_ip_addr_detection_host_moves,
+                 o.dup_host_ip_addr_detection_host_moves)
+    assert_equal(o.default_dup_host_ip_addr_detection_timeout,
+                 o.dup_host_ip_addr_detection_timeout)
 
     # Set them to the default value and they should now be present
     default = [o.default_dup_host_ip_addr_detection_host_moves,
@@ -64,11 +69,6 @@ class TestOverlayGlobal < CiscoTestCase
 
   def test_dup_host_mac_detection
     o = OverlayGlobal.new
-    # These properties always exist, even without 'nv overlay evpn'
-    default = [o.default_dup_host_mac_detection_host_moves,
-               o.default_dup_host_mac_detection_timeout]
-    assert_equal(default, o.dup_host_mac_detection)
-    refute(Feature.nv_overlay_evpn_enabled?)
 
     # Set to a non-default value
     val = [160, 16]
@@ -76,12 +76,9 @@ class TestOverlayGlobal < CiscoTestCase
     assert_equal(val, o.dup_host_mac_detection)
     refute(Feature.nv_overlay_evpn_enabled?)
 
-    # Use the special defaulter method
-    o.dup_host_mac_detection_default
-    assert_equal(default, o.dup_host_mac_detection)
-    refute(Feature.nv_overlay_evpn_enabled?)
-
-    # Set explicitly to default too
+    # These properties always exist, even without 'nv overlay evpn'
+    default = [o.default_dup_host_mac_detection_host_moves,
+               o.default_dup_host_mac_detection_timeout]
     o.dup_host_mac_detection_set(*default)
     assert_equal(default, o.dup_host_mac_detection)
     refute(Feature.nv_overlay_evpn_enabled?)
@@ -94,8 +91,7 @@ class TestOverlayGlobal < CiscoTestCase
       return
     end
 
-    # Before enabling 'nv overlay evpn', this property does not exist
-    assert_nil(o.anycast_gateway_mac)
+    assert_equal(o.default_anycast_gateway_mac, o.anycast_gateway_mac)
 
     # Explicitly set to default and it should be enabled
     o.anycast_gateway_mac = o.default_anycast_gateway_mac

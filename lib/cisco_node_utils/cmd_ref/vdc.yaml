@@ -16,6 +16,10 @@ all_vdcs:
   get_context: ~
   get_value: '/^vdc (\S+) id/'
 
+allocate_interface:
+  get_value: '/^allocate interface (.*)/'
+  default_value: ~
+
 allocate_interface_unallocated:
   kind: boolean
   set_value: 'allocate interface unallocated-interfaces'

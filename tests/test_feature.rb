@@ -22,6 +22,27 @@ include Cisco
 class TestFeature < CiscoTestCase
   @skip_unless_supported = 'feature'
 
+  def teardown
+    # f3 cleanup for non-f3 N7k's
+    vdc_limit_f3_no_intf_needed(:clear) if first_or_last_teardown
+
+    ['no nv overlay evpn',
+     'no feature bfd',
+     'no feature bgp',
+     'no feature dhcp',
+     'no feature fabric forwarding',
+     'no feature-set fex',
+     'no feature itd',
+     'no feature nv overlay',
+     'no feature ospf',
+     'no feature pim',
+     'no feature private-vlan',
+     'no feature tacacs',
+     'no feature vn-segment-vlan-based',
+     'no feature vni',
+     'no feature vtp'].each { |f| config_no_warn(f) }
+  end
+
   ###########
   # Helpers #
   ###########
@@ -33,6 +54,7 @@ class TestFeature < CiscoTestCase
 
     if ref
       feat_str = Regexp.last_match[1]
+      refute_nil(feat_str)
     else
       skip("'feature','#{feat}' is unsupported on this node")
     end
@@ -62,8 +84,17 @@ class TestFeature < CiscoTestCase
   ###################
   # Feature tests   #
   ###################
+
+  def test_bfd
+    feature('bfd')
+  end
+
   def test_bgp
     feature('bgp')
+  end
+
+  def test_dhcp
+    feature('dhcp')
   end
 
   def test_fabric_forwarding
@@ -85,12 +116,7 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
       return
     end
-
-    # Dependency setup
-    vxlan_linecard?
-    vdc_lc_state('f3')
-    config_no_warn('no feature-set fabricpath')
-
+    vdc_limit_f3_no_intf_needed(:set)
     feature('nv_overlay')
   end
 
@@ -100,9 +126,8 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_evpn_enable }
       return
     end
-    vxlan_linecard?
-    vdc_lc_state('f3')
 
+    vdc_limit_f3_no_intf_needed(:set)
     # nv_overlay_evpn can't use the 'feature' helper so test it explicitly here
     # Get current state of feature, then disable it
     pre_clean_enabled = Feature.nv_overlay_evpn_enabled?
@@ -144,15 +169,12 @@ class TestFeature < CiscoTestCase
   end
 
   def test_vni
-    # Dependency setup
-    vxlan_linecard?
-    vdc_lc_state('f3')
-
     if node.product_id[/N(5|6)/]
       Feature.nv_overlay_enable
     else
       # vni can't be removed if nv overlay is present
       config_no_warn('no feature nv overlay')
+      vdc_limit_f3_no_intf_needed(:set)
     end
     feature('vni')
   rescue RuntimeError => e
@@ -173,10 +195,10 @@ class TestFeature < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { Feature.fabric_enable }
       return
     end
+    vdc_limit_f3_no_intf_needed(:set)
     fs = 'feature-set fabric'
     # Get current state of the feature-set
     feature_set_installed = Feature.fabric_installed?
-    feature_enabled = Feature.fabric_enabled?
 
     config("no #{fs} ; no install #{fs}") if feature_set_installed
     refute_show_match(
@@ -187,10 +209,6 @@ class TestFeature < CiscoTestCase
 
     Feature.fabric_enable
     assert(Feature.fabric_enabled?, "(#{fs}) is not enabled")
-
-    # Return testbed to pre-clean state
-    config("no #{fs}") unless feature_enabled
-    config("no install #{fs}") unless feature_set_installed
   end
 
   def test_feature_set_fex

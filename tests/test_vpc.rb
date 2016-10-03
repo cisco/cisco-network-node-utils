@@ -368,10 +368,16 @@ class TestVpc < CiscoTestCase
     interface_pc.switchport_mode = :trunk
     refute(interface_pc.vpc_peer_link,
            'vpc_peer_link should not be set by default')
-    interface_pc.vpc_peer_link = true
-    assert(interface_pc.vpc_peer_link, 'vpc_peer_link should be set')
-    interface_pc.vpc_peer_link = false
-    refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
+    begin
+      # vpc peer-link has linecard limitations
+      interface_pc.vpc_peer_link = true
+      assert(interface_pc.vpc_peer_link, 'vpc_peer_link should be set')
+      interface_pc.vpc_peer_link = false
+      refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
+    rescue RuntimeError => e
+      raise unless e.message[/Interface needs to be 10G to act as a peer-link/]
+    end
+
     # clean up
     interface.channel_group = false
     refute(interface.channel_group, 'channel group should be unset')

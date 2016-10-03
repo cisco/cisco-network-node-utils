@@ -87,9 +87,7 @@ class TestVtp < CiscoTestCase
     assert_raises(ArgumentError) { vtp_domain(nil) }
     assert_raises(ArgumentError) { vtp_domain('') }
 
-    # Create the same domain twice
     vtp = vtp_domain('accounting')
-    assert_raises(Cisco::CliError) { vtp_domain('accounting') }
 
     # Set password to nil
     assert_raises(TypeError) { vtp.password = nil }
@@ -176,7 +174,12 @@ class TestVtp < CiscoTestCase
     end
   end
 
+  # this fails on n7k running 7.3(0)D1.1 image but it
+  # is fixed in later releases. The bugID is CSCuy87970
+  # which is already verified.
   def test_password_special_characters
+    skip_legacy_defect?('7.3.0.(N1|D1).1.bin',
+                        'CSCuy87970: NXAPI incorrect backslash escape')
     vtp = vtp_domain('password')
     vtp.password = 'hello!//\\#%$x'
     assert_equal('hello!//\\#%$x', vtp.password)

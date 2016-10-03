@@ -13,6 +13,12 @@ auto_cost:
   set_value: "auto-cost reference-bandwidth <cost> <type>"
   default_value: [40, "Gbps"]
 
+bfd:
+  kind: boolean
+  get_value: '/^bfd$/'
+  set_value: '<state> bfd'
+  default_value: false
+
 default_metric:
   kind: int
   get_value: '/^default-metric (\d+)?$/'

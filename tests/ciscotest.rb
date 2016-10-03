@@ -16,10 +16,11 @@ require 'ipaddr'
 require 'resolv'
 require_relative 'basetest'
 require_relative 'platform_info'
+require_relative '../lib/cisco_node_utils/bridge_domain'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/node'
+require_relative '../lib/cisco_node_utils/platform'
 require_relative '../lib/cisco_node_utils/vlan'
-require_relative '../lib/cisco_node_utils/bridge_domain'
 
 include Cisco
 
@@ -29,7 +30,8 @@ class CiscoTestCase < TestCase
   @@node = nil
   @@interfaces = nil
   @@interfaces_id = nil
-  # rubocop:enable Style/ClassVars
+  @@testcases = []
+  @@testcase_teardowns = 0
 
   # The feature (lib/cisco_node_utils/cmd_ref/<feature>.yaml) that this
   # test case is associated with, if applicable.
@@ -43,6 +45,7 @@ class CiscoTestCase < TestCase
   end
 
   def self.runnable_methods
+    @@testcases = super
     return super if skip_unless_supported.nil?
     return super if node.cmd_ref.supports?(skip_unless_supported)
     # If the entire feature under test is unsupported,
@@ -51,6 +54,20 @@ class CiscoTestCase < TestCase
     remove_method :teardown if instance_methods(false).include?(:teardown)
     [:all_skipped]
   end
+
+  def first_or_last_teardown
+    # Return true if this is the first or last teardown call.
+    # This hack is needed to prevent excessive post-test cleanups from
+    # occurring: e.g. a non-F3 N7k test class may require an expensive setup
+    # and teardown to enable/disable vdc settings; ideally this vdc setup
+    # would occur prior to the first test and vdc teardown only after the
+    # final test. Checks for first test case because we have to handle the
+    # -n option, which filters the list of runnable testcases.
+    # Note that Minitest.after_run is not a solution for this problem.
+    @@testcase_teardowns += 1
+    (@@testcase_teardowns == 1) || (@@testcase_teardowns == @@testcases.size)
+  end
+  # rubocop:enable Style/ClassVars
 
   def all_skipped
     skip("Skipping #{self.class}; feature " \
@@ -100,12 +117,17 @@ class CiscoTestCase < TestCase
 
   def config_and_warn_on_match(warn_match, *args)
     if node.client.platform == :ios_xr
-      result = super(warn_match, *args, 'commit best-effort')
+      result = super(warn_match, *args, 'commit')
     else
       result = super
     end
     node.cache_flush
     result
+  end
+
+  # Check exception and only fail if it does not contain message
+  def check_and_raise_error(exception, message)
+    fail exception unless exception.message.include?(message)
   end
 
   def ip_address?(ip)
@@ -139,6 +161,13 @@ class CiscoTestCase < TestCase
     flunk(message)
   end
 
+  def incompatible_interface?(msg)
+    patterns = ['switchport_mode is not supported on this interface',
+                'Configuration does not match the port capability']
+    assert_match(Regexp.union(patterns), msg,
+                 'Msg does not match known incompatibility messages')
+  end
+
   def validate_property_excluded?(feature, property)
     !node.cmd_ref.supports?(feature, property)
   end
@@ -148,13 +177,22 @@ class CiscoTestCase < TestCase
       Utils.nexus_i2_image
   end
 
+  def system_image
+    @image ||= Platform.system_image
+  end
+
+  def skip_legacy_defect?(pattern, msg)
+    msg = "Defect in legacy image: [#{msg}]"
+    skip(msg) if system_image.match(Regexp.new(pattern))
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
       # rubocop:disable Style/ClassVars
       @@interfaces = []
       Interface.interfaces.each do |int, obj|
-        next unless /ethernet/.match(int)
+        next unless int[%r{ethernet[\d/]+$}] # exclude dot1q & non-eth
         next if address_match?(obj.ipv4_address)
         @@interfaces << int
       end
@@ -163,19 +201,6 @@ class CiscoTestCase < TestCase
     skip "No suitable interfaces found on #{node} for this test" if
       @@interfaces.empty?
     @@interfaces
-  end
-
-  def interfaces_id
-    unless @@interfaces_id
-      # rubocop:disable Style/ClassVars
-      @@interfaces_id = []
-      interfaces.each do |interface|
-        id = interface.split('ethernet')[1]
-        @@interfaces_id << id
-      end
-      # rubocop:enable Style/ClassVars
-    end
-    @@interfaces_id
   end
 
   # Remove all router bgps.
@@ -202,8 +227,16 @@ class CiscoTestCase < TestCase
   # This testcase will remove all the bds existing in the system
   # specifically in cleanup for minitests
   def remove_all_bridge_domains
-    config 'system bridge-domain none' if /N7/ =~ node.product_id
+    return unless /N7/ =~ node.product_id
     BridgeDomain.bds.each do |_bd, obj|
+      obj.destroy
+    end
+    config 'system bridge-domain none'
+  end
+
+  def remove_all_svis
+    Interface.interfaces(:vlan).each do |svi, obj|
+      next if svi == 'vlan1'
       obj.destroy
     end
   end
@@ -212,6 +245,7 @@ class CiscoTestCase < TestCase
   # specifically in cleanup for minitests
   def remove_all_vlans
     remove_all_bridge_domains
+    remove_all_svis
     Vlan.vlans.each do |vlan, obj|
       # skip reserved vlan
       next if vlan == '1'
@@ -225,6 +259,8 @@ class CiscoTestCase < TestCase
     require_relative '../lib/cisco_node_utils/vrf'
     Vrf.vrfs.each do |vrf, obj|
       next if vrf[/management/]
+      # TBD: Remove vrf workaround below after CSCuz56697 is resolved
+      config 'vrf context ' + vrf if node.product_id[/N8/]
       obj.destroy
     end
   end
@@ -233,6 +269,86 @@ class CiscoTestCase < TestCase
   def interface_cleanup(intf_name)
     cfg = get_interface_cleanup_config(intf_name)
     config(*cfg)
+  end
+
+  # TBD: -- The following methods are a WIP --
+  #
+  # def find_compatible_intf(feature, opt=:raise_skip)
+  #   # Some platforms require specific linecards before allowing a feature to
+  #   # be enabled. This method will find a compatible interface or optionally
+  #   # raise a skip.
+  #   # TBD: This wants to become a common "compatible interface" checker to
+  #   # eventually replace all of the single-use methods.
+  #   intf = compatible_intf(feature)
+  #   if intf.nil? && opt[/raise_skip/]
+  #     skip("Unable to find compatible interface for 'feature #{feature}'")
+  #   end
+  #   intf
+  # end
+
+  # def compatible_intf(feature)
+  #   # The feat hash contains module restrictions for a given feature.
+  #   #  :mods - (optional) The module ids used in the 'limit-resource' config
+  #   #  :pids - A regex pattern for the line module product IDs (ref: 'sh mod')
+  #   feat = {}
+  #   if node.product_id[/N7K/]
+  #     feat = {
+  #       # nv overlay raises error unless solely F3
+  #       'nv overlay' => { mods: 'f3', pids: 'N7[K7]-F3' }
+  #     }
+  #   end
+  #   patterns = feat[feature]
+  #   return interfaces[0] if patterns.nil? #  No restrictions for this platform
+
+  #   # Check if module is present and usable; i.e. 'ok'
+  #   pids = patterns[:pids]
+  #   sh_mod_string = @device.cmd("show mod | i '^[0-9]+.*#{pids}.*ok'")
+  #   sh_mod = sh_mod_string[/^(\d+)\s.*#{pids}/]
+  #   slot = sh_mod.nil? ? nil : Regexp.last_match[1]
+  #   return nil if slot.nil?
+  #   intf = "ethernet#{slot}/1"
+
+  #   # Check/Set VDC config. VDC platforms restrict module usage per vdc.
+  #   mods = patterns[:mods]
+  #   return intf if mods.nil? || !node.product_id[/N7K/]
+  #   vdc = Vdc.new(Vdc.default_vdc_name)
+  #   unless mods == vdc.limit_resource_module_type
+  #     # Update the allowed module types in this vdc
+  #     vdc.limit_resource_module_type = mods
+  #   end
+
+  #   # Return the first interface found in 'allocate interface' config, or nil
+  #   vdc.allocate_interface[%r{Ethernet#{slot}\/(\d+)}]
+  # end
+
+  def vdc_limit_f3_no_intf_needed(action=:set)
+    # This is a special-use method for N7Ks that don't have a physical F3.
+    #  1) There are some features that refuse to load unless the VDC is
+    #     limited to F3 only, but they will actually load if the config is
+    #     present, despite the fact that there are no physical F3s.
+    #  2) We have some tests that need these features but don't need interfaces.
+    #
+    # action = :set (enable limit F3 config), :clear (default limit config)
+    #
+    # The limit config should be removed after testing if the device does not
+    # have an actual F3.
+    return unless node.product_id[/N7K/]
+    vdc = Vdc.new(Vdc.default_vdc_name)
+    case action
+    when :set
+      return if vdc.limit_resource_module_type == 'f3'
+      vdc.limit_resource_module_type = 'f3'
+
+    when :clear
+      # Remove the config if there are no physical F3 cards
+      pids = 'N7[K7]-F3'
+      sh_mod_string = @device.cmd("show mod | i '^[0-9]+.*#{pids}'")
+      sh_mod = sh_mod_string[/^(\d+)\s.*#{pids}/]
+      if sh_mod.nil?
+        # It's safe to remove the config
+        vdc.limit_resource_module_type = ''
+      end
+    end
   end
 
   # setup fabricpath env if possible and populate the interfaces array
@@ -291,9 +407,10 @@ class CiscoTestCase < TestCase
     #   '9  12  10/40 Gbps Ethernet Module  N77-F312FQ-25 ok'
     #   '2   6  Nexus 6xQSFP Ethernet Module  N5K-C5672UP-M6Q ok'
     #   '2   6  Nexus xxQSFP Ethernet Module  N6K-C6004-96Q/EF ok'
+    #   '2   4  Nexus 4xQSFP Ethernet Module  N6K-C6001-M4Q ok'
     if node.product_id[/N(5|6)K/]
       sh_mod_string = @device.cmd("sh mod | i '^[0-9]+.*N[56]K-C[56]'")
-      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|6004)/]
+      sh_mod = sh_mod_string[/^(\d+)\s.*N[56]K-C(56|600[14])/]
       skip('Unable to find compatible interface in chassis') if sh_mod.nil?
     elsif node.product_id[/N7K/]
       mt_full_interface?

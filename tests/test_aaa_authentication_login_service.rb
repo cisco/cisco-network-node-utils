@@ -20,14 +20,13 @@ AAA_AUTH_LOGIN_SERVICE_METHOD_LOCAL = :local
 AAA_AUTH_LOGIN_SERVICE_METHOD_UNSELECTED = :unselected
 
 # Test class for AAA Authentication Login Service
-class TestAaaAuthenticationLoginService < CiscoTestCase
+class TestAaaAuthenLoginSvc < CiscoTestCase
   @skip_unless_supported = 'aaa_auth_login_service'
 
   def setup
     super
-    # TBD: Remove once CSCuz44696 is resolved.
-    skip('This test is not currently supported on 7.0(3)I3 images') if
-      node.os_version[/7.0\(3\)I3\(/]
+    skip_legacy_defect?('7.0.3.I3.1',
+                        'CSCuz44696: Cannot configure aaa group server tacacs')
   end
 
   def unconfig_tacacs
@@ -85,13 +84,12 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
       aaaauthloginservice.nil?
   end
 
-  def test_collection_with_service_default
+  # Test with service default
+  def test_collection_svc_def
     unconfig_aaa
     aaaauthloginservice_list = AaaAuthenticationLoginService.services
     refute_empty(aaaauthloginservice_list,
                  'Error: service collection is not filled')
-    assert_equal(1, aaaauthloginservice_list.size,
-                 'Error:  collection not reporting correct ')
     assert(aaaauthloginservice_list.key?('default'),
            'Error:  collection does contain default')
     aaaauthloginservice_list.each do |name, aaaauthloginservice|
@@ -107,7 +105,8 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     aaaauthloginservices_default
   end
 
-  def test_collection_with_service_default_and_console
+  # Test with service default and console
+  def test_collection_svc_def_con
     unconfig_aaa
     # preconfig console
     config('aaa authentication login console none')
@@ -143,7 +142,8 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     aaaauthloginservices_default
   end
 
-  def test_collection_with_service_default_and_console_with_group
+  # Test with service default and console with group
+  def test_collection_svc_def_con_grp
     # preconfig servers
     servers = %w(group1 group2)
     config_tacacs_servers(servers)
@@ -654,13 +654,6 @@ class TestAaaAuthenticationLoginService < CiscoTestCase
     aaaauthloginservice.groups_method_set(groups, method)
     assert_show_match(command: 'show run aaa all | no-more',
                       pattern: Regexp.new(prefix + groups.join(' ')))
-
-    # default group and method
-    method = aaaauthloginservice.default_method
-    groups = aaaauthloginservice.default_groups
-    aaaauthloginservice.groups_method_set(groups, method)
-    refute_show_match(command: 'show run aaa all | no-more',
-                      pattern: /^aaa authentication login console local/)
 
     aaaauthloginservice_detach(aaaauthloginservice)
     unconfig_tacacs

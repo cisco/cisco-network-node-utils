@@ -20,7 +20,7 @@ require File.expand_path('../../lib/cisco_node_utils/radius_server_group', \
                          __FILE__)
 
 # TestRadiusServerGroup - Minitest for RadiusServerGroup node utility.
-class TestRadiusServerGroup < CiscoTestCase
+class TestRadiusSvrGrp < CiscoTestCase
   @skip_unless_supported = 'radius_server_group'
 
   def setup

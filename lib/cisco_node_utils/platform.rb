@@ -28,7 +28,7 @@ module Cisco
 
     # ex: 'n3500-uk9.6.0.2.A3.0.40.bin'
     def self.system_image
-      config_get('show_version', 'boot_image')
+      config_get('show_version', 'system_image')
     end
 
     # Returns package hash with state values
@@ -188,7 +188,14 @@ module Cisco
     #                            'cpu'      => '0% system CPU' }},
     #      { ... }}
     def self.virtual_services
-      virts = config_get('virtual_service', 'services')
+      # If no virtual-services are installed, this will result
+      # in a RuntimeError.  We need to rescue this specific case.
+      begin
+        virts = config_get('virtual_service', 'services')
+      rescue RuntimeError => e
+        return {} if e.message[/No key \"TABLE_detail\"/]
+        raise
+      end
       return {} if virts.nil?
       # NXAPI returns hash instead of array if there's only 1
       virts = [virts] if virts.is_a? Hash

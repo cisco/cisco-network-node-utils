@@ -65,6 +65,12 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    def allocate_interface
+      # TBD: This property is only partially implemented because it is currently
+      # only used for minitest & beaker.
+      config_get('vdc', 'allocate_interface', vdc: @vdc)
+    end
+
     def limit_resource_module_type
       str = config_get('vdc', 'limit_resource_module_type', vdc: @vdc)
       str.strip! unless str.nil?
@@ -72,13 +78,25 @@ module Cisco
 
     def limit_resource_module_type=(mods)
       state = mods.empty? ? 'no' : ''
-      config_set('vdc', 'limit_resource_module_type',
-                 state: state, vdc: @vdc, mods: mods)
+      begin
+        # limit-resource commands are time-consuming and process in the
+        # background. Back-to-back LR commands may fail if processed too
+        # quickly.
+        config_set('vdc', 'limit_resource_module_type',
+                   state: state, vdc: @vdc, mods: mods)
 
-      # TBD: No interfaces are allocated after changing the module-type
-      # so 'allocate' is needed to make this useful. Consider moving
-      # this into it's own property.
-      config_set('vdc', 'allocate_interface_unallocated', vdc: @vdc)
+        # TBD: No interfaces are allocated after changing the module-type
+        # so 'allocate' is needed to make this useful. Consider moving
+        # this into it's own property.
+        config_set('vdc', 'allocate_interface_unallocated', vdc: @vdc)
+
+      rescue CliError => e
+        count ||= 1
+        if e.message[/VDC is not in active state/] && (count += 1) < 10
+          retry
+        end
+        raise
+      end
     end
 
     def default_limit_resource_module_type

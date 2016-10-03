@@ -139,6 +139,30 @@ class TestInterfaceOspf < CiscoTestCase
                      interface.dead_interval,
                      'Error: get dead interval failed')
         assert_equal(node.config_get_default('interface_ospf',
+                                             'bfd'),
+                     interface.bfd,
+                     'Error: bfd get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'mtu_ignore'),
+                     interface.mtu_ignore,
+                     'Error: mtu_ignore get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'priority'),
+                     interface.priority,
+                     'Error: priority get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'network_type_default'),
+                     interface.network_type,
+                     'Error: network type get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'shutdown'),
+                     interface.shutdown,
+                     'Error: shutdown get failed')
+        assert_equal(node.config_get_default('interface_ospf',
+                                             'transmit_delay'),
+                     interface.transmit_delay,
+                     'Error: transmit_delay get failed')
+        assert_equal(node.config_get_default('interface_ospf',
                                              'passive_interface'),
                      interface.passive_interface,
                      'Error: passive interface get failed')
@@ -154,13 +178,13 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_create_routerospf_nil
+  def test_routerospf_nil
     assert_raises(TypeError) do
       InterfaceOspf.new(interfaces[0], nil, '0.0.0.0')
     end
   end
 
-  def test_create_interface_name_zero_length
+  def test_name_zero_length
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
@@ -168,7 +192,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_create_interface_area_zero_length
+  def test_area_zero_length
     name = 'ospfTest'
     ospf = RouterOspf.new(name)
     assert_raises(ArgumentError) do
@@ -176,7 +200,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_routerospf_create_valid
+  def test_routerospf
     ospf = create_routerospf
     ifname = interfaces[1]
     area = '0.0.0.0'
@@ -211,17 +235,35 @@ class TestInterfaceOspf < CiscoTestCase
     refute_show_match(pattern: /^\s+ip ospf dead-interval \S+/,
                       msg:     "'dead-interval' not removed")
 
+    refute_show_match(pattern: /^\s+ip ospf bfd \S+/,
+                      msg:     "'bfd' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf mtu-ignore \S+/,
+                      msg:     "'mtu_ignore' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf shutdown \S+/,
+                      msg:     "'shutdown' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf transmit-delay \S+/,
+                      msg:     "'transmit_delay' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf priority \S+/,
+                      msg:     "'priority' not removed")
+
+    refute_show_match(pattern: /^\s+ip ospf network point-to-point/,
+                      msg:     "'network_type' not removed")
+
     refute_show_match(pattern: /^\s+ip ospf passive-interface/,
                       msg:     "'passive interface' not removed")
   end
 
-  def test_routerospf_get_parent
+  def test_get_parent
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     assert_equal(ospf.name, interface.ospf_name)
   end
 
-  def test_cost_invalid_range
+  def test_cost_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     # upper range
@@ -250,7 +292,7 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'Error: default cost set failed')
   end
 
-  def test_hello_interval_invalid_range
+  def test_hello_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     # upper range
@@ -263,7 +305,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_hello_interval
+  def test_hello
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     interval = 90
@@ -280,7 +322,7 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'Error: default hello-interval set failed')
   end
 
-  def test_dead_interval_invalid_range
+  def test_dead_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
@@ -297,7 +339,7 @@ class TestInterfaceOspf < CiscoTestCase
     end
   end
 
-  def test_dead_interval
+  def test_dead
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
     interval = 150
@@ -314,7 +356,51 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     'Error: default dead-interval set failed')
   end
 
-  def test_passive_interface
+  def test_bfd
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_bfd, interface.bfd)
+    interface.bfd = true
+    assert_equal(true, interface.bfd)
+    interface.bfd = false
+    assert_equal(false, interface.bfd)
+    interface.bfd = interface.default_bfd
+    assert_equal(interface.default_bfd, interface.bfd)
+  end
+
+  def test_mtu_ignore
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_mtu_ignore, interface.mtu_ignore)
+    interface.mtu_ignore = true
+    assert_equal(true, interface.mtu_ignore)
+    interface.mtu_ignore = interface.default_mtu_ignore
+    assert_equal(interface.default_mtu_ignore, interface.mtu_ignore)
+  end
+
+  def test_network_type
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+
+    assert_equal(interface.default_network_type, interface.network_type)
+    interface.network_type = 'p2p'
+    assert_equal('p2p', interface.network_type)
+    interface.network_type = interface.default_network_type
+    assert_equal(interface.default_network_type, interface.network_type)
+
+    # setup a loopback to use
+    config('interface loopback12')
+    interface = InterfaceOspf.new('loopback12', '12', '0.0.0.0')
+    assert_equal(interface.default_network_type, interface.network_type)
+    interface.network_type = 'p2p'
+    assert_equal('p2p', interface.network_type)
+    interface.network_type = interface.default_network_type
+    assert_equal(interface.default_network_type, interface.network_type)
+    # cleanup
+    config('no interface loopback12')
+  end
+
+  def test_passive
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
@@ -331,7 +417,37 @@ class TestInterfaceOspf < CiscoTestCase
                       msg:     'default passive interface set failed')
   end
 
-  def test_create_valid_multiple
+  def test_priority
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_priority, interface.priority)
+    interface.priority = 100
+    assert_equal(100, interface.priority)
+    interface.priority = interface.default_priority
+    assert_equal(interface.default_priority, interface.priority)
+  end
+
+  def test_shutdown
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_shutdown, interface.shutdown)
+    interface.shutdown = true
+    assert_equal(true, interface.shutdown)
+    interface.shutdown = interface.default_shutdown
+    assert_equal(interface.default_shutdown, interface.shutdown)
+  end
+
+  def test_transmit_delay
+    ospf = create_routerospf
+    interface = create_interfaceospf(ospf)
+    assert_equal(interface.default_transmit_delay, interface.transmit_delay)
+    interface.transmit_delay = 400
+    assert_equal(400, interface.transmit_delay)
+    interface.transmit_delay = interface.default_transmit_delay
+    assert_equal(interface.default_transmit_delay, interface.transmit_delay)
+  end
+
+  def test_mult
     # ospf and interfaces[0]
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
@@ -339,7 +455,6 @@ class TestInterfaceOspf < CiscoTestCase
       pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
       msg:     "'ip router ospf #{ospf.name} default area' not configured")
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     create_interfaceospf(ospf, ifname, area)
@@ -348,12 +463,11 @@ class TestInterfaceOspf < CiscoTestCase
       msg:     "'ip router ospf #{ospf.name} area #{area}' is not configured")
   end
 
-  def test_create_multiple_delete_one
+  def test_mult_delete_one
     # ospf and interfaces[0]
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 
-    # ospf and interfaces_id[2]
     ifname = interfaces[2]
     area = '1.1.1.1'
     interface1 = create_interfaceospf(ospf, ifname, area)
@@ -361,7 +475,6 @@ class TestInterfaceOspf < CiscoTestCase
                  "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                  'not configured')
 
-    # delete ospf instance from interfaces_id[2]
     interface1.destroy
     refute_show_match(
       command: show_cmd(ifname),
@@ -389,9 +502,14 @@ class TestInterfaceOspf < CiscoTestCase
         end
         # puts "k1: #{k1}, k:  #{k},   area   #{v1[:area]}"
         cfg << "ip router ospf #{k} area #{v1[:area]}"
+        cfg << 'ip ospf bfd' if v1[:bfd]
+        cfg << 'ip ospf bfd disable' if v1[:bfd] == false
+        cfg << 'no ip ospf bfd' if v1[:bfd].nil?
         cfg << "ip ospf cost #{v1[:cost]}" unless v1[:cost] == 0
         cfg << "ip ospf hello-interval #{v1[:hello]}" unless v1[:hello].nil?
         cfg << "ip ospf dead-interval #{v1[:dead]}" unless v1[:dead].nil?
+        cfg << 'ip ospf network point-to-point' if v1[:net] == 'p2p'
+        cfg << 'no ip ospf network' if v1[:net] == 'broadcast'
         cfg << 'ip ospf passive-interface' if !v1[:pass].nil? &&
                                               v1[:pass] == true
         config(*cfg)
@@ -404,37 +522,44 @@ class TestInterfaceOspf < CiscoTestCase
     hash = {
       'ospfTest' => {
         interfaces[0].downcase => {
-          area: '0.0.0.0', cost: 10, hello: 30, dead: 120, pass: true },
+          area: '0.0.0.0', bfd: true, cost: 10, hello: 30,
+          dead: 120, net: 'p2p', pass: true },
         interfaces[1].downcase => {
-          area: '1.1.1.38', dead: 40, pass: false },
+          area: '1.1.1.38', bfd: false, dead: 40, net: 'p2p', pass: false },
         'vlan101'              => {
-          area: '2.2.2.101', cost: 5, hello: 20, dead: 80, pass: true },
+          area: '2.2.2.101', bfd: true, cost: 5, hello: 20, dead: 80,
+          net: 'p2p', pass: true },
       },
       'TestOspfInt' => {
         interfaces[2].downcase => {
           area: '0.0.0.19' },
         'vlan290'              => {
-          area: '2.2.2.29', cost: 200, hello: 30, dead: 120, pass: true },
+          area: '2.2.2.29', bfd: true, cost: 200, hello: 30,
+          dead: 120, net: 'broadcast', pass: true },
         'port-channel100'      => {
-          area: '3.2.2.29', cost: 25, hello: 50, dead: 200, pass: false },
+          area: '3.2.2.29', bfd: false, cost: 25, hello: 50, dead: 200,
+          net: 'p2p', pass: false },
       },
     }
     # rubocop:enable Style/AlignHash
     # Set defaults
     hash.each_key do |name|
       hash[name].each_value do |hv|
+        hv[:bfd] ||= node.config_get_default('interface_ospf', 'bfd')
         hv[:cost] ||= node.config_get_default('interface_ospf', 'cost')
         hv[:hello] ||= node.config_get_default('interface_ospf',
                                                'hello_interval')
         hv[:dead] ||= node.config_get_default('interface_ospf',
                                               'dead_interval')
+        hv[:net] ||= node.config_get_default('interface_ospf',
+                                             'network_type_default')
         hv[:pass] ||= node.config_get_default('interface_ospf',
                                               'passive_interface')
       end
     end
   end
 
-  def test_collection_multiple_interface
+  def test_collect_mult_intf
     s = config('int port-channel 42', 'descr foo')
     known_failure = s[/ERROR:.*port channel not present/]
     refute(known_failure, 'ERROR: port channel not present')
@@ -444,6 +569,7 @@ class TestInterfaceOspf < CiscoTestCase
     # enable feature ospf
     config('no feature ospf',
            'feature ospf',
+           'feature bfd',
            'feature interface-vlan',
            "default interface #{interfaces[0]}",
            "default interface #{interfaces[1]}",
@@ -471,11 +597,14 @@ class TestInterfaceOspf < CiscoTestCase
           msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
+        assert_equal(hv[:bfd], interface.bfd, 'Error: get bfd failed')
         assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
         assert_equal(hv[:hello], interface.hello_interval,
                      'Error: get hello interval failed')
         assert_equal(hv[:dead], interface.dead_interval,
                      'Error: get dead interval failed')
+        assert_equal(hv[:net], interface.network_type,
+                     'Error: network_type get failed')
         assert_equal(hv[:pass], interface.passive_interface,
                      'Error: passive interface get failed')
       end
@@ -484,6 +613,7 @@ class TestInterfaceOspf < CiscoTestCase
 
     # disable feature interface-vlan
     config('no feature interface-vlan')
+    config('no feature bfd')
     # clean up port channel
     ospf_h.each_value do |v|
       v.each_key do |k1|
@@ -577,7 +707,7 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(encr, interface.message_digest_encryption_type)
   end
 
-  def test_message_digest_key_invalid_password
+  def test_message_digest_key_inv
     ospf = create_routerospf
     interface = create_interfaceospf(ospf)
 

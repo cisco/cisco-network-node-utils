@@ -1,6 +1,71 @@
 Changelog
 =========
 
+## [v1.4.0]
+
+### New feature support
+
+#### Cisco Resources
+* Bidirectional Forwarding Detection
+  * bfd (@saichint)
+* Dynamic Host Configuration Protocol
+  * dhcp_relay_global (@saichint)
+* OSPF
+  * ospf_area (@saichint)
+  * ospf_area_vlink (@saichint)
+
+### Added
+
+* Extend interface with attributes:
+   * `bfd_echo`
+   * `ipv4_dhcp_relay_addr`
+   * `ipv4_dhcp_relay_info_trust`
+   * `ipv4_dhcp_relay_src_addr_hsrp`
+   * `ipv4_dhcp_relay_src_intf`
+   * `ipv4_dhcp_relay_subnet_broadcast`
+   * `ipv4_dhcp_smart_relay`
+   * `ipv6_dhcp_relay_addr`
+   * `ipv6_dhcp_relay_src_intf`
+   * `storm_control_broadcast`
+   * `storm_control_multicast`
+   * `storm_control_unicast`
+* Extend interface_ospf with attributes:
+   * `bfd`
+   * `mtu_ignore`
+   * `network_type`
+   * `priority`
+   * `shutdown`
+   * `transmit_delay`
+* Extend interface_portchannel with attributes:
+   * `bfd_per_link`
+* Extend router_ospf_vrf with attributes:
+   * `bfd`
+* Extend bgp_neighbor with attributes:
+   * `bfd`
+
+### Changed
+* Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:
+
+| Old Name | New Name(s) |
+|:---|:---:|
+| `private_vlan_association`                      | `pvlan_association`
+| `private_vlan_type`                             | `pvlan_type`
+
+* Deprecated `interface` private-vlan properties and replaced with new methods. New files `interface_DEPRECATED.rb` and `DEPRECATED.yaml` have been created to store the deprecated methods. The old -> new properties are:
+
+| Old Name | New Name(s) |
+|:---|:---:|
+| `private_vlan_mapping`                          | `pvlan_mapping`
+| `switchport_mode_private_vlan_host`             | `switchport_pvlan_host`, `switchport_pvlan_promiscuous`,
+| `switchport_mode_private_vlan_host_association` | `switchport_pvlan_host_association`
+| `switchport_mode_private_vlan_host_promiscous`  | `switchport_pvlan_mapping`
+| `switchport_mode_private_vlan_trunk_promiscuous`| `switchport_pvlan_trunk_promiscuous`
+| `switchport_mode_private_vlan_trunk_secondary`  | `switchport_pvlan_trunk_secondary`
+| `switchport_private_vlan_association_trunk`     | `switchport_pvlan_trunk_association`
+| `switchport_private_vlan_mapping_trunk`         | `switchport_pvlan_mapping_trunk`
+| `switchport_private_vlan_trunk_allowed_vlan`    | `switchport_pvlan_trunk_allowed_vlan`
+| `switchport_private_vlan_trunk_native_vlan`     | `switchport_pvlan_trunk_native_vlan`
+
 ## [v1.3.0]
 
 ### New feature support
@@ -294,6 +359,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0

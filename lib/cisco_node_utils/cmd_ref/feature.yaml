@@ -5,10 +5,20 @@ _exclude: [ios_xr]
 _template:
   get_command: "show running | i ^feature"
 
+bfd:
+  kind: boolean
+  get_value: '/^feature bfd$/'
+  set_value: "feature bfd"
+
 bgp:
   kind: boolean
   get_value: '/^feature bgp$/'
   set_value: "feature bgp"
+
+dhcp:
+  kind: boolean
+  get_value: '/^feature dhcp$/'
+  set_value: "feature dhcp"
 
 fabric:
   _exclude: [N3k, N8k, N9k]

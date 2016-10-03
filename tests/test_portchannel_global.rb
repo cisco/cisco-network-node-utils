@@ -14,6 +14,7 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/portchannel_global'
+require_relative '../lib/cisco_node_utils/platform'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestPortchannelGlobal < CiscoTestCase
@@ -37,13 +38,18 @@ class TestPortchannelGlobal < CiscoTestCase
     config_no_warn "no port-channel load-balance #{ethernet}"
   end
 
+  def n3k_is_t2?
+    return unless /N3/ =~ node.product_id
+    Platform.chassis['descr'][/(Nexus3000 C31|Nexus 31)/] ? true : false
+  end
+
   def n3k_in_n3k_mode?
     return unless /N3/ =~ node.product_id
     mode = config('show system switch-mode')
     # note: an n3k in n9k mode displays: 'system switch-mode n9k'
     patterns = ['system switch-mode n3k',
-                'Switch mode configuration is not not applicable']
-    mode[Regexp.union(patterns)] ? true : false
+                'Switch mode configuration is not.*applicable']
+    mode.match("#{patterns[0]}|#{patterns[1]}") ? true : false
   end
 
   def create_portchannel_global(name=DEFAULT_NAME)
@@ -113,10 +119,44 @@ class TestPortchannelGlobal < CiscoTestCase
       global.resilient = global.default_resilient
       assert_equal(global.default_resilient, global.resilient)
     end
+  rescue Cisco::CliError => e
+    check_and_raise_error(e, 'This feature is not supported on this platform')
+  end
+
+  def test_load_balance_no_rotate_no_symmetry
+    skip('Test not supported on this platform') unless n3k_in_n3k_mode?
+
+    global = create_portchannel_global
+    global.send(:port_channel_load_balance=,
+                'src-dst', 'ip-only', nil, nil, false, nil, nil)
+    assert_equal('src-dst',
+                 global.bundle_select)
+    assert_equal('ip-only',
+                 global.bundle_hash)
+    assert_equal(false, global.symmetry)
+    global.send(
+      :port_channel_load_balance=,
+      global.default_bundle_select,
+      global.default_bundle_hash,
+      nil,
+      nil,
+      global.default_symmetry,
+      nil,
+      nil)
+    assert_equal(
+      global.default_bundle_select,
+      global.bundle_select)
+    assert_equal(
+      global.default_bundle_hash,
+      global.bundle_hash)
+    assert_equal(
+      global.default_symmetry,
+      global.symmetry)
   end
 
   def test_load_balance_no_rotate
-    skip('Test not supported on this platform') unless n3k_in_n3k_mode?
+    skip('Test not supported on this platform') unless
+      n3k_is_t2? && n3k_in_n3k_mode?
 
     global = create_portchannel_global
     global.send(:port_channel_load_balance=,

@@ -100,7 +100,7 @@ module Cisco
     end
 
     def wait_for_process_initialized
-      return unless node.product_id[/N(5|6)/]
+      return unless node.product_id[/N(5|6|8)/]
 
       # Hack for slow-start platforms which will have setter failures if the
       # bgp instance is still initializing. To see this problem in a sandbox
@@ -462,7 +462,7 @@ module Cisco
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
       if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
+        return 'size_disable' if match[0] == 'no '
         return 'size_' + match[1] if match[1]
       end
       default_event_history_events
@@ -805,7 +805,8 @@ module Cisco
       # N3k I2 images require 'nv overlay evpn' for rd and also require
       # explicit values when removing the rd command. These restrictions are
       # not not needed in I3 and newer images.
-      Feature.nv_overlay_evpn_enable if Utils.nexus_i2_image
+      Feature.nv_overlay_evpn_enable if
+        Utils.nexus_i2_image || node.product_id[/N7/]
 
       if rd == default_route_distinguisher
         return if route_distinguisher.empty?
@@ -867,7 +868,8 @@ module Cisco
 
     # Supress Fib Pending (Getter/Setter/Default)
     def suppress_fib_pending
-      config_get('bgp', 'suppress_fib_pending', @get_args)
+      val = config_get('bgp', 'suppress_fib_pending', @get_args)
+      val.nil? ? false : val
     end
 
     def suppress_fib_pending=(enable)

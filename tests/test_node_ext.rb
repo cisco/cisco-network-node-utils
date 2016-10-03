@@ -326,12 +326,9 @@ class TestNodeExt < CiscoTestCase
   def test_get_last_reset_time
     if validate_property_excluded?('show_version', 'last_reset_time')
       assert_nil(node.last_reset_time)
-      return
+    else
+      refute_nil(node.last_reset_time)
     end
-    assert_output_check(command: 'show version',
-                        pattern: /.*\nLast reset at \d+ usecs after  (.*)\n/,
-                        check:   node.last_reset_time,
-                        msg:     'Error, Last reset time does not match')
   end
 
   def test_get_last_reset_reason
@@ -348,16 +345,9 @@ class TestNodeExt < CiscoTestCase
   def test_get_system_cpu_utilization
     if validate_property_excluded?('system', 'resources')
       assert_nil(node.system_cpu_utilization)
-      return
+    else
+      refute_nil(node.system_cpu_utilization)
     end
-    cpu_utilization = node.system_cpu_utilization
-    md = assert_show_match(
-      command: 'show system resources',
-      pattern: /.*CPU states  :   (\d+\.\d+)% user,   (\d+\.\d+)% kernel/)
-    observed_cpu_utilization = md[1].to_f + md[2].to_f
-    delta = cpu_utilization - observed_cpu_utilization
-    assert(delta > -15.0 && delta < 15.0,
-           "Error: delta #{delta}, not +- 15.0")
   end
 
   def test_get_boot
@@ -379,7 +369,7 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_system
-    if validate_property_excluded?('system', 'resources')
+    if validate_property_excluded?('show_version', 'system_image')
       assert_nil(node.system)
       return
     end
@@ -388,9 +378,17 @@ class TestNodeExt < CiscoTestCase
     # system image file is: bootflash:///n7000-s2-kickstart.7.3.0.D1.1.bin
     # /N(3|8|9)/
     # NXOS image file is: bootflash:///nxos.7.0.3.I3.1.bin
+    # /ios_xr/
+    # xrv9k-xr-6.1.1.19I version=6.1.1.19I [Boot image]
 
-    pattern = /(?:system|NXOS) image file is:\s+(.*)$/
-    assert_output_check(command: 'show version',
+    if platform[/ios_xr/]
+      cmd = 'show install active'
+      pattern = /^\s*(\S*)\s*version.*\[Boot image\]$/
+    else
+      cmd = 'show version'
+      pattern = /(?:system|NXOS) image file is:\s+(.*)$/
+    end
+    assert_output_check(command: cmd,
                         pattern: pattern,
                         check:   node.system,
                         msg:     'Error, System Image does not match')
