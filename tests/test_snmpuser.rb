@@ -14,7 +14,6 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/snmpuser'
-require 'pry'
 
 DEFAULT_SNMP_USER_AUTH_PASSWORD = ''
 DEFAULT_SNMP_USER_PRIV_PASSWORD = ''
