@@ -156,8 +156,7 @@ event_history_detail:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history detail(?: size (\S+))?$/'
   set_value: '<state> event-history detail <size>'
-  auto_default: false
-  default_value: 'size_disable'
+  default_value: 'false'
 
 event_history_errors:
   _exclude: [ios_xr]
@@ -178,8 +177,7 @@ event_history_objstore:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history objstore(?: size (\S+))?$/'
   set_value: '<state> event-history objstore <size>'
-  auto_default: false
-  default_value: 'size_disable'
+  default_value: 'false'
 
 event_history_periodic:
   _exclude: [ios_xr]

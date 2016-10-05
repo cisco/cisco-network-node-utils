@@ -440,13 +440,13 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
-      # This property requires auto_default=false
       if match.is_a?(Array)
         return 'false' if match[0] == 'no '
         if match[1]
           return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
         end
+        return 'true'
       end
       default_event_history_detail
     end
@@ -494,7 +494,7 @@ module Cisco
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
       if match.is_a?(Array)
-        return 'size_disable' if match[0] == 'no '
+        return 'false' if match[0] == 'no '
         if match[1]
           return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
@@ -524,13 +524,13 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_objstore
       match = config_get('bgp', 'event_history_objstore', @get_args)
-      # This property requires auto_default=false
       if match.is_a?(Array)
         return 'false' if match[0] == 'no '
         if match[1]
           return match[1] if match[1][/\A\d+\z/]
           return 'size_' + match[1]
         end
+        return 'true'
       end
       default_event_history_objstore
     end
