@@ -7,6 +7,10 @@ Changelog
 
 ### Added
 
+* Extend bgp with attributes:
+   * `event_history_errors`
+   * `event_history_objstore`
+
 ### Changed
 
 ### Removed
