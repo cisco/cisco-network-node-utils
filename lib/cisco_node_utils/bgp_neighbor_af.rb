@@ -565,7 +565,7 @@ module Cisco
     # sense to split up the individual methods to support them
     def send_community
       val = config_get('bgp_neighbor_af', 'send_community', @get_args)
-      return default_send_community if val.nil?
+      return default_send_community if val.nil? || val.empty?
       platform == :nexus ? send_community_nexus(val) : send_community_xr(val)
     end
 
@@ -573,7 +573,8 @@ module Cisco
     #  NOTE: 'standard' is default but does not nvgen on some platforms
     #  Returns: none, both, extended, or standard
     def send_community_nexus(val)
-      val = val.split.last
+      return 'both' if val.size > 1
+      val = val[0].split.last
       return 'standard' if val[/send-community/] # Workaround
       val
     end
