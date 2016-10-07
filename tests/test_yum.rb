@@ -125,7 +125,7 @@ class TestYum < CiscoTestCase
     assert_raises(Cisco::CliError) do
       Yum.install('bootflash:this_is_not_real.rpm', 'management')
     end
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       Yum.install('also_not_real', 'management')
     end
   end
