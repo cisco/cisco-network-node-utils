@@ -156,14 +156,28 @@ event_history_detail:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history detail(?: size (\S+))?$/'
   set_value: '<state> event-history detail <size>'
-  auto_default: false
-  default_value: 'size_disable'
+  default_value: 'false'
+
+event_history_errors:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history errors(?: size (\S+))?$/'
+  set_value: '<state> event-history errors <size>'
+  default_value: 'size_medium'
 
 event_history_events:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history events(?: size (\S+))?$/'
   set_value: '<state> event-history events <size>'
   default_value: 'size_small'
+
+event_history_events_bytes:
+  default_only: 'size_large'
+
+event_history_objstore:
+  _exclude: [ios_xr]
+  get_value: '/^(no )?event-history objstore(?: size (\S+))?$/'
+  set_value: '<state> event-history objstore <size>'
+  default_value: 'false'
 
 event_history_periodic:
   _exclude: [ios_xr]
