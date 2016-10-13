@@ -168,13 +168,13 @@ route_reflector_client:
   default_value: false
 
 send_community:
+  multiple:
   auto_default: false
   default_value: 'none'
   nexus:
     get_value: '/^send-community(?: .*)?/'
     set_value: '<state> send-community <attr>'
   ios_xr:
-    multiple:
     # XR three seperate commands: send-community-ebgp  send-community-gshut-ebgp
     # and send-extended-community-ebgp
     # send-community-ebgp' and 'send-extended-community-ebgp' are the equivalents
