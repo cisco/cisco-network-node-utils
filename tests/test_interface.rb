@@ -566,6 +566,7 @@ class TestInterface < CiscoTestCase
       assert_raises(Cisco::UnsupportedError) { interface.bfd_echo = false }
       return
     end
+    interface.switchport_mode = :disabled
     assert_equal(interface.default_bfd_echo,
                  interface.bfd_echo)
     interface.bfd_echo = false
