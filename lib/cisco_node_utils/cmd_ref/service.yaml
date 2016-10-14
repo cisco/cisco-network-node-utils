@@ -1,0 +1,26 @@
+# service
+---
+_exclude: [ios_xr]
+
+clear_status:
+  set_value: "clear install status"
+
+delete:
+  set_context: ['terminal dont-ask']
+  set_value: "delete <media><image>"    
+
+delete_boot:
+  set_context: ['terminal dont-ask', 'allow delete boot-image'] 
+  set_value: "delete <media><image>"
+
+save_config:
+  set_value: "copy running-config startup-config"
+
+upgrade:
+  set_context: ['terminal dont-ask']
+  set_value: "install all nxos <media><image>"
+
+upgraded:
+  kind: boolean
+  get_command: 'show install all status'
+  get_value: '/Install has been successful/i'
