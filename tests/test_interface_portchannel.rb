@@ -15,7 +15,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
 require_relative '../lib/cisco_node_utils/interface_portchannel'
-require 'pry'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestInterfacePortChannel < CiscoTestCase
