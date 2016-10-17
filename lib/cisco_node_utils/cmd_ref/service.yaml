@@ -7,10 +7,10 @@ clear_status:
 
 delete:
   set_context: ['terminal dont-ask']
-  set_value: "delete <media><image>"    
+  set_value: "delete <media><image>"
 
 delete_boot:
-  set_context: ['terminal dont-ask', 'allow delete boot-image'] 
+  set_context: ['terminal dont-ask', 'allow delete boot-image']
   set_value: "delete <media><image>"
 
 save_config:
