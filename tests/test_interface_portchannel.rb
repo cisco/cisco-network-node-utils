@@ -94,8 +94,24 @@ class TestInterfacePortChannel < CiscoTestCase
 
   def test_lacp_suspend_individual
     interface = create_port_channel
-    interface.lacp_suspend_individual = false
-    assert_equal(false, interface.lacp_suspend_individual)
+
+    # Create interface object to manage the admin state
+    # of the port-channel interface.
+    # The port-channel interface needs to be in admin state down
+    # before this property can be set.
+    int_obj = Interface.new(interface.name)
+    int_obj.shutdown = true
+
+    # Test initial default case
+    assert_equal(interface.default_lacp_suspend_individual,
+                 interface.lacp_suspend_individual)
+
+    # Test non-default value
+    val = !interface.default_lacp_suspend_individual
+    interface.lacp_suspend_individual = val
+    assert_equal(val, interface.lacp_suspend_individual)
+
+    # Set back to default
     interface.lacp_suspend_individual =
       interface.default_lacp_suspend_individual
     assert_equal(interface.default_lacp_suspend_individual,
