@@ -37,6 +37,11 @@ fex:
   get_value: '/^fex[\s\d]+(\w+)/'
   set_value: "<state> feature-set fex"
 
+hsrp:
+  kind: boolean
+  get_value: '/^feature hsrp$/'
+  set_value: "feature hsrp"
+
 itd:
   _exclude: [N3k, N5k, N6k]
   get_value: '/^feature itd$/'

@@ -32,6 +32,7 @@ class TestFeature < CiscoTestCase
      'no feature dhcp',
      'no feature fabric forwarding',
      'no feature-set fex',
+     'no feature hsrp',
      'no feature itd',
      'no feature nv overlay',
      'no feature ospf',
@@ -95,6 +96,10 @@ class TestFeature < CiscoTestCase
 
   def test_dhcp
     feature('dhcp')
+  end
+
+  def test_hsrp
+    feature('hsrp')
   end
 
   def test_fabric_forwarding
