@@ -573,7 +573,8 @@ module Cisco
     #  NOTE: 'standard' is default but does not nvgen on some platforms
     #  Returns: none, both, extended, or standard
     def send_community_nexus(val)
-      return 'both' if val.grep(/extended|standard/).size == 2
+      reg = 'send-community extended|send-community standard|send-community'
+      return 'both' if val.grep(/#{reg}/).size == 2
       val = val[0].split.last
       return 'standard' if val[/send-community/] # Workaround
       val
