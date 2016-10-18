@@ -126,7 +126,7 @@ module Cisco
     def lacp_suspend_individual=(state)
       no_cmd = (state ? '' : 'no')
       # This property can only be set if the port-channel is shutdown on
-      # most nexus platforms.
+      # some platforms.
       # This setter will:
       # 1) Query the current state of the port-channel interface.
       # 2) Shutdown the port-channel interface if needed.
