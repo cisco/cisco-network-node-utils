@@ -57,6 +57,15 @@ lacp_suspend_individual:
     auto_default: false
     default_value: true
 
+lacp_suspend_shut_needed:
+  # This is used to determine if the port-channel interface
+  # must be shutdown before setting lacp_suspend_individual
+  kind: boolean
+  N9k:
+    default_only: true
+  else:
+    default_only: false
+
 port_hash_distribution:
   _exclude: [N6k, N5k]
   set_context:  ['terminal dont-ask', "interface %s"]
