@@ -61,10 +61,10 @@ lacp_suspend_shut_needed:
   # This is used to determine if the port-channel interface
   # must be shutdown before setting lacp_suspend_individual
   kind: boolean
-  N3k:
-    default_only: false
-  else:
+  N9k:
     default_only: true
+  else:
+    default_only: false
 
 port_hash_distribution:
   _exclude: [N6k, N5k]
