@@ -19,4 +19,4 @@ extended_hold:
   # optional match to get the whole config
   get_value: '/^hsrp timers extended-hold(?:\s+\S+)?$/'
   set_value: '<state> hsrp timers extended-hold <time>'
-  default_value: false 
+  default_value: false
