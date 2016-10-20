@@ -28,6 +28,7 @@ nexus:
             no feature lacp
             no feature dhcp
             no feature vtp
+    nvgen: false
 
   feature-snmp-comm-acl-ro:
     command: |
@@ -45,7 +46,8 @@ nexus:
               description testloopback
 
   feature-int-portchannel:
-    command: >
+    command: |
+            feature bfd
             interface port-channel100
               description test-portchannel
 
