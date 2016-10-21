@@ -27,6 +27,7 @@ module Cisco
       fail ArgumentError unless name.length > 0
       @name = name.downcase
 
+      set_args_keys_default
       create if instantiate
     end
 
@@ -61,7 +62,6 @@ module Cisco
     def create
       Feature.hsrp_enable
       config_set('interface_hsrp', 'create', name: @name)
-      set_args_keys_default
     end
 
     def destroy
