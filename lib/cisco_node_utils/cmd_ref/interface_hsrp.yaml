@@ -1,0 +1,53 @@
+# interface_hsrp
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config hsrp | no-more"
+  get_context: ['/^interface <name>$/i']
+  set_context: ["interface <name>"]
+
+bfd:
+  kind: boolean
+  get_value: '/^hsrp bfd$/'
+  set_value: "<state> hsrp bfd"
+  default_value: false
+
+create:
+  set_context: ~
+  set_value: "interface <name>"
+
+delay:
+  get_value: '/^hsrp delay minimum (\d+) reload (\d+)/'
+  set_value: "hsrp delay <minimum> <min> <reload> <rel>"
+
+delay_minimum:
+  default_value: 0
+
+delay_reload:
+  default_value: 0
+
+destroy:
+  set_context: ~
+  set_value: "no interface <name>"
+
+mac_refresh:
+  kind: int
+  get_value: '/^hsrp mac-refresh (\d+)$/'
+  set_value: '<state> hsrp mac-refresh <timeout>'
+  default_value: false
+
+use_bia:
+  # the config can be 'hsrp use-bia' or
+  # 'hsrp use-bia scope interface' or
+  # no config at all so need to grab the
+  # optional match to get the whole config
+  get_value: '/^hsrp use-bia(?:\s+\S+\s+\S+)?$/'
+  set_value: '<state> hsrp use-bia<scope>'
+  default_value: false
+
+version:
+  kind: int
+  get_value: '/^hsrp version (\d+)$/'
+  set_value: "hsrp version <ver>"
+  default_value: 1
