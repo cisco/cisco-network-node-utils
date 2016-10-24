@@ -46,10 +46,14 @@ nexus:
               description testloopback
 
   feature-int-portchannel:
+    setup: |
+          interface port-channel100
+            no switchport
     command: |
             feature bfd
             interface port-channel100
               description test-portchannel
+              no bfd echo
 
 ios_xr:
   name-server:
