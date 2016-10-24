@@ -118,10 +118,10 @@ class TestCommandConfig < CiscoTestCase
   def test_valid_scale
     show_int_count = "show int brief | i '^\S+\s+--' | count"
     pre = @device.cmd(show_int_count)[/^(\d+)$/]
-
     # Add 1024 loopback interfaces
     cfg_hash_add = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
     cfg_hash_add ['loopback-int-add']['command'] = "#{build_int_scale_config}"
+    cfg_hash_add ['loopback-int-add']['nvgen'] = true
     begin
       send_device_config(cfg_hash_add)
     rescue Timeout::Error
@@ -136,6 +136,7 @@ class TestCommandConfig < CiscoTestCase
     cfg_hash_remove = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
     cfg_hash_remove['loopback-int-add']['command'] = \
       "#{build_int_scale_config(false)}"
+    cfg_hash_remove ['loopback-int-add']['nvgen'] = false
     begin
       send_device_config(cfg_hash_remove)
     rescue Timeout::Error
