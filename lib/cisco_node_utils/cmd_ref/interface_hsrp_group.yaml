@@ -1,0 +1,100 @@
+# interface_hsrp_group
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running hsrp | no-more"
+  context:
+    - "interface <name>"
+    - "hsrp <group> <iptype>"
+
+authentication:
+  get_value: '/^authentication (.*)$/'
+  set_value: '<state> authentication <authtype> <keytype> <enctype> <passwd> <compatible> <timeout> <tval>'
+
+authentication_auth_type:
+  default_value: 'cleartext'
+
+authentication_compatibility:
+  kind: boolean
+  default_value: false
+
+authentication_enc_type:
+  default_value: '0'
+
+authentication_key_type:
+  default_value: 'key-chain'
+
+authentication_password:
+  default_value: ''
+
+authentication_timeout:
+  kind: int
+  default_value: 0
+
+hsrp_groups:
+  multiple: true
+  context:
+    - "interface <name>"
+  get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
+  set_value: '<state> hsrp <group> <iptype>'
+
+ip:
+  # the config can be 'ip' or 'ip <vip>' or
+  # ip autoconfig (for ipv6)
+  # no ip config at all so need to grab the
+  # optional match to get the whole config
+  multiple: true
+  get_value: '/^ip(?:\s+\S+)?$/'
+  set_value: '<state> ip <vip>'
+  default_value: false
+
+mac_addr:
+  get_value: '/^mac-address (\S+)$/'
+  set_value: '<state> mac-address <mac>'
+  default_value: false
+
+name:
+  get_value: '/^name (\S+)/'
+  set_value: '<state> name <word>'
+  default_value: false
+
+preempt:
+  get_value: '/^preempt(?:\s+.+$)?/'
+  set_value: '<state> preempt <delay> <minimum> <minval> <reload> <relval> <sync> <syncval>'
+
+preempt_delay_minimum:
+  default_value: 0
+
+preempt_delay_reload:
+  default_value: 0
+
+preempt_delay_sync:
+  default_value: 0
+
+priority:
+  default_value: 100
+
+priority_forward_thresh_lower:
+  default_value: 0
+
+priority_forward_thresh_upper:
+  default_value: 100
+
+priority_level:
+  get_value: '/^priority .+$/'
+  set_value: '<state> priority <pri> <forward> <lower> <lval> <upper> <uval>'
+
+timers:
+  get_value: '/^timers (.*)$/'
+  set_value: '<state> timers <msechello> <hello> <msechold> <hold>'
+
+timers_hello:
+  default_value: 3
+
+timers_hold:
+  default_value: 10
+
+track:
+  get_value: '/^track (.*)$/'
+  set_value: '<state> track <id> <decrement> <val>'
