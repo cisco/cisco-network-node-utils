@@ -107,79 +107,79 @@ class TestInterfaceHsrpGroup < CiscoTestCase
 
   def test_authentication
     ihg = create_interface_hsrp_group_ipv4
-    assert_equal(ihg.default_authentication_password,
-                 ihg.authentication_password)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
     attrs = {}
     attrs[:authentication_auth_type] = ihg.default_authentication_auth_type
     attrs[:authentication_key_type] = ihg.default_authentication_key_type
     attrs[:authentication_enc_type] = ihg.default_authentication_enc_type
-    attrs[:authentication_password] = ihg.default_authentication_password
+    attrs[:authentication_string] = ihg.default_authentication_string
     attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
     attrs[:authentication_timeout] = ihg.default_authentication_timeout
 
     attrs[:authentication_auth_type] = 'cleartext'
-    attrs[:authentication_password] = 'Test'
+    attrs[:authentication_string] = 'Test'
     ihg.authentication_set(attrs)
     assert_equal('cleartext', ihg.authentication_auth_type)
-    assert_equal('Test', ihg.authentication_password)
-    attrs[:authentication_password] = ihg.default_authentication_password
+    assert_equal('Test', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_password,
-                 ihg.authentication_password)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_auth_type] = 'cleartext'
-    attrs[:authentication_password] = 'Test'
+    attrs[:authentication_string] = 'Test'
     ihg.authentication_set(attrs)
     assert_equal('cleartext', ihg.authentication_auth_type)
-    assert_equal('Test', ihg.authentication_password)
+    assert_equal('Test', ihg.authentication_string)
     attrs[:authentication_auth_type] = 'md5'
     attrs[:authentication_key_type] = 'key-chain'
-    attrs[:authentication_password] = 'MyMD5Password'
+    attrs[:authentication_string] = 'MyMD5Password'
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-chain', ihg.authentication_key_type)
-    assert_equal('MyMD5Password', ihg.authentication_password)
+    assert_equal('MyMD5Password', ihg.authentication_string)
     attrs[:authentication_key_type] = 'key-string'
     attrs[:authentication_enc_type] = '0'
-    attrs[:authentication_password] = '7'
+    attrs[:authentication_string] = '7'
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
     assert_equal('0', ihg.authentication_enc_type)
-    assert_equal('7', ihg.authentication_password)
+    assert_equal('7', ihg.authentication_string)
     attrs[:authentication_enc_type] = '7'
-    attrs[:authentication_password] = '12345678901234567890'
+    attrs[:authentication_string] = '12345678901234567890'
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
     assert_equal('7', ihg.authentication_enc_type)
-    assert_equal('12345678901234567890', ihg.authentication_password)
+    assert_equal('12345678901234567890', ihg.authentication_string)
     attrs[:authentication_compatibility] = true
     attrs[:authentication_timeout] = 6666
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
     assert_equal('7', ihg.authentication_enc_type)
-    assert_equal('12345678901234567890', ihg.authentication_password)
+    assert_equal('12345678901234567890', ihg.authentication_string)
     assert_equal(true, ihg.authentication_compatibility)
     assert_equal(6666, ihg.authentication_timeout)
     attrs[:authentication_compatibility] = false
     ihg.authentication_set(attrs)
     assert_equal(false, ihg.authentication_compatibility)
     attrs[:authentication_enc_type] = '0'
-    attrs[:authentication_password] = 'MyUnEncr'
+    attrs[:authentication_string] = 'MyUnEncr'
     attrs[:authentication_compatibility] = true
     attrs[:authentication_timeout] = 6666
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
     assert_equal('0', ihg.authentication_enc_type)
-    assert_equal('MyUnEncr', ihg.authentication_password)
+    assert_equal('MyUnEncr', ihg.authentication_string)
     assert_equal(true, ihg.authentication_compatibility)
     assert_equal(6666, ihg.authentication_timeout)
-    attrs[:authentication_password] = ihg.default_authentication_password
+    attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_password,
-                 ihg.authentication_password)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
   end
 end

@@ -81,12 +81,23 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # This CLI is very complicated, it can take many forms
+    # authentication text Test
+    # authentication md5 key-chain abcd
+    # authentication md5 key-string 7 => 7 is key-string
+    # authentication md5 key-string 7 12345678901234567890
+    # authentication md5 key-string ABCXYZ => enctype is 0
+    # authentication md5 key-string ABCXYZ compatibility
+    # authentication md5 key-string ABCXYZ compatibility timeout 22
+    # authentication md5 key-string ABCXYZ timeout 22
+    # authentication md5 key-string 7 12345678901234567890 timeout 22
+    # authentication md5 key-string 7 123456789 compatibility timeout 22
     def authentication
       hash = {}
       hash[:auth_type] = default_authentication_auth_type
       hash[:key_type] = default_authentication_key_type
       hash[:enc_type] = default_authentication_enc_type
-      hash[:password] = default_authentication_password
+      hash[:password] = default_authentication_string
       hash[:compat] = default_authentication_compatibility
       hash[:timeout] = default_authentication_timeout
       str = config_get('interface_hsrp_group', 'authentication', @get_args)
@@ -156,16 +167,16 @@ module Cisco
       config_get_default('interface_hsrp_group', 'authentication_enc_type')
     end
 
-    def authentication_password
+    def authentication_string
       authentication[:password]
     end
 
-    def authentication_password=(val)
+    def authentication_string=(val)
       @set_args[:passwd] = val
     end
 
-    def default_authentication_password
-      config_get_default('interface_hsrp_group', 'authentication_password')
+    def default_authentication_string
+      config_get_default('interface_hsrp_group', 'authentication_string')
     end
 
     def authentication_compatibility
@@ -205,13 +216,13 @@ module Cisco
       [:authentication_auth_type,
        :authentication_key_type,
        :authentication_enc_type,
-       :authentication_password,
+       :authentication_string,
        :authentication_compatibility,
        :authentication_timeout,
       ].each do |p|
         send(p.to_s + '=', attrs[p]) unless attrs[p].nil?
       end
-      return if @set_args[:passwd] == default_authentication_password
+      return if @set_args[:passwd] == default_authentication_string
       @set_args[:state] = ''
       if @set_args[:authtype] == 'text'
         @set_args[:keytype] = @set_args[:enctype] = ''

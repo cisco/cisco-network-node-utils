@@ -25,7 +25,7 @@ authentication_enc_type:
 authentication_key_type:
   default_value: 'key-chain'
 
-authentication_password:
+authentication_string:
   default_value: ''
 
 authentication_timeout:
