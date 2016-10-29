@@ -278,5 +278,196 @@ module Cisco
     def default_name
       config_get_default('interface_hsrp_group', 'name')
     end
+
+    def preempt_get
+      hash = {}
+      hash[:preempt] = default_preempt
+      hash[:minimum] = default_preempt_delay_minimum
+      hash[:reload] = default_preempt_delay_reload
+      hash[:sync] = default_preempt_delay_sync
+      arr = config_get('interface_hsrp_group', 'preempt', @get_args)
+      if arr
+        hash[:preempt] = true
+        hash[:minimum] = arr[0]
+        hash[:reload] = arr[1]
+        hash[:sync] = arr[2]
+      end
+      hash
+    end
+
+    def preempt
+      preempt_get[:preempt]
+    end
+
+    def preempt_delay_minimum
+      preempt_get[:minimum].to_i
+    end
+
+    def preempt_delay_reload
+      preempt_get[:reload].to_i
+    end
+
+    def preempt_delay_sync
+      preempt_get[:sync].to_i
+    end
+
+    def preempt_set(pree, min, rel, sy)
+      if pree
+        set_args_keys(state: '', delay: 'delay', minimum: 'minimum',
+                      minval: min, reload: 'reload', relval: rel,
+                      sync: 'sync', syncval: sy)
+      else
+        set_args_keys(state: 'no', delay: '', minimum: '', minval: '',
+                      reload: '', relval: '', sync: '', syncval: '')
+      end
+      config_set('interface_hsrp_group', 'preempt', @set_args)
+    end
+
+    def default_preempt
+      config_get_default('interface_hsrp_group', 'preempt')
+    end
+
+    def default_preempt_delay_minimum
+      config_get_default('interface_hsrp_group', 'preempt_delay_minimum')
+    end
+
+    def default_preempt_delay_reload
+      config_get_default('interface_hsrp_group', 'preempt_delay_reload')
+    end
+
+    def default_preempt_delay_sync
+      config_get_default('interface_hsrp_group', 'preempt_delay_sync')
+    end
+
+    def priority_level_get
+      hash = {}
+      hash[:priority] = default_priority
+      hash[:lower] = default_priority_forward_thresh_lower
+      hash[:upper] = default_priority_forward_thresh_upper
+      arr = config_get('interface_hsrp_group', 'priority_level', @get_args)
+      if arr
+        hash[:priority] = arr[0].to_i
+        hash[:lower] = arr[1].to_i if arr[1]
+        hash[:upper] = arr[2].to_i if arr[2]
+      end
+      hash
+    end
+
+    def priority
+      priority_level_get[:priority]
+    end
+
+    def default_priority
+      config_get_default('interface_hsrp_group', 'priority')
+    end
+
+    def priority_forward_thresh_lower
+      priority_level_get[:lower]
+    end
+
+    def default_priority_forward_thresh_lower
+      config_get_default('interface_hsrp_group',
+                         'priority_forward_thresh_lower')
+    end
+
+    def priority_forward_thresh_upper
+      priority_level_get[:upper]
+    end
+
+    def default_priority_forward_thresh_upper
+      config_get_default('interface_hsrp_group',
+                         'priority_forward_thresh_upper')
+    end
+
+    def priority_level_set(pri, lower, upper)
+      if pri && lower && upper
+        set_args_keys(state: '', pri: pri,
+                      forward: 'forwarding-threshold lower',
+                      lval: lower, upper: 'upper', uval: upper)
+      elsif pri
+        set_args_keys(state: '', pri: pri,
+                      forward: '', lval: '', upper: '', uval: '')
+      else
+        set_args_keys(state: 'no', pri: pri, forward: '', lval: '',
+                      upper: '', uval: '')
+      end
+      config_set('interface_hsrp_group', 'priority_level', @set_args)
+    end
+
+    def timers_get
+      hash = {}
+      hash[:hello] = default_timers_hello
+      hash[:mshello] = default_timers_hello_msec
+      hash[:hold] = default_timers_hold
+      hash[:mshold] = default_timers_hold_msec
+      str = config_get('interface_hsrp_group', 'timers', @get_args)
+      return hash if str.nil?
+      params = str.split
+      if str.include?('msec')
+        if params[0] == 'msec'
+          hash[:mshello] = true
+          hash[:hello] = params[1].to_i
+          if params[2] == 'msec'
+            hash[:mshold] = true
+            hash[:hold] = params[3].to_i
+          else
+            hash[:hold] = params[2].to_i
+          end
+        else
+          hash[:hello] = params[0].to_i
+          hash[:mshold] = true
+          hash[:hold] = params[2].to_i
+        end
+      else
+        hash[:hello] = params[0].to_i
+        hash[:hold] = params[1].to_i
+      end
+      hash
+    end
+
+    def timers_hello
+      timers_get[:hello]
+    end
+
+    def timers_hello_msec
+      timers_get[:mshello]
+    end
+
+    def default_timers_hello
+      config_get_default('interface_hsrp_group', 'timers_hello')
+    end
+
+    def default_timers_hello_msec
+      config_get_default('interface_hsrp_group', 'timers_hello_msec')
+    end
+
+    def timers_hold
+      timers_get[:hold]
+    end
+
+    def timers_hold_msec
+      timers_get[:mshold]
+    end
+
+    def default_timers_hold_msec
+      config_get_default('interface_hsrp_group', 'timers_hold_msec')
+    end
+
+    def default_timers_hold
+      config_get_default('interface_hsrp_group', 'timers_hold')
+    end
+
+    def timers_set(mshello, hello, mshold, hold)
+      if hello && hold
+        msechello = mshello ? 'msec' : ''
+        msechold = mshold ? 'msec' : ''
+        set_args_keys(state: '', mshello: msechello,
+                      hello: hello, mshold: msechold, hold: hold)
+      else
+        set_args_keys(state: 'no', mshello: '', hello: '',
+                      mshold: '', hold: '')
+      end
+      config_set('interface_hsrp_group', 'timers', @set_args)
+    end
   end # class
 end # module

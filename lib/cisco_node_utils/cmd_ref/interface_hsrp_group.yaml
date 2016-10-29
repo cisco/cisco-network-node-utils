@@ -60,8 +60,10 @@ name:
   default_value: false
 
 preempt:
-  get_value: '/^preempt(?:\s+.+$)?/'
+  get_command: "show running hsrp all | no-more"
+  get_value: '/^preempt delay minimum (\d+) reload (\d+) sync (\d+)/'
   set_value: '<state> preempt <delay> <minimum> <minval> <reload> <relval> <sync> <syncval>'
+  default_value: false
 
 preempt_delay_minimum:
   default_value: 0
@@ -76,24 +78,30 @@ priority:
   default_value: 100
 
 priority_forward_thresh_lower:
-  default_value: 0
+  default_value: false
 
 priority_forward_thresh_upper:
-  default_value: 100
+  default_value: false
 
 priority_level:
-  get_value: '/^priority .+$/'
-  set_value: '<state> priority <pri> <forward> <lower> <lval> <upper> <uval>'
+  get_value: '/^priority (\d+)(?:\s+(?:forwarding-threshold lower)\s+(\d+)\s+(?:upper)\s+(\d+))?$/'
+  set_value: '<state> priority <pri> <forward> <lval> <upper> <uval>'
 
 timers:
   get_value: '/^timers (.*)$/'
-  set_value: '<state> timers <msechello> <hello> <msechold> <hold>'
+  set_value: '<state> timers <mshello> <hello> <mshold> <hold>'
 
 timers_hello:
   default_value: 3
 
+timers_hello_msec:
+  default_value: false
+
 timers_hold:
   default_value: 10
+
+timers_hold_msec:
+  default_value: false
 
 track:
   get_value: '/^track (.*)$/'

@@ -182,4 +182,179 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_authentication_string,
                  ihg.authentication_string)
   end
+
+  def test_preempt
+    ihg = create_interface_hsrp_group_ipv4
+    assert_equal(ihg.default_preempt, ihg.preempt)
+    assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
+    assert_equal(ihg.default_preempt_delay_reload, ihg.preempt_delay_reload)
+    assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
+    delay = 100
+    reload = 200
+    sync = 300
+    ihg.preempt_set(true, delay, reload, sync)
+    assert_equal(true, ihg.preempt)
+    assert_equal(100, ihg.preempt_delay_minimum)
+    assert_equal(200, ihg.preempt_delay_reload)
+    assert_equal(300, ihg.preempt_delay_sync)
+    delay = 0
+    reload = 0
+    sync = 0
+    ihg.preempt_set(true, delay, reload, sync)
+    assert_equal(0, ihg.preempt_delay_minimum)
+    assert_equal(0, ihg.preempt_delay_reload)
+    assert_equal(0, ihg.preempt_delay_sync)
+    ihg.preempt_set(ihg.default_preempt,
+                    ihg.default_preempt_delay_minimum,
+                    ihg.default_preempt_delay_reload,
+                    ihg.default_preempt_delay_sync)
+    assert_equal(ihg.default_preempt, ihg.preempt)
+    assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
+    assert_equal(ihg.default_preempt_delay_reload, ihg.preempt_delay_reload)
+    assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
+    ihg = create_interface_hsrp_group_ipv6
+    assert_equal(ihg.default_preempt, ihg.preempt)
+    assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
+    assert_equal(ihg.default_preempt_delay_reload, ihg.preempt_delay_reload)
+    assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
+    delay = 222
+    reload = 444
+    sync = 666
+    ihg.preempt_set(true, delay, reload, sync)
+    assert_equal(true, ihg.preempt)
+    assert_equal(222, ihg.preempt_delay_minimum)
+    assert_equal(444, ihg.preempt_delay_reload)
+    assert_equal(666, ihg.preempt_delay_sync)
+    delay = 0
+    reload = 0
+    sync = 0
+    ihg.preempt_set(true, delay, reload, sync)
+    assert_equal(0, ihg.preempt_delay_minimum)
+    assert_equal(0, ihg.preempt_delay_reload)
+    assert_equal(0, ihg.preempt_delay_sync)
+    ihg.preempt_set(ihg.default_preempt,
+                    ihg.default_preempt_delay_minimum,
+                    ihg.default_preempt_delay_reload,
+                    ihg.default_preempt_delay_sync)
+    assert_equal(ihg.default_preempt, ihg.preempt)
+    assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
+    assert_equal(ihg.default_preempt_delay_reload, ihg.preempt_delay_reload)
+    assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
+  end
+
+  def test_priority
+    ihg = create_interface_hsrp_group_ipv4
+    assert_equal(ihg.default_priority, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(50, 10, 20)
+    assert_equal(50, ihg.priority)
+    assert_equal(10, ihg.priority_forward_thresh_lower)
+    assert_equal(20, ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(99,
+                           ihg.default_priority_forward_thresh_lower,
+                           ihg.default_priority_forward_thresh_upper)
+    assert_equal(99, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(ihg.default_priority,
+                           ihg.default_priority_forward_thresh_lower,
+                           ihg.default_priority_forward_thresh_upper)
+    assert_equal(ihg.default_priority, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+    ihg = create_interface_hsrp_group_ipv6
+    assert_equal(ihg.default_priority, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(44, 22, 33)
+    assert_equal(44, ihg.priority)
+    assert_equal(22, ihg.priority_forward_thresh_lower)
+    assert_equal(33, ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(155,
+                           ihg.default_priority_forward_thresh_lower,
+                           ihg.default_priority_forward_thresh_upper)
+    assert_equal(155, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+    ihg.priority_level_set(ihg.default_priority,
+                           ihg.default_priority_forward_thresh_lower,
+                           ihg.default_priority_forward_thresh_upper)
+    assert_equal(ihg.default_priority, ihg.priority)
+    assert_equal(ihg.default_priority_forward_thresh_lower,
+                 ihg.priority_forward_thresh_lower)
+    assert_equal(ihg.default_priority_forward_thresh_upper,
+                 ihg.priority_forward_thresh_upper)
+  end
+
+  def test_timers
+    ihg = create_interface_hsrp_group_ipv4
+    assert_equal(ihg.default_timers_hello, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(ihg.default_timers_hold, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+    ihg.timers_set(ihg.default_timers_hello_msec,
+                   10, ihg.default_timers_hold_msec, 50)
+    assert_equal(10, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(50, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+    ihg.timers_set(true, 500, true, 1500)
+    assert_equal(500, ihg.timers_hello)
+    assert_equal(true, ihg.timers_hello_msec)
+    assert_equal(1500, ihg.timers_hold)
+    assert_equal(true, ihg.timers_hold_msec)
+    ihg.timers_set(true, 500, false, 5)
+    assert_equal(500, ihg.timers_hello)
+    assert_equal(true, ihg.timers_hello_msec)
+    assert_equal(5, ihg.timers_hold)
+    assert_equal(false, ihg.timers_hold_msec)
+    ihg.timers_set(ihg.default_timers_hello_msec,
+                   ihg.default_timers_hello,
+                   ihg.default_timers_hold_msec,
+                   ihg.default_timers_hold)
+    assert_equal(ihg.default_timers_hello, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(ihg.default_timers_hold, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+    ihg = create_interface_hsrp_group_ipv6
+    assert_equal(ihg.default_timers_hello, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(ihg.default_timers_hold, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+    ihg.timers_set(ihg.default_timers_hello_msec,
+                   20, ihg.default_timers_hold_msec, 100)
+    assert_equal(20, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(100, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+    ihg.timers_set(true, 300, true, 2000)
+    assert_equal(300, ihg.timers_hello)
+    assert_equal(true, ihg.timers_hello_msec)
+    assert_equal(2000, ihg.timers_hold)
+    assert_equal(true, ihg.timers_hold_msec)
+    ihg.timers_set(true, 300, false, 10)
+    assert_equal(300, ihg.timers_hello)
+    assert_equal(true, ihg.timers_hello_msec)
+    assert_equal(10, ihg.timers_hold)
+    assert_equal(false, ihg.timers_hold_msec)
+    ihg.timers_set(ihg.default_timers_hello_msec,
+                   ihg.default_timers_hello,
+                   ihg.default_timers_hold_msec,
+                   ihg.default_timers_hold)
+    assert_equal(ihg.default_timers_hello, ihg.timers_hello)
+    assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
+    assert_equal(ihg.default_timers_hold, ihg.timers_hold)
+    assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+  end
 end
