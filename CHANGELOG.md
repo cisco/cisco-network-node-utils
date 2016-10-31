@@ -50,7 +50,6 @@ Changelog
    * `bfd`
 * Extend bgp_neighbor with attributes:
    * `bfd`
-* Cisco Nexus 8xxx platform support added to existing classes
 
 ### Changed
 * Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:
