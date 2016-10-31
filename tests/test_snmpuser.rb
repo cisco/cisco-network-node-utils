@@ -23,13 +23,13 @@ DEFAULT_SNMP_USER_GROUP_NAME = 'network-operator'
 class TestSnmpUser < CiscoTestCase
   @skip_unless_supported = 'snmp_user'
 
-  @@existing_users = nil # rubocop:disable Style/ClassVars
+  @@current_users = nil # rubocop:disable Style/ClassVars
 
   def setup
     super
     @test_users = []
     # Get the list of users that exist on the node when we first begin
-    @@existing_users ||= SnmpUser.users.keys # rubocop:disable Style/ClassVars
+    @@current_users = SnmpUser.users if @@current_users.nil? # rubocop:disable Style/ClassVars
   end
 
   def create_user(name, opts='')
@@ -42,25 +42,39 @@ class TestSnmpUser < CiscoTestCase
     user.destroy
   end
 
+  def remove_test_users
+    SnmpUser.users.values.each do |obj|
+      # Delete users that are in current but also added by these tests.
+      if @@current_users.keys.include?(obj.name) && @test_users.include?(obj.name)
+        obj.destroy
+      # Delete users that are part of test.
+      elsif @test_users.include? obj.name
+        obj.destroy
+      # Do not delete users in current but not in test.
+      elsif @@current_users.keys.include? obj.name
+        next
+      else
+        # Delete if not in current or test.
+        obj.destroy
+      end
+    end
+  end
+
   def teardown
     # This teardown tries to preserve any non-test snmp-server user entries
     # and only teardown the entries added by this test.
-    unless @test_users.empty?
-      cfg = @test_users.collect { |name| "no snmp-server user #{name}" }
-      config(*cfg)
-    end
+    remove_test_users
     super
-    delta = SnmpUser.users.keys - @@existing_users
+    delta = SnmpUser.users.keys - @@current_users.keys
     unless delta.empty?
       # Some platforms are slow, wait for snmp-server user entries to be deleted
       15.times do
         sleep(1)
         node.cache_flush
-        delta = SnmpUser.users.keys - @@existing_users
+        delta = SnmpUser.users.keys - @@current_users.keys
         break if delta.empty?
       end
     end
-    @@existing_users = SnmpUser.users.keys # rubocop:disable Style/ClassVars
     assert_empty(delta, 'teardown method did not clean up all users')
   end
 
