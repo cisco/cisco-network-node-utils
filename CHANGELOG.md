@@ -5,6 +5,11 @@ Changelog
 
 ### New feature support
 
+#### Cisco Resources
+* Hot Standby Router Protocol
+  * hsrp_global (@saichint)
+  * interface_hsrp (@saichint)
+
 ### Added
 
 * Extend bgp with attributes:
