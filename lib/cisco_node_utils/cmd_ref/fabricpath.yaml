@@ -1,6 +1,6 @@
 # fabricpath
 ---
-_exclude: [N3k, N8k, N9k, ios_xr]
+_exclude: [N3k, N9k-F, N9k, ios_xr]
 
 aggregate_multicast_routes:
   _exclude: [N5k, N6k]

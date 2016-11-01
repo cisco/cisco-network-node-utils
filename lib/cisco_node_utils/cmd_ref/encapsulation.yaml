@@ -1,7 +1,7 @@
 # encapsulation_profile_vni
 # encapsulation_profile_vni feature is available only on n7k
 ---
-_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N9k-F, N9k, ios_xr]
 
 all_encaps:
   multiple: true

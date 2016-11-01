@@ -32,11 +32,7 @@ description:
   get_value: '/^description (.*)/'
   set_value: '<state> description <desc>'
   kind: string
-  # default_value: ''
-  N9k-R:
-    default_value: 'I am fretta! :-)'
-  else:
-    default_value: "I am not fretta :-("
+  default_value: ''
 
 destroy:
   context: ~

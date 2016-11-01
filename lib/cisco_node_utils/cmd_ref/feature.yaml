@@ -21,7 +21,7 @@ dhcp:
   set_value: "feature dhcp"
 
 fabric:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   get_command: "show feature-set"
   get_value: '/^fabric[\s\d]+(\w+)/'
   set_value: "<state> feature-set fabric"
@@ -32,7 +32,7 @@ fabric_forwarding:
   set_value: "feature fabric forwarding"
 
 fex:
-  _exclude: [C3064, C3132, N5k, N6k, N8k]
+  _exclude: [C3064, C3132, N5k, N6k, N9k-F]
   get_command: "show feature-set"
   get_value: '/^fex[\s\d]+(\w+)/'
   set_value: "<state> feature-set fex"
@@ -68,7 +68,7 @@ pim:
   set_value: 'feature pim'
 
 private_vlan:
-  _exclude: [N8k]
+  _exclude: [N9k-F]
   kind: boolean
   get_value: '/^feature private-vlan$/'
   set_value: "feature private-vlan"
