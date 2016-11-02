@@ -254,13 +254,16 @@ module Cisco
     # @return [String] such as "N3K-C3048TP-1GE"
     def product_id
       if @cmd_ref
-        return config_get('inventory', 'productid')
+        prod = config_get('inventory', 'productid')
+        all  = config_get('inventory', 'all')
+        prod_qualifier(prod, all)
       else
         # We use this function to *find* the appropriate CommandReference
         if @client.platform == :nexus
           entries = get(command:     'show inventory',
                         data_format: :nxapi_structured)
-          return entries['TABLE_inv']['ROW_inv'][0]['productid']
+          prod = entries['TABLE_inv']['ROW_inv'][0]['productid']
+          prod_qualifier(prod, entries['TABLE_inv']['ROW_inv'])
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = get(command:     'show inventory',
@@ -268,6 +271,30 @@ module Cisco
           return /NAME: .*\nPID: (\S+)/.match(output)[1]
         end
       end
+    end
+
+    def prod_qualifier(prod, inventory)
+      case prod
+      when /N9K/
+        # Two datapoints are used to determine if the current n9k
+        # platform is a fretta based n9k or non-fretta.
+        #
+        # 1) Image Version == 7.0(3)F*
+        # 2) Fabric Module == N9K-C9*-FM-R
+        if @cmd_ref
+          ver = os_version
+        else
+          ver = get(command:     'show version',
+                    data_format: :nxapi_structured)['kickstart_ver_str']
+        end
+        # Append -F for fretta platform.
+        inventory.each do |row|
+          if row['productid'][/N9K-C9...-FM-R/] && ver[/7.0\(3\)F/]
+            return prod.concat('-F')
+          end
+        end
+      end
+      prod
     end
 
     # @return [String] such as "V01"

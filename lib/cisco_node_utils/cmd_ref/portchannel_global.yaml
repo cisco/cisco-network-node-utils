@@ -6,7 +6,7 @@ _template:
   get_command: "show running all"
 
 asymmetric:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   default_value: false
 
 bundle_hash:
@@ -15,7 +15,7 @@ bundle_hash:
   N5k: *bundle_hash_ip
   N6k: *bundle_hash_ip
   N7k: *bundle_hash_ip
-  N8k: &bundle_hash_ip_l4port
+  N9k-F: &bundle_hash_ip_l4port
     default_value: 'ip-l4port'
   N9k: *bundle_hash_ip_l4port
 
@@ -23,18 +23,18 @@ bundle_select:
   default_value: 'src-dst'
 
 concatenation:
-  _exclude: [N3k, N5k, N6k, N7k, N8k]
+  _exclude: [N3k, N5k, N6k, N7k, N9k-F]
   default_value: false
 
 hash_distribution:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   get_value: '/^port.channel hash.distribution (.*)$/'
   set_context:  ['terminal dont-ask']
   set_value: "port-channel hash-distribution %s"
   default_value: 'adaptive'
 
 hash_poly:
-  _exclude: [N3k, N7k, N8k, N9k]
+  _exclude: [N3k, N7k, N9k-F, N9k]
   default_value: ~
 
 load_balance_type:
@@ -46,13 +46,13 @@ load_balance_type:
   N6k: *load_balance_type_ethernet
   N7k: &load_balance_type_asymmetric
     default_only: "asymmetric"
-  N8k: &load_balance_type_no_hash
+  N9k-F: &load_balance_type_no_hash
     default_only: "no_hash"
   N9k: &load_balance_type_symmetry
     default_only: "symmetry"
 
 load_defer:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   kind: int
   get_value: '/^port.channel load.defer (\d+)$/'
   set_value: "port-channel load-defer %s"
@@ -64,7 +64,7 @@ port_channel_load_balance:
   set_value: "port-channel load-balance %s %s %s %s %s %s"
 
 resilient:
-  _exclude: [N5k, N6k, N7k, N8k]
+  _exclude: [N5k, N6k, N7k, N9k-F]
   kind: boolean
   get_value: '/^port-channel load-balance resilient$/'
   set_value: "%s port-channel load-balance resilient"
@@ -80,5 +80,5 @@ rotate:
   default_value: 0
 
 symmetry:
-  _exclude: [N5k, N6k, N7k, N8k]
+  _exclude: [N5k, N6k, N7k, N9k-F]
   default_value: false

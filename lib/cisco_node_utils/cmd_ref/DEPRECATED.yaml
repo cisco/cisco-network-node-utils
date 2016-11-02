@@ -17,7 +17,7 @@ private_vlan_any:
 
 private_vlan_association:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_association'
-  _exclude: [N8k]
+  _exclude: [N9k-F]
   multiple: true
   get_command: "show vlan private-vlan"
   get_context: ~
@@ -28,7 +28,7 @@ private_vlan_association:
 
 private_vlan_mapping:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_mapping'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   multiple: true
   get_value: '/^private-vlan mapping (.*)$/'
   set_value: "<state> private-vlan mapping <vlans>"
@@ -36,7 +36,7 @@ private_vlan_mapping:
 
 private_vlan_type:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_type'
-  _exclude: [N8k]
+  _exclude: [N9k-F]
   kind: string
   get_command: 'show vlan private-vlan type'
   get_context: ~
@@ -47,14 +47,14 @@ private_vlan_type:
 
 switchport_mode_private_vlan_host:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_host'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   get_value: '/^switchport mode private-vlan (.*)$/'
   set_value: "<state> switchport mode private-vlan <mode>"
   default_value: :disabled
 
 switchport_mode_private_vlan_host_association:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_host_association'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   multiple: true
   get_value: '/^switchport private-vlan host-association (.*)$/'
   set_value: "<state> switchport private-vlan host-association <vlan_pr> <vlan_sec>"
@@ -62,7 +62,7 @@ switchport_mode_private_vlan_host_association:
 
 switchport_mode_private_vlan_host_promiscous:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_promiscuous'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   multiple: true
   get_value: '/^switchport private-vlan mapping (\d+.*)$/'
   set_value: "<state> switchport private-vlan mapping <vlan_pr> <vlans>"
@@ -70,7 +70,7 @@ switchport_mode_private_vlan_host_promiscous:
 
 switchport_mode_private_vlan_trunk_promiscuous:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_promiscuous'
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk promiscuous$/'
   set_value: "<state> switchport mode private-vlan trunk promiscuous"
@@ -78,7 +78,7 @@ switchport_mode_private_vlan_trunk_promiscuous:
 
 switchport_mode_private_vlan_trunk_secondary:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_secondary'
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk secondary$/'
   set_value: "<state> switchport mode private-vlan trunk secondary"
@@ -86,7 +86,7 @@ switchport_mode_private_vlan_trunk_secondary:
 
 switchport_private_vlan_association_trunk:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_association'
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   multiple: true
   #get_value: '/^switchport private-vlan association trunk (.*) (.*)$/'
   get_value: '/^switchport private-vlan association trunk (.*)$/'
@@ -95,7 +95,7 @@ switchport_private_vlan_association_trunk:
 
 switchport_private_vlan_mapping_trunk:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_mapping_trunk'
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   multiple: true
   get_value: '/^switchport private-vlan mapping trunk (.*)$/'
   set_value: "<state> switchport private-vlan mapping trunk <vlan_pr> <vlans>"
@@ -103,7 +103,7 @@ switchport_private_vlan_mapping_trunk:
 
 switchport_private_vlan_trunk_allowed_vlan:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_allowed_vlan'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   multiple: true
   get_value: '/^switchport private-vlan trunk allowed vlan (.*)$/'
   set_value: "<state> switchport private-vlan trunk allowed vlan <oper> <vlans>"
@@ -111,7 +111,7 @@ switchport_private_vlan_trunk_allowed_vlan:
 
 switchport_private_vlan_trunk_native_vlan:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'switchport_pvlan_trunk_native_vlan'
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   kind: int
   get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
   set_value: "<state> switchport private-vlan trunk native vlan <vlan>"

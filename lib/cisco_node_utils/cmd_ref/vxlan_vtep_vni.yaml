@@ -49,7 +49,7 @@ suppress_arp:
   default_value: false
 
 suppress_uuc:
-  _exclude: [N7k, N8k, N9k]
+  _exclude: [N7k, N9k-F, N9k]
   kind: boolean
   get_value: '/^suppress-unknown-unicast$/'
   set_value: '<state> suppress-unknown-unicast'

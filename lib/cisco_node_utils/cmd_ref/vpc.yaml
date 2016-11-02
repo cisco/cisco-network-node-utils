@@ -1,6 +1,6 @@
 # vpc
 ---
-_exclude: [ios_xr, N8k]
+_exclude: [ios_xr, N9k-F]
 
 _template:
   get_command:  'show running-config vpc all'
@@ -58,7 +58,7 @@ dual_active_exclude_interface_vlan_bridge_domain:
   default_value: 'none'
 
 fabricpath_emulated_switch_id:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   kind: int
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^fabricpath switch-id\s+(\d+)$/'
@@ -66,7 +66,7 @@ fabricpath_emulated_switch_id:
   default_value: false
 
 fabricpath_multicast_load_balance:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   kind: boolean
   get_value: '/^fabricpath multicast load-balance$/'
   set_value: "<state> fabricpath multicast load-balance"
@@ -90,7 +90,7 @@ graceful_consistency_check:
 
 layer3_peer_routing:
   kind: boolean
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
   default_value: false
@@ -105,14 +105,14 @@ peer_gateway:
 # Exclude everyone for now till the BD command is fully supported
 peer_gateway_exclude_bridge_domain:
   kind: string
-  _exclude: [N3k, N5k, N6k, N7k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N7k, N9k-F, N9k]
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude bridge-domain\s+(\S+)/'
   set_value: "peer-gateway exclude-bridge-domain <range>"
   default_value: ''
 
 peer_gateway_exclude_vlan:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   kind: string
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
   get_value: '/^peer-gateway exclude-vlan\s(\S+)/'
@@ -161,11 +161,11 @@ peer_keepalive_vrf:
   default_value: 'management'
 
 phy_port_vpc_module_pids:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   default_only: 'N7[K7]-(?:F2|F3|F4|M3)'
 
 port_channel_limit:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   auto_default: false
   kind: boolean
   get_value: '/^port-channel limit/'
@@ -180,14 +180,14 @@ role_priority:
 
 self_isolation:
   kind: boolean
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   get_value: '/^self-isolation/'
   set_value: "<state> self-isolation"
   default_value: false
 
 shutdown:
   kind: boolean
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   get_value: '/^shutdown/'
   set_value: "<state> shutdown"
   default_value: false
@@ -207,7 +207,7 @@ system_priority:
 # Exclude everyone for now till the track command is fully supported
 track:
   kind: int
-  _exclude: [N3k, N5k, N6k, N7k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N7k, N9k-F, N9k]
   get_value: '/^track\s+(\d+)/'
   set_value: "<state> track <val>"
   default_value: 0

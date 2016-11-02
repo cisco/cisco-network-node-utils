@@ -31,7 +31,7 @@ mt_lite_support:
   kind: boolean
   N9k: &mt_lite_default
     default_only: true
-  N8k: *mt_lite_default
+  N9k-F: *mt_lite_default
   N6k: *mt_lite_default
   N5k: *mt_lite_default
   else:
