@@ -17,7 +17,6 @@
 
 require_relative 'node_util'
 require_relative 'interface'
-require_relative 'interface_hsrp'
 
 module Cisco
   # node_utils class for interface_hsrp_group
