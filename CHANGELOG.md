@@ -7,13 +7,18 @@ Changelog
 
 ### Added
 
-* Extend bgp with attributes:
-   * `event_history_errors`
-   * `event_history_objstore`
-
 ### Changed
 
 ### Removed
+
+## [v1.4.1]
+
+### Added
+
+* Extend bgp with attributes:
+   * `event_history_errors`
+   * `event_history_objstore`
+* Added support for Cisco NX-OS software release `7.3(0)I5(1)`
 
 ## [v1.4.0]
 
@@ -375,6 +380,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0
