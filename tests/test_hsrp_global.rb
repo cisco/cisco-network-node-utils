@@ -32,17 +32,13 @@ class TestHsrpGlobal < CiscoTestCase
     super
   end
 
-  def create_hsrp_global
-    HsrpGlobal.new
-  end
-
   def test_collection_empty
     hg = HsrpGlobal.globals
     assert_empty(hg)
   end
 
   def test_destroy
-    hg = create_hsrp_global
+    hg = HsrpGlobal.new
     assert_equal(true, Feature.hsrp_enabled?)
 
     hg.destroy
@@ -55,7 +51,7 @@ class TestHsrpGlobal < CiscoTestCase
   end
 
   def test_bfd_all_intf
-    hg = create_hsrp_global
+    hg = HsrpGlobal.new
     if validate_property_excluded?('hsrp_global', 'bfd_all_intf')
       assert_nil(hg.bfd_all_intf)
       assert_raises(Cisco::UnsupportedError) do
@@ -71,7 +67,7 @@ class TestHsrpGlobal < CiscoTestCase
   end
 
   def test_extended_hold
-    hg = create_hsrp_global
+    hg = HsrpGlobal.new
     assert_equal(hg.default_extended_hold, hg.extended_hold)
     hg.extended_hold = '100'
     assert_equal('100', hg.extended_hold)

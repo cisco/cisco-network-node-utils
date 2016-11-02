@@ -14,11 +14,10 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
-require_relative '../lib/cisco_node_utils/interface_hsrp'
 
 # TestX__CLASS_NAME__X - Minitest for X__CLASS_NAME__X node utility class
 class TestInterfaceHsrp < CiscoTestCase
-  @skip_unless_supported = 'interface_hsrp'
+  @skip_unless_supported = 'interface'
   # TESTS
 
   def setup
@@ -31,63 +30,100 @@ class TestInterfaceHsrp < CiscoTestCase
     super
   end
 
-  def create_intf_hsrp
+  def create_intf
     interface = Interface.new(interfaces[0])
     interface.switchport_mode = :disabled
-    InterfaceHsrp.new(interfaces[0])
+    interface
   end
 
-  def test_bfd
-    ih = create_intf_hsrp
-    assert_equal(ih.default_bfd, ih.bfd)
-    ih.bfd = true
-    assert_equal(true, ih.bfd)
-    ih.bfd = ih.default_bfd
-    assert_equal(ih.default_bfd, ih.bfd)
+  def test_hsrp_bfd
+    ih = create_intf
+    if validate_property_excluded?('interface', 'hsrp_bfd')
+      assert_nil(ih.hsrp_bfd)
+      assert_raises(Cisco::UnsupportedError) do
+        ih.hsrp_bfd = true
+      end
+      return
+    end
+    assert_equal(ih.default_hsrp_bfd, ih.hsrp_bfd)
+    ih.hsrp_bfd = true
+    assert_equal(true, ih.hsrp_bfd)
+    ih.hsrp_bfd = ih.default_hsrp_bfd
+    assert_equal(ih.default_hsrp_bfd, ih.hsrp_bfd)
   end
 
-  def test_delay
-    ih = create_intf_hsrp
-    assert_equal(ih.default_delay_minimum, ih.delay_minimum)
-    assert_equal(ih.default_delay_reload, ih.delay_reload)
-    ih.delay_minimum = 100
-    ih.delay_reload = 555
-    assert_equal(100, ih.delay_minimum)
-    assert_equal(555, ih.delay_reload)
-    ih.delay_minimum = ih.default_delay_minimum
-    ih.delay_reload = ih.default_delay_reload
-    assert_equal(ih.default_delay_minimum, ih.delay_minimum)
-    assert_equal(ih.default_delay_reload, ih.delay_reload)
+  def test_hsrp_delay
+    ih = create_intf
+    if validate_property_excluded?('interface', 'hsrp_delay')
+      assert_nil(ih.hsrp_delay_minimum)
+      assert_nil(ih.hsrp_delay_reload)
+      assert_raises(Cisco::UnsupportedError) do
+        ih.hsrp_delay_minimum = 100
+        ih.hsrp_delay_reload = 555
+      end
+      return
+    end
+    assert_equal(ih.default_hsrp_delay_minimum, ih.hsrp_delay_minimum)
+    assert_equal(ih.default_hsrp_delay_reload, ih.hsrp_delay_reload)
+    ih.hsrp_delay_minimum = 100
+    ih.hsrp_delay_reload = 555
+    assert_equal(100, ih.hsrp_delay_minimum)
+    assert_equal(555, ih.hsrp_delay_reload)
+    ih.hsrp_delay_minimum = ih.default_hsrp_delay_minimum
+    ih.hsrp_delay_reload = ih.default_hsrp_delay_reload
+    assert_equal(ih.default_hsrp_delay_minimum, ih.hsrp_delay_minimum)
+    assert_equal(ih.default_hsrp_delay_reload, ih.hsrp_delay_reload)
   end
 
-  def test_mac_refresh
-    ih = create_intf_hsrp
-    assert_equal(ih.default_mac_refresh, ih.mac_refresh)
-    ih.mac_refresh = 60
-    assert_equal(60, ih.mac_refresh)
-    ih.mac_refresh = ih.default_mac_refresh
-    assert_equal(ih.default_mac_refresh, ih.mac_refresh)
+  def test_hsrp_mac_refresh
+    ih = create_intf
+    if validate_property_excluded?('interface', 'hsrp_mac_refresh')
+      assert_nil(ih.hsrp_mac_refresh)
+      assert_raises(Cisco::UnsupportedError) do
+        ih.hsrp_mac_refresh = 60
+      end
+      return
+    end
+    assert_equal(ih.default_hsrp_mac_refresh, ih.hsrp_mac_refresh)
+    ih.hsrp_mac_refresh = 60
+    assert_equal(60, ih.hsrp_mac_refresh)
+    ih.hsrp_mac_refresh = ih.default_hsrp_mac_refresh
+    assert_equal(ih.default_hsrp_mac_refresh, ih.hsrp_mac_refresh)
   end
 
-  def test_use_bia
-    ih = create_intf_hsrp
-    assert_equal(ih.default_use_bia, ih.use_bia)
-    ih.use_bia = :use_bia
-    assert_equal(:use_bia, ih.use_bia)
-    ih.use_bia = :use_bia_intf
-    assert_equal(:use_bia_intf, ih.use_bia)
-    ih.use_bia = :use_bia
-    assert_equal(:use_bia, ih.use_bia)
-    ih.use_bia = ih.default_use_bia
-    assert_equal(ih.default_use_bia, ih.use_bia)
+  def test_hsrp_use_bia
+    ih = create_intf
+    if validate_property_excluded?('interface', 'hsrp_use_bia')
+      assert_nil(ih.hsrp_use_bia)
+      assert_raises(Cisco::UnsupportedError) do
+        ih.hsrp_use_bia = :use_bia
+      end
+      return
+    end
+    assert_equal(ih.default_hsrp_use_bia, ih.hsrp_use_bia)
+    ih.hsrp_use_bia = :use_bia
+    assert_equal(:use_bia, ih.hsrp_use_bia)
+    ih.hsrp_use_bia = :use_bia_intf
+    assert_equal(:use_bia_intf, ih.hsrp_use_bia)
+    ih.hsrp_use_bia = :use_bia
+    assert_equal(:use_bia, ih.hsrp_use_bia)
+    ih.hsrp_use_bia = ih.default_hsrp_use_bia
+    assert_equal(ih.default_hsrp_use_bia, ih.hsrp_use_bia)
   end
 
-  def test_version
-    ih = create_intf_hsrp
-    assert_equal(ih.default_version, ih.version)
-    ih.version = 2
-    assert_equal(2, ih.version)
-    ih.version = ih.default_version
-    assert_equal(ih.default_version, ih.version)
+  def test_hsrp_version
+    ih = create_intf
+    if validate_property_excluded?('interface', 'hsrp_version')
+      assert_nil(ih.hsrp_version)
+      assert_raises(Cisco::UnsupportedError) do
+        ih.hsrp_version = 2
+      end
+      return
+    end
+    assert_equal(ih.default_hsrp_version, ih.hsrp_version)
+    ih.hsrp_version = 2
+    assert_equal(2, ih.hsrp_version)
+    ih.hsrp_version = ih.default_hsrp_version
+    assert_equal(ih.default_hsrp_version, ih.hsrp_version)
   end
 end

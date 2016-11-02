@@ -78,7 +78,8 @@ module Cisco
       hold = config_get('hsrp_global', 'extended_hold', @get_args)
       return default_extended_hold unless hold
       arr = hold.split('hsrp timers extended-hold')
-      return '10' if arr.empty?
+      return config_get('hsrp_global', 'extended_hold_enable', @get_args) if
+        arr.empty?
       arr[1].strip
     end
 
