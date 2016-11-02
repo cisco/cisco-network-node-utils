@@ -125,12 +125,6 @@ module Cisco
             existing << submode.compare_with(config_submode)
             next
           end # if
-
-          prefix, base = base_commands(command)
-          if prefix != '' && !config.include_command?(base)
-            existing << config_line
-            next
-          end
         end
         existing
       end # compare_with

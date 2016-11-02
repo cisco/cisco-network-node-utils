@@ -219,13 +219,21 @@ class TestAce < CiscoTestCase
     end
   end
 
-  def test_ttl
+  def test_ttl_ipv4
     val = '3'
-    %w(ipv4 ipv6).each do |afi|
-      a = ace_helper(afi, ttl: val)
-      skip("This property has a known defect on the platform itself -\n"\
-           'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
-      assert_equal(val, a.ttl)
-    end
+    afi = 'ipv4'
+    a = ace_helper(afi, ttl: val)
+    skip("This property has a known defect on the platform itself -\n"\
+         'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
+    assert_equal(val, a.ttl)
+  end
+
+  def test_ttl_ipv6
+    val = '3'
+    afi = 'ipv6'
+    a = ace_helper(afi, ttl: val)
+    skip("This property has a known defect on the platform itself -\n"\
+         'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
+    assert_equal(val, a.ttl)
   end
 end

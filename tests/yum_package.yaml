@@ -29,7 +29,7 @@
   version:  '1.0.0-7.0.3.I4.2'
 
 7_0_3_I5_1_:
-  filename: 'nxos.sample-n9k_EOR-1.0.0-7.0.3.I5.1.lib32_n9000.rpm'
-  name:     'nxos.sample-n9k_EOR'
+  filename: 'nxos.sample-n9k_ALL-1.0.0-7.0.3.I5.1.lib32_n9000.rpm'
+  name:     'nxos.sample-n9k_ALL'
   version:  '1.0.0-7.0.3.I5.1'
 

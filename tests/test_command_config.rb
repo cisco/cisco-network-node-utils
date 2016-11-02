@@ -44,7 +44,7 @@ class TestCommandConfig < CiscoTestCase
     commands.gsub(/^\s*$\n/, '')
   end # remove_whitespace
 
-  def compare_with_results(desired_config_str, current_key)
+  def compare_with_results(desired_config_str, _current_key, nvgen)
     retrieve_command = 'show running all'
     running_config_str = node.get(command: retrieve_command)
 
@@ -58,14 +58,20 @@ class TestCommandConfig < CiscoTestCase
       puts e.what
     end
     # puts "Existing command block:\n#{existing}"
-    assert_equal(existing.empty?, false,
-                 "Error: Expected configuration \n'#{desired_config_str}'\n " \
-                 "does not exist.\nHash Key: #{current_key}")
+    if nvgen == false
+      msg = "The following configuration should be removed: #{desired_config_str}"
+      assert_equal(existing.empty?, true, msg)
+    else
+      msg = "The following configuration should exist but doesn't: #{desired_config_str}"
+      assert_equal(existing.empty?, false, msg)
+    end
   end
 
   def send_device_config(config_cmd_hash)
     config_cmd_hash.each do |k, v|
-      v.each_value do |v1|
+      v.each do |k1, v1|
+        next if k1 == 'nvgen'
+        config(v1) if k1 == 'setup'
         # Send commands
         cfg_cmd_str = "#{v1.gsub(/^/, '  ')}"
         cfg_string = remove_whitespace(cfg_cmd_str)
@@ -73,7 +79,7 @@ class TestCommandConfig < CiscoTestCase
         begin
           node.set(values: cfg_string)
           # make sure config is present in success case
-          compare_with_results(v1, k)
+          compare_with_results(v1, k, config_cmd_hash[k]['nvgen'])
         rescue CliError => e
           known_failure = e.message[/ERROR:.*port channel not present/]
           refute(known_failure, 'ERROR: port channel not present')
@@ -113,10 +119,10 @@ class TestCommandConfig < CiscoTestCase
   def test_valid_scale
     show_int_count = "show int brief | i '^\S+\s+--' | count"
     pre = @device.cmd(show_int_count)[/^(\d+)$/]
-
     # Add 1024 loopback interfaces
     cfg_hash_add = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
     cfg_hash_add ['loopback-int-add']['command'] = "#{build_int_scale_config}"
+    cfg_hash_add ['loopback-int-add']['nvgen'] = true
     begin
       send_device_config(cfg_hash_add)
     rescue Timeout::Error
@@ -131,6 +137,7 @@ class TestCommandConfig < CiscoTestCase
     cfg_hash_remove = Hash.new { |h, k| h[k] = Hash.new(&h.default_proc) }
     cfg_hash_remove['loopback-int-add']['command'] = \
       "#{build_int_scale_config(false)}"
+    cfg_hash_remove ['loopback-int-add']['nvgen'] = false
     begin
       send_device_config(cfg_hash_remove)
     rescue Timeout::Error

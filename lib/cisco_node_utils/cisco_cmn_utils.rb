@@ -103,6 +103,16 @@ module Cisco
       true if Platform.image_version[/7.0.3.I2/]
     end
 
+    def self.image_version?(ver_regexp)
+      require_relative 'platform'
+      return true if Platform.image_version[ver_regexp]
+    end
+
+    def self.chassis_pid?(ver_regexp)
+      require_relative 'platform'
+      return true if Platform.chassis['pid'][ver_regexp]
+    end
+
     # Helper utility method for ip/prefix format networks.
     # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
     # we need to mask the address using the prefix length so that they
