@@ -8,13 +8,20 @@ Changelog
 #### Cisco Resources
 * Hot Standby Router Protocol
   * hsrp_global (@saichint)
-  * interface_hsrp (@saichint)
 
 ### Added
 
 * Extend bgp with attributes:
    * `event_history_errors`
    * `event_history_objstore`
+
+* Extend interface with attributes:
+   * `hsrp_bfd`
+   * `hsrp_delay_minimum`
+   * `hsrp_delay_reload`
+   * `hsrp_mac_refresh`
+   * `hsrp_use_bia`
+   * `hsrp_version`
 
 ### Changed
 
