@@ -5,7 +5,19 @@ Changelog
 
 ### New feature support
 
+#### Cisco Resources
+* Hot Standby Router Protocol
+  * hsrp_global (@saichint)
+
 ### Added
+
+* Extend interface with attributes:
+   * `hsrp_bfd`
+   * `hsrp_delay_minimum`
+   * `hsrp_delay_reload`
+   * `hsrp_mac_refresh`
+   * `hsrp_use_bia`
+   * `hsrp_version`
 
 ### Changed
 

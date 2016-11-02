@@ -92,6 +92,50 @@ feature_vlan:
     get_value: '/^feature interface-vlan$/'
     set_value: "<state> feature interface-vlan"
 
+hsrp_bfd:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  kind: boolean
+  get_value: '/^hsrp bfd$/'
+  set_value: "<state> hsrp bfd"
+  default_value: false
+
+hsrp_delay:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  get_value: '/^hsrp delay minimum (\d+) reload (\d+)/'
+  set_value: "hsrp delay <minimum> <min> <reload> <rel>"
+
+hsrp_delay_minimum:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  default_value: 0
+
+hsrp_delay_reload:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  default_value: 0
+
+hsrp_mac_refresh:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  kind: int
+  get_value: '/^hsrp mac-refresh (\d+)$/'
+  set_value: '<state> hsrp mac-refresh <timeout>'
+  default_value: false
+
+hsrp_use_bia:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  # the config can be 'hsrp use-bia' or
+  # 'hsrp use-bia scope interface' or
+  # no config at all so need to grab the
+  # optional match to get the whole config
+  get_value: '/^hsrp use-bia(?:\s+\S+\s+\S+)?$/'
+  set_value: '<state> hsrp use-bia<scope>'
+  default_value: false
+
+hsrp_version:
+  _exclude: [ios_xr, N5k, N6k, N7k]
+  kind: int
+  get_value: '/^hsrp version (\d+)$/'
+  set_value: "hsrp version <ver>"
+  default_value: 1
+
 ipv4_acl_in:
   ios_xr:
     get_value: '/^ipv4 access-group (\S+) ingress/'
