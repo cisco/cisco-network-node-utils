@@ -63,7 +63,7 @@ packet_size:
     default_value: 0
   N6k: *n5k_default_packet_size
   N7k: *n5k_default_packet_size
-  N8k: *n5k_default_packet_size
+  N9k-F: *n5k_default_packet_size
 
 protocol:
   _exclude: [ios_xr]

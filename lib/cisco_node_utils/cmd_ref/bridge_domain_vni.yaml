@@ -1,6 +1,6 @@
 # bridge_domain
 ---
-_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N9k-F, N9k, ios_xr]
 
 create:
   set_value: "bridge-domain <bd>"
