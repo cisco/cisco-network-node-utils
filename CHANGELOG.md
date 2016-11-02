@@ -8,6 +8,7 @@ Changelog
 * Extend bgp with attributes:
    * `event_history_errors`
    * `event_history_objstore`
+* Added support for Cisco NX-OS software release `7.3(0)I5(1)`
 
 ## [v1.4.0]
 
