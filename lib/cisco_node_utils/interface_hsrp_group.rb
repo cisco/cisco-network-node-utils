@@ -233,6 +233,70 @@ module Cisco
       config_set('interface_hsrp_group', 'authentication', @set_args)
     end
 
+    def hsrp_ipv4
+      ip = config_get('interface_hsrp_group', 'hsrp_ipv4', @get_args)
+      return default_hsrp_ipv4 if @iptype == 'ipv6' || !ip
+      arr = ip.split
+      return true unless arr[1]
+      arr[1]
+    end
+
+    def hsrp_ipv4=(val)
+      # reset it first
+      set_args_keys(state: 'no', vip: '')
+      config_set('interface_hsrp_group', 'hsrp_ipv4', @set_args)
+      return unless val
+      vip = val == true ? '' : val
+      set_args_keys(state: '', vip: vip)
+      config_set('interface_hsrp_group', 'hsrp_ipv4', @set_args)
+    end
+
+    def default_hsrp_ipv4
+      config_get_default('interface_hsrp_group', 'hsrp_ipv4')
+    end
+
+    def hsrp_ipv6_autoconfig
+      config_get('interface_hsrp_group', 'hsrp_ipv6_autoconfig', @get_args)
+    end
+
+    def hsrp_ipv6_autoconfig=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('interface_hsrp_group', 'hsrp_ipv6_autoconfig', @set_args)
+    end
+
+    def default_hsrp_ipv6_autoconfig
+      config_get_default('interface_hsrp_group', 'hsrp_ipv6_autoconfig')
+    end
+
+    def hsrp_ipv6
+      return default_hsrp_ipv6 if @iptype == 'ipv4'
+      list = config_get('interface_hsrp_group', 'hsrp_ipv6', @get_args)
+      list.delete('autoconfig')
+      list
+    end
+
+    def hsrp_ipv6=(list)
+      # reset the current list
+      cur = hsrp_ipv6
+      cur.each do |addr|
+        state = 'no'
+        vip = addr
+        set_args_keys(state: state, vip: vip)
+        config_set('interface_hsrp_group', 'hsrp_ipv6', @set_args)
+      end
+      list.each do |addr|
+        state = ''
+        vip = addr
+        set_args_keys(state: state, vip: vip)
+        config_set('interface_hsrp_group', 'hsrp_ipv6', @set_args)
+      end
+    end
+
+    def default_hsrp_ipv6
+      config_get_default('interface_hsrp_group', 'hsrp_ipv6')
+    end
+
     # CLI returns mac_addr in xxxx.xxxx.xxxx format
     # so convert it to xx:xx:xx:xx:xx:xx format
     def mac_addr

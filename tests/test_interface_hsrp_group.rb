@@ -14,7 +14,6 @@
 
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/interface'
-require_relative '../lib/cisco_node_utils/interface_hsrp'
 require_relative '../lib/cisco_node_utils/interface_hsrp_group'
 
 # TestInterfaceHsrpGroup - Minitest for InterfaceHsrpGroup
@@ -49,8 +48,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
                                        iptype='ipv6')
     intf = Interface.new(name)
     intf.switchport_mode = :disabled
-    ih = InterfaceHsrp.new(name)
-    ih.version = 2
+    intf.hsrp_version = 2
     InterfaceHsrpGroup.new(name, group, iptype)
   end
 
@@ -356,5 +354,27 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
     assert_equal(ihg.default_timers_hold, ihg.timers_hold)
     assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+  end
+
+  def test_hsrp_ip
+    ihg = create_interface_hsrp_group_ipv4
+    assert_equal(ihg.default_hsrp_ipv4, ihg.hsrp_ipv4)
+    ihg.hsrp_ipv4 = true
+    assert_equal(true, ihg.hsrp_ipv4)
+    ihg.hsrp_ipv4 = '1.1.1.1'
+    assert_equal('1.1.1.1', ihg.hsrp_ipv4)
+    ihg.hsrp_ipv4 = ihg.default_hsrp_ipv4
+    assert_equal(ihg.default_hsrp_ipv4, ihg.hsrp_ipv4)
+    ihg = create_interface_hsrp_group_ipv6
+    assert_equal(ihg.default_hsrp_ipv6, ihg.hsrp_ipv6)
+    ihg.hsrp_ipv6 = ['2000::11', '2001::55']
+    assert_equal(['2000::11', '2001::55'], ihg.hsrp_ipv6)
+    ihg.hsrp_ipv6 = ihg.default_hsrp_ipv6
+    assert_equal(ihg.default_hsrp_ipv6, ihg.hsrp_ipv6)
+    assert_equal(ihg.default_hsrp_ipv6_autoconfig, ihg.hsrp_ipv6_autoconfig)
+    ihg.hsrp_ipv6_autoconfig = true
+    assert_equal(true, ihg.hsrp_ipv6_autoconfig)
+    ihg.hsrp_ipv6_autoconfig = ihg.default_hsrp_ipv6_autoconfig
+    assert_equal(ihg.default_hsrp_ipv6_autoconfig, ihg.hsrp_ipv6_autoconfig)
   end
 end

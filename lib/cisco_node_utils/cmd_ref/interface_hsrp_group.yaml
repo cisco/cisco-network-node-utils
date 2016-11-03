@@ -1,6 +1,6 @@
 # interface_hsrp_group
 ---
-_exclude: [ios_xr, N3k, N5k, N6k, N7k, N9k, N9k-F]
+_exclude: [ios_xr, N5k, N6k, N7k]
 
 _template:
   get_command: "show running hsrp | no-more"
@@ -39,14 +39,24 @@ hsrp_groups:
   get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
   set_value: '<state> hsrp <group> <iptype>'
 
-ip:
+hsrp_ipv4:
   # the config can be 'ip' or 'ip <vip>' or
-  # ip autoconfig (for ipv6)
-  # no ip config at all so need to grab the
+  # no ipv4 config at all so need to grab the
   # optional match to get the whole config
-  multiple: true
   get_value: '/^ip(?:\s+\S+)?$/'
   set_value: '<state> ip <vip>'
+  default_value: false
+
+hsrp_ipv6:
+  multiple: true
+  get_value: '/^ip (\S+)$/'
+  set_value: '<state> ip <vip>'
+  default_value: []
+
+hsrp_ipv6_autoconfig:
+  kind: boolean
+  get_value: '/^ip autoconfig$/'
+  set_value: '<state> ip autoconfig'
   default_value: false
 
 mac_addr:
