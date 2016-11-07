@@ -290,7 +290,7 @@ module Cisco
         # Append -F for fretta platform.
         inventory.each do |row|
           if row['productid'][/N9K-C9...-FM-R/] && ver[/7.0\(3\)F/]
-            return prod.concat('-F')
+            return prod.concat('-F') unless prod[/-F/]
           end
         end
       end
