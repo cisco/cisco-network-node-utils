@@ -455,7 +455,7 @@ module Cisco
     end
 
     def priority_level_set(pri, lower, upper)
-      if pri && lower && upper
+      if pri && !lower.to_s.empty? && !upper.to_s.empty?
         set_args_keys(state: '', pri: pri,
                       forward: 'forwarding-threshold lower',
                       lval: lower, upper: 'upper', uval: upper)

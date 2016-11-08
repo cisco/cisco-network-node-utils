@@ -91,10 +91,10 @@ priority:
   default_value: 100
 
 priority_forward_thresh_lower:
-  default_value: false
+  default_value: ''
 
 priority_forward_thresh_upper:
-  default_value: false
+  default_value: ''
 
 priority_level:
   get_value: '/^priority (\d+)(?:\s+(?:forwarding-threshold lower)\s+(\d+)\s+(?:upper)\s+(\d+))?$/'
