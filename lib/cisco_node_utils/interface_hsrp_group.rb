@@ -235,13 +235,13 @@ module Cisco
     end
 
     def ipv4_enable
-      return default_ipv4_vip if @iptype == 'ipv6'
+      return default_ipv4_enable if @iptype == 'ipv6'
       ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
-      ip ? true : false
+      ip.empty? ? false : true
     end
 
     def default_ipv4_enable
-      default_ipv4_vip
+      config_get_default('interface_hsrp_group', 'ipv4_enable')
     end
 
     def ipv4_vip
@@ -249,7 +249,7 @@ module Cisco
       ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
       return default_ipv4_vip unless ip
       arr = ip.split
-      arr[1] ? arr[1] : false
+      arr[1] ? arr[1] : default_ipv4_vip
     end
 
     def ipv4_vip_set(ipenable, vip)

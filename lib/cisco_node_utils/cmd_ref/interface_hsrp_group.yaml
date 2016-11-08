@@ -44,13 +44,16 @@ hsrp_groups:
   get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
   set_value: '<state> hsrp <group> <iptype>'
 
+ipv4_enable:
+  default_value: false
+
 ipv4_vip:
   # the config can be 'ip' or 'ip <vip>' or
   # no ipv4 config at all so need to grab the
   # optional match to get the whole config
   get_value: '/^ip(?:\s+\S+)?$/'
   set_value: '<state> ip <vip>'
-  default_value: false
+  default_value: ''
 
 ipv6_autoconfig:
   kind: boolean
