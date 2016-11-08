@@ -36,6 +36,7 @@ module Cisco
 
     def self.hsrp_groups
       hash = {}
+      return hash unless Feature.hsrp_enabled?
       Interface.interfaces.each do|intf, _obj|
         groups = config_get('interface_hsrp_group', 'hsrp_groups', name: intf)
         next if groups.nil?
