@@ -233,68 +233,79 @@ module Cisco
       config_set('interface_hsrp_group', 'authentication', @set_args)
     end
 
-    def hsrp_ipv4
-      ip = config_get('interface_hsrp_group', 'hsrp_ipv4', @get_args)
-      return default_hsrp_ipv4 if @iptype == 'ipv6' || !ip
-      arr = ip.split
-      return true unless arr[1]
-      arr[1]
+    def ipv4_enable
+      return default_ipv4_vip if @iptype == 'ipv6'
+      ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
+      ip ? true : false
     end
 
-    def hsrp_ipv4=(val)
+    def default_ipv4_enable
+      default_ipv4_vip
+    end
+
+    def ipv4_vip
+      return default_ipv4_vip if @iptype == 'ipv6'
+      ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
+      return default_ipv4_vip unless ip
+      arr = ip.split
+      arr[1] ? arr[1] : false
+    end
+
+    def ipv4_vip_set(ipenable, vip)
       # reset it first
       set_args_keys(state: 'no', vip: '')
-      config_set('interface_hsrp_group', 'hsrp_ipv4', @set_args)
-      return unless val
-      vip = val == true ? '' : val
+      config_set('interface_hsrp_group', 'ipv4_vip', @set_args)
+      return unless ipenable
+      vip = vip ? vip : ''
       set_args_keys(state: '', vip: vip)
-      config_set('interface_hsrp_group', 'hsrp_ipv4', @set_args)
+      config_set('interface_hsrp_group', 'ipv4_vip', @set_args)
     end
 
-    def default_hsrp_ipv4
-      config_get_default('interface_hsrp_group', 'hsrp_ipv4')
+    def default_ipv4_vip
+      config_get_default('interface_hsrp_group', 'ipv4_vip')
     end
 
-    def hsrp_ipv6_autoconfig
-      config_get('interface_hsrp_group', 'hsrp_ipv6_autoconfig', @get_args)
+    def ipv6_autoconfig
+      config_get('interface_hsrp_group', 'ipv6_autoconfig', @get_args)
     end
 
-    def hsrp_ipv6_autoconfig=(val)
+    def ipv6_autoconfig=(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
-      config_set('interface_hsrp_group', 'hsrp_ipv6_autoconfig', @set_args)
+      config_set('interface_hsrp_group', 'ipv6_autoconfig', @set_args)
     end
 
-    def default_hsrp_ipv6_autoconfig
-      config_get_default('interface_hsrp_group', 'hsrp_ipv6_autoconfig')
+    def default_ipv6_autoconfig
+      config_get_default('interface_hsrp_group', 'ipv6_autoconfig')
     end
 
-    def hsrp_ipv6
-      return default_hsrp_ipv6 if @iptype == 'ipv4'
-      list = config_get('interface_hsrp_group', 'hsrp_ipv6', @get_args)
+    def ipv6_vip
+      return default_ipv6_vip if @iptype == 'ipv4'
+      list = config_get('interface_hsrp_group', 'ipv6_vip', @get_args)
+      # remove autoconfig from the list
       list.delete('autoconfig')
       list
     end
 
-    def hsrp_ipv6=(list)
+    def ipv6_vip=(list)
       # reset the current list
-      cur = hsrp_ipv6
+      cur = ipv6_vip
       cur.each do |addr|
         state = 'no'
         vip = addr
         set_args_keys(state: state, vip: vip)
-        config_set('interface_hsrp_group', 'hsrp_ipv6', @set_args)
+        config_set('interface_hsrp_group', 'ipv6_vip', @set_args)
       end
       list.each do |addr|
         state = ''
         vip = addr
         set_args_keys(state: state, vip: vip)
-        config_set('interface_hsrp_group', 'hsrp_ipv6', @set_args)
+        config_set('interface_hsrp_group', 'ipv6_vip', @set_args)
       end
     end
 
-    def default_hsrp_ipv6
-      config_get_default('interface_hsrp_group', 'hsrp_ipv6')
+    def default_ipv6_vip
+      config_get_default('interface_hsrp_group', 'ipv6_vip')
     end
 
     # CLI returns mac_addr in xxxx.xxxx.xxxx format

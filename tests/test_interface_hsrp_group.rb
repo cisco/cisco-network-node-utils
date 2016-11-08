@@ -356,25 +356,36 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
   end
 
-  def test_hsrp_ip
+  def test_ip
     ihg = create_interface_hsrp_group_ipv4
-    assert_equal(ihg.default_hsrp_ipv4, ihg.hsrp_ipv4)
-    ihg.hsrp_ipv4 = true
-    assert_equal(true, ihg.hsrp_ipv4)
-    ihg.hsrp_ipv4 = '1.1.1.1'
-    assert_equal('1.1.1.1', ihg.hsrp_ipv4)
-    ihg.hsrp_ipv4 = ihg.default_hsrp_ipv4
-    assert_equal(ihg.default_hsrp_ipv4, ihg.hsrp_ipv4)
+    assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
+    assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
+    ihg.ipv4_vip_set(true, ihg.default_ipv4_vip)
+    assert_equal(true, ihg.ipv4_enable)
+    assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
+    ihg.ipv4_vip_set(true, '1.1.1.1')
+    assert_equal(true, ihg.ipv4_enable)
+    assert_equal('1.1.1.1', ihg.ipv4_vip)
+    ihg.ipv4_vip_set(true, ihg.default_ipv4_vip)
+    assert_equal(true, ihg.ipv4_enable)
+    assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
+    ihg.ipv4_vip_set(ihg.default_ipv4_enable, ihg.default_ipv4_vip)
+    assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
+    assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
+    ihg.ipv4_vip_set(true, '1.1.1.1')
+    ihg.ipv4_vip_set(ihg.default_ipv4_enable, ihg.default_ipv4_vip)
+    assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
+    assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
     ihg = create_interface_hsrp_group_ipv6
-    assert_equal(ihg.default_hsrp_ipv6, ihg.hsrp_ipv6)
-    ihg.hsrp_ipv6 = ['2000::11', '2001::55']
-    assert_equal(['2000::11', '2001::55'], ihg.hsrp_ipv6)
-    ihg.hsrp_ipv6 = ihg.default_hsrp_ipv6
-    assert_equal(ihg.default_hsrp_ipv6, ihg.hsrp_ipv6)
-    assert_equal(ihg.default_hsrp_ipv6_autoconfig, ihg.hsrp_ipv6_autoconfig)
-    ihg.hsrp_ipv6_autoconfig = true
-    assert_equal(true, ihg.hsrp_ipv6_autoconfig)
-    ihg.hsrp_ipv6_autoconfig = ihg.default_hsrp_ipv6_autoconfig
-    assert_equal(ihg.default_hsrp_ipv6_autoconfig, ihg.hsrp_ipv6_autoconfig)
+    assert_equal(ihg.default_ipv6_vip, ihg.ipv6_vip)
+    ihg.ipv6_vip = ['2000::11', '2001::55']
+    assert_equal(['2000::11', '2001::55'], ihg.ipv6_vip)
+    ihg.ipv6_vip = ihg.default_ipv6_vip
+    assert_equal(ihg.default_ipv6_vip, ihg.ipv6_vip)
+    assert_equal(ihg.default_ipv6_autoconfig, ihg.ipv6_autoconfig)
+    ihg.ipv6_autoconfig = true
+    assert_equal(true, ihg.ipv6_autoconfig)
+    ihg.ipv6_autoconfig = ihg.default_ipv6_autoconfig
+    assert_equal(ihg.default_ipv6_autoconfig, ihg.ipv6_autoconfig)
   end
 end

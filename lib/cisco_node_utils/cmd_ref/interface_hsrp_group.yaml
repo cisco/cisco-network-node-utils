@@ -39,7 +39,7 @@ hsrp_groups:
   get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
   set_value: '<state> hsrp <group> <iptype>'
 
-hsrp_ipv4:
+ipv4_vip:
   # the config can be 'ip' or 'ip <vip>' or
   # no ipv4 config at all so need to grab the
   # optional match to get the whole config
@@ -47,17 +47,17 @@ hsrp_ipv4:
   set_value: '<state> ip <vip>'
   default_value: false
 
-hsrp_ipv6:
-  multiple: true
-  get_value: '/^ip (\S+)$/'
-  set_value: '<state> ip <vip>'
-  default_value: []
-
-hsrp_ipv6_autoconfig:
+ipv6_autoconfig:
   kind: boolean
   get_value: '/^ip autoconfig$/'
   set_value: '<state> ip autoconfig'
   default_value: false
+
+ipv6_vip:
+  multiple: true
+  get_value: '/^ip (\S+)$/'
+  set_value: '<state> ip <vip>'
+  default_value: []
 
 mac_addr:
   get_value: '/^mac-address (\S+)$/'
@@ -112,7 +112,3 @@ timers_hold:
 
 timers_hold_msec:
   default_value: false
-
-track:
-  get_value: '/^track (.*)$/'
-  set_value: '<state> track <id> <decrement> <val>'
