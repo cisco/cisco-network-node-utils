@@ -148,7 +148,7 @@ module Cisco
     end
 
     def authentication_key_type=(val)
-      @set_args[:keytype] = val
+      @set_args[:keytype] = val.to_s
     end
 
     def default_authentication_key_type
