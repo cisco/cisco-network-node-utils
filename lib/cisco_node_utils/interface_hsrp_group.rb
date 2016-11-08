@@ -136,7 +136,7 @@ module Cisco
 
     def authentication_auth_type=(val)
       @set_args[:authtype] = val
-      @set_args[:authtype] = 'text' if val == 'cleartext'
+      @set_args[:authtype] = 'text' if val.to_s == 'cleartext'
     end
 
     def default_authentication_auth_type
@@ -339,19 +339,19 @@ module Cisco
       config_get_default('interface_hsrp_group', 'mac_addr')
     end
 
-    def name
-      config_get('interface_hsrp_group', 'name', @get_args)
+    def group_name
+      config_get('interface_hsrp_group', 'group_name', @get_args)
     end
 
-    def name=(val)
+    def group_name=(val)
       state = val ? '' : 'no'
       word = val ? val : ''
       set_args_keys(state: state, word: word)
-      config_set('interface_hsrp_group', 'name', @set_args)
+      config_set('interface_hsrp_group', 'group_name', @set_args)
     end
 
-    def default_name
-      config_get_default('interface_hsrp_group', 'name')
+    def default_group_name
+      config_get_default('interface_hsrp_group', 'group_name')
     end
 
     def preempt_get

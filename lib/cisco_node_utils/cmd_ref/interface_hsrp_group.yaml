@@ -32,6 +32,11 @@ authentication_timeout:
   kind: int
   default_value: 0
 
+group_name:
+  get_value: '/^name (\S+)/'
+  set_value: '<state> name <word>'
+  default_value: false
+
 hsrp_groups:
   multiple: true
   context:
@@ -62,11 +67,6 @@ ipv6_vip:
 mac_addr:
   get_value: '/^mac-address (\S+)$/'
   set_value: '<state> mac-address <mac>'
-  default_value: false
-
-name:
-  get_value: '/^name (\S+)/'
-  set_value: '<state> name <word>'
   default_value: false
 
 preempt:

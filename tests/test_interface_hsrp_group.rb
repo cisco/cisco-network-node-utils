@@ -73,19 +73,19 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_empty(InterfaceHsrpGroup.hsrp_groups)
   end
 
-  def test_name
+  def test_group_name
     ihg = create_interface_hsrp_group_ipv4
-    assert_equal(ihg.default_name, ihg.name)
-    ihg.name = 'hsrp_group_name'
-    assert_equal('hsrp_group_name', ihg.name)
-    ihg.name = ihg.default_name
-    assert_equal(ihg.default_name, ihg.name)
+    assert_equal(ihg.default_group_name, ihg.group_name)
+    ihg.group_name = 'hsrp_group_name'
+    assert_equal('hsrp_group_name', ihg.group_name)
+    ihg.group_name = ihg.default_group_name
+    assert_equal(ihg.default_group_name, ihg.group_name)
     ihg = create_interface_hsrp_group_ipv6
-    assert_equal(ihg.default_name, ihg.name)
-    ihg.name = 'hsrp_group_name'
-    assert_equal('hsrp_group_name', ihg.name)
-    ihg.name = ihg.default_name
-    assert_equal(ihg.default_name, ihg.name)
+    assert_equal(ihg.default_group_name, ihg.group_name)
+    ihg.group_name = 'hsrp_group_name'
+    assert_equal('hsrp_group_name', ihg.group_name)
+    ihg.group_name = ihg.default_group_name
+    assert_equal(ihg.default_group_name, ihg.group_name)
   end
 
   def test_mac_addr
