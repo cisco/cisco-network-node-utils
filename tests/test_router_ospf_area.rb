@@ -58,10 +58,10 @@ class TestRouterOspfArea < CiscoTestCase
     # need to skip the below test as the size will be wrong.
     # platform as the size will be wrong. bug ID: CSCva04066
     assert_equal(1, RouterOspfArea.areas['Wolfpack'].size) unless
-      /N9K-F/ =~ node.product_id
+      /N9K.*-F/ =~ node.product_id
     ad.destroy
     assert_empty(RouterOspfArea.areas) unless
-      /N9K-F/ =~ node.product_id
+      /N9K.*-F/ =~ node.product_id
   end
 
   def test_authentication
