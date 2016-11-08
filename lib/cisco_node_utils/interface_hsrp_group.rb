@@ -253,6 +253,7 @@ module Cisco
     end
 
     def ipv4_vip_set(ipenable, vip)
+      return if @iptype == 'ipv6'
       # reset it first
       set_args_keys(state: 'no', vip: '')
       config_set('interface_hsrp_group', 'ipv4_vip', @set_args)
