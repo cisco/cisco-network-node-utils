@@ -355,6 +355,9 @@ module Cisco
       config_get_default('interface_hsrp_group', 'group_name')
     end
 
+    # The CLI can take forms like:
+    # preempt
+    # preempt delay minimum 3 reload 10 sync 15
     def preempt_get
       hash = {}
       hash[:preempt] = default_preempt
@@ -415,6 +418,9 @@ module Cisco
       config_get_default('interface_hsrp_group', 'preempt_delay_sync')
     end
 
+    # This CLI can take forms like:
+    # priority 10
+    # priority 50 forwarding-threshold lower 10 upper 49
     def priority_level_get
       hash = {}
       hash[:priority] = default_priority
@@ -470,6 +476,10 @@ module Cisco
       config_set('interface_hsrp_group', 'priority_level', @set_args)
     end
 
+    # This CLI can take forms like:
+    # timers  1  3
+    # timers msec 300  3
+    # timers timers msec 750 msec 2500
     def timers_get
       hash = {}
       hash[:hello] = default_timers_hello
