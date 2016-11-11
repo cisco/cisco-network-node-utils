@@ -127,6 +127,9 @@ module Cisco
           else
             hash[:password] = params[:enctype]
           end
+          # get rid of password from str just in case the password is
+          # compatibility or timeout
+          str.sub!(hash[:password], '')
           hash[:compat] = true if str.include?('compatibility')
           hash[:timeout] = str.split.last.to_i if str.include?('timeout')
         end
