@@ -59,18 +59,18 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     ihg4 = create_interface_hsrp_group_ipv6
     ihg5 = create_interface_hsrp_group_ipv6('port-channel10', 3, 'ipv6')
     ihg6 = create_interface_hsrp_group_ipv4('port-channel10', 100, 'ipv4')
-    assert_equal(1, InterfaceHsrpGroup.hsrp_groups['port-channel100']['1'].size)
-    assert_equal(1, InterfaceHsrpGroup.hsrp_groups['port-channel100']['2'].size)
-    assert_equal(2, InterfaceHsrpGroup.hsrp_groups['port-channel100']['3'].size)
-    assert_equal(1, InterfaceHsrpGroup.hsrp_groups['port-channel10']['3'].size)
-    assert_equal(1, InterfaceHsrpGroup.hsrp_groups['port-channel10']['100'].size)
+    assert_equal(1, InterfaceHsrpGroup.groups['port-channel100']['1'].size)
+    assert_equal(1, InterfaceHsrpGroup.groups['port-channel100']['2'].size)
+    assert_equal(2, InterfaceHsrpGroup.groups['port-channel100']['3'].size)
+    assert_equal(1, InterfaceHsrpGroup.groups['port-channel10']['3'].size)
+    assert_equal(1, InterfaceHsrpGroup.groups['port-channel10']['100'].size)
     ihg1.destroy
     ihg2.destroy
     ihg3.destroy
     ihg4.destroy
     ihg5.destroy
     ihg6.destroy
-    assert_empty(InterfaceHsrpGroup.hsrp_groups)
+    assert_empty(InterfaceHsrpGroup.groups)
   end
 
   def test_group_name
@@ -175,6 +175,15 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('MyUnEncr', ihg.authentication_string)
     assert_equal(true, ihg.authentication_compatibility)
     assert_equal(6666, ihg.authentication_timeout)
+    attrs[:authentication_compatibility] = false
+    attrs[:authentication_timeout] = 3333
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('0', ihg.authentication_enc_type)
+    assert_equal('MyUnEncr', ihg.authentication_string)
+    assert_equal(false, ihg.authentication_compatibility)
+    assert_equal(3333, ihg.authentication_timeout)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
     assert_equal(ihg.default_authentication_string,

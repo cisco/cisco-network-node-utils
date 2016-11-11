@@ -37,7 +37,7 @@ group_name:
   set_value: '<state> name <word>'
   default_value: false
 
-hsrp_groups:
+groups:
   multiple: true
   context:
     - "interface <name>"

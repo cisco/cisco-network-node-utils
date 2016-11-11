@@ -34,18 +34,19 @@ module Cisco
       create if instantiate
     end
 
-    def self.hsrp_groups
+    def self.groups
       hash = {}
       return hash unless Feature.hsrp_enabled?
       Interface.interfaces.each do|intf, _obj|
-        groups = config_get('interface_hsrp_group', 'hsrp_groups', name: intf)
+        groups = config_get('interface_hsrp_group', 'groups', name: intf)
         next if groups.nil?
         hash[intf] = {}
         groups.each do |id, type|
           iptype = type
           iptype = 'ipv4' if type.nil?
           hash[intf][id] ||= {}
-          hash[intf][id][iptype] = InterfaceHsrpGroup.new(intf, id, iptype)
+          hash[intf][id][iptype] =
+            InterfaceHsrpGroup.new(intf, id, iptype, false)
         end
       end
       hash
@@ -64,17 +65,20 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # Create one router ospf area virtual-link instance
+    # Create one interface hsrp group instance
     def create
       Feature.hsrp_enable
       set_args_keys(state: '')
-      config_set('interface_hsrp_group', 'hsrp_groups', @set_args)
+      config_set('interface_hsrp_group', 'groups', @set_args)
     end
 
     def destroy
       return unless Feature.hsrp_enabled?
+      # for ipv4 types, 'no' cmd needs the type to be specified
+      # explicitly if another ipv6 group exists with the same
+      # group id
       set_args_keys(state: 'no', iptype: @iptype)
-      config_set('interface_hsrp_group', 'hsrp_groups', @set_args)
+      config_set('interface_hsrp_group', 'groups', @set_args)
     end
 
     ########################################################
@@ -102,29 +106,29 @@ module Cisco
       hash[:timeout] = default_authentication_timeout
       str = config_get('interface_hsrp_group', 'authentication', @get_args)
       return hash if str.nil?
-      params = str.split
-      if params[0] == 'text'
-        hash[:password] = params[1]
+      regexp = Regexp.new('(?<authtype>text|md5)'\
+           ' *(?<keytype>key-chain|key-string|\S+)'\
+           ' *(?<enctype>7|\S+)?'\
+           ' *(?<keystring>\S+)?')
+      params = regexp.match(str)
+      if params[:authtype] == 'text'
+        hash[:password] = params[:keytype]
       else
         hash[:auth_type] = 'md5'
-        hash[:key_type] = params[1]
+        hash[:key_type] = params[:keytype]
         if hash[:key_type] == 'key-chain'
-          hash[:password] = params[2]
+          hash[:password] = params[:enctype]
         else
-          ki = params.index('key-string')
-          next_elem = params[ki + 1]
-          if next_elem == '7' && params[ki + 2].nil?
+          if params[:enctype] == '7' && params[:keystring].nil?
             hash[:password] = '7'
-          elsif next_elem == '7' && !params[ki + 2].nil?
+          elsif params[:enctype] == '7' && !params[:keystring].nil?
             hash[:enc_type] = '7'
-            hash[:password] = params[ki + 2]
+            hash[:password] = params[:keystring]
           else
-            hash[:password] = next_elem
+            hash[:password] = params[:enctype]
           end
-          params.delete_at(params.index(hash[:password]))
-          hash[:compat] = true unless params.index('compatibility').nil?
-          hash[:timeout] = params[params.index('timeout') + 1].to_i unless
-            params.index('timeout').nil?
+          hash[:compat] = true if str.include?('compatibility')
+          hash[:timeout] = str.split.last.to_i if str.include?('timeout')
         end
       end
       hash
