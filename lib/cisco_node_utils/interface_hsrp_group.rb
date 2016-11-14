@@ -322,23 +322,14 @@ module Cisco
     def mac_addr
       mac = config_get('interface_hsrp_group', 'mac_addr', @get_args)
       return default_mac_addr unless mac
-      mac.tr!('.', '')
-      [2, 5, 8, 11, 14].each do |i|
-        mac.insert i, ':'
-      end
-      mac
+      mac.tr('.', '').scan(/.{1,2}/).join(':')
     end
 
     # CLI expects mac_addr to be in xxxx.xxxx.xxxx format
     # so convert from xx:xx:xx:xx:xx:xx format
     def mac_addr=(val)
       state = val ? '' : 'no'
-      mac = val ? val : ''
-      if val
-        mac.tr!(':', '')
-        mac.insert 4, '.'
-        mac.insert 9, '.'
-      end
+      mac = val ? val.tr(':', '').scan(/.{1,4}/).join('.') : ''
       set_args_keys(state: state, mac: mac)
       config_set('interface_hsrp_group', 'mac_addr', @set_args)
     end

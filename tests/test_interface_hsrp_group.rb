@@ -103,18 +103,11 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_mac_addr, ihg.mac_addr)
   end
 
-  def test_authentication
+  def test_auth_type_clear
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_authentication_string,
                  ihg.authentication_string)
     attrs = {}
-    attrs[:authentication_auth_type] = ihg.default_authentication_auth_type
-    attrs[:authentication_key_type] = ihg.default_authentication_key_type
-    attrs[:authentication_enc_type] = ihg.default_authentication_enc_type
-    attrs[:authentication_string] = ihg.default_authentication_string
-    attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
-    attrs[:authentication_timeout] = ihg.default_authentication_timeout
-
     attrs[:authentication_auth_type] = 'cleartext'
     attrs[:authentication_string] = 'Test'
     ihg.authentication_set(attrs)
@@ -124,12 +117,22 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     ihg.authentication_set(attrs)
     assert_equal(ihg.default_authentication_string,
                  ihg.authentication_string)
+
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_auth_type] = 'cleartext'
     attrs[:authentication_string] = 'Test'
     ihg.authentication_set(attrs)
     assert_equal('cleartext', ihg.authentication_auth_type)
     assert_equal('Test', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_type_md5
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
     attrs[:authentication_key_type] = 'key-chain'
     attrs[:authentication_string] = 'MyMD5Password'
@@ -137,16 +140,89 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-chain', ihg.authentication_key_type)
     assert_equal('MyMD5Password', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+    ihg = create_interface_hsrp_group_ipv6
+    attrs[:authentication_string] = 'MyMD5Password'
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-chain', ihg.authentication_key_type)
+    assert_equal('MyMD5Password', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_key_string_enc_0
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv4
+    attrs[:authentication_auth_type] = 'md5'
     attrs[:authentication_key_type] = 'key-string'
     attrs[:authentication_enc_type] = '0'
+    attrs[:authentication_string] = '7'
+    attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
+    attrs[:authentication_timeout] = ihg.default_authentication_timeout
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('0', ihg.authentication_enc_type)
+    assert_equal('7', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+    ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_string] = '7'
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
     assert_equal('0', ihg.authentication_enc_type)
     assert_equal('7', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_key_string_enc_7
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv4
+    attrs[:authentication_auth_type] = 'md5'
+    attrs[:authentication_key_type] = 'key-string'
     attrs[:authentication_enc_type] = '7'
     attrs[:authentication_string] = '12345678901234567890'
+    attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
+    attrs[:authentication_timeout] = ihg.default_authentication_timeout
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('7', ihg.authentication_enc_type)
+    assert_equal('12345678901234567890', ihg.authentication_string)
+    ihg = create_interface_hsrp_group_ipv6
+    attrs[:authentication_string] = '12345678901234567890'
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('7', ihg.authentication_enc_type)
+    assert_equal('12345678901234567890', ihg.authentication_string)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_key_string_enc_7_compat_timeout_ipv4
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv4
+    attrs[:authentication_auth_type] = 'md5'
+    attrs[:authentication_key_type] = 'key-string'
+    attrs[:authentication_enc_type] = '7'
+    attrs[:authentication_string] = '12345678901234567890'
+    attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
+    attrs[:authentication_timeout] = ihg.default_authentication_timeout
     ihg.authentication_set(attrs)
     assert_equal('md5', ihg.authentication_auth_type)
     assert_equal('key-string', ihg.authentication_key_type)
@@ -164,6 +240,49 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     attrs[:authentication_compatibility] = false
     ihg.authentication_set(attrs)
     assert_equal(false, ihg.authentication_compatibility)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_key_string_enc_7_compat_timeout_ipv6
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv6
+    attrs[:authentication_auth_type] = 'md5'
+    attrs[:authentication_key_type] = 'key-string'
+    attrs[:authentication_enc_type] = '7'
+    attrs[:authentication_string] = '12345678901234567890'
+    attrs[:authentication_compatibility] = ihg.default_authentication_compatibility
+    attrs[:authentication_timeout] = ihg.default_authentication_timeout
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('7', ihg.authentication_enc_type)
+    assert_equal('12345678901234567890', ihg.authentication_string)
+    attrs[:authentication_compatibility] = true
+    attrs[:authentication_timeout] = 6666
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('7', ihg.authentication_enc_type)
+    assert_equal('12345678901234567890', ihg.authentication_string)
+    assert_equal(true, ihg.authentication_compatibility)
+    assert_equal(6666, ihg.authentication_timeout)
+    attrs[:authentication_compatibility] = false
+    ihg.authentication_set(attrs)
+    assert_equal(false, ihg.authentication_compatibility)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_auth_key_string_enc_0_compat_timeout_ipv4
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv4
+    attrs[:authentication_auth_type] = 'md5'
+    attrs[:authentication_key_type] = 'key-string'
     attrs[:authentication_enc_type] = '0'
     attrs[:authentication_string] = 'MyUnEncr'
     attrs[:authentication_compatibility] = true
@@ -190,7 +309,38 @@ class TestInterfaceHsrpGroup < CiscoTestCase
                  ihg.authentication_string)
   end
 
-  def test_preempt
+  def test_auth_key_string_enc_0_compat_timeout_ipv6
+    attrs = {}
+    ihg = create_interface_hsrp_group_ipv6
+    attrs[:authentication_auth_type] = 'md5'
+    attrs[:authentication_key_type] = 'key-string'
+    attrs[:authentication_enc_type] = '0'
+    attrs[:authentication_string] = 'MyUnEncr'
+    attrs[:authentication_compatibility] = true
+    attrs[:authentication_timeout] = 6666
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('0', ihg.authentication_enc_type)
+    assert_equal('MyUnEncr', ihg.authentication_string)
+    assert_equal(true, ihg.authentication_compatibility)
+    assert_equal(6666, ihg.authentication_timeout)
+    attrs[:authentication_compatibility] = false
+    attrs[:authentication_timeout] = 3333
+    ihg.authentication_set(attrs)
+    assert_equal('md5', ihg.authentication_auth_type)
+    assert_equal('key-string', ihg.authentication_key_type)
+    assert_equal('0', ihg.authentication_enc_type)
+    assert_equal('MyUnEncr', ihg.authentication_string)
+    assert_equal(false, ihg.authentication_compatibility)
+    assert_equal(3333, ihg.authentication_timeout)
+    attrs[:authentication_string] = ihg.default_authentication_string
+    ihg.authentication_set(attrs)
+    assert_equal(ihg.default_authentication_string,
+                 ihg.authentication_string)
+  end
+
+  def test_preempt_ipv4
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_preempt, ihg.preempt)
     assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
@@ -219,6 +369,9 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
     assert_equal(ihg.default_preempt_delay_reload, ihg.preempt_delay_reload)
     assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
+  end
+
+  def test_preempt_ipv6
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_preempt, ihg.preempt)
     assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
@@ -249,7 +402,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_preempt_delay_sync, ihg.preempt_delay_sync)
   end
 
-  def test_priority
+  def test_priority_ipv4
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_priority, ihg.priority)
     assert_equal(ihg.default_priority_forward_thresh_lower,
@@ -276,6 +429,9 @@ class TestInterfaceHsrpGroup < CiscoTestCase
                  ihg.priority_forward_thresh_lower)
     assert_equal(ihg.default_priority_forward_thresh_upper,
                  ihg.priority_forward_thresh_upper)
+  end
+
+  def test_priority_ipv6
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_priority, ihg.priority)
     assert_equal(ihg.default_priority_forward_thresh_lower,
@@ -304,7 +460,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
                  ihg.priority_forward_thresh_upper)
   end
 
-  def test_timers
+  def test_timers_ipv4
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_timers_hello, ihg.timers_hello)
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
@@ -334,6 +490,9 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
     assert_equal(ihg.default_timers_hold, ihg.timers_hold)
     assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
+  end
+
+  def test_timers_ipv6
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_timers_hello, ihg.timers_hello)
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
@@ -365,7 +524,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(ihg.default_timers_hold_msec, ihg.timers_hold_msec)
   end
 
-  def test_ip
+  def test_ipv4_vip
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
     assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
@@ -385,6 +544,9 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     ihg.ipv4_vip_set(ihg.default_ipv4_enable, ihg.default_ipv4_vip)
     assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
     assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
+  end
+
+  def test_ipv6_vip
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_ipv6_vip, ihg.ipv6_vip)
     ihg.ipv6_vip = ['2000::11', '2001::55']
