@@ -477,7 +477,7 @@ module Cisco
     # This CLI can take forms like:
     # timers  1  3
     # timers msec 300  3
-    # timers timers msec 750 msec 2500
+    # timers msec 750 msec 2500
     def timers_get
       hash = {}
       hash[:hello] = default_timers_hello
@@ -486,26 +486,13 @@ module Cisco
       hash[:mshold] = default_timers_hold_msec
       str = config_get('interface_hsrp_group', 'timers', @get_args)
       return hash if str.nil?
-      params = str.split
-      if str.include?('msec')
-        if params[0] == 'msec'
-          hash[:mshello] = true
-          hash[:hello] = params[1].to_i
-          if params[2] == 'msec'
-            hash[:mshold] = true
-            hash[:hold] = params[3].to_i
-          else
-            hash[:hold] = params[2].to_i
-          end
-        else
-          hash[:hello] = params[0].to_i
-          hash[:mshold] = true
-          hash[:hold] = params[2].to_i
-        end
-      else
-        hash[:hello] = params[0].to_i
-        hash[:hold] = params[1].to_i
-      end
+      regexp = Regexp.new('(?<msec1>msec)?'\
+               ' *(?<he>\d+) *(?<msec2>msec)? *(?<ho>\d+)')
+      params = regexp.match(str)
+      hash[:mshello] = true if params[:msec1]
+      hash[:mshold] = true if params[:msec2]
+      hash[:hello] = params[:he].to_i
+      hash[:hold] = params[:ho].to_i
       hash
     end
 
