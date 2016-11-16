@@ -51,7 +51,7 @@ class TestPlatform < CiscoTestCase
     # [['pack1', 'state1'], ['pack2', 'state2'], ...]
     # 'state' should always be a variant of Active or Inactive
     pkgs = @device.cmd('sh inst patch')
-           .scan(/\n(\S+)\s+(\S*[aA]ctive.*)\n/)
+           .scan(/\n(\S+)\s+(\S*[aA]ctive.*)/)
     # convert to hash with key pkg_name and value pkg_state
     pkg_hsh = {}
     pkgs.each { |p| pkg_hsh[p[0]] = p[1].downcase }

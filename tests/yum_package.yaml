@@ -33,3 +33,12 @@
   name:     'nxos.sample-n9k_ALL'
   version:  '1.0.0-7.0.3.I5.1'
 
+7_0_3_IEE5_1_:
+  filename: 'nxos.sample-n9k_ALL-1.0.0-7.0.3.I5.1.lib32_n9000.rpm'
+  name:     'nxos.sample-n9k_ALL'
+  version:  '1.0.0-7.0.3.I5.1'
+
+7_0_3_F1_1_:
+  filename: 'nxos.sample-n8k_EOR-1.0.0-7.0.3.F1.1.lib32_nxos.rpm'
+  name:     'nxos.sample-n8k_EOR'
+  version:  '1.0.0-7.0.3.F1.1'

@@ -260,7 +260,7 @@ class CiscoTestCase < TestCase
     Vrf.vrfs.each do |vrf, obj|
       next if vrf[/management/]
       # TBD: Remove vrf workaround below after CSCuz56697 is resolved
-      config 'vrf context ' + vrf if node.product_id[/N9K-F/]
+      config 'vrf context ' + vrf if node.product_id[/N9K.*-F/]
       obj.destroy
     end
   end
@@ -424,7 +424,7 @@ class CiscoTestCase < TestCase
   # Returns the output of the command.
   def shell_command(command, context='bash')
     fail "shell_command api not supported on #{node.product_id}" unless
-      node.product_id[/N3K|N9K-F|N9K/]
+      node.product_id[/N3K|N9K.*-F|N9K/]
     unless context == 'bash' || context == 'guestshell'
       fail "Context must be either 'bash' or 'guestshell'"
     end
@@ -434,7 +434,7 @@ class CiscoTestCase < TestCase
   def backup_resolv_file(context='bash')
     # Configuration bleeding is only a problem on some platforms, so
     # only backup the resolv.conf file on required plaforms.
-    return unless node.product_id[/N3K|N9K-F|N9K/]
+    return unless node.product_id[/N3K|N9K.*-F|N9K/]
     time_stamp = Time.now.strftime('%Y-%m-%d_%H-%M-%S')
     backup_filename = "/tmp/resolv.conf.#{time_stamp}"
     shell_command("cp /etc/resolv.conf #{backup_filename}", context)
@@ -442,7 +442,7 @@ class CiscoTestCase < TestCase
   end
 
   def restore_resolv_file(filename, context='bash')
-    return unless node.product_id[/N3K|N9K-F|N9K/]
+    return unless node.product_id[/N3K|N9K.*-F|N9K/]
     shell_command("sudo cp #{filename} /etc/resolv.conf", context)
     shell_command("rm #{filename}", context)
   end
