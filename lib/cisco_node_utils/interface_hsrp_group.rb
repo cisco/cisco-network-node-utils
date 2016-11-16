@@ -34,17 +34,19 @@ module Cisco
       create if instantiate
     end
 
-    def self.hsrp_groups
+    def self.groups
       hash = {}
+      return hash unless Feature.hsrp_enabled?
       Interface.interfaces.each do|intf, _obj|
-        groups = config_get('interface_hsrp_group', 'hsrp_groups', name: intf)
+        groups = config_get('interface_hsrp_group', 'groups', name: intf)
         next if groups.nil?
         hash[intf] = {}
         groups.each do |id, type|
           iptype = type
           iptype = 'ipv4' if type.nil?
           hash[intf][id] ||= {}
-          hash[intf][id][iptype] = InterfaceHsrpGroup.new(intf, id, iptype)
+          hash[intf][id][iptype] =
+            InterfaceHsrpGroup.new(intf, id, iptype, false)
         end
       end
       hash
@@ -63,17 +65,20 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # Create one router ospf area virtual-link instance
+    # Create one interface hsrp group instance
     def create
       Feature.hsrp_enable
       set_args_keys(state: '')
-      config_set('interface_hsrp_group', 'hsrp_groups', @set_args)
+      config_set('interface_hsrp_group', 'groups', @set_args)
     end
 
     def destroy
       return unless Feature.hsrp_enabled?
+      # for ipv4 types, 'no' cmd needs the type to be specified
+      # explicitly if another ipv6 group exists with the same
+      # group id
       set_args_keys(state: 'no', iptype: @iptype)
-      config_set('interface_hsrp_group', 'hsrp_groups', @set_args)
+      config_set('interface_hsrp_group', 'groups', @set_args)
     end
 
     ########################################################
@@ -101,29 +106,32 @@ module Cisco
       hash[:timeout] = default_authentication_timeout
       str = config_get('interface_hsrp_group', 'authentication', @get_args)
       return hash if str.nil?
-      params = str.split
-      if params[0] == 'text'
-        hash[:password] = params[1]
+      regexp = Regexp.new('(?<authtype>text|md5)'\
+           ' *(?<keytype>key-chain|key-string|\S+)'\
+           ' *(?<enctype>7|\S+)?'\
+           ' *(?<keystring>\S+)?')
+      params = regexp.match(str)
+      if params[:authtype] == 'text'
+        hash[:password] = params[:keytype]
       else
         hash[:auth_type] = 'md5'
-        hash[:key_type] = params[1]
+        hash[:key_type] = params[:keytype]
         if hash[:key_type] == 'key-chain'
-          hash[:password] = params[2]
+          hash[:password] = params[:enctype]
         else
-          ki = params.index('key-string')
-          next_elem = params[ki + 1]
-          if next_elem == '7' && params[ki + 2].nil?
+          if params[:enctype] == '7' && params[:keystring].nil?
             hash[:password] = '7'
-          elsif next_elem == '7' && !params[ki + 2].nil?
+          elsif params[:enctype] == '7' && !params[:keystring].nil?
             hash[:enc_type] = '7'
-            hash[:password] = params[ki + 2]
+            hash[:password] = params[:keystring]
           else
-            hash[:password] = next_elem
+            hash[:password] = params[:enctype]
           end
-          params.delete_at(params.index(hash[:password]))
-          hash[:compat] = true unless params.index('compatibility').nil?
-          hash[:timeout] = params[params.index('timeout') + 1].to_i unless
-            params.index('timeout').nil?
+          # get rid of password from str just in case the password is
+          # compatibility or timeout
+          str.sub!(hash[:password], '')
+          hash[:compat] = true if str.include?('compatibility')
+          hash[:timeout] = str.split.last.to_i if str.include?('timeout')
         end
       end
       hash
@@ -135,7 +143,7 @@ module Cisco
 
     def authentication_auth_type=(val)
       @set_args[:authtype] = val
-      @set_args[:authtype] = 'text' if val == 'cleartext'
+      @set_args[:authtype] = 'text' if val.to_s == 'cleartext'
     end
 
     def default_authentication_auth_type
@@ -147,7 +155,7 @@ module Cisco
     end
 
     def authentication_key_type=(val)
-      @set_args[:keytype] = val
+      @set_args[:keytype] = val.to_s
     end
 
     def default_authentication_key_type
@@ -233,28 +241,95 @@ module Cisco
       config_set('interface_hsrp_group', 'authentication', @set_args)
     end
 
+    def ipv4_enable
+      return default_ipv4_enable if @iptype == 'ipv6'
+      ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
+      ip.empty? ? false : true
+    end
+
+    def default_ipv4_enable
+      config_get_default('interface_hsrp_group', 'ipv4_enable')
+    end
+
+    def ipv4_vip
+      return default_ipv4_vip if @iptype == 'ipv6'
+      ip = config_get('interface_hsrp_group', 'ipv4_vip', @get_args)
+      return default_ipv4_vip unless ip
+      arr = ip.split
+      arr[1] ? arr[1] : default_ipv4_vip
+    end
+
+    def ipv4_vip_set(ipenable, vip)
+      return if @iptype == 'ipv6'
+      # reset it first
+      set_args_keys(state: 'no', vip: '')
+      config_set('interface_hsrp_group', 'ipv4_vip', @set_args)
+      return unless ipenable
+      vip = vip ? vip : ''
+      set_args_keys(state: '', vip: vip)
+      config_set('interface_hsrp_group', 'ipv4_vip', @set_args)
+    end
+
+    def default_ipv4_vip
+      config_get_default('interface_hsrp_group', 'ipv4_vip')
+    end
+
+    def ipv6_autoconfig
+      config_get('interface_hsrp_group', 'ipv6_autoconfig', @get_args)
+    end
+
+    def ipv6_autoconfig=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('interface_hsrp_group', 'ipv6_autoconfig', @set_args)
+    end
+
+    def default_ipv6_autoconfig
+      config_get_default('interface_hsrp_group', 'ipv6_autoconfig')
+    end
+
+    def ipv6_vip
+      return default_ipv6_vip if @iptype == 'ipv4'
+      list = config_get('interface_hsrp_group', 'ipv6_vip', @get_args)
+      # remove autoconfig from the list
+      list.delete('autoconfig')
+      list
+    end
+
+    def ipv6_vip=(list)
+      # reset the current list
+      cur = ipv6_vip
+      cur.each do |addr|
+        state = 'no'
+        vip = addr
+        set_args_keys(state: state, vip: vip)
+        config_set('interface_hsrp_group', 'ipv6_vip', @set_args)
+      end
+      list.each do |addr|
+        state = ''
+        vip = addr
+        set_args_keys(state: state, vip: vip)
+        config_set('interface_hsrp_group', 'ipv6_vip', @set_args)
+      end
+    end
+
+    def default_ipv6_vip
+      config_get_default('interface_hsrp_group', 'ipv6_vip')
+    end
+
     # CLI returns mac_addr in xxxx.xxxx.xxxx format
     # so convert it to xx:xx:xx:xx:xx:xx format
     def mac_addr
       mac = config_get('interface_hsrp_group', 'mac_addr', @get_args)
       return default_mac_addr unless mac
-      mac.tr!('.', '')
-      [2, 5, 8, 11, 14].each do |i|
-        mac.insert i, ':'
-      end
-      mac
+      mac.tr('.', '').scan(/.{1,2}/).join(':')
     end
 
     # CLI expects mac_addr to be in xxxx.xxxx.xxxx format
     # so convert from xx:xx:xx:xx:xx:xx format
     def mac_addr=(val)
       state = val ? '' : 'no'
-      mac = val ? val : ''
-      if val
-        mac.tr!(':', '')
-        mac.insert 4, '.'
-        mac.insert 9, '.'
-      end
+      mac = val ? val.tr(':', '').scan(/.{1,4}/).join('.') : ''
       set_args_keys(state: state, mac: mac)
       config_set('interface_hsrp_group', 'mac_addr', @set_args)
     end
@@ -263,21 +338,24 @@ module Cisco
       config_get_default('interface_hsrp_group', 'mac_addr')
     end
 
-    def name
-      config_get('interface_hsrp_group', 'name', @get_args)
+    def group_name
+      config_get('interface_hsrp_group', 'group_name', @get_args)
     end
 
-    def name=(val)
+    def group_name=(val)
       state = val ? '' : 'no'
       word = val ? val : ''
       set_args_keys(state: state, word: word)
-      config_set('interface_hsrp_group', 'name', @set_args)
+      config_set('interface_hsrp_group', 'group_name', @set_args)
     end
 
-    def default_name
-      config_get_default('interface_hsrp_group', 'name')
+    def default_group_name
+      config_get_default('interface_hsrp_group', 'group_name')
     end
 
+    # The CLI can take forms like:
+    # preempt
+    # preempt delay minimum 3 reload 10 sync 15
     def preempt_get
       hash = {}
       hash[:preempt] = default_preempt
@@ -338,6 +416,9 @@ module Cisco
       config_get_default('interface_hsrp_group', 'preempt_delay_sync')
     end
 
+    # This CLI can take forms like:
+    # priority 10
+    # priority 50 forwarding-threshold lower 10 upper 49
     def priority_level_get
       hash = {}
       hash[:priority] = default_priority
@@ -379,7 +460,7 @@ module Cisco
     end
 
     def priority_level_set(pri, lower, upper)
-      if pri && lower && upper
+      if pri && !lower.to_s.empty? && !upper.to_s.empty?
         set_args_keys(state: '', pri: pri,
                       forward: 'forwarding-threshold lower',
                       lval: lower, upper: 'upper', uval: upper)
@@ -393,6 +474,10 @@ module Cisco
       config_set('interface_hsrp_group', 'priority_level', @set_args)
     end
 
+    # This CLI can take forms like:
+    # timers  1  3
+    # timers msec 300  3
+    # timers msec 750 msec 2500
     def timers_get
       hash = {}
       hash[:hello] = default_timers_hello
@@ -401,26 +486,13 @@ module Cisco
       hash[:mshold] = default_timers_hold_msec
       str = config_get('interface_hsrp_group', 'timers', @get_args)
       return hash if str.nil?
-      params = str.split
-      if str.include?('msec')
-        if params[0] == 'msec'
-          hash[:mshello] = true
-          hash[:hello] = params[1].to_i
-          if params[2] == 'msec'
-            hash[:mshold] = true
-            hash[:hold] = params[3].to_i
-          else
-            hash[:hold] = params[2].to_i
-          end
-        else
-          hash[:hello] = params[0].to_i
-          hash[:mshold] = true
-          hash[:hold] = params[2].to_i
-        end
-      else
-        hash[:hello] = params[0].to_i
-        hash[:hold] = params[1].to_i
-      end
+      regexp = Regexp.new('(?<msec1>msec)?'\
+               ' *(?<he>\d+) *(?<msec2>msec)? *(?<ho>\d+)')
+      params = regexp.match(str)
+      hash[:mshello] = true if params[:msec1]
+      hash[:mshold] = true if params[:msec2]
+      hash[:hello] = params[:he].to_i
+      hash[:hold] = params[:ho].to_i
       hash
     end
 

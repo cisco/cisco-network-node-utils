@@ -1,6 +1,6 @@
 # interface_hsrp_group
 ---
-_exclude: [ios_xr, N3k, N5k, N6k, N7k, N9k, N9k-F]
+_exclude: [ios_xr, N5k, N6k, N7k]
 
 _template:
   get_command: "show running hsrp | no-more"
@@ -32,31 +32,44 @@ authentication_timeout:
   kind: int
   default_value: 0
 
-hsrp_groups:
+group_name:
+  get_value: '/^name (\S+)/'
+  set_value: '<state> name <word>'
+  default_value: false
+
+groups:
   multiple: true
   context:
     - "interface <name>"
   get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
   set_value: '<state> hsrp <group> <iptype>'
 
-ip:
+ipv4_enable:
+  default_value: false
+
+ipv4_vip:
   # the config can be 'ip' or 'ip <vip>' or
-  # ip autoconfig (for ipv6)
-  # no ip config at all so need to grab the
+  # no ipv4 config at all so need to grab the
   # optional match to get the whole config
-  multiple: true
   get_value: '/^ip(?:\s+\S+)?$/'
   set_value: '<state> ip <vip>'
+  default_value: ''
+
+ipv6_autoconfig:
+  kind: boolean
+  get_value: '/^ip autoconfig$/'
+  set_value: '<state> ip autoconfig'
   default_value: false
+
+ipv6_vip:
+  multiple: true
+  get_value: '/^ip (\S+)$/'
+  set_value: '<state> ip <vip>'
+  default_value: []
 
 mac_addr:
   get_value: '/^mac-address (\S+)$/'
   set_value: '<state> mac-address <mac>'
-  default_value: false
-
-name:
-  get_value: '/^name (\S+)/'
-  set_value: '<state> name <word>'
   default_value: false
 
 preempt:
@@ -78,10 +91,10 @@ priority:
   default_value: 100
 
 priority_forward_thresh_lower:
-  default_value: false
+  default_value: ''
 
 priority_forward_thresh_upper:
-  default_value: false
+  default_value: ''
 
 priority_level:
   get_value: '/^priority (\d+)(?:\s+(?:forwarding-threshold lower)\s+(\d+)\s+(?:upper)\s+(\d+))?$/'
@@ -102,7 +115,3 @@ timers_hold:
 
 timers_hold_msec:
   default_value: false
-
-track:
-  get_value: '/^track (.*)$/'
-  set_value: '<state> track <id> <decrement> <val>'
