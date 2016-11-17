@@ -460,4 +460,25 @@ class CiscoTestCase < TestCase
       v.limit_resource_module_type
     end
   end
+
+  # Helper method to massage node.product_id into a short but
+  # meaningful tag to represent the product_type.
+  def product_tag
+    @product_id ||= node.product_id
+    case @product_id
+    when /N3/
+      tag = 'n3k'
+    when /N5/
+      tag = 'n5k'
+    when /N6/
+      tag = 'n6k'
+    when /N7/
+      tag = 'n7k'
+    when /N9/
+      tag = Utils.image_version?(/7.0.3.F/) ? 'n9k-f' : 'n9k'
+    else
+      fail "Unrecognized product_id: #{@product_id}"
+    end
+    tag
+  end
 end
