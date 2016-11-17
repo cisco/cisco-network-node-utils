@@ -513,7 +513,7 @@ module Cisco
 
     def default_event_history_events
       if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-         Utils.image_version?(/7.0.3.F1/) ||
+         Utils.image_version?(/7.0.3.F/) ||
          Utils.chassis_pid?(/N(5|6|7)/)
         config_get_default('bgp', 'event_history_events')
       else
@@ -575,7 +575,7 @@ module Cisco
 
     def default_event_history_periodic
       if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-         Utils.image_version?(/7.0.3.F1/) ||
+         Utils.image_version?(/7.0.3.F/) ||
          Utils.chassis_pid?(/N(5|6|7)/)
         config_get_default('bgp', 'event_history_periodic')
       else

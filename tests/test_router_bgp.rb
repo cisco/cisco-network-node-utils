@@ -62,7 +62,7 @@ end
 
 def newer_image_version?
   return false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-                  Utils.image_version?(/7.0.3.F1/) ||
+                  Utils.image_version?(/7.0.3.F/) ||
                   Utils.chassis_pid?(/N(5|6|7)/)
   true
 end
