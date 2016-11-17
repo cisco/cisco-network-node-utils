@@ -441,9 +441,13 @@ module Cisco
         case platform
         when 'XRv9k'
           /XRV9/
+        when 'N9k'
+          # For non-fretta n9k platforms we need to
+          # match everything except the trailing -F
+          /^N9...(?!.*-F)/
         when 'N9k-F'
-          # fretta filter
-          /N9K-C9...-F/
+          # For fretta n9k we need to include the trailing -F
+          /^N9.*-F$/
         else
           Regexp.new platform.tr('k', '')
         end
