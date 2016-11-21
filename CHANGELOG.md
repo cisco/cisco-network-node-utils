@@ -19,6 +19,7 @@ Changelog
    * `hsrp_mac_refresh`
    * `hsrp_use_bia`
    * `hsrp_version`
+* Added support for Cisco NX-OS software release `7.3(0)F1(1)`
 
 ### Changed
 
