@@ -328,6 +328,13 @@ negotiate_auto_portchannel:
   set_value: "<state> negotiate auto"
   default_value: true
 
+pim_bfd:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^ip pim bfd-instance$/'
+  set_value: "<state> ip pim bfd-instance"
+  default_value: false
+
 pvlan_any:
   multiple:
   get_value: '/switchport private-vlan/'

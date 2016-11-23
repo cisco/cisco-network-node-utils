@@ -176,4 +176,21 @@ class TestPim < CiscoTestCase
       create_single_invalid_ssm_range_single_vrf(afi)
     end
   end
+
+  def test_bfd
+    %w(ipv4).each do |afi|
+      p1 = Pim.new(afi, 'default')
+      p2 = Pim.new(afi, 'red')
+      assert_equal(p1.default_bfd, p1.bfd)
+      assert_equal(p2.default_bfd, p1.bfd)
+      p1.bfd = true
+      p2.bfd = true
+      assert_equal(true, p1.bfd)
+      assert_equal(true, p2.bfd)
+      p1.bfd = p1.default_bfd
+      p2.bfd = p2.default_bfd
+      assert_equal(p1.default_bfd, p1.bfd)
+      assert_equal(p2.default_bfd, p1.bfd)
+    end
+  end
 end

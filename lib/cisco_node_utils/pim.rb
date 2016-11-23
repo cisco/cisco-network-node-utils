@@ -110,5 +110,20 @@ module Cisco
       set_args_keys(state: state, ssm_range: range)
       config_set('pim', 'ssm_range', @set_args)
     end
+
+    def bfd
+      config_get('pim', 'bfd', @get_args)
+    end
+
+    def bfd=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      Feature.bfd_enable if val
+      config_set('pim', 'bfd', @set_args)
+    end
+
+    def default_bfd
+      config_get_default('pim', 'bfd')
+    end
   end  # Class
 end    # Module
