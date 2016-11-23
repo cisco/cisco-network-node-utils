@@ -48,7 +48,7 @@ mapped_vni_requires_nv_overlay:
     default_only: false
 
 mode:
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N9k, N9k-F]
   multiple: true
   get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
