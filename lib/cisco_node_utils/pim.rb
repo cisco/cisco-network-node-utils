@@ -90,6 +90,7 @@ module Cisco
     def destroy
       return unless Feature.pim_enabled?
       self.ssm_range = ''
+      self.bfd = false
     end
 
     #-----------
@@ -116,6 +117,7 @@ module Cisco
     end
 
     def bfd=(val)
+      return if val == bfd
       state = val ? '' : 'no'
       set_args_keys(state: state)
       Feature.bfd_enable if val
