@@ -299,7 +299,7 @@ class TestTacacsSvrHost < CiscoTestCase
     host.encryption_key_set(0, pass)
 
     if platform != :ios_xr
-      assert_equal(sh_run_pass, host.encryption_password,
+      assert_equal(Utils.add_quotes(sh_run_pass), host.encryption_password,
                    'Error: Tacacs Host encryption password incorrect')
     else
       # Only do not-nil checking for IOS XR
@@ -339,7 +339,7 @@ class TestTacacsSvrHost < CiscoTestCase
       pass_no_quotes = md.captures[1].gsub(/(?:^\")|(?:\"$)/, '')
       assert_equal(sh_run_pass, pass_no_quotes,
                    'Error: Tacacs Host encryption password mismatch')
-      assert_equal(sh_run_pass, host.encryption_password,
+      assert_equal(Utils.add_quotes(sh_run_pass), host.encryption_password,
                    'Error: Tacacs Host encryption password incorrect')
     else
       # Only do not-nil checking for IOS XR

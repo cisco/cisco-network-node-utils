@@ -140,7 +140,7 @@ class TestTacacsServer < CiscoTestCase
     tacacs = TacacsServer.new
 
     if platform == :nexus
-      assert_equal(sh_run_encryption_password,
+      assert_equal(Utils.add_quotes(sh_run_encryption_password),
                    tacacs.encryption_password,
                    'Error: Tacacs Server, encryption password incorrect')
     elsif platform == :ios_xr
@@ -186,7 +186,7 @@ class TestTacacsServer < CiscoTestCase
     encrypted_type = md.to_s.split(' ').last.to_i
     assert_equal(encrypted_type, tacacs.encryption_type,
                  'Error: Tacacs Server, encryption type incorrect')
-    assert_equal(encrypted_password, tacacs.encryption_password,
+    assert_equal(Utils.add_quotes(encrypted_password), tacacs.encryption_password,
                  'Error: Tacacs Server, encryption password incorrect')
     tacacs.destroy
   end
