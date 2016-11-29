@@ -46,7 +46,6 @@ class TestBgpAF < CiscoTestCase
 
   # Disabling line length to support wide-format test matrix definition
   # rubocop:disable Metrics/LineLength
-
   # Address Families to test:
   T_AFS = [
     #   afi  safi
@@ -124,6 +123,10 @@ class TestBgpAF < CiscoTestCase
 
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
+    [:additional_paths_send,         :nexus,  'default', %w(l2vpn evpn),       :runtime],
+    [:additional_paths_selection,    :nexus,  'default', %w(l2vpn evpn),       :runtime],
+    [:maximum_paths,                 :nexus,  'default', %w(l2vpn evpn),       :runtime],
+    [:maximum_paths_ibgp,            :nexus,  'default', %w(l2vpn evpn),       :runtime],
 
     # XR CLI Errors
     [:additional_paths_send,         :ios_xr, :any,      :multicast,           :CliError],
@@ -158,6 +161,15 @@ class TestBgpAF < CiscoTestCase
                     (af == :multicast && (af_.include? 'multicast')) ||
                     (af == :ipv4      && (af_.include? 'ipv4'))      ||
                     (af == :ipv6      && (af_.include? 'ipv6')))
+
+      # We need a connection to the device under test so that we can
+      # query the image version to determine if some properties are
+      # supported.  When TEST_EXCEPTIONS is defined, no connection
+      # to the device is available.  If the entry is :runtime this
+      # triggers a version check below.
+      if expect == :runtime
+        expect = Utils.image_version?(/8.0/) ? :success : :CliError
+      end
       return expect if expect == :success || expect == :skip
 
       # Otherwise, make sure there's no ambiguity/overlap in the exceptions.
@@ -196,7 +208,6 @@ class TestBgpAF < CiscoTestCase
 
             # What result do we expect from this test?
             expect = check_test_exceptions(test, platform, vrf, af)
-
             # Gather initial value, default value, and the first test value..
             initial = bgp_af.send(test)
 
