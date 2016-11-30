@@ -1722,4 +1722,22 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_ipv6_dhcp_relay_src_intf,
                  interface.ipv6_dhcp_relay_src_intf)
   end
+
+  def test_pim_bfd
+    inf_name = interfaces[0]
+    interface = Interface.new(inf_name)
+    interface.switchport_enable(false)
+    if validate_property_excluded?('interface', 'pim_bfd')
+      assert_nil(interface.pim_bfd)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.pim_bfd = true
+      end
+      return
+    end
+    assert_equal(interface.default_pim_bfd, interface.pim_bfd)
+    interface.pim_bfd = true
+    assert_equal(true, interface.pim_bfd)
+    interface.pim_bfd = interface.default_pim_bfd
+    assert_equal(interface.default_pim_bfd, interface.pim_bfd)
+  end
 end

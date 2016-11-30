@@ -21,6 +21,12 @@ all_ssm_ranges:
   multiple:
   get_value : '/^<afi> pim ssm range (.*)$/'
 
+bfd:
+  kind: boolean
+  get_value: '/^<afi> pim bfd$/'
+  set_value: "<state> <afi> pim bfd"
+  default_value: false
+
 group_list:
   default_value: ~
   get_value: '/^<afi> pim rp-address (\S+) group-list (\S+)/'

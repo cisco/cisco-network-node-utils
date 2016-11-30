@@ -920,6 +920,23 @@ module Cisco
       config_get_default('interface', lookup)
     end
 
+    def pim_bfd
+      config_get('interface', 'pim_bfd', name: @name)
+    end
+
+    def pim_bfd=(val)
+      state = val ? '' : 'no'
+      if val
+        Feature.pim_enable
+        Feature.bfd_enable
+      end
+      config_set('interface', 'pim_bfd', name: @name, state: state)
+    end
+
+    def default_pim_bfd
+      config_get_default('interface', 'pim_bfd')
+    end
+
     def storm_control_broadcast
       config_get('interface', 'storm_control_broadcast', name: @name)
     end
