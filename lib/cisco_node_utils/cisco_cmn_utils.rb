@@ -360,5 +360,21 @@ module Cisco
       end
       merged
     end # merge_range
+
+    # Add double quotes to string.
+    #
+    # Helper method to add a double quote to the beginning
+    # and end of a string.
+    #
+    # Nxapi adds an escape character to config lines that
+    # nvgen in this way in some but not all nxos releases.
+    #
+    # Input: String (Example 'foo')
+    # Returns: String with double quotes: (Example: '"foo"'
+    #
+    def self.add_quotes(string)
+      string = "\"#{string}\"" if image_version?(/8.0/)
+      string
+    end
   end # class Utils
 end   # module Cisco
