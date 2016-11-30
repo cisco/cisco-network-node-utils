@@ -579,6 +579,11 @@ class TestInterface < CiscoTestCase
     Interface.new(inf_name).destroy
 
     interface = Interface.new(inf_name)
+
+    # The newly created port-channel interface
+    # will default to switchport in some cases
+    # so we need to disable it.
+    interface.switchport_mode = :disabled
     assert_equal(interface.default_bfd_echo,
                  interface.bfd_echo)
     interface.bfd_echo = false
