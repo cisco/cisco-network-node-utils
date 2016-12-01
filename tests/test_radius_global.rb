@@ -66,11 +66,10 @@ class TestRadiusGlobal < CiscoTestCase
                  2)
 
     if platform == :nexus
-      global.key_set('44444444', nil)
-      assert_equal(global.key,
-                   '44444444')
-      assert_equal(Cisco::RadiusGlobal.radius_global[id].key,
-                   '44444444')
+      key = '44444444'
+      global.key_set(key, nil)
+      assert_equal(Utils.add_quotes(key), global.key)
+      assert_equal(Utils.add_quotes(key), Cisco::RadiusGlobal.radius_global[id].key)
     elsif platform == :ios_xr
       global.key_set('QsEfThUkO', nil)
       assert(!global.key.nil?)
