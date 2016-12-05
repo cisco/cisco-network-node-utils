@@ -1,6 +1,6 @@
 # interface_hsrp_group
 ---
-_exclude: [ios_xr, N5k, N6k, N7k]
+_exclude: [ios_xr, N5k, N6k]
 
 _template:
   get_command: "show running hsrp | no-more"
