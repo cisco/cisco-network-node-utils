@@ -59,8 +59,10 @@ mode:
   default_value: 'CE'
 
 name:
+  multiple: true
+  get_data_format: nxapi_structured
   get_command: "show vlan brief"
-  get_value: '/^%d\s+(\S+)\s/'
+  get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
@@ -83,8 +85,10 @@ pvlan_type:
   default_value: ""
 
 shutdown:
+  multiple: true
+  get_data_format: nxapi_structured
   get_command: "show vlan brief"
-  get_value: '/^%d\s+\S+\s+(\S+)\s/'
+  get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
   set_context: ["vlan %d"]
   set_value: "%s shutdown ; end"
   default_value: false

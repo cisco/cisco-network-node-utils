@@ -141,8 +141,13 @@ module Cisco
     end
 
     def vlan_name
-      result = config_get('vlan', 'name', @vlan_id)
-      result.nil? ? default_vlan_name : result
+      node.cache_flush
+      all = config_get('vlan', 'name')
+      return default_vlan_name if all.nil?
+
+      vlans = all.find { |item| item['vlanshowbr-vlanid'][/#{@vlan_id}/] }
+      return default_vlan_name if vlans.nil?
+      vlans['vlanshowbr-vlanname']
     end
 
     def vlan_name=(str)
@@ -184,9 +189,13 @@ module Cisco
     end
 
     def shutdown
-      result = config_get('vlan', 'shutdown', @vlan_id)
-      # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result[/shut/] ? true : false
+      node.cache_flush
+      all = config_get('vlan', 'shutdown')
+      return default_shutdown if all.nil?
+
+      vlans = all.find { |item| item['vlanshowbr-vlanid'][/#{@vlan_id}/] }
+      return default_shutdown if vlans.nil?
+      vlans['vlanshowbr-shutstate'][/noshutdown/] ? false : true
     end
 
     def shutdown=(val)
