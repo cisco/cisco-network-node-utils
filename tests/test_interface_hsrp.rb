@@ -37,6 +37,7 @@ class TestInterfaceHsrp < CiscoTestCase
   end
 
   def test_hsrp_bfd
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ih = create_intf
     if validate_property_excluded?('interface', 'hsrp_bfd')
       assert_nil(ih.hsrp_bfd)
@@ -53,6 +54,7 @@ class TestInterfaceHsrp < CiscoTestCase
   end
 
   def test_hsrp_delay
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ih = create_intf
     if validate_property_excluded?('interface', 'hsrp_delay')
       assert_nil(ih.hsrp_delay_minimum)
@@ -76,6 +78,7 @@ class TestInterfaceHsrp < CiscoTestCase
   end
 
   def test_hsrp_mac_refresh
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ih = create_intf
     if validate_property_excluded?('interface', 'hsrp_mac_refresh')
       assert_nil(ih.hsrp_mac_refresh)
@@ -92,6 +95,7 @@ class TestInterfaceHsrp < CiscoTestCase
   end
 
   def test_hsrp_use_bia
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ih = create_intf
     if validate_property_excluded?('interface', 'hsrp_use_bia')
       assert_nil(ih.hsrp_use_bia)
@@ -112,6 +116,7 @@ class TestInterfaceHsrp < CiscoTestCase
   end
 
   def test_hsrp_version
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ih = create_intf
     if validate_property_excluded?('interface', 'hsrp_version')
       assert_nil(ih.hsrp_version)

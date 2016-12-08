@@ -53,6 +53,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_collection_size
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg1 = create_interface_hsrp_group_ipv4
     ihg2 = create_interface_hsrp_group_ipv4('port-channel100', 2, 'ipv4')
     ihg3 = create_interface_hsrp_group_ipv4('port-channel100', 3, 'ipv4')
@@ -74,6 +75,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_group_name
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_group_name, ihg.group_name)
     ihg.group_name = 'hsrp_group_name'
@@ -89,6 +91,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_mac_addr
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_mac_addr, ihg.mac_addr)
     ihg.mac_addr = '00:00:11:11:22:22'
@@ -104,6 +107,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_type_clear
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_authentication_string,
                  ihg.authentication_string)
@@ -131,6 +135,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_type_md5
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
@@ -157,6 +162,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_0
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
@@ -188,6 +194,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_7
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
@@ -215,6 +222,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_7_compat_timeout_ipv4
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
@@ -247,6 +255,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_7_compat_timeout_ipv6
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_auth_type] = 'md5'
@@ -279,6 +288,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_0_compat_timeout_ipv4
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv4
     attrs[:authentication_auth_type] = 'md5'
@@ -310,6 +320,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_auth_key_string_enc_0_compat_timeout_ipv6
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     attrs = {}
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_auth_type] = 'md5'
@@ -341,6 +352,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_preempt_ipv4
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_preempt, ihg.preempt)
     assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
@@ -372,6 +384,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_preempt_ipv6
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_preempt, ihg.preempt)
     assert_equal(ihg.default_preempt_delay_minimum, ihg.preempt_delay_minimum)
@@ -403,6 +416,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_priority_ipv4
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_priority, ihg.priority)
     assert_equal(ihg.default_priority_forward_thresh_lower,
@@ -432,6 +446,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_priority_ipv6
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_priority, ihg.priority)
     assert_equal(ihg.default_priority_forward_thresh_lower,
@@ -461,6 +476,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_timers_ipv4
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_timers_hello, ihg.timers_hello)
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
@@ -493,6 +509,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_timers_ipv6
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_timers_hello, ihg.timers_hello)
     assert_equal(ihg.default_timers_hello_msec, ihg.timers_hello_msec)
@@ -525,6 +542,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_ipv4_vip
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
     assert_equal(ihg.default_ipv4_enable, ihg.ipv4_enable)
     assert_equal(ihg.default_ipv4_vip, ihg.ipv4_vip)
@@ -547,10 +565,12 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   end
 
   def test_ipv6_vip
+    skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
+    config_no_warn('interface Po100 ; ipv6 address 2000::01/64')
     ihg = create_interface_hsrp_group_ipv6
     assert_equal(ihg.default_ipv6_vip, ihg.ipv6_vip)
-    ihg.ipv6_vip = ['2000::11', '2001::55']
-    assert_equal(['2000::11', '2001::55'], ihg.ipv6_vip)
+    ihg.ipv6_vip = ['2000::11', '2000::55']
+    assert_equal(['2000::11', '2000::55'], ihg.ipv6_vip)
     ihg.ipv6_vip = ihg.default_ipv6_vip
     assert_equal(ihg.default_ipv6_vip, ihg.ipv6_vip)
     assert_equal(ihg.default_ipv6_autoconfig, ihg.ipv6_autoconfig)
