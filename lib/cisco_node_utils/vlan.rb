@@ -145,9 +145,11 @@ module Cisco
       all = config_get('vlan', 'name')
       return default_vlan_name if all.nil?
 
-      vlans = all.find { |item| item['vlanshowbr-vlanid'][/#{@vlan_id}/] }
+      key = 'vlanshowbr-vlanid-utf'
+      value = 'vlanshowbr-vlanname'
+      vlans = all.find { |item| item[key].to_s[/#{@vlan_id}/] }
       return default_vlan_name if vlans.nil?
-      vlans['vlanshowbr-vlanname']
+      vlans[value]
     end
 
     def vlan_name=(str)
@@ -193,9 +195,11 @@ module Cisco
       all = config_get('vlan', 'shutdown')
       return default_shutdown if all.nil?
 
-      vlans = all.find { |item| item['vlanshowbr-vlanid'][/#{@vlan_id}/] }
+      key = 'vlanshowbr-vlanid-utf'
+      value = 'vlanshowbr-shutstate'
+      vlans = all.find { |item| item[key].to_s[/#{@vlan_id}/] }
       return default_shutdown if vlans.nil?
-      vlans['vlanshowbr-shutstate'][/noshutdown/] ? false : true
+      vlans[value][/noshutdown/] ? false : true
     end
 
     def shutdown=(val)
