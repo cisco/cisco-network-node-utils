@@ -62,7 +62,7 @@ mapping:
       get_data_format: *data_format
       get_context: *context
       get_value:
-        type: str
+        type: any
       kind:
         type: str
         enum: [boolean, int, string, symbol]
