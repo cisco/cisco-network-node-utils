@@ -141,15 +141,7 @@ module Cisco
     end
 
     def vlan_name
-      node.cache_flush
-      all = config_get('vlan', 'name')
-      return default_vlan_name if all.nil?
-
-      key = 'vlanshowbr-vlanid-utf'
-      value = 'vlanshowbr-vlanname'
-      vlans = all.find { |item| item[key].to_s[/#{@vlan_id}/] }
-      return default_vlan_name if vlans.nil?
-      vlans[value]
+      config_get('vlan', 'name', vlanid: @vlan_id)
     end
 
     def vlan_name=(str)
@@ -191,15 +183,7 @@ module Cisco
     end
 
     def shutdown
-      node.cache_flush
-      all = config_get('vlan', 'shutdown')
-      return default_shutdown if all.nil?
-
-      key = 'vlanshowbr-vlanid-utf'
-      value = 'vlanshowbr-shutstate'
-      vlans = all.find { |item| item[key].to_s[/#{@vlan_id}/] }
-      return default_shutdown if vlans.nil?
-      vlans[value][/noshutdown/] ? false : true
+      config_get('vlan', 'shutdown', vlanid: @vlan_id)
     end
 
     def shutdown=(val)

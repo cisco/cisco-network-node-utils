@@ -56,18 +56,76 @@ module Cisco
       # If we have a default value but no getter, just return the default
       return ref.default_value if ref.default_value? && !ref.getter?
 
-      get_args = ref.getter(*args)
-      massage(get(command:     ref.get_command,
-                  data_format: get_args[:data_format],
-                  context:     get_args[:context],
-                  value:       get_args[:value]),
-              ref)
+      get_args, ref = massage_structured(ref.getter(*args).clone, ref)
+      foo = massage(get(command:     ref.get_command,
+                        data_format: get_args[:data_format],
+                        context:     get_args[:context],
+                        value:       get_args[:value]),
+                    ref)
+      foo
+    end
+
+    # The yaml file may specifiy an Array as the get_value to drill down into
+    # nxapi_structured table output.  The table may contain multiple rows but
+    # only one of the rows has the interesting data.
+    def massage_structured(get_args, ref)
+      # Nothing to do unless nxapi_structured.
+      return [get_args, ref] unless
+        ref.hash['get_data_format'] == :nxapi_structured
+
+      # The CmdRef object will contain a get_value Array with 2 values.
+      # The first value is the key to identify the correct row in the table
+      # of structured output and the second is the key to identify the data
+      # to retrieve.
+      #
+      # Example: Get vlanshowbr-vlanname in the row that contains a specific
+      #  vlan_id.
+      # "get_value"=>["vlanshowbr-vlanid-utf <vlan_id>", "vlanshowbr-vlanname"]
+      if ref.hash['get_value'].is_a?(Array) && ref.hash['get_value'].size >= 2
+        # Replace the get_value hash entry with the value after any tokens
+        # specified in the yaml file have been replaced and set get_args[:value]
+        # to nil so that the structured table data can be retrieved properly.
+        ref.hash['get_value'] = get_args[:value]
+        ref.hash['drill_down'] = true
+        get_args[:value] = nil
+      end
+      [get_args, ref]
+    end
+
+    # Drill down into structured nxapi table data and return value from the
+    # row specified by a two part key.
+    #
+    # Example: Get vlanshowbr-vlanname in the row that contains vlan id 1000
+    # "get_value"=>["vlanshowbr-vlanid-utf 1000", "vlanshowbr-vlanname"]
+    # Example with optional regexp match
+    # "get_value"=>["vlanshowbr-vlanid-utf 1000", "vlanshowbr-vlanname",
+    #                '/^shutdown$/']
+    def drill_down_structured(value, ref)
+      # Nothing to do unless nxapi_structured
+      return value unless ref.hash['drill_down']
+
+      row_key = ref.hash['get_value'][0][/^\S+/]
+      row_index = ref.hash['get_value'][0][/\S+$/]
+      data_key = ref.hash['get_value'][1]
+      regexp_filter = nil
+      regexp_filter = ref.hash['get_value'][2] if ref.hash['get_value'][2]
+
+      # Get the value using the row_key, row_index and data_key
+      data = value.find { |item| item[row_key].to_s[/#{row_index}/] }
+      return value if data.nil?
+      if regexp_filter
+        filtered = regexp_filter.match(data[data_key])
+        return filtered.nil? ? filtered : filtered[0]
+      end
+      cache_flush
+      data[data_key]
     end
 
     # Attempt to massage the given value into the format specified by the
     # given CmdRef object.
     def massage(value, ref)
       Cisco::Logger.debug "Massaging '#{value}' (#{value.inspect})"
+      value = drill_down_structured(value, ref)
       if value.is_a?(Array) && !ref.multiple
         fail "Expected zero/one value but got '#{value}'" if value.length > 1
         value = value[0]
@@ -75,6 +133,9 @@ module Cisco
       if (value.nil? || value.empty?) && ref.default_value? && ref.auto_default
         Cisco::Logger.debug "Default: #{ref.default_value}"
         return ref.default_value
+      end
+      if ref.multiple && ref.hash['get_data_format'] == :nxapi_structured
+        value = [value.to_s] if value.size == 1
       end
       return value unless ref.kind
       case ref.kind

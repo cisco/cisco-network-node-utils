@@ -22,8 +22,8 @@ productid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "productid"
+    get_context: ["TABLE_inv", "ROW_inv"]
+    get_value: ["name Chassis", "productid"]
 
 serialnum:
   ios_xr:
