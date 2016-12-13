@@ -130,7 +130,7 @@ module Cisco
         fail "Expected zero/one value but got '#{value}'" if value.length > 1
         value = value[0]
       end
-      if (value.nil? || value.empty?) && ref.default_value? && ref.auto_default
+      if (value.nil? || value.to_s.empty?) && ref.default_value? && ref.auto_default
         Cisco::Logger.debug "Default: #{ref.default_value}"
         return ref.default_value
       end
