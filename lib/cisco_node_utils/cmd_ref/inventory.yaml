@@ -29,12 +29,12 @@ serialnum:
   ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "serialnum"
+    get_context: ["TABLE_inv", "ROW_inv"]
+    get_value: ["name Chassis", "serialnum"]
 
 versionid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "vendorid"
+    get_context: ["TABLE_inv", "ROW_inv"]
+    get_value: ["name Chassis", "vendorid"]
