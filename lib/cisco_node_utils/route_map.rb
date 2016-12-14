@@ -441,5 +441,142 @@ module Cisco
     def default_match_ipv4_route_src_prefix_list
       config_get_default('route_map', 'match_ipv4_route_src_prefix_list')
     end
+
+    # extract value of property from match ip multicast
+    def extract_value(prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      match = match_ipv4_multicast_get
+
+      # matching not found
+      return nil if match.nil? # no matching found
+
+      # property not defined for matching
+      return nil unless match.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(match[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # prepend property name prefix/keyword to value
+    def attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
+    end
+
+    def match_ipv4_multicast_get
+      str = config_get('route_map', 'match_ipv4_multicast', @get_args)
+      return nil if str.nil?
+      regexp = Regexp.new('match ip multicast *(?<src>source \S+)?'\
+                          ' *(?<grp>group \S+)?'\
+                          ' *(?<grp_range_start>group-range \S+)?'\
+                          ' *(?<grp_range_end>to \S+)?'\
+                          ' *(?<rp>rp \S+)?')
+      regexp.match(str)
+    end
+
+    def match_ipv4_multicast_src_addr
+      val = extract_value('src', 'source')
+      return default_match_ipv4_multicast_src_addr if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_src_addr=(src_addr)
+      attach_prefix(src_addr, :source)
+    end
+
+    def default_match_ipv4_multicast_src_addr
+      config_get_default('route_map', 'match_ipv4_multicast_src_addr')
+    end
+
+    def match_ipv4_multicast_group_addr
+      val = extract_value('grp', 'group')
+      return default_match_ipv4_multicast_group_addr if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_group_addr=(grp_addr)
+      attach_prefix(grp_addr, :group)
+    end
+
+    def default_match_ipv4_multicast_group_addr
+      config_get_default('route_map', 'match_ipv4_multicast_group_addr')
+    end
+
+    def match_ipv4_multicast_group_range_begin_addr
+      val = extract_value('grp_range_start', 'group-range')
+      return default_match_ipv4_multicast_group_range_begin_addr if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_group_range_begin_addr=(begin_addr)
+      attach_prefix(begin_addr, :group_range, :'group-range')
+    end
+
+    def default_match_ipv4_multicast_group_range_begin_addr
+      config_get_default('route_map',
+                         'match_ipv4_multicast_group_range_begin_addr')
+    end
+
+    def match_ipv4_multicast_group_range_end_addr
+      val = extract_value('grp_range_end', 'to')
+      return default_match_ipv4_multicast_group_range_end_addr if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_group_range_end_addr=(end_addr)
+      attach_prefix(end_addr, :to)
+    end
+
+    def default_match_ipv4_multicast_group_range_end_addr
+      config_get_default('route_map',
+                         'match_ipv4_multicast_group_range_end_addr')
+    end
+
+    def match_ipv4_multicast_rp_addr
+      val = extract_value('rp')
+      return default_match_ipv4_multicast_rp_addr if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_rp_addr=(rp_addr)
+      attach_prefix(rp_addr, :rp)
+    end
+
+    def default_match_ipv4_multicast_rp_addr
+      config_get_default('route_map', 'match_ipv4_multicast_rp_addr')
+    end
+
+    def match_ipv4_multicast_enable
+      match_ipv4_multicast_get.nil? ? default_match_ipv4_multicast_enable : true
+    end
+
+    def match_ipv4_multicast_enable=(enable)
+      @set_args[:state] = enable ? '' : 'no'
+    end
+
+    def default_match_ipv4_multicast_enable
+      config_get_default('route_map', 'match_ipv4_multicast_enable')
+    end
+
+    def match_ipv4_multicast_set(attrs)
+      set_args_keys_default
+      set_args_keys(attrs)
+      [:match_ipv4_multicast_src_addr,
+       :match_ipv4_multicast_group_addr,
+       :match_ipv4_multicast_group_range_begin_addr,
+       :match_ipv4_multicast_group_range_end_addr,
+       :match_ipv4_multicast_rp_addr,
+       :match_ipv4_multicast_enable,
+      ].each do |p|
+        attrs[p] = '' if attrs[p].nil?
+        send(p.to_s + '=', attrs[p])
+      end
+      @get_args = @set_args
+      config_set('route_map', 'match_ipv4_multicast', @set_args)
+      set_args_keys_default
+    end
   end # class
 end # module

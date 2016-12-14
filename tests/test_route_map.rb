@@ -186,4 +186,46 @@ class TestRouteMap < CiscoTestCase
     rm.match_ipv4_route_src_prefix_list = rm.default_match_ipv4_route_src_prefix_list
     assert_equal(rm.default_match_ipv4_route_src_prefix_list, rm.match_ipv4_route_src_prefix_list)
   end
+
+  def match_ipv4_multicast_helper(props)
+    rm = create_route_map
+    test_hash = {
+      match_ipv4_multicast_enable:                 true,
+      match_ipv4_multicast_src_addr:               rm.default_match_ipv4_multicast_src_addr,
+      match_ipv4_multicast_group_addr:             rm.default_match_ipv4_multicast_group_addr,
+      match_ipv4_multicast_group_range_begin_addr: rm.default_match_ipv4_multicast_group_range_begin_addr,
+      match_ipv4_multicast_group_range_end_addr:   rm.default_match_ipv4_multicast_group_range_end_addr,
+      match_ipv4_multicast_rp_addr:                rm.default_match_ipv4_multicast_rp_addr,
+    }.merge!(props)
+    rm.match_ipv4_multicast_set(test_hash)
+    rm
+  end
+
+  def test_match_ipv4_multicast
+    rm = match_ipv4_multicast_helper(match_ipv4_multicast_src_addr:   '242.1.1.1/32',
+                                     match_ipv4_multicast_group_addr: '239.2.2.2/32',
+                                     match_ipv4_multicast_rp_addr:    '242.1.1.1/32')
+    assert_equal(true, rm.match_ipv4_multicast_enable)
+    assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
+    assert_equal('239.2.2.2/32', rm.match_ipv4_multicast_group_addr)
+    assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_rp_addr)
+
+    rm = match_ipv4_multicast_helper(match_ipv4_multicast_src_addr:               '242.1.1.1/32',
+                                     match_ipv4_multicast_group_range_begin_addr: '239.1.1.1',
+                                     match_ipv4_multicast_group_range_end_addr:   '239.2.2.2',
+                                     match_ipv4_multicast_rp_addr:                '242.1.1.1/32')
+    assert_equal(true, rm.match_ipv4_multicast_enable)
+    assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
+    assert_equal('239.1.1.1', rm.match_ipv4_multicast_group_range_begin_addr)
+    assert_equal('239.2.2.2', rm.match_ipv4_multicast_group_range_end_addr)
+    assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_rp_addr)
+
+    rm = match_ipv4_multicast_helper(match_ipv4_multicast_enable: false)
+    assert_equal(rm.default_match_ipv4_multicast_enable, rm.match_ipv4_multicast_enable)
+    assert_equal(rm.default_match_ipv4_multicast_src_addr, rm.match_ipv4_multicast_src_addr)
+    assert_equal(rm.default_match_ipv4_multicast_group_addr, rm.match_ipv4_multicast_group_addr)
+    assert_equal(rm.default_match_ipv4_multicast_group_range_begin_addr, rm.match_ipv4_multicast_group_range_begin_addr)
+    assert_equal(rm.default_match_ipv4_multicast_group_range_end_addr, rm.match_ipv4_multicast_group_range_end_addr)
+    assert_equal(rm.default_match_ipv4_multicast_rp_addr, rm.match_ipv4_multicast_rp_addr)
+  end
 end

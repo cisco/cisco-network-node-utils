@@ -68,6 +68,29 @@ match_ipv4_addr_prefix_list:
   set_value: "<state> match ip address prefix-list <prefix>"
   default_value: []
 
+match_ipv4_multicast:
+  get_value: '/match ip multicast .+$/'
+  set_value: "<state> match ip multicast <source> <group> <group_range> <to> <rp>"
+
+match_ipv4_multicast_enable:
+  kind: boolean
+  default_value: false
+
+match_ipv4_multicast_group_addr:
+  default_value: ''
+
+match_ipv4_multicast_group_range_begin_addr:
+  default_value: ''
+
+match_ipv4_multicast_group_range_end_addr:
+  default_value: ''
+
+match_ipv4_multicast_rp_addr:
+  default_value: ''
+
+match_ipv4_multicast_src_addr:
+  default_value: ''
+
 match_ipv4_next_hop_prefix_list:
   get_value: '/^match ip next-hop prefix-list (.*)$/'
   set_value: "<state> match ip next-hop prefix-list <prefix>"
