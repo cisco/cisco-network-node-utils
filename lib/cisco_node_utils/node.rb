@@ -57,12 +57,11 @@ module Cisco
       return ref.default_value if ref.default_value? && !ref.getter?
 
       get_args, ref = massage_structured(ref.getter(*args).clone, ref)
-      foo = massage(get(command:     ref.get_command,
-                        data_format: get_args[:data_format],
-                        context:     get_args[:context],
-                        value:       get_args[:value]),
-                    ref)
-      foo
+      massage(get(command:     ref.get_command,
+                  data_format: get_args[:data_format],
+                  context:     get_args[:context],
+                  value:       get_args[:value]),
+              ref)
     end
 
     # The yaml file may specifiy an Array as the get_value to drill down into
@@ -118,7 +117,6 @@ module Cisco
         filtered = regexp_filter.match(data[data_key])
         return filtered.nil? ? filtered : filtered[0]
       end
-      cache_flush
       data[data_key]
     end
 
