@@ -111,6 +111,7 @@ module Cisco
       regexp_filter = ref.hash['get_value'][2] if ref.hash['get_value'][2]
 
       # Get the value using the row_key, row_index and data_key
+      value = value.is_a?(Hash) ? [value] : value
       data = value.find { |item| item[row_key].to_s[/#{row_index}/] }
       return value if data.nil?
       if regexp_filter
