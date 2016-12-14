@@ -1,0 +1,89 @@
+# route_map
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config | section route-map"
+  get_context: ['/^route-map <name> <action> <seq>/']
+  set_context: ["route-map <name> <action> <seq>"]
+
+all_route_maps:
+  multiple:
+  get_context: ~
+  get_value: '/^route-map (\S+) (\S+) (\S+)$/'
+
+create:
+  set_context: ~
+  set_value: "route-map <name> <action> <seq>"
+
+description:
+  get_value: '/^description (\S+)$/'
+  set_value: "<state> description <desc>"
+  default_value: false
+
+destroy:
+  set_context: ~
+  set_value: "no route-map <name> <action> <seq>"
+
+match_as_number:
+  multiple:
+  get_value: '/^match as-number (.*)$/'
+  set_value: "<state> match as-number <num>"
+  default_value: []
+
+match_as_number_as_path_list:
+  get_value: '/^match as-number as-path-list (.*)$/'
+  set_value: "<state> match as-number as-path-list <list>"
+  default_value: []
+
+match_community:
+  get_value: '/^match community (.*)$/'
+  set_value: "<state> match community <comm>"
+  default_value: []
+
+match_community_exact_match:
+  default_value: false
+
+match_ext_community:
+  get_value: '/^match extcommunity (.*)$/'
+  set_value: "<state> match extcommunity <comm>"
+  default_value: []
+
+match_ext_community_exact_match:
+  default_value: false
+
+match_interface:
+  get_value: '/^match interface (.*)$/'
+  set_value: "<state> match interface <int>"
+  default_value: []
+
+match_ipv4_addr_access_list:
+  multiple:
+  get_value: '/^match ip address (.*)$/'
+  set_value: "<state> match ip address <access>"
+  default_value: false
+
+match_ipv4_addr_prefix_list:
+  get_value: '/^match ip address prefix-list (.*)$/'
+  set_value: "<state> match ip address prefix-list <prefix>"
+  default_value: []
+
+match_ipv4_next_hop_prefix_list:
+  get_value: '/^match ip next-hop prefix-list (.*)$/'
+  set_value: "<state> match ip next-hop prefix-list <prefix>"
+  default_value: []
+
+match_ipv4_route_src_prefix_list:
+  get_value: '/^match ip route-source prefix-list (.*)$/'
+  set_value: "<state> match ip route-source prefix-list <prefix>"
+  default_value: []
+
+match_src_proto:
+  get_value: '/^match source-protocol (.*)$/'
+  set_value: "<state> match source-protocol <proto>"
+  default_value: []
+
+match_tag:
+  get_value: '/^match tag (.*)$/'
+  set_value: "<state> match tag <tag>"
+  default_value: []
