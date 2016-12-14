@@ -156,7 +156,7 @@ class TestVlan < CiscoTestCase
     v.vlan_name = name
     assert_equal(name, v.vlan_name)
     name = 'LONG_NAME' + ('E' * 120)
-    assert_raises(RuntimeError) do
+    assert_raises(Cisco::CliError) do
       v.vlan_name = name
     end
     v.destroy
