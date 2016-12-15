@@ -156,6 +156,50 @@ match_metric:
   set_value: "<state> match metric <metric>"
   default_value: []
 
+match_route_type:
+  get_value: '/^match route-type (.*)$/'
+  set_value: "<state> match route-type <external> <inter_area> <internal> <intra_area> <level_1> <level_2> <local> <nssa_external> <type_1> <type_2>"
+
+match_route_type_external:
+  kind: boolean
+  default_value: false
+
+match_route_type_inter_area:
+  kind: boolean
+  default_value: false
+
+match_route_type_internal:
+  kind: boolean
+  default_value: false
+
+match_route_type_intra_area:
+  kind: boolean
+  default_value: false
+
+match_route_type_level_1:
+  kind: boolean
+  default_value: false
+
+match_route_type_level_2:
+  kind: boolean
+  default_value: false
+
+match_route_type_local:
+  kind: boolean
+  default_value: false
+
+match_route_type_nssa_external:
+  kind: boolean
+  default_value: false
+
+match_route_type_type_1:
+  kind: boolean
+  default_value: false
+
+match_route_type_type_2:
+  kind: boolean
+  default_value: false
+
 match_src_proto:
   get_value: '/^match source-protocol (.*)$/'
   set_value: "<state> match source-protocol <proto>"

@@ -578,7 +578,6 @@ module Cisco
     end
 
     def match_ipv4_multicast_set(attrs)
-      set_args_keys_default
       set_args_keys(attrs)
       [:match_ipv4_multicast_src_addr,
        :match_ipv4_multicast_group_addr,
@@ -593,7 +592,6 @@ module Cisco
       end
       @get_args = @set_args
       config_set('route_map', 'match_ipv4_multicast', @set_args)
-      set_args_keys_default
     end
 
     def match_ipv6_addr_access_list
@@ -821,7 +819,6 @@ module Cisco
     end
 
     def match_ipv6_multicast_set(attrs)
-      set_args_keys_default
       set_args_keys(attrs)
       [:match_ipv6_multicast_src_addr,
        :match_ipv6_multicast_group_addr,
@@ -836,7 +833,6 @@ module Cisco
       end
       @get_args = @set_args
       config_set('route_map', 'match_ipv6_multicast', @set_args)
-      set_args_keys_default
     end
 
     def match_metric
@@ -894,6 +890,202 @@ module Cisco
 
     def default_match_metric
       config_get_default('route_map', 'match_metric')
+    end
+
+    def match_route_type_get
+      hash = {}
+      hash[:external] = false
+      hash[:inter_area] = false
+      hash[:internal] = false
+      hash[:intra_area] = false
+      hash[:level_1] = false
+      hash[:level_2] = false
+      hash[:local] = false
+      hash[:nssa_external] = false
+      hash[:type_1] = false
+      hash[:type_2] = false
+      str = config_get('route_map', 'match_route_type', @get_args)
+      return hash if str.nil?
+      hash[:external] = true if str.include?('external')
+      hash[:inter_area] = true if str.include?('inter-area')
+      hash[:internal] = true if str.include?('internal')
+      hash[:intra_area] = true if str.include?('intra-area')
+      hash[:level_1] = true if str.include?('level-1')
+      hash[:level_2] = true if str.include?('level-2')
+      hash[:local] = true if str.include?('local')
+      hash[:nssa_external] = true if str.include?('nssa-external')
+      hash[:type_1] = true if str.include?('type-1')
+      hash[:type_2] = true if str.include?('type-2')
+      hash
+    end
+
+    def match_route_type_set(attrs)
+      # reset first
+      set_args_keys(
+        state:         'no',
+        external:      'external',
+        inter_area:    'inter-area',
+        internal:      'internal',
+        intra_area:    'intra-area',
+        level_1:       'level-1',
+        level_2:       'level-2',
+        local:         'local',
+        nssa_external: 'nssa-external',
+        type_1:        'type-1',
+        type_2:        'type-2')
+      config_set('route_map', 'match_route_type', @set_args)
+
+      to_set = false
+      set_args_keys(attrs)
+      [:match_route_type_external,
+       :match_route_type_inter_area,
+       :match_route_type_internal,
+       :match_route_type_intra_area,
+       :match_route_type_level_1,
+       :match_route_type_level_2,
+       :match_route_type_local,
+       :match_route_type_nssa_external,
+       :match_route_type_type_1,
+       :match_route_type_type_2,
+      ].each do |p|
+        attrs[p] = false if attrs[p].nil?
+        send(p.to_s + '=', attrs[p])
+        to_set = true if attrs[p] && !to_set
+      end
+      return unless to_set
+      @set_args[:state] = ''
+      @get_args = @set_args
+      config_set('route_map', 'match_route_type', @set_args)
+    end
+
+    def match_route_type_external
+      hash = match_route_type_get
+      hash[:external]
+    end
+
+    def match_route_type_external=(val)
+      @set_args[:external] = val ? 'external' : ''
+    end
+
+    def default_match_route_type_external
+      config_get_default('route_map', 'match_route_type_external')
+    end
+
+    def match_route_type_inter_area
+      hash = match_route_type_get
+      hash[:inter_area]
+    end
+
+    def match_route_type_inter_area=(val)
+      @set_args[:inter_area] = val ? 'inter-area' : ''
+    end
+
+    def default_match_route_type_inter_area
+      config_get_default('route_map', 'match_route_type_inter_area')
+    end
+
+    def match_route_type_internal
+      hash = match_route_type_get
+      hash[:internal]
+    end
+
+    def match_route_type_internal=(val)
+      @set_args[:internal] = val ? 'internal' : ''
+    end
+
+    def default_match_route_type_internal
+      config_get_default('route_map', 'match_route_type_internal')
+    end
+
+    def match_route_type_intra_area
+      hash = match_route_type_get
+      hash[:intra_area]
+    end
+
+    def match_route_type_intra_area=(val)
+      @set_args[:intra_area] = val ? 'intra-area' : ''
+    end
+
+    def default_match_route_type_intra_area
+      config_get_default('route_map', 'match_route_type_intra_area')
+    end
+
+    def match_route_type_level_1
+      hash = match_route_type_get
+      hash[:level_1]
+    end
+
+    def match_route_type_level_1=(val)
+      @set_args[:level_1] = val ? 'level-1' : ''
+    end
+
+    def default_match_route_type_level_1
+      config_get_default('route_map', 'match_route_type_level_1')
+    end
+
+    def match_route_type_level_2
+      hash = match_route_type_get
+      hash[:level_2]
+    end
+
+    def match_route_type_level_2=(val)
+      @set_args[:level_2] = val ? 'level-2' : ''
+    end
+
+    def default_match_route_type_level_2
+      config_get_default('route_map', 'match_route_type_level_2')
+    end
+
+    def match_route_type_local
+      hash = match_route_type_get
+      hash[:local]
+    end
+
+    def match_route_type_local=(val)
+      @set_args[:local] = val ? 'local' : ''
+    end
+
+    def default_match_route_type_local
+      config_get_default('route_map', 'match_route_type_local')
+    end
+
+    def match_route_type_nssa_external
+      hash = match_route_type_get
+      hash[:nssa_external]
+    end
+
+    def match_route_type_nssa_external=(val)
+      @set_args[:nssa_external] = val ? 'nssa-external' : ''
+    end
+
+    def default_match_route_type_nssa_external
+      config_get_default('route_map', 'match_route_type_nssa_external')
+    end
+
+    def match_route_type_type_1
+      hash = match_route_type_get
+      hash[:type_1]
+    end
+
+    def match_route_type_type_1=(val)
+      @set_args[:type_1] = val ? 'type-1' : ''
+    end
+
+    def default_match_route_type_type_1
+      config_get_default('route_map', 'match_route_type_type_1')
+    end
+
+    def match_route_type_type_2
+      hash = match_route_type_get
+      hash[:type_2]
+    end
+
+    def match_route_type_type_2=(val)
+      @set_args[:type_2] = val ? 'type-2' : ''
+    end
+
+    def default_match_route_type_type_2
+      config_get_default('route_map', 'match_route_type_type_2')
     end
   end # class
 end # module

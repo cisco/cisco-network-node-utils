@@ -334,4 +334,75 @@ class TestRouteMap < CiscoTestCase
     rm.match_metric = rm.default_match_metric
     assert_equal(rm.default_match_metric, rm.match_metric)
   end
+
+  def match_route_type_helper(props)
+    rm = create_route_map
+    test_hash = {
+      match_route_type_external:      rm.default_match_route_type_external,
+      match_route_type_inter_area:    rm.default_match_route_type_inter_area,
+      match_route_type_internal:      rm.default_match_route_type_internal,
+      match_route_type_intra_area:    rm.default_match_route_type_intra_area,
+      match_route_type_level_1:       rm.default_match_route_type_level_1,
+      match_route_type_level_2:       rm.default_match_route_type_level_2,
+      match_route_type_local:         rm.default_match_route_type_local,
+      match_route_type_nssa_external: rm.default_match_route_type_nssa_external,
+      match_route_type_type_1:        rm.default_match_route_type_type_1,
+      match_route_type_type_2:        rm.default_match_route_type_type_2,
+    }.merge!(props)
+    rm.match_route_type_set(test_hash)
+    rm
+  end
+
+  def test_match_route_type
+    rm = match_route_type_helper(
+      match_route_type_external: true,
+      match_route_type_internal: true,
+      match_route_type_level_1:  true,
+      match_route_type_local:    true,
+      match_route_type_type_2:   true)
+    assert_equal(true, rm.match_route_type_external)
+    assert_equal(true, rm.match_route_type_internal)
+    assert_equal(true, rm.match_route_type_level_1)
+    assert_equal(true, rm.match_route_type_local)
+    assert_equal(true, rm.match_route_type_type_2)
+    assert_equal(false, rm.match_route_type_type_1)
+    assert_equal(false, rm.match_route_type_inter_area)
+    assert_equal(false, rm.match_route_type_level_2)
+    assert_equal(false, rm.match_route_type_nssa_external)
+    assert_equal(false, rm.match_route_type_type_1)
+
+    rm = match_route_type_helper(
+      match_route_type_external:      true,
+      match_route_type_inter_area:    true,
+      match_route_type_internal:      true,
+      match_route_type_intra_area:    true,
+      match_route_type_level_1:       true,
+      match_route_type_level_2:       true,
+      match_route_type_local:         true,
+      match_route_type_nssa_external: true,
+      match_route_type_type_1:        true,
+      match_route_type_type_2:        true)
+
+    assert_equal(true, rm.match_route_type_external)
+    assert_equal(true, rm.match_route_type_internal)
+    assert_equal(true, rm.match_route_type_level_1)
+    assert_equal(true, rm.match_route_type_local)
+    assert_equal(true, rm.match_route_type_type_2)
+    assert_equal(true, rm.match_route_type_type_1)
+    assert_equal(true, rm.match_route_type_inter_area)
+    assert_equal(true, rm.match_route_type_level_2)
+    assert_equal(true, rm.match_route_type_nssa_external)
+    assert_equal(true, rm.match_route_type_type_1)
+    rm = match_route_type_helper({})
+    assert_equal(false, rm.match_route_type_external)
+    assert_equal(false, rm.match_route_type_internal)
+    assert_equal(false, rm.match_route_type_level_1)
+    assert_equal(false, rm.match_route_type_local)
+    assert_equal(false, rm.match_route_type_type_2)
+    assert_equal(false, rm.match_route_type_type_1)
+    assert_equal(false, rm.match_route_type_inter_area)
+    assert_equal(false, rm.match_route_type_level_2)
+    assert_equal(false, rm.match_route_type_nssa_external)
+    assert_equal(false, rm.match_route_type_type_1)
+  end
 end
