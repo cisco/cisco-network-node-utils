@@ -196,6 +196,7 @@ class TestRouteMap < CiscoTestCase
       match_ipv4_multicast_group_range_begin_addr: rm.default_match_ipv4_multicast_group_range_begin_addr,
       match_ipv4_multicast_group_range_end_addr:   rm.default_match_ipv4_multicast_group_range_end_addr,
       match_ipv4_multicast_rp_addr:                rm.default_match_ipv4_multicast_rp_addr,
+      match_ipv4_multicast_rp_type:                rm.default_match_ipv4_multicast_rp_type,
     }.merge!(props)
     rm.match_ipv4_multicast_set(test_hash)
     rm
@@ -204,21 +205,25 @@ class TestRouteMap < CiscoTestCase
   def test_match_ipv4_multicast
     rm = match_ipv4_multicast_helper(match_ipv4_multicast_src_addr:   '242.1.1.1/32',
                                      match_ipv4_multicast_group_addr: '239.2.2.2/32',
-                                     match_ipv4_multicast_rp_addr:    '242.1.1.1/32')
+                                     match_ipv4_multicast_rp_addr:    '242.1.1.1/32',
+                                     match_ipv4_multicast_rp_type:    'ASM')
     assert_equal(true, rm.match_ipv4_multicast_enable)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
     assert_equal('239.2.2.2/32', rm.match_ipv4_multicast_group_addr)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_rp_addr)
+    assert_equal('ASM', rm.match_ipv4_multicast_rp_type)
 
     rm = match_ipv4_multicast_helper(match_ipv4_multicast_src_addr:               '242.1.1.1/32',
                                      match_ipv4_multicast_group_range_begin_addr: '239.1.1.1',
                                      match_ipv4_multicast_group_range_end_addr:   '239.2.2.2',
-                                     match_ipv4_multicast_rp_addr:                '242.1.1.1/32')
+                                     match_ipv4_multicast_rp_addr:                '242.1.1.1/32',
+                                     match_ipv4_multicast_rp_type:                'Bidir')
     assert_equal(true, rm.match_ipv4_multicast_enable)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
     assert_equal('239.1.1.1', rm.match_ipv4_multicast_group_range_begin_addr)
     assert_equal('239.2.2.2', rm.match_ipv4_multicast_group_range_end_addr)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_rp_addr)
+    assert_equal('Bidir', rm.match_ipv4_multicast_rp_type)
 
     rm = match_ipv4_multicast_helper(match_ipv4_multicast_enable: false)
     assert_equal(rm.default_match_ipv4_multicast_enable, rm.match_ipv4_multicast_enable)
@@ -227,5 +232,93 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_ipv4_multicast_group_range_begin_addr, rm.match_ipv4_multicast_group_range_begin_addr)
     assert_equal(rm.default_match_ipv4_multicast_group_range_end_addr, rm.match_ipv4_multicast_group_range_end_addr)
     assert_equal(rm.default_match_ipv4_multicast_rp_addr, rm.match_ipv4_multicast_rp_addr)
+    assert_equal(rm.default_match_ipv4_multicast_rp_type, rm.match_ipv4_multicast_rp_type)
+  end
+
+  def test_match_ipv6_addr_access_list
+    rm = create_route_map
+    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
+    rm.match_ipv6_addr_access_list = 'MyAccessList'
+    assert_equal('MyAccessList', rm.match_ipv6_addr_access_list)
+    rm.match_ipv6_addr_access_list = rm.default_match_ipv6_addr_access_list
+    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
+  end
+
+  def test_match_ipv6_addr_prefix_list
+    rm = create_route_map
+    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
+    array = %w(pre1 pre7 pre5)
+    rm.match_ipv6_addr_prefix_list = array
+    assert_equal(array, rm.match_ipv6_addr_prefix_list)
+    rm.match_ipv6_addr_prefix_list = rm.default_match_ipv6_addr_prefix_list
+    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
+  end
+
+  def test_match_ipv6_next_hop_prefix_list
+    rm = create_route_map
+    assert_equal(rm.default_match_ipv6_next_hop_prefix_list, rm.match_ipv6_next_hop_prefix_list)
+    array = %w(nh5 nh1 nh42)
+    rm.match_ipv6_next_hop_prefix_list = array
+    assert_equal(array, rm.match_ipv6_next_hop_prefix_list)
+    rm.match_ipv6_next_hop_prefix_list = rm.default_match_ipv6_next_hop_prefix_list
+    assert_equal(rm.default_match_ipv6_next_hop_prefix_list, rm.match_ipv6_next_hop_prefix_list)
+  end
+
+  def test_match_ipv6_route_src_prefix_list
+    rm = create_route_map
+    assert_equal(rm.default_match_ipv6_route_src_prefix_list, rm.match_ipv6_route_src_prefix_list)
+    array = %w(rs1 rs22 pre15)
+    rm.match_ipv6_route_src_prefix_list = array
+    assert_equal(array, rm.match_ipv6_route_src_prefix_list)
+    rm.match_ipv6_route_src_prefix_list = rm.default_match_ipv6_route_src_prefix_list
+    assert_equal(rm.default_match_ipv6_route_src_prefix_list, rm.match_ipv6_route_src_prefix_list)
+  end
+
+  def match_ipv6_multicast_helper(props)
+    rm = create_route_map
+    test_hash = {
+      match_ipv6_multicast_enable:                 true,
+      match_ipv6_multicast_src_addr:               rm.default_match_ipv6_multicast_src_addr,
+      match_ipv6_multicast_group_addr:             rm.default_match_ipv6_multicast_group_addr,
+      match_ipv6_multicast_group_range_begin_addr: rm.default_match_ipv6_multicast_group_range_begin_addr,
+      match_ipv6_multicast_group_range_end_addr:   rm.default_match_ipv6_multicast_group_range_end_addr,
+      match_ipv6_multicast_rp_addr:                rm.default_match_ipv6_multicast_rp_addr,
+      match_ipv6_multicast_rp_type:                rm.default_match_ipv6_multicast_rp_type,
+    }.merge!(props)
+    rm.match_ipv6_multicast_set(test_hash)
+    rm
+  end
+
+  def test_match_ipv6_multicast
+    rm = match_ipv6_multicast_helper(match_ipv6_multicast_src_addr:   '2001::348:0:0/96',
+                                     match_ipv6_multicast_group_addr: 'ff0e::2:101:0:0/96',
+                                     match_ipv6_multicast_rp_addr:    '2001::348:0:0/96',
+                                     match_ipv6_multicast_rp_type:    'ASM')
+    assert_equal(true, rm.match_ipv6_multicast_enable)
+    assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_src_addr)
+    assert_equal('ff0e::2:101:0:0/96', rm.match_ipv6_multicast_group_addr)
+    assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_rp_addr)
+    assert_equal('ASM', rm.match_ipv6_multicast_rp_type)
+
+    rm = match_ipv6_multicast_helper(match_ipv6_multicast_src_addr:               '2001::348:0:0/96',
+                                     match_ipv6_multicast_group_range_begin_addr: 'ff01::',
+                                     match_ipv6_multicast_group_range_end_addr:   'ff02::',
+                                     match_ipv6_multicast_rp_addr:                '2001::348:0:0/96',
+                                     match_ipv6_multicast_rp_type:                'Bidir')
+    assert_equal(true, rm.match_ipv6_multicast_enable)
+    assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_src_addr)
+    assert_equal('ff01::', rm.match_ipv6_multicast_group_range_begin_addr)
+    assert_equal('ff02::', rm.match_ipv6_multicast_group_range_end_addr)
+    assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_rp_addr)
+    assert_equal('Bidir', rm.match_ipv6_multicast_rp_type)
+
+    rm = match_ipv6_multicast_helper(match_ipv6_multicast_enable: false)
+    assert_equal(rm.default_match_ipv6_multicast_enable, rm.match_ipv6_multicast_enable)
+    assert_equal(rm.default_match_ipv6_multicast_src_addr, rm.match_ipv6_multicast_src_addr)
+    assert_equal(rm.default_match_ipv6_multicast_group_addr, rm.match_ipv6_multicast_group_addr)
+    assert_equal(rm.default_match_ipv6_multicast_group_range_begin_addr, rm.match_ipv6_multicast_group_range_begin_addr)
+    assert_equal(rm.default_match_ipv6_multicast_group_range_end_addr, rm.match_ipv6_multicast_group_range_end_addr)
+    assert_equal(rm.default_match_ipv6_multicast_rp_addr, rm.match_ipv6_multicast_rp_addr)
+    assert_equal(rm.default_match_ipv6_multicast_rp_type, rm.match_ipv6_multicast_rp_type)
   end
 end

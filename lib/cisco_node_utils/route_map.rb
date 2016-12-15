@@ -443,9 +443,10 @@ module Cisco
     end
 
     # extract value of property from match ip multicast
-    def extract_value(prop, prefix=nil)
+    def extract_value(type, prop, prefix=nil)
       prefix = prop if prefix.nil?
-      match = match_ipv4_multicast_get
+      match =
+        type == 'ipv4' ? match_ipv4_multicast_get : match_ipv6_multicast_get
 
       # matching not found
       return nil if match.nil? # no matching found
@@ -473,12 +474,13 @@ module Cisco
                           ' *(?<grp>group \S+)?'\
                           ' *(?<grp_range_start>group-range \S+)?'\
                           ' *(?<grp_range_end>to \S+)?'\
-                          ' *(?<rp>rp \S+)?')
+                          ' *(?<rp>rp \S+)?'\
+                          ' *(?<rp_type>rp-type \S+)?')
       regexp.match(str)
     end
 
     def match_ipv4_multicast_src_addr
-      val = extract_value('src', 'source')
+      val = extract_value('ipv4', 'src', 'source')
       return default_match_ipv4_multicast_src_addr if val.nil?
       val
     end
@@ -492,7 +494,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_addr
-      val = extract_value('grp', 'group')
+      val = extract_value('ipv4', 'grp', 'group')
       return default_match_ipv4_multicast_group_addr if val.nil?
       val
     end
@@ -506,7 +508,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_begin_addr
-      val = extract_value('grp_range_start', 'group-range')
+      val = extract_value('ipv4', 'grp_range_start', 'group-range')
       return default_match_ipv4_multicast_group_range_begin_addr if val.nil?
       val
     end
@@ -521,7 +523,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_end_addr
-      val = extract_value('grp_range_end', 'to')
+      val = extract_value('ipv4', 'grp_range_end', 'to')
       return default_match_ipv4_multicast_group_range_end_addr if val.nil?
       val
     end
@@ -536,7 +538,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_rp_addr
-      val = extract_value('rp')
+      val = extract_value('ipv4', 'rp')
       return default_match_ipv4_multicast_rp_addr if val.nil?
       val
     end
@@ -547,6 +549,20 @@ module Cisco
 
     def default_match_ipv4_multicast_rp_addr
       config_get_default('route_map', 'match_ipv4_multicast_rp_addr')
+    end
+
+    def match_ipv4_multicast_rp_type
+      val = extract_value('ipv4', 'rp_type', 'rp-type')
+      return default_match_ipv4_multicast_rp_type if val.nil?
+      val
+    end
+
+    def match_ipv4_multicast_rp_type=(type)
+      attach_prefix(type, :rp_type, :'rp-type')
+    end
+
+    def default_match_ipv4_multicast_rp_type
+      config_get_default('route_map', 'match_ipv4_multicast_rp_type')
     end
 
     def match_ipv4_multicast_enable
@@ -569,6 +585,7 @@ module Cisco
        :match_ipv4_multicast_group_range_begin_addr,
        :match_ipv4_multicast_group_range_end_addr,
        :match_ipv4_multicast_rp_addr,
+       :match_ipv4_multicast_rp_type,
        :match_ipv4_multicast_enable,
       ].each do |p|
         attrs[p] = '' if attrs[p].nil?
@@ -576,6 +593,249 @@ module Cisco
       end
       @get_args = @set_args
       config_set('route_map', 'match_ipv4_multicast', @set_args)
+      set_args_keys_default
+    end
+
+    def match_ipv6_addr_access_list
+      val = default_match_ipv6_addr_access_list
+      arr = config_get('route_map', 'match_ipv6_addr_access_list', @get_args)
+      if arr
+        arr.each do |line|
+          next if line.include?('prefix-list')
+          val = line.strip
+        end
+      end
+      val
+    end
+
+    def match_ipv6_addr_access_list=(val)
+      cval = match_ipv6_addr_access_list
+      return if val == cval
+      state = val ? '' : 'no'
+      al = val ? val : cval
+      set_args_keys(state: state, access: al)
+      config_set('route_map', 'match_ipv6_addr_access_list', @set_args)
+    end
+
+    def default_match_ipv6_addr_access_list
+      config_get_default('route_map', 'match_ipv6_addr_access_list')
+    end
+
+    def match_ipv6_addr_prefix_list
+      str = config_get('route_map', 'match_ipv6_addr_prefix_list', @get_args)
+      str.empty? ? default_match_ipv6_addr_prefix_list : str.split
+    end
+
+    def match_ipv6_addr_prefix_list=(list)
+      carr = match_ipv6_addr_prefix_list
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      unless cstr.empty?
+        set_args_keys(state: 'no', prefix: cstr)
+        # reset the current config
+        config_set('route_map', 'match_ipv6_addr_prefix_list', @set_args)
+      end
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      return if nstr.empty?
+      set_args_keys(state: '', prefix: nstr)
+      config_set('route_map', 'match_ipv6_addr_prefix_list', @set_args)
+    end
+
+    def default_match_ipv6_addr_prefix_list
+      config_get_default('route_map', 'match_ipv6_addr_prefix_list')
+    end
+
+    def match_ipv6_next_hop_prefix_list
+      str = config_get('route_map', 'match_ipv6_next_hop_prefix_list',
+                       @get_args)
+      str.empty? ? default_match_ipv6_next_hop_prefix_list : str.split
+    end
+
+    def match_ipv6_next_hop_prefix_list=(list)
+      carr = match_ipv6_next_hop_prefix_list
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      unless cstr.empty?
+        set_args_keys(state: 'no', prefix: cstr)
+        # reset the current config
+        config_set('route_map', 'match_ipv6_next_hop_prefix_list', @set_args)
+      end
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      return if nstr.empty?
+      set_args_keys(state: '', prefix: nstr)
+      config_set('route_map', 'match_ipv6_next_hop_prefix_list', @set_args)
+    end
+
+    def default_match_ipv6_next_hop_prefix_list
+      config_get_default('route_map', 'match_ipv6_next_hop_prefix_list')
+    end
+
+    def match_ipv6_route_src_prefix_list
+      str = config_get('route_map', 'match_ipv6_route_src_prefix_list',
+                       @get_args)
+      str.empty? ? default_match_ipv6_route_src_prefix_list : str.split
+    end
+
+    def match_ipv6_route_src_prefix_list=(list)
+      carr = match_ipv6_route_src_prefix_list
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      unless cstr.empty?
+        set_args_keys(state: 'no', prefix: cstr)
+        # reset the current config
+        config_set('route_map', 'match_ipv6_route_src_prefix_list', @set_args)
+      end
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      return if nstr.empty?
+      set_args_keys(state: '', prefix: nstr)
+      config_set('route_map', 'match_ipv6_route_src_prefix_list', @set_args)
+    end
+
+    def default_match_ipv6_route_src_prefix_list
+      config_get_default('route_map', 'match_ipv6_route_src_prefix_list')
+    end
+
+    def match_ipv6_multicast_get
+      str = config_get('route_map', 'match_ipv6_multicast', @get_args)
+      return nil if str.nil?
+      regexp = Regexp.new('match ipv6 multicast *(?<src>source \S+)?'\
+                          ' *(?<grp>group \S+)?'\
+                          ' *(?<grp_range_start>group-range \S+)?'\
+                          ' *(?<grp_range_end>to \S+)?'\
+                          ' *(?<rp>rp \S+)?'\
+                          ' *(?<rp_type>rp-type \S+)?')
+      regexp.match(str)
+    end
+
+    def match_ipv6_multicast_src_addr
+      val = extract_value('ipv6', 'src', 'source')
+      return default_match_ipv6_multicast_src_addr if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_src_addr=(src_addr)
+      attach_prefix(src_addr, :source)
+    end
+
+    def default_match_ipv6_multicast_src_addr
+      config_get_default('route_map', 'match_ipv6_multicast_src_addr')
+    end
+
+    def match_ipv6_multicast_group_addr
+      val = extract_value('ipv6', 'grp', 'group')
+      return default_match_ipv6_multicast_group_addr if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_group_addr=(grp_addr)
+      attach_prefix(grp_addr, :group)
+    end
+
+    def default_match_ipv6_multicast_group_addr
+      config_get_default('route_map', 'match_ipv6_multicast_group_addr')
+    end
+
+    def match_ipv6_multicast_group_range_begin_addr
+      val = extract_value('ipv6', 'grp_range_start', 'group-range')
+      return default_match_ipv6_multicast_group_range_begin_addr if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_group_range_begin_addr=(begin_addr)
+      attach_prefix(begin_addr, :group_range, :'group-range')
+    end
+
+    def default_match_ipv6_multicast_group_range_begin_addr
+      config_get_default('route_map',
+                         'match_ipv6_multicast_group_range_begin_addr')
+    end
+
+    def match_ipv6_multicast_group_range_end_addr
+      val = extract_value('ipv6', 'grp_range_end', 'to')
+      return default_match_ipv6_multicast_group_range_end_addr if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_group_range_end_addr=(end_addr)
+      attach_prefix(end_addr, :to)
+    end
+
+    def default_match_ipv6_multicast_group_range_end_addr
+      config_get_default('route_map',
+                         'match_ipv6_multicast_group_range_end_addr')
+    end
+
+    def match_ipv6_multicast_rp_addr
+      val = extract_value('ipv6', 'rp')
+      return default_match_ipv6_multicast_rp_addr if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_rp_addr=(rp_addr)
+      attach_prefix(rp_addr, :rp)
+    end
+
+    def default_match_ipv6_multicast_rp_addr
+      config_get_default('route_map', 'match_ipv6_multicast_rp_addr')
+    end
+
+    def match_ipv6_multicast_rp_type
+      val = extract_value('ipv6', 'rp_type', 'rp-type')
+      return default_match_ipv6_multicast_rp_type if val.nil?
+      val
+    end
+
+    def match_ipv6_multicast_rp_type=(type)
+      attach_prefix(type, :rp_type, :'rp-type')
+    end
+
+    def default_match_ipv6_multicast_rp_type
+      config_get_default('route_map', 'match_ipv6_multicast_rp_type')
+    end
+
+    def match_ipv6_multicast_enable
+      match_ipv6_multicast_get.nil? ? default_match_ipv6_multicast_enable : true
+    end
+
+    def match_ipv6_multicast_enable=(enable)
+      @set_args[:state] = enable ? '' : 'no'
+    end
+
+    def default_match_ipv6_multicast_enable
+      config_get_default('route_map', 'match_ipv6_multicast_enable')
+    end
+
+    def match_ipv6_multicast_set(attrs)
+      set_args_keys_default
+      set_args_keys(attrs)
+      [:match_ipv6_multicast_src_addr,
+       :match_ipv6_multicast_group_addr,
+       :match_ipv6_multicast_group_range_begin_addr,
+       :match_ipv6_multicast_group_range_end_addr,
+       :match_ipv6_multicast_rp_addr,
+       :match_ipv6_multicast_rp_type,
+       :match_ipv6_multicast_enable,
+      ].each do |p|
+        attrs[p] = '' if attrs[p].nil?
+        send(p.to_s + '=', attrs[p])
+      end
+      @get_args = @set_args
+      config_set('route_map', 'match_ipv6_multicast', @set_args)
       set_args_keys_default
     end
   end # class

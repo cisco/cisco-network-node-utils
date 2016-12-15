@@ -70,7 +70,7 @@ match_ipv4_addr_prefix_list:
 
 match_ipv4_multicast:
   get_value: '/match ip multicast .+$/'
-  set_value: "<state> match ip multicast <source> <group> <group_range> <to> <rp>"
+  set_value: "<state> match ip multicast <source> <group> <group_range> <to> <rp> <rp_type>"
 
 match_ipv4_multicast_enable:
   kind: boolean
@@ -88,6 +88,9 @@ match_ipv4_multicast_group_range_end_addr:
 match_ipv4_multicast_rp_addr:
   default_value: ''
 
+match_ipv4_multicast_rp_type:
+  default_value: ''
+
 match_ipv4_multicast_src_addr:
   default_value: ''
 
@@ -99,6 +102,53 @@ match_ipv4_next_hop_prefix_list:
 match_ipv4_route_src_prefix_list:
   get_value: '/^match ip route-source prefix-list (.*)$/'
   set_value: "<state> match ip route-source prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_addr_access_list:
+  multiple:
+  get_value: '/^match ipv6 address (.*)$/'
+  set_value: "<state> match ipv6 address <access>"
+  default_value: false
+
+match_ipv6_addr_prefix_list:
+  get_value: '/^match ipv6 address prefix-list (.*)$/'
+  set_value: "<state> match ipv6 address prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_multicast:
+  get_value: '/match ipv6 multicast .+$/'
+  set_value: "<state> match ipv6 multicast <source> <group> <group_range> <to> <rp> <rp_type>"
+
+match_ipv6_multicast_enable:
+  kind: boolean
+  default_value: false
+
+match_ipv6_multicast_group_addr:
+  default_value: ''
+
+match_ipv6_multicast_group_range_begin_addr:
+  default_value: ''
+
+match_ipv6_multicast_group_range_end_addr:
+  default_value: ''
+
+match_ipv6_multicast_rp_addr:
+  default_value: ''
+
+match_ipv6_multicast_rp_type:
+  default_value: ''
+
+match_ipv6_multicast_src_addr:
+  default_value: ''
+
+match_ipv6_next_hop_prefix_list:
+  get_value: '/^match ipv6 next-hop prefix-list (.*)$/'
+  set_value: "<state> match ipv6 next-hop prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_route_src_prefix_list:
+  get_value: '/^match ipv6 route-source prefix-list (.*)$/'
+  set_value: "<state> match ipv6 route-source prefix-list <prefix>"
   default_value: []
 
 match_src_proto:
