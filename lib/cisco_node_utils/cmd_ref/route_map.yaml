@@ -151,6 +151,11 @@ match_ipv6_route_src_prefix_list:
   set_value: "<state> match ipv6 route-source prefix-list <prefix>"
   default_value: []
 
+match_metric:
+  get_value: '/^match metric (.*)$/'
+  set_value: "<state> match metric <metric>"
+  default_value: []
+
 match_src_proto:
   get_value: '/^match source-protocol (.*)$/'
   set_value: "<state> match source-protocol <proto>"

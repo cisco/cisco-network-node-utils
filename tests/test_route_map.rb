@@ -321,4 +321,17 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_ipv6_multicast_rp_addr, rm.match_ipv6_multicast_rp_addr)
     assert_equal(rm.default_match_ipv6_multicast_rp_type, rm.match_ipv6_multicast_rp_type)
   end
+
+  def test_match_metric
+    rm = create_route_map
+    assert_equal(rm.default_match_metric, rm.match_metric)
+    metric = [%w(1 0), %w(8 0), %w(224 9), %w(23 0), %w(5 8), %w(6 0)]
+    rm.match_metric = metric
+    assert_equal(metric, rm.match_metric)
+    metric = [%w(22 5), %w(5 0), %w(24 9), %w(238 255)]
+    rm.match_metric = metric
+    assert_equal(metric, rm.match_metric)
+    rm.match_metric = rm.default_match_metric
+    assert_equal(rm.default_match_metric, rm.match_metric)
+  end
 end

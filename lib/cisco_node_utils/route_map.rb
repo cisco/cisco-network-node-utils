@@ -838,5 +838,62 @@ module Cisco
       config_set('route_map', 'match_ipv6_multicast', @set_args)
       set_args_keys_default
     end
+
+    def match_metric
+      str = config_get('route_map', 'match_metric', @get_args)
+      return default_match_metric if str.empty?
+      rarr = []
+      larr = []
+      metrics = str.split
+      deviation = false
+      metrics.each do |metric|
+        deviation = true if metric == '+-'
+        if !larr.empty? && !deviation
+          larr << '0'
+          rarr << larr
+          larr = []
+        end
+        next if metric == '+-'
+        if !larr.empty? && deviation
+          larr << metric
+          rarr << larr
+          larr = []
+          deviation = false
+          next
+        end
+        larr << metric if larr.empty?
+      end
+      unless larr.empty?
+        larr << '0'
+        rarr << larr
+      end
+      rarr
+    end
+
+    def match_metric=(list)
+      clist = match_metric
+      # reset first
+      unless clist.empty?
+        str = ''
+        clist.each do |metric, deviation|
+          str.concat(metric + ' ')
+          str.concat('+ ' + deviation + ' ') unless deviation == '0'
+        end
+        set_args_keys(state: 'no', metric: str)
+        config_set('route_map', 'match_metric', @set_args)
+      end
+      return if list.empty?
+      str = ''
+      list.each do |metric, deviation|
+        str.concat(metric + ' ')
+        str.concat('+ ' + deviation + ' ') unless deviation == '0'
+      end
+      set_args_keys(state: '', metric: str)
+      config_set('route_map', 'match_metric', @set_args)
+    end
+
+    def default_match_metric
+      config_get_default('route_map', 'match_metric')
+    end
   end # class
 end # module
