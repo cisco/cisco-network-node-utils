@@ -444,4 +444,53 @@ class TestRouteMap < CiscoTestCase
     rm.match_vlan = rm.default_match_vlan
     assert_equal(rm.default_match_vlan, rm.match_vlan)
   end
+
+  def test_match_evpn_route_type
+    rm = create_route_map
+    assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
+    rm.match_evpn_route_type_1 = true
+    assert_equal(true, rm.match_evpn_route_type_1)
+    rm.match_evpn_route_type_1 = rm.default_match_evpn_route_type_1
+    assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
+    assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
+    rm.match_evpn_route_type_3 = true
+    assert_equal(true, rm.match_evpn_route_type_3)
+    rm.match_evpn_route_type_3 = rm.default_match_evpn_route_type_3
+    assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
+    assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
+    rm.match_evpn_route_type_4 = true
+    assert_equal(true, rm.match_evpn_route_type_4)
+    rm.match_evpn_route_type_4 = rm.default_match_evpn_route_type_4
+    assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
+    assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
+    rm.match_evpn_route_type_5 = true
+    assert_equal(true, rm.match_evpn_route_type_5)
+    rm.match_evpn_route_type_5 = rm.default_match_evpn_route_type_5
+    assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
+    assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
+    rm.match_evpn_route_type_6 = true
+    assert_equal(true, rm.match_evpn_route_type_6)
+    rm.match_evpn_route_type_6 = rm.default_match_evpn_route_type_6
+    assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
+    assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
+    rm.match_evpn_route_type_all = true
+    assert_equal(true, rm.match_evpn_route_type_all)
+    rm.match_evpn_route_type_all = rm.default_match_evpn_route_type_all
+    assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
+    assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
+    rm.match_evpn_route_type_2_all = true
+    assert_equal(true, rm.match_evpn_route_type_2_all)
+    rm.match_evpn_route_type_2_all = rm.default_match_evpn_route_type_2_all
+    assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
+    assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
+    rm.match_evpn_route_type_2_mac_ip = true
+    assert_equal(true, rm.match_evpn_route_type_2_mac_ip)
+    rm.match_evpn_route_type_2_mac_ip = rm.default_match_evpn_route_type_2_mac_ip
+    assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
+    assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
+    rm.match_evpn_route_type_2_mac_only = true
+    assert_equal(true, rm.match_evpn_route_type_2_mac_only)
+    rm.match_evpn_route_type_2_mac_only = rm.default_match_evpn_route_type_2_mac_only
+    assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
+  end
 end

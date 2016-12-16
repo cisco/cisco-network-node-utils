@@ -1182,5 +1182,165 @@ module Cisco
     def default_match_vlan
       config_get_default('route_map', 'match_vlan')
     end
+
+    def match_evpn_route_type_get
+      hash = {}
+      hash[:type1] = false
+      hash[:type3] = false
+      hash[:type4] = false
+      hash[:type5] = false
+      hash[:type6] = false
+      hash[:type_all] = false
+      hash[:type2_all] = false
+      hash[:type2_mac_ip] = false
+      hash[:type2_mac_only] = false
+      arr = config_get('route_map', 'match_evpn_route_type', @get_args)
+      return hash if arr.empty?
+      hash[:type1] = true if arr.include?('1')
+      hash[:type3] = true if arr.include?('3')
+      hash[:type4] = true if arr.include?('4')
+      hash[:type5] = true if arr.include?('5')
+      hash[:type6] = true if arr.include?('6')
+      hash[:type_all] = true if arr.include?('all')
+      hash[:type2_all] = true if arr.include?('2 all')
+      hash[:type2_mac_ip] = true if arr.include?('2 mac-ip')
+      hash[:type2_mac_only] = true if arr.include?('2 mac-only')
+      hash
+    end
+
+    def match_evpn_route_type_1
+      hash = match_evpn_route_type_get
+      hash[:type1]
+    end
+
+    def match_evpn_route_type_1=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '1')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_1
+      config_get_default('route_map', 'match_evpn_route_type_1')
+    end
+
+    def match_evpn_route_type_3
+      hash = match_evpn_route_type_get
+      hash[:type3]
+    end
+
+    def match_evpn_route_type_3=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '3')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_3
+      config_get_default('route_map', 'match_evpn_route_type_3')
+    end
+
+    def match_evpn_route_type_4
+      hash = match_evpn_route_type_get
+      hash[:type4]
+    end
+
+    def match_evpn_route_type_4=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '4')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_4
+      config_get_default('route_map', 'match_evpn_route_type_4')
+    end
+
+    def match_evpn_route_type_5
+      hash = match_evpn_route_type_get
+      hash[:type5]
+    end
+
+    def match_evpn_route_type_5=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '5')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_5
+      config_get_default('route_map', 'match_evpn_route_type_5')
+    end
+
+    def match_evpn_route_type_6
+      hash = match_evpn_route_type_get
+      hash[:type6]
+    end
+
+    def match_evpn_route_type_6=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '6')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_6
+      config_get_default('route_map', 'match_evpn_route_type_6')
+    end
+
+    def match_evpn_route_type_all
+      hash = match_evpn_route_type_get
+      hash[:type_all]
+    end
+
+    def match_evpn_route_type_all=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: 'all')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_all
+      config_get_default('route_map', 'match_evpn_route_type_all')
+    end
+
+    def match_evpn_route_type_2_all
+      hash = match_evpn_route_type_get
+      hash[:type2_all]
+    end
+
+    def match_evpn_route_type_2_all=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '2 all')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_2_all
+      config_get_default('route_map', 'match_evpn_route_type_2_all')
+    end
+
+    def match_evpn_route_type_2_mac_ip
+      hash = match_evpn_route_type_get
+      hash[:type2_mac_ip]
+    end
+
+    def match_evpn_route_type_2_mac_ip=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '2 mac-ip')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_2_mac_ip
+      config_get_default('route_map', 'match_evpn_route_type_2_mac_ip')
+    end
+
+    def match_evpn_route_type_2_mac_only
+      hash = match_evpn_route_type_get
+      hash[:type2_mac_only]
+    end
+
+    def match_evpn_route_type_2_mac_only=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state, type: '2 mac-only')
+      config_set('route_map', 'match_evpn_route_type', @set_args)
+    end
+
+    def default_match_evpn_route_type_2_mac_only
+      config_get_default('route_map', 'match_evpn_route_type_2_mac_only')
+    end
   end # class
 end # module

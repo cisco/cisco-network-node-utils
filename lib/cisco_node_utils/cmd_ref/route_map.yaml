@@ -44,6 +44,39 @@ match_community:
 match_community_exact_match:
   default_value: false
 
+match_evpn_route_type:
+  multiple:
+  get_value: '/^match evpn route-type (.*)$/'
+  set_value: "<state> match evpn route-type <type>"
+  default_value: []
+
+match_evpn_route_type_1:
+  default_value: false
+
+match_evpn_route_type_2_all:
+  default_value: false
+
+match_evpn_route_type_2_mac_ip:
+  default_value: false
+
+match_evpn_route_type_2_mac_only:
+  default_value: false
+
+match_evpn_route_type_3:
+  default_value: false
+
+match_evpn_route_type_4:
+  default_value: false
+
+match_evpn_route_type_5:
+  default_value: false
+
+match_evpn_route_type_6:
+  default_value: false
+
+match_evpn_route_type_all:
+  default_value: false
+
 match_ext_community:
   get_value: '/^match extcommunity (.*)$/'
   set_value: "<state> match extcommunity <comm>"
