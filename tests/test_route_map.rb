@@ -405,4 +405,43 @@ class TestRouteMap < CiscoTestCase
     assert_equal(false, rm.match_route_type_nssa_external)
     assert_equal(false, rm.match_route_type_type_1)
   end
+
+  def test_match_ospf_area
+    rm = create_route_map
+    assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
+    array = %w(10 7 222)
+    rm.match_ospf_area = array
+    assert_equal(array, rm.match_ospf_area)
+    rm.match_ospf_area = rm.default_match_ospf_area
+    assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
+  end
+
+  def test_match_mac_list
+    rm = create_route_map
+    assert_equal(rm.default_match_mac_list, rm.match_mac_list)
+    array = %w(mac1 listmac some)
+    rm.match_mac_list = array
+    assert_equal(array, rm.match_mac_list)
+    rm.match_mac_list = rm.default_match_mac_list
+    assert_equal(rm.default_match_mac_list, rm.match_mac_list)
+  end
+
+  def test_match_length
+    rm = create_route_map
+    assert_equal(rm.default_match_length, rm.match_length)
+    array = %w(45 500)
+    rm.match_length = array
+    assert_equal(array, rm.match_length)
+    rm.match_length = rm.default_match_length
+    assert_equal(rm.default_match_length, rm.match_length)
+  end
+
+  def test_match_vlan
+    rm = create_route_map
+    assert_equal(rm.default_match_vlan, rm.match_vlan)
+    rm.match_vlan = '32, 45-200, 300-399, 402'
+    assert_equal('32, 45-200, 300-399, 402', rm.match_vlan)
+    rm.match_vlan = rm.default_match_vlan
+    assert_equal(rm.default_match_vlan, rm.match_vlan)
+  end
 end

@@ -151,9 +151,24 @@ match_ipv6_route_src_prefix_list:
   set_value: "<state> match ipv6 route-source prefix-list <prefix>"
   default_value: []
 
+match_length:
+  get_value: '/^match length (\d+) (\d+)$/'
+  set_value: "<state> match length <min> <max>"
+  default_value: []
+
+match_mac_list:
+  get_value: '/^match mac-list (.*)$/'
+  set_value: "<state> match mac-list <mac>"
+  default_value: []
+
 match_metric:
   get_value: '/^match metric (.*)$/'
   set_value: "<state> match metric <metric>"
+  default_value: []
+
+match_ospf_area:
+  get_value: '/^match ospf-area (.*)$/'
+  set_value: "<state> match ospf-area <area>"
   default_value: []
 
 match_route_type:
@@ -209,3 +224,8 @@ match_tag:
   get_value: '/^match tag (.*)$/'
   set_value: "<state> match tag <tag>"
   default_value: []
+
+match_vlan:
+  get_value: '/^match vlan (.*)$/'
+  set_value: "<state> match vlan <range>"
+  default_value: ''

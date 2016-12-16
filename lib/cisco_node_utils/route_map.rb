@@ -1087,5 +1087,100 @@ module Cisco
     def default_match_route_type_type_2
       config_get_default('route_map', 'match_route_type_type_2')
     end
+
+    def match_ospf_area
+      str = config_get('route_map', 'match_ospf_area', @get_args)
+      str.empty? ? default_match_ospf_area : str.split
+    end
+
+    def match_ospf_area=(list)
+      carr = match_ospf_area
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      unless cstr.empty?
+        set_args_keys(state: 'no', area: cstr)
+        # reset the current config
+        config_set('route_map', 'match_ospf_area', @set_args)
+      end
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      return if nstr.empty?
+      set_args_keys(state: '', area: nstr)
+      config_set('route_map', 'match_ospf_area', @set_args)
+    end
+
+    def default_match_ospf_area
+      config_get_default('route_map', 'match_ospf_area')
+    end
+
+    def match_mac_list
+      str = config_get('route_map', 'match_mac_list', @get_args)
+      str.empty? ? default_match_mac_list : str.split
+    end
+
+    def match_mac_list=(list)
+      carr = match_mac_list
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      unless cstr.empty?
+        set_args_keys(state: 'no', mac: cstr)
+        # reset the current config
+        config_set('route_map', 'match_mac_list', @set_args)
+      end
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      return if nstr.empty?
+      set_args_keys(state: '', mac: nstr)
+      config_set('route_map', 'match_mac_list', @set_args)
+    end
+
+    def default_match_mac_list
+      config_get_default('route_map', 'match_mac_list')
+    end
+
+    def match_length
+      config_get('route_map', 'match_length', @get_args)
+    end
+
+    def match_length=(array)
+      if array.empty?
+        set_args_keys(state: 'no', min: '', max: '')
+      else
+        set_args_keys(state: '', min: array[0], max: array[1])
+      end
+      config_set('route_map', 'match_length', @set_args)
+    end
+
+    def default_match_length
+      config_get_default('route_map', 'match_length')
+    end
+
+    def match_vlan
+      config_get('route_map', 'match_vlan', @get_args).strip
+    end
+
+    def match_vlan=(val)
+      cval = match_vlan
+      # reset first
+      unless cval.empty?
+        set_args_keys(state: 'no', range: cval)
+        config_set('route_map', 'match_vlan', @set_args)
+      end
+      return if val.empty?
+      set_args_keys(state: '', range: val)
+      config_set('route_map', 'match_vlan', @set_args)
+    end
+
+    def default_match_vlan
+      config_get_default('route_map', 'match_vlan')
+    end
   end # class
 end # module
