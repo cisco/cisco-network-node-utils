@@ -906,6 +906,7 @@ module Cisco
       hash[:type_2] = false
       str = config_get('route_map', 'match_route_type', @get_args)
       return hash if str.nil?
+      str = str[0] if str.length == 1
       hash[:external] = true if str.include?('external')
       hash[:inter_area] = true if str.include?('inter-area')
       hash[:internal] = true if str.include?('internal')

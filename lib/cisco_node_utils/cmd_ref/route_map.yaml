@@ -217,6 +217,7 @@ match_ospf_area:
   default_value: []
 
 match_route_type:
+  multiple:
   get_value: '/^match route-type (.*)$/'
   set_value: "<state> match route-type <external> <inter_area> <internal> <intra_area> <level_1> <level_2> <local> <nssa_external> <type_1> <type_2>"
 

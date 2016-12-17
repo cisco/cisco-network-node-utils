@@ -399,6 +399,9 @@ class TestRouteMap < CiscoTestCase
     assert_equal(true, rm.match_route_type_level_2)
     assert_equal(true, rm.match_route_type_nssa_external)
     assert_equal(true, rm.match_route_type_type_1)
+    rm = match_route_type_helper(
+      match_route_type_level_1:  true)
+    assert_equal(true, rm.match_route_type_level_1)
     rm = match_route_type_helper({})
     assert_equal(false, rm.match_route_type_external)
     assert_equal(false, rm.match_route_type_internal)
