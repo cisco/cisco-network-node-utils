@@ -15,6 +15,12 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/route_map'
 
+def newer_image_version?
+  return false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
+                  node.product_id[/(N5|N6|N7|N9.*-F)/]
+  true
+end
+
 # TestRouteMap - Minitest for RouteMap
 # node utility class
 class TestRouteMap < CiscoTestCase
@@ -407,6 +413,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_ospf_area
+    skip('platform not supported for this test') unless newer_image_version?
     rm = create_route_map
     assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
     array = %w(10 7 222)
@@ -418,6 +425,13 @@ class TestRouteMap < CiscoTestCase
 
   def test_match_mac_list
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_mac_list')
+      assert_nil(rm.match_mac_list)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_mac_list = %w(mac1 listmac some)
+      end
+      return
+    end
     assert_equal(rm.default_match_mac_list, rm.match_mac_list)
     array = %w(mac1 listmac some)
     rm.match_mac_list = array
@@ -428,6 +442,13 @@ class TestRouteMap < CiscoTestCase
 
   def test_match_length
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_length')
+      assert_nil(rm.match_length)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_length = %w(45 500)
+      end
+      return
+    end
     assert_equal(rm.default_match_length, rm.match_length)
     array = %w(45 500)
     rm.match_length = array
@@ -438,6 +459,13 @@ class TestRouteMap < CiscoTestCase
 
   def test_match_vlan
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_vlan')
+      assert_nil(rm.match_vlan)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_vlan = '32, 45-200, 300-399, 402'
+      end
+      return
+    end
     assert_equal(rm.default_match_vlan, rm.match_vlan)
     rm.match_vlan = '32, 45-200, 300-399, 402'
     assert_equal('32, 45-200, 300-399, 402', rm.match_vlan)
@@ -445,48 +473,143 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_vlan, rm.match_vlan)
   end
 
-  def test_match_evpn_route_type
+  def test_match_evpn_route_type1
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_1')
+      assert_nil(rm.match_evpn_route_type_1)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_1 = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
     rm.match_evpn_route_type_1 = true
     assert_equal(true, rm.match_evpn_route_type_1)
     rm.match_evpn_route_type_1 = rm.default_match_evpn_route_type_1
     assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
+  end
+
+  def test_match_evpn_route_type3
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_3')
+      assert_nil(rm.match_evpn_route_type_3)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_3 = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
     rm.match_evpn_route_type_3 = true
     assert_equal(true, rm.match_evpn_route_type_3)
     rm.match_evpn_route_type_3 = rm.default_match_evpn_route_type_3
     assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
+  end
+
+  def test_match_evpn_route_type4
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_4')
+      assert_nil(rm.match_evpn_route_type_4)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_4 = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
     rm.match_evpn_route_type_4 = true
     assert_equal(true, rm.match_evpn_route_type_4)
     rm.match_evpn_route_type_4 = rm.default_match_evpn_route_type_4
     assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
+  end
+
+  def test_match_evpn_route_type5
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_5')
+      assert_nil(rm.match_evpn_route_type_5)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_5 = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
     rm.match_evpn_route_type_5 = true
     assert_equal(true, rm.match_evpn_route_type_5)
     rm.match_evpn_route_type_5 = rm.default_match_evpn_route_type_5
     assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
+  end
+
+  def test_match_evpn_route_type6
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_6')
+      assert_nil(rm.match_evpn_route_type_6)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_6 = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
     rm.match_evpn_route_type_6 = true
     assert_equal(true, rm.match_evpn_route_type_6)
     rm.match_evpn_route_type_6 = rm.default_match_evpn_route_type_6
     assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
+  end
+
+  def test_match_evpn_route_type_all
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_all')
+      assert_nil(rm.match_evpn_route_type_all)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_all = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
     rm.match_evpn_route_type_all = true
     assert_equal(true, rm.match_evpn_route_type_all)
     rm.match_evpn_route_type_all = rm.default_match_evpn_route_type_all
     assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
+  end
+
+  def test_match_evpn_route_type_2_all
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_2_all')
+      assert_nil(rm.match_evpn_route_type_2_all)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_2_all = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
     rm.match_evpn_route_type_2_all = true
     assert_equal(true, rm.match_evpn_route_type_2_all)
     rm.match_evpn_route_type_2_all = rm.default_match_evpn_route_type_2_all
     assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
+  end
+
+  def test_match_evpn_route_type_2_mac_ip
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_2_mac_ip')
+      assert_nil(rm.match_evpn_route_type_2_mac_ip)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_2_mac_ip = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
     rm.match_evpn_route_type_2_mac_ip = true
     assert_equal(true, rm.match_evpn_route_type_2_mac_ip)
     rm.match_evpn_route_type_2_mac_ip = rm.default_match_evpn_route_type_2_mac_ip
     assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
+  end
+
+  def test_match_evpn_route_type_2_mac_only
+    rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_evpn_route_type_2_mac_only')
+      assert_nil(rm.match_evpn_route_type_2_mac_only)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_evpn_route_type_2_mac_only = true
+      end
+      return
+    end
     assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
     rm.match_evpn_route_type_2_mac_only = true
     assert_equal(true, rm.match_evpn_route_type_2_mac_only)

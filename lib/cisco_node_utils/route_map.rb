@@ -1119,11 +1119,13 @@ module Cisco
 
     def match_mac_list
       str = config_get('route_map', 'match_mac_list', @get_args)
+      return if str.nil?
       str.empty? ? default_match_mac_list : str.split
     end
 
     def match_mac_list=(list)
       carr = match_mac_list
+      config_set('route_map', 'match_mac_list', @set_args) if carr.nil?
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
@@ -1164,13 +1166,14 @@ module Cisco
     end
 
     def match_vlan
-      config_get('route_map', 'match_vlan', @get_args).strip
+      ret = config_get('route_map', 'match_vlan', @get_args)
+      ret.strip if ret
     end
 
     def match_vlan=(val)
       cval = match_vlan
       # reset first
-      unless cval.empty?
+      unless cval.nil? || cval.empty?
         set_args_keys(state: 'no', range: cval)
         config_set('route_map', 'match_vlan', @set_args)
       end
@@ -1184,6 +1187,8 @@ module Cisco
     end
 
     def match_evpn_route_type_get
+      arr = config_get('route_map', 'match_evpn_route_type', @get_args)
+      return nil if arr.nil?
       hash = {}
       hash[:type1] = false
       hash[:type3] = false
@@ -1194,7 +1199,6 @@ module Cisco
       hash[:type2_all] = false
       hash[:type2_mac_ip] = false
       hash[:type2_mac_only] = false
-      arr = config_get('route_map', 'match_evpn_route_type', @get_args)
       return hash if arr.empty?
       hash[:type1] = true if arr.include?('1')
       hash[:type3] = true if arr.include?('3')
@@ -1210,7 +1214,7 @@ module Cisco
 
     def match_evpn_route_type_1
       hash = match_evpn_route_type_get
-      hash[:type1]
+      hash.nil? ? nil : hash[:type1]
     end
 
     def match_evpn_route_type_1=(val)
@@ -1225,7 +1229,7 @@ module Cisco
 
     def match_evpn_route_type_3
       hash = match_evpn_route_type_get
-      hash[:type3]
+      hash.nil? ? nil : hash[:type3]
     end
 
     def match_evpn_route_type_3=(val)
@@ -1240,7 +1244,7 @@ module Cisco
 
     def match_evpn_route_type_4
       hash = match_evpn_route_type_get
-      hash[:type4]
+      hash.nil? ? nil : hash[:type4]
     end
 
     def match_evpn_route_type_4=(val)
@@ -1255,7 +1259,7 @@ module Cisco
 
     def match_evpn_route_type_5
       hash = match_evpn_route_type_get
-      hash[:type5]
+      hash.nil? ? nil : hash[:type5]
     end
 
     def match_evpn_route_type_5=(val)
@@ -1270,7 +1274,7 @@ module Cisco
 
     def match_evpn_route_type_6
       hash = match_evpn_route_type_get
-      hash[:type6]
+      hash.nil? ? nil : hash[:type6]
     end
 
     def match_evpn_route_type_6=(val)
@@ -1285,7 +1289,7 @@ module Cisco
 
     def match_evpn_route_type_all
       hash = match_evpn_route_type_get
-      hash[:type_all]
+      hash.nil? ? nil : hash[:type_all]
     end
 
     def match_evpn_route_type_all=(val)
@@ -1300,7 +1304,7 @@ module Cisco
 
     def match_evpn_route_type_2_all
       hash = match_evpn_route_type_get
-      hash[:type2_all]
+      hash.nil? ? nil : hash[:type2_all]
     end
 
     def match_evpn_route_type_2_all=(val)
@@ -1315,7 +1319,7 @@ module Cisco
 
     def match_evpn_route_type_2_mac_ip
       hash = match_evpn_route_type_get
-      hash[:type2_mac_ip]
+      hash.nil? ? nil : hash[:type2_mac_ip]
     end
 
     def match_evpn_route_type_2_mac_ip=(val)
@@ -1330,7 +1334,7 @@ module Cisco
 
     def match_evpn_route_type_2_mac_only
       hash = match_evpn_route_type_get
-      hash[:type2_mac_only]
+      hash.nil? ? nil : hash[:type2_mac_only]
     end
 
     def match_evpn_route_type_2_mac_only=(val)

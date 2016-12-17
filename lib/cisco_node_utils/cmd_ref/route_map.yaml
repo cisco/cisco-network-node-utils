@@ -45,36 +45,46 @@ match_community_exact_match:
   default_value: false
 
 match_evpn_route_type:
+  _exclude: [N3k, N9k, N9k-F]
   multiple:
   get_value: '/^match evpn route-type (.*)$/'
   set_value: "<state> match evpn route-type <type>"
   default_value: []
 
 match_evpn_route_type_1:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_all:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_mac_ip:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_mac_only:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_3:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_4:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_5:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_6:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_all:
+  _exclude: [N3k, N9k, N9k-F]
   default_value: false
 
 match_ext_community:
@@ -185,11 +195,13 @@ match_ipv6_route_src_prefix_list:
   default_value: []
 
 match_length:
+  _exclude: [N3k, N9k, N9k-F]
   get_value: '/^match length (\d+) (\d+)$/'
   set_value: "<state> match length <min> <max>"
   default_value: []
 
 match_mac_list:
+  _exclude: [N3k, N9k, N9k-F]
   get_value: '/^match mac-list (.*)$/'
   set_value: "<state> match mac-list <mac>"
   default_value: []
@@ -259,6 +271,7 @@ match_tag:
   default_value: []
 
 match_vlan:
+  _exclude: [N3k, N9k, N9k-F]
   get_value: '/^match vlan (.*)$/'
   set_value: "<state> match vlan <range>"
   default_value: ''
