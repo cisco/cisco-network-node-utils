@@ -619,4 +619,131 @@ class TestRouteMap < CiscoTestCase
     rm.match_evpn_route_type_2_mac_only = rm.default_match_evpn_route_type_2_mac_only
     assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
   end
+
+  def test_set_comm_list
+    rm = create_route_map
+    assert_equal(rm.default_set_comm_list, rm.set_comm_list)
+    rm.set_comm_list = 'abc'
+    assert_equal('abc', rm.set_comm_list)
+    rm.set_comm_list = rm.default_set_comm_list
+    assert_equal(rm.default_set_comm_list, rm.set_comm_list)
+  end
+
+  def test_set_extcomm_list
+    rm = create_route_map
+    assert_equal(rm.default_set_extcomm_list, rm.set_extcomm_list)
+    rm.set_extcomm_list = 'xyz'
+    assert_equal('xyz', rm.set_extcomm_list)
+    rm.set_extcomm_list = rm.default_set_extcomm_list
+    assert_equal(rm.default_set_extcomm_list, rm.set_extcomm_list)
+  end
+
+  def test_set_forwarding_addr
+    rm = create_route_map
+    assert_equal(rm.default_set_forwarding_addr, rm.set_forwarding_addr)
+    rm.set_forwarding_addr = true
+    assert_equal(true, rm.set_forwarding_addr)
+    rm.set_forwarding_addr = rm.default_set_forwarding_addr
+    assert_equal(rm.default_set_forwarding_addr, rm.set_forwarding_addr)
+  end
+
+  def test_set_level
+    rm = create_route_map
+    assert_equal(rm.default_set_level, rm.set_level)
+    rm.set_level = 'level-1'
+    assert_equal('level-1', rm.set_level)
+    rm.set_level = 'level-1-2'
+    assert_equal('level-1-2', rm.set_level)
+    rm.set_level = 'level-2'
+    assert_equal('level-2', rm.set_level)
+    rm.set_level = rm.default_set_level
+    assert_equal(rm.default_set_level, rm.set_level)
+  end
+
+  def test_set_local_preference
+    rm = create_route_map
+    assert_equal(rm.default_set_local_preference, rm.set_local_preference)
+    rm.set_local_preference = 100
+    assert_equal(100, rm.set_local_preference)
+    rm.set_local_preference = rm.default_set_local_preference
+    assert_equal(rm.default_set_local_preference, rm.set_local_preference)
+  end
+
+  def test_set_metric_type
+    rm = create_route_map
+    assert_equal(rm.default_set_metric_type, rm.set_metric_type)
+    rm.set_metric_type = 'external'
+    assert_equal('external', rm.set_metric_type)
+    rm.set_metric_type = 'internal'
+    assert_equal('internal', rm.set_metric_type)
+    rm.set_metric_type = 'type-1'
+    assert_equal('type-1', rm.set_metric_type)
+    rm.set_metric_type = 'type-2'
+    assert_equal('type-2', rm.set_metric_type)
+    rm.set_metric_type = rm.default_set_metric_type
+    assert_equal(rm.default_set_metric_type, rm.set_metric_type)
+  end
+
+  def test_set_nssa_only
+    rm = create_route_map
+    assert_equal(rm.default_set_nssa_only, rm.set_nssa_only)
+    rm.set_nssa_only = true
+    assert_equal(true, rm.set_nssa_only)
+    rm.set_nssa_only = rm.default_set_nssa_only
+    assert_equal(rm.default_set_nssa_only, rm.set_nssa_only)
+  end
+
+  def test_set_origin
+    rm = create_route_map
+    assert_equal(rm.default_set_origin, rm.set_origin)
+    rm.set_origin = 'egp'
+    assert_equal('egp', rm.set_origin)
+    rm.set_origin = 'incomplete'
+    assert_equal('incomplete', rm.set_origin)
+    rm.set_origin = 'igp'
+    assert_equal('igp', rm.set_origin)
+    rm.set_origin = rm.default_set_origin
+    assert_equal(rm.default_set_origin, rm.set_origin)
+  end
+
+  def test_set_path_selection
+    rm = create_route_map
+    assert_equal(rm.default_set_path_selection, rm.set_path_selection)
+    rm.set_path_selection = true
+    assert_equal(true, rm.set_path_selection)
+    rm.set_path_selection = rm.default_set_path_selection
+    assert_equal(rm.default_set_path_selection, rm.set_path_selection)
+  end
+
+  def test_set_tag
+    rm = create_route_map
+    assert_equal(rm.default_set_tag, rm.set_tag)
+    rm.set_tag = 100
+    assert_equal(100, rm.set_tag)
+    rm.set_tag = rm.default_set_tag
+    assert_equal(rm.default_set_tag, rm.set_tag)
+  end
+
+  def test_set_vrf
+    rm = create_route_map
+    assert_equal(rm.default_set_vrf, rm.set_vrf)
+    # check this here. 'default' itself is a value here
+    rm.set_vrf = 'default'
+    assert_equal('default', rm.set_vrf)
+    rm.set_vrf = 'management'
+    assert_equal('management', rm.set_vrf)
+    rm.set_vrf = 'igp'
+    assert_equal('igp', rm.set_vrf)
+    rm.set_vrf = rm.default_set_vrf
+    assert_equal(rm.default_set_vrf, rm.set_vrf)
+  end
+
+  def test_set_weight
+    rm = create_route_map
+    assert_equal(rm.default_set_weight, rm.set_weight)
+    rm.set_weight = 333
+    assert_equal(333, rm.set_weight)
+    rm.set_weight = rm.default_set_weight
+    assert_equal(rm.default_set_weight, rm.set_weight)
+  end
 end

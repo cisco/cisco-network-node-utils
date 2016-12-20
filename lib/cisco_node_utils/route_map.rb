@@ -1347,5 +1347,182 @@ module Cisco
     def default_match_evpn_route_type_2_mac_only
       config_get_default('route_map', 'match_evpn_route_type_2_mac_only')
     end
+
+    def set_comm_list
+      config_get('route_map', 'set_comm_list', @get_args)
+    end
+
+    def set_comm_list=(val)
+      state = val ? '' : 'no'
+      list = val ? val : set_comm_list
+      set_args_keys(state: state, list: list)
+      config_set('route_map', 'set_comm_list', @set_args)
+    end
+
+    def default_set_comm_list
+      config_get_default('route_map', 'set_comm_list')
+    end
+
+    def set_extcomm_list
+      config_get('route_map', 'set_extcomm_list', @get_args)
+    end
+
+    def set_extcomm_list=(val)
+      state = val ? '' : 'no'
+      list = val ? val : set_extcomm_list
+      set_args_keys(state: state, list: list)
+      config_set('route_map', 'set_extcomm_list', @set_args)
+    end
+
+    def default_set_extcomm_list
+      config_get_default('route_map', 'set_extcomm_list')
+    end
+
+    def set_forwarding_addr
+      config_get('route_map', 'set_forwarding_addr', @get_args)
+    end
+
+    def set_forwarding_addr=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_forwarding_addr', @set_args)
+    end
+
+    def default_set_forwarding_addr
+      config_get_default('route_map', 'set_forwarding_addr')
+    end
+
+    def set_level
+      config_get('route_map', 'set_level', @get_args)
+    end
+
+    def set_level=(val)
+      state = val ? '' : 'no'
+      level = val ? val : ''
+      set_args_keys(state: state, level: level)
+      config_set('route_map', 'set_level', @set_args)
+    end
+
+    def default_set_level
+      config_get_default('route_map', 'set_level')
+    end
+
+    def set_local_preference
+      config_get('route_map', 'set_local_preference', @get_args)
+    end
+
+    def set_local_preference=(val)
+      state = val ? '' : 'no'
+      pref = val ? val : ''
+      set_args_keys(state: state, pref: pref)
+      config_set('route_map', 'set_local_preference', @set_args)
+    end
+
+    def default_set_local_preference
+      config_get_default('route_map', 'set_local_preference')
+    end
+
+    def set_metric_type
+      config_get('route_map', 'set_metric_type', @get_args)
+    end
+
+    def set_metric_type=(val)
+      state = val ? '' : 'no'
+      type = val ? val : ''
+      set_args_keys(state: state, type: type)
+      config_set('route_map', 'set_metric_type', @set_args)
+    end
+
+    def default_set_metric_type
+      config_get_default('route_map', 'set_metric_type')
+    end
+
+    def set_nssa_only
+      config_get('route_map', 'set_nssa_only', @get_args)
+    end
+
+    def set_nssa_only=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_nssa_only', @set_args)
+    end
+
+    def default_set_nssa_only
+      config_get_default('route_map', 'set_nssa_only')
+    end
+
+    def set_origin
+      config_get('route_map', 'set_origin', @get_args)
+    end
+
+    def set_origin=(val)
+      state = val ? '' : 'no'
+      origin = val ? val : ''
+      set_args_keys(state: state, origin: origin)
+      config_set('route_map', 'set_origin', @set_args)
+    end
+
+    def default_set_origin
+      config_get_default('route_map', 'set_origin')
+    end
+
+    def set_path_selection
+      config_get('route_map', 'set_path_selection', @get_args)
+    end
+
+    def set_path_selection=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_path_selection', @set_args)
+    end
+
+    def default_set_path_selection
+      config_get_default('route_map', 'set_path_selection')
+    end
+
+    def set_tag
+      config_get('route_map', 'set_tag', @get_args)
+    end
+
+    def set_tag=(val)
+      state = val ? '' : 'no'
+      tag = val ? val : ''
+      set_args_keys(state: state, tag: tag)
+      config_set('route_map', 'set_tag', @set_args)
+    end
+
+    def default_set_tag
+      config_get_default('route_map', 'set_tag')
+    end
+
+    def set_vrf
+      config_get('route_map', 'set_vrf', @get_args)
+    end
+
+    def set_vrf=(val)
+      state = val ? '' : 'no'
+      vrf = val ? val : ''
+      set_args_keys(state: state, vrf: vrf)
+      config_set('route_map', 'set_vrf', @set_args)
+    end
+
+    def default_set_vrf
+      config_get_default('route_map', 'set_vrf')
+    end
+
+    def set_weight
+      config_get('route_map', 'set_weight', @get_args)
+    end
+
+    def set_weight=(val)
+      state = val ? '' : 'no'
+      weight = val ? val : ''
+      set_args_keys(state: state, weight: weight)
+      config_set('route_map', 'set_weight', @set_args)
+    end
+
+    def default_set_weight
+      config_get_default('route_map', 'set_weight')
+    end
   end # class
 end # module

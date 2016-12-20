@@ -276,3 +276,69 @@ match_vlan:
   get_value: '/^match vlan (.*)$/'
   set_value: "<state> match vlan <range>"
   default_value: ''
+
+set_comm_list:
+  get_value: '/^set comm-list (\S+)  delete$/'
+  set_value: "<state> set comm-list <list> delete"
+  default_value: false
+
+set_extcomm_list:
+  get_value: '/^set extcomm-list (\S+)  delete$/'
+  set_value: "<state> set extcomm-list <list> delete"
+  default_value: false
+
+set_forwarding_addr:
+  kind: boolean
+  get_value: '/^set forwarding-address$/'
+  set_value: "<state> set forwarding-address"
+  default_value: false
+
+set_level:
+  get_value: '/^set level (\S+)$/'
+  set_value: "<state> set level <level>"
+  default_value: false
+
+set_local_preference:
+  kind: int
+  get_value: '/^set local-preference (\d+)$/'
+  set_value: "<state> set local-preference <pref>"
+  default_value: false
+
+set_metric_type:
+  get_value: '/^set metric-type (\S+)$/'
+  set_value: "<state> set metric-type <type>"
+  default_value: false
+
+set_nssa_only:
+  kind: boolean
+  get_value: '/^set nssa-only$/'
+  set_value: "<state> set nssa-only"
+  default_value: false
+
+set_origin:
+  get_value: '/^set origin (\S+)/'
+  set_value: "<state> set origin <origin>"
+  default_value: false
+
+set_path_selection:
+  kind: boolean
+  get_value: '/^set path-selection all advertise$/'
+  set_value: "<state> set path-selection all advertise"
+  default_value: false
+
+set_tag:
+  kind: int
+  get_value: '/^set tag (\d+)/'
+  set_value: "<state> set tag <tag>"
+  default_value: false
+
+set_vrf:
+  get_value: '/^set vrf (\S+)$/'
+  set_value: "<state> set vrf <vrf>"
+  default_value: false
+
+set_weight:
+  kind: int
+  get_value: '/^set weight (\d+)$/'
+  set_value: "<state> set weight <weight>"
+  default_value: false
