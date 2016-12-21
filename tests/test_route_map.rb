@@ -746,4 +746,39 @@ class TestRouteMap < CiscoTestCase
     rm.set_weight = rm.default_set_weight
     assert_equal(rm.default_set_weight, rm.set_weight)
   end
+
+  def test_set_metric
+    rm = create_route_map
+    assert_equal(rm.default_set_metric_additive, rm.set_metric_additive)
+    assert_equal(rm.default_set_metric_bandwidth, rm.set_metric_bandwidth)
+    assert_equal(rm.default_set_metric_delay, rm.set_metric_delay)
+    assert_equal(rm.default_set_metric_reliability,
+                 rm.set_metric_reliability)
+    assert_equal(rm.default_set_metric_effective_bandwidth,
+                 rm.set_metric_effective_bandwidth)
+    assert_equal(rm.default_set_metric_mtu, rm.set_metric_mtu)
+    rm.set_metric_set(false, 44, 55, 66, 77, 88)
+    assert_equal(false, rm.set_metric_additive)
+    assert_equal(44, rm.set_metric_bandwidth)
+    assert_equal(55, rm.set_metric_delay)
+    assert_equal(66, rm.set_metric_reliability)
+    assert_equal(77, rm.set_metric_effective_bandwidth)
+    assert_equal(88, rm.set_metric_mtu)
+    rm.set_metric_set(true, 33, false, false, false, false)
+    assert_equal(true, rm.set_metric_additive)
+    assert_equal(33, rm.set_metric_bandwidth)
+    assert_equal(false, rm.set_metric_delay)
+    assert_equal(false, rm.set_metric_reliability)
+    assert_equal(false, rm.set_metric_effective_bandwidth)
+    assert_equal(false, rm.set_metric_mtu)
+    rm.set_metric_set(false, false, false, false, false, false)
+    assert_equal(rm.default_set_metric_additive, rm.set_metric_additive)
+    assert_equal(rm.default_set_metric_bandwidth, rm.set_metric_bandwidth)
+    assert_equal(rm.default_set_metric_delay, rm.set_metric_delay)
+    assert_equal(rm.default_set_metric_reliability,
+                 rm.set_metric_reliability)
+    assert_equal(rm.default_set_metric_effective_bandwidth,
+                 rm.set_metric_effective_bandwidth)
+    assert_equal(rm.default_set_metric_mtu, rm.set_metric_mtu)
+  end
 end

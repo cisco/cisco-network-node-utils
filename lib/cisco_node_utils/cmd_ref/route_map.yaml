@@ -304,6 +304,28 @@ set_local_preference:
   set_value: "<state> set local-preference <pref>"
   default_value: false
 
+set_metric:
+  get_value: '/^set metric (.*)$/'
+  set_value: "<state> set metric <additive><bw> <delay> <rel> <eff> <mtu>"
+
+set_metric_additive:
+  default_value: false
+
+set_metric_bandwidth:
+  default_value: false
+
+set_metric_delay:
+  default_value: false
+
+set_metric_effective_bandwidth:
+  default_value: false
+
+set_metric_mtu:
+  default_value: false
+
+set_metric_reliability:
+  default_value: false
+
 set_metric_type:
   get_value: '/^set metric-type (\S+)$/'
   set_value: "<state> set metric-type <type>"

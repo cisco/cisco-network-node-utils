@@ -1524,5 +1524,93 @@ module Cisco
     def default_set_weight
       config_get_default('route_map', 'set_weight')
     end
+
+    def set_metric_get
+      hash = {}
+      hash[:additive] = false
+      hash[:bandwidth] = false
+      hash[:delay] = false
+      hash[:reliability] = false
+      hash[:effective_bandwidth] = false
+      hash[:mtu] = false
+      str = config_get('route_map', 'set_metric', @get_args)
+      return hash if str.nil?
+      arr = str.split
+      hash[:additive] = true if arr[0].include?('+')
+      hash[:bandwidth] = arr[0].delete('+').to_i
+      return hash if arr.size == 1
+      hash[:delay] = arr[1].to_i
+      hash[:reliability] = arr[2].to_i
+      hash[:effective_bandwidth] = arr[3].to_i
+      hash[:mtu] = arr[4].to_i
+      hash
+    end
+
+    def set_metric_set(plus, bndw, del, reliability, eff_bw, mtu)
+      state = bndw ? '' : 'no'
+      additive = plus ? '+' : ''
+      bw = bndw ? bndw : ''
+      delay = del ? del : ''
+      rel = reliability ? reliability : ''
+      eff = eff_bw ? eff_bw : ''
+      lmtu = mtu ? mtu : ''
+      set_args_keys(state: state, additive: additive, bw: bw, delay: delay,
+                    rel: rel, eff: eff, mtu: lmtu)
+      config_set('route_map', 'set_metric', @set_args)
+    end
+
+    def set_metric_additive
+      hash = set_metric_get
+      hash[:additive]
+    end
+
+    def default_set_metric_additive
+      config_get_default('route_map', 'set_metric_additive')
+    end
+
+    def set_metric_bandwidth
+      hash = set_metric_get
+      hash[:bandwidth]
+    end
+
+    def default_set_metric_bandwidth
+      config_get_default('route_map', 'set_metric_bandwidth')
+    end
+
+    def set_metric_delay
+      hash = set_metric_get
+      hash[:delay]
+    end
+
+    def default_set_metric_delay
+      config_get_default('route_map', 'set_metric_delay')
+    end
+
+    def set_metric_reliability
+      hash = set_metric_get
+      hash[:reliability]
+    end
+
+    def default_set_metric_reliability
+      config_get_default('route_map', 'set_metric_reliability')
+    end
+
+    def set_metric_effective_bandwidth
+      hash = set_metric_get
+      hash[:effective_bandwidth]
+    end
+
+    def default_set_metric_effective_bandwidth
+      config_get_default('route_map', 'set_metric_effective_bandwidth')
+    end
+
+    def set_metric_mtu
+      hash = set_metric_get
+      hash[:mtu]
+    end
+
+    def default_set_metric_mtu
+      config_get_default('route_map', 'set_metric_mtu')
+    end
   end # class
 end # module
