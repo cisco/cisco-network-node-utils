@@ -1753,5 +1753,49 @@ module Cisco
     def default_set_as_path_tag
       config_get_default('route_map', 'set_as_path_tag')
     end
+
+    def set_as_path_prepend
+      arr = []
+      match = config_get('route_map', 'set_as_path_prepend', @get_args)
+      if arr
+        match.each do |line|
+          next if line.include?('last-as')
+          arr = line.strip.split
+        end
+      end
+      arr
+    end
+
+    def set_as_path_prepend=(list)
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      state = nstr.empty? ? 'no' : ''
+      set_args_keys(state: state, asnum: nstr)
+      config_set('route_map', 'set_as_path_prepend', @set_args)
+    end
+
+    def default_set_as_path_prepend
+      config_get_default('route_map', 'set_as_path_prepend')
+    end
+
+    def set_interface
+      str = config_get('route_map', 'set_interface', @get_args)
+      str ? str.strip : default_set_interface
+    end
+
+    def set_interface=(val)
+      cint = set_interface
+      return if cint == val
+      state = val ? '' : 'no'
+      int = val ? val : cint
+      set_args_keys(state: state, int: int)
+      config_set('route_map', 'set_interface', @set_args)
+    end
+
+    def default_set_interface
+      config_get_default('route_map', 'set_interface')
+    end
   end # class
 end # module

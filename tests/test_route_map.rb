@@ -858,4 +858,27 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_as_path_tag,
                  rm.set_as_path_tag)
   end
+
+  def test_set_as_path_prepend
+    rm = create_route_map
+    assert_equal(rm.default_set_as_path_prepend,
+                 rm.set_as_path_prepend)
+    arr = ['55.77', '12', '45.3', '4.77', '5']
+    rm.set_as_path_prepend = arr
+    assert_equal(arr, rm.set_as_path_prepend)
+    rm.set_as_path_prepend = rm.default_set_as_path_prepend
+    assert_equal(rm.default_set_as_path_prepend,
+                 rm.set_as_path_prepend)
+  end
+
+  def test_set_interface
+    rm = create_route_map
+    assert_equal(rm.default_set_interface,
+                 rm.set_interface)
+    rm.set_interface = 'Null0'
+    assert_equal('Null0', rm.set_interface)
+    rm.set_interface = rm.default_set_interface
+    assert_equal(rm.default_set_interface,
+                 rm.set_interface)
+  end
 end
