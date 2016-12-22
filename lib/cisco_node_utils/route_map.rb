@@ -1612,5 +1612,146 @@ module Cisco
     def default_set_metric_mtu
       config_get_default('route_map', 'set_metric_mtu')
     end
+
+    def set_dampening_get
+      hash = {}
+      hash[:half_life] = false
+      hash[:reuse] = false
+      hash[:suppress] = false
+      hash[:max] = false
+      str = config_get('route_map', 'set_dampening', @get_args)
+      return hash if str.nil?
+      arr = str.split
+      hash[:half_life] = arr[0].to_i
+      hash[:reuse] = arr[1].to_i
+      hash[:suppress] = arr[2].to_i
+      hash[:max] = arr[3].to_i
+      hash
+    end
+
+    def set_dampening_set(half_life, reuse, supp, md)
+      if half_life
+        set_args_keys(state: '', hl: half_life, reuse: reuse, supp: supp,
+                      max: md)
+      else
+        set_args_keys(state: 'no', hl: '', reuse: '', supp: '', max: '')
+      end
+      config_set('route_map', 'set_dampening', @set_args)
+    end
+
+    def set_dampening_half_life
+      hash = set_dampening_get
+      hash[:half_life]
+    end
+
+    def default_set_dampening_half_life
+      config_get_default('route_map', 'set_dampening_half_life')
+    end
+
+    def set_dampening_reuse
+      hash = set_dampening_get
+      hash[:reuse]
+    end
+
+    def default_set_dampening_reuse
+      config_get_default('route_map', 'set_dampening_reuse')
+    end
+
+    def set_dampening_suppress
+      hash = set_dampening_get
+      hash[:suppress]
+    end
+
+    def default_set_dampening_suppress
+      config_get_default('route_map', 'set_dampening_suppress')
+    end
+
+    def set_dampening_max_duation
+      hash = set_dampening_get
+      hash[:max]
+    end
+
+    def default_set_dampening_max_duation
+      config_get_default('route_map', 'set_dampening_max_duation')
+    end
+
+    def set_distance_get
+      hash = {}
+      hash[:igp] = false
+      hash[:internal] = false
+      hash[:local] = false
+      str = config_get('route_map', 'set_distance', @get_args)
+      return hash if str.nil?
+      arr = str.split
+      hash[:igp] = arr[0].to_i
+      hash[:internal] = arr[1].to_i if arr[1]
+      hash[:local] = arr[2].to_i if arr[2]
+      hash
+    end
+
+    def set_distance_set(igp, internal, local)
+      state = igp ? '' : 'no'
+      igp_ebgp = igp ? igp : ''
+      int = internal ? internal : ''
+      loc = local ? local : ''
+      set_args_keys(state: state, igp: igp_ebgp, internal: int, local: loc)
+      config_set('route_map', 'set_distance', @set_args)
+    end
+
+    def set_distance_igp_ebgp
+      hash = set_distance_get
+      hash[:igp]
+    end
+
+    def default_set_distance_igp_ebgp
+      config_get_default('route_map', 'set_distance_igp_ebgp')
+    end
+
+    def set_distance_local
+      hash = set_distance_get
+      hash[:local]
+    end
+
+    def default_set_distance_local
+      config_get_default('route_map', 'set_distance_local')
+    end
+
+    def set_distance_internal
+      hash = set_distance_get
+      hash[:internal]
+    end
+
+    def default_set_distance_internal
+      config_get_default('route_map', 'set_distance_internal')
+    end
+
+    def set_as_path_prepend_last_as
+      config_get('route_map', 'set_as_path_prepend_last_as', @get_args)
+    end
+
+    def set_as_path_prepend_last_as=(val)
+      state = val ? '' : 'no'
+      as = val ? val : ''
+      set_args_keys(state: state, as: as)
+      config_set('route_map', 'set_as_path_prepend_last_as', @set_args)
+    end
+
+    def default_set_as_path_prepend_last_as
+      config_get_default('route_map', 'set_as_path_prepend_last_as')
+    end
+
+    def set_as_path_tag
+      config_get('route_map', 'set_as_path_tag', @get_args)
+    end
+
+    def set_as_path_tag=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_as_path_tag', @set_args)
+    end
+
+    def default_set_as_path_tag
+      config_get_default('route_map', 'set_as_path_tag')
+    end
   end # class
 end # module

@@ -781,4 +781,81 @@ class TestRouteMap < CiscoTestCase
                  rm.set_metric_effective_bandwidth)
     assert_equal(rm.default_set_metric_mtu, rm.set_metric_mtu)
   end
+
+  def test_set_dampening
+    rm = create_route_map
+    assert_equal(rm.default_set_dampening_half_life,
+                 rm.set_dampening_half_life)
+    assert_equal(rm.default_set_dampening_reuse,
+                 rm.set_dampening_reuse)
+    assert_equal(rm.default_set_dampening_suppress,
+                 rm.set_dampening_suppress)
+    assert_equal(rm.default_set_dampening_max_duation,
+                 rm.set_dampening_max_duation)
+    rm.set_dampening_set(6, 22, 44, 55)
+    assert_equal(6, rm.set_dampening_half_life)
+    assert_equal(22, rm.set_dampening_reuse)
+    assert_equal(44, rm.set_dampening_suppress)
+    assert_equal(55, rm.set_dampening_max_duation)
+    rm.set_dampening_set(false, false, false, false)
+    assert_equal(rm.default_set_dampening_half_life,
+                 rm.set_dampening_half_life)
+    assert_equal(rm.default_set_dampening_reuse,
+                 rm.set_dampening_reuse)
+    assert_equal(rm.default_set_dampening_suppress,
+                 rm.set_dampening_suppress)
+    assert_equal(rm.default_set_dampening_max_duation,
+                 rm.set_dampening_max_duation)
+  end
+
+  def test_set_distance
+    rm = create_route_map
+    assert_equal(rm.default_set_distance_igp_ebgp,
+                 rm.set_distance_igp_ebgp)
+    assert_equal(rm.default_set_distance_internal,
+                 rm.set_distance_internal)
+    assert_equal(rm.default_set_distance_local,
+                 rm.set_distance_local)
+    rm.set_distance_set(1, 2, 3)
+    assert_equal(1, rm.set_distance_igp_ebgp)
+    assert_equal(2, rm.set_distance_internal)
+    assert_equal(3, rm.set_distance_local)
+    rm.set_distance_set(1, false, false)
+    assert_equal(1, rm.set_distance_igp_ebgp)
+    assert_equal(false, rm.set_distance_internal)
+    assert_equal(false, rm.set_distance_local)
+    rm.set_distance_set(1, 2, false)
+    assert_equal(1, rm.set_distance_igp_ebgp)
+    assert_equal(2, rm.set_distance_internal)
+    assert_equal(false, rm.set_distance_local)
+    rm.set_distance_set(false, false, false)
+    assert_equal(rm.default_set_distance_igp_ebgp,
+                 rm.set_distance_igp_ebgp)
+    assert_equal(rm.default_set_distance_internal,
+                 rm.set_distance_internal)
+    assert_equal(rm.default_set_distance_local,
+                 rm.set_distance_local)
+  end
+
+  def test_set_as_path_prepend_last_as
+    rm = create_route_map
+    assert_equal(rm.default_set_as_path_prepend_last_as,
+                 rm.set_as_path_prepend_last_as)
+    rm.set_as_path_prepend_last_as = 1
+    assert_equal(1, rm.set_as_path_prepend_last_as)
+    rm.set_as_path_prepend_last_as = rm.default_set_as_path_prepend_last_as
+    assert_equal(rm.default_set_as_path_prepend_last_as,
+                 rm.set_as_path_prepend_last_as)
+  end
+
+  def test_set_as_path_tag
+    rm = create_route_map
+    assert_equal(rm.default_set_as_path_tag,
+                 rm.set_as_path_tag)
+    rm.set_as_path_tag = true
+    assert_equal(true, rm.set_as_path_tag)
+    rm.set_as_path_tag = rm.default_set_as_path_tag
+    assert_equal(rm.default_set_as_path_tag,
+                 rm.set_as_path_tag)
+  end
 end

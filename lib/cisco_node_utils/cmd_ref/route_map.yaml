@@ -277,9 +277,50 @@ match_vlan:
   set_value: "<state> match vlan <range>"
   default_value: ''
 
+set_as_path_prepend_last_as:
+  kind: int
+  get_value: '/^set as-path prepend last-as (\d+)$/'
+  set_value: "<state> set as-path prepend last-as <as>"
+  default_value: false
+
+set_as_path_tag:
+  kind: boolean
+  get_value: '/^set as-path tag$/'
+  set_value: "<state> set as-path tag"
+  default_value: false
+  
 set_comm_list:
   get_value: '/^set comm-list (\S+)  delete$/'
   set_value: "<state> set comm-list <list> delete"
+  default_value: false
+
+set_dampening:
+  get_value: '/^set dampening (.*)$/'
+  set_value: "<state> set dampening <hl> <reuse> <supp> <max>"
+
+set_dampening_half_life:
+  default_value: false
+
+set_dampening_max_duation:
+  default_value: false
+
+set_dampening_reuse:
+  default_value: false
+
+set_dampening_suppress:
+  default_value: false
+
+set_distance:
+  get_value: '/^set distance (.*)$/'
+  set_value: "<state> set distance <igp> <internal> <local>"
+  
+set_distance_igp_ebgp:
+  default_value: false
+
+set_distance_internal:
+  default_value: false
+
+set_distance_local:
   default_value: false
 
 set_extcomm_list:
