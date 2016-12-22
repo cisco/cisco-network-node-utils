@@ -69,6 +69,7 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
+    # match as-number 12, 13-23, 45
     def match_as_number
       arr = []
       match_array = config_get('route_map', 'match_as_number', @get_args)
@@ -105,6 +106,7 @@ module Cisco
       config_get_default('route_map', 'match_as_number')
     end
 
+    # match as-number as-path-list abc xyz
     def match_as_number_as_path_list
       str = config_get('route_map', 'match_as_number_as_path_list', @get_args)
       str.empty? ? default_match_as_number_as_path_list : str.split
@@ -149,6 +151,7 @@ module Cisco
       config_get_default('route_map', 'description')
     end
 
+    # match community public private exact-match
     def match_community
       str = config_get('route_map', 'match_community', @get_args)
       if str.empty?
@@ -185,6 +188,7 @@ module Cisco
       config_get_default('route_map', 'match_community')
     end
 
+    # match extcommunity public private exact-match
     def match_community_exact_match
       config_get('route_map', 'match_community',
                  @get_args).include?('exact-match')
@@ -239,6 +243,7 @@ module Cisco
       config_get_default('route_map', 'match_ext_community_exact_match')
     end
 
+    # match interface port-channel1 Null0 (and so on)
     def match_interface
       str = config_get('route_map', 'match_interface', @get_args)
       intf = str.empty? ? default_match_interface : str.split
@@ -270,6 +275,7 @@ module Cisco
       config_get_default('route_map', 'match_interface')
     end
 
+    # match tag 11 5 28
     def match_tag
       str = config_get('route_map', 'match_tag', @get_args)
       str.empty? ? default_match_tag : str.split
@@ -299,6 +305,7 @@ module Cisco
       config_get_default('route_map', 'match_tag')
     end
 
+    # match source-protocol tcp udp
     def match_src_proto
       str = config_get('route_map', 'match_src_proto', @get_args)
       str.empty? ? default_match_src_proto : str.split
@@ -353,6 +360,7 @@ module Cisco
       config_get_default('route_map', 'match_ipv4_addr_access_list')
     end
 
+    # match ip address prefix-list pre1 pre2
     def match_ipv4_addr_prefix_list
       str = config_get('route_map', 'match_ipv4_addr_prefix_list', @get_args)
       str.empty? ? default_match_ipv4_addr_prefix_list : str.split
@@ -382,6 +390,7 @@ module Cisco
       config_get_default('route_map', 'match_ipv4_addr_prefix_list')
     end
 
+    # match ip next-hop prefix-list nhop1 nhop2
     def match_ipv4_next_hop_prefix_list
       str = config_get('route_map', 'match_ipv4_next_hop_prefix_list',
                        @get_args)
@@ -412,6 +421,7 @@ module Cisco
       config_get_default('route_map', 'match_ipv4_next_hop_prefix_list')
     end
 
+    # match ip route-source prefix-list rs1 rs2
     def match_ipv4_route_src_prefix_list
       str = config_get('route_map', 'match_ipv4_route_src_prefix_list',
                        @get_args)
@@ -467,6 +477,10 @@ module Cisco
       @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
     end
 
+    # match ip multicast source 242.1.1.1/32 group 239.2.2.2/32 rp 242.1.1.1/32
+    #                    rp-type ASM
+    # match ip multicast source 242.1.1.1/32 group-range
+    #                    239.1.1.1 to 239.2.2.2 rp 242.1.1.1/32 rp-type Bidir
     def match_ipv4_multicast_get
       str = config_get('route_map', 'match_ipv4_multicast', @get_args)
       return nil if str.nil?
@@ -835,6 +849,7 @@ module Cisco
       config_set('route_map', 'match_ipv6_multicast', @set_args)
     end
 
+    # match metric 1 8 224 +- 9 23 5 +- 8 6
     def match_metric
       str = config_get('route_map', 'match_metric', @get_args)
       return default_match_metric if str.empty?
@@ -892,6 +907,11 @@ module Cisco
       config_get_default('route_map', 'match_metric')
     end
 
+    # match route-type external internal (and so on)
+    # or in some platforms
+    # match route-type external
+    # match route-type internal
+    # etc.
     def match_route_type_get
       hash = {}
       hash[:external] = false
@@ -1089,6 +1109,7 @@ module Cisco
       config_get_default('route_map', 'match_route_type_type_2')
     end
 
+    # match ospf-area 10 7
     def match_ospf_area
       str = config_get('route_map', 'match_ospf_area', @get_args)
       str.empty? ? default_match_ospf_area : str.split
@@ -1118,6 +1139,7 @@ module Cisco
       config_get_default('route_map', 'match_ospf_area')
     end
 
+    # match mac-list m1 m2
     def match_mac_list
       str = config_get('route_map', 'match_mac_list', @get_args)
       return if str.nil?
@@ -1149,6 +1171,7 @@ module Cisco
       config_get_default('route_map', 'match_mac_list')
     end
 
+    # match length 45 300
     def match_length
       config_get('route_map', 'match_length', @get_args)
     end
@@ -1187,6 +1210,11 @@ module Cisco
       config_get_default('route_map', 'match_vlan')
     end
 
+    # match evpn route-type 1
+    # match evpn route-type 2 all
+    # match evpn route-type 2 mac-ip
+    # match evpn route-type 2 mac-only
+    # match evpn route-type 3 etc.
     def match_evpn_route_type_get
       arr = config_get('route_map', 'match_evpn_route_type', @get_args)
       return nil if arr.nil?
@@ -1525,6 +1553,8 @@ module Cisco
       config_get_default('route_map', 'set_weight')
     end
 
+    # set metric 44 55 66 77 88
+    # set metric +33
     def set_metric_get
       hash = {}
       hash[:additive] = false
@@ -1613,6 +1643,7 @@ module Cisco
       config_get_default('route_map', 'set_metric_mtu')
     end
 
+    # set dampening 6 22 44 55
     def set_dampening_get
       hash = {}
       hash[:half_life] = false
@@ -1675,6 +1706,9 @@ module Cisco
       config_get_default('route_map', 'set_dampening_max_duation')
     end
 
+    # set distance 1 2 3
+    # set distance 1 2
+    # set distance 1
     def set_distance_get
       hash = {}
       hash[:igp] = false
@@ -1754,6 +1788,8 @@ module Cisco
       config_get_default('route_map', 'set_as_path_tag')
     end
 
+    # set as-path prepend 55.77 44 33.5
+    # set as-path prepend last-as 1
     def set_as_path_prepend
       arr = []
       match = config_get('route_map', 'set_as_path_prepend', @get_args)
@@ -1780,6 +1816,7 @@ module Cisco
       config_get_default('route_map', 'set_as_path_prepend')
     end
 
+    # set interface Null0
     def set_interface
       str = config_get('route_map', 'set_interface', @get_args)
       str ? str.strip : default_set_interface
