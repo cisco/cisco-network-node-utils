@@ -1912,5 +1912,260 @@ module Cisco
     def default_set_ipv4_default_next_hop_load_share
       config_get_default('route_map', 'set_ipv4_default_next_hop_load_share')
     end
+
+    # set ip next-hop 1.1.1.1 2.2.2.2 3.3.3.3
+    def set_ipv4_next_hop
+      str = config_get('route_map', 'set_ipv4_next_hop', @get_args)
+      if str.empty?
+        val = default_set_ipv4_next_hop
+      else
+        val = str.split
+        val.delete('load-share')
+      end
+      val
+    end
+
+    def set_ipv4_next_hop_set(list, share)
+      carr = set_ipv4_next_hop
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      cstr.concat('load-share')
+      set_args_keys(state: 'no', nh: cstr)
+      # reset the current config
+      config_set('route_map', 'set_ipv4_next_hop', @set_args)
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      nstr.concat('load-share') if share
+      return if nstr.empty?
+      set_args_keys(state: '', nh: nstr)
+      config_set('route_map', 'set_ipv4_next_hop', @set_args)
+    end
+
+    def default_set_ipv4_next_hop
+      config_get_default('route_map', 'set_ipv4_next_hop')
+    end
+
+    # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
+    # set ip default next-hop load-share
+    def set_ipv4_next_hop_load_share
+      config_get('route_map', 'set_ipv4_next_hop',
+                 @get_args).include?('load-share')
+    end
+
+    def default_set_ipv4_next_hop_load_share
+      config_get_default('route_map', 'set_ipv4_next_hop_load_share')
+    end
+
+    def set_ipv4_next_hop_peer_addr
+      config_get('route_map', 'set_ipv4_next_hop_peer_addr', @get_args)
+    end
+
+    def set_ipv4_next_hop_peer_addr=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv4_next_hop_peer_addr', @set_args)
+    end
+
+    def default_set_ipv4_next_hop_peer_addr
+      config_get_default('route_map', 'set_ipv4_next_hop_peer_addr')
+    end
+
+    def set_ipv4_next_hop_redist
+      config_get('route_map', 'set_ipv4_next_hop_redist', @get_args)
+    end
+
+    def set_ipv4_next_hop_redist=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv4_next_hop_redist', @set_args)
+    end
+
+    def default_set_ipv4_next_hop_redist
+      config_get_default('route_map', 'set_ipv4_next_hop_redist')
+    end
+
+    def set_ipv4_next_hop_unchanged
+      config_get('route_map', 'set_ipv4_next_hop_unchanged', @get_args)
+    end
+
+    def set_ipv4_next_hop_unchanged=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv4_next_hop_unchanged', @set_args)
+    end
+
+    def default_set_ipv4_next_hop_unchanged
+      config_get_default('route_map', 'set_ipv4_next_hop_unchanged')
+    end
+
+    def set_ipv6_prefix
+      config_get('route_map', 'set_ipv6_prefix', @get_args)
+    end
+
+    def set_ipv6_prefix=(val)
+      state = val ? '' : 'no'
+      pf = val ? val : set_ipv6_prefix
+      set_args_keys(state: state, pf: pf)
+      config_set('route_map', 'set_ipv6_prefix', @set_args)
+    end
+
+    def default_set_ipv6_prefix
+      config_get_default('route_map', 'set_ipv6_prefix')
+    end
+
+    def set_ipv6_precedence
+      config_get('route_map', 'set_ipv6_precedence', @get_args)
+    end
+
+    def set_ipv6_precedence=(val)
+      state = val ? '' : 'no'
+      pre = val ? val : ''
+      set_args_keys(state: state, pre: pre)
+      config_set('route_map', 'set_ipv6_precedence', @set_args)
+    end
+
+    def default_set_ipv6_precedence
+      config_get_default('route_map', 'set_ipv6_precedence')
+    end
+
+    # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3
+    def set_ipv6_default_next_hop
+      str = config_get('route_map', 'set_ipv6_default_next_hop', @get_args)
+      if str.empty?
+        val = default_set_ipv6_default_next_hop
+      else
+        val = str.split
+        val.delete('load-share')
+      end
+      val
+    end
+
+    def set_ipv6_default_next_hop_set(list, share)
+      carr = set_ipv6_default_next_hop
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      cstr.concat('load-share')
+      set_args_keys(state: 'no', nh: cstr)
+      # reset the current config
+      config_set('route_map', 'set_ipv6_default_next_hop', @set_args)
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      nstr.concat('load-share') if share
+      return if nstr.empty?
+      set_args_keys(state: '', nh: nstr)
+      config_set('route_map', 'set_ipv6_default_next_hop', @set_args)
+    end
+
+    def default_set_ipv6_default_next_hop
+      config_get_default('route_map', 'set_ipv6_default_next_hop')
+    end
+
+    # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
+    # set ipv6 default next-hop load-share
+    def set_ipv6_default_next_hop_load_share
+      config_get('route_map', 'set_ipv6_default_next_hop',
+                 @get_args).include?('load-share')
+    end
+
+    def default_set_ipv6_default_next_hop_load_share
+      config_get_default('route_map', 'set_ipv6_default_next_hop_load_share')
+    end
+
+    # set ipv6 next-hop 1.1.1.1 2.2.2.2 3.3.3.3
+    def set_ipv6_next_hop
+      str = config_get('route_map', 'set_ipv6_next_hop', @get_args)
+      if str.empty?
+        val = default_set_ipv6_next_hop
+      else
+        val = str.split
+        val.delete('load-share')
+      end
+      val
+    end
+
+    def set_ipv6_next_hop_set(list, share)
+      carr = set_ipv6_next_hop
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      cstr.concat('load-share')
+      set_args_keys(state: 'no', nh: cstr)
+      # reset the current config
+      config_set('route_map', 'set_ipv6_next_hop', @set_args)
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      nstr.concat('load-share') if share
+      return if nstr.empty?
+      set_args_keys(state: '', nh: nstr)
+      config_set('route_map', 'set_ipv6_next_hop', @set_args)
+    end
+
+    def default_set_ipv6_next_hop
+      config_get_default('route_map', 'set_ipv6_next_hop')
+    end
+
+    # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
+    # set ipv6 default next-hop load-share
+    def set_ipv6_next_hop_load_share
+      config_get('route_map', 'set_ipv6_next_hop',
+                 @get_args).include?('load-share')
+    end
+
+    def default_set_ipv6_next_hop_load_share
+      config_get_default('route_map', 'set_ipv6_next_hop_load_share')
+    end
+
+    def set_ipv6_next_hop_peer_addr
+      config_get('route_map', 'set_ipv6_next_hop_peer_addr', @get_args)
+    end
+
+    def set_ipv6_next_hop_peer_addr=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv6_next_hop_peer_addr', @set_args)
+    end
+
+    def default_set_ipv6_next_hop_peer_addr
+      config_get_default('route_map', 'set_ipv6_next_hop_peer_addr')
+    end
+
+    def set_ipv6_next_hop_redist
+      config_get('route_map', 'set_ipv6_next_hop_redist', @get_args)
+    end
+
+    def set_ipv6_next_hop_redist=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv6_next_hop_redist', @set_args)
+    end
+
+    def default_set_ipv6_next_hop_redist
+      config_get_default('route_map', 'set_ipv6_next_hop_redist')
+    end
+
+    def set_ipv6_next_hop_unchanged
+      config_get('route_map', 'set_ipv6_next_hop_unchanged', @get_args)
+    end
+
+    def set_ipv6_next_hop_unchanged=(val)
+      state = val ? '' : 'no'
+      set_args_keys(state: state)
+      config_set('route_map', 'set_ipv6_next_hop_unchanged', @set_args)
+    end
+
+    def default_set_ipv6_next_hop_unchanged
+      config_get_default('route_map', 'set_ipv6_next_hop_unchanged')
+    end
   end # class
 end # module

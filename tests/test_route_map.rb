@@ -647,6 +647,39 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_forwarding_addr, rm.set_forwarding_addr)
   end
 
+  def test_set_ipv4_next_hop_peer_addr
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_next_hop_peer_addr,
+                 rm.set_ipv4_next_hop_peer_addr)
+    rm.set_ipv4_next_hop_peer_addr = true
+    assert_equal(true, rm.set_ipv4_next_hop_peer_addr)
+    rm.set_ipv4_next_hop_peer_addr = rm.default_set_ipv4_next_hop_peer_addr
+    assert_equal(rm.default_set_ipv4_next_hop_peer_addr,
+                 rm.set_ipv4_next_hop_peer_addr)
+  end
+
+  def test_set_ipv4_next_hop_redist
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_next_hop_redist,
+                 rm.set_ipv4_next_hop_redist)
+    rm.set_ipv4_next_hop_redist = true
+    assert_equal(true, rm.set_ipv4_next_hop_redist)
+    rm.set_ipv4_next_hop_redist = rm.default_set_ipv4_next_hop_redist
+    assert_equal(rm.default_set_ipv4_next_hop_redist,
+                 rm.set_ipv4_next_hop_redist)
+  end
+
+  def test_set_ipv4_next_hop_unchanged
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_next_hop_unchanged,
+                 rm.set_ipv4_next_hop_unchanged)
+    rm.set_ipv4_next_hop_unchanged = true
+    assert_equal(true, rm.set_ipv4_next_hop_unchanged)
+    rm.set_ipv4_next_hop_unchanged = rm.default_set_ipv4_next_hop_unchanged
+    assert_equal(rm.default_set_ipv4_next_hop_unchanged,
+                 rm.set_ipv4_next_hop_unchanged)
+  end
+
   def test_set_level
     rm = create_route_map
     assert_equal(rm.default_set_level, rm.set_level)
@@ -925,5 +958,133 @@ class TestRouteMap < CiscoTestCase
                  rm.set_ipv4_default_next_hop)
     assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
                  rm.set_ipv4_default_next_hop_load_share)
+  end
+
+  def test_set_ipv4_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop)
+    assert_equal(rm.default_set_ipv4_next_hop_load_share,
+                 rm.set_ipv4_next_hop_load_share)
+    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm.set_ipv4_next_hop_set(array, false)
+    assert_equal(array, rm.set_ipv4_next_hop)
+    assert_equal(false, rm.set_ipv4_next_hop_load_share)
+    rm.set_ipv4_next_hop_set(array, true)
+    assert_equal(array, rm.set_ipv4_next_hop)
+    assert_equal(true, rm.set_ipv4_next_hop_load_share)
+    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop, true)
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop)
+    assert_equal(true, rm.set_ipv4_next_hop_load_share)
+    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop,
+                             rm.default_set_ipv4_next_hop_load_share)
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop)
+    assert_equal(rm.default_set_ipv4_next_hop_load_share,
+                 rm.set_ipv4_next_hop_load_share)
+  end
+
+  def test_set_ipv6_next_hop_peer_addr
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_next_hop_peer_addr,
+                 rm.set_ipv6_next_hop_peer_addr)
+    rm.set_ipv6_next_hop_peer_addr = true
+    assert_equal(true, rm.set_ipv6_next_hop_peer_addr)
+    rm.set_ipv6_next_hop_peer_addr = rm.default_set_ipv6_next_hop_peer_addr
+    assert_equal(rm.default_set_ipv6_next_hop_peer_addr,
+                 rm.set_ipv6_next_hop_peer_addr)
+  end
+
+  def test_set_ipv6_next_hop_redist
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_next_hop_redist,
+                 rm.set_ipv6_next_hop_redist)
+    rm.set_ipv6_next_hop_redist = true
+    assert_equal(true, rm.set_ipv6_next_hop_redist)
+    rm.set_ipv6_next_hop_redist = rm.default_set_ipv6_next_hop_redist
+    assert_equal(rm.default_set_ipv6_next_hop_redist,
+                 rm.set_ipv6_next_hop_redist)
+  end
+
+  def test_set_ipv6_next_hop_unchanged
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_next_hop_unchanged,
+                 rm.set_ipv6_next_hop_unchanged)
+    rm.set_ipv6_next_hop_unchanged = true
+    assert_equal(true, rm.set_ipv6_next_hop_unchanged)
+    rm.set_ipv6_next_hop_unchanged = rm.default_set_ipv6_next_hop_unchanged
+    assert_equal(rm.default_set_ipv6_next_hop_unchanged,
+                 rm.set_ipv6_next_hop_unchanged)
+  end
+
+  def test_set_ipv6_prefix
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_prefix, rm.set_ipv6_prefix)
+    rm.set_ipv6_prefix = 'abcdef'
+    assert_equal('abcdef', rm.set_ipv6_prefix)
+    rm.set_ipv6_prefix = rm.default_set_ipv6_prefix
+    assert_equal(rm.default_set_ipv6_prefix, rm.set_ipv6_prefix)
+  end
+
+  def test_set_ipv6_precedence
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
+    rm.set_ipv6_precedence = 'critical'
+    assert_equal('critical', rm.set_ipv6_precedence)
+    rm.set_ipv6_precedence = 'network'
+    assert_equal('network', rm.set_ipv6_precedence)
+    rm.set_ipv6_precedence = rm.default_set_ipv6_precedence
+    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
+  end
+
+  def test_set_ipv6_default_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_default_next_hop,
+                 rm.set_ipv6_default_next_hop)
+    assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
+                 rm.set_ipv6_default_next_hop_load_share)
+    array = %w(2000::1 2000::11 2000::22)
+    rm.set_ipv6_default_next_hop_set(array, false)
+    assert_equal(array, rm.set_ipv6_default_next_hop)
+    assert_equal(false, rm.set_ipv6_default_next_hop_load_share)
+    rm.set_ipv6_default_next_hop_set(array, true)
+    assert_equal(array, rm.set_ipv6_default_next_hop)
+    assert_equal(true, rm.set_ipv6_default_next_hop_load_share)
+    rm.set_ipv6_default_next_hop_set(rm.default_set_ipv6_default_next_hop, true)
+    assert_equal(rm.default_set_ipv6_default_next_hop,
+                 rm.set_ipv6_default_next_hop)
+    assert_equal(true, rm.set_ipv6_default_next_hop_load_share)
+    rm.set_ipv6_default_next_hop_set(rm.default_set_ipv6_default_next_hop,
+                                     rm.default_set_ipv6_default_next_hop_load_share)
+    assert_equal(rm.default_set_ipv6_default_next_hop,
+                 rm.set_ipv6_default_next_hop)
+    assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
+                 rm.set_ipv6_default_next_hop_load_share)
+  end
+
+  def test_set_ipv6_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop)
+    assert_equal(rm.default_set_ipv6_next_hop_load_share,
+                 rm.set_ipv6_next_hop_load_share)
+    array = %w(2000::1 2000::11 2000::22)
+    rm.set_ipv6_next_hop_set(array, false)
+    assert_equal(array, rm.set_ipv6_next_hop)
+    assert_equal(false, rm.set_ipv6_next_hop_load_share)
+    rm.set_ipv6_next_hop_set(array, true)
+    assert_equal(array, rm.set_ipv6_next_hop)
+    assert_equal(true, rm.set_ipv6_next_hop_load_share)
+    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop, true)
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop)
+    assert_equal(true, rm.set_ipv6_next_hop_load_share)
+    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop,
+                             rm.default_set_ipv6_next_hop_load_share)
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop)
+    assert_equal(rm.default_set_ipv6_next_hop_load_share,
+                 rm.set_ipv6_next_hop_load_share)
   end
 end
