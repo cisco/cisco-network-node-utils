@@ -345,6 +345,24 @@ set_interface:
   set_value: "<state> set interface <int>"
   default_value: false
 
+set_ipv4_default_next_hop:
+  get_value: '/^set ip default next-hop (.*)$/'
+  set_value: "<state> set ip default next-hop <nh>"
+  default_value: []
+
+set_ipv4_default_next_hop_load_share:
+  default_value: false
+
+set_ipv4_precedence:
+  get_value: '/^set ip precedence (\S+)/'
+  set_value: "<state> set ip precedence <pre>"
+  default_value: false
+
+set_ipv4_prefix:
+  get_value: '/^set ip address prefix-list (\S+)/'
+  set_value: "<state> set ip address prefix-list <pf>"
+  default_value: false
+
 set_level:
   get_value: '/^set level (\S+)$/'
   set_value: "<state> set level <level>"

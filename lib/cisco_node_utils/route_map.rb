@@ -1189,6 +1189,7 @@ module Cisco
       config_get_default('route_map', 'match_length')
     end
 
+    # TODO: range_summarize in puppet type munge??
     def match_vlan
       ret = config_get('route_map', 'match_vlan', @get_args)
       ret.strip if ret
@@ -1833,6 +1834,83 @@ module Cisco
 
     def default_set_interface
       config_get_default('route_map', 'set_interface')
+    end
+
+    def set_ipv4_prefix
+      config_get('route_map', 'set_ipv4_prefix', @get_args)
+    end
+
+    def set_ipv4_prefix=(val)
+      state = val ? '' : 'no'
+      pf = val ? val : set_ipv4_prefix
+      set_args_keys(state: state, pf: pf)
+      config_set('route_map', 'set_ipv4_prefix', @set_args)
+    end
+
+    def default_set_ipv4_prefix
+      config_get_default('route_map', 'set_ipv4_prefix')
+    end
+
+    def set_ipv4_precedence
+      config_get('route_map', 'set_ipv4_precedence', @get_args)
+    end
+
+    def set_ipv4_precedence=(val)
+      state = val ? '' : 'no'
+      pre = val ? val : ''
+      set_args_keys(state: state, pre: pre)
+      config_set('route_map', 'set_ipv4_precedence', @set_args)
+    end
+
+    def default_set_ipv4_precedence
+      config_get_default('route_map', 'set_ipv4_precedence')
+    end
+
+    # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3
+    def set_ipv4_default_next_hop
+      str = config_get('route_map', 'set_ipv4_default_next_hop', @get_args)
+      if str.empty?
+        val = default_set_ipv4_default_next_hop
+      else
+        val = str.split
+        val.delete('load-share')
+      end
+      val
+    end
+
+    def set_ipv4_default_next_hop_set(list, share)
+      carr = set_ipv4_default_next_hop
+      cstr = ''
+      carr.each do |elem|
+        cstr = cstr.concat(elem + ' ')
+      end
+      cstr.concat('load-share')
+      set_args_keys(state: 'no', nh: cstr)
+      # reset the current config
+      config_set('route_map', 'set_ipv4_default_next_hop', @set_args)
+      nstr = ''
+      list.each do |elem|
+        nstr = nstr.concat(elem + ' ')
+      end
+      nstr.concat('load-share') if share
+      return if nstr.empty?
+      set_args_keys(state: '', nh: nstr)
+      config_set('route_map', 'set_ipv4_default_next_hop', @set_args)
+    end
+
+    def default_set_ipv4_default_next_hop
+      config_get_default('route_map', 'set_ipv4_default_next_hop')
+    end
+
+    # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
+    # set ip default next-hop load-share
+    def set_ipv4_default_next_hop_load_share
+      config_get('route_map', 'set_ipv4_default_next_hop',
+                 @get_args).include?('load-share')
+    end
+
+    def default_set_ipv4_default_next_hop_load_share
+      config_get_default('route_map', 'set_ipv4_default_next_hop_load_share')
     end
   end # class
 end # module

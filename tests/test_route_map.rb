@@ -881,4 +881,49 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_interface,
                  rm.set_interface)
   end
+
+  def test_set_ipv4_prefix
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_prefix, rm.set_ipv4_prefix)
+    rm.set_ipv4_prefix = 'abcdef'
+    assert_equal('abcdef', rm.set_ipv4_prefix)
+    rm.set_ipv4_prefix = rm.default_set_ipv4_prefix
+    assert_equal(rm.default_set_ipv4_prefix, rm.set_ipv4_prefix)
+  end
+
+  def test_set_ipv4_precedence
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_precedence, rm.set_ipv4_precedence)
+    rm.set_ipv4_precedence = 'critical'
+    assert_equal('critical', rm.set_ipv4_precedence)
+    rm.set_ipv4_precedence = 'network'
+    assert_equal('network', rm.set_ipv4_precedence)
+    rm.set_ipv4_precedence = rm.default_set_ipv4_precedence
+    assert_equal(rm.default_set_ipv4_precedence, rm.set_ipv4_precedence)
+  end
+
+  def test_set_ipv4_default_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_default_next_hop,
+                 rm.set_ipv4_default_next_hop)
+    assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
+                 rm.set_ipv4_default_next_hop_load_share)
+    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm.set_ipv4_default_next_hop_set(array, false)
+    assert_equal(array, rm.set_ipv4_default_next_hop)
+    assert_equal(false, rm.set_ipv4_default_next_hop_load_share)
+    rm.set_ipv4_default_next_hop_set(array, true)
+    assert_equal(array, rm.set_ipv4_default_next_hop)
+    assert_equal(true, rm.set_ipv4_default_next_hop_load_share)
+    rm.set_ipv4_default_next_hop_set(rm.default_set_ipv4_default_next_hop, true)
+    assert_equal(rm.default_set_ipv4_default_next_hop,
+                 rm.set_ipv4_default_next_hop)
+    assert_equal(true, rm.set_ipv4_default_next_hop_load_share)
+    rm.set_ipv4_default_next_hop_set(rm.default_set_ipv4_default_next_hop,
+                                     rm.default_set_ipv4_default_next_hop_load_share)
+    assert_equal(rm.default_set_ipv4_default_next_hop,
+                 rm.set_ipv4_default_next_hop)
+    assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
+                 rm.set_ipv4_default_next_hop_load_share)
+  end
 end
