@@ -300,6 +300,31 @@ set_comm_list:
   set_value: "<state> set comm-list <list> delete"
   default_value: false
 
+set_community:
+  get_value: '/^set community(?:\s+.*)?$/'
+  set_value: "<state> set community <string>"
+
+set_community_additive:
+  default_value: false
+
+set_community_asn:
+  default_value: []
+
+set_community_internet:
+  default_value: false
+
+set_community_local_as:
+  default_value: false
+
+set_community_no_advtertise:
+  default_value: false
+
+set_community_no_export:
+  default_value: false
+
+set_community_none:
+  default_value: false
+
 set_dampening:
   get_value: '/^set dampening (.*)$/'
   set_value: "<state> set dampening <hl> <reuse> <supp> <max>"

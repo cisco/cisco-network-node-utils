@@ -1087,4 +1087,157 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_ipv6_next_hop_load_share,
                  rm.set_ipv6_next_hop_load_share)
   end
+
+  def test_set_community_no_asn
+    rm = create_route_map
+    assert_equal(rm.default_set_community_additive,
+                 rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn,
+                 rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    asn = rm.default_set_community_asn
+    none = true
+    noadv = false
+    noexp = false
+    add = false
+    local = false
+    inter = false
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(rm.default_set_community_additive,
+                 rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn,
+                 rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(none, rm.set_community_none)
+    none = false
+    add = true
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(true, rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn,
+                 rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    noadv = true
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(true, rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn,
+                 rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(true, rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    noadv = true
+    noexp = true
+    add = true
+    local = true
+    inter = true
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(true, rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn,
+                 rm.set_community_asn)
+    assert_equal(true, rm.set_community_internet)
+    assert_equal(true, rm.set_community_local_as)
+    assert_equal(true, rm.set_community_no_advtertise)
+    assert_equal(true, rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    rm.set_community_set(false, false, false, false, false, false, asn)
+    assert_equal(rm.default_set_community_additive,
+                 rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn, rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+  end
+
+  def test_set_community_asn
+    rm = create_route_map
+    none = false
+    noadv = true
+    noexp = true
+    add = true
+    local = true
+    inter = true
+    asn = ['11:22', '33:44', '123:11']
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(true, rm.set_community_additive)
+    assert_equal(asn, rm.set_community_asn)
+    assert_equal(true, rm.set_community_internet)
+    assert_equal(true, rm.set_community_local_as)
+    assert_equal(true, rm.set_community_no_advtertise)
+    assert_equal(true, rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    none = false
+    noadv = false
+    noexp = false
+    add = false
+    local = false
+    inter = false
+    rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
+    assert_equal(rm.default_set_community_additive,
+                 rm.set_community_additive)
+    assert_equal(asn, rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+    asn = rm.default_set_community_asn
+    rm.set_community_set(false, false, false, false, false, false, asn)
+    assert_equal(rm.default_set_community_additive,
+                 rm.set_community_additive)
+    assert_equal(rm.default_set_community_asn, rm.set_community_asn)
+    assert_equal(rm.default_set_community_internet,
+                 rm.set_community_internet)
+    assert_equal(rm.default_set_community_local_as,
+                 rm.set_community_local_as)
+    assert_equal(rm.default_set_community_no_advtertise,
+                 rm.set_community_no_advtertise)
+    assert_equal(rm.default_set_community_no_export,
+                 rm.set_community_no_export)
+    assert_equal(rm.default_set_community_none,
+                 rm.set_community_none)
+  end
 end

@@ -2167,5 +2167,98 @@ module Cisco
     def default_set_ipv6_next_hop_unchanged
       config_get_default('route_map', 'set_ipv6_next_hop_unchanged')
     end
+
+    def set_community_additive
+      str = config_get('route_map', 'set_community', @get_args)
+      add = false
+      return add if str.nil?
+      add = true if str.include?('additive') || str == 'set community '
+      add
+    end
+
+    def default_set_community_additive
+      config_get_default('route_map', 'set_community_additive')
+    end
+
+    def set_community_internet
+      str = config_get('route_map', 'set_community', @get_args)
+      str.nil? ? false : str.include?('internet')
+    end
+
+    def default_set_community_internet
+      config_get_default('route_map', 'set_community_internet')
+    end
+
+    def set_community_local_as
+      str = config_get('route_map', 'set_community', @get_args)
+      str.nil? ? false : str.include?('local-AS')
+    end
+
+    def default_set_community_local_as
+      config_get_default('route_map', 'set_community_local_as')
+    end
+
+    def set_community_no_advtertise
+      str = config_get('route_map', 'set_community', @get_args)
+      str.nil? ? false : str.include?('no-advertise')
+    end
+
+    def default_set_community_no_advtertise
+      config_get_default('route_map', 'set_community_no_advtertise')
+    end
+
+    def set_community_no_export
+      str = config_get('route_map', 'set_community', @get_args)
+      str.nil? ? false : str.include?('no-export')
+    end
+
+    def default_set_community_no_export
+      config_get_default('route_map', 'set_community_no_export')
+    end
+
+    def set_community_none
+      str = config_get('route_map', 'set_community', @get_args)
+      str.nil? ? false : str.include?('none')
+    end
+
+    def default_set_community_none
+      config_get_default('route_map', 'set_community_none')
+    end
+
+    def set_community_asn
+      str = config_get('route_map', 'set_community', @get_args)
+      return default_set_community_asn if str.nil? || !str.include?(':')
+      str.sub!('set community', '')
+      str.sub!('internet', '')
+      str.sub!('additive', '')
+      str.sub!('local-AS', '')
+      str.sub!('no-export', '')
+      str.sub!('no-advertise', '')
+      str.split
+    end
+
+    def default_set_community_asn
+      config_get_default('route_map', 'set_community_asn')
+    end
+
+    def set_community_set(none, noadv, noexp, add, local, inter, asn)
+      str = ''
+      # reset first
+      set_args_keys(state: 'no', string: str)
+      config_set('route_map', 'set_community', @set_args)
+      return unless none || noadv || noexp || add ||
+                    local || inter || !asn.empty?
+      str.concat('internet ') if inter
+      asn.each do |elem|
+        str.concat(elem + ' ')
+      end
+      str.concat('no-export ') if noexp
+      str.concat('no-advertise ') if noadv
+      str.concat('local-AS ') if local
+      str.concat('additive ') if add
+      str.concat('none') if none
+      set_args_keys(state: '', string: str)
+      config_set('route_map', 'set_community', @set_args)
+    end
   end # class
 end # module
