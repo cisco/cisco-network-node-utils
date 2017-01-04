@@ -375,6 +375,16 @@ set_extcommunity_4bytes_none:
 set_extcommunity_4bytes_transitive:
   default_value: []
 
+set_extcommunity_cost:
+  get_value: '/^set extcommunity cost (.*)$/'
+  set_value: "<state> set extcommunity cost <string>"
+
+set_extcommunity_cost_igp:
+  default_value: []
+
+set_extcommunity_cost_pre_bestpath:
+  default_value: []
+
 set_extcommunity_rt:
   get_value: '/^set extcommunity rt (.*)$/'
   set_value: "<state> set extcommunity rt <string>"

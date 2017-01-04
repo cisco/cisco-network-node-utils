@@ -1328,4 +1328,33 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_extcommunity_rt_asn,
                  rm.set_extcommunity_rt_asn)
   end
+
+  def test_extcommunity_cost
+    rm = create_route_map
+    assert_equal(rm.default_set_extcommunity_cost_igp,
+                 rm.set_extcommunity_cost_igp)
+    assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
+                 rm.set_extcommunity_cost_pre_bestpath)
+    igp = [[0, 23], [3, 33], [200, 10_954]]
+    pre = []
+    rm.set_extcommunity_cost_set(igp, pre)
+    assert_equal(igp, rm.set_extcommunity_cost_igp)
+    assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
+                 rm.set_extcommunity_cost_pre_bestpath)
+    pre = [[23, 999], [88, 482], [199, 2323]]
+    rm.set_extcommunity_cost_set(igp, pre)
+    assert_equal(igp, rm.set_extcommunity_cost_igp)
+    assert_equal(pre, rm.set_extcommunity_cost_pre_bestpath)
+    igp = []
+    rm.set_extcommunity_cost_set(igp, pre)
+    assert_equal(rm.default_set_extcommunity_cost_igp,
+                 rm.set_extcommunity_cost_igp)
+    assert_equal(pre, rm.set_extcommunity_cost_pre_bestpath)
+    pre = []
+    rm.set_extcommunity_cost_set(igp, pre)
+    assert_equal(rm.default_set_extcommunity_cost_igp,
+                 rm.set_extcommunity_cost_igp)
+    assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
+                 rm.set_extcommunity_cost_pre_bestpath)
+  end
 end

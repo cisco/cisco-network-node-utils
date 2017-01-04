@@ -2369,5 +2369,69 @@ module Cisco
       set_args_keys(state: '', string: str)
       config_set('route_map', 'set_extcommunity_rt', @set_args)
     end
+
+    def set_extcommunity_cost_igp
+      str = config_get('route_map', 'set_extcommunity_cost', @get_args)
+      return default_set_extcommunity_cost_igp if
+        str.nil? || !str.include?('igp')
+      arr = str.split
+      ret_arr = []
+      index = arr.index('igp')
+      while index
+        larr = []
+        larr << arr[index + 1].to_i
+        larr << arr[index + 2].to_i
+        ret_arr << larr
+        arr.delete_at(index)
+        arr.delete_at(index)
+        arr.delete_at(index)
+        index = arr.index('igp')
+      end
+      ret_arr
+    end
+
+    def default_set_extcommunity_cost_igp
+      config_get_default('route_map', 'set_extcommunity_cost_igp')
+    end
+
+    def set_extcommunity_cost_pre_bestpath
+      str = config_get('route_map', 'set_extcommunity_cost', @get_args)
+      return default_set_extcommunity_cost_pre_bestpath if
+        str.nil? || !str.include?('pre-bestpath')
+      arr = str.split
+      ret_arr = []
+      index = arr.index('pre-bestpath')
+      while index
+        larr = []
+        larr << arr[index + 1].to_i
+        larr << arr[index + 2].to_i
+        ret_arr << larr
+        arr.delete_at(index)
+        arr.delete_at(index)
+        arr.delete_at(index)
+        index = arr.index('pre-bestpath')
+      end
+      ret_arr
+    end
+
+    def default_set_extcommunity_cost_pre_bestpath
+      config_get_default('route_map', 'set_extcommunity_cost_pre_bestpath')
+    end
+
+    def set_extcommunity_cost_set(igp, pre)
+      str = ''
+      # reset first
+      set_args_keys(state: 'no', string: str)
+      config_set('route_map', 'set_extcommunity_cost', @set_args)
+      return if igp.empty? && pre.empty?
+      pre.each do |id, val|
+        str.concat('pre-bestpath ' + id.to_s + ' ' + val.to_s + ' ')
+      end
+      igp.each do |id, val|
+        str.concat('igp ' + id.to_s + ' ' + val.to_s + ' ')
+      end
+      set_args_keys(state: '', string: str)
+      config_set('route_map', 'set_extcommunity_cost', @set_args)
+    end
   end # class
 end # module
