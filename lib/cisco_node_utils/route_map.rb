@@ -2253,6 +2253,10 @@ module Cisco
       config_get_default('route_map', 'set_community_asn')
     end
 
+    # set community none
+    # set community (if only additive is configured)
+    # set internet 11:22 22:33 local-AS no-advertise no-export additive
+    # and combinations of the above
     def set_community_set(none, noadv, noexp, add, local, inter, asn)
       str = ''
       # reset first
@@ -2330,6 +2334,11 @@ module Cisco
       config_get_default('route_map', 'set_extcommunity_4bytes_transitive')
     end
 
+    # set extcommunity 4byteas-generic none
+    # set extcommunity 4byteas-generic additive
+    # set extcommunity 4byteas-generic transitive 11:22 transitive 22:33
+    # set extcommunity 4byteas-generic non-transitive 11:22
+    # set extcommunity 4byteas-generic transitive 22:33 non-transitive 11:22
     def set_extcommunity_4bytes_set(none, transit, non_transit, add)
       str = ''
       # reset first
@@ -2368,6 +2377,9 @@ module Cisco
       config_get_default('route_map', 'set_extcommunity_rt_asn')
     end
 
+    # set extcommunity rt additive
+    # set extcommunity rt 11:22 12.22.22.22:12 123.256:543
+    # set extcommunity rt 11:22 12.22.22.22:12 123.256:543 additive
     def set_extcommunity_rt_set(asn, add)
       str = ''
       # reset first
@@ -2434,6 +2446,9 @@ module Cisco
       config_get('route_map', 'set_extcommunity_cost_device', @get_args)
     end
 
+    # set extcommunity cost igp 0 22 igp 3 23
+    # set extcommunity cost pre-bestpath 1 222 pre-bestpath 2 54
+    # set extcommunity cost pre-bestpath 1 222 pre-bestpath 2 54 igp 0 22
     def set_extcommunity_cost_set(igp, pre)
       str = ''
       # reset first

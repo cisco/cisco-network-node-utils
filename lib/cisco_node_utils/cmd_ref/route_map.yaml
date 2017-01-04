@@ -294,7 +294,8 @@ set_as_path_tag:
   get_value: '/^set as-path tag$/'
   set_value: "<state> set as-path tag"
   default_value: false
- 
+
+# there is more than one space before delete on some platforms
 set_comm_list:
   get_value: '/^set comm-list (\S+)(?:\s+)? delete$/'
   set_value: "<state> set comm-list <list> delete"
@@ -354,6 +355,7 @@ set_distance_internal:
 set_distance_local:
   default_value: false
 
+# there is more than one space before delete on some platforms
 set_extcomm_list:
   get_value: '/^set extcomm-list (\S+)(?:\s+)? delete$/'
   set_value: "<state> set extcomm-list <list> delete"
