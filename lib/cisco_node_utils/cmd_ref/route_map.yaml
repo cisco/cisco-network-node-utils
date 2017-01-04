@@ -359,6 +359,32 @@ set_extcomm_list:
   set_value: "<state> set extcomm-list <list> delete"
   default_value: false
 
+set_extcommunity_4bytes:
+  get_value: '/^set extcommunity 4byteas-generic (.*)$/'
+  set_value: "<state> set extcommunity 4byteas-generic <string>"
+
+set_extcommunity_4bytes_additive:
+  default_value: false
+
+set_extcommunity_4bytes_non_transitive:
+  default_value: []
+
+set_extcommunity_4bytes_none:
+  default_value: false
+
+set_extcommunity_4bytes_transitive:
+  default_value: []
+
+set_extcommunity_rt:
+  get_value: '/^set extcommunity rt (.*)$/'
+  set_value: "<state> set extcommunity rt <string>"
+
+set_extcommunity_rt_additive:
+  default_value: false
+
+set_extcommunity_rt_asn:
+  default_value: []
+
 set_forwarding_addr:
   kind: boolean
   get_value: '/^set forwarding-address$/'

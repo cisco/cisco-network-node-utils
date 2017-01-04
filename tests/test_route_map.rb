@@ -1240,4 +1240,92 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_community_none,
                  rm.set_community_none)
   end
+
+  def test_extcommunity_4bytes
+    rm = create_route_map
+    assert_equal(rm.default_set_extcommunity_4bytes_transitive,
+                 rm.set_extcommunity_4bytes_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
+                 rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_none,
+                 rm.set_extcommunity_4bytes_none)
+    assert_equal(rm.default_set_extcommunity_4bytes_additive,
+                 rm.set_extcommunity_4bytes_additive)
+    none = true
+    tr = ntr = []
+    add = false
+    rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
+    assert_equal(true, rm.set_extcommunity_4bytes_none)
+    assert_equal(rm.default_set_extcommunity_4bytes_transitive,
+                 rm.set_extcommunity_4bytes_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
+                 rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_additive,
+                 rm.set_extcommunity_4bytes_additive)
+    none = false
+    add = true
+    rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
+    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert_equal(rm.default_set_extcommunity_4bytes_transitive,
+                 rm.set_extcommunity_4bytes_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
+                 rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_none,
+                 rm.set_extcommunity_4bytes_none)
+    tr = ['11:22', '33:44', '66:77']
+    rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
+    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert_equal(tr, rm.set_extcommunity_4bytes_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
+                 rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_none,
+                 rm.set_extcommunity_4bytes_none)
+    ntr = ['21:42', '43:22', '59:17']
+    rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
+    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert_equal(tr, rm.set_extcommunity_4bytes_transitive)
+    assert_equal(ntr, rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_none,
+                 rm.set_extcommunity_4bytes_none)
+    add = false
+    tr = ntr = []
+    rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
+    assert_equal(rm.default_set_extcommunity_4bytes_transitive,
+                 rm.set_extcommunity_4bytes_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
+                 rm.set_extcommunity_4bytes_non_transitive)
+    assert_equal(rm.default_set_extcommunity_4bytes_none,
+                 rm.set_extcommunity_4bytes_none)
+    assert_equal(rm.default_set_extcommunity_4bytes_additive,
+                 rm.set_extcommunity_4bytes_additive)
+  end
+
+  def test_extcommunity_rt
+    rm = create_route_map
+    assert_equal(rm.default_set_extcommunity_rt_additive,
+                 rm.set_extcommunity_rt_additive)
+    assert_equal(rm.default_set_extcommunity_rt_asn,
+                 rm.set_extcommunity_rt_asn)
+    asn = []
+    add = true
+    rm.set_extcommunity_rt_set(asn, add)
+    assert_equal(true, rm.set_extcommunity_rt_additive)
+    assert_equal(rm.default_set_extcommunity_rt_asn,
+                 rm.set_extcommunity_rt_asn)
+    asn = ['11:22', '33:44', '12.22.22.22:12', '123.256:543']
+    rm.set_extcommunity_rt_set(asn, add)
+    assert_equal(true, rm.set_extcommunity_rt_additive)
+    assert_equal(asn, rm.set_extcommunity_rt_asn)
+    add = false
+    rm.set_extcommunity_rt_set(asn, add)
+    assert_equal(rm.default_set_extcommunity_rt_additive,
+                 rm.set_extcommunity_rt_additive)
+    assert_equal(asn, rm.set_extcommunity_rt_asn)
+    asn = []
+    rm.set_extcommunity_rt_set(asn, add)
+    assert_equal(rm.default_set_extcommunity_rt_additive,
+                 rm.set_extcommunity_rt_additive)
+    assert_equal(rm.default_set_extcommunity_rt_asn,
+                 rm.set_extcommunity_rt_asn)
+  end
 end

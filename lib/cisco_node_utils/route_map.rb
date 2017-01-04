@@ -2260,5 +2260,114 @@ module Cisco
       set_args_keys(state: '', string: str)
       config_set('route_map', 'set_community', @set_args)
     end
+
+    def set_extcommunity_4bytes_additive
+      str = config_get('route_map', 'set_extcommunity_4bytes', @get_args)
+      str.nil? ? false : str.include?('additive')
+    end
+
+    def default_set_extcommunity_4bytes_additive
+      config_get_default('route_map', 'set_extcommunity_4bytes_additive')
+    end
+
+    def set_extcommunity_4bytes_none
+      str = config_get('route_map', 'set_extcommunity_4bytes', @get_args)
+      str.nil? ? false : str.include?('none')
+    end
+
+    def default_set_extcommunity_4bytes_none
+      config_get_default('route_map', 'set_extcommunity_4bytes_none')
+    end
+
+    def set_extcommunity_4bytes_non_transitive
+      str = config_get('route_map', 'set_extcommunity_4bytes', @get_args)
+      return default_set_extcommunity_4bytes_non_transitive if
+        str.nil? || !str.include?('non-transitive')
+      arr = str.split
+      ret_arr = []
+      index = arr.index('non-transitive')
+      while index
+        ret_arr << arr[index + 1]
+        arr.delete_at(index)
+        arr.delete_at(index)
+        index = arr.index('non-transitive')
+      end
+      ret_arr
+    end
+
+    def default_set_extcommunity_4bytes_non_transitive
+      config_get_default('route_map', 'set_extcommunity_4bytes_non_transitive')
+    end
+
+    def set_extcommunity_4bytes_transitive
+      str = config_get('route_map', 'set_extcommunity_4bytes', @get_args)
+      return default_set_extcommunity_4bytes_transitive if str.nil?
+      arr = str.split
+      ret_arr = []
+      index = arr.index('transitive')
+      while index
+        ret_arr << arr[index + 1]
+        arr.delete_at(index)
+        arr.delete_at(index)
+        index = arr.index('transitive')
+      end
+      ret_arr
+    end
+
+    def default_set_extcommunity_4bytes_transitive
+      config_get_default('route_map', 'set_extcommunity_4bytes_transitive')
+    end
+
+    def set_extcommunity_4bytes_set(none, transit, non_transit, add)
+      str = ''
+      # reset first
+      set_args_keys(state: 'no', string: str)
+      config_set('route_map', 'set_extcommunity_4bytes', @set_args)
+      return unless none || add || !transit.empty? || !non_transit.empty?
+      str.concat('none') if none
+      transit.each do |elem|
+        str.concat('transitive ' + elem + ' ')
+      end
+      non_transit.each do |elem|
+        str.concat('non-transitive ' + elem + ' ')
+      end
+      str.concat('additive') if add
+      set_args_keys(state: '', string: str)
+      config_set('route_map', 'set_extcommunity_4bytes', @set_args)
+    end
+
+    def set_extcommunity_rt_additive
+      str = config_get('route_map', 'set_extcommunity_rt', @get_args)
+      str.nil? ? false : str.include?('additive')
+    end
+
+    def default_set_extcommunity_rt_additive
+      config_get_default('route_map', 'set_extcommunity_rt_additive')
+    end
+
+    def set_extcommunity_rt_asn
+      str = config_get('route_map', 'set_extcommunity_rt', @get_args)
+      return default_set_extcommunity_rt_asn if str.nil?
+      str.delete!('additive')
+      str.split
+    end
+
+    def default_set_extcommunity_rt_asn
+      config_get_default('route_map', 'set_extcommunity_rt_asn')
+    end
+
+    def set_extcommunity_rt_set(asn, add)
+      str = ''
+      # reset first
+      set_args_keys(state: 'no', string: str)
+      config_set('route_map', 'set_extcommunity_rt', @set_args)
+      return unless add || !asn.empty?
+      asn.each do |elem|
+        str.concat(elem + ' ')
+      end
+      str.concat('additive') if add
+      set_args_keys(state: '', string: str)
+      config_set('route_map', 'set_extcommunity_rt', @set_args)
+    end
   end # class
 end # module
