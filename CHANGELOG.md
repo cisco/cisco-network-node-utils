@@ -1,9 +1,10 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.5.0]
 
 ### New feature support
+* Drill down capability into structured table output using command reference yaml (@mikewiebe)
 
 #### Cisco Resources
 * Hot Standby Router Protocol
@@ -396,7 +397,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
