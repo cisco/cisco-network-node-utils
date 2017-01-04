@@ -379,6 +379,17 @@ set_extcommunity_cost:
   get_value: '/^set extcommunity cost (.*)$/'
   set_value: "<state> set extcommunity cost <string>"
 
+set_extcommunity_cost_device:
+  kind: boolean
+  N3k: &set_extcommunity_device_str
+    default_only: true
+  N5k: &set_extcommunity_device_no_str
+    default_only: false
+  N6k: *set_extcommunity_device_no_str
+  N7k: *set_extcommunity_device_no_str
+  N9k: *set_extcommunity_device_str
+  N9k-F: *set_extcommunity_device_str
+
 set_extcommunity_cost_igp:
   default_value: []
 
@@ -420,6 +431,7 @@ set_ipv4_next_hop:
   default_value: []
 
 set_ipv4_next_hop_load_share:
+  _exclude: [N5k, N6k]
   default_value: false
 
 set_ipv4_next_hop_peer_addr:
@@ -490,6 +502,7 @@ set_ipv6_precedence:
   default_value: false
 
 set_ipv6_prefix:
+  _exclude: [N5k, N6k]
   get_value: '/^set ipv6 address prefix-list (\S+)/'
   set_value: "<state> set ipv6 address prefix-list <pf>"
   default_value: false
@@ -556,6 +569,7 @@ set_tag:
   default_value: false
 
 set_vrf:
+  _exclude: [N3k, N5k, N6k, N9k, N9k-F]
   get_value: '/^set vrf (\S+)$/'
   set_value: "<state> set vrf <vrf>"
   default_value: false

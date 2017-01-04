@@ -1525,12 +1525,14 @@ module Cisco
     end
 
     def set_vrf
-      config_get('route_map', 'set_vrf', @get_args)
+      vrf = config_get('route_map', 'set_vrf', @get_args)
+      vrf == 'default' ? 'default_vrf' : vrf
     end
 
     def set_vrf=(val)
       state = val ? '' : 'no'
       vrf = val ? val : ''
+      vrf = vrf == 'default_vrf' ? 'default' : vrf
       set_args_keys(state: state, vrf: vrf)
       config_set('route_map', 'set_vrf', @set_args)
     end
@@ -2418,12 +2420,27 @@ module Cisco
       config_get_default('route_map', 'set_extcommunity_cost_pre_bestpath')
     end
 
+    def set_extcommunity_cost_device
+      config_get('route_map', 'set_extcommunity_cost_device', @get_args)
+    end
+
     def set_extcommunity_cost_set(igp, pre)
       str = ''
       # reset first
+      if set_extcommunity_cost_device
+        cpre = set_extcommunity_cost_pre_bestpath
+        cigp = set_extcommunity_cost_igp
+        cpre.each do |id, val|
+          str.concat('pre-bestpath ' + id.to_s + ' ' + val.to_s + ' ')
+        end
+        cigp.each do |id, val|
+          str.concat('igp ' + id.to_s + ' ' + val.to_s + ' ')
+        end
+      end
       set_args_keys(state: 'no', string: str)
       config_set('route_map', 'set_extcommunity_cost', @set_args)
       return if igp.empty? && pre.empty?
+      str = ''
       pre.each do |id, val|
         str.concat('pre-bestpath ' + id.to_s + ' ' + val.to_s + ' ')
       end

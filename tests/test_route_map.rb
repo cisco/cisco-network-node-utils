@@ -15,9 +15,14 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/route_map'
 
-def newer_image_version?
+def evergreen_n3k_n9k?
   return false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
                   node.product_id[/(N5|N6|N7|N9.*-F)/]
+  true
+end
+
+def evergreen_higher?
+  return false if Utils.image_version?(/7.0.3.I2|I3|I4/)
   true
 end
 
@@ -416,7 +421,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_ospf_area
-    skip('platform not supported for this test') unless newer_image_version?
+    skip('platform not supported for this test') unless evergreen_n3k_n9k?
     rm = create_route_map
     assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
     array = %w(10 7 222)
@@ -659,6 +664,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv4_next_hop_redist
+    skip('platform not supported for this test') unless evergreen_higher?
     rm = create_route_map
     assert_equal(rm.default_set_ipv4_next_hop_redist,
                  rm.set_ipv4_next_hop_redist)
@@ -759,10 +765,16 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_vrf
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'set_vrf')
+      assert_nil(rm.set_vrf)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.set_vrf = 'default'
+      end
+      return
+    end
     assert_equal(rm.default_set_vrf, rm.set_vrf)
-    # check this here. 'default' itself is a value here
-    rm.set_vrf = 'default'
-    assert_equal('default', rm.set_vrf)
+    rm.set_vrf = 'default_vrf'
+    assert_equal('default_vrf', rm.set_vrf)
     rm.set_vrf = 'management'
     assert_equal('management', rm.set_vrf)
     rm.set_vrf = 'igp'
@@ -997,6 +1009,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv6_next_hop_redist
+    skip('platform not supported for this test') unless evergreen_higher?
     rm = create_route_map
     assert_equal(rm.default_set_ipv6_next_hop_redist,
                  rm.set_ipv6_next_hop_redist)
@@ -1020,6 +1033,13 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv6_prefix
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'set_ipv6_prefix')
+      assert_nil(rm.set_ipv6_prefix)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.set_ipv6_prefix = 'abcdef'
+      end
+      return
+    end
     assert_equal(rm.default_set_ipv6_prefix, rm.set_ipv6_prefix)
     rm.set_ipv6_prefix = 'abcdef'
     assert_equal('abcdef', rm.set_ipv6_prefix)
@@ -1335,13 +1355,13 @@ class TestRouteMap < CiscoTestCase
                  rm.set_extcommunity_cost_igp)
     assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
                  rm.set_extcommunity_cost_pre_bestpath)
-    igp = [[0, 23], [3, 33], [200, 10_954]]
+    igp = [[0, 23], [3, 33], [100, 10_954]]
     pre = []
     rm.set_extcommunity_cost_set(igp, pre)
     assert_equal(igp, rm.set_extcommunity_cost_igp)
     assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
                  rm.set_extcommunity_cost_pre_bestpath)
-    pre = [[23, 999], [88, 482], [199, 2323]]
+    pre = [[23, 999], [88, 482], [120, 2323]]
     rm.set_extcommunity_cost_set(igp, pre)
     assert_equal(igp, rm.set_extcommunity_cost_igp)
     assert_equal(pre, rm.set_extcommunity_cost_pre_bestpath)
