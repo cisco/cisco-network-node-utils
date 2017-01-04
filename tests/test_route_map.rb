@@ -929,6 +929,13 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv4_prefix
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'set_ipv4_prefix')
+      assert_nil(rm.set_ipv4_prefix)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.set_ipv4_prefix = 'abcdef'
+      end
+      return
+    end
     assert_equal(rm.default_set_ipv4_prefix, rm.set_ipv4_prefix)
     rm.set_ipv4_prefix = 'abcdef'
     assert_equal('abcdef', rm.set_ipv4_prefix)
@@ -949,6 +956,14 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv4_default_next_hop
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'set_ipv4_default_next_hop')
+      assert_nil(rm.set_ipv4_default_next_hop)
+      assert_raises(Cisco::UnsupportedError) do
+        array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+        rm.set_ipv4_default_next_hop_set(array, false)
+      end
+      return
+    end
     assert_equal(rm.default_set_ipv4_default_next_hop,
                  rm.set_ipv4_default_next_hop)
     assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
@@ -973,6 +988,19 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv4_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop)
+    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm.set_ipv4_next_hop_set(array)
+    assert_equal(array, rm.set_ipv4_next_hop)
+    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop)
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop)
+  end
+
+  def test_set_ipv4_next_hop_load_share
+    skip('platform not supported for this test') if node.product_id[/(N5|N6)/]
     rm = create_route_map
     assert_equal(rm.default_set_ipv4_next_hop,
                  rm.set_ipv4_next_hop)
@@ -1060,6 +1088,14 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv6_default_next_hop
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'set_ipv6_default_next_hop')
+      assert_nil(rm.set_ipv6_default_next_hop)
+      assert_raises(Cisco::UnsupportedError) do
+        array = %w(2000::1 2000::11 2000::22)
+        rm.set_ipv6_default_next_hop_set(array, false)
+      end
+      return
+    end
     assert_equal(rm.default_set_ipv6_default_next_hop,
                  rm.set_ipv6_default_next_hop)
     assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
@@ -1084,6 +1120,19 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv6_next_hop
+    rm = create_route_map
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop)
+    array = %w(2000::1 2000::11 2000::22)
+    rm.set_ipv6_next_hop_set(array)
+    assert_equal(array, rm.set_ipv6_next_hop)
+    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop)
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop)
+  end
+
+  def test_set_ipv6_next_hop_load_share
+    skip('platform not supported for this test') if node.product_id[/(N5|N6)/]
     rm = create_route_map
     assert_equal(rm.default_set_ipv6_next_hop,
                  rm.set_ipv6_next_hop)

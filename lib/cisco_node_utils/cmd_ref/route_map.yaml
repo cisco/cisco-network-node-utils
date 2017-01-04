@@ -296,7 +296,7 @@ set_as_path_tag:
   default_value: false
   
 set_comm_list:
-  get_value: '/^set comm-list (\S+)  delete$/'
+  get_value: '/^set comm-list (\S+)(?:\s+)? delete$/'
   set_value: "<state> set comm-list <list> delete"
   default_value: false
 
@@ -355,7 +355,7 @@ set_distance_local:
   default_value: false
 
 set_extcomm_list:
-  get_value: '/^set extcomm-list (\S+)  delete$/'
+  get_value: '/^set extcomm-list (\S+)(?:\s+)? delete$/'
   set_value: "<state> set extcomm-list <list> delete"
   default_value: false
 
@@ -418,11 +418,13 @@ set_interface:
   default_value: false
 
 set_ipv4_default_next_hop:
+  _exclude: [N5k, N6k, N9k, N9k-F]
   get_value: '/^set ip default next-hop (.*)$/'
   set_value: "<state> set ip default next-hop <nh>"
   default_value: []
 
 set_ipv4_default_next_hop_load_share:
+  _exclude: [N5k, N6k, N9k, N9k-F]
   default_value: false
 
 set_ipv4_next_hop:
@@ -458,16 +460,19 @@ set_ipv4_precedence:
   default_value: false
 
 set_ipv4_prefix:
+  _exclude: [N5k, N6k]
   get_value: '/^set ip address prefix-list (\S+)/'
   set_value: "<state> set ip address prefix-list <pf>"
   default_value: false
 
 set_ipv6_default_next_hop:
+  _exclude: [N5k, N6k, N9k, N9k-F]
   get_value: '/^set ipv6 default next-hop (.*)$/'
   set_value: "<state> set ipv6 default next-hop <nh>"
   default_value: []
 
 set_ipv6_default_next_hop_load_share:
+  _exclude: [N5k, N6k, N9k, N9k-F]
   default_value: false
 
 set_ipv6_next_hop:
@@ -476,6 +481,7 @@ set_ipv6_next_hop:
   default_value: []
 
 set_ipv6_next_hop_load_share:
+  _exclude: [N5k, N6k]
   default_value: false
 
 set_ipv6_next_hop_peer_addr:

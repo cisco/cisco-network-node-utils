@@ -1871,6 +1871,7 @@ module Cisco
     # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3
     def set_ipv4_default_next_hop
       str = config_get('route_map', 'set_ipv4_default_next_hop', @get_args)
+      return if str.nil?
       if str.empty?
         val = default_set_ipv4_default_next_hop
       else
@@ -1882,6 +1883,9 @@ module Cisco
 
     def set_ipv4_default_next_hop_set(list, share)
       carr = set_ipv4_default_next_hop
+      fail Cisco::UnsupportedError.new(
+        'route_map',
+        'set_ipv4_default_next_hop') if carr.nil?
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
@@ -1927,16 +1931,17 @@ module Cisco
       val
     end
 
-    def set_ipv4_next_hop_set(list, share)
+    def set_ipv4_next_hop_set(list, share=false)
       carr = set_ipv4_next_hop
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
       end
-      cstr.concat('load-share')
+      cstr.concat('load-share') unless default_set_ipv4_next_hop_load_share.nil?
       set_args_keys(state: 'no', nh: cstr)
       # reset the current config
-      config_set('route_map', 'set_ipv4_next_hop', @set_args)
+      config_set('route_map', 'set_ipv4_next_hop', @set_args) unless
+        cstr.empty?
       nstr = ''
       list.each do |elem|
         nstr = nstr.concat(elem + ' ')
@@ -2037,6 +2042,7 @@ module Cisco
     # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3
     def set_ipv6_default_next_hop
       str = config_get('route_map', 'set_ipv6_default_next_hop', @get_args)
+      return if str.nil?
       if str.empty?
         val = default_set_ipv6_default_next_hop
       else
@@ -2048,6 +2054,9 @@ module Cisco
 
     def set_ipv6_default_next_hop_set(list, share)
       carr = set_ipv6_default_next_hop
+      fail Cisco::UnsupportedError.new(
+        'route_map',
+        'set_ipv6_default_next_hop') if carr.nil?
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
@@ -2093,16 +2102,17 @@ module Cisco
       val
     end
 
-    def set_ipv6_next_hop_set(list, share)
+    def set_ipv6_next_hop_set(list, share=false)
       carr = set_ipv6_next_hop
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
       end
-      cstr.concat('load-share')
+      cstr.concat('load-share') unless default_set_ipv6_next_hop_load_share.nil?
       set_args_keys(state: 'no', nh: cstr)
       # reset the current config
-      config_set('route_map', 'set_ipv6_next_hop', @set_args)
+      config_set('route_map', 'set_ipv6_next_hop', @set_args) unless
+        cstr.empty?
       nstr = ''
       list.each do |elem|
         nstr = nstr.concat(elem + ' ')
