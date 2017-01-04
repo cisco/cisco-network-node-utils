@@ -294,7 +294,7 @@ set_as_path_tag:
   get_value: '/^set as-path tag$/'
   set_value: "<state> set as-path tag"
   default_value: false
-  
+ 
 set_comm_list:
   get_value: '/^set comm-list (\S+)(?:\s+)? delete$/'
   set_value: "<state> set comm-list <list> delete"
@@ -344,7 +344,7 @@ set_dampening_suppress:
 set_distance:
   get_value: '/^set distance (.*)$/'
   set_value: "<state> set distance <igp> <internal> <local>"
-  
+
 set_distance_igp_ebgp:
   default_value: false
 
