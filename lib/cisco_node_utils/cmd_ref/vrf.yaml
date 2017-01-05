@@ -70,11 +70,12 @@ shutdown:
 
 vni: # TBD Should this move to the vni provider as vrf_vni?
   # MT-lite only
-  N9k:
+  N9k: &vni9k
     kind: int
     get_value: '/^vni (\d+)$/'
     set_value: '<state> vni <id>'
     default_value: false
+  N9k-F: *vni9k
 
 vpn_id:
   _exclude: [nexus]

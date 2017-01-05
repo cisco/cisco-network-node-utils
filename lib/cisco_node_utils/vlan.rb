@@ -141,8 +141,7 @@ module Cisco
     end
 
     def vlan_name
-      result = config_get('vlan', 'name', @vlan_id)
-      result.nil? ? default_vlan_name : result
+      config_get('vlan', 'name', vlanid: @vlan_id)
     end
 
     def vlan_name=(str)
@@ -184,9 +183,7 @@ module Cisco
     end
 
     def shutdown
-      result = config_get('vlan', 'shutdown', @vlan_id)
-      # Valid result is either: "active"(aka no shutdown) or "shutdown"
-      result[/shut/] ? true : false
+      config_get('vlan', 'shutdown', vlanid: @vlan_id)
     end
 
     def shutdown=(val)
