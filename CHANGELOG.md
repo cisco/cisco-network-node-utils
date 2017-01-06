@@ -9,6 +9,8 @@ Changelog
 * Hot Standby Router Protocol
   * hsrp_global (@saichint)
   * interface_hsrp_group (@saichint)
+* Route_map
+  * route_map (@saichint)
 
 ### Added
 
