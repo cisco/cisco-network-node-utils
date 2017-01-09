@@ -15,12 +15,6 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/route_map'
 
-def evergreen_n3k_n9k?
-  return false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-                  node.product_id[/(N5|N6|N7|N9.*-F)/]
-  true
-end
-
 def evergreen_higher?
   return false if Utils.image_version?(/7.0.3.I2|I3|I4/)
   true
@@ -435,8 +429,15 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_ospf_area
-    skip('platform not supported for this test') unless evergreen_n3k_n9k?
+    skip('platform not supported for this test') unless evergreen_higher?
     rm = create_route_map
+    if validate_property_excluded?('route_map', 'match_ospf_area')
+      assert_nil(rm.match_ospf_area)
+      assert_raises(Cisco::UnsupportedError) do
+        rm.match_ospf_area = %w(10 7 222)
+      end
+      return
+    end
     assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
     array = %w(10 7 222)
     rm.match_ospf_area = array

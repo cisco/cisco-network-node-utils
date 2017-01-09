@@ -212,6 +212,7 @@ match_metric:
   default_value: []
 
 match_ospf_area:
+  _exclude: [N5k, N6k, N7k, N9k-F]
   get_value: '/^match ospf-area (.*)$/'
   set_value: "<state> match ospf-area <area>"
   default_value: []

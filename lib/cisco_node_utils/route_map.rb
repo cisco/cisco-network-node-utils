@@ -1112,11 +1112,13 @@ module Cisco
     # match ospf-area 10 7
     def match_ospf_area
       str = config_get('route_map', 'match_ospf_area', @get_args)
+      return if str.nil?
       str.empty? ? default_match_ospf_area : str.split
     end
 
     def match_ospf_area=(list)
       carr = match_ospf_area
+      config_set('route_map', 'match_ospf_area', @set_args) if carr.nil?
       cstr = ''
       carr.each do |elem|
         cstr = cstr.concat(elem + ' ')
