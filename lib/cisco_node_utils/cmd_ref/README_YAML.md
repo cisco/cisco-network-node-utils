@@ -378,7 +378,7 @@ area:
 
 ### `get_context`
 
-`get_context` is an optional sequence of tokens used to filter the output from the `get_command` down to the desired context where the `get_value` can be found. For CLI properties, these tokens are implicitly Regexps used to filter down through the hierarchical CLI output, while for `nxapi_structured` properties, the tokens are used as string keys. For `nxapi_structured` properties, both `get_context` and `get_value` can specify a sequence of tokens used to filter the output from the `get_command` down to the desired `get_value`.  This feature can be used to retrive data from `TABLE` data the contains multiple `ROWS`.
+`get_context` is an optional sequence of tokens used to filter the output from the `get_command` down to the desired context where the `get_value` can be found. For CLI properties, these tokens are implicitly Regexps used to filter down through the hierarchical CLI output, while for `nxapi_structured` properties, the tokens are used as string keys. For `nxapi_structured` properties, both `get_context` and `get_value` can specify a sequence of tokens used to filter the output from the `get_command` down to the desired `get_value`.  This feature can be used to retrieve data from `TABLE` data the contains multiple `ROWS`.
 
 
 ```yaml
