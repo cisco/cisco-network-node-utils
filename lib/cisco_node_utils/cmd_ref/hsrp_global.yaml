@@ -1,0 +1,25 @@
+# hsrp_global.yaml
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config hsrp all | no-more"
+
+bfd_all_intf:
+  _exclude: [N3k]
+  kind: boolean
+  get_value: '/^hsrp bfd all-interfaces$/'
+  set_value: '<state> hsrp bfd all-interfaces'
+  default_value: false
+
+extended_hold:
+  # the config can be 'hsrp timers extended-hold' or
+  # 'hsrp timers extended-hold <time>' or
+  # no config at all so need to grab the
+  # optional match to get the whole config
+  get_value: '/^hsrp timers extended-hold(?:\s+\S+)?$/'
+  set_value: '<state> hsrp timers extended-hold <time>'
+  default_value: false
+
+extended_hold_enable:
+  default_only: '10'

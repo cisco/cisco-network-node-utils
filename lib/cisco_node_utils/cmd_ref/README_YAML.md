@@ -329,8 +329,8 @@ productid:
   ios_xr:
     get_value: '/PID: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", 0]
-    get_value: "productid"
+    get_context: ["TABLE_inv", "ROW_inv"]
+    get_value: ["name Chassis", "productid"]
 ```
 
 Using platform variants and product variants together:
@@ -361,7 +361,7 @@ productid:
   get_command: 'show inventory'
   nexus:
     get_data_format: nxapi_structured
-    get_context: ['TABLE_inv', 'ROW_inv', 0]
+    get_context: ['TABLE_inv', 'ROW_inv']
 ```
 
 ### `get_command`
@@ -378,7 +378,7 @@ area:
 
 ### `get_context`
 
-`get_context` is an optional sequence of tokens used to filter the output from the `get_command` down to the desired context where the `get_value` can be found. For CLI properties, these tokens are implicitly Regexps used to filter down through the hierarchical CLI output, while for `nxapi_structured` properties, the tokens are used as string keys.
+`get_context` is an optional sequence of tokens used to filter the output from the `get_command` down to the desired context where the `get_value` can be found. For CLI properties, these tokens are implicitly Regexps used to filter down through the hierarchical CLI output, while for `nxapi_structured` properties, the tokens are used as string keys. For `nxapi_structured` properties, both `get_context` and `get_value` can specify a sequence of tokens used to filter the output from the `get_command` down to the desired `get_value`.  This feature can be used to retrieve data from `TABLE` data the contains multiple `ROWS`.
 
 
 ```yaml
@@ -387,10 +387,38 @@ productid:
   get_command: 'show inventory'
   nexus:
     get_data_format: nxapi_structured
-    get_context: ['TABLE_inv', 'ROW_inv', 0]
-    get_value: 'productid'
+    get_context: ['TABLE_inv', 'ROW_inv']
+    get_value: ["name Chassis", "productid"]
     # config_get('inventory', 'productid') returns
-    # structured_output['TABLE_inv']['ROW_inv'][0]['productid']
+    # 'productid' for the row that contains 'name Chassis'
+```
+
+```yaml
+# vlan.yaml
+name:
+  get_command: "show vlan brief"
+  nexus:
+    kind: string
+    get_data_format: nxapi_structured
+    get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
+    get_value: ["vlanshowbr-vlanid-utf <vlanid>", "vlanshowbr-vlanname"]
+    # config_get('vlan', 'name', @vlan_id) returns
+    # 'vlanshowbr-vlanname' for @vlan_id.
+    # NOTE: `<vlanid>` in the `get_value` is replaced by `@vlan_id` prior to lookup.
+```
+
+```yaml
+# vlan.yaml
+shutdown:
+  get_command: "show vlan brief"
+  nexus:
+    kind: boolean
+    get_data_format: nxapi_structured
+    get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
+    get_value: ["vlanshowbr-vlanid-utf <vlanid>", "vlanshowbr-shutstate", '/^shutdown$/']
+    # config_get('vlan', 'shutdown', @vlan_id) returns
+    # true if data in 'vlanshowbr-shutstate' matches regex '/^shutdown$/' else false.
+    # NOTE: `<vlanid>` in the `get_value` is replaced by `@vlan_id` prior to lookup.
 ```
 
 ```yaml

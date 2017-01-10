@@ -28,7 +28,7 @@ remove_local_auth:
   N3k: &remove_local_allowed
     default_only: true
   N9k: *remove_local_allowed
-  N8k: *remove_local_allowed
+  N9k-F: *remove_local_allowed
   N5k: *remove_local_allowed
   N6k: *remove_local_allowed
   N7k: *remove_local_allowed

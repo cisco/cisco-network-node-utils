@@ -1,6 +1,34 @@
 Changelog
 =========
 
+## [v1.5.0]
+
+### New feature support
+* Drill down capability into structured table output using command reference yaml (@mikewiebe)
+
+#### Cisco Resources
+* Hot Standby Router Protocol
+  * hsrp_global (@saichint)
+  * interface_hsrp_group (@saichint)
+
+### Added
+
+* Extend interface with attributes:
+   * `hsrp_bfd`
+   * `hsrp_delay_minimum`
+   * `hsrp_delay_reload`
+   * `hsrp_mac_refresh`
+   * `hsrp_use_bia`
+   * `hsrp_version`
+   * `pim_bfd`
+* Extend pim with attributes:
+   * `bfd`
+* Added support for Cisco NX-OS software releases `7.3(0)F1(1)` and `8.0(1)`
+
+### Changed
+
+### Removed
+
 ## [v1.4.1]
 
 ### Added
@@ -51,6 +79,7 @@ Changelog
    * `bfd`
 * Extend bgp_neighbor with attributes:
    * `bfd`
+* Cisco Nexus 8xxx platform support added to existing classes
 
 ### Changed
 * Deprecated `vlan` private-vlan properties and replaced with new methods. New file `vlan_DEPRECATED.rb` has been created to store the deprecated methods. The old -> new properties are:
@@ -368,6 +397,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0

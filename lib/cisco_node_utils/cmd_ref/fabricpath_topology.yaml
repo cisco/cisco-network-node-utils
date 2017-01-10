@@ -1,7 +1,7 @@
 # fabricpath_topology
 ---
 # Fabricpath feature is not available on N3K and N9K
-_exclude: [N3k, N8k, N9k, ios_xr]
+_exclude: [N3k, N9k-F, N9k, ios_xr]
 
 _template:
   get_command: 'show running-config fabricpath all'

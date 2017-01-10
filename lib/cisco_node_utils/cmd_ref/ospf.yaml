@@ -32,7 +32,7 @@ log_adjacency:
   default_value: :none
 
 process_initialized:
-  _exclude: [ios_xr, N3k, N7k, N8k, N9k]
+  _exclude: [ios_xr, N3k, N7k, N9k-F, N9k]
   # ospf process initialization state
   kind: boolean
   context: ~

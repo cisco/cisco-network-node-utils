@@ -52,16 +52,16 @@ class TestRouterOspfArea < CiscoTestCase
     av.stub = true
     assert_equal(2, RouterOspfArea.areas['Wolfpack'].size)
     av.destroy
-    # on n8k (only), we cannot remove "area <area> default-cost 1",
+    # on n9k-f (only), we cannot remove "area <area> default-cost 1",
     # unless the entire ospf router is removed. The default value of
     # default_cost is 1 and so this is just a cosmetic issue but
     # need to skip the below test as the size will be wrong.
     # platform as the size will be wrong. bug ID: CSCva04066
     assert_equal(1, RouterOspfArea.areas['Wolfpack'].size) unless
-      /N8/ =~ node.product_id
+      /N9K.*-F/ =~ node.product_id
     ad.destroy
     assert_empty(RouterOspfArea.areas) unless
-      /N8/ =~ node.product_id
+      /N9K.*-F/ =~ node.product_id
   end
 
   def test_authentication
@@ -237,21 +237,21 @@ class TestRouterOspfArea < CiscoTestCase
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
     assert_equal(ad.default_nssa_route_map, ad.nssa_route_map)
-    # on n8k (only), we cannot configure
+    # on n9k-f (only), we cannot configure
     # "area <area> nssa default-information-originate",
     # properly if we reset it first. It is only configuring nssa
     # but not the other parameters. bug ID: CSCva11482
     hash[:nssa_route_map] = 'aaa'
     ad.nssa_set(hash)
     assert_equal(true, ad.nssa)
-    if node.product_id[/N8/]
+    if node.product_id[/N9K-F/]
       refute(ad.nssa_default_originate)
     else
       assert(ad.nssa_default_originate)
     end
     assert_equal(ad.default_nssa_no_redistribution, ad.nssa_no_redistribution)
     assert_equal(ad.default_nssa_no_summary, ad.nssa_no_summary)
-    if node.product_id[/N8/]
+    if node.product_id[/N9K-F/]
       refute_equal('aaa', ad.nssa_route_map)
     else
       assert_equal('aaa', ad.nssa_route_map)

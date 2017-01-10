@@ -23,27 +23,27 @@ echo_rx_interval:
     default_value: 50
 
 fabricpath_interval:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   get_value: '/^bfd fabricpath interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd fabricpath interval <interval> min_rx <min_rx> multiplier <multiplier>'
   default_value: ['50', '50', '3']
 
 fabricpath_slow_timer:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   kind: int
   get_value: '/^bfd fabricpath slow-timer (\d+)$/'
   set_value: '<state> bfd fabricpath slow-timer <timer>'
   default_value: 2000
 
 fabricpath_vlan:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   kind: int
   get_value: '/^bfd fabricpath vlan (\d+)$/'
   set_value: '<state> bfd fabricpath vlan <vlan>'
   default_value: 1
 
 interval:
-  _exclude: [N8k, N9k] # TBD: bug on n8k, n9k this is not working now
+  _exclude: [N9k-F, N9k] # TBD: bug on n9k-f, n9k this is not working now
   get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd interval <interval> min_rx <min_rx> multiplier <multiplier>'
   N3k:

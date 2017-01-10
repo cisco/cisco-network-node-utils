@@ -52,13 +52,18 @@ module Cisco
 
     def self.install(pkg, vrf=nil)
       vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
-      config_set('yum', 'install', pkg, vrf)
 
-      # HACK: The current nxos host installer is a multi-part command
-      # which may fail at a later stage yet return a false positive;
-      # therefore a post-validation check is needed here to verify the
-      # actual outcome.
-      validate_installed(pkg)
+      begin
+        config_set('yum', 'install', pkg, vrf)
+
+        # HACK: The current nxos host installer is a multi-part command
+        # which may fail at a later stage yet return a false positive;
+        # therefore a post-validation check is needed here to verify the
+        # actual outcome.
+        validate_installed(pkg)
+      rescue Cisco::CliError, RuntimeError => e
+        raise Cisco::CliError, "#{e.class}, #{e.message}"
+      end
     end
 
     # returns version of package, or false if package doesn't exist

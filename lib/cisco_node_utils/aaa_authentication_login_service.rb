@@ -58,8 +58,8 @@ module Cisco
       if g_str.empty?
         # cannot remove default local, so do nothing in this case
         unless m == :local
-          unless node.product_id[/N8/]
-            # TBD: These 'no' commands currently error on N8k
+          unless node.product_id[/N9K-F/]
+            # TBD: These 'no' commands currently error on N9K-F
             #   no aaa authentication login console local
             #   no aaa authentication login console none
             config_set('aaa_auth_login_service', 'method',

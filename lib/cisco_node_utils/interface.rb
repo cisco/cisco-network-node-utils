@@ -266,6 +266,135 @@ module Cisco
       config_get_default('interface', 'fabric_forwarding_anycast_gateway')
     end
 
+    def hsrp_bfd
+      config_get('interface', 'hsrp_bfd', name: @name)
+    end
+
+    def hsrp_bfd=(val)
+      state = val ? '' : 'no'
+      if val
+        Feature.hsrp_enable
+        Feature.bfd_enable
+      end
+      config_set('interface', 'hsrp_bfd', name: @name, state: state)
+    end
+
+    def default_hsrp_bfd
+      config_get_default('interface', 'hsrp_bfd')
+    end
+
+    # hsrp delay minimum and reload are in the same CLI
+    # hsrp delay minimum 0 reload 0
+    def hsrp_delay
+      match = config_get('interface', 'hsrp_delay', name: @name)
+      match.nil? ? default_hsrp_delay : match.collect(&:to_i)
+    end
+
+    def default_hsrp_delay
+      [default_hsrp_delay_minimum, default_hsrp_delay_reload]
+    end
+
+    def hsrp_delay_minimum
+      minimum, _reload = hsrp_delay
+      minimum.nil? ? default_hsrp_delay_minimum : minimum
+    end
+
+    # hsrp delay minimum and reload are in the same CLI
+    # but both can be set independent of each other
+    def hsrp_delay_minimum=(val)
+      Feature.hsrp_enable if val
+      config_set('interface', 'hsrp_delay', name: @name,
+                 minimum: 'minimum', min: val, reload: '', rel: '')
+    end
+
+    def default_hsrp_delay_minimum
+      config_get_default('interface', 'hsrp_delay_minimum')
+    end
+
+    def hsrp_delay_reload
+      _minimum, reload = hsrp_delay
+      reload.nil? ? default_hsrp_delay_reload : reload
+    end
+
+    # hsrp delay minimum and reload are in the same CLI
+    # but both can be set independent of each other
+    def hsrp_delay_reload=(val)
+      Feature.hsrp_enable if val
+      config_set('interface', 'hsrp_delay', name: @name,
+                 minimum: '', min: '', reload: 'reload', rel: val)
+    end
+
+    def default_hsrp_delay_reload
+      config_get_default('interface', 'hsrp_delay_reload')
+    end
+
+    def hsrp_mac_refresh
+      config_get('interface', 'hsrp_mac_refresh', name: @name)
+    end
+
+    def hsrp_mac_refresh=(val)
+      state = val ? '' : 'no'
+      time = val ? val : ''
+      Feature.hsrp_enable if val
+      config_set('interface', 'hsrp_mac_refresh', name: @name,
+                 state: state, timeout: time)
+    end
+
+    def default_hsrp_mac_refresh
+      config_get_default('interface', 'hsrp_mac_refresh')
+    end
+
+    def hsrp_use_bia
+      match = config_get('interface', 'hsrp_use_bia', name: @name)
+      return default_hsrp_use_bia unless match
+      match.include?('scope') ? :use_bia_intf : :use_bia
+    end
+
+    def hsrp_use_bia=(val)
+      # Return early if device already set to the correct value
+      return if val == hsrp_use_bia
+      # need to reset before set
+      if val
+        Feature.hsrp_enable
+        if val == :use_bia
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: 'no', scope: ' scope interface')
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: '', scope: '')
+        else
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: 'no', scope: '')
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: '', scope: ' scope interface')
+        end
+      else
+        if hsrp_use_bia == :use_bia
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: 'no', scope: '')
+        else
+          config_set('interface', 'hsrp_use_bia', name: name,
+                     state: 'no', scope: ' scope interface')
+        end
+      end
+    end
+
+    def default_hsrp_use_bia
+      config_get_default('interface', 'hsrp_use_bia')
+    end
+
+    def hsrp_version
+      config_get('interface', 'hsrp_version', name: @name)
+    end
+
+    def hsrp_version=(val)
+      Feature.hsrp_enable if val
+      config_set('interface', 'hsrp_version', name: name, ver: val)
+    end
+
+    def default_hsrp_version
+      config_get_default('interface', 'hsrp_version')
+    end
+
     def ipv4_acl_in
       config_get('interface', 'ipv4_acl_in', name: @name)
     end
@@ -789,6 +918,23 @@ module Cisco
         lookup = 'shutdown_unknown'
       end
       config_get_default('interface', lookup)
+    end
+
+    def pim_bfd
+      config_get('interface', 'pim_bfd', name: @name)
+    end
+
+    def pim_bfd=(val)
+      state = val ? '' : 'no'
+      if val
+        Feature.pim_enable
+        Feature.bfd_enable
+      end
+      config_set('interface', 'pim_bfd', name: @name, state: state)
+    end
+
+    def default_pim_bfd
+      config_get_default('interface', 'pim_bfd')
     end
 
     def storm_control_broadcast

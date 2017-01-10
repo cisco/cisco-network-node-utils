@@ -6,11 +6,10 @@ _template:
     data_format: cli
   nexus:
     data_format: nxapi_structured
+    get_context: ["TABLE_inv", "ROW_inv"]
 
 all:
   multiple: true
-  nexus:
-    get_context: ["TABLE_inv", "ROW_inv"]
 
 chassis:
   nexus:
@@ -22,19 +21,16 @@ productid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "productid"
+    get_value: ["name Chassis", "productid"]
 
 serialnum:
   ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "serialnum"
+    get_value: ["name Chassis", "serialnum"]
 
 versionid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   nexus:
-    get_context: ["TABLE_inv", "ROW_inv", '0']
-    get_value: "vendorid"
+    get_value: ["name Chassis", "vendorid"]

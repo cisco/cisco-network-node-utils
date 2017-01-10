@@ -113,7 +113,7 @@ module Cisco
           _parse_ethernet_params(hash, params)
         when :asymmetric # n7k
           _parse_asymmetric_params(hash, params, line)
-        when :no_hash # n8k
+        when :no_hash # n9k-f
           _parse_no_hash_params(hash, params)
         when :symmetry # n9k
           _parse_symmetry_params(hash, params, line)
@@ -213,7 +213,7 @@ module Cisco
         # port-channel load-balance dst ip-l4port rotate 4 asymmetric
         config_set('portchannel_global', 'port_channel_load_balance',
                    bselect, bhash, 'rotate', rot.to_s, asym, '')
-      when :no_hash # n8k
+      when :no_hash # n9k-f
         # port-channel load-balance dst ip-l4port rotate 4
         rot_str = rot.zero? ? '' : 'rotate'
         rot_val = rot.zero? ? '' : rot.to_s

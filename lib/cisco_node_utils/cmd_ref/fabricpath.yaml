@@ -1,6 +1,6 @@
 # fabricpath
 ---
-_exclude: [N3k, N8k, N9k, ios_xr]
+_exclude: [N3k, N9k-F, N9k, ios_xr]
 
 aggregate_multicast_routes:
   _exclude: [N5k, N6k]
@@ -82,8 +82,8 @@ loadbalance_multicast_has_vlan:
   _exclude: [N5k, N6k]
   kind: boolean
   auto_default: false
-  get_command: 'show run fabricpath all'
-  get_value: '/^fabricpath load-balance multicast .*include-vlan/'
+  get_command: "show fabricpath load-balance | begin Ftag"
+  get_value: '/^Use VLAN: TRUE/'
   default_value: true
 
 loadbalance_multicast_reset:
@@ -104,8 +104,8 @@ loadbalance_multicast_set:
 loadbalance_unicast_has_vlan:
   kind: boolean
   auto_default: false
-  get_command: 'show run fabricpath all'
-  get_value: '/^fabricpath load-balance unicast .*include-vlan/'
+  get_command: "show fabricpath load-balance | begin ECMP next 4"
+  get_value: '/^Use VLAN: TRUE/'
   set_value: "<state> fabricpath load-balance unicast include-vlan"
   default_value: true
 

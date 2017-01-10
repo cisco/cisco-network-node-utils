@@ -144,7 +144,13 @@ class Cisco::Client
         fail "No match found for #{filter}" if data.length == 0
         data = data[0]
       else # data is array or hash
-        filter = filter.to_i if data.is_a? Array
+        if data.is_a? Array
+          final = []
+          data.each do |row|
+            final << row[filter]
+          end
+          return final
+        end
         fail "No key \"#{filter}\" in #{data}" if data[filter].nil?
         data = data[filter]
       end

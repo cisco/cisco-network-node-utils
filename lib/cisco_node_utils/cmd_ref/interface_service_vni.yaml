@@ -1,6 +1,6 @@
 # interface_service_vni
 ---
-_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N9k-F, N9k, ios_xr]
 
 _template:
   get_command: 'show running interface all'

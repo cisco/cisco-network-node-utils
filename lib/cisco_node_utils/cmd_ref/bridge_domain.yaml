@@ -1,7 +1,7 @@
 # bridge_domain
 # bridge_domain feature is available only on n7k
 ---
-_exclude: [N3k, N5k, N6k, N8k, N9k, ios_xr]
+_exclude: [N3k, N5k, N6k, N9k-F, N9k, ios_xr]
 
 # For the below name, shutdown commands we are going to use show running-config
 # bridge-domain cli which displays as below
