@@ -36,6 +36,7 @@ module Cisco
     def self.maps
       hash = {}
       maps = config_get('route_map', 'all_route_maps')
+      return hash if maps.nil?
       maps.each do |name, action, seq|
         hash[name] ||= {}
         hash[name][seq] ||= {}
