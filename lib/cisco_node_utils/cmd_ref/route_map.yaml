@@ -431,6 +431,7 @@ set_ipv4_default_next_hop_load_share:
   default_value: false
 
 set_ipv4_next_hop:
+  multiple:
   get_value: '/^set ip next-hop (.*)$/'
   set_value: "<state> set ip next-hop <nh>"
   default_value: []
@@ -479,6 +480,7 @@ set_ipv6_default_next_hop_load_share:
   default_value: false
 
 set_ipv6_next_hop:
+  multiple:
   get_value: '/^set ipv6 next-hop (.*)$/'
   set_value: "<state> set ipv6 next-hop <nh>"
   default_value: []

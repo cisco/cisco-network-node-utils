@@ -1923,10 +1923,13 @@ module Cisco
 
     # set ip next-hop 1.1.1.1 2.2.2.2 3.3.3.3
     def set_ipv4_next_hop
-      str = config_get('route_map', 'set_ipv4_next_hop', @get_args)
-      if str.empty?
-        val = default_set_ipv4_next_hop
-      else
+      arr = config_get('route_map', 'set_ipv4_next_hop', @get_args)
+      val = default_set_ipv4_next_hop
+      arr.each do |str|
+        next if str.empty?
+        next if str.include?('peer-address')
+        next if str.include?('unchanged')
+        next if str.include?('redist-unchanged')
         val = str.split
         val.delete('load-share')
       end
@@ -1958,11 +1961,16 @@ module Cisco
       config_get_default('route_map', 'set_ipv4_next_hop')
     end
 
-    # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
-    # set ip default next-hop load-share
+    # set ip next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
+    # set ip next-hop load-share
     def set_ipv4_next_hop_load_share
-      config_get('route_map', 'set_ipv4_next_hop',
-                 @get_args).include?('load-share')
+      arr = config_get('route_map', 'set_ipv4_next_hop', @get_args)
+      val = default_set_ipv4_next_hop_load_share
+      arr.each do |str|
+        next if str.empty?
+        return true if str.include?('load-share')
+      end
+      val
     end
 
     def default_set_ipv4_next_hop_load_share
@@ -2094,10 +2102,13 @@ module Cisco
 
     # set ipv6 next-hop 1.1.1.1 2.2.2.2 3.3.3.3
     def set_ipv6_next_hop
-      str = config_get('route_map', 'set_ipv6_next_hop', @get_args)
-      if str.empty?
-        val = default_set_ipv6_next_hop
-      else
+      arr = config_get('route_map', 'set_ipv6_next_hop', @get_args)
+      val = default_set_ipv6_next_hop
+      arr.each do |str|
+        next if str.empty?
+        next if str.include?('peer-address')
+        next if str.include?('unchanged')
+        next if str.include?('redist-unchanged')
         val = str.split
         val.delete('load-share')
       end
@@ -2132,8 +2143,13 @@ module Cisco
     # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
     # set ipv6 default next-hop load-share
     def set_ipv6_next_hop_load_share
-      config_get('route_map', 'set_ipv6_next_hop',
-                 @get_args).include?('load-share')
+      arr = config_get('route_map', 'set_ipv6_next_hop', @get_args)
+      val = default_set_ipv6_next_hop_load_share
+      arr.each do |str|
+        next if str.empty?
+        return true if str.include?('load-share')
+      end
+      val
     end
 
     def default_set_ipv6_next_hop_load_share
