@@ -348,7 +348,7 @@ module Cisco
       val
     end
 
-    def match_ipv4_addr_access_list=(val)
+    def match_ipv4_addr_access_list_set(val)
       cval = match_ipv4_addr_access_list
       return if val == cval
       state = val ? '' : 'no'
@@ -621,7 +621,7 @@ module Cisco
       val
     end
 
-    def match_ipv6_addr_access_list=(val)
+    def match_ipv6_addr_access_list_set(val)
       cval = match_ipv6_addr_access_list
       return if val == cval
       state = val ? '' : 'no'
@@ -632,6 +632,13 @@ module Cisco
 
     def default_match_ipv6_addr_access_list
       config_get_default('route_map', 'match_ipv6_addr_access_list')
+    end
+
+    def match_ip_addr_access_list(v4, v6)
+      match_ipv4_addr_access_list_set(default_match_ipv4_addr_access_list)
+      match_ipv6_addr_access_list_set(default_match_ipv6_addr_access_list)
+      match_ipv4_addr_access_list_set(v4)
+      match_ipv6_addr_access_list_set(v6)
     end
 
     def match_ipv6_addr_prefix_list
@@ -1192,7 +1199,6 @@ module Cisco
       config_get_default('route_map', 'match_length')
     end
 
-    # TODO: range_summarize in puppet type munge??
     def match_vlan
       ret = config_get('route_map', 'match_vlan', @get_args)
       ret.strip if ret
@@ -1828,7 +1834,7 @@ module Cisco
       str ? str.strip : default_set_interface
     end
 
-    def set_interface=(val)
+    def set_interface_set(val)
       cint = set_interface
       return if cint == val
       state = val ? '' : 'no'
@@ -1860,7 +1866,7 @@ module Cisco
       config_get('route_map', 'set_ipv4_precedence', @get_args)
     end
 
-    def set_ipv4_precedence=(val)
+    def set_ipv4_precedence_set(val)
       state = val ? '' : 'no'
       pre = val ? val : ''
       set_args_keys(state: state, pre: pre)
@@ -1884,7 +1890,7 @@ module Cisco
       val
     end
 
-    def set_ipv4_default_next_hop_set(list, share)
+    def set_ipv4_def_next_hop_set(list, share)
       carr = set_ipv4_default_next_hop
       fail Cisco::UnsupportedError.new(
         'route_map',
@@ -1982,7 +1988,7 @@ module Cisco
       config_get('route_map', 'set_ipv4_next_hop_peer_addr', @get_args)
     end
 
-    def set_ipv4_next_hop_peer_addr=(val)
+    def set_ipv4_next_hop_peer_addr_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv4_next_hop_peer_addr', @set_args)
@@ -1996,7 +2002,7 @@ module Cisco
       config_get('route_map', 'set_ipv4_next_hop_redist', @get_args)
     end
 
-    def set_ipv4_next_hop_redist=(val)
+    def set_ipv4_next_hop_redist_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv4_next_hop_redist', @set_args)
@@ -2010,7 +2016,7 @@ module Cisco
       config_get('route_map', 'set_ipv4_next_hop_unchanged', @get_args)
     end
 
-    def set_ipv4_next_hop_unchanged=(val)
+    def set_ipv4_next_hop_unchanged_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv4_next_hop_unchanged', @set_args)
@@ -2039,7 +2045,7 @@ module Cisco
       config_get('route_map', 'set_ipv6_precedence', @get_args)
     end
 
-    def set_ipv6_precedence=(val)
+    def set_ipv6_precedence_set(val)
       state = val ? '' : 'no'
       pre = val ? val : ''
       set_args_keys(state: state, pre: pre)
@@ -2048,6 +2054,13 @@ module Cisco
 
     def default_set_ipv6_precedence
       config_get_default('route_map', 'set_ipv6_precedence')
+    end
+
+    def set_ip_precedence(v4, v6)
+      set_ipv4_precedence_set(default_set_ipv4_precedence)
+      set_ipv6_precedence_set(default_set_ipv6_precedence)
+      set_ipv4_precedence_set(v4)
+      set_ipv6_precedence_set(v6)
     end
 
     # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3
@@ -2063,7 +2076,7 @@ module Cisco
       val
     end
 
-    def set_ipv6_default_next_hop_set(list, share)
+    def set_ipv6_def_next_hop_set(list, share)
       carr = set_ipv6_default_next_hop
       fail Cisco::UnsupportedError.new(
         'route_map',
@@ -2161,7 +2174,7 @@ module Cisco
       config_get('route_map', 'set_ipv6_next_hop_peer_addr', @get_args)
     end
 
-    def set_ipv6_next_hop_peer_addr=(val)
+    def set_ipv6_next_hop_peer_addr_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv6_next_hop_peer_addr', @set_args)
@@ -2175,7 +2188,7 @@ module Cisco
       config_get('route_map', 'set_ipv6_next_hop_redist', @get_args)
     end
 
-    def set_ipv6_next_hop_redist=(val)
+    def set_ipv6_next_hop_redist_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv6_next_hop_redist', @set_args)
@@ -2189,7 +2202,7 @@ module Cisco
       config_get('route_map', 'set_ipv6_next_hop_unchanged', @get_args)
     end
 
-    def set_ipv6_next_hop_unchanged=(val)
+    def set_ipv6_next_hop_unchanged_set(val)
       state = val ? '' : 'no'
       set_args_keys(state: state)
       config_set('route_map', 'set_ipv6_next_hop_unchanged', @set_args)
@@ -2493,6 +2506,44 @@ module Cisco
       end
       set_args_keys(state: '', string: str)
       config_set('route_map', 'set_extcommunity_cost', @set_args)
+    end
+
+    def set_ip_next_hop_reset(attrs)
+      set_interface_set(default_set_interface)
+      v4ls = default_set_ipv4_default_next_hop_load_share
+      set_ipv4_def_next_hop_set(default_set_ipv4_default_next_hop, v4ls) unless
+                                default_set_ipv4_default_next_hop.nil?
+      default_set_ipv4_default_next_hop.nil?
+      set_ipv4_next_hop_set(default_set_ipv4_next_hop)
+      set_ipv4_next_hop_peer_addr_set(default_set_ipv4_next_hop_peer_addr)
+      set_ipv4_next_hop_redist_set(default_set_ipv4_next_hop_redist) unless
+        attrs[:v4red].nil?
+      set_ipv4_next_hop_unchanged_set(default_set_ipv4_next_hop_unchanged)
+      v6ls = default_set_ipv4_default_next_hop_load_share
+      set_ipv6_def_next_hop_set(default_set_ipv6_default_next_hop, v6ls) unless
+                                default_set_ipv6_default_next_hop.nil?
+      set_ipv6_next_hop_set(default_set_ipv6_next_hop)
+      set_ipv6_next_hop_peer_addr_set(default_set_ipv6_next_hop_peer_addr)
+      set_ipv6_next_hop_redist_set(default_set_ipv6_next_hop_redist) unless
+        attrs[:v6red].nil?
+      set_ipv6_next_hop_unchanged_set(default_set_ipv6_next_hop_unchanged)
+    end
+
+    def set_ip_next_hop_set(attrs)
+      set_ip_next_hop_reset(attrs)
+      set_interface_set(attrs[:intf])
+      set_ipv4_def_next_hop_set(attrs[:v4dnh], attrs[:v4dls]) unless
+        default_set_ipv4_default_next_hop.nil?
+      set_ipv4_next_hop_set(attrs[:v4nh], attrs[:v4ls])
+      set_ipv4_next_hop_peer_addr_set(attrs[:v4peer])
+      set_ipv4_next_hop_redist_set(attrs[:v4red]) unless attrs[:v4red].nil?
+      set_ipv4_next_hop_unchanged_set(attrs[:v4unc])
+      set_ipv6_def_next_hop_set(attrs[:v6dnh], attrs[:v6dls]) unless
+        default_set_ipv6_default_next_hop.nil?
+      set_ipv6_next_hop_set(attrs[:v6nh], attrs[:v6ls])
+      set_ipv6_next_hop_peer_addr_set(attrs[:v6peer])
+      set_ipv6_next_hop_redist_set(attrs[:v6red]) unless attrs[:v6red].nil?
+      set_ipv6_next_hop_unchanged_set(attrs[:v6unc])
     end
   end # class
 end # module

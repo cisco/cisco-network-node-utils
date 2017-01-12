@@ -15,7 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/route_map'
 
-def evergreen_higher?
+def evergreen_or_later?
   return false if Utils.image_version?(/7.0.3.I2|I3|I4/)
   true
 end
@@ -110,10 +110,10 @@ class TestRouteMap < CiscoTestCase
     array = %w(public private)
     rm.match_community_set(array, false)
     assert_equal(array, rm.match_community)
-    assert_equal(false, rm.match_community_exact_match)
+    refute(rm.match_community_exact_match)
     rm.match_community_set(array, true)
     assert_equal(array, rm.match_community)
-    assert_equal(true, rm.match_community_exact_match)
+    assert(rm.match_community_exact_match)
     rm.match_community_set(rm.default_match_community, rm.default_match_community_exact_match)
     assert_equal(rm.default_match_community, rm.match_community)
     assert_equal(rm.default_match_community_exact_match, rm.match_community_exact_match)
@@ -126,10 +126,10 @@ class TestRouteMap < CiscoTestCase
     array = %w(public private)
     rm.match_ext_community_set(array, false)
     assert_equal(array, rm.match_ext_community)
-    assert_equal(false, rm.match_ext_community_exact_match)
+    refute(rm.match_ext_community_exact_match)
     rm.match_ext_community_set(array, true)
     assert_equal(array, rm.match_ext_community)
-    assert_equal(true, rm.match_ext_community_exact_match)
+    assert(rm.match_ext_community_exact_match)
     rm.match_ext_community_set(rm.default_match_ext_community, rm.default_match_ext_community_exact_match)
     assert_equal(rm.default_match_ext_community, rm.match_ext_community)
     assert_equal(rm.default_match_ext_community_exact_match, rm.match_ext_community_exact_match)
@@ -165,13 +165,22 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_src_proto, rm.match_src_proto)
   end
 
-  def test_match_ipv4_addr_access_list
+  def test_match_ip_addr_access_list
     rm = create_route_map
     assert_equal(rm.default_match_ipv4_addr_access_list, rm.match_ipv4_addr_access_list)
-    rm.match_ipv4_addr_access_list = 'MyAccessList'
+    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
+    rm.match_ip_addr_access_list('MyAccessList',
+                                 rm.default_match_ipv6_addr_access_list)
     assert_equal('MyAccessList', rm.match_ipv4_addr_access_list)
-    rm.match_ipv4_addr_access_list = rm.default_match_ipv4_addr_access_list
+    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
+    rm.match_ip_addr_access_list(rm.default_match_ipv4_addr_access_list,
+                                 'MyV6AccessList')
     assert_equal(rm.default_match_ipv4_addr_access_list, rm.match_ipv4_addr_access_list)
+    assert_equal('MyV6AccessList', rm.match_ipv6_addr_access_list)
+    rm.match_ip_addr_access_list(rm.default_match_ipv4_addr_access_list,
+                                 rm.default_match_ipv6_addr_access_list)
+    assert_equal(rm.default_match_ipv4_addr_access_list, rm.match_ipv4_addr_access_list)
+    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
   end
 
   def test_match_ipv4_addr_prefix_list
@@ -224,7 +233,7 @@ class TestRouteMap < CiscoTestCase
                                      match_ipv4_multicast_group_addr: '239.2.2.2/32',
                                      match_ipv4_multicast_rp_addr:    '242.1.1.1/32',
                                      match_ipv4_multicast_rp_type:    'ASM')
-    assert_equal(true, rm.match_ipv4_multicast_enable)
+    assert(rm.match_ipv4_multicast_enable)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
     assert_equal('239.2.2.2/32', rm.match_ipv4_multicast_group_addr)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_rp_addr)
@@ -235,7 +244,7 @@ class TestRouteMap < CiscoTestCase
                                      match_ipv4_multicast_group_range_end_addr:   '239.2.2.2',
                                      match_ipv4_multicast_rp_addr:                '242.1.1.1/32',
                                      match_ipv4_multicast_rp_type:                'Bidir')
-    assert_equal(true, rm.match_ipv4_multicast_enable)
+    assert(rm.match_ipv4_multicast_enable)
     assert_equal('242.1.1.1/32', rm.match_ipv4_multicast_src_addr)
     assert_equal('239.1.1.1', rm.match_ipv4_multicast_group_range_begin_addr)
     assert_equal('239.2.2.2', rm.match_ipv4_multicast_group_range_end_addr)
@@ -250,15 +259,6 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_ipv4_multicast_group_range_end_addr, rm.match_ipv4_multicast_group_range_end_addr)
     assert_equal(rm.default_match_ipv4_multicast_rp_addr, rm.match_ipv4_multicast_rp_addr)
     assert_equal(rm.default_match_ipv4_multicast_rp_type, rm.match_ipv4_multicast_rp_type)
-  end
-
-  def test_match_ipv6_addr_access_list
-    rm = create_route_map
-    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
-    rm.match_ipv6_addr_access_list = 'MyAccessList'
-    assert_equal('MyAccessList', rm.match_ipv6_addr_access_list)
-    rm.match_ipv6_addr_access_list = rm.default_match_ipv6_addr_access_list
-    assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
   end
 
   def test_match_ipv6_addr_prefix_list
@@ -311,7 +311,7 @@ class TestRouteMap < CiscoTestCase
                                      match_ipv6_multicast_group_addr: 'ff0e::2:101:0:0/96',
                                      match_ipv6_multicast_rp_addr:    '2001::348:0:0/96',
                                      match_ipv6_multicast_rp_type:    'ASM')
-    assert_equal(true, rm.match_ipv6_multicast_enable)
+    assert(rm.match_ipv6_multicast_enable)
     assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_src_addr)
     assert_equal('ff0e::2:101:0:0/96', rm.match_ipv6_multicast_group_addr)
     assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_rp_addr)
@@ -322,7 +322,7 @@ class TestRouteMap < CiscoTestCase
                                      match_ipv6_multicast_group_range_end_addr:   'ff02::',
                                      match_ipv6_multicast_rp_addr:                '2001::348:0:0/96',
                                      match_ipv6_multicast_rp_type:                'Bidir')
-    assert_equal(true, rm.match_ipv6_multicast_enable)
+    assert(rm.match_ipv6_multicast_enable)
     assert_equal('2001::348:0:0/96', rm.match_ipv6_multicast_src_addr)
     assert_equal('ff01::', rm.match_ipv6_multicast_group_range_begin_addr)
     assert_equal('ff02::', rm.match_ipv6_multicast_group_range_end_addr)
@@ -379,16 +379,16 @@ class TestRouteMap < CiscoTestCase
       match_route_type_level_1:  true,
       match_route_type_local:    true,
       match_route_type_type_2:   true)
-    assert_equal(true, rm.match_route_type_external)
-    assert_equal(true, rm.match_route_type_internal)
-    assert_equal(true, rm.match_route_type_level_1)
-    assert_equal(true, rm.match_route_type_local)
-    assert_equal(true, rm.match_route_type_type_2)
-    assert_equal(false, rm.match_route_type_type_1)
-    assert_equal(false, rm.match_route_type_inter_area)
-    assert_equal(false, rm.match_route_type_level_2)
-    assert_equal(false, rm.match_route_type_nssa_external)
-    assert_equal(false, rm.match_route_type_type_1)
+    assert(rm.match_route_type_external)
+    assert(rm.match_route_type_internal)
+    assert(rm.match_route_type_level_1)
+    assert(rm.match_route_type_local)
+    assert(rm.match_route_type_type_2)
+    refute(rm.match_route_type_type_1)
+    refute(rm.match_route_type_inter_area)
+    refute(rm.match_route_type_level_2)
+    refute(rm.match_route_type_nssa_external)
+    refute(rm.match_route_type_type_1)
 
     rm = match_route_type_helper(
       match_route_type_external:      true,
@@ -402,34 +402,34 @@ class TestRouteMap < CiscoTestCase
       match_route_type_type_1:        true,
       match_route_type_type_2:        true)
 
-    assert_equal(true, rm.match_route_type_external)
-    assert_equal(true, rm.match_route_type_internal)
-    assert_equal(true, rm.match_route_type_level_1)
-    assert_equal(true, rm.match_route_type_local)
-    assert_equal(true, rm.match_route_type_type_2)
-    assert_equal(true, rm.match_route_type_type_1)
-    assert_equal(true, rm.match_route_type_inter_area)
-    assert_equal(true, rm.match_route_type_level_2)
-    assert_equal(true, rm.match_route_type_nssa_external)
-    assert_equal(true, rm.match_route_type_type_1)
+    assert(rm.match_route_type_external)
+    assert(rm.match_route_type_internal)
+    assert(rm.match_route_type_level_1)
+    assert(rm.match_route_type_local)
+    assert(rm.match_route_type_type_2)
+    assert(rm.match_route_type_type_1)
+    assert(rm.match_route_type_inter_area)
+    assert(rm.match_route_type_level_2)
+    assert(rm.match_route_type_nssa_external)
+    assert(rm.match_route_type_type_1)
     rm = match_route_type_helper(
       match_route_type_level_1:  true)
-    assert_equal(true, rm.match_route_type_level_1)
+    assert(rm.match_route_type_level_1)
     rm = match_route_type_helper({})
-    assert_equal(false, rm.match_route_type_external)
-    assert_equal(false, rm.match_route_type_internal)
-    assert_equal(false, rm.match_route_type_level_1)
-    assert_equal(false, rm.match_route_type_local)
-    assert_equal(false, rm.match_route_type_type_2)
-    assert_equal(false, rm.match_route_type_type_1)
-    assert_equal(false, rm.match_route_type_inter_area)
-    assert_equal(false, rm.match_route_type_level_2)
-    assert_equal(false, rm.match_route_type_nssa_external)
-    assert_equal(false, rm.match_route_type_type_1)
+    refute(rm.match_route_type_external)
+    refute(rm.match_route_type_internal)
+    refute(rm.match_route_type_level_1)
+    refute(rm.match_route_type_local)
+    refute(rm.match_route_type_type_2)
+    refute(rm.match_route_type_type_1)
+    refute(rm.match_route_type_inter_area)
+    refute(rm.match_route_type_level_2)
+    refute(rm.match_route_type_nssa_external)
+    refute(rm.match_route_type_type_1)
   end
 
   def test_match_ospf_area
-    skip('platform not supported for this test') unless evergreen_higher?
+    skip('platform not supported for this test') unless evergreen_or_later?
     rm = create_route_map
     if validate_property_excluded?('route_map', 'match_ospf_area')
       assert_nil(rm.match_ospf_area)
@@ -507,7 +507,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
     rm.match_evpn_route_type_1 = true
-    assert_equal(true, rm.match_evpn_route_type_1)
+    assert(rm.match_evpn_route_type_1)
     rm.match_evpn_route_type_1 = rm.default_match_evpn_route_type_1
     assert_equal(rm.default_match_evpn_route_type_1, rm.match_evpn_route_type_1)
   end
@@ -523,7 +523,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
     rm.match_evpn_route_type_3 = true
-    assert_equal(true, rm.match_evpn_route_type_3)
+    assert(rm.match_evpn_route_type_3)
     rm.match_evpn_route_type_3 = rm.default_match_evpn_route_type_3
     assert_equal(rm.default_match_evpn_route_type_3, rm.match_evpn_route_type_3)
   end
@@ -539,7 +539,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
     rm.match_evpn_route_type_4 = true
-    assert_equal(true, rm.match_evpn_route_type_4)
+    assert(rm.match_evpn_route_type_4)
     rm.match_evpn_route_type_4 = rm.default_match_evpn_route_type_4
     assert_equal(rm.default_match_evpn_route_type_4, rm.match_evpn_route_type_4)
   end
@@ -555,7 +555,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
     rm.match_evpn_route_type_5 = true
-    assert_equal(true, rm.match_evpn_route_type_5)
+    assert(rm.match_evpn_route_type_5)
     rm.match_evpn_route_type_5 = rm.default_match_evpn_route_type_5
     assert_equal(rm.default_match_evpn_route_type_5, rm.match_evpn_route_type_5)
   end
@@ -571,7 +571,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
     rm.match_evpn_route_type_6 = true
-    assert_equal(true, rm.match_evpn_route_type_6)
+    assert(rm.match_evpn_route_type_6)
     rm.match_evpn_route_type_6 = rm.default_match_evpn_route_type_6
     assert_equal(rm.default_match_evpn_route_type_6, rm.match_evpn_route_type_6)
   end
@@ -587,7 +587,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
     rm.match_evpn_route_type_all = true
-    assert_equal(true, rm.match_evpn_route_type_all)
+    assert(rm.match_evpn_route_type_all)
     rm.match_evpn_route_type_all = rm.default_match_evpn_route_type_all
     assert_equal(rm.default_match_evpn_route_type_all, rm.match_evpn_route_type_all)
   end
@@ -603,7 +603,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
     rm.match_evpn_route_type_2_all = true
-    assert_equal(true, rm.match_evpn_route_type_2_all)
+    assert(rm.match_evpn_route_type_2_all)
     rm.match_evpn_route_type_2_all = rm.default_match_evpn_route_type_2_all
     assert_equal(rm.default_match_evpn_route_type_2_all, rm.match_evpn_route_type_2_all)
   end
@@ -619,7 +619,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
     rm.match_evpn_route_type_2_mac_ip = true
-    assert_equal(true, rm.match_evpn_route_type_2_mac_ip)
+    assert(rm.match_evpn_route_type_2_mac_ip)
     rm.match_evpn_route_type_2_mac_ip = rm.default_match_evpn_route_type_2_mac_ip
     assert_equal(rm.default_match_evpn_route_type_2_mac_ip, rm.match_evpn_route_type_2_mac_ip)
   end
@@ -635,7 +635,7 @@ class TestRouteMap < CiscoTestCase
     end
     assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
     rm.match_evpn_route_type_2_mac_only = true
-    assert_equal(true, rm.match_evpn_route_type_2_mac_only)
+    assert(rm.match_evpn_route_type_2_mac_only)
     rm.match_evpn_route_type_2_mac_only = rm.default_match_evpn_route_type_2_mac_only
     assert_equal(rm.default_match_evpn_route_type_2_mac_only, rm.match_evpn_route_type_2_mac_only)
   end
@@ -662,41 +662,35 @@ class TestRouteMap < CiscoTestCase
     rm = create_route_map
     assert_equal(rm.default_set_forwarding_addr, rm.set_forwarding_addr)
     rm.set_forwarding_addr = true
-    assert_equal(true, rm.set_forwarding_addr)
+    assert(rm.set_forwarding_addr)
     rm.set_forwarding_addr = rm.default_set_forwarding_addr
     assert_equal(rm.default_set_forwarding_addr, rm.set_forwarding_addr)
   end
 
   def test_set_ipv4_next_hop_peer_addr
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv4_next_hop_peer_addr,
-                 rm.set_ipv4_next_hop_peer_addr)
-    rm.set_ipv4_next_hop_peer_addr = true
-    assert_equal(true, rm.set_ipv4_next_hop_peer_addr)
-    rm.set_ipv4_next_hop_peer_addr = rm.default_set_ipv4_next_hop_peer_addr
+    rm = lset_ip_next_hop_helper(v4peer: true)
+    assert(rm.set_ipv4_next_hop_peer_addr)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_next_hop_peer_addr,
                  rm.set_ipv4_next_hop_peer_addr)
   end
 
   def test_set_ipv4_next_hop_redist
-    skip('platform not supported for this test') unless evergreen_higher?
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv4_next_hop_redist,
-                 rm.set_ipv4_next_hop_redist)
-    rm.set_ipv4_next_hop_redist = true
-    assert_equal(true, rm.set_ipv4_next_hop_redist)
-    rm.set_ipv4_next_hop_redist = rm.default_set_ipv4_next_hop_redist
+    skip('platform not supported for this test') unless evergreen_or_later?
+    rm = lset_ip_next_hop_helper(v4red: true)
+    assert(rm.set_ipv4_next_hop_redist)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_next_hop_redist,
                  rm.set_ipv4_next_hop_redist)
   end
 
   def test_set_ipv4_next_hop_unchanged
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv4_next_hop_unchanged,
-                 rm.set_ipv4_next_hop_unchanged)
-    rm.set_ipv4_next_hop_unchanged = true
-    assert_equal(true, rm.set_ipv4_next_hop_unchanged)
-    rm.set_ipv4_next_hop_unchanged = rm.default_set_ipv4_next_hop_unchanged
+    rm = lset_ip_next_hop_helper(v4unc: true)
+    assert(rm.set_ipv4_next_hop_unchanged)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_next_hop_unchanged,
                  rm.set_ipv4_next_hop_unchanged)
   end
@@ -742,7 +736,7 @@ class TestRouteMap < CiscoTestCase
     rm = create_route_map
     assert_equal(rm.default_set_nssa_only, rm.set_nssa_only)
     rm.set_nssa_only = true
-    assert_equal(true, rm.set_nssa_only)
+    assert(rm.set_nssa_only)
     rm.set_nssa_only = rm.default_set_nssa_only
     assert_equal(rm.default_set_nssa_only, rm.set_nssa_only)
   end
@@ -764,7 +758,7 @@ class TestRouteMap < CiscoTestCase
     rm = create_route_map
     assert_equal(rm.default_set_path_selection, rm.set_path_selection)
     rm.set_path_selection = true
-    assert_equal(true, rm.set_path_selection)
+    assert(rm.set_path_selection)
     rm.set_path_selection = rm.default_set_path_selection
     assert_equal(rm.default_set_path_selection, rm.set_path_selection)
   end
@@ -818,19 +812,19 @@ class TestRouteMap < CiscoTestCase
                  rm.set_metric_effective_bandwidth)
     assert_equal(rm.default_set_metric_mtu, rm.set_metric_mtu)
     rm.set_metric_set(false, 44, 55, 66, 77, 88)
-    assert_equal(false, rm.set_metric_additive)
+    refute(rm.set_metric_additive)
     assert_equal(44, rm.set_metric_bandwidth)
     assert_equal(55, rm.set_metric_delay)
     assert_equal(66, rm.set_metric_reliability)
     assert_equal(77, rm.set_metric_effective_bandwidth)
     assert_equal(88, rm.set_metric_mtu)
     rm.set_metric_set(true, 33, false, false, false, false)
-    assert_equal(true, rm.set_metric_additive)
+    assert(rm.set_metric_additive)
     assert_equal(33, rm.set_metric_bandwidth)
-    assert_equal(false, rm.set_metric_delay)
-    assert_equal(false, rm.set_metric_reliability)
-    assert_equal(false, rm.set_metric_effective_bandwidth)
-    assert_equal(false, rm.set_metric_mtu)
+    refute(rm.set_metric_delay)
+    refute(rm.set_metric_reliability)
+    refute(rm.set_metric_effective_bandwidth)
+    refute(rm.set_metric_mtu)
     rm.set_metric_set(false, false, false, false, false, false)
     assert_equal(rm.default_set_metric_additive, rm.set_metric_additive)
     assert_equal(rm.default_set_metric_bandwidth, rm.set_metric_bandwidth)
@@ -882,12 +876,12 @@ class TestRouteMap < CiscoTestCase
     assert_equal(3, rm.set_distance_local)
     rm.set_distance_set(1, false, false)
     assert_equal(1, rm.set_distance_igp_ebgp)
-    assert_equal(false, rm.set_distance_internal)
-    assert_equal(false, rm.set_distance_local)
+    refute(rm.set_distance_internal)
+    refute(rm.set_distance_local)
     rm.set_distance_set(1, 2, false)
     assert_equal(1, rm.set_distance_igp_ebgp)
     assert_equal(2, rm.set_distance_internal)
-    assert_equal(false, rm.set_distance_local)
+    refute(rm.set_distance_local)
     rm.set_distance_set(false, false, false)
     assert_equal(rm.default_set_distance_igp_ebgp,
                  rm.set_distance_igp_ebgp)
@@ -913,7 +907,7 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_as_path_tag,
                  rm.set_as_path_tag)
     rm.set_as_path_tag = true
-    assert_equal(true, rm.set_as_path_tag)
+    assert(rm.set_as_path_tag)
     rm.set_as_path_tag = rm.default_set_as_path_tag
     assert_equal(rm.default_set_as_path_tag,
                  rm.set_as_path_tag)
@@ -932,12 +926,10 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_interface
-    rm = create_route_map
-    assert_equal(rm.default_set_interface,
-                 rm.set_interface)
-    rm.set_interface = 'Null0'
+    rm = lset_ip_next_hop_helper(intf: 'Null0')
     assert_equal('Null0', rm.set_interface)
-    rm.set_interface = rm.default_set_interface
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_interface,
                  rm.set_interface)
   end
@@ -958,44 +950,38 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_ipv4_prefix, rm.set_ipv4_prefix)
   end
 
-  def test_set_ipv4_precedence
+  def test_set_ip_precedence
     rm = create_route_map
     assert_equal(rm.default_set_ipv4_precedence, rm.set_ipv4_precedence)
-    rm.set_ipv4_precedence = 'critical'
+    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
+    rm.set_ip_precedence('critical', rm.default_set_ipv6_precedence)
     assert_equal('critical', rm.set_ipv4_precedence)
-    rm.set_ipv4_precedence = 'network'
-    assert_equal('network', rm.set_ipv4_precedence)
-    rm.set_ipv4_precedence = rm.default_set_ipv4_precedence
+    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
+    rm.set_ip_precedence(rm.default_set_ipv6_precedence, 'network')
     assert_equal(rm.default_set_ipv4_precedence, rm.set_ipv4_precedence)
+    assert_equal('network', rm.set_ipv6_precedence)
+    rm.set_ip_precedence(rm.default_set_ipv4_precedence,
+                         rm.default_set_ipv6_precedence)
+    assert_equal(rm.default_set_ipv4_precedence, rm.set_ipv4_precedence)
+    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
   end
 
   def test_set_ipv4_default_next_hop
-    rm = create_route_map
-    if validate_property_excluded?('route_map', 'set_ipv4_default_next_hop')
-      assert_nil(rm.set_ipv4_default_next_hop)
-      assert_raises(Cisco::UnsupportedError) do
-        array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
-        rm.set_ipv4_default_next_hop_set(array, false)
-      end
-      return
-    end
-    assert_equal(rm.default_set_ipv4_default_next_hop,
-                 rm.set_ipv4_default_next_hop)
+    skip('platform not supported for this test') if node.product_id[/(N5|N6|N9|N9.*-F)/]
+    arr = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm = lset_ip_next_hop_helper(v4dnh: arr)
+    assert_equal(arr, rm.set_ipv4_default_next_hop)
     assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
                  rm.set_ipv4_default_next_hop_load_share)
-    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
-    rm.set_ipv4_default_next_hop_set(array, false)
-    assert_equal(array, rm.set_ipv4_default_next_hop)
-    assert_equal(false, rm.set_ipv4_default_next_hop_load_share)
-    rm.set_ipv4_default_next_hop_set(array, true)
-    assert_equal(array, rm.set_ipv4_default_next_hop)
-    assert_equal(true, rm.set_ipv4_default_next_hop_load_share)
-    rm.set_ipv4_default_next_hop_set(rm.default_set_ipv4_default_next_hop, true)
+    rm = lset_ip_next_hop_helper(v4dnh: arr, v4dls: true)
+    assert_equal(arr, rm.set_ipv4_default_next_hop)
+    assert(rm.set_ipv4_default_next_hop_load_share)
+    rm = lset_ip_next_hop_helper(v4dls: true)
     assert_equal(rm.default_set_ipv4_default_next_hop,
                  rm.set_ipv4_default_next_hop)
-    assert_equal(true, rm.set_ipv4_default_next_hop_load_share)
-    rm.set_ipv4_default_next_hop_set(rm.default_set_ipv4_default_next_hop,
-                                     rm.default_set_ipv4_default_next_hop_load_share)
+    assert(rm.set_ipv4_default_next_hop_load_share)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_default_next_hop,
                  rm.set_ipv4_default_next_hop)
     assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
@@ -1003,13 +989,11 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv4_next_hop
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv4_next_hop,
-                 rm.set_ipv4_next_hop)
-    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
-    rm.set_ipv4_next_hop_set(array)
-    assert_equal(array, rm.set_ipv4_next_hop)
-    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop)
+    arr = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm = lset_ip_next_hop_helper(v4nh: arr)
+    assert_equal(arr, rm.set_ipv4_next_hop)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_next_hop,
                  rm.set_ipv4_next_hop)
   end
@@ -1019,24 +1003,20 @@ class TestRouteMap < CiscoTestCase
     skip('platform not supported for this test') if node.product_id[/(N5|N6|N9.*-F)/]
     # bug on old n9k
     skip('platform not supported for this test') if older_n9k?
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv4_next_hop,
-                 rm.set_ipv4_next_hop)
+    arr = %w(1.1.1.1 2.2.2.2 3.3.3.3)
+    rm = lset_ip_next_hop_helper(v4nh: arr)
+    assert_equal(arr, rm.set_ipv4_next_hop)
     assert_equal(rm.default_set_ipv4_next_hop_load_share,
                  rm.set_ipv4_next_hop_load_share)
-    array = %w(1.1.1.1 2.2.2.2 3.3.3.3)
-    rm.set_ipv4_next_hop_set(array, false)
-    assert_equal(array, rm.set_ipv4_next_hop)
-    assert_equal(false, rm.set_ipv4_next_hop_load_share)
-    rm.set_ipv4_next_hop_set(array, true)
-    assert_equal(array, rm.set_ipv4_next_hop)
-    assert_equal(true, rm.set_ipv4_next_hop_load_share)
-    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop, true)
+    rm = lset_ip_next_hop_helper(v4nh: arr, v4ls: true)
+    assert_equal(arr, rm.set_ipv4_next_hop)
+    assert(rm.set_ipv4_next_hop_load_share)
+    rm = lset_ip_next_hop_helper(v4ls: true)
     assert_equal(rm.default_set_ipv4_next_hop,
                  rm.set_ipv4_next_hop)
-    assert_equal(true, rm.set_ipv4_next_hop_load_share)
-    rm.set_ipv4_next_hop_set(rm.default_set_ipv4_next_hop,
-                             rm.default_set_ipv4_next_hop_load_share)
+    assert(rm.set_ipv4_next_hop_load_share)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv4_next_hop,
                  rm.set_ipv4_next_hop)
     assert_equal(rm.default_set_ipv4_next_hop_load_share,
@@ -1044,35 +1024,29 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv6_next_hop_peer_addr
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_next_hop_peer_addr,
-                 rm.set_ipv6_next_hop_peer_addr)
-    rm.set_ipv6_next_hop_peer_addr = true
-    assert_equal(true, rm.set_ipv6_next_hop_peer_addr)
-    rm.set_ipv6_next_hop_peer_addr = rm.default_set_ipv6_next_hop_peer_addr
+    rm = lset_ip_next_hop_helper(v6peer: true)
+    assert(rm.set_ipv6_next_hop_peer_addr)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_next_hop_peer_addr,
                  rm.set_ipv6_next_hop_peer_addr)
   end
 
   def test_set_ipv6_next_hop_redist
-    skip('platform not supported for this test') unless evergreen_higher?
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_next_hop_redist,
-                 rm.set_ipv6_next_hop_redist)
-    rm.set_ipv6_next_hop_redist = true
-    assert_equal(true, rm.set_ipv6_next_hop_redist)
-    rm.set_ipv6_next_hop_redist = rm.default_set_ipv6_next_hop_redist
+    skip('platform not supported for this test') unless evergreen_or_later?
+    rm = lset_ip_next_hop_helper(v6red: true)
+    assert(rm.set_ipv6_next_hop_redist)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_next_hop_redist,
                  rm.set_ipv6_next_hop_redist)
   end
 
   def test_set_ipv6_next_hop_unchanged
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_next_hop_unchanged,
-                 rm.set_ipv6_next_hop_unchanged)
-    rm.set_ipv6_next_hop_unchanged = true
-    assert_equal(true, rm.set_ipv6_next_hop_unchanged)
-    rm.set_ipv6_next_hop_unchanged = rm.default_set_ipv6_next_hop_unchanged
+    rm = lset_ip_next_hop_helper(v6unc: true)
+    assert(rm.set_ipv6_next_hop_unchanged)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_next_hop_unchanged,
                  rm.set_ipv6_next_hop_unchanged)
   end
@@ -1093,44 +1067,22 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_set_ipv6_prefix, rm.set_ipv6_prefix)
   end
 
-  def test_set_ipv6_precedence
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
-    rm.set_ipv6_precedence = 'critical'
-    assert_equal('critical', rm.set_ipv6_precedence)
-    rm.set_ipv6_precedence = 'network'
-    assert_equal('network', rm.set_ipv6_precedence)
-    rm.set_ipv6_precedence = rm.default_set_ipv6_precedence
-    assert_equal(rm.default_set_ipv6_precedence, rm.set_ipv6_precedence)
-  end
-
   def test_set_ipv6_default_next_hop
-    rm = create_route_map
-    if validate_property_excluded?('route_map', 'set_ipv6_default_next_hop')
-      assert_nil(rm.set_ipv6_default_next_hop)
-      assert_raises(Cisco::UnsupportedError) do
-        array = %w(2000::1 2000::11 2000::22)
-        rm.set_ipv6_default_next_hop_set(array, false)
-      end
-      return
-    end
-    assert_equal(rm.default_set_ipv6_default_next_hop,
-                 rm.set_ipv6_default_next_hop)
+    skip('platform not supported for this test') if node.product_id[/(N5|N6|N9|N9.*-F)/]
+    arr = %w(2000::1 2000::11 2000::22)
+    rm = lset_ip_next_hop_helper(v6dnh: arr)
+    assert_equal(arr, rm.set_ipv6_default_next_hop)
     assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
                  rm.set_ipv6_default_next_hop_load_share)
-    array = %w(2000::1 2000::11 2000::22)
-    rm.set_ipv6_default_next_hop_set(array, false)
-    assert_equal(array, rm.set_ipv6_default_next_hop)
-    assert_equal(false, rm.set_ipv6_default_next_hop_load_share)
-    rm.set_ipv6_default_next_hop_set(array, true)
-    assert_equal(array, rm.set_ipv6_default_next_hop)
-    assert_equal(true, rm.set_ipv6_default_next_hop_load_share)
-    rm.set_ipv6_default_next_hop_set(rm.default_set_ipv6_default_next_hop, true)
+    rm = lset_ip_next_hop_helper(v6dnh: arr, v6dls: true)
+    assert_equal(arr, rm.set_ipv6_default_next_hop)
+    assert(rm.set_ipv6_default_next_hop_load_share)
+    rm = lset_ip_next_hop_helper(v6dls: true)
     assert_equal(rm.default_set_ipv6_default_next_hop,
                  rm.set_ipv6_default_next_hop)
-    assert_equal(true, rm.set_ipv6_default_next_hop_load_share)
-    rm.set_ipv6_default_next_hop_set(rm.default_set_ipv6_default_next_hop,
-                                     rm.default_set_ipv6_default_next_hop_load_share)
+    assert(rm.set_ipv6_default_next_hop_load_share)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_default_next_hop,
                  rm.set_ipv6_default_next_hop)
     assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
@@ -1138,13 +1090,11 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv6_next_hop
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_next_hop,
-                 rm.set_ipv6_next_hop)
-    array = %w(2000::1 2000::11 2000::22)
-    rm.set_ipv6_next_hop_set(array)
-    assert_equal(array, rm.set_ipv6_next_hop)
-    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop)
+    arr = %w(2000::1 2000::11 2000::22)
+    rm = lset_ip_next_hop_helper(v6nh: arr)
+    assert_equal(arr, rm.set_ipv6_next_hop)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_next_hop,
                  rm.set_ipv6_next_hop)
   end
@@ -1154,24 +1104,20 @@ class TestRouteMap < CiscoTestCase
     skip('platform not supported for this test') if node.product_id[/(N5|N6|N9.*-F)/]
     # bug on old n9k
     skip('platform not supported for this test') if older_n9k?
-    rm = create_route_map
-    assert_equal(rm.default_set_ipv6_next_hop,
-                 rm.set_ipv6_next_hop)
+    arr = %w(2000::1 2000::11 2000::22)
+    rm = lset_ip_next_hop_helper(v6nh: arr)
+    assert_equal(arr, rm.set_ipv6_next_hop)
     assert_equal(rm.default_set_ipv6_next_hop_load_share,
                  rm.set_ipv6_next_hop_load_share)
-    array = %w(2000::1 2000::11 2000::22)
-    rm.set_ipv6_next_hop_set(array, false)
-    assert_equal(array, rm.set_ipv6_next_hop)
-    assert_equal(false, rm.set_ipv6_next_hop_load_share)
-    rm.set_ipv6_next_hop_set(array, true)
-    assert_equal(array, rm.set_ipv6_next_hop)
-    assert_equal(true, rm.set_ipv6_next_hop_load_share)
-    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop, true)
+    rm = lset_ip_next_hop_helper(v6nh: arr, v6ls: true)
+    assert_equal(arr, rm.set_ipv6_next_hop)
+    assert(rm.set_ipv6_next_hop_load_share)
+    rm = lset_ip_next_hop_helper(v6ls: true)
     assert_equal(rm.default_set_ipv6_next_hop,
                  rm.set_ipv6_next_hop)
-    assert_equal(true, rm.set_ipv6_next_hop_load_share)
-    rm.set_ipv6_next_hop_set(rm.default_set_ipv6_next_hop,
-                             rm.default_set_ipv6_next_hop_load_share)
+    assert(rm.set_ipv6_next_hop_load_share)
+    hash = {}
+    rm = lset_ip_next_hop_helper(hash)
     assert_equal(rm.default_set_ipv6_next_hop,
                  rm.set_ipv6_next_hop)
     assert_equal(rm.default_set_ipv6_next_hop_load_share,
@@ -1222,7 +1168,7 @@ class TestRouteMap < CiscoTestCase
     none = false
     add = true
     rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
-    assert_equal(true, rm.set_community_additive)
+    assert(rm.set_community_additive)
     assert_equal(rm.default_set_community_asn,
                  rm.set_community_asn)
     assert_equal(rm.default_set_community_internet,
@@ -1237,14 +1183,14 @@ class TestRouteMap < CiscoTestCase
                  rm.set_community_none)
     noadv = true
     rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
-    assert_equal(true, rm.set_community_additive)
+    assert(rm.set_community_additive)
     assert_equal(rm.default_set_community_asn,
                  rm.set_community_asn)
     assert_equal(rm.default_set_community_internet,
                  rm.set_community_internet)
     assert_equal(rm.default_set_community_local_as,
                  rm.set_community_local_as)
-    assert_equal(true, rm.set_community_no_advtertise)
+    assert(rm.set_community_no_advtertise)
     assert_equal(rm.default_set_community_no_export,
                  rm.set_community_no_export)
     assert_equal(rm.default_set_community_none,
@@ -1255,13 +1201,13 @@ class TestRouteMap < CiscoTestCase
     local = true
     inter = true
     rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
-    assert_equal(true, rm.set_community_additive)
+    assert(rm.set_community_additive)
     assert_equal(rm.default_set_community_asn,
                  rm.set_community_asn)
-    assert_equal(true, rm.set_community_internet)
-    assert_equal(true, rm.set_community_local_as)
-    assert_equal(true, rm.set_community_no_advtertise)
-    assert_equal(true, rm.set_community_no_export)
+    assert(rm.set_community_internet)
+    assert(rm.set_community_local_as)
+    assert(rm.set_community_no_advtertise)
+    assert(rm.set_community_no_export)
     assert_equal(rm.default_set_community_none,
                  rm.set_community_none)
     rm.set_community_set(false, false, false, false, false, false, asn)
@@ -1292,12 +1238,12 @@ class TestRouteMap < CiscoTestCase
     inter = true
     asn = ['11:22', '33:44', '123:11']
     rm.set_community_set(none, noadv, noexp, add, local, inter, asn)
-    assert_equal(true, rm.set_community_additive)
+    assert(rm.set_community_additive)
     assert_equal(asn, rm.set_community_asn)
-    assert_equal(true, rm.set_community_internet)
-    assert_equal(true, rm.set_community_local_as)
-    assert_equal(true, rm.set_community_no_advtertise)
-    assert_equal(true, rm.set_community_no_export)
+    assert(rm.set_community_internet)
+    assert(rm.set_community_local_as)
+    assert(rm.set_community_no_advtertise)
+    assert(rm.set_community_no_export)
     assert_equal(rm.default_set_community_none,
                  rm.set_community_none)
     none = false
@@ -1353,7 +1299,7 @@ class TestRouteMap < CiscoTestCase
     tr = ntr = []
     add = false
     rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
-    assert_equal(true, rm.set_extcommunity_4bytes_none)
+    assert(rm.set_extcommunity_4bytes_none)
     assert_equal(rm.default_set_extcommunity_4bytes_transitive,
                  rm.set_extcommunity_4bytes_transitive)
     assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
@@ -1363,7 +1309,7 @@ class TestRouteMap < CiscoTestCase
     none = false
     add = true
     rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
-    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert(rm.set_extcommunity_4bytes_additive)
     assert_equal(rm.default_set_extcommunity_4bytes_transitive,
                  rm.set_extcommunity_4bytes_transitive)
     assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
@@ -1372,7 +1318,7 @@ class TestRouteMap < CiscoTestCase
                  rm.set_extcommunity_4bytes_none)
     tr = ['11:22', '33:44', '66:77']
     rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
-    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert(rm.set_extcommunity_4bytes_additive)
     assert_equal(tr, rm.set_extcommunity_4bytes_transitive)
     assert_equal(rm.default_set_extcommunity_4bytes_non_transitive,
                  rm.set_extcommunity_4bytes_non_transitive)
@@ -1380,7 +1326,7 @@ class TestRouteMap < CiscoTestCase
                  rm.set_extcommunity_4bytes_none)
     ntr = ['21:42', '43:22', '59:17']
     rm.set_extcommunity_4bytes_set(none, tr, ntr, add)
-    assert_equal(true, rm.set_extcommunity_4bytes_additive)
+    assert(rm.set_extcommunity_4bytes_additive)
     assert_equal(tr, rm.set_extcommunity_4bytes_transitive)
     assert_equal(ntr, rm.set_extcommunity_4bytes_non_transitive)
     assert_equal(rm.default_set_extcommunity_4bytes_none,
@@ -1411,12 +1357,12 @@ class TestRouteMap < CiscoTestCase
     asn = []
     add = true
     rm.set_extcommunity_rt_set(asn, add)
-    assert_equal(true, rm.set_extcommunity_rt_additive)
+    assert(rm.set_extcommunity_rt_additive)
     assert_equal(rm.default_set_extcommunity_rt_asn,
                  rm.set_extcommunity_rt_asn)
     asn = ['11:22', '33:44', '12.22.22.22:12', '123.256:543']
     rm.set_extcommunity_rt_set(asn, add)
-    assert_equal(true, rm.set_extcommunity_rt_additive)
+    assert(rm.set_extcommunity_rt_additive)
     assert_equal(asn, rm.set_extcommunity_rt_asn)
     add = false
     rm.set_extcommunity_rt_set(asn, add)
@@ -1458,5 +1404,87 @@ class TestRouteMap < CiscoTestCase
                  rm.set_extcommunity_cost_igp)
     assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
                  rm.set_extcommunity_cost_pre_bestpath)
+  end
+
+  def test_set_ip_next_hop_defaults
+    rm = create_route_map
+    assert_equal(rm.default_set_interface, rm.set_interface)
+    assert_equal(rm.default_set_ipv4_default_next_hop,
+                 rm.set_ipv4_default_next_hop) unless
+      rm.default_set_ipv4_default_next_hop.nil?
+    assert_equal(rm.default_set_ipv4_default_next_hop_load_share,
+                 rm.set_ipv4_default_next_hop_load_share) unless
+      rm.default_set_ipv4_default_next_hop_load_share.nil?
+    assert_equal(rm.default_set_ipv4_next_hop,
+                 rm.set_ipv4_next_hop) unless
+      rm.default_set_ipv4_next_hop.nil?
+    assert_equal(rm.default_set_ipv4_next_hop_load_share,
+                 rm.set_ipv4_next_hop_load_share) unless
+      rm.default_set_ipv4_next_hop_load_share.nil?
+    assert_equal(rm.default_set_ipv4_next_hop_peer_addr,
+                 rm.set_ipv4_next_hop_peer_addr)
+    assert_equal(rm.default_set_ipv4_next_hop_redist,
+                 rm.set_ipv4_next_hop_redist)
+    assert_equal(rm.default_set_ipv4_next_hop_unchanged,
+                 rm.set_ipv4_next_hop_unchanged)
+    assert_equal(rm.default_set_ipv6_default_next_hop,
+                 rm.set_ipv6_default_next_hop) unless
+      rm.default_set_ipv6_default_next_hop.nil?
+    assert_equal(rm.default_set_ipv6_default_next_hop_load_share,
+                 rm.set_ipv6_default_next_hop_load_share) unless
+      rm.default_set_ipv6_default_next_hop_load_share.nil?
+    assert_equal(rm.default_set_ipv6_next_hop,
+                 rm.set_ipv6_next_hop) unless
+      rm.default_set_ipv6_next_hop.nil?
+    assert_equal(rm.default_set_ipv6_next_hop_load_share,
+                 rm.set_ipv6_next_hop_load_share) unless
+      rm.default_set_ipv6_next_hop_load_share.nil?
+    assert_equal(rm.default_set_ipv6_next_hop_peer_addr,
+                 rm.set_ipv6_next_hop_peer_addr)
+    assert_equal(rm.default_set_ipv6_next_hop_redist,
+                 rm.set_ipv6_next_hop_redist)
+    assert_equal(rm.default_set_ipv6_next_hop_unchanged,
+                 rm.set_ipv6_next_hop_unchanged)
+  end
+
+  def lset_ip_next_hop_helper(props)
+    rm = create_route_map
+    if evergreen_or_later?
+      attrs = {
+        intf:   rm.default_set_interface,
+        v4nh:   rm.default_set_ipv4_next_hop,
+        v4ls:   rm.default_set_ipv4_next_hop_load_share,
+        v4dnh:  rm.default_set_ipv4_default_next_hop,
+        v4dls:  rm.default_set_ipv4_default_next_hop_load_share,
+        v4peer: rm.default_set_ipv4_next_hop_peer_addr,
+        v4red:  rm.default_set_ipv4_next_hop_redist,
+        v4unc:  rm.default_set_ipv4_next_hop_unchanged,
+        v6nh:   rm.default_set_ipv6_next_hop,
+        v6ls:   rm.default_set_ipv6_next_hop_load_share,
+        v6dnh:  rm.default_set_ipv6_default_next_hop,
+        v6dls:  rm.default_set_ipv6_default_next_hop_load_share,
+        v6peer: rm.default_set_ipv6_next_hop_peer_addr,
+        v6red:  rm.default_set_ipv6_next_hop_redist,
+        v6unc:  rm.default_set_ipv6_next_hop_unchanged,
+      }.merge!(props)
+    else
+      attrs = {
+        intf:   rm.default_set_interface,
+        v4nh:   rm.default_set_ipv4_next_hop,
+        v4ls:   rm.default_set_ipv4_next_hop_load_share,
+        v4dnh:  rm.default_set_ipv4_default_next_hop,
+        v4dls:  rm.default_set_ipv4_default_next_hop_load_share,
+        v4peer: rm.default_set_ipv4_next_hop_peer_addr,
+        v4unc:  rm.default_set_ipv4_next_hop_unchanged,
+        v6nh:   rm.default_set_ipv6_next_hop,
+        v6ls:   rm.default_set_ipv6_next_hop_load_share,
+        v6dnh:  rm.default_set_ipv6_default_next_hop,
+        v6dls:  rm.default_set_ipv6_default_next_hop_load_share,
+        v6peer: rm.default_set_ipv6_next_hop_peer_addr,
+        v6unc:  rm.default_set_ipv6_next_hop_unchanged,
+      }.merge!(props)
+    end
+    rm.set_ip_next_hop_set(attrs)
+    rm
   end
 end
