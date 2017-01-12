@@ -183,14 +183,24 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_ipv6_addr_access_list, rm.match_ipv6_addr_access_list)
   end
 
-  def test_match_ipv4_addr_prefix_list
+  def test_match_ip_addr_prefix_list
     rm = create_route_map
     assert_equal(rm.default_match_ipv4_addr_prefix_list, rm.match_ipv4_addr_prefix_list)
-    array = %w(pre1 pre7 pre5)
-    rm.match_ipv4_addr_prefix_list = array
-    assert_equal(array, rm.match_ipv4_addr_prefix_list)
-    rm.match_ipv4_addr_prefix_list = rm.default_match_ipv4_addr_prefix_list
+    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
+    array1 = %w(pre1 pre7 pre5)
+    array2 = rm.default_match_ipv6_addr_prefix_list
+    rm.match_ip_addr_prefix_list(array1, array2)
+    assert_equal(array1, rm.match_ipv4_addr_prefix_list)
+    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
+    array1 = rm.default_match_ipv4_addr_prefix_list
+    array2 = %w(pre1 pre7 pre5)
+    rm.match_ip_addr_prefix_list(array1, array2)
     assert_equal(rm.default_match_ipv4_addr_prefix_list, rm.match_ipv4_addr_prefix_list)
+    assert_equal(array2, rm.match_ipv6_addr_prefix_list)
+    array2 = rm.default_match_ipv6_addr_prefix_list
+    rm.match_ip_addr_prefix_list(array1, array2)
+    assert_equal(rm.default_match_ipv4_addr_prefix_list, rm.match_ipv4_addr_prefix_list)
+    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
   end
 
   def test_match_ipv4_next_hop_prefix_list
@@ -259,16 +269,6 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_ipv4_multicast_group_range_end_addr, rm.match_ipv4_multicast_group_range_end_addr)
     assert_equal(rm.default_match_ipv4_multicast_rp_addr, rm.match_ipv4_multicast_rp_addr)
     assert_equal(rm.default_match_ipv4_multicast_rp_type, rm.match_ipv4_multicast_rp_type)
-  end
-
-  def test_match_ipv6_addr_prefix_list
-    rm = create_route_map
-    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
-    array = %w(pre1 pre7 pre5)
-    rm.match_ipv6_addr_prefix_list = array
-    assert_equal(array, rm.match_ipv6_addr_prefix_list)
-    rm.match_ipv6_addr_prefix_list = rm.default_match_ipv6_addr_prefix_list
-    assert_equal(rm.default_match_ipv6_addr_prefix_list, rm.match_ipv6_addr_prefix_list)
   end
 
   def test_match_ipv6_next_hop_prefix_list

@@ -367,7 +367,7 @@ module Cisco
       str.empty? ? default_match_ipv4_addr_prefix_list : str.split
     end
 
-    def match_ipv4_addr_prefix_list=(list)
+    def match_ipv4_addr_prefix_list_set(list)
       carr = match_ipv4_addr_prefix_list
       cstr = ''
       carr.each do |elem|
@@ -646,7 +646,7 @@ module Cisco
       str.empty? ? default_match_ipv6_addr_prefix_list : str.split
     end
 
-    def match_ipv6_addr_prefix_list=(list)
+    def match_ipv6_addr_prefix_list_set(list)
       carr = match_ipv6_addr_prefix_list
       cstr = ''
       carr.each do |elem|
@@ -668,6 +668,13 @@ module Cisco
 
     def default_match_ipv6_addr_prefix_list
       config_get_default('route_map', 'match_ipv6_addr_prefix_list')
+    end
+
+    def match_ip_addr_prefix_list(v4, v6)
+      match_ipv4_addr_prefix_list_set(default_match_ipv4_addr_prefix_list)
+      match_ipv6_addr_prefix_list_set(default_match_ipv6_addr_prefix_list)
+      match_ipv4_addr_prefix_list_set(v4)
+      match_ipv6_addr_prefix_list_set(v6)
     end
 
     def match_ipv6_next_hop_prefix_list
@@ -1920,8 +1927,9 @@ module Cisco
     # set ip default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
     # set ip default next-hop load-share
     def set_ipv4_default_next_hop_load_share
-      config_get('route_map', 'set_ipv4_default_next_hop',
-                 @get_args).include?('load-share')
+      match = config_get('route_map', 'set_ipv4_default_next_hop', @get_args)
+      return if match.nil?
+      match.include?('load-share')
     end
 
     def default_set_ipv4_default_next_hop_load_share
@@ -2106,8 +2114,9 @@ module Cisco
     # set ipv6 default next-hop 1.1.1.1 2.2.2.2 3.3.3.3 load-share
     # set ipv6 default next-hop load-share
     def set_ipv6_default_next_hop_load_share
-      config_get('route_map', 'set_ipv6_default_next_hop',
-                 @get_args).include?('load-share')
+      match = config_get('route_map', 'set_ipv6_default_next_hop', @get_args)
+      return if match.nil?
+      match.include?('load-share')
     end
 
     def default_set_ipv6_default_next_hop_load_share
