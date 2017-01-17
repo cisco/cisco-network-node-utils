@@ -2444,8 +2444,8 @@ module Cisco
       index = arr.index('igp')
       while index
         larr = []
-        larr << arr[index + 1].to_i
-        larr << arr[index + 2].to_i
+        larr << arr[index + 1]
+        larr << arr[index + 2]
         ret_arr << larr
         arr.delete_at(index)
         arr.delete_at(index)
@@ -2468,8 +2468,8 @@ module Cisco
       index = arr.index('pre-bestpath')
       while index
         larr = []
-        larr << arr[index + 1].to_i
-        larr << arr[index + 2].to_i
+        larr << arr[index + 1]
+        larr << arr[index + 2]
         ret_arr << larr
         arr.delete_at(index)
         arr.delete_at(index)

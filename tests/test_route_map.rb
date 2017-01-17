@@ -1383,13 +1383,13 @@ class TestRouteMap < CiscoTestCase
                  rm.set_extcommunity_cost_igp)
     assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
                  rm.set_extcommunity_cost_pre_bestpath)
-    igp = [[0, 23], [3, 33], [100, 10_954]]
+    igp = [%w(0 23), %w(3 33), %w(100 10954)]
     pre = []
     rm.set_extcommunity_cost_set(igp, pre)
     assert_equal(igp, rm.set_extcommunity_cost_igp)
     assert_equal(rm.default_set_extcommunity_cost_pre_bestpath,
                  rm.set_extcommunity_cost_pre_bestpath)
-    pre = [[23, 999], [88, 482], [120, 2323]]
+    pre = [%w(23 999), %w(88 482), %w(120 2323)]
     rm.set_extcommunity_cost_set(igp, pre)
     assert_equal(igp, rm.set_extcommunity_cost_igp)
     assert_equal(pre, rm.set_extcommunity_cost_pre_bestpath)
