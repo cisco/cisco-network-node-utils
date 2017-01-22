@@ -169,7 +169,7 @@ module Cisco
         result = result.sub("<#{key}>", escape_chars_in_string(value.to_s))
       end
       unsub = result[/<(\S+)>/, 1]
-      puts "key_substitutor result: #{result}"
+      puts "key_substitutor value: #{value}"
       fail ArgumentError, \
            "No value specified for '#{unsub}' in '#{result}'" if unsub
       result
