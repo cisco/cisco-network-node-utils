@@ -158,18 +158,12 @@ module Cisco
       value.nil? || value
     end
 
-    def escape_chars_in_string(string)
-      pattern = %r{(\'|\"|\.|\*|\/|\-|\\|\)|\$|\+|\(|\^|\?|\!|\~|\`)}
-      string.gsub(pattern) { |match| '\\' + match }
-    end
-
     def key_substitutor(item, kwargs)
       result = item
       kwargs.each do |key, value|
-        result = result.sub("<#{key}>", escape_chars_in_string(value.to_s))
+        result = result.sub("<#{key}>", value.to_s)
       end
       unsub = result[/<(\S+)>/, 1]
-      puts "key_substitutor value: #{value}"
       fail ArgumentError, \
            "No value specified for '#{unsub}' in '#{result}'" if unsub
       result
