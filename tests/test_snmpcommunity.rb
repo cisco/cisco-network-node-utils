@@ -193,7 +193,8 @@ class TestSnmpCommunity < CiscoTestCase
 
   def test_get_group_complex_name
     skip("Test not supported on #{product_tag} due to CSCva63814") if product_tag[/n5|6|7k/]
-    names = ['C0mplex()Community!', 'C#', 'C$', 'C%', 'C^', 'C&', 'C*', 'C-', 'C=', 'C<', 'C,', 'C.', 'C/', 'C|']
+    names = ['C0mplex()Community!', 'C#', 'C$', 'C%', 'C^', 'C&', 'C*',
+             'C-', 'C=', 'C<', 'C,', 'C.', 'C/', 'C|', 'C{}[]']
     group = 'network-admin'
     names.each do |name|
       sc = SnmpCommunity.new(name, group)

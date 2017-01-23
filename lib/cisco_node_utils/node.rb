@@ -142,9 +142,16 @@ module Cisco
         return ref.default_value
       end
       if ref.multiple && ref.hash['get_data_format'] == :nxapi_structured
+        return value if value.nil?
         value = [value.to_s] if value.size == 1
       end
       return value unless ref.kind
+      value = massage_kind(value, ref)
+      Cisco::Logger.debug "Massaged to '#{value}'"
+      value
+    end
+
+    def massage_kind(value, ref)
       case ref.kind
       when :boolean
         if value.nil? || value.empty?
@@ -164,7 +171,6 @@ module Cisco
       when :symbol
         value = value.to_sym unless value.nil?
       end
-      Cisco::Logger.debug "Massaged to '#{value}'"
       value
     end
 
