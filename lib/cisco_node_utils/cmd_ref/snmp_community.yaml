@@ -34,10 +34,23 @@ community:
     set_value: "<state> snmp-server community <name>"
 
 group:
+  N3k: &structured_get
+    kind: string
+    get_data_format: nxapi_structured
+    get_command: "show snmp community"
+    get_context: ["TABLE_snmp_community", "ROW_snmp_community"]
+    get_value: ["community_name <name>", "grouporaccess", '/^(?:Community groupname:\s+)?(\S+)/']
+  N9k: *structured_get
+  N9k-F: *structured_get
+  ios_xr: &cli_based_get
+    kind: string
     get_command: "show running snmp all"
     get_value: '/^snmp-server community <name> group (.*)$/'
-    set_value: "snmp-server community <name> group <group>"
-    default_value: "network-operator"
+  N5k: *cli_based_get
+  N6k: *cli_based_get
+  N7k: *cli_based_get
+  set_value: "snmp-server community <name> group <group>"
+  default_value: "network-operator"
 
 group_community_mapping:
     get_command: "show running snmp"

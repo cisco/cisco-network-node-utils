@@ -191,6 +191,17 @@ class TestSnmpCommunity < CiscoTestCase
     cleanup_snmpcommunity(snmpcommunity)
   end
 
+  def test_get_group_complex_name
+    skip("Test not supported on #{product_tag} due to CSCva63814") if product_tag[/n5|6|7k/]
+    names = ['C0mplex()Community!', 'C#', 'C$', 'C%', 'C^', 'C&', 'C*', 'C-', 'C=', 'C<', 'C,', 'C.', 'C/', 'C|']
+    group = 'network-admin'
+    names.each do |name|
+      sc = SnmpCommunity.new(name, group)
+      assert_equal(group, sc.group)
+      cleanup_snmpcommunity(sc)
+    end
+  end
+
   def test_group_set_zero_length
     name = 'ciscogroupsetcom'
     group = 'network-operator'

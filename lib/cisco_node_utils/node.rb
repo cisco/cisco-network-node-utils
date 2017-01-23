@@ -57,11 +57,11 @@ module Cisco
       return ref.default_value if ref.default_value? && !ref.getter?
 
       get_args, ref = massage_structured(ref.getter(*args).clone, ref)
-      massage(get(command:     ref.get_command,
-                  data_format: get_args[:data_format],
-                  context:     get_args[:context],
-                  value:       get_args[:value]),
-              ref)
+      data = get(command:     ref.get_command,
+                 data_format: get_args[:data_format],
+                 context:     get_args[:context],
+                 value:       get_args[:value])
+      massage(data, ref)
     end
 
     # The yaml file may specifiy an Array as the get_value to drill down into
@@ -109,17 +109,22 @@ module Cisco
       row_index = ref.hash['get_value'][0][/\S+$/]
       data_key = ref.hash['get_value'][1]
       regexp_filter = nil
-      regexp_filter = ref.hash['get_value'][2] if ref.hash['get_value'][2]
+      if ref.hash['get_value'][2]
+        regexp_filter = Regexp.new ref.hash['get_value'][2][1..-2]
+      end
 
       # Get the value using the row_key, row_index and data_key
       value = value.is_a?(Hash) ? [value] : value
-      data = value.find { |item| item[row_key].to_s[/#{row_index}/] }
+      data = nil
+      value.each do |row|
+        data = row[data_key] if row[row_key].to_s.include? row_index.to_s
+      end
       return value if data.nil?
       if regexp_filter
-        filtered = regexp_filter.match(data[data_key])
-        return filtered.nil? ? filtered : filtered[0]
+        filtered = regexp_filter.match(data)
+        return filtered.nil? ? filtered : filtered[filtered.size - 1]
       end
-      data[data_key]
+      data
     end
 
     # Attempt to massage the given value into the format specified by the
