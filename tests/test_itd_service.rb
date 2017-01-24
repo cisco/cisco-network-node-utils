@@ -103,6 +103,10 @@ class TestItdSvc < CiscoTestCase
           ['port-channel 100', '3.3.3.3']]
     itd.ingress_interface = ii
     assert_equal(itd.ingress_interface, ii)
+    ii = [['vlan 2', ''],
+          ['port-channel 100', '']]
+    itd.ingress_interface = ii
+    assert_equal(itd.ingress_interface, ii)
     itd.ingress_interface = itd.default_ingress_interface
     assert_equal(itd.ingress_interface, itd.default_ingress_interface)
     config 'no interface port-channel 100'
