@@ -130,7 +130,7 @@ class Cisco::Client
   # @param keys [Array] lookup sequence
   def self.filter_data(data: nil,
                        keys: nil)
-    return nil if data.nil?
+    return nil if data.nil? || data.empty?
     keys ||= []
     keys.each do |filter|
       # if filter is a Hash and data is an array, check each

@@ -57,11 +57,11 @@ module Cisco
       return ref.default_value if ref.default_value? && !ref.getter?
 
       get_args, ref = massage_structured(ref.getter(*args).clone, ref)
-      massage(get(command:     ref.get_command,
-                  data_format: get_args[:data_format],
-                  context:     get_args[:context],
-                  value:       get_args[:value]),
-              ref)
+      data = get(command:     ref.get_command,
+                 data_format: get_args[:data_format],
+                 context:     get_args[:context],
+                 value:       get_args[:value])
+      massage(data, ref)
     end
 
     # The yaml file may specifiy an Array as the get_value to drill down into
@@ -80,6 +80,8 @@ module Cisco
       # Example: Get vlanshowbr-vlanname in the row that contains a specific
       #  vlan_id.
       # "get_value"=>["vlanshowbr-vlanid-utf <vlan_id>", "vlanshowbr-vlanname"]
+      #
+      # TBD: Why do we need to check is_a?(Array) here?
       if ref.hash['get_value'].is_a?(Array) && ref.hash['get_value'].size >= 2
         # Replace the get_value hash entry with the value after any tokens
         # specified in the yaml file have been replaced and set get_args[:value]
@@ -87,8 +89,8 @@ module Cisco
         ref.hash['get_value'] = get_args[:value]
         ref.hash['drill_down'] = true
         get_args[:value] = nil
+        cache_flush
       end
-      cache_flush
       [get_args, ref]
     end
 
@@ -108,17 +110,22 @@ module Cisco
       row_index = ref.hash['get_value'][0][/\S+$/]
       data_key = ref.hash['get_value'][1]
       regexp_filter = nil
-      regexp_filter = ref.hash['get_value'][2] if ref.hash['get_value'][2]
+      if ref.hash['get_value'][2]
+        regexp_filter = Regexp.new ref.hash['get_value'][2][1..-2]
+      end
 
       # Get the value using the row_key, row_index and data_key
       value = value.is_a?(Hash) ? [value] : value
-      data = value.find { |item| item[row_key].to_s[/#{row_index}/] }
+      data = nil
+      value.each do |row|
+        data = row[data_key] if row[row_key].to_s.include? row_index.to_s
+      end
       return value if data.nil?
       if regexp_filter
-        filtered = regexp_filter.match(data[data_key])
-        return filtered.nil? ? filtered : filtered[0]
+        filtered = regexp_filter.match(data)
+        return filtered.nil? ? filtered : filtered[filtered.size - 1]
       end
-      data[data_key]
+      data
     end
 
     # Attempt to massage the given value into the format specified by the
@@ -136,9 +143,16 @@ module Cisco
         return ref.default_value
       end
       if ref.multiple && ref.hash['get_data_format'] == :nxapi_structured
+        return value if value.nil?
         value = [value.to_s] if value.size == 1
       end
       return value unless ref.kind
+      value = massage_kind(value, ref)
+      Cisco::Logger.debug "Massaged to '#{value}'"
+      value
+    end
+
+    def massage_kind(value, ref)
       case ref.kind
       when :boolean
         if value.nil? || value.empty?
@@ -158,7 +172,6 @@ module Cisco
       when :symbol
         value = value.to_sym unless value.nil?
       end
-      Cisco::Logger.debug "Massaged to '#{value}'"
       value
     end
 
