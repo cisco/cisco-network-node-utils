@@ -80,6 +80,8 @@ module Cisco
       # Example: Get vlanshowbr-vlanname in the row that contains a specific
       #  vlan_id.
       # "get_value"=>["vlanshowbr-vlanid-utf <vlan_id>", "vlanshowbr-vlanname"]
+      #
+      # TBD: Why do we need to check is_a?(Array) here?
       if ref.hash['get_value'].is_a?(Array) && ref.hash['get_value'].size >= 2
         # Replace the get_value hash entry with the value after any tokens
         # specified in the yaml file have been replaced and set get_args[:value]
@@ -89,7 +91,6 @@ module Cisco
         get_args[:value] = nil
         cache_flush
       end
-      # cache_flush
       [get_args, ref]
     end
 
