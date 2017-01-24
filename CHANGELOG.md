@@ -5,6 +5,10 @@ Changelog
 
 ### New feature support
 
+#### Cisco Resources
+* Route_map
+  * route_map (@saichint)
+
 ### Added
 
 ### Changed
