@@ -144,7 +144,7 @@ module Cisco
       end
       if ref.multiple && ref.hash['get_data_format'] == :nxapi_structured
         return value if value.nil?
-        value = [value.to_s] if value.size == 1
+        value = [value.to_s] if value.is_a? String
       end
       return value unless ref.kind
       value = massage_kind(value, ref)
