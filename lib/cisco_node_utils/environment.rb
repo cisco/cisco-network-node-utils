@@ -39,6 +39,7 @@ module Cisco
       port:     nil, # only applicable to gRPC
       username: nil,
       password: nil,
+      cookie:   nil, # only applicable to nxapi
     }
 
     def self.environments
@@ -64,6 +65,7 @@ module Cisco
         # merge it on in!
         current_config[name].merge!(strings_to_symbols(config))
       end
+      puts "MGW: current_config: #{current_config}"
       current_config
     end
 

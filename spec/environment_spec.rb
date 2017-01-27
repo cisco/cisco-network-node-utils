@@ -47,6 +47,7 @@ describe Cisco::Environment do
         port:     57_799,
         username: nil,
         password: nil,
+        cookie:   nil,
       } }
       expect(Cisco::Environment).to receive(:data_from_file).and_return(
         'hello' => { host: '1.1.1.1' }, 'goodbye' => { password: 'foo' })
@@ -56,12 +57,14 @@ describe Cisco::Environment do
           port:     57_799,
           username: nil,
           password: nil,
+          cookie:   nil,
         },
         'goodbye' => {
           host:     nil,
           port:     nil,
           username: nil,
           password: 'foo',
+          cookie:   nil,
         },
       )
     end
@@ -78,12 +81,14 @@ describe Cisco::Environment do
 
     global_config = {
       'default' => {
-        host: '127.0.0.1',
-        port: 57_400,
+        host:   '127.0.0.1',
+        port:   57_400,
+        cookie: nil,
       },
       'global'  => {
         username: 'global',
         password: 'global',
+        cookie:   nil,
       },
     }
 
@@ -91,10 +96,12 @@ describe Cisco::Environment do
       'default' => {
         port:     57_799,
         username: 'user',
+        cookie:   nil,
       },
       'user'    => {
         username: 'user',
         password: 'user',
+        cookie:   nil,
       },
     }
 
@@ -137,18 +144,21 @@ describe Cisco::Environment do
           port:     57_799, # user overrides global
           username: 'user', # user config
           password: nil, # auto-populated with nil
+          cookie:   nil,
         },
         'global'  => { # global config
           host:     nil,
           port:     nil,
           username: 'global',
           password: 'global',
+          cookie:   nil,
         },
         'user'    => { # user config
           host:     nil,
           port:     nil,
           username: 'user',
           password: 'user',
+          cookie:   nil,
         },
       )
     end
@@ -185,6 +195,7 @@ describe Cisco::Environment do
           port:     nil,
           username: nil,
           password: nil,
+          cookie:   nil,
         }
         it 'can be loaded explicitly by name' do
           expect(Cisco::Environment.environment('nxapi_local')).to eq(expected)
@@ -205,6 +216,7 @@ describe Cisco::Environment do
           port:     nil,
           username: 'devops',
           password: 'devops',
+          cookie:   nil,
         }
         it 'can be loaded explicitly by name' do
           expect(Cisco::Environment.environment('nxapi_remote')).to eq(expected)
@@ -225,6 +237,7 @@ describe Cisco::Environment do
           port:     57_999,
           username: 'admin',
           password: 'admin',
+          cookie:   nil,
         }
         it 'can be loaded explicitly by name' do
           expect(Cisco::Environment.environment('grpc_local')).to eq(expected)
@@ -245,6 +258,7 @@ describe Cisco::Environment do
           port:     nil,
           username: 'admin',
           password: 'admin',
+          cookie:   nil,
         }
         it 'can be loaded explicitly by name' do
           expect(Cisco::Environment.environment('grpc_remote')).to eq(expected)
