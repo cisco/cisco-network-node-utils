@@ -77,7 +77,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     if kwargs[:host].nil?
       # Connection to UDS - no username or password either
       fail ArgumentError unless kwargs[:username].nil? && kwargs[:password].nil?
-      self.class.validate_cookie(**kwargs)
+      self.validate_cookie(**kwargs)
     else
       # Connection to remote system - username and password are required
       fail TypeError, 'username is required' if kwargs[:username].nil?
