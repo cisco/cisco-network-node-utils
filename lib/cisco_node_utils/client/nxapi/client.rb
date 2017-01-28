@@ -77,7 +77,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     if kwargs[:host].nil?
       # Connection to UDS - no username or password either
       fail ArgumentError unless kwargs[:username].nil? && kwargs[:password].nil?
-      self.validate_cookie(**kwargs)
+      validate_cookie(**kwargs)
     else
       # Connection to remote system - username and password are required
       fail TypeError, 'username is required' if kwargs[:username].nil?
@@ -87,10 +87,10 @@ class Cisco::Client::NXAPI < Cisco::Client
 
   def self.validate_cookie(**kwargs)
     return if kwargs[:cookie].nil?
-    format = '<username>:local'
-    msg = "Invalid cookie: #{kwargs[:cookie]}. Format must match: #{format}"
+    format = 'Cookie format must match: <username>:local'
+    msg = "Invalid cookie: [#{kwargs[:cookie]}]. : #{format}"
 
-    fail TypeError, 'invalid cookie' unless kwargs[:cookie].is_a?(String)
+    fail TypeError, msg unless kwargs[:cookie].is_a?(String)
     fail TypeError, msg unless /\S+:local/.match(kwargs[:cookie])
     fail ArgumentError, 'empty cookie' if kwargs[:cookie].empty?
   end
