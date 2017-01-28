@@ -52,7 +52,6 @@ class Cisco::Client
     @address = @port.nil? ? @host : "#{@host}:#{@port}"
     @username = kwargs[:username]
     @password = kwargs[:password]
-    @cookie = kwargs[:cookie]
     self.data_formats = data_formats
     self.platform = platform
     @cache_enable = true
@@ -75,11 +74,6 @@ class Cisco::Client
     unless password.nil?
       fail TypeError, 'invalid password' unless password.is_a?(String)
       fail ArgumentError, 'empty password' if password.empty?
-    end
-    cookie = kwargs[:cookie]
-    unless cookie.nil?
-      fail TypeError, 'invalid cookie' unless cookie.is_a?(String)
-      fail ArgumentError, 'empty cookie' if cookie.empty?
     end
   end
 

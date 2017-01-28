@@ -56,6 +56,7 @@ class Cisco::Client::NXAPI < Cisco::Client
       # unit testing where the base Net::HTTP will meet our needs.
       require 'net_http_unix'
       @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
+      @cookie = kwargs[:cookie]
     else
       # Remote connection. This is primarily expected
       # when running e.g. from a Unix server as part of Minitest.
@@ -76,11 +77,22 @@ class Cisco::Client::NXAPI < Cisco::Client
     if kwargs[:host].nil?
       # Connection to UDS - no username or password either
       fail ArgumentError unless kwargs[:username].nil? && kwargs[:password].nil?
+      self.class.validate_cookie(**kwargs)
     else
       # Connection to remote system - username and password are required
       fail TypeError, 'username is required' if kwargs[:username].nil?
       fail TypeError, 'password is required' if kwargs[:password].nil?
     end
+  end
+
+  def self.validate_cookie(**kwargs)
+    return if kwargs[:cookie].nil?
+    format = '<username>:local'
+    msg = "Invalid cookie: #{kwargs[:cookie]}. Format must match: #{format}"
+
+    fail TypeError, 'invalid cookie' unless kwargs[:cookie].is_a?(String)
+    fail TypeError, msg unless /\S+:local/.match(kwargs[:cookie])
+    fail ArgumentError, 'empty cookie' if kwargs[:cookie].empty?
   end
 
   # Clear the cache of CLI output results.
