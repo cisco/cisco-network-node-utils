@@ -237,9 +237,7 @@ class Cisco::Client::NXAPI < Cisco::Client
       cookie = @cookie.nil? ? 'admin:local' : @cookie
       request = Net::HTTP::Post.new(NXAPI_UDS_URI_PATH)
       request['Cookie'] = "nxapi_auth=#{cookie}"
-      puts "Request Cookie: #{request['Cookie']}"
     else
-      puts 'Remote nxapi authorization'
       request = Net::HTTP::Post.new(NXAPI_REMOTE_URI_PATH)
       request.basic_auth("#{@username}", "#{@password}")
     end

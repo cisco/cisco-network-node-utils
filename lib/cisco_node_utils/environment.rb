@@ -65,7 +65,6 @@ module Cisco
         # merge it on in!
         current_config[name].merge!(strings_to_symbols(config))
       end
-      puts "MGW: current_config: #{current_config}"
       current_config
     end
 
