@@ -26,8 +26,14 @@ def older_n9k?
   false
 end
 
-def evergreen_n9k?
-  return true if Utils.image_version?(/7.0.3.I5/) &&
+def dplus_n9k?
+  return true if Utils.image_version?(/7.0.3.I4/) &&
+                 node.product_id[/N9K/]
+  false
+end
+
+def evergreen_dplus_n9k?
+  return true if Utils.image_version?(/7.0.3.I4|I5/) &&
                  node.product_id[/N9K/]
   false
 end
@@ -340,8 +346,9 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_metric
-    # bug on fretta
-    skip('platform not supported for this test') if node.product_id[/N9.*-F/]
+    # bug CSCvc82934 on fretta and n9k running dplus
+    skip('platform not supported for this test') if node.product_id[/N9.*-F/] ||
+                                                    dplus_n9k?
     rm = create_route_map
     assert_equal(rm.default_match_metric, rm.match_metric)
     metric = [%w(1 0), %w(8 0), %w(224 9), %w(23 0), %w(5 8), %w(6 0)]
@@ -1345,10 +1352,8 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_extcommunity_rt
-    # bug on fretta
-    skip('platform not supported for this test') if node.product_id[/N9.*-F/]
-    # bug on n9k evergreen and higher
-    skip('platform not supported for this test') if evergreen_n9k?
+    # bug CSCvc92395 on fretta and n9k running dplus or higher
+    skip('platform not supported for this test') if node.product_id[/N9.*-F/] || evergreen_dplus_n9k?
     rm = create_route_map
     assert_equal(rm.default_set_extcommunity_rt_additive,
                  rm.set_extcommunity_rt_additive)
