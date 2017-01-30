@@ -13,7 +13,7 @@ nxapi_remote:
 # Example config for running NXAPI on a node:
 nxapi_local:
   # (none needed)
-  
+
 # Example config for running NXAPI on a node with default cookie override:
 # User 'nxapi' must be configured with requisite privilages to configure the device.
 # This will override the default 'admin:local' cookie and use 'nxapi:local' instead.
