@@ -14,6 +14,12 @@ nxapi_remote:
 nxapi_local:
   # (none needed)
 
+# Example config for running NXAPI on a node with default cookie override:
+# User 'nxapi' must be configured with requisite privilages to configure the device.
+# This will override the default 'admin:local' cookie and use 'nxapi:local' instead.
+default:
+  cookie: 'nxapi:local'
+
 # Example config for running gRPC remotely:
 grpc_remote:
   host: 192.168.1.100
