@@ -201,6 +201,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     # send the request and get the response
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
+    tries = 5
     begin
       # Explicitly use http to avoid EOFError
       # http://stackoverflow.com/a/23080693
@@ -209,6 +210,11 @@ class Cisco::Client::NXAPI < Cisco::Client
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
       raise Cisco::ConnectionRefused, emsg
+    rescue EOFError
+      puts 'EOFError detected, retry'
+      tries -= 1
+      retry if tries > 0
+      raise
     end
     handle_http_response(response)
     output = parse_response(response)
