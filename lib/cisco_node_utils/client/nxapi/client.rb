@@ -201,7 +201,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     # send the request and get the response
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
-    tries = 5
+    tries = 2
     begin
       # Explicitly use http to avoid EOFError
       # http://stackoverflow.com/a/23080693
