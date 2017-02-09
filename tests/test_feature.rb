@@ -225,7 +225,10 @@ class TestFeature < CiscoTestCase
     fs = 'feature-set fex'
 
     # clean
-    config("no #{fs} ; no install #{fs}") if Feature.fex_installed?
+    if Feature.fex_installed?
+      config_no_warn("no #{fs}")
+      config_no_warn("no install #{fs}")
+    end
     refute_show_match(
       command: "show running | i '^install #{fs}$'",
       pattern: /^install #{fs}$/,
