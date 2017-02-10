@@ -8,7 +8,6 @@ nexus:
             feature bgp
             feature pim
             feature msdp
-            feature udld
             feature interface-vlan
             feature hsrp
             feature lacp
@@ -22,12 +21,12 @@ nexus:
             no feature bgp
             no feature pim
             no feature msdp
-            no feature udld
             no feature interface-vlan
             no feature hsrp
             no feature lacp
             no feature dhcp
             no feature vtp
+    nvgen: false
 
   feature-snmp-comm-acl-ro:
     command: |
@@ -40,14 +39,19 @@ nexus:
              snmp-server community admincom use-acl SNMP_RW
 
   feature-int-loopback:
-    command: >
+    command: |
             interface loopback0
               description testloopback
 
   feature-int-portchannel:
-    command: >
+    setup: |
+          interface port-channel100
+            no switchport
+    command: |
+            feature bfd
             interface port-channel100
               description test-portchannel
+              no bfd echo
 
 ios_xr:
   name-server:

@@ -5,15 +5,52 @@ Changelog
 
 ### New feature support
 
+#### Cisco Resources
+* Route_map
+  * route_map (@saichint)
+
+### Added
+
+### Changed
+
+### Removed
+
+## [v1.5.0]
+
+### New feature support
+* Drill down capability into structured table output using command reference yaml (@mikewiebe)
+
+#### Cisco Resources
+* Hot Standby Router Protocol
+  * hsrp_global (@saichint)
+  * interface_hsrp_group (@saichint)
+
+### Added
+
+* Extend interface with attributes:
+   * `hsrp_bfd`
+   * `hsrp_delay_minimum`
+   * `hsrp_delay_reload`
+   * `hsrp_mac_refresh`
+   * `hsrp_use_bia`
+   * `hsrp_version`
+   * `pim_bfd`
+* Extend pim with attributes:
+   * `bfd`
+* Added support for Cisco NX-OS software releases `7.3(0)F1(1)` and `8.0(1)`
+
+### Changed
+
+### Removed
+
+## [v1.4.1]
+
 ### Added
 
 * Extend bgp with attributes:
    * `event_history_errors`
    * `event_history_objstore`
-
-### Changed
-
-### Removed
+* Added support for Cisco NX-OS software release `7.3(0)I5(1)`
 
 ## [v1.4.0]
 
@@ -375,6 +412,8 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
+[v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.1.0...v1.2.0

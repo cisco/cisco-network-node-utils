@@ -1,0 +1,117 @@
+# interface_hsrp_group
+---
+_exclude: [ios_xr, N5k, N6k]
+
+_template:
+  get_command: "show running hsrp | no-more"
+  context:
+    - "interface <name>"
+    - "hsrp <group> <iptype>"
+
+authentication:
+  get_value: '/^authentication (.*)$/'
+  set_value: '<state> authentication <authtype> <keytype> <enctype> <passwd> <compatible> <timeout> <tval>'
+
+authentication_auth_type:
+  default_value: 'cleartext'
+
+authentication_compatibility:
+  kind: boolean
+  default_value: false
+
+authentication_enc_type:
+  default_value: '0'
+
+authentication_key_type:
+  default_value: 'key-chain'
+
+authentication_string:
+  default_value: ''
+
+authentication_timeout:
+  kind: int
+  default_value: 0
+
+group_name:
+  get_value: '/^name (\S+)/'
+  set_value: '<state> name <word>'
+  default_value: false
+
+groups:
+  multiple: true
+  context:
+    - "interface <name>"
+  get_value: '/^hsrp (\d+)(?:\s+(ipv6))?/'
+  set_value: '<state> hsrp <group> <iptype>'
+
+ipv4_enable:
+  default_value: false
+
+ipv4_vip:
+  # the config can be 'ip' or 'ip <vip>' or
+  # no ipv4 config at all so need to grab the
+  # optional match to get the whole config
+  get_value: '/^ip(?:\s+\S+)?$/'
+  set_value: '<state> ip <vip>'
+  default_value: ''
+
+ipv6_autoconfig:
+  kind: boolean
+  get_value: '/^ip autoconfig$/'
+  set_value: '<state> ip autoconfig'
+  default_value: false
+
+ipv6_vip:
+  multiple: true
+  get_value: '/^ip (\S+)$/'
+  set_value: '<state> ip <vip>'
+  default_value: []
+
+mac_addr:
+  get_value: '/^mac-address (\S+)$/'
+  set_value: '<state> mac-address <mac>'
+  default_value: false
+
+preempt:
+  get_command: "show running hsrp all | no-more"
+  get_value: '/^preempt delay minimum (\d+) reload (\d+) sync (\d+)/'
+  set_value: '<state> preempt <delay> <minimum> <minval> <reload> <relval> <sync> <syncval>'
+  default_value: false
+
+preempt_delay_minimum:
+  default_value: 0
+
+preempt_delay_reload:
+  default_value: 0
+
+preempt_delay_sync:
+  default_value: 0
+
+priority:
+  default_value: 100
+
+priority_forward_thresh_lower:
+  default_value: ''
+
+priority_forward_thresh_upper:
+  default_value: ''
+
+priority_level:
+  get_value: '/^priority (\d+)(?:\s+(?:forwarding-threshold lower)\s+(\d+)\s+(?:upper)\s+(\d+))?$/'
+  set_value: '<state> priority <pri> <forward> <lval> <upper> <uval>'
+
+timers:
+  get_value: '/^timers (.*)$/'
+  set_value: '<state> timers <mshello> <hello> <mshold> <hold>'
+
+timers_hello:
+  default_value: 3
+
+timers_hello_msec:
+  default_value: false
+
+timers_hold:
+  default_value: 10
+
+timers_hold_msec:
+  default_value: false

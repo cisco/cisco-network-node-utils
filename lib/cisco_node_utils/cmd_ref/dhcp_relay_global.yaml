@@ -47,7 +47,7 @@ ipv4_relay:
     default_value: false
   N6k: *relay_default_false
   N7k: *relay_default_true
-  N8k: *relay_default_true
+  N9k-F: *relay_default_true
   N9k: *relay_default_true
 
 ipv4_smart_relay:
@@ -57,7 +57,7 @@ ipv4_smart_relay:
   default_value: false
 
 ipv4_src_addr_hsrp:
-  _exclude: [N3k, N8k, N9k]
+  _exclude: [N3k, N9k-F, N9k]
   kind: boolean
   get_value: '/^ip dhcp relay source-address hsrp$/'
   set_value: "<state> ip dhcp relay source-address hsrp"
@@ -69,14 +69,14 @@ ipv4_src_intf:
   default_value: false
 
 ipv4_sub_option_circuit_id_custom:
-  _exclude: [N7k, N8k]
+  _exclude: [N7k, N9k-F]
   kind: boolean
   get_value: '/^ip dhcp relay sub-option circuit-id customized$/'
   set_value: "<state> ip dhcp relay sub-option circuit-id customized"
   default_value: false
 
 ipv4_sub_option_circuit_id_string:
-  _exclude: [N5k, N6k, N7k, N8k, N9k]
+  _exclude: [N5k, N6k, N7k, N9k-F, N9k]
   get_value: '/^ip dhcp relay sub-option circuit-id format-type string format (.*)$/'
   set_value: "<state> ip dhcp relay sub-option circuit-id format-type string <format> <word>"
   default_value: false
@@ -116,7 +116,7 @@ ipv6_relay:
     default_value: false
   N6k: *v6_relay_default_false
   N7k: *v6_relay_default_true
-  N8k: *v6_relay_default_true
+  N9k-F: *v6_relay_default_true
   N9k: *v6_relay_default_true
 
 ipv6_src_intf:

@@ -141,9 +141,15 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_product_id
+    # N9K Fretta product_id gets a '-F' appended so remove it for this check
+    if Utils.image_version?(/7.0.3.F/)
+      chassis = node.product_id.sub('-F', '')
+    else
+      chassis = node.product_id
+    end
     assert_output_check(command: 'show inventory',
                         pattern: /NAME: \"#{@chassis}\".*\nPID: (\S+)/,
-                        check:   node.product_id,
+                        check:   chassis,
                         msg:     'Error, Product id does not match')
   end
 

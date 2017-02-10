@@ -11,7 +11,7 @@ _template:
     get_command: 'show running-config router bgp'
 
 additional_paths_install:
-  _exclude: [ios_xr, N3k, N8k, N9k]
+  _exclude: [ios_xr, N3k, N9k-F, N9k]
   kind: boolean
   get_value: '/^additional-paths install backup$/'
   set_value: '<state> additional-paths install backup'

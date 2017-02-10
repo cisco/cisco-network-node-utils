@@ -115,14 +115,29 @@ module Cisco
       config_get_default('interface_portchannel', 'lacp_min_links')
     end
 
+    def lacp_suspend_shut_needed?
+      config_get('interface_portchannel', 'lacp_suspend_shut_needed')
+    end
+
     def lacp_suspend_individual
       config_get('interface_portchannel', 'lacp_suspend_individual', @name)
     end
 
     def lacp_suspend_individual=(state)
       no_cmd = (state ? '' : 'no')
+      # This property can only be set if the port-channel is shutdown on
+      # some platforms.
+      # This setter will:
+      # 1) Query the current state of the port-channel interface.
+      # 2) Shutdown the port-channel interface if needed.
+      # 3) Set the lacp_suspend_individual property.
+      # 4) Restore the original state of the port-channel interface if needed.
+      int = Interface.new(@name, false)
+      current_state = int.shutdown
+      int.shutdown = true if lacp_suspend_shut_needed? && !current_state
       config_set('interface_portchannel',
                  'lacp_suspend_individual', @name, no_cmd)
+      int.shutdown = current_state unless current_state == int.shutdown
     end
 
     def default_lacp_suspend_individual

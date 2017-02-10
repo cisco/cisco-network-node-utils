@@ -1,6 +1,6 @@
 # itd_service
 ---
-_exclude: [N3k, N5k, N6k, N8k, ios_xr]
+_exclude: [N3k, N5k, N6k, N9k-F, ios_xr]
 
 _template:
   get_command: "show running-config all | section itd"

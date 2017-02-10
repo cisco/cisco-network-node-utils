@@ -38,7 +38,7 @@ lacp_max_bundle:
     default_value: 16
   N6k: *lacp_max_bundle_16
   N7k: *lacp_max_bundle_16
-  N8k: *lacp_max_bundle_32
+  N9k-F: *lacp_max_bundle_32
   N9k: *lacp_max_bundle_32
 
 lacp_min_links:
@@ -49,10 +49,22 @@ lacp_min_links:
 
 lacp_suspend_individual:
   kind: boolean
-  auto_default: false
   get_value: '/^lacp suspend.individual$/'
   set_value: "%s lacp suspend-individual"
-  default_value: true
+  N3k:
+    default_value: false
+  else:
+    auto_default: false
+    default_value: true
+
+lacp_suspend_shut_needed:
+  # This is used to determine if the port-channel interface
+  # must be shutdown before setting lacp_suspend_individual
+  kind: boolean
+  N9k:
+    default_only: true
+  else:
+    default_only: false
 
 port_hash_distribution:
   _exclude: [N6k, N5k]

@@ -1,0 +1,592 @@
+# route_map
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config | section route-map"
+  get_context: ['/^route-map <name> <action> <seq>/']
+  set_context: ["route-map <name> <action> <seq>"]
+
+all_route_maps:
+  multiple:
+  get_context: ~
+  get_value: '/^route-map (\S+) (\S+) (\S+)$/'
+
+create:
+  set_context: ~
+  set_value: "route-map <name> <action> <seq>"
+
+description:
+  get_value: '/^description (\S+)$/'
+  set_value: "<state> description <desc>"
+  default_value: false
+
+destroy:
+  set_context: ~
+  set_value: "no route-map <name> <action> <seq>"
+
+match_as_number:
+  multiple:
+  get_value: '/^match as-number (.*)$/'
+  set_value: "<state> match as-number <num>"
+  default_value: []
+
+match_as_number_as_path_list:
+  get_value: '/^match as-number as-path-list (.*)$/'
+  set_value: "<state> match as-number as-path-list <list>"
+  default_value: []
+
+match_community:
+  get_value: '/^match community (.*)$/'
+  set_value: "<state> match community <comm>"
+  default_value: []
+
+match_community_exact_match:
+  default_value: false
+
+match_evpn_route_type:
+  _exclude: [N3k, N9k, N9k-F]
+  multiple:
+  get_value: '/^match evpn route-type (.*)$/'
+  set_value: "<state> match evpn route-type <type>"
+  default_value: []
+
+match_evpn_route_type_1:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_2_all:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_2_mac_ip:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_2_mac_only:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_3:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_4:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_5:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_6:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_evpn_route_type_all:
+  _exclude: [N3k, N9k, N9k-F]
+  default_value: false
+
+match_ext_community:
+  get_value: '/^match extcommunity (.*)$/'
+  set_value: "<state> match extcommunity <comm>"
+  default_value: []
+
+match_ext_community_exact_match:
+  default_value: false
+
+match_interface:
+  get_value: '/^match interface (.*)$/'
+  set_value: "<state> match interface <int>"
+  default_value: []
+
+match_ipv4_addr_access_list:
+  multiple:
+  get_value: '/^match ip address (.*)$/'
+  set_value: "<state> match ip address <access>"
+  default_value: false
+
+match_ipv4_addr_prefix_list:
+  get_value: '/^match ip address prefix-list (.*)$/'
+  set_value: "<state> match ip address prefix-list <prefix>"
+  default_value: []
+
+match_ipv4_multicast:
+  get_value: '/match ip multicast .+$/'
+  set_value: "<state> match ip multicast <source> <group> <group_range> <to> <rp> <rp_type>"
+
+match_ipv4_multicast_enable:
+  kind: boolean
+  default_value: false
+
+match_ipv4_multicast_group_addr:
+  default_value: ''
+
+match_ipv4_multicast_group_range_begin_addr:
+  default_value: ''
+
+match_ipv4_multicast_group_range_end_addr:
+  default_value: ''
+
+match_ipv4_multicast_rp_addr:
+  default_value: ''
+
+match_ipv4_multicast_rp_type:
+  default_value: ''
+
+match_ipv4_multicast_src_addr:
+  default_value: ''
+
+match_ipv4_next_hop_prefix_list:
+  get_value: '/^match ip next-hop prefix-list (.*)$/'
+  set_value: "<state> match ip next-hop prefix-list <prefix>"
+  default_value: []
+
+match_ipv4_route_src_prefix_list:
+  get_value: '/^match ip route-source prefix-list (.*)$/'
+  set_value: "<state> match ip route-source prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_addr_access_list:
+  multiple:
+  get_value: '/^match ipv6 address (.*)$/'
+  set_value: "<state> match ipv6 address <access>"
+  default_value: false
+
+match_ipv6_addr_prefix_list:
+  get_value: '/^match ipv6 address prefix-list (.*)$/'
+  set_value: "<state> match ipv6 address prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_multicast:
+  get_value: '/match ipv6 multicast .+$/'
+  set_value: "<state> match ipv6 multicast <source> <group> <group_range> <to> <rp> <rp_type>"
+
+match_ipv6_multicast_enable:
+  kind: boolean
+  default_value: false
+
+match_ipv6_multicast_group_addr:
+  default_value: ''
+
+match_ipv6_multicast_group_range_begin_addr:
+  default_value: ''
+
+match_ipv6_multicast_group_range_end_addr:
+  default_value: ''
+
+match_ipv6_multicast_rp_addr:
+  default_value: ''
+
+match_ipv6_multicast_rp_type:
+  default_value: ''
+
+match_ipv6_multicast_src_addr:
+  default_value: ''
+
+match_ipv6_next_hop_prefix_list:
+  get_value: '/^match ipv6 next-hop prefix-list (.*)$/'
+  set_value: "<state> match ipv6 next-hop prefix-list <prefix>"
+  default_value: []
+
+match_ipv6_route_src_prefix_list:
+  get_value: '/^match ipv6 route-source prefix-list (.*)$/'
+  set_value: "<state> match ipv6 route-source prefix-list <prefix>"
+  default_value: []
+
+match_length:
+  _exclude: [N3k, N9k, N9k-F]
+  get_value: '/^match length (\d+) (\d+)$/'
+  set_value: "<state> match length <min> <max>"
+  default_value: []
+
+match_mac_list:
+  _exclude: [N3k, N9k, N9k-F]
+  get_value: '/^match mac-list (.*)$/'
+  set_value: "<state> match mac-list <mac>"
+  default_value: []
+
+match_metric:
+  get_value: '/^match metric (.*)$/'
+  set_value: "<state> match metric <metric>"
+  default_value: []
+
+match_ospf_area:
+  _exclude: [N5k, N6k, N7k, N9k-F]
+  get_value: '/^match ospf-area (.*)$/'
+  set_value: "<state> match ospf-area <area>"
+  default_value: []
+
+match_route_type:
+  multiple:
+  get_value: '/^match route-type (.*)$/'
+  set_value: "<state> match route-type <external> <inter_area> <internal> <intra_area> <level_1> <level_2> <local> <nssa_external> <type_1> <type_2>"
+
+match_route_type_external:
+  kind: boolean
+  default_value: false
+
+match_route_type_inter_area:
+  kind: boolean
+  default_value: false
+
+match_route_type_internal:
+  kind: boolean
+  default_value: false
+
+match_route_type_intra_area:
+  kind: boolean
+  default_value: false
+
+match_route_type_level_1:
+  kind: boolean
+  default_value: false
+
+match_route_type_level_2:
+  kind: boolean
+  default_value: false
+
+match_route_type_local:
+  kind: boolean
+  default_value: false
+
+match_route_type_nssa_external:
+  kind: boolean
+  default_value: false
+
+match_route_type_type_1:
+  kind: boolean
+  default_value: false
+
+match_route_type_type_2:
+  kind: boolean
+  default_value: false
+
+match_src_proto:
+  get_value: '/^match source-protocol (.*)$/'
+  set_value: "<state> match source-protocol <proto>"
+  default_value: []
+
+match_tag:
+  get_value: '/^match tag (.*)$/'
+  set_value: "<state> match tag <tag>"
+  default_value: []
+
+match_vlan:
+  _exclude: [N3k, N9k, N9k-F]
+  get_value: '/^match vlan (.*)$/'
+  set_value: "<state> match vlan <range>"
+  default_value: ''
+
+set_as_path_prepend:
+  multiple:
+  get_value: '/^set as-path prepend (.*)$/'
+  set_value: "<state> set as-path prepend <asnum>"
+  default_value: []
+
+set_as_path_prepend_last_as:
+  kind: int
+  get_value: '/^set as-path prepend last-as (\d+)$/'
+  set_value: "<state> set as-path prepend last-as <as>"
+  default_value: false
+
+set_as_path_tag:
+  kind: boolean
+  get_value: '/^set as-path tag$/'
+  set_value: "<state> set as-path tag"
+  default_value: false
+
+# there is more than one space before delete on some platforms
+set_comm_list:
+  get_value: '/^set comm-list (\S+)(?:\s+)? delete$/'
+  set_value: "<state> set comm-list <list> delete"
+  default_value: false
+
+set_community:
+  get_value: '/^set community(?:\s+.*)?$/'
+  set_value: "<state> set community <string>"
+
+set_community_additive:
+  default_value: false
+
+set_community_asn:
+  default_value: []
+
+set_community_internet:
+  default_value: false
+
+set_community_local_as:
+  default_value: false
+
+set_community_no_advtertise:
+  default_value: false
+
+set_community_no_export:
+  default_value: false
+
+set_community_none:
+  default_value: false
+
+set_dampening:
+  get_value: '/^set dampening (.*)$/'
+  set_value: "<state> set dampening <hl> <reuse> <supp> <max>"
+
+set_dampening_half_life:
+  default_value: false
+
+set_dampening_max_duation:
+  default_value: false
+
+set_dampening_reuse:
+  default_value: false
+
+set_dampening_suppress:
+  default_value: false
+
+set_distance:
+  get_value: '/^set distance (.*)$/'
+  set_value: "<state> set distance <igp> <internal> <local>"
+
+set_distance_igp_ebgp:
+  default_value: false
+
+set_distance_internal:
+  default_value: false
+
+set_distance_local:
+  default_value: false
+
+# there is more than one space before delete on some platforms
+set_extcomm_list:
+  get_value: '/^set extcomm-list (\S+)(?:\s+)? delete$/'
+  set_value: "<state> set extcomm-list <list> delete"
+  default_value: false
+
+set_extcommunity_4bytes:
+  get_value: '/^set extcommunity 4byteas-generic (.*)$/'
+  set_value: "<state> set extcommunity 4byteas-generic <string>"
+
+set_extcommunity_4bytes_additive:
+  default_value: false
+
+set_extcommunity_4bytes_non_transitive:
+  default_value: []
+
+set_extcommunity_4bytes_none:
+  default_value: false
+
+set_extcommunity_4bytes_transitive:
+  default_value: []
+
+set_extcommunity_cost:
+  get_value: '/^set extcommunity cost (.*)$/'
+  set_value: "<state> set extcommunity cost <string>"
+
+set_extcommunity_cost_device:
+  kind: boolean
+  N3k: &set_extcommunity_device_str
+    default_only: true
+  N5k: &set_extcommunity_device_no_str
+    default_only: false
+  N6k: *set_extcommunity_device_no_str
+  N7k: *set_extcommunity_device_no_str
+  N9k: *set_extcommunity_device_str
+  N9k-F: *set_extcommunity_device_str
+
+set_extcommunity_cost_igp:
+  default_value: []
+
+set_extcommunity_cost_pre_bestpath:
+  default_value: []
+
+set_extcommunity_rt:
+  get_value: '/^set extcommunity rt (.*)$/'
+  set_value: "<state> set extcommunity rt <string>"
+
+set_extcommunity_rt_additive:
+  default_value: false
+
+set_extcommunity_rt_asn:
+  default_value: []
+
+set_forwarding_addr:
+  kind: boolean
+  get_value: '/^set forwarding-address$/'
+  set_value: "<state> set forwarding-address"
+  default_value: false
+
+set_interface:
+  get_value: '/^set interface (.*)$/'
+  set_value: "<state> set interface <int>"
+  default_value: false
+
+set_ipv4_default_next_hop:
+  _exclude: [N5k, N6k, N9k, N9k-F]
+  get_value: '/^set ip default next-hop (.*)$/'
+  set_value: "<state> set ip default next-hop <nh>"
+  default_value: []
+
+set_ipv4_default_next_hop_load_share:
+  _exclude: [N5k, N6k, N9k, N9k-F]
+  default_value: false
+
+set_ipv4_next_hop:
+  multiple:
+  get_value: '/^set ip next-hop (.*)$/'
+  set_value: "<state> set ip next-hop <nh>"
+  default_value: []
+
+set_ipv4_next_hop_load_share:
+  _exclude: [N5k, N6k]
+  default_value: false
+
+set_ipv4_next_hop_peer_addr:
+  kind: boolean
+  get_value: '/^set ip next-hop peer-address$/'
+  set_value: "<state> set ip next-hop peer-address"
+  default_value: false
+
+set_ipv4_next_hop_redist:
+  kind: boolean
+  get_value: '/^set ip next-hop redist-unchanged$/'
+  set_value: "<state> set ip next-hop redist-unchanged"
+  default_value: false
+
+set_ipv4_next_hop_unchanged:
+  kind: boolean
+  get_value: '/^set ip next-hop unchanged$/'
+  set_value: "<state> set ip next-hop unchanged"
+  default_value: false
+
+set_ipv4_precedence:
+  get_value: '/^set ip precedence (\S+)/'
+  set_value: "<state> set ip precedence <pre>"
+  default_value: false
+
+set_ipv4_prefix:
+  _exclude: [N5k, N6k]
+  get_value: '/^set ip address prefix-list (\S+)/'
+  set_value: "<state> set ip address prefix-list <pf>"
+  default_value: false
+
+set_ipv6_default_next_hop:
+  _exclude: [N5k, N6k, N9k, N9k-F]
+  get_value: '/^set ipv6 default next-hop (.*)$/'
+  set_value: "<state> set ipv6 default next-hop <nh>"
+  default_value: []
+
+set_ipv6_default_next_hop_load_share:
+  _exclude: [N5k, N6k, N9k, N9k-F]
+  default_value: false
+
+set_ipv6_next_hop:
+  multiple:
+  get_value: '/^set ipv6 next-hop (.*)$/'
+  set_value: "<state> set ipv6 next-hop <nh>"
+  default_value: []
+
+set_ipv6_next_hop_load_share:
+  _exclude: [N5k, N6k]
+  default_value: false
+
+set_ipv6_next_hop_peer_addr:
+  kind: boolean
+  get_value: '/^set ipv6 next-hop peer-address$/'
+  set_value: "<state> set ipv6 next-hop peer-address"
+  default_value: false
+
+set_ipv6_next_hop_redist:
+  kind: boolean
+  get_value: '/^set ipv6 next-hop redist-unchanged$/'
+  set_value: "<state> set ipv6 next-hop redist-unchanged"
+  default_value: false
+
+set_ipv6_next_hop_unchanged:
+  kind: boolean
+  get_value: '/^set ipv6 next-hop unchanged$/'
+  set_value: "<state> set ipv6 next-hop unchanged"
+  default_value: false
+
+set_ipv6_precedence:
+  get_value: '/^set ipv6 precedence (\S+)/'
+  set_value: "<state> set ipv6 precedence <pre>"
+  default_value: false
+
+set_ipv6_prefix:
+  _exclude: [N5k, N6k]
+  get_value: '/^set ipv6 address prefix-list (\S+)/'
+  set_value: "<state> set ipv6 address prefix-list <pf>"
+  default_value: false
+
+set_level:
+  get_value: '/^set level (\S+)$/'
+  set_value: "<state> set level <level>"
+  default_value: false
+
+set_local_preference:
+  kind: int
+  get_value: '/^set local-preference (\d+)$/'
+  set_value: "<state> set local-preference <pref>"
+  default_value: false
+
+set_metric:
+  get_value: '/^set metric (.*)$/'
+  set_value: "<state> set metric <additive><bw> <delay> <rel> <eff> <mtu>"
+
+set_metric_additive:
+  default_value: false
+
+set_metric_bandwidth:
+  default_value: false
+
+set_metric_delay:
+  default_value: false
+
+set_metric_effective_bandwidth:
+  default_value: false
+
+set_metric_mtu:
+  default_value: false
+
+set_metric_reliability:
+  default_value: false
+
+set_metric_type:
+  get_value: '/^set metric-type (\S+)$/'
+  set_value: "<state> set metric-type <type>"
+  default_value: false
+
+set_nssa_only:
+  kind: boolean
+  get_value: '/^set nssa-only$/'
+  set_value: "<state> set nssa-only"
+  default_value: false
+
+set_origin:
+  get_value: '/^set origin (\S+)/'
+  set_value: "<state> set origin <origin>"
+  default_value: false
+
+set_path_selection:
+  kind: boolean
+  get_value: '/^set path-selection all advertise$/'
+  set_value: "<state> set path-selection all advertise"
+  default_value: false
+
+set_tag:
+  kind: int
+  get_value: '/^set tag (\d+)/'
+  set_value: "<state> set tag <tag>"
+  default_value: false
+
+set_vrf:
+  _exclude: [N3k, N5k, N6k, N9k, N9k-F]
+  get_value: '/^set vrf (\S+)$/'
+  set_value: "<state> set vrf <vrf>"
+  default_value: false
+
+set_weight:
+  kind: int
+  get_value: '/^set weight (\d+)$/'
+  set_value: "<state> set weight <weight>"
+  default_value: false

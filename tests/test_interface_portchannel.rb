@@ -94,12 +94,32 @@ class TestInterfacePortChannel < CiscoTestCase
 
   def test_lacp_suspend_individual
     interface = create_port_channel
-    interface.lacp_suspend_individual = false
-    assert_equal(false, interface.lacp_suspend_individual)
-    interface.lacp_suspend_individual =
-      interface.default_lacp_suspend_individual
-    assert_equal(interface.default_lacp_suspend_individual,
-                 interface.lacp_suspend_individual)
+
+    # Run this test with the portchannel in both a 'shutdown'
+    # and 'no shutdown' state.
+    int_obj = Interface.new(interface.name)
+    [true, false].each do |state|
+      int_obj.shutdown = state
+
+      # Test initial default case
+      assert_equal(interface.default_lacp_suspend_individual,
+                   interface.lacp_suspend_individual)
+
+      # Test non-default value
+      val = !interface.default_lacp_suspend_individual
+      interface.lacp_suspend_individual = val
+      assert_equal(val, interface.lacp_suspend_individual)
+
+      # Set back to default
+      interface.lacp_suspend_individual =
+        interface.default_lacp_suspend_individual
+      assert_equal(interface.default_lacp_suspend_individual,
+                   interface.lacp_suspend_individual)
+
+      # Make sure interface ends up in the same state.
+      assert_equal(state, int_obj.shutdown,
+                   "Interface #{int_obj.name} incorrect state after setting property")
+    end
   end
 
   def test_port_load_defer

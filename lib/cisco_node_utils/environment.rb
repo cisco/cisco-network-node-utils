@@ -39,6 +39,7 @@ module Cisco
       port:     nil, # only applicable to gRPC
       username: nil,
       password: nil,
+      cookie:   nil, # only applicable to nxapi
     }
 
     def self.environments

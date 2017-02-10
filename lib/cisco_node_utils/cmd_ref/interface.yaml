@@ -92,6 +92,50 @@ feature_vlan:
     get_value: '/^feature interface-vlan$/'
     set_value: "<state> feature interface-vlan"
 
+hsrp_bfd:
+  _exclude: [ios_xr, N5k, N6k]
+  kind: boolean
+  get_value: '/^hsrp bfd$/'
+  set_value: "<state> hsrp bfd"
+  default_value: false
+
+hsrp_delay:
+  _exclude: [ios_xr, N5k, N6k]
+  get_value: '/^hsrp delay minimum (\d+) reload (\d+)/'
+  set_value: "hsrp delay <minimum> <min> <reload> <rel>"
+
+hsrp_delay_minimum:
+  _exclude: [ios_xr, N5k, N6k]
+  default_value: 0
+
+hsrp_delay_reload:
+  _exclude: [ios_xr, N5k, N6k]
+  default_value: 0
+
+hsrp_mac_refresh:
+  _exclude: [ios_xr, N5k, N6k]
+  kind: int
+  get_value: '/^hsrp mac-refresh (\d+)$/'
+  set_value: '<state> hsrp mac-refresh <timeout>'
+  default_value: false
+
+hsrp_use_bia:
+  _exclude: [ios_xr, N5k, N6k]
+  # the config can be 'hsrp use-bia' or
+  # 'hsrp use-bia scope interface' or
+  # no config at all so need to grab the
+  # optional match to get the whole config
+  get_value: '/^hsrp use-bia(?:\s+\S+\s+\S+)?$/'
+  set_value: '<state> hsrp use-bia<scope>'
+  default_value: false
+
+hsrp_version:
+  _exclude: [ios_xr, N5k, N6k]
+  kind: int
+  get_value: '/^hsrp version (\d+)$/'
+  set_value: "hsrp version <ver>"
+  default_value: 1
+
 ipv4_acl_in:
   ios_xr:
     get_value: '/^ipv4 access-group (\S+) ingress/'
@@ -147,7 +191,7 @@ ipv4_dhcp_relay_info_trust:
   default_value: false
 
 ipv4_dhcp_relay_src_addr_hsrp:
-  _exclude: [ios_xr, N3k, N8k, N9k]
+  _exclude: [ios_xr, N3k, N9k-F, N9k]
   kind: boolean
   get_value: '/^ip dhcp relay source-address hsrp$/'
   set_value: "<state> ip dhcp relay source-address hsrp"
@@ -284,6 +328,13 @@ negotiate_auto_portchannel:
   set_value: "<state> negotiate auto"
   default_value: true
 
+pim_bfd:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^ip pim bfd-instance$/'
+  set_value: "<state> ip pim bfd-instance"
+  default_value: false
+
 pvlan_any:
   multiple:
   get_value: '/switchport private-vlan/'
@@ -295,7 +346,7 @@ pvlan_any:
 # 'switchport_pvlan_mapping_trunk' is the switchport-pvlan-trunk command
 pvlan_mapping:
   # SVI-only property
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   get_value: '/^private-vlan mapping (.*)/'
   set_value: "<state> private-vlan mapping <vlan>"
   default_value: []
@@ -493,68 +544,68 @@ switchport_mode_port_channel:
   default_value: ""
 
 switchport_pvlan_host:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan host$/'
   set_value: "<state> switchport mode private-vlan host"
   default_value: false
 
 switchport_pvlan_host_association:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   # Note this is NOT a multiple, unlike trunk association.
   get_value: '/^switchport private-vlan host-association (\d+) (\d+)$/'
   set_value: "<state> switchport private-vlan host-association <pri> <sec>"
   default_value: []
 
 switchport_pvlan_mapping:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   get_value: '/^switchport private-vlan mapping (\d+) (.*)$/'
   set_value: "<state> switchport private-vlan mapping <primary> <vlan>"
   default_value: []
 
 switchport_pvlan_mapping_trunk:
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   multiple:
   get_value: '/^switchport private-vlan mapping trunk (\d+) (.*)$/'
   set_value: "<state> switchport private-vlan mapping trunk <primary> <range>"
   default_value: []
 
 switchport_pvlan_promiscuous:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan promiscuous$/'
   set_value: "<state> switchport mode private-vlan promiscuous"
   default_value: false
 
 switchport_pvlan_trunk_allowed_vlan:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   multiple: true
   get_value: '/^switchport private-vlan trunk allowed vlan (?:add )?(\S+)$/'
   set_value: "switchport private-vlan trunk allowed vlan <range>"
   default_value: 'none'
 
 switchport_pvlan_trunk_association:
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   multiple:
   get_value: '/^switchport private-vlan association trunk (\d+) (\d+)$/'
   set_value: "<state> switchport private-vlan association trunk <pri> <sec>"
   default_value: []
 
 switchport_pvlan_trunk_native_vlan:
-  _exclude: [ios_xr, N8k]
+  _exclude: [ios_xr, N9k-F]
   get_value: '/^switchport private-vlan trunk native vlan (.*)$/'
   set_value: "switchport private-vlan trunk native vlan <vlan>"
   default_value: '1'
 
 switchport_pvlan_trunk_promiscuous:
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk promiscuous$/'
   set_value: "<state> switchport mode private-vlan trunk promiscuous"
   default_value: false
 
 switchport_pvlan_trunk_secondary:
-  _exclude: [ios_xr, N3k, N8k]
+  _exclude: [ios_xr, N3k, N9k-F]
   kind: boolean
   get_value: '/^switchport mode private-vlan trunk secondary$/'
   set_value: "<state> switchport mode private-vlan trunk secondary"
@@ -617,14 +668,14 @@ system_default_switchport_shutdown:
     default_only: true
 
 vlan_mapping:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   multiple:
   get_value: '/^switchport vlan mapping (\d+) (\d+)/'
   set_value: '<state> switchport vlan mapping <original> <translated>'
   default_value: []
 
 vlan_mapping_enable:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   kind: boolean
   get_value: '/^(no )?switchport vlan mapping enable/'
   set_value: '<state> switchport vlan mapping enable'

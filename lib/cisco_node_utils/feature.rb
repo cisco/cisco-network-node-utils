@@ -120,6 +120,20 @@ module Cisco
     end
 
     # ---------------------------
+    def self.hsrp_enable
+      return if hsrp_enabled?
+      config_set('feature', 'hsrp')
+    end
+
+    def self.hsrp_enabled?
+      config_get('feature', 'hsrp')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    # ---------------------------
     def self.itd_enable
       return if itd_enabled?
       config_set('feature', 'itd')

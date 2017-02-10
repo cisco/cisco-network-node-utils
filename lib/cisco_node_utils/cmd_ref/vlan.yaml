@@ -4,8 +4,10 @@ _exclude: [ios_xr]
 
 all_vlans:
   multiple: true
+  get_data_format: nxapi_structured
   get_command: "show vlan brief"
-  get_value: '/^(\d+)\s/'
+  get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
+  get_value: "vlanshowbr-vlanid-utf"
 
 create:
   set_value: "vlan %s"
@@ -14,7 +16,7 @@ destroy:
   set_value: "no vlan %s"
 
 fabric_control:
-  _exclude: [N3k, N5k, N6k, N8k, N9k]
+  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   kind: boolean
   get_command: "show running-config vlan"
   get_context: ['/^vlan <vlan>/']
@@ -27,7 +29,7 @@ mapped_vni:
   _exclude: [N7k]
   N3k: &mapped_vni_n3_8_9k
     get_command: 'show running vlan'
-  N8k: *mapped_vni_n3_8_9k
+  N9k-F: *mapped_vni_n3_8_9k
   N9k: *mapped_vni_n3_8_9k
   N5k: &mapped_vni_n5_6k
     get_command: 'show running vlan 1-4094'
@@ -48,7 +50,7 @@ mapped_vni_requires_nv_overlay:
     default_only: false
 
 mode:
-  _exclude: [N3k, N9k]
+  _exclude: [N3k, N9k, N9k-F]
   multiple: true
   get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
@@ -59,13 +61,16 @@ mode:
   default_value: 'CE'
 
 name:
+  kind: string
+  get_data_format: nxapi_structured
   get_command: "show vlan brief"
-  get_value: '/^%d\s+(\S+)\s/'
+  get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
+  get_value: ["vlanshowbr-vlanid-utf <vlanid>", "vlanshowbr-vlanname"]
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
 pvlan_association:
-  _exclude: [N8k]
+  _exclude: [N9k-F]
   multiple: true
   get_command: "show vlan private-vlan"
   get_value: '/^<id>\s+(\d+)/'
@@ -74,7 +79,7 @@ pvlan_association:
   default_value: []
 
 pvlan_type:
-  _exclude: [N8k]
+  _exclude: [N9k-F]
   kind: string
   get_command: 'show vlan private-vlan type'
   get_value: '/^<id>\s+(\S+)/'
@@ -83,8 +88,11 @@ pvlan_type:
   default_value: ""
 
 shutdown:
+  kind: boolean
+  get_data_format: nxapi_structured
   get_command: "show vlan brief"
-  get_value: '/^%d\s+\S+\s+(\S+)\s/'
+  get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
+  get_value: ["vlanshowbr-vlanid-utf <vlanid>", "vlanshowbr-shutstate", '/^shutdown$/']
   set_context: ["vlan %d"]
   set_value: "%s shutdown ; end"
   default_value: false
