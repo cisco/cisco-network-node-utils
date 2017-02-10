@@ -211,7 +211,6 @@ class Cisco::Client::NXAPI < Cisco::Client
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
       raise Cisco::ConnectionRefused, emsg
     rescue EOFError
-      puts 'EOFError detected, retry'
       tries -= 1
       retry if tries > 0
       raise
