@@ -20,39 +20,60 @@ require 'pry'
 module Cisco
   # Service - node util class for managing device services
   class Service < NodeUtil
+    # Delete install logs from previous installation
     def self.clear_status
-      puts "Calling: #{__method__}"
       config_set('service', 'clear_status')
     end
 
+    # Deletes 'image' from 'media'
     def self.delete(image, media='bootflash:')
-      puts "Calling: #{__method__}"
       config_set('service', 'delete', image: image, media: media)
     rescue Cisco::CliError => e
-      # cmd will syntax reject when image does not exist.
-      raise unless e.clierror =~ /No such file or directory/
+      raise e
     end
 
-    def self.delete_boot(image, media='bootflash:')
-      puts "Calling: #{__method__}"
-      config_set('service', 'delete_boot', image: image, media: media)
+    # Deletes the image that the device is currently booted up with
+    def self.delete_boot(media='bootflash:')
+      # Incase of a N9K, N3K and N9Kv the system and kickstart images are
+      # the same.
+      # Incase of a N5K, N6K and N7K the system and kickstart images are
+      # different.
+      system_image = config_get('show_version', 'system_image').split('/')[-1]
+      kickstart_image = config_get('show_version', 'boot_image').split('/')[-1]
+      if kickstart_image == system_image
+        config_set('service', 'delete_boot', image: system_image, media: media)
+      else
+        config_set('service', 'delete_boot', image: system_image,
+                                             media: media)
+        config_set('service', 'delete_boot', image: kickstart_image,
+                                             media: media)
+      end
     rescue Cisco::CliError => e
-      # cmd will syntax reject when image does not exist.
-      raise unless e.clierror =~ /No such file or directory/
+      raise e
+    end
+
+    # Returns version of the 'image'
+    def self.image_version(image='', media='bootflash:')
+      # If no image is passed in check the version of the image which is
+      # booted up on the switch.
+      if image == ''
+        config_get('show_version', 'version').split(' ')[0]
+      else
+        config_get('service', 'image_version', image: image, media: media)
+      end
     end
 
     def self.save_config
-      puts "Calling: #{__method__}"
       config_set('service', 'save_config')
     end
 
+    # Returns True if device upgraded
     def self.upgraded?
-      puts "Calling: #{__method__}"
       config_get('service', 'upgraded')
     end
 
+    # Attempts to upgrade the device to 'image'
     def self.upgrade(image, media='bootflash:')
-      puts "Calling: #{__method__}"
       config_set('service', 'upgrade', image: image, media: media)
     end
   end

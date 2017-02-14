@@ -13,6 +13,10 @@ delete_boot:
   set_context: ['terminal dont-ask', 'allow delete boot-image']
   set_value: "delete <media><image>"
 
+image_version:
+  get_command: "show version image <media><image>"
+  get_value: '/NXOS:\s+version\s(\S+)/'
+
 save_config:
   set_value: "copy running-config startup-config"
 
@@ -23,4 +27,4 @@ upgrade:
 upgraded:
   kind: boolean
   get_command: 'show install all status'
-  get_value: '/Install has been successful/i'
+  get_value: '/Finishing the upgrade, switch will reboot/'
