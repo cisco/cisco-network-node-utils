@@ -11,6 +11,11 @@ Changelog
 
 ### Added
 
+* Extend interface with attributes:
+   * `load_interval_counter_1_delay`
+   * `load_interval_counter_2_delay`
+   * `load_interval_counter_3_delay`
+
 ### Changed
 
 ### Removed

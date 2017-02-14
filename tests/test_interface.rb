@@ -1740,4 +1740,67 @@ class TestInterface < CiscoTestCase
     interface.pim_bfd = interface.default_pim_bfd
     assert_equal(interface.default_pim_bfd, interface.pim_bfd)
   end
+
+  def test_load_interval_counter_1_delay
+    inf_name = interfaces[0]
+    interface = Interface.new(inf_name)
+    if validate_property_excluded?('interface',
+                                   'load_interval_counter_1_delay')
+      assert_nil(interface.load_interval_counter_1_delay)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.load_interval_counter_1_delay = 100
+      end
+      return
+    end
+    assert_equal(interface.default_load_interval_counter_1_delay,
+                 interface.load_interval_counter_1_delay)
+    interface.load_interval_counter_1_delay = 100
+    assert_equal(100, interface.load_interval_counter_1_delay)
+    interface.load_interval_counter_1_delay =
+      interface.default_load_interval_counter_1_delay
+    assert_equal(interface.default_load_interval_counter_1_delay,
+                 interface.load_interval_counter_1_delay)
+  end
+
+  def test_load_interval_counter_2_delay
+    inf_name = interfaces[0]
+    interface = Interface.new(inf_name)
+    if validate_property_excluded?('interface',
+                                   'load_interval_counter_2_delay')
+      assert_nil(interface.load_interval_counter_2_delay)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.load_interval_counter_2_delay = 200
+      end
+      return
+    end
+    assert_equal(interface.default_load_interval_counter_2_delay,
+                 interface.load_interval_counter_2_delay)
+    interface.load_interval_counter_2_delay = 200
+    assert_equal(200, interface.load_interval_counter_2_delay)
+    interface.load_interval_counter_2_delay =
+      interface.default_load_interval_counter_2_delay
+    assert_equal(interface.default_load_interval_counter_2_delay,
+                 interface.load_interval_counter_2_delay)
+  end
+
+  def test_load_interval_counter_3_delay
+    inf_name = interfaces[0]
+    interface = Interface.new(inf_name)
+    if validate_property_excluded?('interface',
+                                   'load_interval_counter_3_delay')
+      assert_nil(interface.load_interval_counter_3_delay)
+      assert_raises(Cisco::UnsupportedError) do
+        interface.load_interval_counter_3_delay = 150
+      end
+      return
+    end
+    assert_equal(interface.default_load_interval_counter_3_delay,
+                 interface.load_interval_counter_3_delay)
+    interface.load_interval_counter_3_delay = 150
+    assert_equal(150, interface.load_interval_counter_3_delay)
+    interface.load_interval_counter_3_delay =
+      interface.default_load_interval_counter_3_delay
+    assert_equal(interface.default_load_interval_counter_3_delay,
+                 interface.load_interval_counter_3_delay)
+  end
 end
