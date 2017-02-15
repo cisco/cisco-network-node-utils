@@ -77,7 +77,8 @@ class TestService < CiscoTestCase
   def test_upgrade
     image_info = preconfig_service_info
     Service.upgrade(image_info['install_image'], image_info['install_media'])
-    # Wait 15 seconds for device to reboot
+    # Wait 15 seconds for device to start rebooting
+    # TODO : Consider getting the sleep value dynamically
     sleep 15
     begin
       assert(Service.upgraded?)
