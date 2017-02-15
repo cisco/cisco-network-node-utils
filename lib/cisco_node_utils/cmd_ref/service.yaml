@@ -27,4 +27,4 @@ upgrade:
 upgraded:
   kind: boolean
   get_command: 'show install all status'
-  get_value: '/Finishing the upgrade, switch will reboot/'
+  get_value: '/Finishing the upgrade, switch will reboot|Install has been successful/'
