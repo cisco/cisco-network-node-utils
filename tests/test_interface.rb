@@ -1760,6 +1760,15 @@ class TestInterface < CiscoTestCase
       interface.default_load_interval_counter_1_delay
     assert_equal(interface.default_load_interval_counter_1_delay,
                  interface.load_interval_counter_1_delay)
+    # check nil for subintf and loopback
+    subif = Interface.new(interfaces[0] + '.1')
+    assert_nil(subif.load_interval_counter_1_delay)
+    assert_raises(ArgumentError) { subif.load_interval_counter_1_delay = 100 }
+    lb = Interface.new('loopback0')
+    assert_nil(lb.load_interval_counter_1_delay)
+    assert_raises(ArgumentError) { lb.load_interval_counter_1_delay = 100 }
+    subif.destroy
+    lb.destroy
   end
 
   def test_load_interval_counter_2_delay
@@ -1781,6 +1790,15 @@ class TestInterface < CiscoTestCase
       interface.default_load_interval_counter_2_delay
     assert_equal(interface.default_load_interval_counter_2_delay,
                  interface.load_interval_counter_2_delay)
+    # check nil for subintf and loopback
+    subif = Interface.new(interfaces[0] + '.1')
+    assert_nil(subif.load_interval_counter_2_delay)
+    assert_raises(ArgumentError) { subif.load_interval_counter_2_delay = 100 }
+    lb = Interface.new('loopback0')
+    assert_nil(lb.load_interval_counter_2_delay)
+    assert_raises(ArgumentError) { lb.load_interval_counter_2_delay = 100 }
+    subif.destroy
+    lb.destroy
   end
 
   def test_load_interval_counter_3_delay
@@ -1802,5 +1820,14 @@ class TestInterface < CiscoTestCase
       interface.default_load_interval_counter_3_delay
     assert_equal(interface.default_load_interval_counter_3_delay,
                  interface.load_interval_counter_3_delay)
+    # check nil for subintf and loopback
+    subif = Interface.new(interfaces[0] + '.1')
+    assert_nil(subif.load_interval_counter_3_delay)
+    assert_raises(ArgumentError) { subif.load_interval_counter_3_delay = 100 }
+    lb = Interface.new('loopback0')
+    assert_nil(lb.load_interval_counter_3_delay)
+    assert_raises(ArgumentError) { lb.load_interval_counter_3_delay = 100 }
+    subif.destroy
+    lb.destroy
   end
 end
