@@ -87,4 +87,13 @@ class TestService < CiscoTestCase
       raise
     end
   end
+
+  def test_upgrade_boot_image
+    image_uri = node.config_get('show_version', 'system_image')
+    image = image_uri.split('/')[-1]
+    media = image_uri.split('/')[0]
+    skip('Boot image not on bootflash:') unless media == 'bootflash:'
+    Service.upgrade(image, media)
+    assert(Service.upgraded?)
+  end
 end
