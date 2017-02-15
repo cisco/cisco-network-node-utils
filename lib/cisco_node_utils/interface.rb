@@ -807,18 +807,18 @@ module Cisco
     end
 
     def load_interval_counter_1_delay
-      return nil if @name[/loop/i]
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       config_get('interface', 'load_interval_counter_1_delay', name: @name)
     end
 
     def load_interval_counter_1_delay=(val)
-      fail ArgumentError, 'Interface cannot be loopback' if @name[/loop/i]
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       config_set('interface', 'load_interval_counter_1_delay',
                  name: @name, delay: val)
     end
 
     def default_load_interval_counter_1_delay
-      return nil if @name[/loop/i]
       # for vlan and bdi the default is 60
       if @name[/(vlan|bdi)/i]
         config_get_default('interface',
@@ -829,12 +829,13 @@ module Cisco
     end
 
     def load_interval_counter_2_delay
-      return nil if @name[/loop/i]
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       config_get('interface', 'load_interval_counter_2_delay', name: @name)
     end
 
     def load_interval_counter_2_delay=(val)
-      fail ArgumentError, 'Interface cannot be loopback' if @name[/loop/i]
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       config_set('interface', 'load_interval_counter_2_delay',
                  name: @name, delay: val)
     end
@@ -844,13 +845,13 @@ module Cisco
     end
 
     def load_interval_counter_3_delay
-      return nil if @name[/loop/i]
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       config_get('interface', 'load_interval_counter_3_delay', name: @name)
     end
 
     def load_interval_counter_3_delay=(val)
-      fail ArgumentError, 'Interface cannot be loopback' if
-        @name[/loop/i]
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
       state = val ? '' : 'no'
       delay = val ? val : ''
       config_set('interface', 'load_interval_counter_3_delay',
