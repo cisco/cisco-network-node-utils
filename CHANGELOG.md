@@ -6,8 +6,11 @@ Changelog
 ### New feature support
 
 #### Cisco Resources
+* Route_map
+  * route_map (@saichint)
+
 * Service
-  * service (@rahushen)
+  * upgrade (@rahushen)
 
 ### Added
 
