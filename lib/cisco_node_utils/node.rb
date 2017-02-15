@@ -57,7 +57,7 @@ module Cisco
       return ref.default_value if ref.default_value? && !ref.getter?
 
       get_args, ref = massage_structured(ref.getter(*args).clone, ref)
-      data = get(command:     ref.get_command,
+      data = get(command:     get_args[:command],
                  data_format: get_args[:data_format],
                  context:     get_args[:context],
                  value:       get_args[:value])
