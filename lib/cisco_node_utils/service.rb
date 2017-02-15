@@ -1,6 +1,6 @@
 # October 2016, Michael G Wiebe
 #
-# Copyright (c) 2016 Cisco and/or its affiliates.
+# Copyright (c) 2016-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 # limitations under the License.
 
 require_relative 'node_util'
-require 'pry'
 
 module Cisco
   # Service - node util class for managing device services
@@ -32,7 +31,7 @@ module Cisco
       raise e
     end
 
-    # Deletes the image that the device is currently booted up with
+    # Deletes currently booted image
     def self.delete_boot(media='bootflash:')
       # Incase of a N9K, N3K and N9Kv the system and kickstart images are
       # the same.
@@ -53,18 +52,19 @@ module Cisco
     end
 
     # Returns version of the 'image'
-    def self.image_version(image='', media='bootflash:')
-      # If no image is passed in check the version of the image which is
-      # booted up on the switch.
-      if image == ''
-        config_get('show_version', 'version').split(' ')[0]
-      else
+    def self.image_version(image=nil, media=nil)
+      # Returns version of currently booted image by default
+      if image && media
         config_get('service', 'image_version', image: image, media: media)
+      else
+        config_get('show_version', 'version').split(' ')[0]
       end
     end
 
     def self.save_config
       config_set('service', 'save_config')
+    rescue Cisco::CliError => e
+      raise e
     end
 
     # Returns True if device upgraded
