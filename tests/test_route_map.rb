@@ -32,12 +32,6 @@ def dplus_n9k?
   false
 end
 
-def evergreen_dplus_n9k?
-  return true if Utils.image_version?(/7.0.3.I4|I5/) &&
-                 node.product_id[/N9K/]
-  false
-end
-
 # TestRouteMap - Minitest for RouteMap
 # node utility class
 class TestRouteMap < CiscoTestCase
@@ -1352,8 +1346,8 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_extcommunity_rt
-    # bug CSCvc92395 on fretta and n9k running dplus or higher
-    skip('platform not supported for this test') if node.product_id[/N9.*-F/] || evergreen_dplus_n9k?
+    # bug CSCvc92395 on fretta and n9k
+    skip('platform not supported for this test') if node.product_id[/N9/]
     rm = create_route_map
     assert_equal(rm.default_set_extcommunity_rt_additive,
                  rm.set_extcommunity_rt_additive)
