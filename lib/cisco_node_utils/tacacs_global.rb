@@ -80,8 +80,11 @@ module Cisco
     end
 
     def key
-      match = config_get('tacacs_global', 'key')
-      match.empty? ? TacacsGlobal.default_key : match[1]
+      str = config_get('tacacs_global', 'key')
+      return TacacsGlobal.default_encryption_password if str.empty?
+      str = str[1].strip
+      str = "\"#{str}\"" unless str.start_with?('"') && str.end_with?('"')
+      str
     end
 
     # Get default encryption password
@@ -90,6 +93,8 @@ module Cisco
     end
 
     def encryption_key_set(key_format, key)
+      key = "\"#{key}\"" unless
+        key.start_with?('"') && key.end_with?('"')
       if key_format == TACACS_GLOBAL_ENC_UNKNOWN
         config_set('tacacs_server', 'encryption', state: 'no',
                     option: key_format, key: key)

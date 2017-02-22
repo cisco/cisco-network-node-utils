@@ -369,6 +369,11 @@ module Cisco
                        acct_port: @acct_port)
 
       val = val[0] if val.is_a?(Array)
+      return if val.nil? || val.empty?
+      index = val.index('auth-port')
+      val = val[0..index - 2] unless index.nil?
+      val = val.strip
+      val = "\"#{val}\"" unless val.start_with?('"') && val.end_with?('"')
       val
     end
 
@@ -395,6 +400,8 @@ module Cisco
                    acct_port: @acct_port,
                    key:       "#{key_format} #{key}")
       elsif !format.nil?
+        value = "\"#{value}\"" unless
+          value.start_with?('"') && value.end_with?('"')
         config_set('radius_server',
                    'key',
                    state:     '',
@@ -403,6 +410,8 @@ module Cisco
                    acct_port: @acct_port,
                    key:       "#{format} #{value}")
       else
+        value = "\"#{value}\"" unless
+          value.start_with?('"') && value.end_with?('"')
         config_set('radius_server',
                    'key',
                    state:     '',

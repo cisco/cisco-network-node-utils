@@ -16,7 +16,7 @@ encryption:
 encryption_password:
   default_value: ""
   nexus:
-    get_value: '/^tacacs-server host <ip> key \d+\s+(\S+)/'
+    get_value: '/^tacacs-server host <ip> key \d+\s+(.*)/'
   ios_xr:
     context: ["tacacs-server host <ip> port <port>"]
     get_value: '/key \d+\s+(\S+)$/'
