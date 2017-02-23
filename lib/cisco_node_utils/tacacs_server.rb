@@ -148,8 +148,7 @@ module Cisco
       str = config_get('tacacs_server', 'encryption_password')
       return TacacsServer.default_encryption_password if str.empty?
       str = str[1].strip
-      str = "\"#{str}\"" unless str.start_with?('"') && str.end_with?('"')
-      str
+      Utils.add_quotes(str)
     end
 
     # Get default encryption password
@@ -159,8 +158,7 @@ module Cisco
 
     # Set encryption type and password
     def encryption_key_set(enctype, password)
-      password = "\"#{password}\"" unless
-        password.start_with?('"') && password.end_with?('"')
+      password = Utils.add_quotes(password)
       # if enctype is TACACS_SERVER_ENC_UNKNOWN, we will unset the key
       if enctype == TACACS_SERVER_ENC_UNKNOWN
         # if current encryption type is not TACACS_SERVER_ENC_UNKNOWN, we
