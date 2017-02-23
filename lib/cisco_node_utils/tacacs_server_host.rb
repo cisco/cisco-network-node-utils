@@ -140,10 +140,15 @@ module Cisco
     end
 
     def encryption_password
-      config_get('tacacs_server_host',
-                 'encryption_password',
-                 ip:   @name,
-                 port: @port)
+      str = config_get('tacacs_server_host',
+                       'encryption_password',
+                       ip:   @name,
+                       port: @port)
+      return str if str.nil? || str.empty?
+      index = str.index('port')
+      str = str[0..index - 2] unless index.nil?
+      str = str.strip
+      Utils.add_quotes(str)
     end
 
     def self.default_encryption_password
@@ -156,6 +161,7 @@ module Cisco
                                           TACACS_SERVER_ENC_CISCO_TYPE_7,
                                           TACACS_SERVER_ENC_UNKNOWN,
                                          ].include?(enctype)
+      password = Utils.add_quotes(password) unless password.empty?
       # if enctype is TACACS_SERVER_ENC_UNKNOWN, we'll unset the key
       if enctype == TACACS_SERVER_ENC_UNKNOWN
         # if current encryption type is not TACACS_SERVER_ENC_UNKNOWN, we need

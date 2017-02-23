@@ -101,7 +101,10 @@ module Cisco
     end
 
     def key
-      config_get('radius_global', 'key')
+      str = config_get('radius_global', 'key')
+      return if str.nil?
+      str = str.strip
+      Utils.add_quotes(str)
     end
 
     def key_set(value, format)
@@ -121,11 +124,13 @@ module Cisco
                    state: 'no',
                    key:   "#{key_format} #{key}")
       elsif !format.nil?
+        value = Utils.add_quotes(value)
         config_set('radius_global',
                    'key',
                    state: '',
                    key:   "#{format} #{value}")
       else
+        value = Utils.add_quotes(value)
         config_set('radius_global',
                    'key',
                    state: '',
