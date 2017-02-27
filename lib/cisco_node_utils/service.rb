@@ -61,6 +61,11 @@ module Cisco
       end
     end
 
+    # Return the image booted on the device
+    def self.image
+      config_get('show_version', 'system_image')
+    end
+
     def self.save_config
       config_set('service', 'save_config')
     rescue Cisco::CliError => e
@@ -73,8 +78,13 @@ module Cisco
     end
 
     # Attempts to upgrade the device to 'image'
-    def self.upgrade(image, media='bootflash:')
-      config_set('service', 'upgrade', image: image, media: media)
+    def self.upgrade(image, media='bootflash:', del_boot=false, force_all=false)
+      delete_boot(media) if del_boot
+      if force_all
+        config_set('service', 'upgrade_force', image: image, media: media)
+      else
+        config_set('service', 'upgrade', image: image, media: media)
+      end
     end
   end
 end
