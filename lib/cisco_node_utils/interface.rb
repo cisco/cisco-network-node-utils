@@ -806,6 +806,62 @@ module Cisco
       config_set('interface', 'feature_lacp', state: val ? '' : 'no')
     end
 
+    def load_interval_counter_1_delay
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      config_get('interface', 'load_interval_counter_1_delay', name: @name)
+    end
+
+    def load_interval_counter_1_delay=(val)
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      config_set('interface', 'load_interval_counter_1_delay',
+                 name: @name, delay: val)
+    end
+
+    def default_load_interval_counter_1_delay
+      # for vlan and bdi the default is 60
+      if @name[/(vlan|bdi)/i]
+        config_get_default('interface',
+                           'load_interval_counter_1_delay_vlan_bdi')
+      else
+        config_get_default('interface', 'load_interval_counter_1_delay')
+      end
+    end
+
+    def load_interval_counter_2_delay
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      config_get('interface', 'load_interval_counter_2_delay', name: @name)
+    end
+
+    def load_interval_counter_2_delay=(val)
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      config_set('interface', 'load_interval_counter_2_delay',
+                 name: @name, delay: val)
+    end
+
+    def default_load_interval_counter_2_delay
+      config_get_default('interface', 'load_interval_counter_2_delay')
+    end
+
+    def load_interval_counter_3_delay
+      return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      config_get('interface', 'load_interval_counter_3_delay', name: @name)
+    end
+
+    def load_interval_counter_3_delay=(val)
+      fail ArgumentError, 'Interface cannot be sub-intf or loopback' if
+        @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
+      state = val ? '' : 'no'
+      delay = val ? val : ''
+      config_set('interface', 'load_interval_counter_3_delay',
+                 name: @name, state: state, delay: delay)
+    end
+
+    def default_load_interval_counter_3_delay
+      config_get_default('interface', 'load_interval_counter_3_delay')
+    end
+
     def mtu_lookup_string
       case @name
       when /loopback/i
