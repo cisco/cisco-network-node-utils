@@ -24,6 +24,10 @@ upgrade:
   set_context: ['terminal dont-ask']
   set_value: "install all nxos <media><image>"
 
+upgrade_force:
+  set_context: ['terminal dont-ask']
+  set_value: "install force-all nxos <media><image>"
+
 upgraded:
   kind: boolean
   get_command: 'show install all status'
