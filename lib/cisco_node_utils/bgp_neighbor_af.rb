@@ -25,8 +25,8 @@ require_relative 'bgp'
 module Cisco
   # RouterBgpNeighborAF - node utility class for BGP per-neighbor, per-AF config
   class RouterBgpNeighborAF < NodeUtil
-    def initialize(asn, vrf, nbr, af, instantiate=true)
-      validate_args(asn, vrf, nbr, af)
+    def initialize(asn, vrf, nbr, af, ra=nil, instantiate=true)
+      validate_args(asn, vrf, nbr, af, ra)
       create if instantiate
     end
 
@@ -42,15 +42,16 @@ module Cisco
 
           nbrs = config_get('bgp_neighbor', 'all_neighbors', get_args)
           next if nbrs.nil?
-          nbrs.each do |nbr|
+          nbrs.each do |nbr, ra|
             af_hash[asn][vrf][nbr] = {}
             get_args[:nbr] = nbr
+            get_args[:ra] = ra
             afs = config_get('bgp_neighbor_af', 'all_afs', get_args)
 
             next if afs.nil?
             afs.each do |af|
               af_hash[asn][vrf][nbr][af] =
-                RouterBgpNeighborAF.new(asn, vrf, nbr, af, false)
+                RouterBgpNeighborAF.new(asn, vrf, nbr, af, ra, false)
             end
           end
         end
@@ -62,7 +63,7 @@ module Cisco
       return {}
     end
 
-    def validate_args(asn, vrf, nbr, af)
+    def validate_args(asn, vrf, nbr, af, ra)
       fail ArgumentError unless
         vrf.is_a?(String) && (vrf.length > 0)
       fail ArgumentError unless
@@ -81,12 +82,13 @@ module Cisco
       @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
       @nbr = nbr
+      @ra = ra
       @afi, @safi = af
       set_args_keys_default
     end
 
     def set_args_keys_default
-      keys = { asnum: @asn, nbr: @nbr, afi: @afi, safi: @safi }
+      keys = { asnum: @asn, nbr: @nbr, ra: @ra, afi: @afi, safi: @safi }
       keys[:vrf] = @vrf unless @vrf == 'default'
       @get_args = @set_args = keys
     end

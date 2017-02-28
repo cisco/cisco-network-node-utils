@@ -5,7 +5,11 @@ _template:
     get_command: "show running router bgp"
   nexus:
     get_command: "show running bgp all"
-  context:
+  get_context:
+    - "router bgp <asnum>"
+    - "(?)vrf <vrf>"
+    - "neighbor <nbr>(?: remote-as <ra>)?"
+  set_context:
     - "router bgp <asnum>"
     - "(?)vrf <vrf>"
     - "neighbor <nbr>"
@@ -15,10 +19,10 @@ af:
 
 all_neighbors:
   multiple: true
-  context:
+  get_context:
     - "router bgp <asnum>"
     - "(?)vrf <vrf>"
-  get_value: '/^neighbor (\S+)$/'
+  get_value: '/^neighbor (\S+)(?:\s+remote-as (\d+))?$/'
 
 bfd:
   _exclude: [ios_xr]
