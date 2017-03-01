@@ -12,7 +12,7 @@
   filename: 'nxos.sample-n9k_EOR-1.0.0-7.0.3.I2.2e.lib32_n9000.rpm'
   name:     'nxos.sample-n9k_EOR'
   version:  '1.0.0-7.0.3.I2.2e'
-  
+
 7_0_3_I2_5_:
   filename: 'nxos.sample-n9k_EOR-1.0.0-7.0.3.I2.5.lib32_n9000.rpm'
   name:     'nxos.sample-n9k_EOR'
