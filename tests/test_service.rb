@@ -71,7 +71,7 @@ class TestService < CiscoTestCase
 
   def test_image_version
     version = Service.image_version
-    assert_match(/^\d.\d\(\d\)\S+\(\d+\)$/, version)
+    assert_match(/^\d.\d\(\d\)\S+\(\S+\)$/, version)
   end
 
   def test_upgrade
