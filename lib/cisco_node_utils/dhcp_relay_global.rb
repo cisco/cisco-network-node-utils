@@ -206,8 +206,11 @@ module Cisco
 
     def ipv4_sub_option_circuit_id_string
       str = config_get('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string')
-      # Normalize by removing white space
-      str.strip! if str
+      # Normalize by removing white space and add quotes
+      if str
+        str.strip!
+        str = Utils.add_quotes(str)
+      end
       str
     end
 
@@ -215,6 +218,7 @@ module Cisco
       state = val == default_ipv4_sub_option_circuit_id_string ? 'no' : ''
       format = val == default_ipv4_sub_option_circuit_id_string ? '' : 'format'
       word = val == default_ipv4_sub_option_circuit_id_string ? '' : val
+      word = Utils.add_quotes(word) unless word.empty?
       set_args_keys(state: state, format: format, word: word)
       config_set('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string',
                  @set_args)

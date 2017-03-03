@@ -75,7 +75,7 @@ class TestEvpnVni < CiscoTestCase
     vni = EvpnVni.new(4096)
     opts = [:both, :import, :export]
 
-    # 'route_target_both' has limited support with I3 and later images.
+    # 'route_target_both' has limited support with I2.5 and later images.
     # The Puppet README states:
     # Caveat: The route_target_both property is discouraged due to the
     # inconsistent behavior of the property across Nexus platforms and image
@@ -86,7 +86,7 @@ class TestEvpnVni < CiscoTestCase
     # in the configuration it causes an idempotency problem for puppet. For
     # this reason it is recommended to use explicit 'route_target_export' and
     # 'route_target_import' properties instead of route_target_both.
-    opts.delete(:both) unless Utils.nexus_i2_image
+    opts.delete(:both)
 
     # Master list of communities to test against
     master = ['1.2.3.4:55', '2:2', '55:33', 'auto']

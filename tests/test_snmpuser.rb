@@ -564,16 +564,15 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_privpassword
-    name = 'test_privpassword'
     priv_password = '0x123456'
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+    snmpuser = SnmpUser.new('test_pp1', [''], :md5, priv_password,
                             :des, priv_password, true, '')
 
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
     snmpuser.destroy
 
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+    snmpuser = SnmpUser.new('test_pp2', [''], :md5, priv_password,
                             :aes128, priv_password, true, '')
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
@@ -581,16 +580,15 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_privpassword_with_engineid
-    name = 'test_privpassword2'
     priv_password = '0x123456'
     engine_id = '128:12:12:12:12'
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+    snmpuser = SnmpUser.new('test_pp3', [''], :md5, priv_password,
                             :des, priv_password, true, engine_id)
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
     snmpuser.destroy
 
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_password,
+    snmpuser = SnmpUser.new('test_pp4', [''], :md5, priv_password,
                             :aes128, priv_password, true, '')
     pw = snmpuser.priv_password
     assert_equal(priv_password, pw)
@@ -612,17 +610,16 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def test_priv_password_equal_with_engineid
-    name = 'test_privpass_equal'
     priv_pass = 'XXWWPass0wrf'
     engine_id = '128:12:12:12:12'
 
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_pass, :des, priv_pass, false,
+    snmpuser = SnmpUser.new('test_pp5', [''], :md5, priv_pass, :des, priv_pass, false,
                             engine_id)
     assert(snmpuser.priv_password_equal?(priv_pass, false))
     refute(snmpuser.priv_password_equal?('tWWXXpass0wrf', false))
     snmpuser.destroy
 
-    snmpuser = SnmpUser.new(name, [''], :md5, priv_pass,
+    snmpuser = SnmpUser.new('test_pp6', [''], :md5, priv_pass,
                             :aes128, priv_pass, false, engine_id)
     assert(snmpuser.priv_password_equal?(priv_pass, false))
     refute(snmpuser.priv_password_equal?('tWWXXpass0wrf', false))
