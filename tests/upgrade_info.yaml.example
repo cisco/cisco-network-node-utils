@@ -1,0 +1,3 @@
+# Upgrade info for test_upgrade.rb
+install_image : 'nxos.7.0.3.I2.1.bin'
+install_uri : 'bootflash:'

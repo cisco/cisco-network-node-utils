@@ -1,3 +1,0 @@
-# Service info for test_service.rb
-install_image : 'nxos.7.0.3.I2.1.bin'
-install_media : 'bootflash:'
