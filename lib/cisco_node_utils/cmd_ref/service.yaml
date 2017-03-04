@@ -17,6 +17,10 @@ image_version:
   get_command: "show version image <media><image>"
   get_value: '/NXOS:\s+version\s(\S+)/'
 
+is_box_online:
+  set_context: ['conf t']
+  set_value: "sh clock"
+
 save_config:
   set_value: "copy running-config startup-config"
 
