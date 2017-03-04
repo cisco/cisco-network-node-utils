@@ -74,9 +74,14 @@ class TestService < CiscoTestCase
     assert_match(/^\d.\d\(\d\)\S+\(\S+\)$/, version)
   end
 
+  def test_box_online
+    assert(Service.box_online?)
+  end
+
   def test_upgrade
     image_info = preconfig_service_info
-    Service.upgrade(image_info['install_image'], image_info['install_media'])
+    version = Service.image_version(image_info['install_image'], image_info['install_media'])
+    Service.upgrade(version, image_info['install_image'], image_info['install_media'])
     # Wait 15 seconds for device to start rebooting
     # TODO : Consider getting the sleep value dynamically
     sleep 15
@@ -84,17 +89,18 @@ class TestService < CiscoTestCase
       assert(Service.upgraded?)
     rescue
       tries ||= 1
-      retry unless (tries += 1) > 3
+      retry unless (tries += 1) > 5
       raise
     end
   end
 
   def test_upgrade_boot_image
+    preconfig_service_info
     image_uri = node.config_get('show_version', 'system_image')
     image = image_uri.split('/')[-1]
     media = image_uri.split('/')[0]
     skip('Boot image not on bootflash:') unless media == 'bootflash:'
-    Service.upgrade(image, media)
+    Service.upgrade(Service.image_version, image, media)
     assert(Service.upgraded?)
   end
 end
