@@ -212,8 +212,9 @@ class TestDhcpRelayGlobal < CiscoTestCase
       return
     end
     assert_equal(drg.default_ipv4_sub_option_circuit_id_string, drg.ipv4_sub_option_circuit_id_string)
-    drg.ipv4_sub_option_circuit_id_string = '%p%p'
-    assert_equal('%p%p', drg.ipv4_sub_option_circuit_id_string)
+    str = '%p%p'
+    drg.ipv4_sub_option_circuit_id_string = str
+    assert_match(/#{str}/, drg.ipv4_sub_option_circuit_id_string)
     drg.ipv4_sub_option_circuit_id_string = drg.default_ipv4_sub_option_circuit_id_string
     assert_equal(drg.default_ipv4_sub_option_circuit_id_string, drg.ipv4_sub_option_circuit_id_string)
   end

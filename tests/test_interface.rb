@@ -629,6 +629,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_speed
+    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
     interface = Interface.new(interfaces[0])
     if validate_property_excluded?('interface', 'speed')
       assert_nil(interface.speed)
@@ -664,6 +665,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_duplex
+    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
     interface = Interface.new(interfaces[0])
     if validate_property_excluded?('interface', 'duplex')
       assert_nil(interface.duplex)
@@ -818,6 +820,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_ethernet
+    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
 
