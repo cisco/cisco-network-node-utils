@@ -9,7 +9,7 @@ Changelog
 * Route_map
   * route_map (@saichint)
 
-* Service
+* Upgrade
   * upgrade (@rahushen)
 
 ### Added
