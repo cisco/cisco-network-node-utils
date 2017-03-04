@@ -47,7 +47,7 @@ class TestUpgrade < CiscoTestCase
   end
 
   def test_delete
-    config("show version > bootflash:foobar")
+    config('show version > bootflash:foobar')
     Upgrade.delete('foobar')
     assert_raises(CliError) do
       Upgrade.delete('foobar')
