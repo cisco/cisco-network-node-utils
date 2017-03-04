@@ -1,4 +1,4 @@
-# October 2016, Michael G Wiebe
+# October 2016, Michael G Wiebe and Rahul Shenoy
 #
 # Copyright (c) 2016-2017 Cisco and/or its affiliates.
 #
@@ -17,16 +17,16 @@
 require_relative 'node_util'
 
 module Cisco
-  # Service - node util class for managing device services
-  class Service < NodeUtil
+  # Upgrade - node util class for upgrading Cisco devices
+  class Upgrade < NodeUtil
     # Delete install logs from previous installation
     def self.clear_status
-      config_set('service', 'clear_status')
+      config_set('upgrade', 'clear_status')
     end
 
     # Deletes 'image' from 'media'
     def self.delete(image, media='bootflash:')
-      config_set('service', 'delete', image: image, media: media)
+      config_set('upgrade', 'delete', image: image, media: media)
     rescue Cisco::CliError => e
       raise e
     end
@@ -40,11 +40,11 @@ module Cisco
       system_image = config_get('show_version', 'system_image').split('/')[-1]
       kickstart_image = config_get('show_version', 'boot_image').split('/')[-1]
       if kickstart_image == system_image
-        config_set('service', 'delete_boot', image: system_image, media: media)
+        config_set('upgrade', 'delete_boot', image: system_image, media: media)
       else
-        config_set('service', 'delete_boot', image: system_image,
+        config_set('upgrade', 'delete_boot', image: system_image,
                                              media: media)
-        config_set('service', 'delete_boot', image: kickstart_image,
+        config_set('upgrade', 'delete_boot', image: kickstart_image,
                                              media: media)
       end
     rescue Cisco::CliError => e
@@ -55,7 +55,7 @@ module Cisco
     def self.image_version(image=nil, media=nil)
       # Returns version of currently booted image by default
       if image && media
-        config_get('service', 'image_version', image: image, media: media)
+        config_get('upgrade', 'image_version', image: image, media: media)
       else
         config_get('show_version', 'version').split(' ')[0]
       end
@@ -63,19 +63,19 @@ module Cisco
 
     # Return true if box is online and config mode is ready to be used
     def self.box_online?
-      output = config_set('service', 'is_box_online')
+      output = config_set('upgrade', 'is_box_online')
       output[0]['body'] == {}
     end
 
     def self.save_config
-      config_set('service', 'save_config')
+      config_set('upgrade', 'save_config')
     rescue Cisco::CliError => e
       raise e
     end
 
     # Returns True if device upgraded
     def self.upgraded?
-      return false unless config_get('service', 'upgraded')
+      return false unless config_get('upgrade', 'upgraded')
       (0..500).each do
         sleep 1
         return true if box_online?
@@ -100,12 +100,12 @@ module Cisco
       delete_boot(media) if del_boot
       force_all ? upgrade_str = 'upgrade_force' : upgrade_str = 'upgrade'
       begin
-        config_set('service', upgrade_str, image: image, media: media)
+        config_set('upgrade', upgrade_str, image: image, media: media)
       rescue Cisco::RequestFailed
         # Catch 'Backend Processing Error'. Install continues inspite of the
         # error thrown. Resend install command and expect a CliError.
         begin
-          config_set('service', upgrade_str, image: image, media: media)
+          config_set('upgrade', upgrade_str, image: image, media: media)
         rescue Cisco::CliError => e
           raise e unless
             e.message.include?('Another install procedure may be in progress')
