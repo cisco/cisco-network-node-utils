@@ -24,15 +24,15 @@ module Cisco
       config_set('upgrade', 'clear_status')
     end
 
-    # Deletes 'image' from 'media'
-    def self.delete(image, media='bootflash:')
-      config_set('upgrade', 'delete', image: image, media: media)
+    # Deletes 'image' from 'uri'
+    def self.delete(image, uri='bootflash:')
+      config_set('upgrade', 'delete', image: image, uri: uri)
     rescue Cisco::CliError => e
       raise e
     end
 
     # Deletes currently booted image
-    def self.delete_boot(media='bootflash:')
+    def self.delete_boot(uri='bootflash:')
       # Incase of a N9K, N3K and N9Kv the system and kickstart images are
       # the same.
       # Incase of a N5K, N6K and N7K the system and kickstart images are
@@ -40,22 +40,22 @@ module Cisco
       system_image = config_get('show_version', 'system_image').split('/')[-1]
       kickstart_image = config_get('show_version', 'boot_image').split('/')[-1]
       if kickstart_image == system_image
-        config_set('upgrade', 'delete_boot', image: system_image, media: media)
+        config_set('upgrade', 'delete_boot', image: system_image, uri: uri)
       else
         config_set('upgrade', 'delete_boot', image: system_image,
-                                             media: media)
+                                             uri:   uri)
         config_set('upgrade', 'delete_boot', image: kickstart_image,
-                                             media: media)
+                                             uri:   uri)
       end
     rescue Cisco::CliError => e
       raise e
     end
 
     # Returns version of the 'image'
-    def self.image_version(image=nil, media=nil)
+    def self.image_version(image=nil, uri=nil)
       # Returns version of currently booted image by default
-      if image && media
-        config_get('upgrade', 'image_version', image: image, media: media)
+      if image && uri
+        config_get('upgrade', 'image_version', image: image, uri: uri)
       else
         config_get('show_version', 'version').split(' ')[0]
       end
@@ -84,28 +84,28 @@ module Cisco
     end
 
     # Attempts to upgrade the device to 'image'
-    def self.upgrade(version, image, media='bootflash:', del_boot=false,
+    def self.upgrade(version, image, uri='bootflash:', del_boot=false,
                      force_all=false)
+      # Only 'bootflash:' is a supported URI. Fail otherwise.
+      fail "The Uri #{uri} is not supported" unless uri == 'bootflash:'
       # IMPORTANT - Check if version of image equals the version provided.
       # This is to avoid entering a loop with the Programmability Agent
       # continuously trying to reload the device if versions don't match.
-      if media == 'bootflash:'
-        image_ver = image_version(image, media)
-        err_str = "Version Mismatch.\n
-                   The version of the image:#{image_ver}\n
-                   The version provided:#{version}\n
-                   Aborting upgrade."
-        fail err_str unless image_ver == version
-      end
-      delete_boot(media) if del_boot
+      image_ver = image_version(image, uri)
+      err_str = "Version Mismatch.\n
+                 The version of the image:#{image_ver}\n
+                 The version provided:#{version}\n
+                 Aborting upgrade."
+      fail err_str unless image_ver == version
+      delete_boot(uri) if del_boot
       force_all ? upgrade_str = 'upgrade_force' : upgrade_str = 'upgrade'
       begin
-        config_set('upgrade', upgrade_str, image: image, media: media)
+        config_set('upgrade', upgrade_str, image: image, uri: uri)
       rescue Cisco::RequestFailed
         # Catch 'Backend Processing Error'. Install continues inspite of the
         # error thrown. Resend install command and expect a CliError.
         begin
-          config_set('upgrade', upgrade_str, image: image, media: media)
+          config_set('upgrade', upgrade_str, image: image, uri: uri)
         rescue Cisco::CliError => e
           raise e unless
             e.message.include?('Another install procedure may be in progress')

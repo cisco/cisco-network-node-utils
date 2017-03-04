@@ -32,7 +32,7 @@ class TestUpgrade < CiscoTestCase
   def valid_info?(info)
     skip('tests/upgrade_info.yaml file is empty') unless info
     msg = 'Missing key in tests/upgrade_info.yaml'
-    %w(install_image install_media).each do |key|
+    %w(install_image install_uri).each do |key|
       skip("#{msg}: #{key}") if info[key].nil?
     end
   end
@@ -47,7 +47,7 @@ class TestUpgrade < CiscoTestCase
   end
 
   def test_delete
-    shell_command('touch /bootflash/foobar')
+    config("show version > bootflash:foobar")
     Upgrade.delete('foobar')
     assert_raises(CliError) do
       Upgrade.delete('foobar')
@@ -80,8 +80,8 @@ class TestUpgrade < CiscoTestCase
 
   def test_upgrade
     image_info = preconfig_upgrade_info
-    version = Upgrade.image_version(image_info['install_image'], image_info['install_media'])
-    Upgrade.upgrade(version, image_info['install_image'], image_info['install_media'])
+    version = Upgrade.image_version(image_info['install_image'], image_info['install_uri'])
+    Upgrade.upgrade(version, image_info['install_image'], image_info['install_uri'])
     # Wait 15 seconds for device to start rebooting
     # TODO : Consider getting the sleep value dynamically
     sleep 15
@@ -98,9 +98,9 @@ class TestUpgrade < CiscoTestCase
     preconfig_upgrade_info
     image_uri = node.config_get('show_version', 'system_image')
     image = image_uri.split('/')[-1]
-    media = image_uri.split('/')[0]
-    skip('Boot image not on bootflash:') unless media == 'bootflash:'
-    Upgrade.upgrade(Upgrade.image_version, image, media)
+    uri = image_uri.split('/')[0]
+    skip('Boot image not on bootflash:') unless uri == 'bootflash:'
+    Upgrade.upgrade(Upgrade.image_version, image, uri)
     assert(Upgrade.upgraded?)
   end
 end
