@@ -61,9 +61,10 @@ module Cisco
       end
     end
 
-    # Return the image booted on the device
-    def self.image
-      config_get('show_version', 'system_image')
+    # Return true if box is online and config mode is ready to be used
+    def self.box_online?
+      output = config_set('service', 'is_box_online')
+      output[0]['body'] == {}
     end
 
     def self.save_config
@@ -74,16 +75,41 @@ module Cisco
 
     # Returns True if device upgraded
     def self.upgraded?
-      config_get('service', 'upgraded')
+      return false unless config_get('service', 'upgraded')
+      (0..500).each do
+        sleep 1
+        return true if box_online?
+      end
+      fail 'Configuration is still blocked'
     end
 
     # Attempts to upgrade the device to 'image'
-    def self.upgrade(image, media='bootflash:', del_boot=false, force_all=false)
+    def self.upgrade(version, image, media='bootflash:', del_boot=false,
+                     force_all=false)
+      # IMPORTANT - Check if version of image equals the version provided.
+      # This is to avoid entering a loop with the Programmability Agent
+      # continuously trying to reload the device if versions don't match.
+      if media == 'bootflash:'
+        image_ver = image_version(image, media)
+        err_str = "Version Mismatch.\n
+                   The version of the image:#{image_ver}\n
+                   The version provided:#{version}\n
+                   Aborting upgrade."
+        fail err_str unless image_ver == version
+      end
       delete_boot(media) if del_boot
-      if force_all
-        config_set('service', 'upgrade_force', image: image, media: media)
-      else
-        config_set('service', 'upgrade', image: image, media: media)
+      force_all ? upgrade_str = 'upgrade_force' : upgrade_str = 'upgrade'
+      begin
+        config_set('service', upgrade_str, image: image, media: media)
+      rescue Cisco::RequestFailed
+        # Catch 'Backend Processing Error'. Install continues inspite of the
+        # error thrown. Resend install command and expect a CliError.
+        begin
+          config_set('service', upgrade_str, image: image, media: media)
+        rescue Cisco::CliError => e
+          raise e unless
+            e.message.include?('Another install procedure may be in progress')
+        end
       end
     end
   end
