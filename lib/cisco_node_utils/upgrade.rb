@@ -15,10 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
-<<<<<<< HEAD
 require_relative 'logger'
-=======
->>>>>>> develop
 
 module Cisco
   # Upgrade - node util class for upgrading Cisco devices
