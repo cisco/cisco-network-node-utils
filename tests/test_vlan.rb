@@ -151,6 +151,16 @@ class TestVlan < CiscoTestCase
     v.destroy
   end
 
+  def test_name_long
+    config 'system vlan long-name'
+    v = Vlan.new(1000)
+    name = 'LONG_NAME' + ('E' * 119)
+    v.vlan_name = name
+    assert_equal(name, v.vlan_name)
+    v.destroy
+    config 'no system vlan long-name'
+  end
+
   def test_state_invalid
     v = Vlan.new(1000)
     assert_raises(CliError) do
