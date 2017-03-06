@@ -61,9 +61,9 @@ module Cisco
       else
         # On some platforms attempts to create a new domain-list results
         # in the error. 'ERROR: Deletion of VRF test in progresswait
-        # for it to complete'.  We handle this by trying up to 10 times
+        # for it to complete'.  We handle this by trying up to 20 times
         # with a 1 second delay between attempts before giving up.
-        tries = 10
+        tries = 20
         begin
           config_set('dnsclient', 'domain_list_vrf',
                      state: '', name: @name, vrf: @vrf)
