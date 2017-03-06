@@ -69,6 +69,7 @@ class TestYum < CiscoTestCase
       info 'Executing test setup... Please be patient, this will take a while.'
       steps = ["install deactivate #{@@pkg}",
                "install remove #{@@pkg} forced",
+               'install remove inactive forced',
                "install add bootflash:#{@@pkg_filename}"]
       steps.each do |step|
         info "Executing setup step: #{step}..."

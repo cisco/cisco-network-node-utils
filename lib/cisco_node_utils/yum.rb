@@ -61,6 +61,7 @@ module Cisco
         # therefore a post-validation check is needed here to verify the
         # actual outcome.
         validate_installed(pkg)
+        config_set('yum', 'commit', pkg)
       rescue Cisco::CliError, RuntimeError => e
         raise Cisco::CliError, "#{e.class}, #{e.message}"
       end
@@ -75,16 +76,21 @@ module Cisco
       b.nil? ? nil : b.first
     end
 
-    def self.remove(pkg)
-      config_set('yum', 'deactivate', pkg)
-      # May not be able to remove the package immediately after
-      # deactivation.
+    def self.attempt_operation(operation, pkg)
       while (try ||= 1) < 20
-        o = config_set('yum', 'remove', pkg)
+        o = config_set('yum', operation, pkg)
         break unless o[/operation is in progress, please try again later/]
         sleep 1
         try += 1
       end
+    end
+
+    def self.remove(pkg)
+      config_set('yum', 'deactivate', pkg)
+      # May not be able to commit/remove the package immediately after
+      # deactivation.
+      attempt_operation('commit', pkg)
+      attempt_operation('remove', pkg)
     end
   end
 end
