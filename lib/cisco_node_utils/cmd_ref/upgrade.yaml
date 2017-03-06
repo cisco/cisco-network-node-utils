@@ -1,6 +1,6 @@
 # upgrade
 ---
-_exclude: [ios_xr]
+_exclude: [ios_xr, N5k, N6k, N7k]
 
 clear_status:
   set_value: "clear install status"
