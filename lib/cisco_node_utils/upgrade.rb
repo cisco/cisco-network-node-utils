@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'logger'
 
 module Cisco
   # Upgrade - node util class for upgrading Cisco devices
@@ -96,10 +97,11 @@ module Cisco
                  The version of the image:#{image_ver}\n
                  The version provided:#{version}\n
                  Aborting upgrade."
-      fail err_str unless image_ver == version
+      fail err_str unless image_ver.to_s.strip == version.to_s.strip
       delete_boot(uri) if del_boot
       force_all ? upgrade_str = 'upgrade_force' : upgrade_str = 'upgrade'
       begin
+        Cisco::Logger.debug("Upgrading to version: #{image}")
         config_set('upgrade', upgrade_str, image: image, uri: uri)
       rescue Cisco::RequestFailed
         # Catch 'Backend Processing Error'. Install continues inspite of the
