@@ -271,6 +271,7 @@ module Cisco
     end
 
     def hsrp_bfd=(val)
+      return if val == hsrp_bfd
       state = val ? '' : 'no'
       if val
         Feature.hsrp_enable
@@ -981,6 +982,7 @@ module Cisco
     end
 
     def pim_bfd=(val)
+      return if val == pim_bfd
       state = val ? '' : 'no'
       if val
         Feature.pim_enable
