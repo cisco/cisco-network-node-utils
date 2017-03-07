@@ -42,7 +42,13 @@ class TestRouteMap < CiscoTestCase
   end
 
   def teardown
-    config_no_warn('no route-map MyRouteMap permit 100')
+    RouteMap.maps.each do |_rmname, sequences|
+      sequences.each do |_sequence, actions|
+        actions.each do |_action, obj|
+          obj.destroy
+        end
+      end
+    end
     super
   end
 
@@ -60,12 +66,12 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_collection_size
-    rm1 = create_route_map('my1', '100', 'permit')
-    rm2 = create_route_map('my1', '101', 'permit')
-    rm3 = create_route_map('my1', '102', 'deny')
-    rm4 = create_route_map('my2', '102', 'permit')
-    rm5 = create_route_map('my2', '104', 'deny')
-    rm6 = create_route_map('my3', '105', 'deny')
+    create_route_map('my1', '100', 'permit')
+    create_route_map('my1', '101', 'permit')
+    create_route_map('my1', '102', 'deny')
+    create_route_map('my2', '102', 'permit')
+    create_route_map('my2', '104', 'deny')
+    create_route_map('my3', '105', 'deny')
     assert_equal(1, RouteMap.maps['my1']['100'].size)
     assert_equal(1, RouteMap.maps['my1']['101'].size)
     assert_equal(1, RouteMap.maps['my1']['102'].size)
@@ -75,12 +81,6 @@ class TestRouteMap < CiscoTestCase
     assert_equal(2, RouteMap.maps['my2'].size)
     assert_equal(1, RouteMap.maps['my3']['105'].size)
     assert_equal(1, RouteMap.maps['my3'].size)
-    rm1.destroy
-    rm2.destroy
-    rm3.destroy
-    rm4.destroy
-    rm5.destroy
-    rm6.destroy
   end
 
   def test_match_as_number
