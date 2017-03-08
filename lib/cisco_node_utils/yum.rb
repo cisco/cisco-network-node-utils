@@ -3,7 +3,9 @@
 #
 # April 2015, Alex Hunsberger
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# March 2017, Re-written by Mike Wiebe
+#
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,16 +54,11 @@ module Cisco
 
     def self.install(pkg, vrf=nil)
       vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
-
       begin
-        config_set('yum', 'install', pkg, vrf)
-
-        # HACK: The current nxos host installer is a multi-part command
-        # which may fail at a later stage yet return a false positive;
-        # therefore a post-validation check is needed here to verify the
-        # actual outcome.
+        add(pkg, vrf)
+        activate(pkg)
+        commit(pkg)
         validate_installed(pkg)
-        config_set('yum', 'commit', pkg)
       rescue Cisco::CliError, RuntimeError => e
         raise Cisco::CliError, "#{e.class}, #{e.message}"
       end
@@ -76,21 +73,100 @@ module Cisco
       b.nil? ? nil : b.first
     end
 
-    def self.attempt_operation(operation, pkg)
+    def self.remove(pkg)
+      deactivate(pkg)
+      commit_deactivate(pkg)
+      delete(pkg) 
+    end
+
+    def self.add(pkg, vrf=nil)
+      config_set('yum', 'add', pkg: pkg, vrf: vrf)
+      sleep 10
       while (try ||= 1) < 20
-        o = config_set('yum', operation, pkg)
-        break unless o[/operation is in progress, please try again later/]
+        return if query_added(pkg)
         sleep 1
         try += 1
       end
+      fail RuntimeError, "Failed to add pkg: #{pkg}, using vrf #{vrf}" 
     end
 
-    def self.remove(pkg)
-      config_set('yum', 'deactivate', pkg)
-      # May not be able to commit/remove the package immediately after
-      # deactivation.
-      attempt_operation('commit', pkg)
-      attempt_operation('remove', pkg)
+    def self.activate(pkg)
+      config_set('yum', 'activate', pkg: pkg)
+      sleep 10
+      while (try ||= 1) < 20
+        return if query_activated(pkg)
+        sleep 1
+        try += 1
+      end
+      fail RuntimeError, "Failed to activate pkg: #{pkg}"
+    end
+
+    def self.commit(pkg)
+      config_set('yum', 'commit', pkg: pkg)
+      while (try ||= 1) < 20
+        return if query_committed(pkg)
+        sleep 1
+        try += 1
+      end
+      fail RuntimeError, "Failed to commit pkg: #{pkg}"
+    end
+
+    def self.commit_deactivate(pkg)
+      while (try ||= 1) < 20
+        o = config_set('yum', 'commit', pkg: pkg)
+        sleep 10
+        return if o[/Install operation.*completed successfully/] 
+        sleep 1
+        try += 1
+      end
+      fail RuntimeError, "Failed to commit pkg after deactivate: #{pkg}"
+    end
+
+    def self.deactivate(pkg)
+      config_set('yum', 'deactivate', pkg: pkg)
+      sleep 10 
+      while (try ||= 1) < 20
+        return if query_inactive(pkg)
+        sleep 1
+        try += 1
+      end
+      fail RuntimeError, "Failed to deactivate pkg: #{pkg}"
+    end
+
+    def self.delete(pkg)
+      config_set('yum', 'remove', pkg: pkg)
+      while (try ||= 1) < 20
+        return if query_removed(pkg)
+        sleep 1
+        try += 1
+      end
+      fail RuntimeError, "Failed to delete pkg: #{pkg}"
+    end
+
+    def self.pkg_name(pkg)
+      config_get('yum', 'pkg_name', pkg: pkg)
+    end
+
+    def self.query_activated(pkg)
+      config_get('yum', 'query_activated', pkg: pkg)
+    end
+
+    def self.query_added(pkg)
+      config_get('yum', 'query_added', pkg: pkg)
+    end
+
+    def self.query_committed(pkg)
+      pkg.gsub!(/\.rpm/, '')
+      config_get('yum', 'query_committed', pkg: pkg)
+    end
+
+    def self.query_inactive(pkg)
+      config_get('yum', 'query_inactive', pkg: pkg)
+    end
+
+    def self.query_removed(pkg)
+      val = config_get('yum', 'query_removed', pkg: pkg)
+      val ? false : true 
     end
   end
 end
