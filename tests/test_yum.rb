@@ -22,6 +22,7 @@ class TestYum < CiscoTestCase
   # rubocop:disable Style/ClassVars
   @@skip = false
   @@run_setup = true
+  @@clean_failed = false
   # rubocop:enable Style/ClassVars
 
   @skip_unless_supported = 'yum'
@@ -51,10 +52,25 @@ class TestYum < CiscoTestCase
     # rubocop:enable Style/ClassVars
   end
 
+  def clean(pkg)
+    return if Yum.pkg_name(pkg).empty?
+    pkg = Yum.pkg_name(pkg)
+    case Yum.query_state(pkg)
+    when 'inactive'
+      info "Package: #{pkg} is installed and inactive: Removing..."
+      Yum.commit_deactivate(pkg)
+      Yum.delete(pkg)
+    when 'active'
+      info "Package: #{pkg} is installed and active: Removing..."
+      Yum.remove(pkg)
+    end
+  end
+
   def setup
     super
     # only run check once (can't use initialize because @device isn't ready)
     return unless @@run_setup
+    exit if @@clean_failed
 
     select_pkg
     s = @device.cmd("show file bootflash:#{@@pkg_filename} cksum")
@@ -62,30 +78,13 @@ class TestYum < CiscoTestCase
       @@skip = true # rubocop:disable Style/ClassVars
     else
       # Remnants of the package my still exist from a previous install attempt.
-      if Yum.pkg_name(@@pkg_filename).empty?
-        steps = []
-      else
-        info 'Executing test setup... Please be patient, this will take a while.'
-        pkg = Yum.pkg_name(@@pkg_filename)
-        steps = ["install deactivate #{pkg}",
-                 "install commit #{pkg}",
-                 "install remove #{pkg} forced",
-                 'install remove inactive forced']
-      end
-      steps.each do |step|
-        info "Executing setup step: #{step}..."
-        s = @device.cmd(step)
-        sleep 20
-        debug "Step Complete.\n\n#{s}\n"
-      end
+      clean(@@pkg_filename)
     end
-    node.cache_flush
-    info "Yum pkg_name: |#{Yum.pkg_name(@@pkg_filename)}|"
-    unless Yum.query_removed(@@pkg_filename) 
-       skip "Unable to remove existing package: #{@@pkg_filename}"
+
+    unless Yum.query_removed(@@pkg_filename)
+      @@clean_failed = true # rubocop:disable Style/ClassVars
+      fail RuntimeError "Unable to remove existing package: #{@@pkg_filename}"
     end
-    info "Set @@run_setup: false"
-    Yum.add(@@pkg_filename)
     @@run_setup = false # rubocop:disable Style/ClassVars
   end
 
@@ -98,7 +97,6 @@ class TestYum < CiscoTestCase
     skip?
     # On dublin and later images, must specify the full rpm name.
     package = @@pv[/7_0_3_I2_1_/] ? @@pkg : @@pkg_filename
-
 
     # INSTALL
     # Specify "management" vrf for install
@@ -130,18 +128,5 @@ class TestYum < CiscoTestCase
     assert_raises(Cisco::CliError) do
       Yum.install('also_not_real', 'management')
     end
-  end
-
-  def test_query_added
-    #Yum.add(@@pkg_filename)
-    #Yum.activate(Yum.pkg_name(@@pkg_filename))
-    #Yum.commit(Yum.pkg_name(@@pkg_filename))
-    #Yum.remove(Yum.pkg_name(@@pkg_filename))
-    #puts "Package Name: #{Yum.pkg_name(@@pkg_filename)}"
-    #puts "Query Added: #{Yum.query_added(@@pkg_filename)}"
-    #puts "Query Activated: #{Yum.query_activated(@@pkg_filename)}"
-    #puts "Query Committed: #{Yum.query_committed(@@pkg_filename)}"
-    #puts "Query Inactive: #{Yum.query_inactive(@@pkg_filename)}"
-    #puts "Query Removed: #{Yum.query_removed(@@pkg_filename)}"
   end
 end

@@ -20,6 +20,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'logger'
 
 module Cisco
   # This Yum class provides cisco package management functions through nxapi.
@@ -76,10 +77,13 @@ module Cisco
     def self.remove(pkg)
       deactivate(pkg)
       commit_deactivate(pkg)
-      delete(pkg) 
+      delete(pkg)
+    rescue Cisco::CliError, RuntimeError => e
+      raise Cisco::CliError, "#{e.class}, #{e.message}"
     end
 
     def self.add(pkg, vrf=nil)
+      Cisco::Logger.info("Adding package: #{pkg}")
       config_set('yum', 'add', pkg: pkg, vrf: vrf)
       sleep 10
       while (try ||= 1) < 20
@@ -87,10 +91,11 @@ module Cisco
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to add pkg: #{pkg}, using vrf #{vrf}" 
+      fail "Failed to add pkg: #{pkg}, using vrf #{vrf}"
     end
 
     def self.activate(pkg)
+      Cisco::Logger.info("Activating package: #{pkg}")
       config_set('yum', 'activate', pkg: pkg)
       sleep 10
       while (try ||= 1) < 20
@@ -98,49 +103,57 @@ module Cisco
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to activate pkg: #{pkg}"
+      fail "Failed to activate pkg: #{pkg}"
     end
 
     def self.commit(pkg)
+      Cisco::Logger.info("Committing package: #{pkg}")
       config_set('yum', 'commit', pkg: pkg)
       while (try ||= 1) < 20
         return if query_committed(pkg)
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to commit pkg: #{pkg}"
+      fail "Failed to commit pkg: #{pkg}"
     end
 
     def self.commit_deactivate(pkg)
+      Cisco::Logger.info("Committing package after deactivate: #{pkg}")
+      re = Regexp.union(/Install operation.*completed successfully/,
+                        /Install operation.*failed because patch is not found/)
       while (try ||= 1) < 20
         o = config_set('yum', 'commit', pkg: pkg)
         sleep 10
-        return if o[/Install operation.*completed successfully/] 
+        puts o
+        puts re
+        return if o[re]
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to commit pkg after deactivate: #{pkg}"
+      fail "Failed to commit pkg after deactivate: #{pkg}"
     end
 
     def self.deactivate(pkg)
+      Cisco::Logger.info("Deactivating package: #{pkg}")
       config_set('yum', 'deactivate', pkg: pkg)
-      sleep 10 
+      sleep 10
       while (try ||= 1) < 20
         return if query_inactive(pkg)
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to deactivate pkg: #{pkg}"
+      fail "Failed to deactivate pkg: #{pkg}"
     end
 
     def self.delete(pkg)
+      Cisco::Logger.info("Deleting package: #{pkg}")
       config_set('yum', 'remove', pkg: pkg)
       while (try ||= 1) < 20
         return if query_removed(pkg)
         sleep 1
         try += 1
       end
-      fail RuntimeError, "Failed to delete pkg: #{pkg}"
+      fail "Failed to delete pkg: #{pkg}"
     end
 
     def self.pkg_name(pkg)
@@ -157,7 +170,8 @@ module Cisco
 
     def self.query_committed(pkg)
       pkg.gsub!(/\.rpm/, '')
-      config_get('yum', 'query_committed', pkg: pkg)
+      o = config_get('yum', 'query_committed', pkg: pkg)
+      o.include? pkg
     end
 
     def self.query_inactive(pkg)
@@ -166,7 +180,11 @@ module Cisco
 
     def self.query_removed(pkg)
       val = config_get('yum', 'query_removed', pkg: pkg)
-      val ? false : true 
+      val ? false : true
+    end
+
+    def self.query_state(pkg)
+      config_get('yum', 'query_state', pkg: pkg).downcase
     end
   end
 end
