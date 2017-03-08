@@ -74,14 +74,13 @@ module Cisco
 
     def feature_lacp_set(val)
       return if feature_lacp? == val
-      config_set('interface_channel_group', 'feature_lacp', state: val ? '' : 'no')
+      config_set('interface_channel_group', 'feature_lacp',
+                 state: val ? '' : 'no')
     end
 
     # common setter
     def channel_group_set(group, mode)
-      if mode == 'active' || mode == 'passive'
-        feature_lacp_set
-      end
+      feature_lacp_set if mode == 'active' || mode == 'passive'
       if group
         state = ''
         force = 'force'
