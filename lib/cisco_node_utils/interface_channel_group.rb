@@ -80,18 +80,17 @@ module Cisco
 
     # common setter
     def channel_group_set(group, mode)
-      begin
-        feature_lacp_set if mode == 'active' || mode == 'passive'
-        if group
-          state = ''
-          force = 'force'
-        else
-          state = 'no'
-          group = force = ''
-        end
-        config_set('interface_channel_group', 'channel_group_set',
-                   set_args_keys(state: state, group: group, force: force,
-                                 mode: mode))
+      feature_lacp_set if mode == 'active' || mode == 'passive'
+      if group
+        state = ''
+        force = 'force'
+      else
+        state = 'no'
+        group = force = ''
+      end
+      config_set('interface_channel_group', 'channel_group_set',
+                 set_args_keys(state: state, group: group, force: force,
+                               mode: mode))
       rescue Cisco::CliError => e
         # Some XR platforms do not support channel-group configuration
         # on some OS versions. Since this is an OS version difference and not
