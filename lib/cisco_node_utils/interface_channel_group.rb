@@ -91,9 +91,9 @@ module Cisco
       config_set('interface_channel_group', 'channel_group_set',
                  set_args_keys(state: state, group: group, force: force,
                                mode: mode))
-      rescue Cisco::CliError => e
-        raise unless e.message[/the entered commands do not exist/]
-        raise Cisco::UnsupportedError.new('interface', 'channel_group')
+    rescue Cisco::CliError => e
+      raise unless e.message[/the entered commands do not exist/]
+      raise Cisco::UnsupportedError.new('interface', 'channel_group')
     end
 
     # def channel_group=(group)
