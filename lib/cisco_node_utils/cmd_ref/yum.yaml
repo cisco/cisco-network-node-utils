@@ -55,7 +55,7 @@ query_inactive:
   get_value: '/Patch\s+State\s+:\s+Inactive/i'
 
 query_removed:
-  kind: boolean 
+  kind: boolean
   get_command: "show install pkg-info <pkg>"
   get_value: '/Name\s+:\s+\S+/i'
 

@@ -121,16 +121,22 @@ module Cisco
       Cisco::Logger.info("Committing package after deactivate: #{pkg}")
       re = Regexp.union(/Install operation.*completed successfully/,
                         /Install operation.*failed because patch is not found/)
-      while (try ||= 1) < 20
-        o = config_set('yum', 'commit', pkg: pkg)
-        sleep 10
-        puts o
-        puts re
-        return if o[re]
+      tries = 20
+      begin
+        while (try ||= 1) < 20
+          o = config_set('yum', 'commit', pkg: pkg)
+          sleep 10
+          return if o[re]
+          sleep 1
+          try += 1
+        end
+        fail "Failed to commit pkg after deactivate: #{pkg}"
+      rescue Cisco::CliError => e
+        return if e.to_s[re]
         sleep 1
-        try += 1
+        tries -= 1
+        retry if tries > 0
       end
-      fail "Failed to commit pkg after deactivate: #{pkg}"
     end
 
     def self.deactivate(pkg)
