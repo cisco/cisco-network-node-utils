@@ -92,12 +92,8 @@ module Cisco
                  set_args_keys(state: state, group: group, force: force,
                                mode: mode))
       rescue Cisco::CliError => e
-        # Some XR platforms do not support channel-group configuration
-        # on some OS versions. Since this is an OS version difference and not
-        # a platform difference, we can't handle this in the YAML.
         raise unless e.message[/the entered commands do not exist/]
         raise Cisco::UnsupportedError.new('interface', 'channel_group')
-      end
     end
 
     # def channel_group=(group)
