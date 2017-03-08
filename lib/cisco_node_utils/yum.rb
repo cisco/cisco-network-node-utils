@@ -84,8 +84,7 @@ module Cisco
 
     def self.add(pkg, vrf=nil)
       Cisco::Logger.info("Adding package: #{pkg}")
-      config_set('yum', 'add', pkg: pkg, vrf: vrf)
-      sleep 10
+      try_operation('add', pkg, vrf)
       while (try ||= 1) < 20
         return if query_added(pkg)
         sleep 1
@@ -96,8 +95,7 @@ module Cisco
 
     def self.activate(pkg)
       Cisco::Logger.info("Activating package: #{pkg}")
-      config_set('yum', 'activate', pkg: pkg)
-      sleep 10
+      try_operation('activate', pkg)
       while (try ||= 1) < 20
         return if query_activated(pkg)
         sleep 1
@@ -108,7 +106,7 @@ module Cisco
 
     def self.commit(pkg)
       Cisco::Logger.info("Committing package: #{pkg}")
-      config_set('yum', 'commit', pkg: pkg)
+      try_operation('commit', pkg)
       while (try ||= 1) < 20
         return if query_committed(pkg)
         sleep 1
@@ -141,8 +139,7 @@ module Cisco
 
     def self.deactivate(pkg)
       Cisco::Logger.info("Deactivating package: #{pkg}")
-      config_set('yum', 'deactivate', pkg: pkg)
-      sleep 10
+      try_operation('deactivate', pkg)
       while (try ||= 1) < 20
         return if query_inactive(pkg)
         sleep 1
@@ -153,13 +150,23 @@ module Cisco
 
     def self.delete(pkg)
       Cisco::Logger.info("Deleting package: #{pkg}")
-      config_set('yum', 'remove', pkg: pkg)
+      try_operation('remove', pkg)
       while (try ||= 1) < 20
         return if query_removed(pkg)
         sleep 1
         try += 1
       end
       fail "Failed to delete pkg: #{pkg}"
+    end
+
+    def self.try_operation(operation, pkg, vrf=nil)
+      args = vrf.nil? ? { pkg: pkg } : { pkg: pkg, vrf: vrf }
+      while (try ||= 1) < 20
+        o = config_set('yum', operation, args)
+        break unless o[/Another install operation is in progress/]
+        sleep 1
+        try += 1
+      end
     end
 
     def self.pkg_name(pkg)
