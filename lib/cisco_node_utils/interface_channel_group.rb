@@ -64,14 +64,24 @@ module Cisco
       config_get('interface_channel_group', 'channel_group', @get_args)
     end
 
-    def channel_group=(group)
-      # 'force' is needed by NXOS to handle the case where a port-channel
-      # interface is created prior to the channel-group cli; in which case
-      # the properties of the port-channel interface will be different from
-      # the ethernet interface. 'force' is not needed if the port-channel is
-      # created as a result of the channel-group cli but since it does no
-      # harm we will use it every time.
-      # IOS XR simply ignores 'force'
+    def mode
+      config_get('interface_channel_group', 'mode', @get_args)
+    end
+
+    def feature_lacp?
+      config_get('interface_channel_group', 'feature_lacp')
+    end
+
+    def feature_lacp_set(val)
+      return if feature_lacp? == val
+      config_set('interface_channel_group', 'feature_lacp', state: val ? '' : 'no')
+    end
+
+    # common setter
+    def channel_group_set(group, mode)
+      if mode == 'active' || mode == 'passive'
+        feature_lacp_set
+      end
       if group
         state = ''
         force = 'force'
@@ -79,15 +89,41 @@ module Cisco
         state = 'no'
         group = force = ''
       end
-      config_set('interface_channel_group', 'channel_group',
-                 set_args_keys(state: state, group: group, force: force))
-    rescue Cisco::CliError => e
-      # Some XR platforms do not support channel-group configuration
-      # on some OS versions. Since this is an OS version difference and not
-      # a platform difference, we can't handle this in the YAML.
-      raise unless e.message[/the entered commands do not exist/]
-      raise Cisco::UnsupportedError.new('interface', 'channel_group')
+      config_set('interface_channel_group', 'channel_group_set',
+                 set_args_keys(state: state, group: group, force: force,
+                               mode: mode))
+      rescue Cisco::CliError => e
+        # Some XR platforms do not support channel-group configuration
+        # on some OS versions. Since this is an OS version difference and not
+        # a platform difference, we can't handle this in the YAML.
+        raise unless e.message[/the entered commands do not exist/]
+        raise Cisco::UnsupportedError.new('interface', 'channel_group')
     end
+
+    # def channel_group=(group)
+    #   # 'force' is needed by NXOS to handle the case where a port-channel
+    #   # interface is created prior to the channel-group cli; in which case
+    #   # the properties of the port-channel interface will be different from
+    #   # the ethernet interface. 'force' is not needed if the port-channel is
+    #   # created as a result of the channel-group cli but since it does no
+    #   # harm we will use it every time.
+    #   # IOS XR simply ignores 'force'
+    #   if group
+    #     state = ''
+    #     force = 'force'
+    #   else
+    #     state = 'no'
+    #     group = force = ''
+    #   end
+    #   config_set('interface_channel_group', 'channel_group',
+    #              set_args_keys(state: state, group: group, force: force))
+    # rescue Cisco::CliError => e
+    #   # Some XR platforms do not support channel-group configuration
+    #   # on some OS versions. Since this is an OS version difference and not
+    #   # a platform difference, we can't handle this in the YAML.
+    #   raise unless e.message[/the entered commands do not exist/]
+    #   raise Cisco::UnsupportedError.new('interface', 'channel_group')
+    # end
 
     def default_channel_group
       config_get_default('interface_channel_group', 'channel_group')

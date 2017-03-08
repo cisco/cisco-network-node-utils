@@ -17,16 +17,32 @@ channel_group:
   default_value: false
   nexus:
     get_value: '/^channel-group (\d+)$/'
-    set_value: '<state> channel-group <group> <force>'
   ios_xr:
     get_value: '/^bundle id (\d+).*$/'
     set_value: '<state> bundle id <group>'
+
+channel_group_set:
+  set_value: '<state> channel-group <group> <force> mode <mode>'
 
 description:
   kind: string
   get_value: '/^description (.*)/'
   set_value: '<state> description <desc>'
   default_value: ''
+
+feature_lacp:
+  kind: boolean
+  nexus:
+    get_command: "show running | i ^feature"
+    context: ~
+    get_value: '/^feature lacp$/'
+    set_value: "<state> feature lacp"
+  ios_xr:
+    default_only: true
+
+mode:
+  kind: string
+  get_value: '/^<state> channel-group (\d+) mode <mode>$/'
 
 shutdown:
   kind: boolean
