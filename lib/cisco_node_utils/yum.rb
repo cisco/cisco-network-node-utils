@@ -58,7 +58,7 @@ module Cisco
       begin
         add(pkg, vrf)
         activate(pkg)
-        commit(pkg)
+        commit(pkg_name(pkg))
         validate_installed(pkg)
       rescue Cisco::CliError, RuntimeError => e
         raise Cisco::CliError, "#{e.class}, #{e.message}"
@@ -182,7 +182,6 @@ module Cisco
     end
 
     def self.query_committed(pkg)
-      pkg.gsub!(/\.rpm/, '')
       o = config_get('yum', 'query_committed', pkg: pkg)
       o.include? pkg
     end
