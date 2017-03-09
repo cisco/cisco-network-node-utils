@@ -2,9 +2,6 @@
 ---
 _exclude: [ios_xr]
 
-commit:
-  set_value: "install commit %s"
-
 deactivate:
   set_value: "install deactivate %s"
 
