@@ -16,13 +16,17 @@ channel_group:
   kind: int
   default_value: false
   nexus:
-    get_value: '/^channel-group (\d+)$/'
+    get_value: '/^channel-group (\d+)/'
   ios_xr:
     get_value: '/^bundle id (\d+).*$/'
     set_value: '<state> bundle id <group>'
 
 channel_group_set:
   set_value: '<state> channel-group <group> <force> mode <mode>'
+
+channel_mode:
+  kind: string
+  get_value: '/^channel-group \d+ mode (\w+)$/'
 
 description:
   kind: string
@@ -39,10 +43,6 @@ feature_lacp:
     set_value: "<state> feature lacp"
   ios_xr:
     default_only: true
-
-mode:
-  kind: string
-  get_value: '/^<state> channel-group (\d+) mode <mode>$/'
 
 shutdown:
   kind: boolean

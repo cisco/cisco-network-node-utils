@@ -64,18 +64,18 @@ module Cisco
       config_get('interface_channel_group', 'channel_group', @get_args)
     end
 
-    def mode
-      config_get('interface_channel_group', 'mode', @get_args)
+    def channel_mode
+      config_get('interface_channel_group', 'channel_mode', @get_args)
     end
 
     def feature_lacp?
-      config_get('interface_channel_group', 'feature_lacp')
+      config_get('interface_channel_group', 'feature_lacp', @get_args)
     end
 
-    def feature_lacp_set(val)
-      return if feature_lacp? == val
+    def feature_lacp_set
+      # return if feature_lacp? == val
       config_set('interface_channel_group', 'feature_lacp',
-                 state: val ? '' : 'no')
+                 state: '')
     end
 
     # common setter
