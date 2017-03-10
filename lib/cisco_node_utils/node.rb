@@ -113,12 +113,11 @@ module Cisco
       if ref.hash['get_value'][2]
         regexp_filter = Regexp.new ref.hash['get_value'][2][1..-2]
       end
-
       # Get the value using the row_key, row_index and data_key
       value = value.is_a?(Hash) ? [value] : value
       data = nil
       value.each do |row|
-        data = row[data_key] if row[row_key].to_s.include? row_index.to_s
+        data = row[data_key] if row[row_key].to_s[/#{row_index}/]
       end
       return value if data.nil?
       if regexp_filter

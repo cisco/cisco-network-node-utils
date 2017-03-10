@@ -65,7 +65,7 @@ name:
   get_data_format: nxapi_structured
   get_command: "show vlan brief"
   get_context: ["TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief"]
-  get_value: ["vlanshowbr-vlanid-utf <vlanid>", "vlanshowbr-vlanname"]
+  get_value: ["vlanshowbr-vlanid-utf ^<vlanid>$", "vlanshowbr-vlanname"]
   set_context: ["vlan %d"]
   set_value: "%s name %s ; end"
 
