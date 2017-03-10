@@ -17,16 +17,16 @@ channel_group:
   default_value: false
   nexus:
     get_value: '/^channel-group (\d+)/'
+    set_value: '<state> channel-group <group> <force>'
   ios_xr:
     get_value: '/^bundle id (\d+).*$/'
     set_value: '<state> bundle id <group>'
 
-channel_group_set:
-  set_value: '<state> channel-group <group> <force> mode <mode>'
-
-channel_mode:
+channel_group_mode:
   kind: string
   get_value: '/^channel-group \d+ mode (\w+)$/'
+  set_value: '<state> channel-group <group> <force> mode <mode>'
+  default_value: 'on'
 
 description:
   kind: string
