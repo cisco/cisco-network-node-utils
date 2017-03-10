@@ -61,8 +61,9 @@ module Cisco
     ########################################################
 
     def channel_group_mode
-      mode = config_get('interface_channel_group', 'channel_group_mode', @get_args)
-      'on' if mode == "false"
+      mode = config_get('interface_channel_group', 'channel_group_mode',
+                        @get_args)
+      'on' if mode == 'false'
       mode
     end
 
