@@ -26,7 +26,7 @@ channel_group_mode:
   kind: string
   get_value: '/^channel-group \d+ mode (\w+)$/'
   set_value: '<state> channel-group <group> <force> mode <mode>'
-  default_value: 'on'
+  default_value: false
 
 description:
   kind: string

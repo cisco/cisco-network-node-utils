@@ -63,14 +63,22 @@ module Cisco
     def channel_group_mode
       mode = config_get('interface_channel_group', 'channel_group_mode',
                         @get_args)
-      'on' if mode == 'false'
+      mode = mode ? mode : 'on' if channel_group
       mode
     end
 
     def channel_group_mode=(mode)
-      mode = 'on' unless mode
-      set_args_keys(mode: mode)
-      config_set('interface_channel_group', 'channel_group_mode', @set_args)
+      group = channel_group
+
+      set_args_keys(state: 'no', group: group, force: '')
+      config_set('interface_channel_group', 'channel_group', @set_args)
+      if mode
+        set_args_keys(state: '', group: group, force: 'force', mode: mode)
+        config_set('interface_channel_group', 'channel_group_mode', @set_args)
+      else
+        set_args_keys(state: '', group: group, force: 'force')
+        config_set('interface_channel_group', 'channel_group', @set_args)
+      end
     end
 
     def channel_group
