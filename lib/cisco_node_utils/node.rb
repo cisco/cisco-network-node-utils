@@ -107,7 +107,12 @@ module Cisco
       return value unless ref.hash['drill_down']
 
       row_key = ref.hash['get_value'][0][/^\S+/]
-      row_index = ref.hash['get_value'][0][/\S+$/]
+
+      # Escape special characters if any in row_index and add
+      # anchors for exact match.
+      row_index = Regexp.escape(ref.hash['get_value'][0][/\S+$/])
+      row_index = "^#{row_index}$"
+
       data_key = ref.hash['get_value'][1]
       regexp_filter = nil
       if ref.hash['get_value'][2]
