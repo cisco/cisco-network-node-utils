@@ -141,7 +141,16 @@ module Cisco
     end
 
     def destroy
-      config_set('interface', 'destroy', name: @name)
+      if @name[/ethernet/]
+        config_set('interface', 'default', name: @name)
+      else
+        config_set('interface', 'destroy', name: @name)
+      end
+    end
+
+    def default?
+      state = config_get('interface', 'default', name: @name)
+      state.nil? ? true : false
     end
 
     def pvlan_enable

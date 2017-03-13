@@ -40,6 +40,13 @@ create:
   set_context: ~
   set_value: "interface <name>"
 
+default:
+  multiple:
+  set_context: ~
+  set_value:   "default interface <name>"
+  get_command: "show running interface <name>"
+  get_value:   '/(.*)/'
+
 description:
   kind: string
   get_value: '/^description (.*)/'

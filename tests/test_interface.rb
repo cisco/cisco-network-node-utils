@@ -1833,4 +1833,16 @@ class TestInterface < CiscoTestCase
     subif.destroy
     lb.destroy
   end
+
+  def test_destroy_physical
+    name = interfaces[0]
+    int = Interface.new(name)
+
+    int.description = 'destroy_pysical'
+    int.ipv4_addr_mask_set('192.168.0.1', '24')
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
+  end
 end
