@@ -74,7 +74,7 @@ module Cisco
       set_args_keys(state: 'no', group: group, force: '')
       config_set('interface_channel_group', 'channel_group', @set_args)
       if mode
-        Feature.lacp_enable if mode == 'active' || mode == 'passive'
+        Cisco::Feature.lacp_enable if mode == 'active' || mode == 'passive'
         set_args_keys(state: '', group: group, force: 'force', mode: mode)
         config_set('interface_channel_group', 'channel_group_mode', @set_args)
       else
