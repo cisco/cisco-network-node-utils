@@ -16,7 +16,7 @@ channel_group:
   kind: int
   default_value: false
   nexus:
-    get_value: '/^channel-group (\d+)/'
+    get_value: '/^channel-group (\d+)\s?\S*\s?\S*$/'
     set_value: '<state> channel-group <group> <force>'
   ios_xr:
     get_value: '/^bundle id (\d+).*$/'
@@ -24,7 +24,7 @@ channel_group:
 
 channel_group_mode:
   kind: string
-  get_value: '/^channel-group \d+ mode (\w+)$/'
+  get_value: '/^channel-group \d+\s\S+\s(\w+)$/'
   set_value: '<state> channel-group <group> <force> mode <mode>'
   default_value: false
 
