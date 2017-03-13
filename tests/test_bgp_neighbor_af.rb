@@ -64,10 +64,10 @@ class TestBgpNeighborAF < CiscoTestCase
     asn, vrf, nbr, af = af_args
     dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
 
-    obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr, true)
+    obj_nbr = RouterBgpNeighbor.new(asn, vrf, nbr)
     obj_nbr.remote_as = ebgp ? asn + 1 : asn
 
-    obj_af = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+    obj_af = RouterBgpNeighborAF.new(asn, vrf, nbr, af)
 
     # clean up address-family only
     obj_af.destroy
@@ -160,7 +160,7 @@ class TestBgpNeighborAF < CiscoTestCase
     @@matrix.each do |k, v|
       asn, vrf, nbr, af = v
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af)
-      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af)
       # TBD: This flush should not be needed but we see an intermittent problem
       # with certain rake test seed values, where 'afs' below is not detecting
       # vrf 'aa' AF.
@@ -193,13 +193,13 @@ class TestBgpNeighborAF < CiscoTestCase
         # so make sure to catch the error
         assert_raises(UnsupportedError,
                       'Neighbors do not support slash notation') do
-          RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+          RouterBgpNeighborAF.new(asn, vrf, nbr, af)
         end
         next
       end
       next if platform == :ios_xr
       dbg = sprintf('[VRF %s NBR %s AF %s]', vrf, nbr, af.join('/'))
-      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+      obj[k] = RouterBgpNeighborAF.new(asn, vrf, nbr, af)
       nbr_munged = Utils.process_network_mask(nbr)
       # TBD: This flush should not be needed but we see an intermittent problem
       # with certain rake test seed values, where 'afs' below is not detecting
@@ -217,7 +217,7 @@ class TestBgpNeighborAF < CiscoTestCase
       if platform == :ios_xr
         assert_raises(UnsupportedError,
                       'Neighbors do not support slash notation') do
-          RouterBgpNeighborAF.new(asn, vrf, nbr, af, true)
+          RouterBgpNeighborAF.new(asn, vrf, nbr, af)
         end
         next
       end
