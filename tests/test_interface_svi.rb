@@ -195,6 +195,7 @@ class TestSvi < CiscoTestCase
 
   def test_sys_def_svi_autostate
     skip_autostate_test?
+    skip_legacy_defect?('8.0.1', 'CSC: Atherton behavior change')
     interface = Interface.new(interfaces[0])
 
     system_default_svi_autostate('no ')

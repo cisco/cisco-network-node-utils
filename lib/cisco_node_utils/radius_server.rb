@@ -369,7 +369,11 @@ module Cisco
                        acct_port: @acct_port)
 
       val = val[0] if val.is_a?(Array)
-      val
+      return if val.nil? || val.empty?
+      index = val.index('auth-port')
+      val = val[0..index - 2] unless index.nil?
+      val = val.strip
+      Utils.add_quotes(val)
     end
 
     def key_set(value, format)
@@ -395,6 +399,7 @@ module Cisco
                    acct_port: @acct_port,
                    key:       "#{key_format} #{key}")
       elsif !format.nil?
+        value = Utils.add_quotes(value)
         config_set('radius_server',
                    'key',
                    state:     '',
@@ -403,6 +408,7 @@ module Cisco
                    acct_port: @acct_port,
                    key:       "#{format} #{value}")
       else
+        value = Utils.add_quotes(value)
         config_set('radius_server',
                    'key',
                    state:     '',

@@ -1,32 +1,50 @@
 # snmp_community
 ---
 
+_template:
+  N3k: &template_structured
+    get_data_format: nxapi_structured
+    get_command: "show snmp community"
+    get_context: ["TABLE_snmp_community", "ROW_snmp_community"]
+  N9k: *template_structured
+  N9k-F: *template_structured
+
 acl:
-  nexus:
-    get_command: "show running snmp all"
-    get_value: '/^snmp-server community <name> use-acl (.*)$/'
+  N3k: &acl_structured_get
+    kind: string
+    get_value: ["community_name <name>", "aclfilter", '/^(?:ACL mapped:\s+)?(\S+)/']
     set_value: "<state> snmp-server community <name> use-acl <acl>"
-    default_value: ""
+  N9k: *acl_structured_get
+  N9k-F: *acl_structured_get
   ios_xr:
     get_command: "show running snmp"
     get_value: '/^snmp-server community <name> IPv4 (.*)$/'
     set_value: "<state> snmp-server community <name> <acl>"
-    default_value: ""
+  N5k: &acl_cli_get
+    get_command: "show running snmp all"
+    get_value: '/^snmp-server community <name> use-acl (.*)$/'
+    set_value: "<state> snmp-server community <name> use-acl <acl>"
+  N6k: *acl_cli_get
+  N7k: *acl_cli_get
+  default_value: ""
 
 all_communities:
-  nexus:
-    multiple: true
+  multiple: true
+  N3k: &all_structured
+    get_value: 'community_name'
+  N9k: *all_structured
+  N9k-F: *all_structured
+  N5k: &all_cli
     get_command: "show running snmp all"
     get_value: '/^snmp-server community (\S+) /'
+  N6k: *all_cli
+  N7k: *all_cli
   ios_xr:
-    multiple: true
     get_command: "show running-config snmp"
     get_value: '/^snmp-server community (\S+)/'
 
 community:
   nexus:
-    get_command: "show running snmp all"
-    get_value: '/^snmp-server community (%s) group .*$/'
     set_value: "<state> snmp-server community <name> group <group>"
   ios_xr:
     get_command: "show running-config snmp"
@@ -34,10 +52,20 @@ community:
     set_value: "<state> snmp-server community <name>"
 
 group:
+  N3k: &group_structured_get
+    kind: string
+    get_value: ["community_name <name>", "grouporaccess", '/^(?:Community groupname:\s+)?(\S+)/']
+  N9k: *group_structured_get
+  N9k-F: *group_structured_get
+  ios_xr: &group_cli_based_get
+    kind: string
     get_command: "show running snmp all"
     get_value: '/^snmp-server community <name> group (.*)$/'
-    set_value: "snmp-server community <name> group <group>"
-    default_value: "network-operator"
+  N5k: *group_cli_based_get
+  N6k: *group_cli_based_get
+  N7k: *group_cli_based_get
+  set_value: "snmp-server community <name> group <group>"
+  default_value: "network-operator"
 
 group_community_mapping:
     get_command: "show running snmp"

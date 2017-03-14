@@ -98,7 +98,7 @@ class TestRadiusSvr < CiscoTestCase
 
       key = '44444444'
       server.key_set(key, nil)
-      assert_equal(Utils.add_quotes(key), Cisco::RadiusServer.radiusservers[id].key)
+      assert_match(/#{key}/, Cisco::RadiusServer.radiusservers[id].key)
     else
       assert_nil(server.accounting)
       assert_raises(Cisco::UnsupportedError) do
@@ -162,7 +162,7 @@ class TestRadiusSvr < CiscoTestCase
 
       key = '44444444'
       server.key_set(key, nil)
-      assert_equal(Utils.add_quotes(key), Cisco::RadiusServer.radiusservers[id].key)
+      assert_match(/#{key}/, Cisco::RadiusServer.radiusservers[id].key)
     else
       assert_nil(server.accounting)
       assert_raises(Cisco::UnsupportedError) do
@@ -227,7 +227,7 @@ class TestRadiusSvr < CiscoTestCase
 
       key = '44444444'
       server.key_set(key, nil)
-      assert_equal(Utils.add_quotes(key), Cisco::RadiusServer.radiusservers[id].key)
+      assert_match(/#{key}/, Cisco::RadiusServer.radiusservers[id].key)
     else
       assert_nil(server.accounting)
       assert_raises(Cisco::UnsupportedError) do
@@ -298,8 +298,8 @@ class TestRadiusSvr < CiscoTestCase
 
       key = '44444444'
       server.key_set(key, nil)
-      assert_equal(Utils.add_quotes(key), Cisco::RadiusServer.radiusservers[id].key)
-      assert_equal(Utils.add_quotes(key), server.key)
+      assert_match(/#{key}/, Cisco::RadiusServer.radiusservers[id].key)
+      assert_match(/#{key}/, server.key)
     else
       assert_nil(server.accounting)
       assert_raises(Cisco::UnsupportedError) do
@@ -333,7 +333,7 @@ class TestRadiusSvr < CiscoTestCase
 
       key = '44444444'
       server2.key_set(key, nil)
-      assert_equal(Utils.add_quotes(key), Cisco::RadiusServer.radiusservers[id2].key)
+      assert_match(/#{key}/, Cisco::RadiusServer.radiusservers[id2].key)
     else
       assert_nil(server.accounting)
       assert_raises(Cisco::UnsupportedError) do

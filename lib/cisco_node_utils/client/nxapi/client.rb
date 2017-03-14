@@ -56,6 +56,7 @@ class Cisco::Client::NXAPI < Cisco::Client
       # unit testing where the base Net::HTTP will meet our needs.
       require 'net_http_unix'
       @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
+      @cookie = kwargs[:cookie]
     else
       # Remote connection. This is primarily expected
       # when running e.g. from a Unix server as part of Minitest.
@@ -76,11 +77,22 @@ class Cisco::Client::NXAPI < Cisco::Client
     if kwargs[:host].nil?
       # Connection to UDS - no username or password either
       fail ArgumentError unless kwargs[:username].nil? && kwargs[:password].nil?
+      validate_cookie(**kwargs)
     else
       # Connection to remote system - username and password are required
       fail TypeError, 'username is required' if kwargs[:username].nil?
       fail TypeError, 'password is required' if kwargs[:password].nil?
     end
+  end
+
+  def self.validate_cookie(**kwargs)
+    return if kwargs[:cookie].nil?
+    format = 'Cookie format must match: <username>:local'
+    msg = "Invalid cookie: [#{kwargs[:cookie]}]. : #{format}"
+
+    fail TypeError, msg unless kwargs[:cookie].is_a?(String)
+    fail TypeError, msg unless /\S+:local/.match(kwargs[:cookie])
+    fail ArgumentError, 'empty cookie' if kwargs[:cookie].empty?
   end
 
   # Clear the cache of CLI output results.
@@ -189,6 +201,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     # send the request and get the response
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
+    tries = 2
     begin
       # Explicitly use http to avoid EOFError
       # http://stackoverflow.com/a/23080693
@@ -197,6 +210,10 @@ class Cisco::Client::NXAPI < Cisco::Client
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
       raise Cisco::ConnectionRefused, emsg
+    rescue EOFError
+      tries -= 1
+      retry if tries > 0
+      raise
     end
     handle_http_response(response)
     output = parse_response(response)
@@ -222,8 +239,9 @@ class Cisco::Client::NXAPI < Cisco::Client
 
   def build_http_request(type, command_string)
     if @username.nil? || @password.nil?
+      cookie = @cookie.nil? ? 'admin:local' : @cookie
       request = Net::HTTP::Post.new(NXAPI_UDS_URI_PATH)
-      request['Cookie'] = 'nxapi_auth=admin:local'
+      request['Cookie'] = "nxapi_auth=#{cookie}"
     else
       request = Net::HTTP::Post.new(NXAPI_REMOTE_URI_PATH)
       request.basic_auth("#{@username}", "#{@password}")

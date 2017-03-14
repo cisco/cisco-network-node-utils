@@ -22,7 +22,7 @@ encryption:
   set_value: "<state> tacacs-server key <option> <key>"
 
 encryption_password:
-  get_value: '/^tacacs-server key (\d+)\s+(\S+)/'
+  get_value: '/^tacacs-server key (\d+)\s+(.*)/'
   default_value: ""
   nexus:
     get_command: "show run tacacs all"

@@ -62,7 +62,7 @@ hosts:
 key:
   default_value: ~
   nexus:
-    get_value: '/^radius-server host <ip>.* key \d+\s+(\S+)/'
+    get_value: '/^radius-server host <ip>.* key \d+\s+(.*)/'
     set_value: '<state> radius-server host <ip> key <key>'
   ios_xr:
     context: ["radius-server host <ip> auth-port <auth_port> acct-port <acct_port>"]

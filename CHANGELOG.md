@@ -1,6 +1,28 @@
 Changelog
 =========
 
+## [v1.6.0]
+
+### New feature support
+
+#### Cisco Resources
+* Route_map
+  * route_map (@saichint)
+
+* Upgrade
+  * upgrade (@rahushen)
+
+### Added
+
+* Extend interface with attributes:
+   * `load_interval_counter_1_delay`
+   * `load_interval_counter_2_delay`
+   * `load_interval_counter_3_delay`
+
+### Changed
+
+### Removed
+
 ## [v1.5.0]
 
 ### New feature support
@@ -397,6 +419,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.6.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0

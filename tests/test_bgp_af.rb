@@ -168,7 +168,14 @@ class TestBgpAF < CiscoTestCase
       # to the device is available.  If the entry is :runtime this
       # triggers a version check below.
       if expect == :runtime
-        expect = Utils.image_version?(/8.0/) ? :success : :CliError
+        case Platform.image_version
+        when /8.0/
+          expect = :success
+        when /I5.2/
+          expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
+        else
+          expect = :CliError
+        end
       end
       return expect if expect == :success || expect == :skip
 

@@ -73,7 +73,8 @@ If both files exist and are readable, configuration in the user-specific file wi
 
 This file specifies the host, port, username, and/or password to be used to connect to one or more nodes.
 
-* When installing this gem on NX-OS nodes, this file is generally not needed, as the default client behavior is sufficient.
+* When installing this gem on NX-OS nodes, this file is generally not needed, as the default client behavior is sufficient.  This file can be used however to override the default cookie.
+    - Nodes defined with a single `cookie` parameter will override the default cookie.
 * When developing for or testing this gem, this file can specify one or more NX-OS nodes to run tests against. In this case:
     - A node labeled as `default` will be the default node to test against.
     - Nodes with other names can be selected at test execution time.

@@ -7,7 +7,7 @@ _template:
     get_command: "show running-config radius-server"
 
 key:
-  get_value: '/^radius-server key \d+\s+(\S+)/'
+  get_value: '/^radius-server key \d+\s+(.*)/'
   set_value: '<state> radius-server key <key>'
 
 key_format:

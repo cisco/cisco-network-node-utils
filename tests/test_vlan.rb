@@ -127,6 +127,8 @@ class TestVlan < CiscoTestCase
   end
 
   def test_name_zero_length
+    skip_legacy_defect?('7.0.3.I5.2',
+                        'CSCvd09257: Configuration of vlan name via nxapi should be noop')
     v = Vlan.new(1000)
     v.vlan_name = ''
     assert('', v.vlan_name)
@@ -155,10 +157,6 @@ class TestVlan < CiscoTestCase
     name = 'LONG_NAME' + ('E' * 119)
     v.vlan_name = name
     assert_equal(name, v.vlan_name)
-    name = 'LONG_NAME' + ('E' * 120)
-    assert_raises(Cisco::CliError) do
-      v.vlan_name = name
-    end
     v.destroy
     config 'no system vlan long-name'
   end

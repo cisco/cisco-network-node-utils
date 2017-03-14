@@ -296,6 +296,31 @@ ipv6_dhcp_relay_src_intf:
   set_value: "<state> ipv6 dhcp relay source-interface <intf>"
   default_value: false
 
+load_interval_counter_1_delay:
+  _exclude: [ios_xr]
+  kind: int
+  get_value: '/^load-interval counter 1 (\d+)$/'
+  set_value: "load-interval counter 1 <delay>"
+  default_value: 30
+
+load_interval_counter_1_delay_vlan_bdi:
+  kind: int
+  default_value: 60
+
+load_interval_counter_2_delay:
+  _exclude: [ios_xr]
+  kind: int
+  get_value: '/^load-interval counter 2 (\d+)$/'
+  set_value: "load-interval counter 2 <delay>"
+  default_value: 300
+
+load_interval_counter_3_delay:
+  _exclude: [ios_xr]
+  kind: int
+  get_value: '/^load-interval counter 3 (\d+)$/'
+  set_value: "<state> load-interval counter 3 <delay>"
+  default_value: false
+
 mtu_loopback:
   kind: boolean
   default_only: ~

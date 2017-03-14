@@ -81,7 +81,7 @@ needed. In the above, example 'domain' does not have a value defined for
 
 ### Wildcard substitution
 
-The `(get|set)_(context|value)` properties all support two forms of wildcarding - printf-style and key-value. Each has advantages and disadvantages but key-value is generally preferred for a number of reasons as seen below:
+The `(get|set)_(context|value|command)` properties all support two forms of wildcarding - printf-style and key-value. Each has advantages and disadvantages but key-value is generally preferred for a number of reasons as seen below:
 
 <table>
 <tr><th></th><th>Advantages</th><th>Disadvantages</th></tr>

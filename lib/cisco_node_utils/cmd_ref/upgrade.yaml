@@ -1,0 +1,38 @@
+# upgrade
+---
+_exclude: [ios_xr, N5k, N6k, N7k]
+
+clear_status:
+  set_value: "clear install status"
+
+delete:
+  set_context: ['terminal dont-ask']
+  set_value: "delete <uri><image>"
+
+delete_boot:
+  set_context: ['terminal dont-ask', 'allow delete boot-image']
+  set_value: "delete <uri><image>"
+
+image_version:
+  get_command: "show version image <uri><image>"
+  get_value: '/NXOS:\s+version\s(\S+)/'
+
+is_box_online:
+  set_context: ['conf t']
+  set_value: "sh clock"
+
+save_config:
+  set_value: "copy running-config startup-config"
+
+upgrade:
+  set_context: ['terminal dont-ask']
+  set_value: "install all nxos <uri><image>"
+
+upgrade_force:
+  set_context: ['terminal dont-ask']
+  set_value: "install force-all nxos <uri><image>"
+
+upgraded:
+  kind: boolean
+  get_command: 'show install all status'
+  get_value: '/Finishing the upgrade, switch will reboot|Install has been successful/'
