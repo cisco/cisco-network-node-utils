@@ -1,6 +1,18 @@
 Changelog
 =========
 
+## [Unreleased]
+
+### New feature support
+
+### Added
+
+### Changed
+
+### Removed
+
+### Resolved Issues
+
 ## [v1.6.0]
 
 ### New feature support
