@@ -1,0 +1,57 @@
+# SPAN session
+---
+_template:
+  nexus:
+    get_command: "show running monitor all"
+
+all_sessions:
+  multiple:
+  get_context: ~
+  get_value: '/^monitor session (\d+)$/'
+
+create:
+  set_value: 'monitor session %s'
+
+description:
+  kind: string
+  get_context: ["monitor session <id>"]
+  get_value: '/^description (.*)/'
+  set_context: ["monitor session <id>"]
+  set_value: '<state> description <desc>'
+  default_value: ''
+
+destination:
+  kind: string
+  get_context: ["monitor session <id>"]
+  get_value: '/^destination interface <intf_name>$/'
+  set_context: ["monitor session <id>"]
+  set_value: '<state> destination interface <intf_name>'
+
+destroy:
+  set_value: 'no monitor session %s'
+
+session_id:
+  kind: int
+  default_value: false
+  get_value: '/^monitor session (\d+)$/'
+  set_value: '<state> monitor session <id>'
+
+source_interface:
+  kind: string
+  get_context: ["monitor session <id>"]
+  get_value: '/^source interface (\S+) (\w+)$/'
+  set_context: ["monitor session <id>"]
+  set_value: '<state> source interface <int_name> <direction>'
+
+source_vlan:
+  kind: int
+  get_context: ["monitor session <id>"]
+  get_value: '/^source vlan (\S+) (\w+)$/'
+  set_context: ["monitor session <id>"]
+  set_value: '<state> source vlan <vlans> <direction>'
+
+type:
+  kind: string
+  default_value: 'local'
+  get_value: '/^monitor session \d+ type (\w+)$/'
+  set_value: 'monitor session <id> type <type>'
