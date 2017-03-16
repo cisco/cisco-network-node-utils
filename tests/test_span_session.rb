@@ -32,6 +32,7 @@ class TestVlan < CiscoTestCase
 
     assert_equal(span.session_id,1)
     assert_equal(span.type,'local') # default session type
+    assert(span.shutdown)
     span.destroy
   end
 
@@ -82,11 +83,20 @@ class TestVlan < CiscoTestCase
 
   def test_session_source_vlans
     vlans = '2-5,8,10,13'
-    vlans = vlans.split(',')
-    range = vlans.grep('/-/')
     # need to figure out how to reuse this function for setter
     # vlans = vlans.join(',') if vlans.is_a?(Array)
     # vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
     span = SpanSession.new(1)
+    span.source_vlan(vlans: vlans, direction: 'rx')
+    assert_equal(span.source_vlan[:vlans], vlans)
+    span.destroy
+  end
+
+  def test_session_destination_int
+    span = SpanSession.new(1)
+    dest_int = 'Ethernet1/3'
+    span.destination(intf_name: dest_int)
+    assert_equal(span.destination, dest_int)
+    span.destroy
   end
 end

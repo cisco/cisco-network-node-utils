@@ -36,6 +36,13 @@ session_id:
   get_value: '/^monitor session (\d+)$/'
   set_value: '<state> monitor session <id>'
 
+shutdown:
+  kind: boolean
+  get_context: ["monitor session <id>"]
+  get_value: '/^(\S+) shutdown$/'
+  set_context: ["monitor session <id>"]
+  set_value: '<state> shutdown'
+
 source_interface:
   kind: string
   get_context: ["monitor session <id>"]
