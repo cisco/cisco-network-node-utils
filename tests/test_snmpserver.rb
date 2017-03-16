@@ -111,7 +111,7 @@ class TestSnmpServer < CiscoTestCase
     end
     assert_equal(contact, newcontact)
     # set to default
-    # snmpserver.contact = snmpserver.default_contact
+    snmpserver.contact = snmpserver.default_contact
   end
 
   def test_location
@@ -151,7 +151,7 @@ class TestSnmpServer < CiscoTestCase
     end
     assert_equal(location, newlocation)
     # set to default
-    # snmpserver.location = snmpserver.default_location
+    snmpserver.location = snmpserver.default_location
   end
 
   def test_packet_size
