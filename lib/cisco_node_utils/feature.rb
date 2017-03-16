@@ -147,6 +147,19 @@ module Cisco
       return false
     end
 
+    def self.lacp_enable
+      return if lacp_enabled?
+      config_set('feature', 'lacp')
+    end
+
+    def self.lacp_enabled?
+      config_get('feature', 'lacp')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
     # ---------------------------
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
