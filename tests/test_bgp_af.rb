@@ -171,7 +171,7 @@ class TestBgpAF < CiscoTestCase
         case Platform.image_version
         when /8.0/
           expect = :success
-        when /I5.2/
+        when /I5.2|I6/
           expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
         else
           expect = :CliError

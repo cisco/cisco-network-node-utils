@@ -207,7 +207,7 @@ class TestVlan < CiscoTestCase
 
   def test_shutdown_extended
     v = Vlan.new(2000)
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
+    assert_raises(CliError, 'vlan misconfig did not raise RuntimeError') do
       v.shutdown = 'shutdown'
     end
     v.destroy
@@ -338,7 +338,7 @@ class TestVlan < CiscoTestCase
     assert(vlan.fabric_control)
     another_vlan = Vlan.new(101)
 
-    assert_raises(RuntimeError,
+    assert_raises(CliError,
                   'VLAN misconfig did not raise CliError') do
       another_vlan.fabric_control = true
     end
