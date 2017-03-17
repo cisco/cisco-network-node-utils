@@ -65,7 +65,7 @@ module Cisco
         #       NXOS: version 7.0(3)I4(2)
         # Eg: development build
         #       NXOS: version 7.0(3)IFD6(1) [build 7.0(3)IGD7(0.65)]
-        return version.split(' ')[0] unless version[/build\s+\S+]/]
+        return version unless version[/build\s+\S+/]
         version.split(' ')[-1].split(']')[0]
       end
     end
