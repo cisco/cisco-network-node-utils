@@ -1596,14 +1596,17 @@ module Cisco
     end
 
     def set_metric_set(plus, bndw, del, reliability, eff_bw, mtu)
-      state = bndw ? '' : 'no'
+      set_args_keys(state: 'no', additive: '', bw: '', delay: '',
+                    rel: '', eff: '', mtu: '')
+      config_set('route_map', 'set_metric', @set_args)
+      return unless bndw
       additive = plus ? '+' : ''
       bw = bndw ? bndw : ''
       delay = del ? del : ''
       rel = reliability ? reliability : ''
       eff = eff_bw ? eff_bw : ''
       lmtu = mtu ? mtu : ''
-      set_args_keys(state: state, additive: additive, bw: bw, delay: delay,
+      set_args_keys(state: '', additive: additive, bw: bw, delay: delay,
                     rel: rel, eff: eff, mtu: lmtu)
       config_set('route_map', 'set_metric', @set_args)
     end
