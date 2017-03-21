@@ -76,7 +76,7 @@ module Cisco
         (result[2]['body'].split(errors) - ['']).each_slice(2).map(&:join)
       error_list.each do |msg|
         next if ignore_message && msg.to_s.include?(ignore_message)
-        fail Cisco::CliError
+        fail Cisco::CliError, result[2]['body']
       end
     end
 

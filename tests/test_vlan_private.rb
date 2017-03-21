@@ -381,7 +381,7 @@ class TestVlanPVlan < CiscoTestCase
       assert_equal(result, v1.pvlan_association)
 
       pv_type = 'isolated'
-      assert_raises(CliError, 'vlan misconf did not raise RuntimeError') do
+      assert_raises(CliError, 'vlan misconf did not raise CliError') do
         v3.pvlan_type = pv_type
       end
 
