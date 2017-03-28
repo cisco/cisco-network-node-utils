@@ -47,6 +47,11 @@ itd:
   get_value: '/^feature itd$/'
   set_value: "feature itd"
 
+lacp:
+  kind: boolean
+  get_value: '/^feature lacp$/'
+  set_value: "feature lacp"
+
 nv_overlay:
   # N3k - native vxlan support in a future release
   _exclude: [N3k]

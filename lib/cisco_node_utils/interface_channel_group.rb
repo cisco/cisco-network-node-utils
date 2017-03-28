@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'feature'
 
 # Add some interface-specific constants to the Cisco namespace
 module Cisco
@@ -59,6 +60,28 @@ module Cisco
     ########################################################
     #                      PROPERTIES                      #
     ########################################################
+
+    def channel_group_mode
+      mode = config_get('interface_channel_group', 'channel_group_mode',
+                        @get_args)
+      mode = mode ? mode : 'on' if channel_group
+      mode
+    end
+
+    def channel_group_mode=(mode)
+      group = channel_group
+
+      set_args_keys(state: 'no', group: group, force: '')
+      config_set('interface_channel_group', 'channel_group', @set_args)
+      if mode
+        Cisco::Feature.lacp_enable if mode == 'active' || mode == 'passive'
+        set_args_keys(state: '', group: group, force: 'force', mode: mode)
+        config_set('interface_channel_group', 'channel_group_mode', @set_args)
+      else
+        set_args_keys(state: '', group: group, force: 'force')
+        config_set('interface_channel_group', 'channel_group', @set_args)
+      end
+    end
 
     def channel_group
       config_get('interface_channel_group', 'channel_group', @get_args)

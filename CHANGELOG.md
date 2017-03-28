@@ -5,6 +5,18 @@ Changelog
 
 ### New feature support
 
+### Added
+
+### Changed
+
+### Removed
+
+### Resolved Issues
+
+## [v1.6.0]
+
+### New feature support
+
 #### Cisco Resources
 * Route_map
   * route_map (@saichint)
@@ -420,6 +432,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.6.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.3.0...v1.4.0
