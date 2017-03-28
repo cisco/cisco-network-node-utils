@@ -7,7 +7,7 @@ require_relative '../lib/cisco_node_utils/cisco_cmn_utils'
 include Cisco
 
 # TestSpanSession - Minitest for SPAN session node utility
-class TestVlan < CiscoTestCase
+class TestSpanSession < CiscoTestCase
   @skip_unless_supported = 'session'
   @@cleaned = false # rubocop:disable Style/ClassVars
 
@@ -82,10 +82,9 @@ class TestVlan < CiscoTestCase
   end
 
   def test_session_source_vlans
-    vlans = '2-5,8,10,13'
-    # need to figure out how to reuse this function for setter
-    # vlans = vlans.join(',') if vlans.is_a?(Array)
-    # vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
+    vlans = [2..5, 8, 10, 13]
+    vlans = vlans.join(',') if vlans.is_a?(Array)
+    vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
     span = SpanSession.new(1)
     span.source_vlan(vlans: vlans, direction: 'rx')
     assert_equal(span.source_vlan[:vlans], vlans)
