@@ -66,7 +66,7 @@ class TestYum < CiscoTestCase
   end
 
   def older_releases?
-    return true if Utils.image_version?(/I2|I3|I4.1|I4.3/)
+    return true if Utils.image_version?(/I2|I3/)
     false
   end
 
