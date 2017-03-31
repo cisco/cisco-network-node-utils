@@ -1988,5 +1988,17 @@ module Cisco
         end
       end
     end
+
+    def purge_config=(val)
+      fail ArgumentError, 'Interface MUST be ethernet' unless
+        @name[/ethernet/]
+      fail ArgumentError, 'Only true is allowed for this config' unless val
+      config_set('interface', 'purge_config', name: @name) if val
+    end
+
+    def purge_config
+      state = config_get('interface', 'purge_config', name: @name)
+      state.nil? ? true : false
+    end
   end  # Class
 end    # Module
