@@ -22,7 +22,6 @@ class TestYum < CiscoTestCase
   # rubocop:disable Style/ClassVars
   @@skip = false
   @@run_setup = true
-  @@clean_failed = false
   # rubocop:enable Style/ClassVars
 
   @skip_unless_supported = 'yum'
@@ -52,39 +51,12 @@ class TestYum < CiscoTestCase
     # rubocop:enable Style/ClassVars
   end
 
-  def clean(pkg)
-    return if Yum.pkg_name(pkg).empty?
-    pkg = Yum.pkg_name(pkg)
-    case Yum.query_state(pkg)
-    when 'inactive'
-      info "Package: #{pkg} is installed and inactive: Removing..."
-      Yum.commit_deactivate(pkg)
-      Yum.delete(pkg)
-    when 'active'
-      info "Package: #{pkg} is installed and active: Removing..."
-      Yum.remove(pkg)
-    end
-  end
-
   def setup
     super
     # only run check once (can't use initialize because @device isn't ready)
     return unless @@run_setup
-    exit if @@clean_failed
 
     select_pkg
-    s = @device.cmd("show file bootflash:#{@@pkg_filename} cksum")
-    if s[/No such file/]
-      @@skip = true # rubocop:disable Style/ClassVars
-    else
-      # Remnants of the package my still exist from a previous install attempt.
-      clean(@@pkg_filename)
-    end
-
-    unless Yum.query_removed(@@pkg_filename)
-      @@clean_failed = true # rubocop:disable Style/ClassVars
-      fail RuntimeError "Unable to remove existing package: #{@@pkg_filename}"
-    end
     @@run_setup = false # rubocop:disable Style/ClassVars
   end
 
@@ -93,8 +65,14 @@ class TestYum < CiscoTestCase
       'this file can be found in the cisco_node_utils/tests directory' if @@skip
   end
 
+  def older_releases?
+    return true if Utils.image_version?(/I2|I3/)
+    false
+  end
+
   def test_install_query_remove
     skip?
+    skip if older_releases?
     # On dublin and later images, must specify the full rpm name.
     package = @@pv[/7_0_3_I2_1_/] ? @@pkg : @@pkg_filename
 

@@ -56,6 +56,10 @@ module Cisco
     def self.install(pkg, vrf=nil)
       vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
       begin
+        # get package name first
+        name = pkg_name(pkg)
+        # call remove if pkg exists
+        remove(name) unless name.empty?
         add(pkg, vrf)
         activate(pkg)
         commit(pkg_name(pkg))
@@ -75,9 +79,32 @@ module Cisco
     end
 
     def self.remove(pkg)
-      deactivate(pkg)
-      commit_deactivate(pkg)
-      delete(pkg)
+      # get committed state
+      cstate = query_committed(pkg)
+      # get activated state
+      astate = query_activated(pkg)
+
+      if astate && cstate
+        # pkg is active and committed
+        # so deactivate, commit and remove
+        deactivate(pkg)
+        commit_deactivate(pkg)
+        delete(pkg)
+      elsif cstate
+        # pkg is inactive and committed
+        # so commit and remove
+        commit_deactivate(pkg)
+        delete(pkg)
+      elsif astate
+        # pkg is active and not committed
+        # so deactivate and remove
+        deactivate(pkg)
+        delete(pkg)
+      else
+        # pkg is inactive and not committed
+        # so just remove
+        delete(pkg)
+      end
     rescue Cisco::CliError, RuntimeError => e
       raise Cisco::CliError, "#{e.class}, #{e.message}"
     end
