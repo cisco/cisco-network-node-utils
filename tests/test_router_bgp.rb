@@ -64,7 +64,7 @@ def newer_image_version?
   new = true
   new = false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
                  node.product_id[/(N5|N6|N7|N9.*-F)/]
-  new = true if Utils.image_version?(/8.0/)
+  new = true if Utils.image_version?(/8.0|8.1/)
   new
 end
 
@@ -669,7 +669,7 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('false', bgp.event_history_errors)
     bgp.event_history_errors = 'size_small'
     assert_equal('size_small', bgp.event_history_errors) unless
-      Utils.image_version?(/8.0/)
+      Utils.image_version?(/8.0|8.1/)
     bgp.event_history_errors = 'size_large'
     assert_equal('size_large', bgp.event_history_errors)
     bgp.event_history_errors = 'size_medium'
@@ -756,7 +756,7 @@ class TestRouterBgp < CiscoTestCase
                  bgp.event_history_periodic)
     bgp.event_history_periodic = 'false'
     assert_equal('false', bgp.event_history_periodic) unless
-      Utils.image_version?(/8.0/)
+      Utils.image_version?(/8.0|8.1/)
     bgp.event_history_periodic = 'size_small'
     assert_equal('size_small', bgp.event_history_periodic)
     bgp.event_history_periodic = 'size_large'
@@ -775,7 +775,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.event_history_periodic = 'true'
     if newer_image_version?
       assert_equal('true', bgp.event_history_periodic) unless
-        Utils.image_version?(/8.0/)
+        Utils.image_version?(/8.0|8.1/)
     else
       assert_equal(bgp.default_event_history_periodic,
                    bgp.event_history_periodic)

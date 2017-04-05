@@ -1,15 +1,26 @@
 # yum
 ---
-_exclude: [ios_xr]
+_exclude: [ios_xr, N5k, N6k, N7k]
+
+activate:
+  set_value: "install activate <pkg>"
+
+add:
+  set_value: "install add <pkg> <vrf>"
 
 commit:
-  set_value: "install commit %s"
+  set_value: "install commit <pkg>"
 
 deactivate:
-  set_value: "install deactivate %s"
+  set_value: "install deactivate <pkg>"
 
 install:
-  set_value: "install add %s %s activate"
+  set_value: "install add <pkg> <vrf> activate"
+
+pkg_name:
+  kind: string
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Name\s+:\s+(\S+)/i'
 
 query:
   multiple: true
@@ -17,11 +28,41 @@ query:
   # pass in the pkg name, retrieve version
   get_value: '/^%s\S*\s+(\S+)\s+(?:installed|@\S+)/'
 
+query_activated:
+  kind: boolean
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Patch\s+State\s+:\s+Active/i'
+
+query_added:
+  kind: boolean
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Name\s+:\s+\S+/i'
+
 query_all:
   multiple: true
   get_command: "show install packages"
   get_value: '/^(\S+)\s+(\S+)\s+(\S+)$/'
   default_value: []
 
+query_committed:
+  multiple: true
+  get_command: "show install committed"
+  get_value: '/<pkg>/'
+
+query_inactive:
+  kind: boolean
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Patch\s+State\s+:\s+Inactive/i'
+
+query_removed:
+  kind: boolean
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Name\s+:\s+\S+/i'
+
+query_state:
+  kind: string
+  get_command: "show install pkg-info <pkg>"
+  get_value: '/Patch\s+State\s+:\s+(\S+)/i'
+
 remove:
-  set_value: "install remove %s forced"
+  set_value: "install remove <pkg> forced"
