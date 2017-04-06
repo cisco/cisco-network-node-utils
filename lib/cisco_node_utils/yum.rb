@@ -110,7 +110,6 @@ module Cisco
     end
 
     def self.add(pkg, vrf=nil)
-      Cisco::Logger.info("Adding package: #{pkg}")
       try_operation('add', pkg, vrf)
       while (try ||= 1) < 20
         return if query_added(pkg)
@@ -121,7 +120,6 @@ module Cisco
     end
 
     def self.activate(pkg)
-      Cisco::Logger.info("Activating package: #{pkg}")
       try_operation('activate', pkg)
       while (try ||= 1) < 20
         return if query_activated(pkg)
@@ -132,7 +130,6 @@ module Cisco
     end
 
     def self.commit(pkg)
-      Cisco::Logger.info("Committing package: #{pkg}")
       try_operation('commit', pkg)
       while (try ||= 1) < 20
         return if query_committed(pkg)
@@ -143,7 +140,6 @@ module Cisco
     end
 
     def self.commit_deactivate(pkg)
-      Cisco::Logger.info("Committing package after deactivate: #{pkg}")
       try_operation('commit', pkg)
       while (try ||= 1) < 20
         return unless query_committed(pkg)
@@ -154,7 +150,6 @@ module Cisco
     end
 
     def self.deactivate(pkg)
-      Cisco::Logger.info("Deactivating package: #{pkg}")
       try_operation('deactivate', pkg)
       while (try ||= 1) < 20
         return if query_inactive(pkg)
@@ -165,7 +160,6 @@ module Cisco
     end
 
     def self.delete(pkg)
-      Cisco::Logger.info("Deleting package: #{pkg}")
       try_operation('remove', pkg)
       while (try ||= 1) < 20
         return if query_removed(pkg)
