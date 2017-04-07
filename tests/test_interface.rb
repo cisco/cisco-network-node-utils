@@ -1834,7 +1834,7 @@ class TestInterface < CiscoTestCase
     lb.destroy
   end
 
-  def test_destroy_physical
+  def test_purge_config
     name = interfaces[0]
     int = Interface.new(name)
     int.switchport_mode = :disabled
