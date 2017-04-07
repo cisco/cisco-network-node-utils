@@ -32,6 +32,7 @@ class TestInterfaceChanGrp < CiscoTestCase
   end
 
   def test_channel_group
+    skip if platform == :nexus
     i = @intf
     group = 200
     i.channel_group = group
@@ -50,6 +51,7 @@ class TestInterfaceChanGrp < CiscoTestCase
   end
 
   def test_channel_group_mode
+    skip if platform == :ios_xr
     i = @intf
     group = 55
 
@@ -58,39 +60,38 @@ class TestInterfaceChanGrp < CiscoTestCase
     refute(i.channel_group_mode)
 
     # group = 55, mode = on
-    i.channel_group = group
+    i.channel_group_mode_set(group)
     assert_equal(group, i.channel_group)
     assert_equal('on', i.channel_group_mode)
 
     # group = 55, mode = active
-    i.channel_group_mode = 'active'
+    i.channel_group_mode_set(group, 'active')
     assert_equal(group, i.channel_group)
     assert_equal('active', i.channel_group_mode)
 
     # group = 55, mode = passive
-    i.channel_group_mode = 'passive'
+    i.channel_group_mode_set(group, 'passive')
     assert_equal(group, i.channel_group)
     assert_equal('passive', i.channel_group_mode)
 
     # group = 55, mode = on
-    i.channel_group_mode = 'on'
+    i.channel_group_mode_set(group, 'on')
     assert_equal(group, i.channel_group)
     assert_equal('on', i.channel_group_mode)
 
     # group = 66, mode = active
     group = 66
-    i.channel_group = group
-    i.channel_group_mode = 'active'
+    i.channel_group_mode_set(group, 'active')
     assert_equal(group, i.channel_group)
     assert_equal('active', i.channel_group_mode)
 
     # group = 66, mode = on
-    i.channel_group_mode = false
+    i.channel_group_mode_set(group)
     assert_equal(group, i.channel_group)
     assert_equal('on', i.channel_group_mode)
 
     # Default Case: group = mode = false
-    i.channel_group = i.default_channel_group
+    i.channel_group_mode_set(i.default_channel_group)
     refute(i.channel_group)
     refute(i.channel_group_mode)
   end
