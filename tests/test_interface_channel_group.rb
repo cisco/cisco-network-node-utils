@@ -62,7 +62,7 @@ class TestInterfaceChanGrp < CiscoTestCase
     # group = 55, mode = on
     i.channel_group_mode_set(group)
     assert_equal(group, i.channel_group)
-    assert_equal('on', i.channel_group_mode)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
 
     # group = 55, mode = active
     i.channel_group_mode_set(group, 'active')
@@ -77,7 +77,7 @@ class TestInterfaceChanGrp < CiscoTestCase
     # group = 55, mode = on
     i.channel_group_mode_set(group, 'on')
     assert_equal(group, i.channel_group)
-    assert_equal('on', i.channel_group_mode)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
 
     # group = 66, mode = active
     group = 66
@@ -88,7 +88,7 @@ class TestInterfaceChanGrp < CiscoTestCase
     # group = 66, mode = on
     i.channel_group_mode_set(group)
     assert_equal(group, i.channel_group)
-    assert_equal('on', i.channel_group_mode)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
 
     # Default Case: group = mode = false
     i.channel_group_mode_set(i.default_channel_group)

@@ -22,6 +22,10 @@ channel_group:
     get_value: '/^bundle id (\d+).*$/'
     set_value: '<state> bundle id <group>'
 
+channel_group_mode:
+  _exclude: [ios_xr]
+  default_value: false
+
 description:
   kind: string
   get_value: '/^description (.*)/'

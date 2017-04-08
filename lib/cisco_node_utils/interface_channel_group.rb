@@ -64,24 +64,25 @@ module Cisco
     def channel_group_mode
       match = config_get('interface_channel_group', 'channel_group', @get_args)
       return match unless match
-      mode = match[1].nil? ? 'on' : match[1]
+      mode = match[1].nil? ? default_channel_group_mode : match[1]
       mode
     end
 
-    def channel_group_mode_set(group, mode='on')
+    def channel_group_mode_set(group, mode=false)
       cgroup = channel_group
       set_args_keys(state: 'no', group: cgroup, force: '', mode: '', val: '')
       config_set('interface_channel_group', 'channel_group', @set_args) if
         cgroup
       return unless group
-      if mode == 'on'
-        set_args_keys(state: '', group: group, force: 'force',
-                      mode: '', val: '')
-        config_set('interface_channel_group', 'channel_group', @set_args)
-      else
-        Cisco::Feature.lacp_enable if mode == 'active' || mode == 'passive'
+      mode = false if mode && mode.to_str == 'on'
+      if mode
+        Cisco::Feature.lacp_enable
         set_args_keys(state: '', group: group, force: 'force',
                       mode: 'mode', val: mode)
+        config_set('interface_channel_group', 'channel_group', @set_args)
+      else
+        set_args_keys(state: '', group: group, force: 'force',
+                      mode: '', val: '')
         config_set('interface_channel_group', 'channel_group', @set_args)
       end
     end
@@ -94,6 +95,10 @@ module Cisco
 
     def default_channel_group
       config_get_default('interface_channel_group', 'channel_group')
+    end
+
+    def default_channel_group_mode
+      config_get_default('interface_channel_group', 'channel_group_mode')
     end
 
     # ----------------------------
