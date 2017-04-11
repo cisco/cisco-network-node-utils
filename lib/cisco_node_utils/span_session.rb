@@ -59,7 +59,7 @@ module Cisco
 
     def destination=(int)
       # fail if int is not a valid interface
-      fail TypeError if !int in Interface.interfaces.keys
+      fail TypeError if Interface.interfaces.has_key?(int)
       config_set('span_session', 'destination', id: @session_id, intf_name: int)
     end
 
@@ -91,8 +91,8 @@ module Cisco
         # do something
       fail TypeError unless sources.is_a?(Hash)
       sources.each do |name,dir|
-        fail TypeError if !name in Interface.interfaces.keys
-        config_set('span_session', 'source_interface', id: @session_id
+        fail TypeError unless Interface.interfaces.has_key?(name)
+        config_set('span_session', 'source_interface', id: @session_id,
                     state: '', int_name: name, direction: dir)
       end
     end
@@ -119,7 +119,7 @@ module Cisco
 
     def type=(str)
       valid_types = ['local', 'rspan', 'erspan-source']
-      fail TypeError if !str in valid_types
+      fail TypeError unless valid_types.include?(str)
       if str.empty?
         config_set('span_session', 'type', id: @session_id, type: 'local')
       else
