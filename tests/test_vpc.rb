@@ -196,6 +196,28 @@ class TestVpc < CiscoTestCase
     refute(vpc.peer_gateway, 'peer_gateway not getting disabled')
   end
 
+  def test_peer_switch
+    vpc = Vpc.new(100)
+    default_val = vpc.default_peer_switch
+    assert_equal(default_val, vpc.peer_switch,
+                 "peer_switch should be #{default_val} by default")
+    vpc.peer_switch = true
+    assert(vpc.peer_switch, 'peer_switch not getting set')
+    vpc.peer_switch = false
+    refute(vpc.peer_switch, 'peer_switch not getting disabled')
+  end
+
+  def test_arp_synchronize
+    vpc = Vpc.new(100)
+    default_val = vpc.default_arp_synchronize
+    assert_equal(default_val, vpc.arp_synchronize,
+                 "arp_synchronize should be #{default_val} by default")
+    vpc.arp_synchronize = true
+    assert(vpc.arp_synchronize, 'arp_synchronize not getting set')
+    vpc.arp_synchronize = false
+    refute(vpc.arp_synchronize, 'arp_synchronize not getting disabled')
+  end
+
   def test_peer_gateway_exclude_bridge_domain
     vpc = Vpc.new(100)
     if validate_property_excluded?('vpc', 'peer_gateway_exclude_bridge_domain')
