@@ -101,6 +101,13 @@ layer3_peer_routing:
   set_value: "<state> layer3 peer-router"
   default_value: false
 
+nd_synchronize:
+  kind: boolean
+  set_context:  ['terminal dont-ask', 'vpc domain <domain>']
+  get_value: '/^ipv6 nd synchronize/'
+  set_value: "<state> ipv6 nd synchronize"
+  default_value: false
+
 peer_gateway:
   kind: boolean
   set_context:  ['terminal dont-ask', 'vpc domain <domain>']
