@@ -88,7 +88,7 @@ module Cisco
 
     def source_interface=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each do |name,dir|
+      sources.each do |name, dir|
         fail TypeError unless Interface.interfaces.key?(name)
         config_set('span_session', 'source_interface', id: @session_id,
                     state: '', int_name: name, direction: dir)

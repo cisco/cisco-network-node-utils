@@ -22,7 +22,7 @@ class TestSpanSession < CiscoTestCase
   end
 
   def cleanup
-    SpanSession.sessions.each do | session,obj |
+    SpanSession.sessions.each do |_session, obj|
       obj.destroy
     end
   end
@@ -30,8 +30,8 @@ class TestSpanSession < CiscoTestCase
   def test_create_new_session
     span = SpanSession.new(1)
 
-    assert_equal(span.session_id,1)
-    assert_equal(span.type,'local') # default session type
+    assert_equal(span.session_id, 1)
+    assert_equal(span.type, 'local') # default session type
     assert(span.shutdown)
     span.destroy
   end
@@ -51,7 +51,7 @@ class TestSpanSession < CiscoTestCase
     span = SpanSession.new(1)
     erspan_type = 'erspan-source'
     span.type = erspan_type
-    assert_equal(span.type,erspan_type)
+    assert_equal(span.type, erspan_type)
     span.destroy
   end
 
@@ -59,23 +59,21 @@ class TestSpanSession < CiscoTestCase
     span = SpanSession.new(1)
     desc = 'SPAN session 1'
     span.description = desc
-    assert_equal(span.description,desc)
+    assert_equal(span.description, desc)
     span.destroy
   end
 
   def test_session_source_interface
     span = SpanSession.new(1)
     po_int = Interface.new('port-channel1')
-    ints = {
-      'Ethernet1/1' => 'rx',
-      'Ethernet1/2' => 'tx',
-      'port-channel1' => 'both',
-      'sup-eth0' => 'rx',
-    }
+    ints = { 'Ethernet1/1' => 'rx',
+             'Ethernet1/2' => 'tx',
+           'port-channel1' => 'both',
+                'sup-eth0' => 'rx' }
     span.source_interface(ints)
     ints.keys.each do |int_name|
-      assert_equal(span.source_interface,int_name,
-                  "source interface #{int_name} does not match")
+      assert_equal(span.source_interface, int_name,
+                   "source interface #{int_name} does not match")
     end
     span.destroy
     po_int.destroy
