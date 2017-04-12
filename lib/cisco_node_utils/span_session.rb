@@ -1,9 +1,10 @@
-# Cisco folks can insert the appropriate license info here... :)
-
+# Insert appropriate license here
 require_relative 'node_util'
 require_relative 'interface'
 
+
 module Cisco
+  # node utils class for SPAN (switchport analyzer) sessions
   class SpanSession < NodeUtil
     attr_reader :session_id
 
@@ -59,7 +60,7 @@ module Cisco
 
     def destination=(int)
       # fail if int is not a valid interface
-      fail TypeError unless Interface.interfaces.has_key?(int)
+      fail TypeError unless Interface.interfaces.key?(int)
       config_set('span_session', 'destination', id: @session_id, intf_name: int)
     end
 
@@ -88,7 +89,7 @@ module Cisco
     def source_interface=(sources)
       fail TypeError unless sources.is_a?(Hash)
       sources.each do |name,dir|
-        fail TypeError unless Interface.interfaces.has_key?(name)
+        fail TypeError unless Interface.interfaces.key?(name)
         config_set('span_session', 'source_interface', id: @session_id,
                     state: '', int_name: name, direction: dir)
       end
@@ -100,7 +101,7 @@ module Cisco
 
     def source_vlan=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each do |vlans,dir|
+      sources.each do |vlans, dir|
         fail TypeError unless vlans.is_a?(String)
         config_set('span_session', 'source_interface', id: @session_id,
                     state: '', vlans: vlans, direction: dir)
