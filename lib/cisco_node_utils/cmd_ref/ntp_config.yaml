@@ -3,6 +3,13 @@
 _template:
   get_command: "show running-config ntp"
 
+authenticate:
+  kind: boolean
+  default_value: false
+  nexus:
+    get_value: '/^ntp authenticate$/'
+    set_value: "<state> ntp authenticate"
+
 source_interface:
   default_value: ~
   nexus:
@@ -12,3 +19,9 @@ source_interface:
     context: ["ntp"]
     get_value: '/source\s+(.*)$/'
     set_value: '<state> source <source_interface>'
+
+trusted_key:
+  multiple:
+  nexus:
+    get_value: '/^ntp trusted-key\s+(\d+)$/'
+    set_value: "<state> ntp trusted-key <key>"
