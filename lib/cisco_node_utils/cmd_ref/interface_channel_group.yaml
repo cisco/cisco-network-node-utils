@@ -32,16 +32,6 @@ description:
   set_value: '<state> description <desc>'
   default_value: ''
 
-feature_lacp:
-  kind: boolean
-  nexus:
-    get_command: "show running | i ^feature"
-    context: ~
-    get_value: '/^feature lacp$/'
-    set_value: "<state> feature lacp"
-  ios_xr:
-    default_only: true
-
 shutdown:
   kind: boolean
   get_value: '/^(?:no )?shutdown$/'
