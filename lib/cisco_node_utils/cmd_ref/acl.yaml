@@ -41,6 +41,10 @@ fragments:
   set_value: '<state> fragments <action>'
   default_value: ~
 
+remark:
+  config_get_token_append: '/\s+(seqno)\s+ remark (remark)\s+ (/s+)$/'
+  config_set_append: '<state> <seqno> remark <remark_str>'
+
 stats_per_entry:
   kind: boolean
   get_value: '/statistics per-entry$/'
