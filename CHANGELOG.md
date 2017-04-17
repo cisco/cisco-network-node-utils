@@ -7,6 +7,9 @@ Changelog
 
 ### Added
 
+* Extend interface with attributes:
+   * `purge_config`
+
 ### Changed
 
 ### Removed
