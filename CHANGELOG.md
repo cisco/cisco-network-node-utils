@@ -14,6 +14,9 @@ Changelog
 * Extend interface with attributes:
    * `purge_config`
 
+* Extend interface_channel_group with attributes:
+   * `channel_group_mode`
+
 ### Changed
 
 ### Removed
