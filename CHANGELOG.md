@@ -6,6 +6,10 @@ Changelog
 ### New feature support
 
 ### Added
+* Extend vpc with attributes:
+   * `peer_switch`
+   * `arp_synchronize`
+   * `nd_synchronize`
 
 ### Changed
 
@@ -441,4 +445,3 @@ Changelog
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
-
