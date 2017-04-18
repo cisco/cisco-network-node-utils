@@ -70,6 +70,11 @@ module Cisco
       end
     end
 
+    # Return the nxos image installed on the device
+    def self.package
+      config_get('show_version', 'system_image').split('/')[-1]
+    end
+
     # Return true if box is online and config mode is ready to be used
     def self.box_online?
       output = config_set('upgrade', 'is_box_online')
@@ -93,19 +98,8 @@ module Cisco
     end
 
     # Attempts to upgrade the device to 'image'
-    def self.upgrade(version, image, uri='bootflash:', del_boot=false,
+    def self.upgrade(image, uri='bootflash:', del_boot=false,
                      force_all=false)
-      # Only 'bootflash:' is a supported URI. Fail otherwise.
-      fail "The Uri #{uri} is not supported" unless uri == 'bootflash:'
-      # IMPORTANT - Check if version of image equals the version provided.
-      # This is to avoid entering a loop with the Programmability Agent
-      # continuously trying to reload the device if versions don't match.
-      image_ver = image_version(image, uri)
-      err_str = "Version Mismatch.\n
-                 The version of the image:#{image_ver}\n
-                 The version provided:#{version}\n
-                 Aborting upgrade."
-      fail err_str unless image_ver.to_s.strip == version.to_s.strip
       delete_boot(uri) if del_boot
       force_all ? upgrade_str = 'upgrade_force' : upgrade_str = 'upgrade'
       begin
