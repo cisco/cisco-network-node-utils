@@ -37,6 +37,7 @@ class TestSpanSession < CiscoTestCase
 
   def test_remove_session
     span = SpanSession.new(1)
+    span.destroy
     refute(span, 'Session was not cleaned up correctly...')
   end
 
@@ -66,7 +67,7 @@ class TestSpanSession < CiscoTestCase
              'Ethernet1/2'   => 'tx',
              'port-channel1' => 'both',
              'sup-eth0'      => 'rx' }
-    span.source_interface(ints)
+    span.source_interface = ints
     ints.keys.each do |int_name|
       assert_equal(span.source_interface, int_name,
                    "source interface #{int_name} does not match")
@@ -79,14 +80,14 @@ class TestSpanSession < CiscoTestCase
     vlans = vlans.join(',') if vlans.is_a?(Array)
     vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
     span = SpanSession.new(1)
-    span.source_vlan(vlans: vlans, direction: 'rx')
+    span.source_vlan = { vlans: vlans, direction: 'rx' }
     assert_equal(span.source_vlan[:vlans], vlans)
   end
 
   def test_session_destination_int
     span = SpanSession.new(1)
     dest_int = 'Ethernet1/3'
-    span.destination(intf_name: dest_int)
+    span.destination = dest_int
     assert_equal(span.destination, dest_int)
   end
 end

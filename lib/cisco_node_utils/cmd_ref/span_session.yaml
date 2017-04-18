@@ -17,7 +17,7 @@ description:
   get_context: ["monitor session <id>"]
   get_value: '/^description (.*)/'
   set_context: ["monitor session <id>"]
-  set_value: '<state> description <desc>'
+  set_value: '<state> description <description>'
   default_value: ''
 
 destination:
@@ -62,4 +62,4 @@ type:
   kind: string
   default_value: 'local'
   get_value: '/^monitor session \d+ type (\w+)$/'
-  set_value: 'monitor session <id> <type> <val>'
+  set_value: 'monitor session <id> type <type>'
