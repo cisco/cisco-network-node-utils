@@ -8,7 +8,7 @@ include Cisco
 
 # TestSpanSession - Minitest for SPAN session node utility
 class TestSpanSession < CiscoTestCase
-  @skip_unless_supported = 'session'
+  @skip_unless_supported = 'span_session'
   @@cleaned = false # rubocop:disable Style/ClassVars
 
   def setup
@@ -33,12 +33,10 @@ class TestSpanSession < CiscoTestCase
     assert_equal(span.session_id, 1)
     assert_equal(span.type, 'local') # default session type
     assert(span.shutdown)
-    span.destroy
   end
 
   def test_remove_session
     span = SpanSession.new(1)
-    span.destroy
     refute(span, 'Session was not cleaned up correctly...')
   end
 
@@ -52,7 +50,6 @@ class TestSpanSession < CiscoTestCase
     erspan_type = 'erspan-source'
     span.type = erspan_type
     assert_equal(span.type, erspan_type)
-    span.destroy
   end
 
   def test_session_description
@@ -60,7 +57,6 @@ class TestSpanSession < CiscoTestCase
     desc = 'SPAN session 1'
     span.description = desc
     assert_equal(span.description, desc)
-    span.destroy
   end
 
   def test_session_source_interface
@@ -75,7 +71,6 @@ class TestSpanSession < CiscoTestCase
       assert_equal(span.source_interface, int_name,
                    "source interface #{int_name} does not match")
     end
-    span.destroy
     po_int.destroy
   end
 
@@ -86,7 +81,6 @@ class TestSpanSession < CiscoTestCase
     span = SpanSession.new(1)
     span.source_vlan(vlans: vlans, direction: 'rx')
     assert_equal(span.source_vlan[:vlans], vlans)
-    span.destroy
   end
 
   def test_session_destination_int
@@ -94,6 +88,5 @@ class TestSpanSession < CiscoTestCase
     dest_int = 'Ethernet1/3'
     span.destination(intf_name: dest_int)
     assert_equal(span.destination, dest_int)
-    span.destroy
   end
 end
