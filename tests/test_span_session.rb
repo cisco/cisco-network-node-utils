@@ -66,10 +66,10 @@ class TestSpanSession < CiscoTestCase
   def test_session_source_interface
     span = SpanSession.new(1)
     po_int = Interface.new('port-channel1')
-    ints = { 'Ethernet1/1' => 'rx',
-             'Ethernet1/2' => 'tx',
-           'port-channel1' => 'both',
-                'sup-eth0' => 'rx' }
+    ints = { 'Ethernet1/1'   => 'rx',
+             'Ethernet1/2'   => 'tx',
+             'port-channel1' => 'both',
+             'sup-eth0'      => 'rx' }
     span.source_interface(ints)
     ints.keys.each do |int_name|
       assert_equal(span.source_interface, int_name,
