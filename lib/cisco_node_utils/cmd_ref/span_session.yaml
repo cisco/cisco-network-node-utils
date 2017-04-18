@@ -10,7 +10,7 @@ all_sessions:
   get_value: '/^monitor session (\d+)/'
 
 create:
-  set_value: 'monitor session <id> <type> <val>'
+  set_value: 'monitor session <id>'
 
 description:
   kind: string
