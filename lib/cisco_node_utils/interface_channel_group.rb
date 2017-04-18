@@ -62,58 +62,43 @@ module Cisco
     ########################################################
 
     def channel_group_mode
-      mode = config_get('interface_channel_group', 'channel_group_mode',
-                        @get_args)
-      mode = mode ? mode : 'on' if channel_group
+      match = config_get('interface_channel_group', 'channel_group', @get_args)
+      return match unless match
+      mode = match[1].nil? ? default_channel_group_mode : match[1]
       mode
     end
 
-    def channel_group_mode=(mode)
-      group = channel_group
-
-      set_args_keys(state: 'no', group: group, force: '')
-      config_set('interface_channel_group', 'channel_group', @set_args)
+    def channel_group_mode_set(group, mode=false)
+      cgroup = channel_group
+      set_args_keys(state: 'no', group: cgroup, force: '', mode: '', val: '')
+      config_set('interface_channel_group', 'channel_group', @set_args) if
+        cgroup
+      return unless group
+      mode = false if mode && mode.to_str == 'on'
       if mode
-        Cisco::Feature.lacp_enable if mode == 'active' || mode == 'passive'
-        set_args_keys(state: '', group: group, force: 'force', mode: mode)
-        config_set('interface_channel_group', 'channel_group_mode', @set_args)
+        Cisco::Feature.lacp_enable
+        set_args_keys(state: '', group: group, force: 'force',
+                      mode: 'mode', val: mode)
+        config_set('interface_channel_group', 'channel_group', @set_args)
       else
-        set_args_keys(state: '', group: group, force: 'force')
+        set_args_keys(state: '', group: group, force: 'force',
+                      mode: '', val: '')
         config_set('interface_channel_group', 'channel_group', @set_args)
       end
     end
 
     def channel_group
-      config_get('interface_channel_group', 'channel_group', @get_args)
-    end
-
-    def channel_group=(group)
-      # 'force' is needed by NXOS to handle the case where a port-channel
-      # interface is created prior to the channel-group cli; in which case
-      # the properties of the port-channel interface will be different from
-      # the ethernet interface. 'force' is not needed if the port-channel is
-      # created as a result of the channel-group cli but since it does no
-      # harm we will use it every time.
-      # IOS XR simply ignores 'force'
-      if group
-        state = ''
-        force = 'force'
-      else
-        state = 'no'
-        group = force = ''
-      end
-      config_set('interface_channel_group', 'channel_group',
-                 set_args_keys(state: state, group: group, force: force))
-    rescue Cisco::CliError => e
-      # Some XR platforms do not support channel-group configuration
-      # on some OS versions. Since this is an OS version difference and not
-      # a platform difference, we can't handle this in the YAML.
-      raise unless e.message[/the entered commands do not exist/]
-      raise Cisco::UnsupportedError.new('interface', 'channel_group')
+      match = config_get('interface_channel_group', 'channel_group', @get_args)
+      return match unless match
+      match[0].to_i
     end
 
     def default_channel_group
       config_get_default('interface_channel_group', 'channel_group')
+    end
+
+    def default_channel_group_mode
+      config_get_default('interface_channel_group', 'channel_group_mode')
     end
 
     # ----------------------------
