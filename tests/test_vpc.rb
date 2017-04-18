@@ -348,7 +348,7 @@ class TestVpc < CiscoTestCase
                            6, 3)
     # init channel group as none first, to test phy-port vPC link
     interface = InterfaceChannelGroup.new(interfaces[0])
-    interface.channel_group = false if interface.channel_group
+    interface.channel_group_mode_set(false) if interface.channel_group
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
       phy_port_iflist =
@@ -373,7 +373,7 @@ class TestVpc < CiscoTestCase
       end
     end
     # test port-channel vpc
-    interface.channel_group = 10
+    interface.channel_group_mode_set(10)
     interface_pc = Interface.new('port-channel10')
     interface_pc.switchport_mode = :trunk
     interface_pc.vpc_id = 20
@@ -386,7 +386,7 @@ class TestVpc < CiscoTestCase
     # clean-up
     interface_pc.vpc_id = false
     # remove PC
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'Port channel not cleaned up')
   end
 
@@ -396,7 +396,7 @@ class TestVpc < CiscoTestCase
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                            6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
-    interface.channel_group = 100
+    interface.channel_group_mode_set(100)
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :trunk
     refute(interface_pc.vpc_peer_link,
@@ -412,7 +412,7 @@ class TestVpc < CiscoTestCase
     end
 
     # clean up
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'channel group should be unset')
     # try with a phy port
     interface = Interface.new(interfaces[1])
@@ -530,7 +530,7 @@ class TestVpc < CiscoTestCase
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                            6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
-    interface.channel_group = 100
+    interface.channel_group_mode_set(100)
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :fabricpath
     refute(interface_pc.vpc_peer_link,
@@ -540,7 +540,7 @@ class TestVpc < CiscoTestCase
     interface_pc.vpc_peer_link = false
     refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
     # clean up
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'channel group should be unset')
     # try with a phy port
     interface = Interface.new(interfaces[1])
