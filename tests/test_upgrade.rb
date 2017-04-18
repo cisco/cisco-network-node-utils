@@ -80,8 +80,7 @@ class TestUpgrade < CiscoTestCase
 
   def test_upgrade
     image_info = preconfig_upgrade_info
-    version = Upgrade.image_version(image_info['install_image'], image_info['install_uri'])
-    Upgrade.upgrade(version, image_info['install_image'], image_info['install_uri'])
+    Upgrade.upgrade(image_info['install_image'], image_info['install_uri'])
     # Wait 15 seconds for device to start rebooting
     # TODO : Consider getting the sleep value dynamically
     sleep 15
@@ -100,7 +99,7 @@ class TestUpgrade < CiscoTestCase
     image = image_uri.split('/')[-1]
     uri = image_uri.split('/')[0]
     skip('Boot image not on bootflash:') unless uri == 'bootflash:'
-    Upgrade.upgrade(Upgrade.image_version, image, uri)
+    Upgrade.upgrade(image, uri)
     assert(Upgrade.upgraded?)
   end
 end
