@@ -7,8 +7,9 @@ module Cisco
   class SpanSession < NodeUtil
     attr_reader :session_id
 
-    def initialize(session_id)
-      validate_args(session_id)
+    def initialize(session_id, instantiate=true)
+      validate_args(session_id.to_i)
+      create if instantiate
     end
 
     def self.sessions
@@ -17,17 +18,14 @@ module Cisco
       return hash if all.nil?
 
       all.each do |id|
-        id = id.downcase
-        hash[id] = SpanSession.new(id)
+        hash[id] = SpanSession.new(id, false)
       end
       hash
     end
 
     def validate_args(session_id)
       fail TypeError unless session_id.is_a?(Integer)
-      fail ArgumentError unless session_id >= 1 || session_id <= 32
-      @session_id = session_id.downcase
-      set_args_keys
+      @session_id = session_id
     end
 
     def create
@@ -108,12 +106,13 @@ module Cisco
     end
 
     def type
-      config_get('span_session', 'type')
+      config_get('span_session', 'type', id: @session_id)
     end
 
     def type=(str)
       valid_types = ['local', 'rspan', 'erspan-source']
       fail TypeError unless valid_types.include?(str)
+      destroy # need to destroy session before changing type
       if str.empty?
         config_set('span_session', 'type', id: @session_id, type: 'local')
       else

@@ -7,10 +7,10 @@ _template:
 all_sessions:
   multiple:
   get_context: ~
-  get_value: '/^monitor session (\d+)$/'
+  get_value: '/^monitor session (\d+)/'
 
 create:
-  set_value: 'monitor session %s'
+  set_value: 'monitor session <id> <type> <val>'
 
 description:
   kind: string
@@ -28,20 +28,21 @@ destination:
   set_value: '<state> destination interface <intf_name>'
 
 destroy:
-  set_value: 'no monitor session %s'
+  set_value: 'no monitor session <id>'
 
 session_id:
   kind: int
   default_value: false
-  get_value: '/^monitor session (\d+)$/'
-  set_value: '<state> monitor session <id>'
+  get_value: '/^monitor session (\d+)/'
+  set_value: '<state> monitor session <id> <type> <val>'
 
 shutdown:
   kind: boolean
+  default_value: true
   get_context: ["monitor session <id>"]
-  get_value: '/^(\S+) shutdown$/'
+  get_value: '/^no shut$/'
   set_context: ["monitor session <id>"]
-  set_value: '<state> shutdown'
+  set_value: '<state> shut'
 
 source_interface:
   kind: string
@@ -61,4 +62,4 @@ type:
   kind: string
   default_value: 'local'
   get_value: '/^monitor session \d+ type (\w+)$/'
-  set_value: 'monitor session <id> type <type>'
+  set_value: 'monitor session <id> <type> <val>'
