@@ -2,7 +2,6 @@
 require_relative 'node_util'
 require_relative 'interface'
 
-
 module Cisco
   # node utils class for SPAN (switchport analyzer) sessions
   class SpanSession < NodeUtil
