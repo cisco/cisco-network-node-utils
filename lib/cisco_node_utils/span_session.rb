@@ -29,11 +29,11 @@ module Cisco
     end
 
     def create
-      config_set('span_session', 'create', @session_id)
+      config_set('span_session', 'create', id: @session_id)
     end
 
     def destroy
-      config_set('span_session', 'destroy', @session_id)
+      config_set('span_session', 'destroy', id: @session_id)
     end
 
     def description
