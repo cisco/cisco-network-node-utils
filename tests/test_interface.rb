@@ -788,7 +788,7 @@ class TestInterface < CiscoTestCase
     if validate_property_excluded?('interface_channel_group', 'channel_group')
       member = InterfaceChannelGroup.new(interfaces[0])
       assert_raises(Cisco::UnsupportedError) do
-        member.channel_group = 10
+        member.channel_group_mode_set(10)
       end
       return
     end
@@ -1359,7 +1359,7 @@ class TestInterface < CiscoTestCase
     # pre-configure
     begin
       interface_ethernet_default(interfaces[1])
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = 48
+      InterfaceChannelGroup.new(interfaces[1]).channel_group_mode_set(48)
     rescue Cisco::UnsupportedError
       raise unless platform == :ios_xr
       # Some XR platform/version combos don't support port-channels

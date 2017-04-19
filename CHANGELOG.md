@@ -9,9 +9,16 @@ Changelog
 * span_session (@tomcooperca)
 
 ### Added
+* Extend vpc with attributes:
+   * `peer_switch`
+   * `arp_synchronize`
+   * `nd_synchronize`
 
 * Extend interface with attributes:
    * `purge_config`
+
+* Extend interface_channel_group with attributes:
+   * `channel_group_mode`
 
 ### Changed
 
