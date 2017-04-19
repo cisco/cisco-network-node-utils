@@ -38,7 +38,7 @@ class TestSpanSession < CiscoTestCase
   def test_remove_session
     span = SpanSession.new(1)
     span.destroy
-    refute(span, 'Session was not cleaned up correctly...')
+    refute(span.session_id, 'Session was not cleaned up correctly...')
   end
 
   def test_create_session_invalid_id
