@@ -33,6 +33,7 @@ class TestSnmpUser < CiscoTestCase
   end
 
   def create_user(name, opts='')
+    opts = 'network-admin v1 IPv4 none' if opts == '' && platform == :ios_xr
     config("snmp-server user #{name} #{opts}")
     @test_users.push(name)
   end
