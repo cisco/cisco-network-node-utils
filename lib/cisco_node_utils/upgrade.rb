@@ -105,14 +105,16 @@ module Cisco
       begin
         Cisco::Logger.debug("Upgrading to version: #{image}")
         config_set('upgrade', upgrade_str, image: image, uri: uri)
-      rescue Cisco::RequestFailed
+      rescue Cisco::RequestFailed, Cisco::CliError => e1
+        # raise if install command failed
+        raise e1 if e1.class == Cisco::CliError
         # Catch 'Backend Processing Error'. Install continues inspite of the
         # error thrown. Resend install command and expect a CliError.
         begin
           config_set('upgrade', upgrade_str, image: image, uri: uri)
-        rescue Cisco::CliError => e
-          raise e unless
-            e.message.include?('Another install procedure may be in progress')
+        rescue Cisco::CliError => e2
+          raise e2 unless
+            e2.message.include?('Another install procedure may be in progress')
         end
       end
     end
