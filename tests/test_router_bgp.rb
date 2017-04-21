@@ -503,7 +503,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv4
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv4)
       assert_nil(b.default_disable_policy_batching_ipv4)
@@ -532,7 +532,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv6
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv6)
       assert_nil(b.default_disable_policy_batching_ipv6)
@@ -1148,7 +1148,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_neighbor_down_fib_accelerate
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.neighbor_down_fib_accelerate)
       assert_nil(b.default_neighbor_down_fib_accelerate)
@@ -1184,7 +1184,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_reconnect_interval
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.reconnect_interval)
       assert_nil(b.default_reconnect_interval)
