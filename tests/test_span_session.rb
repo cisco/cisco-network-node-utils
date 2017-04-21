@@ -47,21 +47,21 @@ class TestSpanSession < CiscoTestCase
   end
 
   def test_session_type
-    span = SpanSession.new(1)
+    span = SpanSession.new(2)
     erspan_type = 'erspan-source'
     span.type = erspan_type
     assert_equal(span.type, erspan_type)
   end
 
   def test_session_description
-    span = SpanSession.new(1)
+    span = SpanSession.new(3)
     desc = 'SPAN session 1'
     span.description = desc
     assert_equal(span.description, desc)
   end
 
   def test_session_source_interface
-    span = SpanSession.new(1)
+    span = SpanSession.new(4)
     po_int = Interface.new('port-channel1')
     ints = { 'Ethernet1/1'   => 'rx',
              'Ethernet1/2'   => 'tx',
@@ -79,13 +79,13 @@ class TestSpanSession < CiscoTestCase
     vlans = [2..5, 8, 10, 13]
     vlans = vlans.join(',') if vlans.is_a?(Array)
     vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
-    span = SpanSession.new(1)
+    span = SpanSession.new(5)
     span.source_vlan = { vlans: vlans, direction: 'rx' }
     assert_equal(span.source_vlan[:vlans], vlans)
   end
 
   def test_session_destination_int
-    span = SpanSession.new(1)
+    span = SpanSession.new(6)
     dest_int = 'Ethernet1/3'
     span.destination = dest_int
     assert_equal(span.destination, dest_int)
