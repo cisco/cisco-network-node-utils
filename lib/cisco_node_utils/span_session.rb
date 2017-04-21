@@ -58,7 +58,8 @@ module Cisco
     def destination=(int)
       # fail if int is not a valid interface
       fail TypeError unless Interface.interfaces.key?(int.downcase)
-      config_set('span_session', 'destination', id: @session_id, intf_name: int)
+      config_set('span_session', 'destination', state: '', id: @session_id,
+                 intf_name: int)
     end
 
     def session_id
