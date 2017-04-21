@@ -86,10 +86,10 @@ module Cisco
 
     def source_interface=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each do |name, dir|
+      sources.each do |name|
         fail TypeError unless Interface.interfaces.key?(name.downcase)
         config_set('span_session', 'source_interface', id: @session_id,
-                    state: '', int_name: name, direction: dir)
+                    state: '', int_name: name, direction: sources[name])
       end
     end
 
@@ -99,10 +99,10 @@ module Cisco
 
     def source_vlan=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each do |vlans, dir|
+      sources.each do |vlans|
         fail TypeError unless vlans.is_a?(String)
         config_set('span_session', 'source_interface', id: @session_id,
-                    state: '', vlans: vlans, direction: dir)
+                    state: '', vlans: vlans, direction: sources[vlans])
       end
     end
 
