@@ -187,7 +187,7 @@ class CiscoTestCase < TestCase
 
     match = nil
     hash.keys.each do |prid|
-      match = prid if pid[prid.upcase]
+      match = prid if pid.match(Regexp.new(prid.upcase))
     end
     return if match.nil?
     ver = hash[match]
