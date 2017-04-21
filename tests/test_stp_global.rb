@@ -185,6 +185,7 @@ class TestStpGlobal < CiscoTestCase
         global.domain = 200
       end
     else
+      skip_incompat_version?('stp_global', 'domain')
       global.domain = 100
       assert_equal(100, global.domain)
       global.domain =

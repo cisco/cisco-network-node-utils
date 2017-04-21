@@ -512,6 +512,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv4')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv4
     assert_equal(default, bgp.disable_policy_batching_ipv4,
@@ -541,6 +542,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv6')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv6
     assert_equal(default, bgp.disable_policy_batching_ipv6,
@@ -1157,6 +1159,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'neighbor_down_fib_accelerate')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -1193,6 +1196,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'reconnect_interval')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default

@@ -120,6 +120,7 @@ class TestVxlanVtepVni < CiscoTestCase
       return
     end
 
+    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     # Test non-default values
     vni.ingress_replication = 'static'
     assert_equal('static', vni.ingress_replication)
@@ -165,6 +166,7 @@ class TestVxlanVtepVni < CiscoTestCase
       assert_equal('224.1.1.1', vni1.multicast_group)
     end
 
+    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     # Test multicast group range
     vni2.multicast_group = '224.1.1.1 224.1.1.200'
     assert_equal('224.1.1.1 224.1.1.200', vni2.multicast_group)
@@ -178,11 +180,12 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_peer_list
     vni = VxlanVtepVni.new('nve1', '6000')
-    if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
+    if validate_property_excluded?('vxlan_vtep_vni', 'peer_list')
       assert_raises(Cisco::UnsupportedError) { vni.peer_list = ['1.1.1.1'] }
       return
     end
 
+    skip_incompat_version?('vxlan_vtep_vni', 'peer_list')
     peer_list = ['1.1.1.1', '2.2.2.2', '3.3.3.3', '4.4.4.4']
 
     # Test: all peers when current is empty
@@ -246,6 +249,7 @@ class TestVxlanVtepVni < CiscoTestCase
       return
     end
 
+    skip_incompat_version?('vxlan_vtep_vni', 'suppress_uuc')
     # Test: Check suppress_uuc is not configured.
     refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
 

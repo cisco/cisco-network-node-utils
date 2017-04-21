@@ -78,7 +78,8 @@ bridge_assurance:
   default_value: true
 
 domain:
-  _exclude: [N3k, N9k-F, N9k]
+  _exclude: [N9k-F]
+  os_version: 'N3k:7.0.3.I6.1,N9k:7.0.3.I6.1'
   kind: int
   get_value: '/^spanning-tree domain (\d+)$/'
   set_value: "<state> spanning-tree domain <domain>"

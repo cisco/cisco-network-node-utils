@@ -116,22 +116,13 @@ class TestFeature < CiscoTestCase
   end
 
   def test_nv_overlay
-    if validate_property_excluded?('feature', 'nv_overlay')
-      assert_nil(Feature.nv_overlay_enabled?)
-      assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_enable }
-      return
-    end
+    skip_incompat_version?('feature', 'nv_overlay')
     vdc_limit_f3_no_intf_needed(:set)
     feature('nv_overlay')
   end
 
   def test_nv_overlay_evpn
-    if node.product_id[/N(3)/]
-      assert_nil(Feature.nv_overlay_evpn_enabled?)
-      assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_evpn_enable }
-      return
-    end
-
+    skip_incompat_version?('feature', 'nv_overlay_evpn')
     vdc_limit_f3_no_intf_needed(:set)
     # nv_overlay_evpn can't use the 'feature' helper so test it explicitly here
     # Get current state of feature, then disable it

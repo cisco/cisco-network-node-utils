@@ -53,15 +53,13 @@ lacp:
   set_value: "feature lacp"
 
 nv_overlay:
-  # N3k - native vxlan support in a future release
-  _exclude: [N3k]
+  os_version: 'N3k:7.0.3.I6.1'
   kind: boolean
   get_value: '/^feature nv overlay$/'
   set_value: "<state> feature nv overlay"
 
 nv_overlay_evpn:
-  # N3k - native vxlan support in a future release
-  _exclude: [N3k]
+  os_version: 'N3k:7.0.3.I6.1'
   kind: boolean
   get_command: "show running | section nv"
   get_value: '/^nv overlay evpn$/'
