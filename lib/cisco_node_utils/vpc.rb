@@ -200,6 +200,7 @@ module Cisco
     end
 
     def layer3_peer_routing=(val)
+      return if val == layer3_peer_routing
       set_args_keys(state: val ? '' : 'no')
       # This requires peer_gateway to be set first
       self.peer_gateway = true if !peer_gateway && val
