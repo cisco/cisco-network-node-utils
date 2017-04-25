@@ -158,6 +158,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
     # Test the case where an existing ingress_replication is removed before
     # configuring multicast_group
+    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     unless validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       vni1.ingress_replication = 'static'
       assert_equal('static', vni1.ingress_replication)
@@ -166,7 +167,6 @@ class TestVxlanVtepVni < CiscoTestCase
       assert_equal('224.1.1.1', vni1.multicast_group)
     end
 
-    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     # Test multicast group range
     vni2.multicast_group = '224.1.1.1 224.1.1.200'
     assert_equal('224.1.1.1 224.1.1.200', vni2.multicast_group)
