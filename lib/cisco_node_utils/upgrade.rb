@@ -72,7 +72,7 @@ module Cisco
 
     # Return the nxos image installed on the device
     def self.package
-      config_get('show_version', 'system_image').split('/')[-1]
+      config_get('show_version', 'system_image')
     end
 
     # Return true if box is online and config mode is ready to be used
