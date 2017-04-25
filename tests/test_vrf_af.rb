@@ -134,7 +134,6 @@ class TestVrfAf < CiscoTestCase
     refute(v.default_route_target_both_auto_evpn,
            'default value for route target both auto evpn should be false')
 
-    skip_incompat_version?('vrf_af', 'route_target_both_auto')
     if validate_property_excluded?('vrf_af', 'route_target_both_auto')
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
     else
@@ -147,7 +146,6 @@ class TestVrfAf < CiscoTestCase
              'v route-target both auto should be disabled')
     end
 
-    skip_incompat_version?('vrf_af', 'route_target_both_auto_evpn')
     if validate_property_excluded?('vrf_af', 'route_target_both_auto_evpn')
       assert_raises(Cisco::UnsupportedError) do
         v.route_target_both_auto_evpn = true
