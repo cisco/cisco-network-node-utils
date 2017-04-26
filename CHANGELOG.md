@@ -17,7 +17,13 @@ Changelog
 * Extend interface_channel_group with attributes:
    * `channel_group_mode`
 
+* Extend upgrade with attributes:
+   * `package`
+
 ### Changed
+* Modified upgrade to support additional URI
+
+* Modified upgrade attribute to drop version check
 
 ### Removed
 
