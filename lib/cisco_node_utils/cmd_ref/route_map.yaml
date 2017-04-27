@@ -214,7 +214,7 @@ match_metric:
 
 match_ospf_area:
   _exclude: [N5k, N6k, N7k, N9k-F]
-  os_version: 'N3k:7.0.3.I5.1,N9k:7.0.3.I5.1'
+  os_version: 'N3k:7.0.3.I5.1, N9k:7.0.3.I5.1'
   get_value: '/^match ospf-area (.*)$/'
   set_value: "<state> match ospf-area <area>"
   default_value: []
@@ -442,7 +442,7 @@ set_ipv4_next_hop:
 
 set_ipv4_next_hop_load_share:
   _exclude: [N5k, N6k]
-  os_version: 'N9.*-F:7.0.3.F2.1,N9k:7.0.3.I5.1'
+  os_version: 'N9.*-F:7.0.3.F2.1, N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv4_next_hop_peer_addr:
@@ -453,7 +453,7 @@ set_ipv4_next_hop_peer_addr:
 
 set_ipv4_next_hop_redist:
   kind: boolean
-  os_version: 'N3k:7.0.3.I5.1,N9k:7.0.3.I5.1'
+  os_version: 'N3k:7.0.3.I5.1, N9k:7.0.3.I5.1'
   get_value: '/^set ip next-hop redist-unchanged$/'
   set_value: "<state> set ip next-hop redist-unchanged"
   default_value: false
@@ -493,7 +493,7 @@ set_ipv6_next_hop:
 
 set_ipv6_next_hop_load_share:
   _exclude: [N5k, N6k]
-  os_version: 'N9.*-F:7.0.3.F2.1,N9k:7.0.3.I5.1'
+  os_version: 'N9.*-F:7.0.3.F2.1, N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv6_next_hop_peer_addr:
@@ -504,7 +504,7 @@ set_ipv6_next_hop_peer_addr:
 
 set_ipv6_next_hop_redist:
   kind: boolean
-  os_version: 'N3k:7.0.3.I5.1,N9k:7.0.3.I5.1'
+  os_version: 'N3k:7.0.3.I5.1, N9k:7.0.3.I5.1'
   get_value: '/^set ipv6 next-hop redist-unchanged$/'
   set_value: "<state> set ipv6 next-hop redist-unchanged"
   default_value: false

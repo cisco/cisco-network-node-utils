@@ -95,7 +95,7 @@ graceful_consistency_check:
   default_value: true
 
 layer3_peer_routing:
-  os_version: 'N3k:7.0.3.I6.1,N9k:7.0.3.I6.1'
+  os_version: 'N3k:7.0.3.I6.1, N9k:7.0.3.I6.1'
   kind: boolean
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
@@ -206,7 +206,7 @@ self_isolation:
   default_value: false
 
 shutdown:
-  os_version: 'N3k:7.0.3.I6.1,N9k:7.0.3.I6.1'
+  os_version: 'N3k:7.0.3.I6.1, N9k:7.0.3.I6.1'
   kind: boolean
   get_value: '/^shutdown/'
   set_value: "<state> shutdown"

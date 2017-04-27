@@ -182,7 +182,7 @@ class CiscoTestCase < TestCase
     hash = {}
     array.each do |e|
       key_value = e.split(':')
-      hash[key_value[0]] = key_value[1]
+      hash[key_value[0].strip] = key_value[1]
     end
 
     match = nil

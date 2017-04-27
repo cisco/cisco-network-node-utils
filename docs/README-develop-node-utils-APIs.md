@@ -178,7 +178,7 @@ The properties in this example require additional context for their `get_value` 
 feature:
   # feature eigrp must be enabled before configuring router eigrp
   kind: boolean
-  os_version: 'N3k:7.0.3.I2.1,N9k:7.0.3.I2.1'
+  os_version: 'N3k:7.0.3.I2.1, N9k:7.0.3.I2.1'
   get_command: 'show running eigrp all'
   get_value: 'feature eigrp'
   set_value: '<state> feature eigrp'
