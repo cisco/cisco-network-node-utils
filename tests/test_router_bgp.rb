@@ -1225,6 +1225,7 @@ class TestRouterBgp < CiscoTestCase
       assert_nil(bgp.reconnect_interval,
                  'reconnect_interval should return nil on XR')
     else
+      skip_incompat_version?('bgp', 'reconnect_interval')
       assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
                    "reconnect_interval should be set to default value of '60'")
       bgp.destroy
