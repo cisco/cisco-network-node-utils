@@ -191,6 +191,9 @@ module Cisco
     end
 
     def aa_set(attrs)
+      # reset everything before setting as some older
+      # software versions require it.
+      destroy
       set_args_keys_default
       [:suppress_map,
        :advertise_map,
