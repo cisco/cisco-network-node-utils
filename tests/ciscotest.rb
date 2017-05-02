@@ -178,25 +178,33 @@ class CiscoTestCase < TestCase
     im = Platform.image_version
     pid = node.product_id
 
-    array = ov.split(',')
-    hash = {}
+    ver = nil
+    array = ov.split(';')
     array.each do |e|
-      key_value = e.split(':')
-      hash[key_value[0].strip] = key_value[1]
+      break if ver
+      key_values = e.split(':')
+      larr = key_values[0].split(',')
+      larr.each do |lkey|
+        fail "Unrecognized product_id: #{lkey}" unless
+          lkey.downcase[/n(3|5|6|7|9)/]
+        next unless lkey.downcase.strip == product_tag
+        ver = key_values[1]
+        break if ver
+      end
     end
 
-    match = nil
-    hash.keys.each do |prid|
-      match = prid if pid.match(Regexp.new(prid.upcase))
-    end
-    return if match.nil?
-    ver = hash[match]
+    return if ver.nil?
+    over = ver
     lim = im.split[0].tr('(', '.').tr(')', '.').chomp('.')
     # due to a bug in Gem::Version, we need to append a letter
-    # to the version field if the to be compared version
+    # to the version field if only one of compared versions
     # has a letter at the end
+    # For ex:
+    # 7.0.3.I2.2e < 7.0.3.I2.2 is TRUE instead of FALSE
+    # Once we add a letter 'a' to the end,
+    # 7.0.3.I2.2e < 7.0.3.I2.2a is FALSE
     ver << 'a' if lim[-1, 1] =~ /[[:alpha:]]/
-    skip('software version not supported for this test') if
+    skip("The #{feature} #{property} property is only supported on OS version #{over} or later on #{pid}") if
       Gem::Version.new(lim) < Gem::Version.new(ver)
   end
 

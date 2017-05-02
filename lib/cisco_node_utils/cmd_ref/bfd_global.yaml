@@ -43,7 +43,7 @@ fabricpath_vlan:
   default_value: 1
 
 interval:
-  os_version: 'N9.*-F:7.0.3.F2.1, N9k:7.0.3.I6.1'
+  os_version: 'N9k-F:7.0.3.F2.1; N9k:7.0.3.I6.1'
   get_value: '/^bfd interval (\d+) min_rx (\d+) multiplier (\d+)$/'
   set_value: '<state> bfd interval <interval> min_rx <min_rx> multiplier <multiplier>'
   N3k:

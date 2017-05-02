@@ -437,8 +437,7 @@ module Cisco
     end
 
     def os_version_get(feature, property)
-      ref = @cmd_ref.lookup(feature, property)
-      ref.os_version
+      @cmd_ref.lookup(feature, property).os_version
     end
   end
 end
