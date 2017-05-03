@@ -20,12 +20,6 @@ def evergreen_or_later?
   true
 end
 
-def older_n9k?
-  return true if Utils.image_version?(/7.0.3.I2|I3|I4/) &&
-                 node.product_id[/N9K/]
-  false
-end
-
 def dplus_n9k?
   return true if Utils.image_version?(/7.0.3.I4/) &&
                  node.product_id[/N9K/]
@@ -340,9 +334,9 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_metric
-    # bug CSCvc82934 on fretta and n9k running dplus
-    skip('platform not supported for this test') if node.product_id[/N9.*-F/] ||
-                                                    dplus_n9k?
+    # bug CSCvc82934 on n9k running dplus
+    skip('platform not supported for this test') if dplus_n9k?
+    skip_incompat_version?('route_map', 'match_metric')
     rm = create_route_map
     assert_equal(rm.default_match_metric, rm.match_metric)
     metric = [%w(1 0), %w(8 0), %w(224 9), %w(23 0), %w(5 8), %w(6 0)]
@@ -430,7 +424,6 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_match_ospf_area
-    skip('platform not supported for this test') unless evergreen_or_later?
     rm = create_route_map
     if validate_property_excluded?('route_map', 'match_ospf_area')
       assert_nil(rm.match_ospf_area)
@@ -439,6 +432,7 @@ class TestRouteMap < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('route_map', 'match_ospf_area')
     assert_equal(rm.default_match_ospf_area, rm.match_ospf_area)
     array = %w(10 7 222)
     rm.match_ospf_area = array
@@ -678,7 +672,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv4_next_hop_redist
-    skip('platform not supported for this test') unless evergreen_or_later?
+    skip_incompat_version?('route_map', 'set_ipv4_next_hop_redist')
     rm = lset_ip_next_hop_helper(v4red: true)
     assert(rm.set_ipv4_next_hop_redist)
     hash = {}
@@ -1001,9 +995,8 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv4_next_hop_load_share
     # bug on fretta
-    skip('platform not supported for this test') if node.product_id[/(N5|N6|N9.*-F)/]
-    # bug on old n9k
-    skip('platform not supported for this test') if older_n9k?
+    skip('platform not supported for this test') if node.product_id[/(N5|N6)/]
+    skip_incompat_version?('route_map', 'set_ipv4_next_hop_load_share')
     arr = %w(1.1.1.1 2.2.2.2 3.3.3.3)
     rm = lset_ip_next_hop_helper(v4nh: arr)
     assert_equal(arr, rm.set_ipv4_next_hop)
@@ -1034,7 +1027,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv6_next_hop_redist
-    skip('platform not supported for this test') unless evergreen_or_later?
+    skip_incompat_version?('route_map', 'set_ipv6_next_hop_redist')
     rm = lset_ip_next_hop_helper(v6red: true)
     assert(rm.set_ipv6_next_hop_redist)
     hash = {}
@@ -1102,9 +1095,8 @@ class TestRouteMap < CiscoTestCase
 
   def test_set_ipv6_next_hop_load_share
     # bug on fretta
-    skip('platform not supported for this test') if node.product_id[/(N5|N6|N9.*-F)/]
-    # bug on old n9k
-    skip('platform not supported for this test') if older_n9k?
+    skip('platform not supported for this test') if node.product_id[/(N5|N6)/]
+    skip_incompat_version?('route_map', 'set_ipv6_next_hop_load_share')
     arr = %w(2000::1 2000::11 2000::22)
     rm = lset_ip_next_hop_helper(v6nh: arr)
     assert_equal(arr, rm.set_ipv6_next_hop)
@@ -1128,8 +1120,7 @@ class TestRouteMap < CiscoTestCase
   def test_set_community_no_asn
     # bug on n5/6k
     skip('platform not supported for this test') if node.product_id[/(N5|N6)/]
-    # bug on old n9k
-    skip('platform not supported for this test') if older_n9k?
+    skip_incompat_version?('route_map', 'set_community')
     rm = create_route_map
     assert_equal(rm.default_set_community_additive,
                  rm.set_community_additive)
@@ -1228,8 +1219,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_community_asn
-    # bug on old n9k
-    skip('platform not supported for this test') if older_n9k?
+    skip_incompat_version?('route_map', 'set_community')
     rm = create_route_map
     none = false
     noadv = true
@@ -1285,8 +1275,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_extcommunity_4bytes
-    # bug on fretta
-    skip('platform not supported for this test') if node.product_id[/N9.*-F/]
+    skip_incompat_version?('route_map', 'set_extcommunity_4bytes')
     rm = create_route_map
     assert_equal(rm.default_set_extcommunity_4bytes_transitive,
                  rm.set_extcommunity_4bytes_transitive)

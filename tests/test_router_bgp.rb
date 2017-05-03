@@ -503,7 +503,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv4
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv4)
       assert_nil(b.default_disable_policy_batching_ipv4)
@@ -512,6 +512,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv4')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv4
     assert_equal(default, bgp.disable_policy_batching_ipv4,
@@ -532,7 +533,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv6
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv6)
       assert_nil(b.default_disable_policy_batching_ipv6)
@@ -541,6 +542,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv6')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv6
     assert_equal(default, bgp.disable_policy_batching_ipv6,
@@ -1148,7 +1150,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_neighbor_down_fib_accelerate
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.neighbor_down_fib_accelerate)
       assert_nil(b.default_neighbor_down_fib_accelerate)
@@ -1157,6 +1159,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'neighbor_down_fib_accelerate')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -1184,7 +1187,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_reconnect_interval
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.reconnect_interval)
       assert_nil(b.default_reconnect_interval)
@@ -1193,6 +1196,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'reconnect_interval')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -1221,6 +1225,7 @@ class TestRouterBgp < CiscoTestCase
       assert_nil(bgp.reconnect_interval,
                  'reconnect_interval should return nil on XR')
     else
+      skip_incompat_version?('bgp', 'reconnect_interval')
       assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
                    "reconnect_interval should be set to default value of '60'")
       bgp.destroy

@@ -435,5 +435,9 @@ module Cisco
     def system
       config_get('show_version', 'system_image')
     end
+
+    def os_version_get(feature, property)
+      @cmd_ref.lookup(feature, property).os_version
+    end
   end
 end

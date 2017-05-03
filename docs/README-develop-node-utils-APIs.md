@@ -159,6 +159,7 @@ The following basic command_reference parameters will be defined for each resour
  4. `default_value:` This is typically the "factory" default state of the property, expressed as an actual value (true, 12, "off", etc)
  5. `kind:` The data type of this property. If omitted, the property will be a string by default. Commonly used values for this property are `int` and `boolean`.
  6. `multiple:` By default a property is assumed to be found once or not at all by the `get_command`/`get_value` lookup, and an error will be raised if multiple matches are found. If multiple matches are valid and expected, you must set `multiple: true` for this property.
+ 7. `os_version:` This command_reference parameter is used to specify the product family and minimum os version within that product family required to support the property.  Any version that is greater then or equal to the specified os version within the product family will be supported. If nothing is specified, the property is assumed to be supported on all version of software. This is a test_only feature and is ignored outside the context of the minitests and must be used in conjunction with the skip_incompat_version? API defined in the ciscotest.rb file.
 
 There are additional YAML command parameters available which are not covered by this document. Please see the [README_YAML.md](../lib/cisco_node_utils/cmd_ref/README_YAML.md) document for more information on the structure and semantics of these files.
 The properties in this example require additional context for their `get_value` and `set_value` because they need to differentiate between different eigrp instances. This is done with the `context` parameter. (For more complex properties, you can define `get_context` and `set_context` separately if needed.) Most properties will also have a default value.
@@ -177,6 +178,7 @@ The properties in this example require additional context for their `get_value` 
 feature:
   # feature eigrp must be enabled before configuring router eigrp
   kind: boolean
+  os_version: 'N3k, N9k:7.0.3.I2.1; N7k:8.1.1'
   get_command: 'show running eigrp all'
   get_value: 'feature eigrp'
   set_value: '<state> feature eigrp'

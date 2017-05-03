@@ -172,6 +172,42 @@ class CiscoTestCase < TestCase
     !node.cmd_ref.supports?(feature, property)
   end
 
+  def skip_incompat_version?(feature, property)
+    ov = node.os_version_get(feature, property)
+    return if ov.nil?
+    im = Platform.image_version
+    pid = node.product_id
+
+    ver = nil
+    array = ov.split(';')
+    array.each do |e|
+      break if ver
+      key_values = e.split(':')
+      larr = key_values[0].split(',')
+      larr.each do |lkey|
+        fail "Unrecognized product_id: #{lkey}" unless
+          lkey.downcase[/n(3|5|6|7|9)/]
+        next unless lkey.downcase.strip == product_tag
+        ver = key_values[1]
+        break if ver
+      end
+    end
+
+    return if ver.nil?
+    over = ver
+    lim = im.split[0].tr('(', '.').tr(')', '.').chomp('.')
+    # due to a bug in Gem::Version, we need to append a letter
+    # to the version field if only one of compared versions
+    # has a letter at the end
+    # For ex:
+    # 7.0.3.I2.2e < 7.0.3.I2.2 is TRUE instead of FALSE
+    # Once we add a letter 'a' to the end,
+    # 7.0.3.I2.2e < 7.0.3.I2.2a is FALSE
+    ver << 'a' if lim[-1, 1] =~ /[[:alpha:]]/
+    skip("The #{feature} #{property} property is only supported on OS version #{over} or later on #{pid}") if
+      Gem::Version.new(lim) < Gem::Version.new(ver)
+  end
+
   def skip_nexus_i2_image?
     skip("This property is not supported on Nexus 'I2' images") if
       Utils.nexus_i2_image

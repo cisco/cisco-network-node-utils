@@ -315,7 +315,7 @@ class TestBgpNeighbor < CiscoTestCase
   end
 
   def test_log_neighbor_changes
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = create_neighbor('blue')
       assert_nil(b.log_neighbor_changes)
       assert_nil(b.default_log_neighbor_changes)
@@ -324,6 +324,7 @@ class TestBgpNeighbor < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp_neighbor', 'log_neighbor_changes')
     %w(default test_vrf).each do |vrf|
       neighbor = create_neighbor(vrf)
       check = [:enable, :disable, :inherit, 'enable', 'disable', 'inherit',
