@@ -130,11 +130,7 @@ class TestVpc < CiscoTestCase
 
   def test_layer3_peer_routing
     vpc = Vpc.new(100)
-    if validate_property_excluded?('vpc', 'layer3_peer_routing')
-      assert_raises(Cisco::UnsupportedError) { vpc.layer3_peer_routing = true }
-      return
-    end
-
+    skip_incompat_version?('vpc', 'layer3_peer_routing')
     default_val = vpc.default_layer3_peer_routing
     assert_equal(default_val, vpc.layer3_peer_routing,
                  "layer3_peer_routing should be #{default_val} by default")
@@ -287,11 +283,7 @@ class TestVpc < CiscoTestCase
 
   def test_shutdown
     vpc = Vpc.new(100)
-    if validate_property_excluded?('vpc', 'shutdown')
-      assert_raises(Cisco::UnsupportedError) { vpc.shutdown = true }
-      return
-    end
-
+    skip_incompat_version?('vpc', 'shutdown')
     vpc.shutdown = vpc.default_shutdown
     refute(vpc.shutdown, 'Vpc domain should not be shutdown')
 

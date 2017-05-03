@@ -16,7 +16,8 @@ all_vnis:
   get_value: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N5k, N6k]
+  os_version: 'N7k:8.1.1'
   kind: string
   get_value: '/^ingress-replication protocol (\S+)$/'
   set_value: '<state> ingress-replication protocol <protocol>'
@@ -28,7 +29,8 @@ multicast_group:
   default_value: ''
 
 peer_list:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N5k, N6k]
+  os_version: 'N7k:8.1.1'
   multiple:
   get_context:
     - '/^interface <name>$/i'
@@ -49,7 +51,8 @@ suppress_arp:
   default_value: false
 
 suppress_uuc:
-  _exclude: [N7k, N9k-F, N9k]
+  _exclude: [N9k-F, N9k]
+  os_version: 'N7k:8.1.1'
   kind: boolean
   get_value: '/^suppress-unknown-unicast$/'
   set_value: '<state> suppress-unknown-unicast'

@@ -68,6 +68,8 @@ mapping:
         enum: [boolean, int, string, symbol]
       multiple:
         type: bool
+      os_version:
+        type: str
       # Setter-specific attributes
       set_data_format: *data_format
       set_context: *context

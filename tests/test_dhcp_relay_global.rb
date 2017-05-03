@@ -211,6 +211,7 @@ class TestDhcpRelayGlobal < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string')
     assert_equal(drg.default_ipv4_sub_option_circuit_id_string, drg.ipv4_sub_option_circuit_id_string)
     str = '%p%p'
     drg.ipv4_sub_option_circuit_id_string = str
