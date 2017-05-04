@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,43 +18,43 @@
 
 require_relative 'node'
 require_relative 'interface'
+require 'resolv'
 
 module Cisco
   # NtpServer - node utility class for NTP Server configuration management
   class NtpServer < NodeUtil
-    def initialize(ntpserver_id, prefer, instantiate=true)
-      @ntpserver_id = ntpserver_id.to_s
-      @ntpserver_prefer = prefer
+    attr_reader :key, :maxpoll, :minpoll, :prefer, :vrf
 
-      unless @ntpserver_id =~ /^[a-zA-Z0-9\.\:]*$/
+    def initialize(opts, instantiate=true)
+      @ntpserver_id = opts['name']
+      @key = opts['key']
+      @minpoll = opts['minpoll']
+      @maxpoll = opts['maxpoll']
+      @prefer = opts['prefer'].nil? ? false : true
+      @vrf = opts['vrf'].nil? ? 'default' : opts['vrf']
+
+      hostname_regex = /^(?=.{1,255}$)[0-9A-Za-z]
+      (?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?
+      (?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/x
+
+      unless @ntpserver_id =~ Resolv::AddressRegex ||
+             @ntpserver_id =~ hostname_regex
         fail ArgumentError,
-             'Invalid value (IPv4/IPv6 address contains invalid characters)'
+             "Invalid value '#{@ntpserver_id}' \
+        (Must be valid IPv4/IPv6 address or hostname)"
       end
 
-      begin
-        IPAddr.new(@ntpserver_id)
-      rescue
-        raise ArgumentError,
-              'Invalid value (Name is not a valid single IPv4/IPv6 address)'
-      end
-
-      unless @ntpserver_prefer == true ||
-             @ntpserver_prefer == false ||
-             @ntpserver_prefer.nil?
-        fail ArgumentError, 'Invalid value(prefer must be true or false)'
-      end
       create if instantiate
     end
 
     def self.ntpservers
+      keys = %w(name prefer vrf key minpoll maxpoll)
       hash = {}
       ntpservers_list = config_get('ntp_server', 'server')
       return hash if ntpservers_list.empty?
 
-      preferred_servers = config_get('ntp_server', 'prefer')
-
       ntpservers_list.each do |id|
-        hash[id] = NtpServer.new(id, preferred_servers.include?(id), false)
+        hash[id[0]] = NtpServer.new(Hash[keys.zip(id)], false)
       end
 
       hash
@@ -66,20 +66,21 @@ module Cisco
 
     def create
       config_set('ntp_server', 'server', state: '', ip: @ntpserver_id,
-                  prefer: @ntpserver_prefer ? 'prefer' : '')
+                  prefer: (['true', true].include? @prefer) ? 'prefer' : '',
+                  vrf: @vrf ? "use-vrf #{@vrf}" : '',
+                  key: @key ? "key #{@key}" : '',
+                  minpoll: @minpoll ? "minpoll #{@minpoll}" : '',
+                  maxpoll: @maxpoll ? "maxpoll #{@maxpoll}" : '')
     end
 
     def destroy
       config_set('ntp_server', 'server',
-                 state: 'no', ip: @ntpserver_id, prefer: '')
+                 state: 'no', ip: @ntpserver_id, prefer: '', vrf: '',
+                 key: '', minpoll: '', maxpoll: '')
     end
 
     def name
       @ntpserver_id
-    end
-
-    def prefer
-      @ntpserver_prefer
     end
   end # class
 end # module

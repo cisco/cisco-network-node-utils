@@ -17,10 +17,38 @@ Changelog
 * Extend interface_channel_group with attributes:
    * `channel_group_mode`
 
+* Extend ntp_config with attributes:
+  * `authenticate`
+  * `trusted_key`
+
+* Extend ntp_server with attributes:
+  * `key`
+  * `maxpoll`
+  * `minpoll`
+  * `source_interface`
+  * `vrf`
+
+* Added ntp_auth_key with attributes:
+  * `algorithm`
+  * `key`
+  * `mode`
+  * `password`
+
 * Extend upgrade with attributes:
    * `package`
 
 ### Changed
+* ntp_server initialize now uses options hash
+  * Prior to this release ntp_server accepted positional arguments for id and
+  prefer.  New behavior is to pass attributes as a hash.
+
+  Example:
+  ```
+  options = { 'name' => id, 'key' => '999', 'prefer' => 'true',
+              'minpoll' => '5', 'maxpoll' => '8', 'vrf' => 'red' }
+  Cisco::NtpServer.new(options, true)
+  ```
+
 * Modified upgrade to support additional URI
 
 * Modified upgrade attribute to drop version check
