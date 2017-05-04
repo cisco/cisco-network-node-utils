@@ -1,0 +1,10 @@
+# ntp_auth_key
+---
+key:
+  multiple: true
+  default_value: []
+  nexus:
+    get_command: "show running-config all | include 'ntp authentication-key'"
+    # Returns <key>, <algorithm>, <password>, <mode>
+    get_value: '/^ntp authentication-key (\d+) (\w+) (\S+) (\d)/'
+    set_value: '<state> ntp authentication-key <key> <algorithm> <password> <mode>'
