@@ -23,13 +23,14 @@ module Cisco
     attr_reader :asn, :vrf, :afi, :safi, :aa
 
     def initialize(asn, vrf, af, aggr_addr, instantiate=true)
-      @bgp_af = RouterBgpAF.afs[asn][vrf][af]
-      fail "bgp address family #{asn vrf af} does not exist" if @bgp_af.nil?
       @asn = asn
       @vrf = vrf
       @afi, @safi = af
       @aa = aggr_addr
-
+      temp_af = [@afi.to_s, @safi.to_s]
+      @bgp_af = RouterBgpAF.afs[asn][vrf][temp_af]
+      fail "bgp address family #{asn} #{vrf} #{af} does not exist" if
+        @bgp_af.nil?
       set_args_keys_default
       create if instantiate
     end
