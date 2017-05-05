@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'bgp'
 require_relative 'bgp_af'
 
 module Cisco
@@ -24,12 +25,13 @@ module Cisco
 
     def initialize(asn, vrf, af, aggr_addr, instantiate=true)
       @asn = asn
+      @asn = asn.to_i unless /\d+.\d+/.match(asn.to_s)
       @vrf = vrf
       @afi, @safi = af
       @aa = aggr_addr
       temp_af = [@afi.to_s, @safi.to_s]
-      @bgp_af = RouterBgpAF.afs[asn][vrf][temp_af]
-      fail "bgp address family #{asn} #{vrf} #{af} does not exist" if
+      @bgp_af = RouterBgpAF.afs[@asn][vrf][temp_af]
+      fail "bgp address family #{@asn} #{vrf} #{af} does not exist" if
         @bgp_af.nil?
       set_args_keys_default
       create if instantiate
@@ -113,8 +115,9 @@ module Cisco
 
     def aa_maps_get
       str = config_get('bgp_af_aa', 'aggr_addr', @get_args)
-      str.slice!('as-set')
-      str.slice!('summary-only')
+      return if str.nil?
+      str.slice!('as-set') if str.include?('as-set')
+      str.slice!('summary-only') if str.include?('summary-only')
       str.strip!
       return if str.empty?
       regexp = Regexp.new(' *(?<admap>advertise-map \S+)?'\
@@ -125,6 +128,7 @@ module Cisco
 
     def as_set
       str = config_get('bgp_af_aa', 'aggr_addr', @get_args)
+      return false if str.nil?
       str.include?('as-set') ? true : false
     end
 
@@ -138,6 +142,7 @@ module Cisco
 
     def summary_only
       str = config_get('bgp_af_aa', 'aggr_addr', @get_args)
+      return false if str.nil?
       str.include?('summary-only') ? true : false
     end
 
