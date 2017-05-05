@@ -58,6 +58,6 @@ type:
   kind: string
   default_value: 'local'
   get_context: ~
-  get_value: '/^monitor session \d+ type (\w+)$/'
+  get_value: '/^monitor session \d+ type (\S+)$/'
   set_context: ~
   set_value: 'monitor session <id> type <type>'
