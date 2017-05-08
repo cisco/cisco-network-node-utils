@@ -1,10 +1,11 @@
 # SPAN session
 ---
+_exclude: [N5k, N6k, N7k]
+
 _template:
-  nexus:
-    get_command: "show running monitor all"
-    get_context: ["monitor session <id>(?: .*)?"]
-    set_context: ["monitor session <id>"]
+  get_command: "show running monitor all"
+  get_context: ["monitor session <id>(?: .*)?"]
+  set_context: ["monitor session <id>"]
 
 all_sessions:
   multiple:
@@ -44,15 +45,16 @@ shutdown:
   get_value: '/^no shut$/'
   set_value: '<state> shut'
 
-source_interface:
-  kind: string
+source_interfaces:
+  multiple:
   get_value: '/^source interface (\S+) (\w+)$/'
   set_value: '<state> source interface <int_name> <direction>'
+  default_value: []
 
-source_vlan:
-  kind: int
+source_vlans:
   get_value: '/^source vlan (\S+) (\w+)$/'
   set_value: '<state> source vlan <vlans> <direction>'
+  default_value: []
 
 type:
   kind: string

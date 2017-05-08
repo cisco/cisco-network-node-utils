@@ -52,7 +52,7 @@ module Cisco
     end
 
     def destination
-      config_get('span_session', 'destination', id: @session_id)
+      config_get('span_session', 'destination', id: @session_id).downcase
     end
 
     def destination=(int)
@@ -80,37 +80,54 @@ module Cisco
       config_set('span_session', 'shutdown', id: @session_id, shutdown: bool)
     end
 
-    def source_interface
-      config_get('span_session', 'source_interface', id: @session_id)
+    def source_interfaces
+      ints = config_get('span_session', 'source_interfaces', id: @session_id)
+      intf = []
+      ints.each { |i| intf << i.map(&:downcase) }
+      intf
     end
 
-    def source_interface=(sources)
+    def source_interfaces=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each_pair do |name, dir|
-        fail TypeError unless Interface.interfaces.key?(name.downcase)
-        fail TypeError unless valid_direction?(dir)
-        config_set('span_session', 'source_interface', id: @session_id,
-                    state: '', int_name: name, direction: dir)
+      delta_hash = Utils.delta_add_remove(sources.to_a, source_interfaces.to_a)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |name, dir|
+          state = (action == :add) ? '' : 'no'
+          config_set('span_session', 'source_interfaces', id: @session_id,
+                     state: state, int_name: name, direction: dir)
+        end
       end
     end
 
-    def source_vlan
-      config_get('span_session', 'source_vlan', id: @session_id)
+    def default_source_interfaces
+      config_get_default('span_session', 'source_interfaces')
     end
 
-    def source_vlan=(sources)
+    def source_vlans
+      v = config_get('span_session', 'source_vlans', id: @session_id)
+      v.empty? ? v : [Utils.normalize_range_array(v[0]), v[1]]
+    end
+
+    def source_vlans=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      sources.each_pair do |vlans, dir|
-        fail TypeError unless vlans.is_a?(String)
-        fail TypeError unless valid_direction?(dir)
-        config_set('span_session', 'source_interface', id: @session_id,
-                    state: '', vlans: vlans, direction: dir)
+      is = Utils.dash_range_to_elements(source_vlans[0]) unless
+        source_vlans.empty?
+      should = Utils.dash_range_to_elements(sources[:vlans])
+      direction = sources[:direction]
+      delta_hash = Utils.delta_add_remove(should, is)
+      [:add, :remove].each do |action|
+        delta_hash[action].each do |vlans|
+          state = (action == :add) ? '' : 'no'
+          config_set('span_session', 'source_vlans',
+                     id: @session_id, state: state,
+                     vlans: vlans, direction: direction)
+        end
       end
     end
 
-    def valid_direction?(dir)
-      valid_dirs = %w(in out both)
-      valid_dirs.include?(dir)
+    def default_source_vlans
+      config_get_default('span_session', 'source_vlans')
     end
 
     def type
