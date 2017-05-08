@@ -177,6 +177,11 @@ module Cisco
       config_get_default('bgp_af_aa', 'attribute_map')
     end
 
+    # The CLI can take many forms like:
+    # aggregate-address 1.1.1.1/32 as-set advertise-map adm
+    # aggregate-address 1.1.1.1/32 suppress-map sum attribute-map atm
+    # aggregate-address 1.1.1.1/32 summary-only
+    # aggregate-address 2.2.2.2/32 summary-only
     def aa_set(attrs)
       # reset everything before setting as some older
       # software versions require it.
