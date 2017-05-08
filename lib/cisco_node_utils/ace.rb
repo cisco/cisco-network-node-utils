@@ -139,33 +139,6 @@ module Cisco
       config_set('acl', cmd, @set_args)
     end
 
-    # UTILITY FUNCTIONS
-    # -----------------
-
-    # extract value of property from ace
-    def extract_value(prop, prefix=nil)
-      prefix = prop if prefix.nil?
-      ace_match = ace_get
-
-      # matching ace not found
-      return nil if ace_match.nil? # no matching ace found
-
-      # property not defined for matching ace
-      return nil unless ace_match.names.include?(prop)
-
-      # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
-      value_match = regexp.match(ace_match[prop])
-      return nil if value_match.nil?
-      value_match[:extracted]
-    end
-
-    # prepend property name prefix/keyword to value
-    def attach_prefix(val, prop, prefix=nil)
-      prefix = prop.to_s if prefix.nil?
-      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
-    end
-
     # PROPERTIES
     # ----------
     def seqno
@@ -272,67 +245,75 @@ module Cisco
     end
 
     def precedence
-      extract_value('precedence')
+      Utils.extract_value('precedence', nil, ace_get)
     end
 
     def precedence=(precedence)
-      attach_prefix(precedence, :precedence)
+      @set_args[:precedence] = Utils.attach_prefix(precedence, :precedence)
     end
 
     def dscp
-      extract_value('dscp')
+      Utils.extract_value('dscp', nil, ace_get)
     end
 
     def dscp=(dscp)
-      attach_prefix(dscp, :dscp)
+      @set_args[:dscp] = Utils.attach_prefix(dscp, :dscp)
     end
 
     def time_range
-      extract_value('time_range', 'time-range')
+      Utils.extract_value('time_range', 'time-range', ace_get)
     end
 
     def time_range=(time_range)
-      attach_prefix(time_range, :time_range, 'time-range')
+      @set_args[:time_range] = Utils.attach_prefix(time_range,
+                                                   :time_range,
+                                                   'time-range')
     end
 
     def packet_length
-      extract_value('packet_length', 'packet-length')
+      Utils.extract_value('packet_length', 'packet-length', ace_get)
     end
 
     def packet_length=(packet_length)
-      attach_prefix(packet_length, :packet_length, 'packet-length')
+      @set_args[:packet_length] = Utils.attach_prefix(packet_length,
+                                                      :packet_length,
+                                                      'packet-length')
     end
 
     def ttl
-      extract_value('ttl')
+      Utils.extract_value('ttl', nil, ace_get)
     end
 
     def ttl=(ttl)
-      attach_prefix(ttl, :ttl)
+      @set_args[:ttl] = Utils.attach_prefix(ttl, :ttl)
     end
 
     def http_method
-      extract_value('http_method', 'http-method')
+      Utils.extract_value('http_method', 'http-method', ace_get)
     end
 
     def http_method=(http_method)
-      attach_prefix(http_method, :http_method, 'http-method')
+      @set_args[:http_method] = Utils.attach_prefix(http_method,
+                                                    :http_method,
+                                                    'http-method')
     end
 
     def tcp_option_length
-      extract_value('tcp_option_length', 'tcp-option-length')
+      Utils.extract_value('tcp_option_length', 'tcp-option-length', ace_get)
     end
 
     def tcp_option_length=(tcp_option_length)
-      attach_prefix(tcp_option_length, :tcp_option_length, 'tcp-option-length')
+      @set_args[:tcp_option_length] = Utils.attach_prefix(tcp_option_length,
+                                                          :tcp_option_length,
+                                                          'tcp-option-length')
     end
 
     def redirect
-      extract_value('redirect')
+      Utils.extract_value('redirect', nil, ace_get)
     end
 
     def redirect=(redirect)
-      attach_prefix(redirect, :redirect)
+      @set_args[:redirect] = Utils.attach_prefix(redirect, :redirect)
     end
 
     def log

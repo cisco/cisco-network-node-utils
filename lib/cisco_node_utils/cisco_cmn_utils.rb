@@ -367,5 +367,27 @@ module Cisco
         value.start_with?('"') && value.end_with?('"')
       value
     end # add_quotes
+
+    # extract value of property from aggregate-address
+    def self.extract_value(prop, prefix=nil, match_method)
+      prefix = prop if prefix.nil?
+      mm = match_method
+
+      return nil if mm.nil?
+
+      return nil unless mm.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(mm[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # prepend property name prefix/keyword to value
+    def self.attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      val.to_s.empty? ? val : "#{prefix} #{val}"
+    end
   end # class Utils
 end   # module Cisco

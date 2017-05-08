@@ -67,30 +67,6 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # extract value of property from probe
-    def extract_value(prop, prefix=nil)
-      prefix = prop if prefix.nil?
-      probe_match = probe_get
-
-      # matching probe not found
-      return nil if probe_match.nil? # no matching probe found
-
-      # property not defined for matching probe
-      return nil unless probe_match.names.include?(prop)
-
-      # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
-      value_match = regexp.match(probe_match[prop])
-      return nil if value_match.nil?
-      value_match[:extracted]
-    end
-
-    # prepend property name prefix/keyword to value
-    def attach_prefix(val, prop, prefix=nil)
-      prefix = prop.to_s if prefix.nil?
-      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
-    end
-
     # probe configuration is all done in a single line (like below)
     # probe tcp port 32 frequency 10 timeout 5 retry-down-count 3 ...
     # probe udp port 23 frequency 10 timeout 5 retry-down-count 3 ...
@@ -113,7 +89,7 @@ module Cisco
     end
 
     def probe_control
-      val = extract_value('control')
+      val = Utils.extract_value('control', nil, probe_get)
       return default_probe_control if val.nil?
       val == 'enable' ? true : default_probe_control
     end
@@ -131,21 +107,21 @@ module Cisco
     end
 
     def probe_dns_host
-      extract_value('dns_host', 'host')
+      Utils.extract_value('dns_host', 'host', probe_get)
     end
 
     def probe_dns_host=(dns_host)
-      attach_prefix(dns_host, :dns_host, 'host')
+      @set_args[:dns_host] = Utils.attach_prefix(dns_host, :dns_host, 'host')
     end
 
     def probe_frequency
-      val = extract_value('frequency')
+      val = Utils.extract_value('frequency', nil, probe_get)
       return default_probe_frequency if val.nil?
       val.to_i
     end
 
     def probe_frequency=(frequency)
-      attach_prefix(frequency, :frequency)
+      @set_args[:frequency] = Utils.attach_prefix(frequency, :frequency)
     end
 
     def default_probe_frequency
@@ -153,22 +129,24 @@ module Cisco
     end
 
     def probe_port
-      val = extract_value('port')
+      val = Utils.extract_value('port', nil, probe_get)
       val.to_i unless val.nil?
     end
 
     def probe_port=(port)
-      attach_prefix(port, :port)
+      @set_args[:port] = Utils.attach_prefix(port, :port)
     end
 
     def probe_retry_down
-      val = extract_value('retry_down', 'retry-down-count')
+      val = Utils.extract_value('retry_down', 'retry-down-count', probe_get)
       return default_probe_retry_down if val.nil?
       val.to_i
     end
 
     def probe_retry_down=(rdc)
-      attach_prefix(rdc, :retry_down_count, 'retry-down-count')
+      @set_args[:retry_down_count] = Utils.attach_prefix(rdc,
+                                                         :retry_down_count,
+                                                         'retry-down-count')
     end
 
     def default_probe_retry_down
@@ -176,13 +154,15 @@ module Cisco
     end
 
     def probe_retry_up
-      val = extract_value('retry_up', 'retry-up-count')
+      val = Utils.extract_value('retry_up', 'retry-up-count', probe_get)
       return default_probe_retry_up if val.nil?
       val.to_i
     end
 
     def probe_retry_up=(ruc)
-      attach_prefix(ruc, :retry_up_count, 'retry-up-count')
+      @set_args[:retry_up_count] = Utils.attach_prefix(ruc,
+                                                       :retry_up_count,
+                                                       'retry-up-count')
     end
 
     def default_probe_retry_up
@@ -190,13 +170,13 @@ module Cisco
     end
 
     def probe_timeout
-      val = extract_value('timeout')
+      val = Utils.extract_value('timeout', nil, probe_get)
       return default_probe_timeout if val.nil?
       val.to_i
     end
 
     def probe_timeout=(timeout)
-      attach_prefix(timeout, :timeout)
+      @set_args[:timeout] = Utils.attach_prefix(timeout, :timeout)
     end
 
     def default_probe_timeout

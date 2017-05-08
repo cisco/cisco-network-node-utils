@@ -91,28 +91,6 @@ module Cisco
       config_set('bgp_af_aa', 'aggr_addr', @set_args)
     end
 
-    # extract value of property from aggregate-address
-    def extract_value(prop, prefix=nil)
-      prefix = prop if prefix.nil?
-      aa_match = aa_maps_get
-
-      return nil if aa_match.nil?
-
-      return nil unless aa_match.names.include?(prop)
-
-      # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
-      value_match = regexp.match(aa_match[prop])
-      return nil if value_match.nil?
-      value_match[:extracted]
-    end
-
-    # prepend property name prefix/keyword to value
-    def attach_prefix(val, prop, prefix=nil)
-      prefix = prop.to_s if prefix.nil?
-      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
-    end
-
     def aa_maps_get
       str = config_get('bgp_af_aa', 'aggr_addr', @get_args)
       return if str.nil?
@@ -155,13 +133,14 @@ module Cisco
     end
 
     def advertise_map
-      val = extract_value('admap', 'advertise-map')
+      val = Utils.extract_value('admap', 'advertise-map', aa_maps_get)
       return default_advertise_map if val.nil?
       val
     end
 
     def advertise_map=(map)
-      attach_prefix(map, :advertise, 'advertise-map')
+      @set_args[:advertise] =
+          Utils.attach_prefix(map, :advertise, 'advertise-map')
     end
 
     def default_advertise_map
@@ -169,13 +148,14 @@ module Cisco
     end
 
     def suppress_map
-      val = extract_value('sumap', 'suppress-map')
+      val = Utils.extract_value('sumap', 'suppress-map', aa_maps_get)
       return default_suppress_map if val.nil?
       val
     end
 
     def suppress_map=(map)
-      attach_prefix(map, :suppress, 'suppress-map')
+      @set_args[:suppress] =
+          Utils.attach_prefix(map, :suppress, 'suppress-map')
     end
 
     def default_suppress_map
@@ -183,13 +163,14 @@ module Cisco
     end
 
     def attribute_map
-      val = extract_value('atmap', 'attribute-map')
+      val = Utils.extract_value('atmap', 'attribute-map', aa_maps_get)
       return default_attribute_map if val.nil?
       val
     end
 
     def attribute_map=(map)
-      attach_prefix(map, :attribute, 'attribute-map')
+      @set_args[:attribute] =
+          Utils.attach_prefix(map, :attribute, 'attribute-map')
     end
 
     def default_attribute_map
