@@ -5,6 +5,9 @@ Changelog
 
 ### New feature support
 
+#### Cisco Resources
+* span_session (@tomcooperca)
+
 ### Added
 * Extend vpc with attributes:
    * `peer_switch`
