@@ -368,7 +368,7 @@ module Cisco
       value
     end # add_quotes
 
-    # extract value of property from aggregate-address
+    # extract value of property
     def self.extract_value(prop, prefix=nil, match_method)
       prefix = prop if prefix.nil?
       mm = match_method
