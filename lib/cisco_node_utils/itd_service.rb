@@ -246,7 +246,7 @@ module Cisco
     end
 
     def load_bal_buckets
-      val = Utils.extract_value('buckets', nil, lb_get)
+      val = Utils.extract_value(lb_get, 'buckets')
       return default_load_bal_buckets if val.nil?
       val.to_i
     end
@@ -260,7 +260,7 @@ module Cisco
     end
 
     def load_bal_mask_pos
-      val = Utils.extract_value('mask', 'mask-position', lb_get)
+      val = Utils.extract_value(lb_get, 'mask', 'mask-position')
       return default_load_bal_mask_pos if val.nil?
       val.to_i
     end
@@ -289,7 +289,7 @@ module Cisco
     end
 
     def load_bal_method_bundle_select
-      val = Utils.extract_value('bundle_select', 'method', lb_get)
+      val = Utils.extract_value(lb_get, 'bundle_select', 'method')
       return default_load_bal_method_bundle_select if val.nil?
       val
     end
@@ -319,7 +319,7 @@ module Cisco
     end
 
     def load_bal_method_start_port
-      val = Utils.extract_value('start_port', 'range', lb_get)
+      val = Utils.extract_value(lb_get, 'start_port', 'range')
       return default_load_bal_method_start_port if val.nil?
       val.to_i
     end

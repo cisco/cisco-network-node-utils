@@ -470,7 +470,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_src_addr
-      val = Utils.extract_value('src', 'source', match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get, 'src', 'source')
       return default_match_ipv4_multicast_src_addr if val.nil?
       val
     end
@@ -484,7 +484,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_addr
-      val = Utils.extract_value('grp', 'group', match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get, 'grp', 'group')
       return default_match_ipv4_multicast_group_addr if val.nil?
       val
     end
@@ -498,8 +498,8 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_begin_addr
-      val = Utils.extract_value('grp_range_start', 'group-range',
-                                match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get,
+                                'grp_range_start', 'group-range')
       return default_match_ipv4_multicast_group_range_begin_addr if val.nil?
       val
     end
@@ -515,7 +515,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_end_addr
-      val = Utils.extract_value('grp_range_end', 'to', match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get, 'grp_range_end', 'to')
       return default_match_ipv4_multicast_group_range_end_addr if val.nil?
       val
     end
@@ -530,7 +530,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_rp_addr
-      val = Utils.extract_value('rp', nil, match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get, 'rp')
       return default_match_ipv4_multicast_rp_addr if val.nil?
       val
     end
@@ -544,7 +544,7 @@ module Cisco
     end
 
     def match_ipv4_multicast_rp_type
-      val = Utils.extract_value('rp_type', 'rp-type', match_ipv4_multicast_get)
+      val = Utils.extract_value(match_ipv4_multicast_get, 'rp_type', 'rp-type')
       return default_match_ipv4_multicast_rp_type if val.nil?
       val
     end
@@ -727,7 +727,7 @@ module Cisco
     end
 
     def match_ipv6_multicast_src_addr
-      val = Utils.extract_value('src', 'source', match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get, 'src', 'source')
       return default_match_ipv6_multicast_src_addr if val.nil?
       val
     end
@@ -741,7 +741,7 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_addr
-      val = Utils.extract_value('grp', 'group', match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get, 'grp', 'group')
       return default_match_ipv6_multicast_group_addr if val.nil?
       val
     end
@@ -755,8 +755,8 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_range_begin_addr
-      val = Utils.extract_value('grp_range_start', 'group-range',
-                                match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get,
+                                'grp_range_start', 'group-range')
       return default_match_ipv6_multicast_group_range_begin_addr if val.nil?
       val
     end
@@ -772,7 +772,7 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_range_end_addr
-      val = Utils.extract_value('grp_range_end', 'to', match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get, 'grp_range_end', 'to')
       return default_match_ipv6_multicast_group_range_end_addr if val.nil?
       val
     end
@@ -787,7 +787,7 @@ module Cisco
     end
 
     def match_ipv6_multicast_rp_addr
-      val = Utils.extract_value('rp', nil, match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get, 'rp')
       return default_match_ipv6_multicast_rp_addr if val.nil?
       val
     end
@@ -801,7 +801,7 @@ module Cisco
     end
 
     def match_ipv6_multicast_rp_type
-      val = Utils.extract_value('rp_type', 'rp-type', match_ipv6_multicast_get)
+      val = Utils.extract_value(match_ipv6_multicast_get, 'rp_type', 'rp-type')
       return default_match_ipv6_multicast_rp_type if val.nil?
       val
     end

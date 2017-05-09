@@ -89,7 +89,7 @@ module Cisco
     end
 
     def probe_control
-      val = Utils.extract_value('control', nil, probe_get)
+      val = Utils.extract_value(probe_get, 'control')
       return default_probe_control if val.nil?
       val == 'enable' ? true : default_probe_control
     end
@@ -107,7 +107,7 @@ module Cisco
     end
 
     def probe_dns_host
-      Utils.extract_value('dns_host', 'host', probe_get)
+      Utils.extract_value(probe_get, 'dns_host', 'host')
     end
 
     def probe_dns_host=(dns_host)
@@ -115,7 +115,7 @@ module Cisco
     end
 
     def probe_frequency
-      val = Utils.extract_value('frequency', nil, probe_get)
+      val = Utils.extract_value(probe_get, 'frequency')
       return default_probe_frequency if val.nil?
       val.to_i
     end
@@ -129,7 +129,7 @@ module Cisco
     end
 
     def probe_port
-      val = Utils.extract_value('port', nil, probe_get)
+      val = Utils.extract_value(probe_get, 'port')
       val.to_i unless val.nil?
     end
 
@@ -138,7 +138,7 @@ module Cisco
     end
 
     def probe_retry_down
-      val = Utils.extract_value('retry_down', 'retry-down-count', probe_get)
+      val = Utils.extract_value(probe_get, 'retry_down', 'retry-down-count')
       return default_probe_retry_down if val.nil?
       val.to_i
     end
@@ -154,7 +154,7 @@ module Cisco
     end
 
     def probe_retry_up
-      val = Utils.extract_value('retry_up', 'retry-up-count', probe_get)
+      val = Utils.extract_value(probe_get, 'retry_up', 'retry-up-count')
       return default_probe_retry_up if val.nil?
       val.to_i
     end
@@ -170,7 +170,7 @@ module Cisco
     end
 
     def probe_timeout
-      val = Utils.extract_value('timeout', nil, probe_get)
+      val = Utils.extract_value(probe_get, 'timeout')
       return default_probe_timeout if val.nil?
       val.to_i
     end

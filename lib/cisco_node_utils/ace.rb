@@ -245,7 +245,7 @@ module Cisco
     end
 
     def precedence
-      Utils.extract_value('precedence', nil, ace_get)
+      Utils.extract_value(ace_get, 'precedence')
     end
 
     def precedence=(precedence)
@@ -253,7 +253,7 @@ module Cisco
     end
 
     def dscp
-      Utils.extract_value('dscp', nil, ace_get)
+      Utils.extract_value(ace_get, 'dscp')
     end
 
     def dscp=(dscp)
@@ -261,7 +261,7 @@ module Cisco
     end
 
     def time_range
-      Utils.extract_value('time_range', 'time-range', ace_get)
+      Utils.extract_value(ace_get, 'time_range', 'time-range')
     end
 
     def time_range=(time_range)
@@ -271,7 +271,7 @@ module Cisco
     end
 
     def packet_length
-      Utils.extract_value('packet_length', 'packet-length', ace_get)
+      Utils.extract_value(ace_get, 'packet_length', 'packet-length')
     end
 
     def packet_length=(packet_length)
@@ -281,7 +281,7 @@ module Cisco
     end
 
     def ttl
-      Utils.extract_value('ttl', nil, ace_get)
+      Utils.extract_value(ace_get, 'ttl')
     end
 
     def ttl=(ttl)
@@ -289,7 +289,7 @@ module Cisco
     end
 
     def http_method
-      Utils.extract_value('http_method', 'http-method', ace_get)
+      Utils.extract_value(ace_get, 'http_method', 'http-method')
     end
 
     def http_method=(http_method)
@@ -299,7 +299,7 @@ module Cisco
     end
 
     def tcp_option_length
-      Utils.extract_value('tcp_option_length', 'tcp-option-length', ace_get)
+      Utils.extract_value(ace_get, 'tcp_option_length', 'tcp-option-length')
     end
 
     def tcp_option_length=(tcp_option_length)
@@ -309,7 +309,7 @@ module Cisco
     end
 
     def redirect
-      Utils.extract_value('redirect', nil, ace_get)
+      Utils.extract_value(ace_get, 'redirect')
     end
 
     def redirect=(redirect)

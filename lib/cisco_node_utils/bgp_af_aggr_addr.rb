@@ -133,7 +133,7 @@ module Cisco
     end
 
     def advertise_map
-      val = Utils.extract_value('admap', 'advertise-map', aa_maps_get)
+      val = Utils.extract_value(aa_maps_get, 'admap', 'advertise-map')
       return default_advertise_map if val.nil?
       val
     end
@@ -148,7 +148,7 @@ module Cisco
     end
 
     def suppress_map
-      val = Utils.extract_value('sumap', 'suppress-map', aa_maps_get)
+      val = Utils.extract_value(aa_maps_get, 'sumap', 'suppress-map')
       return default_suppress_map if val.nil?
       val
     end
@@ -163,7 +163,7 @@ module Cisco
     end
 
     def attribute_map
-      val = Utils.extract_value('atmap', 'attribute-map', aa_maps_get)
+      val = Utils.extract_value(aa_maps_get, 'atmap', 'attribute-map')
       return default_attribute_map if val.nil?
       val
     end
