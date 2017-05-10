@@ -60,33 +60,95 @@ class TestSpanSession < CiscoTestCase
     assert_equal(span.description, desc)
   end
 
-  def test_session_source_interface
+  def test_session_source_interfaces
     span = SpanSession.new(4)
     po_int = Interface.new('port-channel1')
-    ints = { 'Ethernet1/1'   => 'rx',
-             'Ethernet1/2'   => 'tx',
-             'port-channel1' => 'both',
-             'sup-eth0'      => 'rx' }
-    span.source_interface = ints
-    ints.keys.each do |int_name|
-      assert_equal(span.source_interface, int_name,
-                   "source interface #{int_name} does not match")
-    end
+    int1 = interfaces[0]
+    int2 = interfaces[1]
+    int3 = interfaces[2]
+
+    # Test default case
+    assert_equal(span.default_source_interfaces, span.source_interfaces)
+
+    # Non-default case
+    intla = { int1            => 'rx',
+              int2            => 'tx',
+              'port-channel1' => 'both',
+              'sup-eth0'      => 'rx' }
+
+    span.source_interfaces = intla
+    assert_equal(intla.to_a.sort, span.source_interfaces.sort)
+
+    # intla and intlb are identical
+    intlb = { int1            => 'rx',
+              int2            => 'tx',
+              'port-channel1' => 'both',
+              'sup-eth0'      => 'rx' }
+
+    span.source_interfaces = intlb
+    assert_equal(intlb.to_a.sort, span.source_interfaces.sort)
+
+    # intla/c same size but 1 element different
+    intlc = { int2            => 'both',
+              int1            => 'rx',
+              'port-channel1' => 'both',
+              'sup-eth0'      => 'rx' }
+
+    span.source_interfaces = intlc
+    assert_equal(intlc.to_a.sort, span.source_interfaces.sort)
+
+    # intla/d different sizes and diff/same elements
+    intld = { int2            => 'tx',
+              int1            => 'both',
+              'port-channel1' => 'both' }
+
+    span.source_interfaces = intld
+    assert_equal(intld.to_a.sort, span.source_interfaces.sort)
+
+    # Empty list
+    intle = {}
+
+    span.source_interfaces = intle
+    assert_equal(intle.to_a.sort, span.source_interfaces.sort)
+
+    # intlf is larger then intla
+    intlf = { int3            => 'both',
+              int1            => 'rx',
+              int2            => 'tx',
+              'port-channel1' => 'both',
+              'sup-eth0'      => 'rx' }
+
+    span.source_interfaces = intlf
+    assert_equal(intlf.to_a.sort, span.source_interfaces.sort)
+
     po_int.destroy
   end
 
   def test_session_source_vlans
-    vlans = [2..5, 8, 10, 13]
-    vlans = vlans.join(',') if vlans.is_a?(Array)
-    vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
     span = SpanSession.new(5)
-    span.source_vlan = { vlans: vlans, direction: 'rx' }
-    assert_equal(span.source_vlan[:vlans], vlans)
+
+    # Default case
+    assert_equal(span.source_vlans, span.default_source_vlans)
+
+    # Non-default case
+    vlans = %w(1 2-5 6)
+    span.source_vlans = { vlans: vlans, direction: 'rx' }
+    assert_equal(%w(1-6), span.source_vlans[0])
+    assert_equal('rx', span.source_vlans[1])
+
+    vlans = %w(1 3-4 6)
+    span.source_vlans = { vlans: vlans, direction: 'rx' }
+    assert_equal(%w(1 3-4 6), span.source_vlans[0])
+    assert_equal('rx', span.source_vlans[1])
+
+    # Set back to default
+    span.source_vlans = { vlans: [], direction: '' }
+    assert_equal(span.source_vlans, span.default_source_vlans)
   end
 
   def test_session_destination_int
     span = SpanSession.new(6)
-    dest_int = 'Ethernet1/3'
+    dest_int = interfaces[2]
     span.destination = dest_int
     assert_equal(span.destination, dest_int)
   end
