@@ -7,6 +7,7 @@ Changelog
 
 #### Cisco Resources
 * span_session (@tomcooperca)
+* bgp_af_aggr_addr (@saichint)
 
 ### Added
 * Extend vpc with attributes:

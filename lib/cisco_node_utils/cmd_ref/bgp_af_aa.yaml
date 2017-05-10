@@ -1,0 +1,38 @@
+# bgp_af_aa.yaml
+---
+_exclude: [ios_xr]
+
+_template:
+  context:
+    - "router bgp <asnum>"
+    - '(?)vrf <vrf>'
+    - 'address-family <afi> <safi>'
+  get_command: 'show running bgp all'
+
+advertise_map:
+  kind: string
+  default_value: ''
+
+aggr_addr:
+  get_value: '/^aggregate-address <address> (.*)$/'
+  set_value: "<state> aggregate-address <address> <as_set> <summ> <advertise> <suppress> <attribute>"
+
+all_aa:
+  multiple: true
+  get_value: '/^aggregate-address (\S+)/'
+
+as_set:
+  kind: boolean
+  default_value: false
+
+attribute_map:
+  kind: string
+  default_value: ''
+
+summary_only:
+  kind: boolean
+  default_value: false
+
+suppress_map:
+  kind: string
+  default_value: ''
