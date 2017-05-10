@@ -89,7 +89,7 @@ class TestSpanSession < CiscoTestCase
     assert_equal(intlb.to_a.sort, span.source_interfaces.sort)
 
     # intla/c same size but 1 element different
-    intlc = { int2            => 'tx',
+    intlc = { int2            => 'both',
               int1            => 'rx',
               'port-channel1' => 'both',
               'sup-eth0'      => 'rx' }

@@ -89,9 +89,10 @@ module Cisco
 
     def source_interfaces=(sources)
       fail TypeError unless sources.is_a?(Hash)
-      delta_hash = Utils.delta_add_remove(sources.to_a, source_interfaces.to_a)
+      delta_hash = Utils.delta_add_remove(sources.to_a, source_interfaces.to_a,
+                                          :updates_not_allowed)
       return if delta_hash.values.flatten.empty?
-      [:add, :remove].each do |action|
+      [:remove, :add].each do |action|
         delta_hash[action].each do |name, dir|
           state = (action == :add) ? '' : 'no'
           config_set('span_session', 'source_interfaces', id: @session_id,
