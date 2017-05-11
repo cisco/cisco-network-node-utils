@@ -10,26 +10,6 @@ Guidelines for the core maintainers of the cisco-network-node-utils project - ab
 * Are new minitests added? Do they provide sufficient coverage and consistent results?
 * Do minitests pass on all supported platforms
 
-## Setting up git-flow
-
-If you don't already have [`git-flow`](https://github.com/petervanderdoes/gitflow/) installed, install it.
-
-Either run `git flow init` from the repository root directory, or manually edit your `.git/config` file. Either way, when done, you should have the following in your config:
-
-```ini
-[gitflow "branch"]
-        master = master
-        develop = develop
-[gitflow "prefix"]
-        feature = feature/
-        release = release/
-        hotfix = hotfix/
-        support = support/
-        versiontag = v
-```
-
-Most of these are default for git-flow except for the `versiontag` setting.
-
 ## Release Process Checklist
 
 When we are considering publishing a new release, all of the following steps must be carried out.
