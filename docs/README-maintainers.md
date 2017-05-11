@@ -30,82 +30,61 @@ Either run `git flow init` from the repository root directory, or manually edit 
 
 Most of these are default for git-flow except for the `versiontag` setting.
 
-## Release Checklist
+## Release Process Checklist
 
-When we are considering publishing a new release, all of the following steps must be carried out (using the latest code base in `develop`):
+When we are considering publishing a new release, all of the following steps must be carried out.
+   * NOTE: Use the latest code base in `develop`
 
-1. Review cisco_node_utils.gemspec
-  * Is the data still relevant?
-  * Do the version dependencies need to be updated? (e.g. rubocop)
+### Pre-Merge to `master` branch:
 
-2. Run full minitest suite with various Ruby versions and hardware platforms:
-  * Ruby versions:
-    - REQUIRED: the Ruby version(s) bundled with Chef and Puppet (currently 2.1.6)
-    - OPTIONAL: any/all other Ruby major versions currently supported by this gem (2.0, 2.2.2)
-  * Platforms (all with latest released software or release candidate)
-    - N30xx
-    - N31xx
-    - N56xx
-    - N6xxx
-    - N7xxx
-    - N9xxx
-
-3. Triage any minitest failures.
-
-4. Check code coverage results from minitest to see if there are any critical gaps in coverage.
-
-5. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
-
-6. Make sure CHANGELOG.md accurately reflects all changes since the last release.
-  * Add any significant changes that weren't documented in the changelog
-  * Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
-
-## Release Process
-
-When the release checklist above has been fully completed, the process for publishing a new release is as follows:
-
-1. Create a release branch. Follow [semantic versioning](http://semver.org):
+1. Pull release branch based on the `develop` branch.
     * 0.0.x - a bugfix release
     * 0.x.0 - new feature(s)
     * x.0.0 - backward-incompatible change (if unvoidable!)
 
-    ```
-    git flow release start 1.0.1
-    ```
+1. Run full minitest regression on [supported platforms.](https://github.com/cisco/cisco-network-node-utils#overview)
+    * Fix All Bugs.
+    * Make sure proper test case skips are in place for unsupported platforms.
+    
+1. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
 
-2. In the newly created release branch, update `CHANGELOG.md` (this *should* be automatic if you have installed the Git hooks for this repository):
+1. Update [changelog.](https://github.com/cisco/cisco-network-node-utils/blob/develop/CHANGELOG.md)
+    * Make sure CHANGELOG.md accurately reflects all changes since the last release.
+    * Add any significant changes that weren't documented in the changelog
+    * Clean up any entries that are overly verbose, unclear, or otherwise could be improved.
+    * Create markdown release tag.
+      * [Example](https://github.com/cisco/cisco-network-node-utils/blob/develop/CHANGELOG.md#v120)
+    * Indicate new platform support (if any) for exisiting providers.
+    
+1. Update [cisco_node_utils.gemspec](https://github.com/cisco/cisco-network-node-utils/blob/develop/cisco_node_utils.gemspec) if needed.
+    * Is the data still relevant?
+    * Do the version dependencies need to be updated? (e.g. rubocop)
 
-    ```diff
-     Changelog
-     =========
-
-    -(unreleased)
-    -------------
-    +1.0.1
-    +-----
-    ```
-
-    and also update `version.rb`:
-
+1. Update [version.rb](https://github.com/cisco/cisco-network-node-utils/blob/develop/lib/cisco_node_utils/version.rb) file.
     ```diff
     -  VERSION = '1.0.0'
     +  VERSION = '1.0.1'
     ```
 
-3. Finish the release and push it to GitHub:
+1. Scrub README Docs.
+    * Update references to indicate new platorm support where applicable.
+    * Update nxos release information where applicable.
+    
+1. Open pull request from release branch against the `master` branch.
+    * Merge after approval.
+    
+### Post-Merge to `master` branch:
 
-    ```
-    git flow release finish 1.0.1
-    git push origin master
-    git push origin develop
-    git push --tags
-    ```
+1. Create annotated git tag for the release.
+    * [HowTo](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Annotated-Tags)
 
-4. Add release notes on GitHub, for example `https://github.com/cisco/cisco-network-node-utils/releases/new?tag=v1.0.1`. Usually this will just be a copy-and-paste of the relevant section of the `CHANGELOG.md`.
+2. Draft a [new release](https://github.com/cisco/cisco-network-node-utils/releases) on github.
 
-5. Publish the new gem version to rubygems.org:
-
+3. Publish the gem to rubygems.org. (Replace `x.x.x` with actual gem version)
     ```
     gem build cisco_node_utils.gemspec
-    gem push cisco_node_utils-0.9.0.gem
+    gem push cisco_node_utils-x.x.x.gem
     ```
+4. Merge `master` branch back into `develop` branch.
+    * Resolve any merge conflicts
+    * Optional: Delete release branch (May want to keep for reference)
