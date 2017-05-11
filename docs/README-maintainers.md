@@ -45,7 +45,7 @@ When we are considering publishing a new release, all of the following steps mus
 1. Run full minitest regression on [supported platforms.](https://github.com/cisco/cisco-network-node-utils#overview)
     * Fix All Bugs.
     * Make sure proper test case skips are in place for unsupported platforms.
-    
+
 1. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
 
 1. Update [changelog.](https://github.com/cisco/cisco-network-node-utils/blob/develop/CHANGELOG.md)
@@ -55,7 +55,7 @@ When we are considering publishing a new release, all of the following steps mus
     * Create markdown release tag.
       * [Example](https://github.com/cisco/cisco-network-node-utils/blob/develop/CHANGELOG.md#v120)
     * Indicate new platform support (if any) for exisiting providers.
-    
+
 1. Update [cisco_node_utils.gemspec](https://github.com/cisco/cisco-network-node-utils/blob/develop/cisco_node_utils.gemspec) if needed.
     * Is the data still relevant?
     * Do the version dependencies need to be updated? (e.g. rubocop)
@@ -69,10 +69,10 @@ When we are considering publishing a new release, all of the following steps mus
 1. Scrub README Docs.
     * Update references to indicate new platorm support where applicable.
     * Update nxos release information where applicable.
-    
+
 1. Open pull request from release branch against the `master` branch.
     * Merge after approval.
-    
+
 ### Post-Merge to `master` branch:
 
 1. Create annotated git tag for the release.
