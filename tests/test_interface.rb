@@ -1764,6 +1764,7 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_load_interval_counter_1_delay,
                  interface.load_interval_counter_1_delay)
     # check nil for subintf and loopback
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
     assert_nil(subif.load_interval_counter_1_delay)
     assert_raises(ArgumentError) { subif.load_interval_counter_1_delay = 100 }
@@ -1794,6 +1795,7 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_load_interval_counter_2_delay,
                  interface.load_interval_counter_2_delay)
     # check nil for subintf and loopback
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
     assert_nil(subif.load_interval_counter_2_delay)
     assert_raises(ArgumentError) { subif.load_interval_counter_2_delay = 100 }
@@ -1824,6 +1826,7 @@ class TestInterface < CiscoTestCase
     assert_equal(interface.default_load_interval_counter_3_delay,
                  interface.load_interval_counter_3_delay)
     # check nil for subintf and loopback
+    interface.switchport_mode = :disabled if platform == :nexus
     subif = Interface.new(interfaces[0] + '.1')
     assert_nil(subif.load_interval_counter_3_delay)
     assert_raises(ArgumentError) { subif.load_interval_counter_3_delay = 100 }

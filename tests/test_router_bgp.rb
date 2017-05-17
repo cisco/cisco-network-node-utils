@@ -1320,7 +1320,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_suppress_fib_pending
-    skip_legacy_defect?('7.0.3.I4.5',
+    skip_legacy_defect?('7.0.3.I4',
                         'CSCvd41536: Unable to remove  suppress-fib-pending')
     bgp = setup_default
     if validate_property_excluded?('bgp', 'suppress_fib_pending')
