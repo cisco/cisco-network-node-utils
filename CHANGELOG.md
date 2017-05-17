@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.7.0]
 
 ### New feature support
 
