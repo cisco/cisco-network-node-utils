@@ -23,7 +23,6 @@ Changelog
 
 * Extend ntp_config with attributes:
   * `authenticate`
-  * `source_interface`
   * `trusted_key`
 
 * Extend ntp_server with attributes:
