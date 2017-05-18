@@ -127,7 +127,7 @@ class TestVlan < CiscoTestCase
   end
 
   def test_name_zero_length
-    skip_legacy_defect?('7.0.3.I5.2',
+    skip_legacy_defect?('7.0.3.I5.2|7.0.3.I5.3',
                         'CSCvd09257: Configuration of vlan name via nxapi should be noop')
     v = Vlan.new(1000)
     v.vlan_name = ''
