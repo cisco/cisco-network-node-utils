@@ -207,12 +207,14 @@ match_mac_list:
   default_value: []
 
 match_metric:
+  os_version: 'N9k-F:7.0.3.F2.1'
   get_value: '/^match metric (.*)$/'
   set_value: "<state> match metric <metric>"
   default_value: []
 
 match_ospf_area:
   _exclude: [N5k, N6k, N7k, N9k-F]
+  os_version: 'N3k, N9k:7.0.3.I5.1'
   get_value: '/^match ospf-area (.*)$/'
   set_value: "<state> match ospf-area <area>"
   default_value: []
@@ -303,6 +305,7 @@ set_comm_list:
   default_value: false
 
 set_community:
+  os_version: 'N9k:7.0.3.I5.1'
   get_value: '/^set community(?:\s+.*)?$/'
   set_value: "<state> set community <string>"
 
@@ -363,6 +366,7 @@ set_extcomm_list:
   default_value: false
 
 set_extcommunity_4bytes:
+  os_version: 'N9k-F:7.0.3.F2.1'
   get_value: '/^set extcommunity 4byteas-generic (.*)$/'
   set_value: "<state> set extcommunity 4byteas-generic <string>"
 
@@ -438,6 +442,7 @@ set_ipv4_next_hop:
 
 set_ipv4_next_hop_load_share:
   _exclude: [N5k, N6k]
+  os_version: 'N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv4_next_hop_peer_addr:
@@ -448,6 +453,7 @@ set_ipv4_next_hop_peer_addr:
 
 set_ipv4_next_hop_redist:
   kind: boolean
+  os_version: 'N3k, N9k:7.0.3.I5.1'
   get_value: '/^set ip next-hop redist-unchanged$/'
   set_value: "<state> set ip next-hop redist-unchanged"
   default_value: false
@@ -487,6 +493,7 @@ set_ipv6_next_hop:
 
 set_ipv6_next_hop_load_share:
   _exclude: [N5k, N6k]
+  os_version: 'N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv6_next_hop_peer_addr:
@@ -497,6 +504,7 @@ set_ipv6_next_hop_peer_addr:
 
 set_ipv6_next_hop_redist:
   kind: boolean
+  os_version: 'N3k, N9k:7.0.3.I5.1'
   get_value: '/^set ipv6 next-hop redist-unchanged$/'
   set_value: "<state> set ipv6 next-hop redist-unchanged"
   default_value: false

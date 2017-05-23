@@ -7,6 +7,12 @@ _template:
   get_context:  ['/^vpc domain\s*(\d+)$/']
   set_context:  ['vpc domain <domain>']
 
+arp_synchronize:
+  kind: boolean
+  default_value: false
+  get_value: '/^ip arp synchronize/'
+  set_value: "<state> ip arp synchronize"
+
 auto_recovery:
   kind: boolean
   _exclude: [N5k, N6k]
@@ -89,10 +95,17 @@ graceful_consistency_check:
   default_value: true
 
 layer3_peer_routing:
+  os_version: 'N3k, N9k:7.0.3.I6.1'
   kind: boolean
-  _exclude: [N3k, N9k-F, N9k]
   get_value: '/^layer3 peer-router$/'
   set_value: "<state> layer3 peer-router"
+  default_value: false
+
+nd_synchronize:
+  kind: boolean
+  set_context:  ['terminal dont-ask', 'vpc domain <domain>']
+  get_value: '/^ipv6 nd synchronize/'
+  set_value: "<state> ipv6 nd synchronize"
   default_value: false
 
 peer_gateway:
@@ -160,6 +173,13 @@ peer_keepalive_vrf:
   get_value:  '/^peer-keepalive .*vrf (\S+)/'
   default_value: 'management'
 
+peer_switch:
+  kind: boolean
+  set_context:  ['terminal dont-ask', 'vpc domain <domain>']
+  get_value: '/^peer-switch/'
+  set_value: "<state> peer-switch"
+  default_value: false
+
 phy_port_vpc_module_pids:
   _exclude: [N3k, N5k, N6k, N9k-F, N9k]
   default_only: 'N7[K7]-(?:F2|F3|F4|M3)'
@@ -186,8 +206,8 @@ self_isolation:
   default_value: false
 
 shutdown:
+  os_version: 'N3k, N9k:7.0.3.I6.1'
   kind: boolean
-  _exclude: [N3k, N9k-F, N9k]
   get_value: '/^shutdown/'
   set_value: "<state> shutdown"
   default_value: false
@@ -211,4 +231,3 @@ track:
   get_value: '/^track\s+(\d+)/'
   set_value: "<state> track <val>"
   default_value: 0
-

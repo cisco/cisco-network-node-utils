@@ -80,30 +80,6 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    # extract value of property from load-balance
-    def extract_value(prop, prefix=nil)
-      prefix = prop if prefix.nil?
-      lb_match = lb_get
-
-      # matching lb not found
-      return nil if lb_match.nil? # no matching lb found
-
-      # property not defined for matching lb
-      return nil unless lb_match.names.include?(prop)
-
-      # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
-      value_match = regexp.match(lb_match[prop])
-      return nil if value_match.nil?
-      value_match[:extracted]
-    end
-
-    # prepend property name prefix/keyword to value
-    def attach_prefix(val, prop, prefix=nil)
-      prefix = prop.to_s if prefix.nil?
-      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
-    end
-
     def access_list
       config_get('itd_service', 'access_list', @get_args)
     end
@@ -270,13 +246,13 @@ module Cisco
     end
 
     def load_bal_buckets
-      val = extract_value('buckets')
+      val = Utils.extract_value(lb_get, 'buckets')
       return default_load_bal_buckets if val.nil?
       val.to_i
     end
 
     def load_bal_buckets=(buckets)
-      attach_prefix(buckets, :buckets)
+      @set_args[:buckets] = Utils.attach_prefix(buckets, :buckets)
     end
 
     def default_load_bal_buckets
@@ -284,13 +260,13 @@ module Cisco
     end
 
     def load_bal_mask_pos
-      val = extract_value('mask', 'mask-position')
+      val = Utils.extract_value(lb_get, 'mask', 'mask-position')
       return default_load_bal_mask_pos if val.nil?
       val.to_i
     end
 
     def load_bal_mask_pos=(mask)
-      attach_prefix(mask, :mask, 'mask-position')
+      @set_args[:mask] = Utils.attach_prefix(mask, :mask, 'mask-position')
     end
 
     def default_load_bal_mask_pos
@@ -313,13 +289,14 @@ module Cisco
     end
 
     def load_bal_method_bundle_select
-      val = extract_value('bundle_select', 'method')
+      val = Utils.extract_value(lb_get, 'bundle_select', 'method')
       return default_load_bal_method_bundle_select if val.nil?
       val
     end
 
     def load_bal_method_bundle_select=(bs)
-      attach_prefix(bs, :bundle_select, 'method')
+      @set_args[:bundle_select] =
+          Utils.attach_prefix(bs, :bundle_select, 'method')
     end
 
     def default_load_bal_method_bundle_select
@@ -342,13 +319,13 @@ module Cisco
     end
 
     def load_bal_method_start_port
-      val = extract_value('start_port', 'range')
+      val = Utils.extract_value(lb_get, 'start_port', 'range')
       return default_load_bal_method_start_port if val.nil?
       val.to_i
     end
 
     def load_bal_method_start_port=(start)
-      attach_prefix(start, :start_port, 'range')
+      @set_args[:start_port] = Utils.attach_prefix(start, :start_port, 'range')
     end
 
     def default_load_bal_method_start_port

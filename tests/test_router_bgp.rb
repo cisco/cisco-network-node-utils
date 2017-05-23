@@ -64,7 +64,7 @@ def newer_image_version?
   new = true
   new = false if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
                  node.product_id[/(N5|N6|N7|N9.*-F)/]
-  new = true if Utils.image_version?(/8.0/)
+  new = true if Utils.image_version?(/8.0|8.1/)
   new
 end
 
@@ -503,7 +503,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv4
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv4)
       assert_nil(b.default_disable_policy_batching_ipv4)
@@ -512,6 +512,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv4')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv4
     assert_equal(default, bgp.disable_policy_batching_ipv4,
@@ -532,7 +533,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_disable_policy_batching_ipv6
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.disable_policy_batching_ipv6)
       assert_nil(b.default_disable_policy_batching_ipv6)
@@ -541,6 +542,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'disable_policy_batching_ipv6')
     bgp = setup_default
     default = bgp.default_disable_policy_batching_ipv6
     assert_equal(default, bgp.disable_policy_batching_ipv6,
@@ -669,7 +671,7 @@ class TestRouterBgp < CiscoTestCase
     assert_equal('false', bgp.event_history_errors)
     bgp.event_history_errors = 'size_small'
     assert_equal('size_small', bgp.event_history_errors) unless
-      Utils.image_version?(/8.0/)
+      Utils.image_version?(/8.0|8.1/)
     bgp.event_history_errors = 'size_large'
     assert_equal('size_large', bgp.event_history_errors)
     bgp.event_history_errors = 'size_medium'
@@ -756,7 +758,7 @@ class TestRouterBgp < CiscoTestCase
                  bgp.event_history_periodic)
     bgp.event_history_periodic = 'false'
     assert_equal('false', bgp.event_history_periodic) unless
-      Utils.image_version?(/8.0/)
+      Utils.image_version?(/8.0|8.1/)
     bgp.event_history_periodic = 'size_small'
     assert_equal('size_small', bgp.event_history_periodic)
     bgp.event_history_periodic = 'size_large'
@@ -775,7 +777,7 @@ class TestRouterBgp < CiscoTestCase
     bgp.event_history_periodic = 'true'
     if newer_image_version?
       assert_equal('true', bgp.event_history_periodic) unless
-        Utils.image_version?(/8.0/)
+        Utils.image_version?(/8.0|8.1/)
     else
       assert_equal(bgp.default_event_history_periodic,
                    bgp.event_history_periodic)
@@ -1148,7 +1150,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_neighbor_down_fib_accelerate
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.neighbor_down_fib_accelerate)
       assert_nil(b.default_neighbor_down_fib_accelerate)
@@ -1157,6 +1159,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'neighbor_down_fib_accelerate')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -1184,7 +1187,7 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_reconnect_interval
-    if platform == :ios_xr || node.product_id[/N(5|6|7)/]
+    if platform == :ios_xr || node.product_id[/N(5|6)/]
       b = RouterBgp.new(1)
       assert_nil(b.reconnect_interval)
       assert_nil(b.default_reconnect_interval)
@@ -1193,6 +1196,7 @@ class TestRouterBgp < CiscoTestCase
       end
       return
     end
+    skip_incompat_version?('bgp', 'reconnect_interval')
     %w(test_default test_vrf).each do |t|
       if t == 'test_default'
         bgp = setup_default
@@ -1221,6 +1225,7 @@ class TestRouterBgp < CiscoTestCase
       assert_nil(bgp.reconnect_interval,
                  'reconnect_interval should return nil on XR')
     else
+      skip_incompat_version?('bgp', 'reconnect_interval')
       assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
                    "reconnect_interval should be set to default value of '60'")
       bgp.destroy

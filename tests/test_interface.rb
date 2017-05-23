@@ -788,7 +788,7 @@ class TestInterface < CiscoTestCase
     if validate_property_excluded?('interface_channel_group', 'channel_group')
       member = InterfaceChannelGroup.new(interfaces[0])
       assert_raises(Cisco::UnsupportedError) do
-        member.channel_group = 10
+        member.channel_group_mode_set(10)
       end
       return
     end
@@ -1359,7 +1359,7 @@ class TestInterface < CiscoTestCase
     # pre-configure
     begin
       interface_ethernet_default(interfaces[1])
-      InterfaceChannelGroup.new(interfaces[1]).channel_group = 48
+      InterfaceChannelGroup.new(interfaces[1]).channel_group_mode_set(48)
     rescue Cisco::UnsupportedError
       raise unless platform == :ios_xr
       # Some XR platform/version combos don't support port-channels
@@ -1832,5 +1832,18 @@ class TestInterface < CiscoTestCase
     assert_raises(ArgumentError) { lb.load_interval_counter_3_delay = 100 }
     subif.destroy
     lb.destroy
+  end
+
+  def test_purge_config
+    name = interfaces[0]
+    int = Interface.new(name)
+    int.switchport_mode = :disabled
+
+    int.description = 'destroy_pysical'
+    int.ipv4_addr_mask_set('192.168.0.1', '24')
+    refute(int.purge_config)
+
+    int.purge_config = true
+    assert(int.purge_config)
   end
 end

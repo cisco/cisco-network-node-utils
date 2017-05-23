@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,24 @@ module Cisco
 
     def ==(other)
       name == other.name
+    end
+
+    def authenticate
+      config_get('ntp_config', 'authenticate')
+    end
+
+    def authenticate=(enable)
+      state = (enable ? '' : 'no')
+      config_set('ntp_config', 'authenticate', state: state)
+    end
+
+    def trusted_key
+      config_get('ntp_config', 'trusted_key')
+    end
+
+    def trusted_key_set(state, key)
+      state = (state ? '' : 'no')
+      config_set('ntp_config', 'trusted_key', state: state, key: key)
     end
 
     def source_interface

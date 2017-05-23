@@ -3,7 +3,9 @@
 #
 # April 2015, Alex Hunsberger
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# March 2017, Re-written by Mike Wiebe
+#
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +20,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'logger'
 
 module Cisco
   # This Yum class provides cisco package management functions through nxapi.
@@ -52,14 +55,14 @@ module Cisco
 
     def self.install(pkg, vrf=nil)
       vrf = vrf.nil? ? detect_vrf : "vrf #{vrf}"
-
       begin
-        config_set('yum', 'install', pkg, vrf)
-
-        # HACK: The current nxos host installer is a multi-part command
-        # which may fail at a later stage yet return a false positive;
-        # therefore a post-validation check is needed here to verify the
-        # actual outcome.
+        # get package name first
+        name = pkg_name(pkg)
+        # call remove if pkg exists
+        remove(name) unless name.empty?
+        add(pkg, vrf)
+        activate(pkg)
+        commit(pkg_name(pkg))
         validate_installed(pkg)
       rescue Cisco::CliError, RuntimeError => e
         raise Cisco::CliError, "#{e.class}, #{e.message}"
@@ -76,15 +79,135 @@ module Cisco
     end
 
     def self.remove(pkg)
-      config_set('yum', 'deactivate', pkg)
-      # May not be able to remove the package immediately after
-      # deactivation.
+      # get committed state
+      cstate = query_committed(pkg)
+      # get activated state
+      astate = query_activated(pkg)
+
+      if astate && cstate
+        # pkg is active and committed
+        # so deactivate, commit and remove
+        deactivate(pkg)
+        commit_deactivate(pkg)
+        delete(pkg)
+      elsif cstate
+        # pkg is inactive and committed
+        # so commit and remove
+        commit_deactivate(pkg)
+        delete(pkg)
+      elsif astate
+        # pkg is active and not committed
+        # so deactivate and remove
+        deactivate(pkg)
+        delete(pkg)
+      else
+        # pkg is inactive and not committed
+        # so just remove
+        delete(pkg)
+      end
+    rescue Cisco::CliError, RuntimeError => e
+      raise Cisco::CliError, "#{e.class}, #{e.message}"
+    end
+
+    def self.add(pkg, vrf=nil)
+      try_operation('add', pkg, vrf)
       while (try ||= 1) < 20
-        o = config_set('yum', 'remove', pkg)
-        break unless o[/operation is in progress, please try again later/]
+        return if query_added(pkg)
         sleep 1
         try += 1
       end
+      fail "Failed to add pkg: #{pkg}, using vrf #{vrf}"
+    end
+
+    def self.activate(pkg)
+      try_operation('activate', pkg)
+      while (try ||= 1) < 20
+        return if query_activated(pkg)
+        sleep 1
+        try += 1
+      end
+      fail "Failed to activate pkg: #{pkg}"
+    end
+
+    def self.commit(pkg)
+      try_operation('commit', pkg)
+      while (try ||= 1) < 20
+        return if query_committed(pkg)
+        sleep 1
+        try += 1
+      end
+      fail "Failed to commit pkg: #{pkg}"
+    end
+
+    def self.commit_deactivate(pkg)
+      try_operation('commit', pkg)
+      while (try ||= 1) < 20
+        return unless query_committed(pkg)
+        sleep 1
+        try += 1
+      end
+      fail "Failed to commit after deactivate pkg: #{pkg}"
+    end
+
+    def self.deactivate(pkg)
+      try_operation('deactivate', pkg)
+      while (try ||= 1) < 20
+        return if query_inactive(pkg)
+        sleep 1
+        try += 1
+      end
+      fail "Failed to deactivate pkg: #{pkg}"
+    end
+
+    def self.delete(pkg)
+      try_operation('remove', pkg)
+      while (try ||= 1) < 20
+        return if query_removed(pkg)
+        sleep 1
+        try += 1
+      end
+      fail "Failed to delete pkg: #{pkg}"
+    end
+
+    def self.try_operation(operation, pkg, vrf=nil)
+      args = vrf.nil? ? { pkg: pkg } : { pkg: pkg, vrf: vrf }
+      while (try ||= 1) < 20
+        o = config_set('yum', operation, args)
+        break unless o[/Another install operation is in progress/]
+        sleep 1
+        try += 1
+      end
+    end
+
+    def self.pkg_name(pkg)
+      config_get('yum', 'pkg_name', pkg: pkg)
+    end
+
+    def self.query_activated(pkg)
+      config_get('yum', 'query_activated', pkg: pkg)
+    end
+
+    def self.query_added(pkg)
+      config_get('yum', 'query_added', pkg: pkg)
+    end
+
+    def self.query_committed(pkg)
+      o = config_get('yum', 'query_committed', pkg: pkg)
+      return false if o.nil?
+      o.include? pkg
+    end
+
+    def self.query_inactive(pkg)
+      config_get('yum', 'query_inactive', pkg: pkg)
+    end
+
+    def self.query_removed(pkg)
+      val = config_get('yum', 'query_removed', pkg: pkg)
+      val ? false : true
+    end
+
+    def self.query_state(pkg)
+      config_get('yum', 'query_state', pkg: pkg).downcase
     end
   end
 end

@@ -13,14 +13,18 @@ all_interfaces:
   get_value: '/^interface (Ethernet.*)/i'
 
 channel_group:
-  kind: int
   default_value: false
   nexus:
-    get_value: '/^channel-group (\d+)$/'
-    set_value: '<state> channel-group <group> <force>'
+    get_value: '/^channel-group (\d+)(?:\s+mode\s+(\S+))?$/'
+    set_value: '<state> channel-group <group> <force> <mode> <val>'
   ios_xr:
+    kind: int
     get_value: '/^bundle id (\d+).*$/'
     set_value: '<state> bundle id <group>'
+
+channel_group_mode:
+  _exclude: [ios_xr]
+  default_value: false
 
 description:
   kind: string

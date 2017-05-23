@@ -161,6 +161,27 @@ class TestVlan < CiscoTestCase
     config 'no system vlan long-name'
   end
 
+  def test_id_similar
+    config 'system vlan long-name'
+    v2 = Vlan.new(2)
+    v102 = Vlan.new(102)
+    v222 = Vlan.new(222)
+
+    v2.vlan_name = 'NEW_YORK_OFFICE'
+    v102.vlan_name = 'RALEIGH_OFFICE'
+    long_name = 'LONG_NAME' + ('E' * 119)
+    v222.vlan_name = long_name
+
+    assert_equal('NEW_YORK_OFFICE', v2.vlan_name)
+    assert_equal('RALEIGH_OFFICE', v102.vlan_name)
+    assert_equal(long_name, v222.vlan_name)
+
+    v2.destroy
+    v102.destroy
+    v222.destroy
+    config 'no system vlan long-name'
+  end
+
   def test_state_invalid
     v = Vlan.new(1000)
     assert_raises(CliError) do
@@ -186,7 +207,7 @@ class TestVlan < CiscoTestCase
 
   def test_shutdown_extended
     v = Vlan.new(2000)
-    assert_raises(RuntimeError, 'vlan misconfig did not raise RuntimeError') do
+    assert_raises(CliError, 'vlan misconfig did not raise CliError') do
       v.shutdown = 'shutdown'
     end
     v.destroy
@@ -317,7 +338,7 @@ class TestVlan < CiscoTestCase
     assert(vlan.fabric_control)
     another_vlan = Vlan.new(101)
 
-    assert_raises(RuntimeError,
+    assert_raises(CliError,
                   'VLAN misconfig did not raise CliError') do
       another_vlan.fabric_control = true
     end

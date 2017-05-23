@@ -1,0 +1,65 @@
+# SPAN session
+---
+_exclude: [N5k, N6k, N7k]
+
+_template:
+  get_command: "show running monitor all"
+  get_context: ["monitor session <id>(?: .*)?"]
+  set_context: ["monitor session <id>"]
+
+all_sessions:
+  multiple:
+  get_context: ~
+  get_value: '/^monitor session (\d+)/'
+
+create:
+  set_context: ~
+  set_value: 'monitor session <id>'
+
+description:
+  kind: string
+  get_value: '/^description (.*)/'
+  set_value: '<state> description <description>'
+  default_value: ''
+
+destination:
+  kind: string
+  get_value: '/^destination interface (\S+)$/'
+  set_value: '<state> destination interface <intf_name>'
+
+destroy:
+  set_context: ~
+  set_value: 'no monitor session <id>'
+
+session_id:
+  kind: int
+  default_value: false
+  get_context: ~
+  get_value: '/^monitor session (\d+)/'
+  set_context: ~
+  set_value: '<state> monitor session <id> <type> <val>'
+
+shutdown:
+  kind: boolean
+  default_value: true
+  get_value: '/^no shut$/'
+  set_value: '<state> shut'
+
+source_interfaces:
+  multiple:
+  get_value: '/^source interface (\S+) (\w+)$/'
+  set_value: '<state> source interface <int_name> <direction>'
+  default_value: []
+
+source_vlans:
+  get_value: '/^source vlan (\S+) (\w+)$/'
+  set_value: '<state> source vlan <vlans> <direction>'
+  default_value: []
+
+type:
+  kind: string
+  default_value: 'local'
+  get_context: ~
+  get_value: '/^monitor session \d+ type (\S+)$/'
+  set_context: ~
+  set_value: 'monitor session <id> type <type>'

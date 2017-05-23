@@ -200,6 +200,7 @@ module Cisco
     end
 
     def layer3_peer_routing=(val)
+      return if val == layer3_peer_routing
       set_args_keys(state: val ? '' : 'no')
       # This requires peer_gateway to be set first
       self.peer_gateway = true if !peer_gateway && val
@@ -295,8 +296,47 @@ module Cisco
       config_set('vpc', 'peer_gateway', @set_args)
     end
 
+    def peer_switch
+      config_get('vpc', 'peer_switch')
+    end
+
+    def peer_switch=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'peer_switch', @set_args)
+    end
+
+    def arp_synchronize
+      config_get('vpc', 'arp_synchronize')
+    end
+
+    def arp_synchronize=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'arp_synchronize', @set_args)
+    end
+
+    def nd_synchronize
+      config_get('vpc', 'nd_synchronize')
+    end
+
+    def nd_synchronize=(val)
+      set_args_keys(state: val ? '' : 'no')
+      config_set('vpc', 'nd_synchronize', @set_args)
+    end
+
     def default_peer_gateway
       config_get_default('vpc', 'peer_gateway')
+    end
+
+    def default_peer_switch
+      config_get_default('vpc', 'peer_switch')
+    end
+
+    def default_arp_synchronize
+      config_get_default('vpc', 'arp_synchronize')
+    end
+
+    def default_nd_synchronize
+      config_get_default('vpc', 'nd_synchronize')
     end
 
     def peer_gateway_exclude_bridge_domain
