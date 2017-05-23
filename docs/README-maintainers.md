@@ -44,6 +44,9 @@ When we are considering publishing a new release, all of the following steps mus
     ```diff
     -  VERSION = '1.0.0'
     +  VERSION = '1.0.1'
+    ...
+    +[v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
+    [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
     ```
 
 1. Scrub README Docs.
