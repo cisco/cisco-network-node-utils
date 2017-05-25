@@ -6,5 +6,5 @@ gemspec
 # These are optional dependencies in the Gem itself,
 # but we need them for Bundler to use.
 gem 'net_http_unix'
-gem 'grpc'
+gem 'grpc', '= 1.2.5'
 gem 'pry'
