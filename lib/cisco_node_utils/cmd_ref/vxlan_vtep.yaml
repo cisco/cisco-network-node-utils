@@ -50,7 +50,8 @@ source_intf:
   default_value: ''
 
 source_intf_hold_down_time:
-  _exclude: [N5k, N6k, N7k]
+  _exclude: [N5k, N6k]
+  os_version: 'N7k:8.1.1'
   kind: int
   get_value: '/^source-interface hold-down-time (\d+)$/'
   set_value: '<state> source-interface hold-down-time <time>'

@@ -367,5 +367,45 @@ module Cisco
         value.start_with?('"') && value.end_with?('"')
       value
     end # add_quotes
+
+    # This method is used in config_get for CLIs which
+    # have multiple properties in the same output
+    # Given a match_method which defines regex pattern and the
+    # match criteria, this method, extracts the value of
+    # a property with or without a prefix.
+    # For ex. if the regex pattern is something like:
+    # (?<action>\S+)?
+    # the property to extract is action and prefix is nil
+    # for (?<src_port>range \S+)
+    # the property to extract is src_port and prefix is range
+    def self.extract_value(match_method, prop, prefix=nil)
+      prefix = prop if prefix.nil?
+      mm = match_method
+
+      return nil if mm.nil?
+
+      return nil unless mm.names.include?(prop)
+
+      # extract and return value that follows prefix + <space>
+      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
+      value_match = regexp.match(mm[prop])
+      return nil if value_match.nil?
+      value_match[:extracted]
+    end
+
+    # This method is used in config_set for CLIs which
+    # can set multiple properties using the same CLI.
+    # This method attaches prefix to the given property
+    # when the prefix is different from the property name
+    # else it attaches property name itself. It also
+    # appends the value to be set.
+    # For ex. if the set_value is <precedence> <time_range>
+    # the prop for precedence could be 'precedence', and
+    # for time_range, the prop and prefix could be 'time_range'
+    # and 'time-range'
+    def self.attach_prefix(val, prop, prefix=nil)
+      prefix = prop.to_s if prefix.nil?
+      val.to_s.empty? ? val : "#{prefix} #{val}"
+    end
   end # class Utils
 end   # module Cisco

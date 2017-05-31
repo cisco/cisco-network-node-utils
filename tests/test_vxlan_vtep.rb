@@ -193,6 +193,7 @@ class TestVxlanVtep < CiscoTestCase
       return
     end
 
+    skip_incompat_version?('vxlan_vtep', 'source_intf_hold_down_time')
     # Set source_interface to non-default value
     val = 'loopback55'
     vtep.source_interface = val

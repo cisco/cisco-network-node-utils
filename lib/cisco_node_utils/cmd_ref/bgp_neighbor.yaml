@@ -5,7 +5,11 @@ _template:
     get_command: "show running router bgp"
   nexus:
     get_command: "show running bgp all"
-  context:
+  get_context:
+    - "router bgp <asnum>"
+    - "(?)vrf <vrf>"
+    - "neighbor <nbr>(?: remote-as <ra>)?"
+  set_context:
     - "router bgp <asnum>"
     - "(?)vrf <vrf>"
     - "neighbor <nbr>"
@@ -15,10 +19,10 @@ af:
 
 all_neighbors:
   multiple: true
-  context:
+  get_context:
     - "router bgp <asnum>"
     - "(?)vrf <vrf>"
-  get_value: '/^neighbor (\S+)$/'
+  get_value: '/^neighbor (\S+)(?:\s+remote-as (\d+))?$/'
 
 bfd:
   _exclude: [ios_xr]
@@ -71,7 +75,8 @@ local_as:
   default_value: 0
 
 log_neighbor_changes:
-  _exclude: [ios_xr, N5k, N6k, N7k]
+  _exclude: [ios_xr, N5k, N6k]
+  os_version: 'N7k:8.1.1'
   multiple: true # not actually, but we get an array of matches
   auto_default: false
   get_value: '/^log-neighbor-changes\s+??(\S+)?\s+??$/'

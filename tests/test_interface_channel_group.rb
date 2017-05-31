@@ -32,6 +32,7 @@ class TestInterfaceChanGrp < CiscoTestCase
   end
 
   def test_channel_group
+    skip if platform == :nexus
     i = @intf
     group = 200
     i.channel_group = group
@@ -47,6 +48,52 @@ class TestInterfaceChanGrp < CiscoTestCase
   rescue Cisco::UnsupportedError => e
     # Some platforms only support channel-group with certain software versions
     skip(e.to_s)
+  end
+
+  def test_channel_group_mode
+    skip if platform == :ios_xr
+    i = @intf
+    group = 55
+
+    # Default Case: group = mode = false
+    refute(i.channel_group)
+    refute(i.channel_group_mode)
+
+    # group = 55, mode = on
+    i.channel_group_mode_set(group)
+    assert_equal(group, i.channel_group)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
+
+    # group = 55, mode = active
+    i.channel_group_mode_set(group, 'active')
+    assert_equal(group, i.channel_group)
+    assert_equal('active', i.channel_group_mode)
+
+    # group = 55, mode = passive
+    i.channel_group_mode_set(group, 'passive')
+    assert_equal(group, i.channel_group)
+    assert_equal('passive', i.channel_group_mode)
+
+    # group = 55, mode = on
+    i.channel_group_mode_set(group, 'on')
+    assert_equal(group, i.channel_group)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
+
+    # group = 66, mode = active
+    group = 66
+    i.channel_group_mode_set(group, 'active')
+    assert_equal(group, i.channel_group)
+    assert_equal('active', i.channel_group_mode)
+
+    # group = 66, mode = on
+    i.channel_group_mode_set(group)
+    assert_equal(group, i.channel_group)
+    assert_equal(i.default_channel_group_mode, i.channel_group_mode)
+
+    # Default Case: group = mode = false
+    i.channel_group_mode_set(i.default_channel_group)
+    refute(i.channel_group)
+    refute(i.channel_group_mode)
   end
 
   def test_description

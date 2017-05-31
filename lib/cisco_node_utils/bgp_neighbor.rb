@@ -27,7 +27,7 @@ module Cisco
   class RouterBgpNeighbor < NodeUtil
     attr_reader :nbr, :vrf, :asn
 
-    def initialize(asn, vrf, nbr, instantiate=true)
+    def initialize(asn, vrf, nbr, ra=nil, instantiate=true)
       fail TypeError unless nbr.is_a?(String)
       # for IP/prefix format, such as "1.1.1.1/24" or "2000:123:38::34/64",
       # we need to mask the address using prefix length, so that it becomes
@@ -35,7 +35,8 @@ module Cisco
       @nbr = Utils.process_network_mask(nbr)
       @asn = RouterBgp.validate_asnum(asn)
       @vrf = vrf
-      @get_args = @set_args = { asnum: @asn, nbr: @nbr }
+      @ra = ra
+      @get_args = @set_args = { asnum: @asn, nbr: @nbr, ra: @ra }
       @get_args[:vrf] = @set_args[:vrf] = vrf if vrf != 'default'
 
       create if instantiate
@@ -52,9 +53,9 @@ module Cisco
           next if neighbor_list.nil?
 
           hash[asn][vrf_id] = {}
-          neighbor_list.each do |nbr|
+          neighbor_list.each do |nbr, ra|
             hash[asn][vrf_id][nbr] = RouterBgpNeighbor.new(asn, vrf_id,
-                                                           nbr, false)
+                                                           nbr, ra, false)
           end
         end
       end
@@ -306,7 +307,9 @@ module Cisco
     end
 
     def remote_as
-      config_get('bgp_neighbor', 'remote_as', @get_args).to_s
+      tra = config_get('bgp_neighbor', 'remote_as', @get_args).to_s
+      tra = @ra if tra == default_remote_as && !@ra.nil?
+      tra
     end
 
     def default_remote_as

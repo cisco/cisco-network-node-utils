@@ -211,13 +211,7 @@ class TestBfdGlobal < CiscoTestCase
   def test_interval
     bg = BfdGlobal.new
     arr = %w(100 100 25)
-    if validate_property_excluded?('bfd_global', 'interval')
-      assert_nil(bg.interval)
-      assert_raises(Cisco::UnsupportedError) do
-        bg.interval = arr
-      end
-      return
-    end
+    skip_incompat_version?('bfd_global', 'interval')
     assert_equal(bg.default_interval, bg.interval)
     bg.interval = arr
     assert_equal(arr, bg.interval)

@@ -453,31 +453,6 @@ module Cisco
       config_get_default('route_map', 'match_ipv4_route_src_prefix_list')
     end
 
-    # extract value of property from match ip multicast
-    def extract_value(type, prop, prefix=nil)
-      prefix = prop if prefix.nil?
-      match =
-        type == 'ipv4' ? match_ipv4_multicast_get : match_ipv6_multicast_get
-
-      # matching not found
-      return nil if match.nil? # no matching found
-
-      # property not defined for matching
-      return nil unless match.names.include?(prop)
-
-      # extract and return value that follows prefix + <space>
-      regexp = Regexp.new("#{Regexp.escape(prefix)} (?<extracted>.*)")
-      value_match = regexp.match(match[prop])
-      return nil if value_match.nil?
-      value_match[:extracted]
-    end
-
-    # prepend property name prefix/keyword to value
-    def attach_prefix(val, prop, prefix=nil)
-      prefix = prop.to_s if prefix.nil?
-      @set_args[prop] = val.to_s.empty? ? val : "#{prefix} #{val}"
-    end
-
     # match ip multicast source 242.1.1.1/32 group 239.2.2.2/32 rp 242.1.1.1/32
     #                    rp-type ASM
     # match ip multicast source 242.1.1.1/32 group-range
@@ -495,13 +470,13 @@ module Cisco
     end
 
     def match_ipv4_multicast_src_addr
-      val = extract_value('ipv4', 'src', 'source')
+      val = Utils.extract_value(match_ipv4_multicast_get, 'src', 'source')
       return default_match_ipv4_multicast_src_addr if val.nil?
       val
     end
 
     def match_ipv4_multicast_src_addr=(src_addr)
-      attach_prefix(src_addr, :source)
+      @set_args[:source] = Utils.attach_prefix(src_addr, :source)
     end
 
     def default_match_ipv4_multicast_src_addr
@@ -509,13 +484,13 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_addr
-      val = extract_value('ipv4', 'grp', 'group')
+      val = Utils.extract_value(match_ipv4_multicast_get, 'grp', 'group')
       return default_match_ipv4_multicast_group_addr if val.nil?
       val
     end
 
     def match_ipv4_multicast_group_addr=(grp_addr)
-      attach_prefix(grp_addr, :group)
+      @set_args[:group] = Utils.attach_prefix(grp_addr, :group)
     end
 
     def default_match_ipv4_multicast_group_addr
@@ -523,13 +498,15 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_begin_addr
-      val = extract_value('ipv4', 'grp_range_start', 'group-range')
+      val = Utils.extract_value(match_ipv4_multicast_get,
+                                'grp_range_start', 'group-range')
       return default_match_ipv4_multicast_group_range_begin_addr if val.nil?
       val
     end
 
     def match_ipv4_multicast_group_range_begin_addr=(begin_addr)
-      attach_prefix(begin_addr, :group_range, :'group-range')
+      @set_args[:group_range] =
+          Utils.attach_prefix(begin_addr, :group_range, :'group-range')
     end
 
     def default_match_ipv4_multicast_group_range_begin_addr
@@ -538,13 +515,13 @@ module Cisco
     end
 
     def match_ipv4_multicast_group_range_end_addr
-      val = extract_value('ipv4', 'grp_range_end', 'to')
+      val = Utils.extract_value(match_ipv4_multicast_get, 'grp_range_end', 'to')
       return default_match_ipv4_multicast_group_range_end_addr if val.nil?
       val
     end
 
     def match_ipv4_multicast_group_range_end_addr=(end_addr)
-      attach_prefix(end_addr, :to)
+      @set_args[:to] = Utils.attach_prefix(end_addr, :to)
     end
 
     def default_match_ipv4_multicast_group_range_end_addr
@@ -553,13 +530,13 @@ module Cisco
     end
 
     def match_ipv4_multicast_rp_addr
-      val = extract_value('ipv4', 'rp')
+      val = Utils.extract_value(match_ipv4_multicast_get, 'rp')
       return default_match_ipv4_multicast_rp_addr if val.nil?
       val
     end
 
     def match_ipv4_multicast_rp_addr=(rp_addr)
-      attach_prefix(rp_addr, :rp)
+      @set_args[:rp] = Utils.attach_prefix(rp_addr, :rp)
     end
 
     def default_match_ipv4_multicast_rp_addr
@@ -567,13 +544,13 @@ module Cisco
     end
 
     def match_ipv4_multicast_rp_type
-      val = extract_value('ipv4', 'rp_type', 'rp-type')
+      val = Utils.extract_value(match_ipv4_multicast_get, 'rp_type', 'rp-type')
       return default_match_ipv4_multicast_rp_type if val.nil?
       val
     end
 
     def match_ipv4_multicast_rp_type=(type)
-      attach_prefix(type, :rp_type, :'rp-type')
+      @set_args[:rp_type] = Utils.attach_prefix(type, :rp_type, :'rp-type')
     end
 
     def default_match_ipv4_multicast_rp_type
@@ -750,13 +727,13 @@ module Cisco
     end
 
     def match_ipv6_multicast_src_addr
-      val = extract_value('ipv6', 'src', 'source')
+      val = Utils.extract_value(match_ipv6_multicast_get, 'src', 'source')
       return default_match_ipv6_multicast_src_addr if val.nil?
       val
     end
 
     def match_ipv6_multicast_src_addr=(src_addr)
-      attach_prefix(src_addr, :source)
+      @set_args[:source] = Utils.attach_prefix(src_addr, :source)
     end
 
     def default_match_ipv6_multicast_src_addr
@@ -764,13 +741,13 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_addr
-      val = extract_value('ipv6', 'grp', 'group')
+      val = Utils.extract_value(match_ipv6_multicast_get, 'grp', 'group')
       return default_match_ipv6_multicast_group_addr if val.nil?
       val
     end
 
     def match_ipv6_multicast_group_addr=(grp_addr)
-      attach_prefix(grp_addr, :group)
+      @set_args[:group] = Utils.attach_prefix(grp_addr, :group)
     end
 
     def default_match_ipv6_multicast_group_addr
@@ -778,13 +755,15 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_range_begin_addr
-      val = extract_value('ipv6', 'grp_range_start', 'group-range')
+      val = Utils.extract_value(match_ipv6_multicast_get,
+                                'grp_range_start', 'group-range')
       return default_match_ipv6_multicast_group_range_begin_addr if val.nil?
       val
     end
 
     def match_ipv6_multicast_group_range_begin_addr=(begin_addr)
-      attach_prefix(begin_addr, :group_range, :'group-range')
+      @set_args[:group_range] =
+          Utils.attach_prefix(begin_addr, :group_range, :'group-range')
     end
 
     def default_match_ipv6_multicast_group_range_begin_addr
@@ -793,13 +772,13 @@ module Cisco
     end
 
     def match_ipv6_multicast_group_range_end_addr
-      val = extract_value('ipv6', 'grp_range_end', 'to')
+      val = Utils.extract_value(match_ipv6_multicast_get, 'grp_range_end', 'to')
       return default_match_ipv6_multicast_group_range_end_addr if val.nil?
       val
     end
 
     def match_ipv6_multicast_group_range_end_addr=(end_addr)
-      attach_prefix(end_addr, :to)
+      @set_args[:to] = Utils.attach_prefix(end_addr, :to)
     end
 
     def default_match_ipv6_multicast_group_range_end_addr
@@ -808,13 +787,13 @@ module Cisco
     end
 
     def match_ipv6_multicast_rp_addr
-      val = extract_value('ipv6', 'rp')
+      val = Utils.extract_value(match_ipv6_multicast_get, 'rp')
       return default_match_ipv6_multicast_rp_addr if val.nil?
       val
     end
 
     def match_ipv6_multicast_rp_addr=(rp_addr)
-      attach_prefix(rp_addr, :rp)
+      @set_args[:rp] = Utils.attach_prefix(rp_addr, :rp)
     end
 
     def default_match_ipv6_multicast_rp_addr
@@ -822,13 +801,13 @@ module Cisco
     end
 
     def match_ipv6_multicast_rp_type
-      val = extract_value('ipv6', 'rp_type', 'rp-type')
+      val = Utils.extract_value(match_ipv6_multicast_get, 'rp_type', 'rp-type')
       return default_match_ipv6_multicast_rp_type if val.nil?
       val
     end
 
     def match_ipv6_multicast_rp_type=(type)
-      attach_prefix(type, :rp_type, :'rp-type')
+      @set_args[:rp_type] = Utils.attach_prefix(type, :rp_type, :'rp-type')
     end
 
     def default_match_ipv6_multicast_rp_type
@@ -1596,14 +1575,17 @@ module Cisco
     end
 
     def set_metric_set(plus, bndw, del, reliability, eff_bw, mtu)
-      state = bndw ? '' : 'no'
+      set_args_keys(state: 'no', additive: '', bw: '', delay: '',
+                    rel: '', eff: '', mtu: '')
+      config_set('route_map', 'set_metric', @set_args)
+      return unless bndw
       additive = plus ? '+' : ''
       bw = bndw ? bndw : ''
       delay = del ? del : ''
       rel = reliability ? reliability : ''
       eff = eff_bw ? eff_bw : ''
       lmtu = mtu ? mtu : ''
-      set_args_keys(state: state, additive: additive, bw: bw, delay: delay,
+      set_args_keys(state: '', additive: additive, bw: bw, delay: delay,
                     rel: rel, eff: eff, mtu: lmtu)
       config_set('route_map', 'set_metric', @set_args)
     end

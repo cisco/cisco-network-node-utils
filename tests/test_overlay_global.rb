@@ -70,6 +70,7 @@ class TestOverlayGlobal < CiscoTestCase
   def test_dup_host_mac_detection
     o = OverlayGlobal.new
 
+    skip_incompat_version?('overlay_global', 'dup_host_mac_detection')
     # Set to a non-default value
     val = [160, 16]
     o.dup_host_mac_detection_set(*val)
