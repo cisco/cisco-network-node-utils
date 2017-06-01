@@ -31,7 +31,7 @@ module Cisco
       @type = type
       @grp_name = name
       @seqno = seqno
-      og = ObjectGroup.object_groups[afi][type][name]
+      og = ObjectGroup.object_groups[afi.to_s][type.to_s][name.to_s]
       fail "ObjectGroup #{afi} #{type} #{name} does not exist" if
         og.nil?
       set_args_keys_default
@@ -64,13 +64,13 @@ module Cisco
         hash[lafi][type] ||= {}
         hash[lafi][type][name] ||= {}
         entries = config_get('object_group', 'all_entries',
-                             afi:      Acl.afi_cli(afi),
+                             afi:      Acl.afi_cli(lafi),
                              type:     type,
                              grp_name: name)
         next if entries.nil?
         entries.each do |seqno|
           hash[lafi][type][name][seqno] =
-            ObjectGroupEntry.new(afi, type, name, seqno)
+            ObjectGroupEntry.new(lafi, type, name, seqno)
         end
       end
       hash
@@ -118,8 +118,9 @@ module Cisco
 
     def address
       match = entry_get
-      return nil if match.nil? || !match.names.include?('address')
+      return nil if match.nil?
       addr = match[:address]
+      return nil if addr.nil?
       # Normalize addr. Some platforms zero_pad ipv6 addrs.
       addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
       addr
