@@ -3,6 +3,11 @@ Changelog
 
 ## [Unreleased]
 
+#### Cisco Resources
+* ObjectGroup
+  * object_group (@saichint)
+  * object_group_entry (@saichint)
+
 ## [v1.7.0]
 
 ### New feature support
