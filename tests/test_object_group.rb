@@ -19,25 +19,28 @@ require_relative '../lib/cisco_node_utils/object_group_entry'
 # TestObject_group - Minitest for Object_group
 # node utility class
 class TestObjectGroup < CiscoTestCase
+  @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+
   def setup
     super
     @og_name_v4 = 'test-my-v4'
     @og_name_v6 = 'test-my-v6'
     @og_name_port = 'test-my-port'
-    no_og_list_my
+    remove_all_object_groups if @@pre_clean_needed
+    @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
   def teardown
-    no_og_list_my
+    remove_all_object_groups
     super
   end
 
-  def no_og_list_my
-    %w(ip ipv6).each do |afi|
-      og_name = afi[/ipv6/] ? @og_name_v6 : @og_name_v4
-      config_no_warn('no object-group ' + afi + ' address ' + og_name)
+  def remove_all_object_groups
+    ObjectGroup.object_groups.each do |_afis, types|
+      types.each do |_type, grps|
+        grps.values.each(&:destroy)
+      end
     end
-    config_no_warn('no object-group ip port ' + @og_name_port)
   end
 
   def test_create_object_group
