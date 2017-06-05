@@ -1,6 +1,6 @@
 # object_group
 ---
-_exclude: [ios_xr]
+_exclude: [N5k, N6k, ios_xr]
 
 _template:
   get_command: "show running-config | section object-group"

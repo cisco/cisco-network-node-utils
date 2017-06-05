@@ -19,6 +19,7 @@ require_relative '../lib/cisco_node_utils/object_group_entry'
 # TestObject_group - Minitest for Object_group
 # node utility class
 class TestObjectGroup < CiscoTestCase
+  @skip_unless_supported = 'object_group'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
 
   def setup
