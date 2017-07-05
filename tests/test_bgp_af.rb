@@ -124,6 +124,7 @@ class TestBgpAF < CiscoTestCase
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
     [:additional_paths_send,         :nexus,  'default', %w(l2vpn evpn),       :runtime],
+    [:additional_paths_receive,      :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:additional_paths_selection,    :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:maximum_paths,                 :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:maximum_paths_ibgp,            :nexus,  'default', %w(l2vpn evpn),       :runtime],
@@ -173,6 +174,12 @@ class TestBgpAF < CiscoTestCase
           expect = :success
         when /I5.2|I5.3|I6/
           expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
+        when /I7/
+          expect = :success if test == :maximum_paths ||
+                               test == :maximum_paths_ibgp ||
+                               test == :additional_paths_send ||
+                               test == :additional_paths_receive ||
+                               test == :additional_paths_selection
         else
           expect = :CliError
         end
