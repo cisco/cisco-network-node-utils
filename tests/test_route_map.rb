@@ -154,7 +154,9 @@ class TestRouteMap < CiscoTestCase
     assert_equal(rm.default_match_src_proto, rm.match_src_proto)
     array = %w(tcp udp igmp)
     rm.match_src_proto = array
-    assert_equal(array, rm.match_src_proto)
+    # Protocol order not maintained in running config starting Greensboro.
+    # Sorting arrays to check equality.
+    assert_equal(array.sort, rm.match_src_proto.sort)
     rm.match_src_proto = rm.default_match_src_proto
     assert_equal(rm.default_match_src_proto, rm.match_src_proto)
   end

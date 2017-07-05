@@ -56,9 +56,9 @@ module Cisco
       end
       hash_final.merge!(hash_tmp)
       return hash_final
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+    rescue Cisco::CliError
+      # cmd will error when feature 'bgp' is not enabled
+      raise if Feature.bgp_enabled?
       return {}
     end
 
