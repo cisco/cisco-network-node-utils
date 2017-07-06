@@ -107,13 +107,6 @@ class TestObjectGroup < CiscoTestCase
     assert_equal('2001::10/64', e.address)
   end
 
-  def test_ipv6_address_netmask
-    e = entry_helper('ipv6', 'address', @og_name_v6, address: '2000::1 2001::10', port: nil)
-    assert_equal('2000::1 2001::10', e.address)
-    e = entry_helper('ipv6', 'address', @og_name_v6, address: '2001::10 2002::2', port: nil)
-    assert_equal('2001::10 2002::2', e.address)
-  end
-
   def test_ipv4_port
     e = entry_helper('ipv4', 'port', @og_name_port, address: nil)
     assert_equal('eq 200', e.port)
