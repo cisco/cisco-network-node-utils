@@ -70,6 +70,12 @@ class TestRadiusGlobal < CiscoTestCase
       global.key_set(key, nil)
       assert_match(/#{key}/, global.key)
       assert_match(/#{key}/, Cisco::RadiusGlobal.radius_global[id].key)
+      assert_equal(7, global.key_format)
+      # Change to type 6
+      key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
+      global.key_set(key, 6)
+      assert_match(/#{key}/, global.key)
+      assert_equal(6, global.key_format)
     elsif platform == :ios_xr
       global.key_set('QsEfThUkO', nil)
       assert(!global.key.nil?)
@@ -77,9 +83,23 @@ class TestRadiusGlobal < CiscoTestCase
     end
 
     # Setting back to default and re-checking
-    global.timeout = global.default_timeout
-    global.retransmit_count = global.default_retransmit_count
+    global.timeout = nil
+    global.retransmit_count = nil
+    global.key_set(nil, nil)
     assert_equal(global.timeout, global.default_timeout)
     assert_equal(global.retransmit_count, global.default_retransmit_count)
+    assert_nil(global.key)
+
+    # Default source interface
+    assert_nil(global.source_interface)
+
+    # Set source interface
+    interface = 'loopback0'
+    global.source_interface = interface
+    assert_equal(interface, global.source_interface)
+
+    # Remove source interface
+    global.source_interface = nil
+    assert_nil(global.source_interface)
   end
 end
