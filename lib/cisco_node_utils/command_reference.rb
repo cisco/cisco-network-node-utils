@@ -437,7 +437,7 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 C3548 N3k N5k N6k N7k N9k N9k-F
+    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 N35 N3k N5k N6k N7k N9k N9k-F
                          XRv9k)
 
     def self.platform_to_filter(platform)
@@ -445,6 +445,8 @@ module Cisco
         case platform
         when 'XRv9k'
           /XRV9/
+        when 'N35'
+          /N3K-C35/
         when 'N9k'
           # For non-fretta n9k platforms we need to
           # match everything except the trailing -F
