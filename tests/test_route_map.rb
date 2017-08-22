@@ -964,7 +964,7 @@ class TestRouteMap < CiscoTestCase
   end
 
   def test_set_ipv4_default_next_hop
-    skip('platform not supported for this test') if product_tag[/(n35|n5k|n6k|n9k|n9k-5)/]
+    skip('platform not supported for this test') if product_tag[/(n35|n5k|n6k|n9k|n9k-f)/]
     arr = %w(1.1.1.1 2.2.2.2 3.3.3.3)
     rm = lset_ip_next_hop_helper(v4dnh: arr)
     assert_equal(arr, rm.set_ipv4_default_next_hop)
