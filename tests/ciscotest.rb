@@ -185,8 +185,12 @@ class CiscoTestCase < TestCase
       key_values = e.split(':')
       larr = key_values[0].split(',')
       larr.each do |lkey|
-        fail "Unrecognized product_id: #{lkey}" unless
-          lkey.downcase[/n(3|5|6|7|9)/]
+        if lkey.to_s == 'C3548'
+          # Special case N3k Platform
+        else
+            fail "Unrecognized product_id: #{lkey}" unless
+              lkey.downcase[/n(3|5|6|7|9)/]
+        end
         next unless lkey.downcase.strip == product_tag
         ver = key_values[1]
         break if ver
@@ -502,6 +506,8 @@ class CiscoTestCase < TestCase
   def product_tag
     @product_id ||= node.product_id
     case @product_id
+    when /C3548/
+      tag = 'C3548'
     when /N3/
       tag = 'n3k'
     when /N5/

@@ -437,7 +437,8 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 N3k N5k N6k N7k N9k N9k-F XRv9k)
+    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 C3548 N3k N5k N6k N7k N9k N9k-F
+                         XRv9k)
 
     def self.platform_to_filter(platform)
       if KNOWN_PLATFORMS.include?(platform)
