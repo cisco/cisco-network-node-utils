@@ -235,6 +235,7 @@ module Cisco
 
     def established
       match = ace_get
+      return nil unless remark.nil?
       return false if match.nil?
       return false unless match.names.include?('established')
       match[:established] == 'established' ? true : false
@@ -318,6 +319,7 @@ module Cisco
 
     def log
       match = ace_get
+      return nil unless remark.nil?
       return false if match.nil?
       return false unless match.names.include?('log')
       match[:log] == 'log' ? true : false

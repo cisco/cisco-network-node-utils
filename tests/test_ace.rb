@@ -66,6 +66,8 @@ class TestAce < CiscoTestCase
     %w(ipv4 ipv6).each do |afi|
       a = ace_helper(afi, remark: afi)
       assert_equal(afi, a.remark)
+      assert_nil(a.log)
+      assert_nil(a.established)
     end
   end
 
