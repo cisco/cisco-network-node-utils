@@ -506,8 +506,8 @@ class CiscoTestCase < TestCase
   def product_tag
     @product_id ||= node.product_id
     case @product_id
-    when /C3548/
-      tag = 'C3548'
+    when /N3K-C35/
+      tag = 'n35'
     when /N3/
       tag = 'n3k'
     when /N5/

@@ -45,46 +45,46 @@ match_community_exact_match:
   default_value: false
 
 match_evpn_route_type:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   multiple:
   get_value: '/^match evpn route-type (.*)$/'
   set_value: "<state> match evpn route-type <type>"
   default_value: []
 
 match_evpn_route_type_1:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_all:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_mac_ip:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_2_mac_only:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_3:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_4:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_5:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_6:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_evpn_route_type_all:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   default_value: false
 
 match_ext_community:
@@ -195,13 +195,13 @@ match_ipv6_route_src_prefix_list:
   default_value: []
 
 match_length:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   get_value: '/^match length (\d+) (\d+)$/'
   set_value: "<state> match length <min> <max>"
   default_value: []
 
 match_mac_list:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   get_value: '/^match mac-list (.*)$/'
   set_value: "<state> match mac-list <mac>"
   default_value: []
@@ -214,7 +214,7 @@ match_metric:
 
 match_ospf_area:
   _exclude: [N5k, N6k, N7k, N9k-F]
-  os_version: 'C3548:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
   get_value: '/^match ospf-area (.*)$/'
   set_value: "<state> match ospf-area <area>"
   default_value: []
@@ -275,7 +275,7 @@ match_tag:
   default_value: []
 
 match_vlan:
-  _exclude: [C3548, N3k, N9k, N9k-F]
+  _exclude: [N35, N3k, N9k, N9k-F]
   get_value: '/^match vlan (.*)$/'
   set_value: "<state> match vlan <range>"
   default_value: ''
@@ -305,7 +305,7 @@ set_comm_list:
   default_value: false
 
 set_community:
-  os_version: 'C3548:7.0.3.I7.1; N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N9k:7.0.3.I5.1'
   get_value: '/^set community(?:\s+.*)?$/'
   set_value: "<state> set community <string>"
 
@@ -425,13 +425,13 @@ set_interface:
   default_value: false
 
 set_ipv4_default_next_hop:
-  _exclude: [C3548, N5k, N6k, N9k, N9k-F]
+  _exclude: [N35, N5k, N6k, N9k, N9k-F]
   get_value: '/^set ip default next-hop (.*)$/'
   set_value: "<state> set ip default next-hop <nh>"
   default_value: []
 
 set_ipv4_default_next_hop_load_share:
-  _exclude: [C3548, N5k, N6k, N9k, N9k-F]
+  _exclude: [N35, N5k, N6k, N9k, N9k-F]
   default_value: false
 
 set_ipv4_next_hop:
@@ -442,7 +442,7 @@ set_ipv4_next_hop:
 
 set_ipv4_next_hop_load_share:
   _exclude: [N5k, N6k]
-  os_version: 'C3548:7.0.3.I7.1; N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv4_next_hop_peer_addr:
@@ -453,7 +453,7 @@ set_ipv4_next_hop_peer_addr:
 
 set_ipv4_next_hop_redist:
   kind: boolean
-  os_version: 'C3548:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
   get_value: '/^set ip next-hop redist-unchanged$/'
   set_value: "<state> set ip next-hop redist-unchanged"
   default_value: false
@@ -476,13 +476,13 @@ set_ipv4_prefix:
   default_value: false
 
 set_ipv6_default_next_hop:
-  _exclude: [C3548, N5k, N6k, N9k, N9k-F]
+  _exclude: [N35, N5k, N6k, N9k, N9k-F]
   get_value: '/^set ipv6 default next-hop (.*)$/'
   set_value: "<state> set ipv6 default next-hop <nh>"
   default_value: []
 
 set_ipv6_default_next_hop_load_share:
-  _exclude: [C3548, N5k, N6k, N9k, N9k-F]
+  _exclude: [N35, N5k, N6k, N9k, N9k-F]
   default_value: false
 
 set_ipv6_next_hop:
@@ -493,7 +493,7 @@ set_ipv6_next_hop:
 
 set_ipv6_next_hop_load_share:
   _exclude: [N5k, N6k]
-  os_version: 'C3548:7.0.3.I7.1; N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N9k-F:7.0.3.F2.1; N9k:7.0.3.I5.1'
   default_value: false
 
 set_ipv6_next_hop_peer_addr:
@@ -504,7 +504,7 @@ set_ipv6_next_hop_peer_addr:
 
 set_ipv6_next_hop_redist:
   kind: boolean
-  os_version: 'C3548:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
+  os_version: 'N35:7.0.3.I7.1; N3k, N9k:7.0.3.I5.1'
   get_value: '/^set ipv6 next-hop redist-unchanged$/'
   set_value: "<state> set ipv6 next-hop redist-unchanged"
   default_value: false
@@ -588,7 +588,7 @@ set_tag:
   default_value: false
 
 set_vrf:
-  _exclude: [C3548, N3k, N5k, N6k, N9k, N9k-F]
+  _exclude: [N35, N3k, N5k, N6k, N9k, N9k-F]
   get_value: '/^set vrf (\S+)$/'
   set_value: "<state> set vrf <vrf>"
   default_value: false
