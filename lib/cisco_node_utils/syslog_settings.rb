@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,14 +42,82 @@ module Cisco
       name == other.name
     end
 
+    def default_console
+      config_get_default('syslog_settings', 'console')
+    end
+
+    def console
+      console = config_get('syslog_settings', 'console')
+      if console.is_a?(Array)
+        console = console[0] == 'no' ? 'unset' : console[1]
+      end
+      console
+    end
+
+    def console=(severity)
+      if severity
+        config_set(
+          'syslog_settings', 'console',
+          state: '', severity: severity)
+      else
+        config_set(
+          'syslog_settings', 'console',
+          state: 'no', severity: '')
+      end
+    end
+
+    def default_monitor
+      config_get_default('syslog_settings', 'monitor')
+    end
+
+    def monitor
+      monitor = config_get('syslog_settings', 'monitor')
+      if monitor.is_a?(Array)
+        monitor = monitor[0] == 'no' ? 'unset' : monitor[1]
+      end
+      monitor
+    end
+
+    def monitor=(severity)
+      if severity
+        config_set(
+          'syslog_settings', 'monitor',
+          state: '', severity: severity)
+      else
+        config_set(
+          'syslog_settings', 'monitor',
+          state: 'no', severity: '')
+      end
+    end
+
+    def default_source_interface
+      config_get_default('syslog_settings', 'source_interface')
+    end
+
+    def source_interface
+      i = config_get('syslog_settings', 'source_interface')
+      i.nil? ? default_source_interface : i.downcase
+    end
+
+    def source_interface=(name)
+      if name
+        config_set(
+          'syslog_settings', 'source_interface',
+          state: '', source_interface: name)
+      else
+        config_set(
+          'syslog_settings', 'source_interface',
+          state: 'no', source_interface: '')
+      end
+    end
+
     def timestamp
       config_get('syslog_settings', 'timestamp')
     end
 
     def timestamp=(val)
-      fail TypeError unless val.is_a?(String)
       fail TypeError \
-        unless %w(seconds milliseconds).include?(val)
+        unless %w(seconds milliseconds).include?(val.to_s)
 
       # There is no unset version as timestamp has a default value
       config_set('syslog_settings',
@@ -57,5 +125,8 @@ module Cisco
                  state: '',
                  units: val)
     end
+
+    alias_method :time_stamp_units, :timestamp
+    alias_method :time_stamp_units=, :timestamp=
   end # class
 end # module
