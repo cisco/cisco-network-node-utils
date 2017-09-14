@@ -128,7 +128,14 @@ module Cisco
     # bridge-domain 100
     #   name bd100
     def bd_name
-      config_get('bridge_domain', 'bd_name', bd: @bd_ids)
+      match = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
+      match.each do |line|
+        next unless line.include?('Name')
+        regexp = Regexp.new('Name::\s(\S+)')
+        name = regexp.match(line)
+        bname = name[1].include?('Bridge-Domain') ? default_bd_name : name[1]
+        return bname
+      end
     end
 
     def bd_name=(str)
@@ -147,7 +154,15 @@ module Cisco
     #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
-      config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
+      match = config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
+      match.each do |line|
+        next unless line.include?('Configured fabric-control')
+        regexp = Regexp.new('Configured '\
+                            'fabric-control Bridge-Domain/VLAN\s+:\s+(\d+)')
+        fc = regexp.match(line)
+        fabric = fc[1] == @bd_ids ? true : false
+        return fabric
+      end
     end
 
     def fabric_control=(val)
@@ -163,7 +178,14 @@ module Cisco
     # bridge-domain 100
     #   shutdown
     def shutdown
-      config_get('bridge_domain', 'shutdown', bd: @bd_ids)
+      match = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
+      match.each do |line|
+        next unless line.include?('Administrative')
+        regexp = Regexp.new(' Administrative State:\s(\S+)')
+        astate = regexp.match(line)
+        shut = astate[1] == 'UP' ? false : true
+        return shut
+      end
     end
 
     def shutdown=(val)
