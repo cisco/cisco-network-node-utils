@@ -124,15 +124,14 @@ module Cisco
     #                      PROPERTIES                      #
     ########################################################
 
-    # Bridge-Domain name assigning case
-    # bridge-domain 100
-    #   name bd100
     def bd_name
       match = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
       match.each do |line|
         next unless line.include?('Name')
         regexp = Regexp.new('Name::\s(\S+)')
         name = regexp.match(line)
+        # if name is not set, it will be Bridge-Domain followed by bd
+        # like Bridge-domain101 for bd 101
         bname = name[1].include?('Bridge-Domain') ? default_bd_name : name[1]
         return bname
       end
@@ -149,9 +148,6 @@ module Cisco
       config_get_default('bridge_domain', 'bd_name')
     end
 
-    # Bridge-Domain type change to fabric-control
-    # bridge-domain 100
-    #   fabric-control
     # This type property can be defined only for one bd
     def fabric_control
       match = config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
@@ -174,9 +170,6 @@ module Cisco
       config_get_default('bridge_domain', 'fabric_control')
     end
 
-    # Bridge-Domain Shutdown case
-    # bridge-domain 100
-    #   shutdown
     def shutdown
       match = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
       match.each do |line|
