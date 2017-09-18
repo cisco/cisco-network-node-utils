@@ -120,7 +120,6 @@ class TestVxlanVtepVni < CiscoTestCase
       return
     end
 
-    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     # Test non-default values
     vni.ingress_replication = 'static'
     assert_equal('static', vni.ingress_replication)
@@ -158,7 +157,6 @@ class TestVxlanVtepVni < CiscoTestCase
 
     # Test the case where an existing ingress_replication is removed before
     # configuring multicast_group
-    skip_incompat_version?('vxlan_vtep_vni', 'ingress_replication')
     unless validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
       vni1.ingress_replication = 'static'
       assert_equal('static', vni1.ingress_replication)
@@ -185,7 +183,6 @@ class TestVxlanVtepVni < CiscoTestCase
       return
     end
 
-    skip_incompat_version?('vxlan_vtep_vni', 'peer_list')
     peer_list = ['1.1.1.1', '2.2.2.2', '3.3.3.3', '4.4.4.4']
 
     # Test: all peers when current is empty
