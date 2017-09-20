@@ -126,15 +126,7 @@ module Cisco
 
     def bd_name
       match = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
-      match.each do |line|
-        next unless line.include?('Name')
-        regexp = Regexp.new('Name::\s(\S+)')
-        name = regexp.match(line)
-        # if name is not set, it will be Bridge-Domain followed by bd
-        # like Bridge-domain101 for bd 101
-        bname = name[1].include?('Bridge-Domain') ? default_bd_name : name[1]
-        return bname
-      end
+      match.include?('Bridge-Domain') ? default_bd_name : match
     end
 
     def bd_name=(str)
@@ -151,14 +143,7 @@ module Cisco
     # This type property can be defined only for one bd
     def fabric_control
       match = config_get('bridge_domain', 'fabric_control', bd: @bd_ids)
-      match.each do |line|
-        next unless line.include?('Configured fabric-control')
-        regexp = Regexp.new('Configured '\
-                            'fabric-control Bridge-Domain/VLAN\s+:\s+(\d+)')
-        fc = regexp.match(line)
-        fabric = fc[1] == @bd_ids ? true : false
-        return fabric
-      end
+      match == @bd_ids ? true : false
     end
 
     def fabric_control=(val)
@@ -172,13 +157,7 @@ module Cisco
 
     def shutdown
       match = config_get('bridge_domain', 'shutdown', bd: @bd_ids)
-      match.each do |line|
-        next unless line.include?('Administrative')
-        regexp = Regexp.new(' Administrative State:\s(\S+)')
-        astate = regexp.match(line)
-        shut = astate[1] == 'UP' ? false : true
-        return shut
-      end
+      match == 'Noshutdown' ? false : true
     end
 
     def shutdown=(val)

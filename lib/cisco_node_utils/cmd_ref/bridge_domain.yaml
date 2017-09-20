@@ -13,9 +13,10 @@ all_bds:
   get_value: '/^bridge-domain (\S+)/'
 
 bd_name:
-  multiple: true
+  get_data_format: nxapi_structured
   get_command: "show bridge-domain <bd>"
-  get_value: "(.*)"
+  get_context: ["TABLE_bd", "ROW_bd"]
+  get_value: ["bd-name"]
   set_value: "<state> name <name>"
   default_value: ~
 
@@ -27,16 +28,18 @@ destroy:
 
 # Configured fabric-control Bridge-Domain/VLAN    :  100
 fabric_control:
-  multiple: true
+  get_data_format: nxapi_structured
   get_command: "show bridge-domain summary"
-  get_value: "(.*)"
+  get_context: ~
+  get_value: ["fabric-control-bd"]
   set_value: "<state> fabric-control"
   default_value: false
 
 shutdown:
-  multiple: true
+  get_data_format: nxapi_structured
   get_command: "show bridge-domain <bd>"
-  get_value: "(.*)"
+  get_context: ["TABLE_bd", "ROW_bd"]
+  get_value: ["bd-admin-state"]
   set_value: "<state> shutdown"
   default_value: false
 

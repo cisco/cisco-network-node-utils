@@ -101,6 +101,8 @@ class TestBridgeDomain < CiscoTestCase
     refute(bd.shutdown)
     bd.shutdown = true
     assert(bd.shutdown)
+    bd.shutdown = false
+    refute(bd.shutdown)
     bd.destroy
   end
 
