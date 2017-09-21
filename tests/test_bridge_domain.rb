@@ -116,6 +116,11 @@ class TestBridgeDomain < CiscoTestCase
     assert_equal(name, bd.bd_name,
                  'Error: Bridge-Domain name not updated to #{name}')
 
+    name = false
+    bd.bd_name = name
+    assert_equal(bd.default_bd_name, bd.default_bd_name,
+                 'Error: Bridge-Domain name not updated to default')
+
     bd.bd_name = bd.default_bd_name
     assert_equal(bd.default_bd_name, bd.bd_name,
                  'Error: Bridge-Domain name not restored to default')

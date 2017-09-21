@@ -18,7 +18,6 @@ bd_name:
   get_context: ["TABLE_bd", "ROW_bd"]
   get_value: ["bd-name"]
   set_value: "<state> name <name>"
-  default_value: ~
 
 create:
   set_value: "bridge-domain <bd>"

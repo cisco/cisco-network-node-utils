@@ -125,19 +125,18 @@ module Cisco
     ########################################################
 
     def bd_name
-      match = config_get('bridge_domain', 'bd_name', bd: @bd_ids)
-      match.include?('Bridge-Domain') ? default_bd_name : match
+      config_get('bridge_domain', 'bd_name', bd: @bd_ids)
     end
 
     def bd_name=(str)
-      str = str.to_s
+      str = '' unless str
       state = str.empty? ? 'no' : ''
       config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: state,
                    name: str)
     end
 
     def default_bd_name
-      config_get_default('bridge_domain', 'bd_name')
+      'Bridge-Domain' + @bd_ids
     end
 
     # This type property can be defined only for one bd
