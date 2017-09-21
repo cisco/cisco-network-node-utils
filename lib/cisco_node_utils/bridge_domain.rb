@@ -129,7 +129,6 @@ module Cisco
     end
 
     def bd_name=(str)
-      str = '' unless str
       state = str.empty? ? 'no' : ''
       config_set('bridge_domain', 'bd_name', bd: @bd_ids, state: state,
                    name: str)
