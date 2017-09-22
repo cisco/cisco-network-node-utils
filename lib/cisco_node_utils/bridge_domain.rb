@@ -135,7 +135,7 @@ module Cisco
     end
 
     # This default getter is a bit different them most.  When a brige-domain
-    # gets created it gets a default name assinged that follows the pattern
+    # gets created it gets a default name assigned that follows the pattern
     # 'Bridge-DomainX' where X is the bridge domain id (@bd_ids).
     def default_bd_name
       'Bridge-Domain' + @bd_ids
