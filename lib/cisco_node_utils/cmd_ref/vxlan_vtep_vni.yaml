@@ -16,8 +16,7 @@ all_vnis:
   get_value: '/^member vni (\d+|\d+-\d+) ?(associate-vrf)?$/'
 
 ingress_replication:
-  _exclude: [N5k, N6k]
-  os_version: 'N7k:8.1.1'
+  _exclude: [N5k, N6k, N7k]
   kind: string
   get_value: '/^ingress-replication protocol (\S+)$/'
   set_value: '<state> ingress-replication protocol <protocol>'
@@ -29,8 +28,7 @@ multicast_group:
   default_value: ''
 
 peer_list:
-  _exclude: [N5k, N6k]
-  os_version: 'N7k:8.1.1'
+  _exclude: [N5k, N6k, N7k]
   multiple:
   get_context:
     - '/^interface <name>$/i'
