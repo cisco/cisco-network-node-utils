@@ -171,10 +171,9 @@ class Cisco::Client::NXAPI < Cisco::Client
   # the default value of 300 to accomodate commands that are known to
   # require more time to complete.
   def read_timeout_check(request)
-    if request.body[/install all|install force-all/]
-      debug("Increasing http read_timeout to 1000 for 'install all' command")
-      @http.read_timeout = 1000
-    end
+    return unless request.body[/install all|install force-all/]
+    debug("Increasing http read_timeout to 1000 for 'install all' command")
+    @http.read_timeout = 1000
   end
 
   # Sends a request to the NX API and returns the body of the request or
