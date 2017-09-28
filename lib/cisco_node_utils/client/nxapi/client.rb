@@ -172,7 +172,7 @@ class Cisco::Client::NXAPI < Cisco::Client
   # require more time to complete.
   def read_timeout_check(request)
     if request.body[/install all|install force-all/]
-      puts "Increasing http read_timeout to 1000 for 'install all' command"
+      debug("Increasing http read_timeout to 1000 for 'install all' command")
       @http.read_timeout = 1000
     end
   end
@@ -211,7 +211,6 @@ class Cisco::Client::NXAPI < Cisco::Client
     # send the request and get the response
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
-    puts "READ TO: #{@http.read_timeout}"
     read_timeout_check(request)
     tries = 2
     begin
