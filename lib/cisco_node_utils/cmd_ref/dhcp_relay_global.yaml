@@ -76,7 +76,8 @@ ipv4_sub_option_circuit_id_custom:
   default_value: false
 
 ipv4_sub_option_circuit_id_string:
-  _exclude: [N5k, N6k, N7k, N9k-F, N9k]
+  _exclude: [N5k, N6k, N7k, N9k-F]
+  os_version: 'N9k:7.0.3.I6.1'
   get_value: '/^ip dhcp relay sub-option circuit-id format-type string format (.*)$/'
   set_value: "<state> ip dhcp relay sub-option circuit-id format-type string <format> <word>"
   default_value: false

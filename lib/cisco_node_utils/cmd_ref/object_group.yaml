@@ -1,0 +1,32 @@
+# object_group
+---
+_exclude: [N5k, N6k, ios_xr]
+
+_template:
+  get_command: "show running-config | section object-group"
+  get_context: ['/^object-group <afi> <type> <grp_name>/']
+  set_context: ["object-group <afi> <type> <grp_name>"]
+
+all_entries:
+  multiple:
+  get_value: '/^(\d+) .+$/'
+
+all_object_groups:
+  multiple:
+  get_context: ~
+  get_value: '/^object-group (\S+) (\S+) (\S+)$/'
+
+create:
+  set_context: ~
+  set_value: "object-group <afi> <type> <grp_name>"
+
+destroy:
+  set_context: ~
+  set_value: "no object-group <afi> <type> <grp_name>"
+
+entry:
+  get_value: '/^<seqno> .+$/'
+  set_value: "<state> <seqno> <address> <port>"
+
+entry_destroy:
+  set_value: 'no <seqno>'

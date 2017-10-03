@@ -101,6 +101,8 @@ class TestBridgeDomain < CiscoTestCase
     refute(bd.shutdown)
     bd.shutdown = true
     assert(bd.shutdown)
+    bd.shutdown = false
+    refute(bd.shutdown)
     bd.destroy
   end
 
@@ -113,6 +115,11 @@ class TestBridgeDomain < CiscoTestCase
     bd.bd_name = name
     assert_equal(name, bd.bd_name,
                  'Error: Bridge-Domain name not updated to #{name}')
+
+    name = ''
+    bd.bd_name = name
+    assert_equal(bd.default_bd_name, bd.default_bd_name,
+                 'Error: Bridge-Domain name not updated to default')
 
     bd.bd_name = bd.default_bd_name
     assert_equal(bd.default_bd_name, bd.bd_name,

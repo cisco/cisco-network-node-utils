@@ -1,6 +1,72 @@
 Changelog
 =========
 
+## [Unreleased]
+
+#### Cisco Resources
+* ObjectGroup
+  * object_group (@saichint)
+  * object_group_entry (@saichint)
+
+## [v1.7.0]
+
+### New feature support
+
+#### Cisco Resources
+* span_session (@tomcooperca)
+* bgp_af_aggr_addr (@saichint)
+
+### Added
+* Extend vpc with attributes:
+   * `peer_switch`
+   * `arp_synchronize`
+   * `nd_synchronize`
+
+* Extend interface with attributes:
+   * `purge_config`
+
+* Extend interface_channel_group with attributes:
+   * `channel_group_mode`
+
+* Extend ntp_config with attributes:
+  * `authenticate`
+  * `trusted_key`
+
+* Extend ntp_server with attributes:
+  * `key`
+  * `maxpoll`
+  * `minpoll`
+  * `vrf`
+
+* Added ntp_auth_key with attributes:
+  * `algorithm`
+  * `key`
+  * `mode`
+  * `password`
+
+* Extend upgrade with attributes:
+   * `package`
+
+### Changed
+* ntp_server initialize now uses options hash
+  * Prior to this release ntp_server accepted positional arguments for id and
+  prefer.  New behavior is to pass attributes as a hash.
+
+  Example:
+  ```
+  options = { 'name' => id, 'key' => '999', 'prefer' => 'true',
+              'minpoll' => '5', 'maxpoll' => '8', 'vrf' => 'red' }
+  Cisco::NtpServer.new(options, true)
+  ```
+
+* Modified upgrade to support additional URI
+
+* Modified upgrade attribute to drop version check
+
+### Removed
+
+### Resolved Issues
+
 ## [v1.6.0]
 
 ### New feature support
@@ -420,6 +486,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.7.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0
 [v1.4.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.0...v1.4.1
@@ -429,4 +496,3 @@ Changelog
 [v1.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.1...v1.1.0
 [v1.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v0.9.0...v1.0.0
-

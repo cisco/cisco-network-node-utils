@@ -38,9 +38,9 @@ module Cisco
         hash[name] = RouterOspf.new(name, false)
       end
       return hash
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
+    rescue Cisco::CliError
+      # cmd will error when feature 'ospf' is not enabled
+      raise if Feature.ospf_enabled?
       return {}
     end
 

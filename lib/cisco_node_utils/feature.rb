@@ -1,6 +1,6 @@
 # January 2016, Robert W Gries
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -141,6 +141,19 @@ module Cisco
 
     def self.itd_enabled?
       config_get('feature', 'itd')
+    rescue Cisco::CliError => e
+      # cmd will syntax reject when feature is not enabled.
+      raise unless e.clierror =~ /Syntax error/
+      return false
+    end
+
+    def self.lacp_enable
+      return if lacp_enabled?
+      config_set('feature', 'lacp')
+    end
+
+    def self.lacp_enabled?
+      config_get('feature', 'lacp')
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled.
       raise unless e.clierror =~ /Syntax error/

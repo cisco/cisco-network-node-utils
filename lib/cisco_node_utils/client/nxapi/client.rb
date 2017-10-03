@@ -167,6 +167,15 @@ class Cisco::Client::NXAPI < Cisco::Client
     end
   end
 
+  # Helper method to increase the default @http.read_timeout value from
+  # the default value of 300 to accomodate commands that are known to
+  # require more time to complete.
+  def read_timeout_check(request)
+    return unless request.body[/install all|install force-all/]
+    debug("Increasing http read_timeout to 1000 for 'install all' command")
+    @http.read_timeout = 1000
+  end
+
   # Sends a request to the NX API and returns the body of the request or
   # handles errors that happen.
   # @raise Cisco::ConnectionRefused if NXAPI is disabled
@@ -201,6 +210,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     # send the request and get the response
     debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
+    read_timeout_check(request)
     tries = 2
     begin
       # Explicitly use http to avoid EOFError

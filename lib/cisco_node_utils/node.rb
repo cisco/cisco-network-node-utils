@@ -4,7 +4,7 @@
 #
 # December 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -107,18 +107,22 @@ module Cisco
       return value unless ref.hash['drill_down']
 
       row_key = ref.hash['get_value'][0][/^\S+/]
-      row_index = ref.hash['get_value'][0][/\S+$/]
+
+      # Escape special characters if any in row_index and add
+      # anchors for exact match.
+      row_index = Regexp.escape(ref.hash['get_value'][0][/\S+$/])
+      row_index = "^#{row_index}$"
+
       data_key = ref.hash['get_value'][1]
       regexp_filter = nil
       if ref.hash['get_value'][2]
         regexp_filter = Regexp.new ref.hash['get_value'][2][1..-2]
       end
-
       # Get the value using the row_key, row_index and data_key
       value = value.is_a?(Hash) ? [value] : value
       data = nil
       value.each do |row|
-        data = row[data_key] if row[row_key].to_s.include? row_index.to_s
+        data = row[data_key] if row[row_key].to_s[/#{row_index}/]
       end
       return value if data.nil?
       if regexp_filter
@@ -430,6 +434,10 @@ module Cisco
     #   "bootflash:///n3000-uk9.6.0.2.U5.0.941.bin"
     def system
       config_get('show_version', 'system_image')
+    end
+
+    def os_version_get(feature, property)
+      @cmd_ref.lookup(feature, property).os_version
     end
   end
 end

@@ -258,6 +258,7 @@ module Cisco
     # ex: ['100', '100', '25']
     # CLI: bfd interval 100 min_rx 100 multiplier 25
     def interval=(arr)
+      return if arr == interval
       interval, min_rx, multiplier = arr
       set_args_keys(interval: interval, min_rx: min_rx, multiplier: multiplier,
                     state: arr == default_interval ? 'no' : '')

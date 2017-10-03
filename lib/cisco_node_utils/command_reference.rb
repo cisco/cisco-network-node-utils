@@ -19,7 +19,7 @@ module Cisco
   # Control a reference for an attribute.
   class CmdRef
     attr_reader :feature, :name, :hash
-    attr_reader :auto_default, :multiple, :kind, :default_only
+    attr_reader :auto_default, :multiple, :kind, :default_only, :os_version
     alias_method :auto_default?, :auto_default
     alias_method :default_only?, :default_only
     alias_method :multiple?, :multiple
@@ -28,7 +28,7 @@ module Cisco
               data_format context value
               get_data_format get_command get_context get_value
               set_data_format set_context set_value
-              auto_default multiple kind)
+              auto_default multiple kind os_version)
 
     def self.keys
       KEYS
@@ -48,6 +48,7 @@ module Cisco
       @default_only = false
       @multiple = false
       @kind = nil
+      @os_version = nil
 
       values_to_hash(values, file)
 
@@ -86,6 +87,8 @@ module Cisco
         when 'kind'
           fail "Unknown 'kind': '#{value}'" unless KINDS.include?(value)
           @kind = value.to_sym
+        when 'os_version'
+          @os_version = value
         else
           # default_value overrides default_only
           @default_only = false if key == 'default_value'
@@ -434,13 +437,16 @@ module Cisco
       puts "DEBUG: #{text}" if @@debug
     end
 
-    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 N3k N5k N6k N7k N9k N9k-F XRv9k)
+    KNOWN_PLATFORMS = %w(C3064 C3132 C3172 N35 N3k N5k N6k N7k N9k N9k-F
+                         XRv9k)
 
     def self.platform_to_filter(platform)
       if KNOWN_PLATFORMS.include?(platform)
         case platform
         when 'XRv9k'
           /XRV9/
+        when 'N35'
+          /N3K-C35/
         when 'N9k'
           # For non-fretta n9k platforms we need to
           # match everything except the trailing -F

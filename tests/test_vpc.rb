@@ -130,11 +130,7 @@ class TestVpc < CiscoTestCase
 
   def test_layer3_peer_routing
     vpc = Vpc.new(100)
-    if validate_property_excluded?('vpc', 'layer3_peer_routing')
-      assert_raises(Cisco::UnsupportedError) { vpc.layer3_peer_routing = true }
-      return
-    end
-
+    skip_incompat_version?('vpc', 'layer3_peer_routing')
     default_val = vpc.default_layer3_peer_routing
     assert_equal(default_val, vpc.layer3_peer_routing,
                  "layer3_peer_routing should be #{default_val} by default")
@@ -142,6 +138,9 @@ class TestVpc < CiscoTestCase
     assert(vpc.layer3_peer_routing, 'layer3_peer_routing not getting set')
     vpc.layer3_peer_routing = false
     refute(vpc.layer3_peer_routing, 'layer3_peer_routing not getting disabled')
+    # reset peer gateway
+    vpc.peer_gateway = false
+    assert_equal(vpc.default_peer_gateway, vpc.peer_gateway)
   end
 
   def test_peer_keepalive
@@ -194,6 +193,39 @@ class TestVpc < CiscoTestCase
     assert(vpc.peer_gateway, 'peer_gateway not getting set')
     vpc.peer_gateway = false
     refute(vpc.peer_gateway, 'peer_gateway not getting disabled')
+  end
+
+  def test_peer_switch
+    vpc = Vpc.new(100)
+    default_val = vpc.default_peer_switch
+    assert_equal(default_val, vpc.peer_switch,
+                 "peer_switch should be #{default_val} by default")
+    vpc.peer_switch = true
+    assert(vpc.peer_switch, 'peer_switch not getting set')
+    vpc.peer_switch = false
+    refute(vpc.peer_switch, 'peer_switch not getting disabled')
+  end
+
+  def test_arp_synchronize
+    vpc = Vpc.new(100)
+    default_val = vpc.default_arp_synchronize
+    assert_equal(default_val, vpc.arp_synchronize,
+                 "arp_synchronize should be #{default_val} by default")
+    vpc.arp_synchronize = true
+    assert(vpc.arp_synchronize, 'arp_synchronize not getting set')
+    vpc.arp_synchronize = false
+    refute(vpc.arp_synchronize, 'arp_synchronize not getting disabled')
+  end
+
+  def test_nd_synchronize
+    vpc = Vpc.new(100)
+    default_val = vpc.default_nd_synchronize
+    assert_equal(default_val, vpc.nd_synchronize,
+                 "nd_synchronize should be #{default_val} by default")
+    vpc.nd_synchronize = true
+    assert(vpc.nd_synchronize, 'nd_synchronize not getting set')
+    vpc.nd_synchronize = false
+    refute(vpc.nd_synchronize, 'nd_synchronize not getting disabled')
   end
 
   def test_peer_gateway_exclude_bridge_domain
@@ -254,11 +286,7 @@ class TestVpc < CiscoTestCase
 
   def test_shutdown
     vpc = Vpc.new(100)
-    if validate_property_excluded?('vpc', 'shutdown')
-      assert_raises(Cisco::UnsupportedError) { vpc.shutdown = true }
-      return
-    end
-
+    skip_incompat_version?('vpc', 'shutdown')
     vpc.shutdown = vpc.default_shutdown
     refute(vpc.shutdown, 'Vpc domain should not be shutdown')
 
@@ -315,7 +343,7 @@ class TestVpc < CiscoTestCase
                            6, 3)
     # init channel group as none first, to test phy-port vPC link
     interface = InterfaceChannelGroup.new(interfaces[0])
-    interface.channel_group = false if interface.channel_group
+    interface.channel_group_mode_set(false) if interface.channel_group
     # Phy port vPC is supported only on N7K
     if /N7/ =~ node.product_id
       phy_port_iflist =
@@ -340,7 +368,7 @@ class TestVpc < CiscoTestCase
       end
     end
     # test port-channel vpc
-    interface.channel_group = 10
+    interface.channel_group_mode_set(10)
     interface_pc = Interface.new('port-channel10')
     interface_pc.switchport_mode = :trunk
     interface_pc.vpc_id = 20
@@ -353,7 +381,7 @@ class TestVpc < CiscoTestCase
     # clean-up
     interface_pc.vpc_id = false
     # remove PC
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'Port channel not cleaned up')
   end
 
@@ -363,7 +391,7 @@ class TestVpc < CiscoTestCase
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                            6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
-    interface.channel_group = 100
+    interface.channel_group_mode_set(100)
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :trunk
     refute(interface_pc.vpc_peer_link,
@@ -379,7 +407,7 @@ class TestVpc < CiscoTestCase
     end
 
     # clean up
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'channel group should be unset')
     # try with a phy port
     interface = Interface.new(interfaces[1])
@@ -497,7 +525,7 @@ class TestVpc < CiscoTestCase
     vpc.peer_keepalive_set('1.1.1.2', '1.1.1.1', 3800, 'management', 400, 3,
                            6, 3)
     interface = InterfaceChannelGroup.new(interfaces[1])
-    interface.channel_group = 100
+    interface.channel_group_mode_set(100)
     interface_pc = Interface.new('port-channel100')
     interface_pc.switchport_mode = :fabricpath
     refute(interface_pc.vpc_peer_link,
@@ -507,7 +535,7 @@ class TestVpc < CiscoTestCase
     interface_pc.vpc_peer_link = false
     refute(interface_pc.vpc_peer_link, 'vpc_peer_link should not be set')
     # clean up
-    interface.channel_group = false
+    interface.channel_group_mode_set(false)
     refute(interface.channel_group, 'channel group should be unset')
     # try with a phy port
     interface = Interface.new(interfaces[1])

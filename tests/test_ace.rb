@@ -66,6 +66,8 @@ class TestAce < CiscoTestCase
     %w(ipv4 ipv6).each do |afi|
       a = ace_helper(afi, remark: afi)
       assert_equal(afi, a.remark)
+      assert_nil(a.log)
+      assert_nil(a.established)
     end
   end
 
@@ -112,15 +114,20 @@ class TestAce < CiscoTestCase
     assert_equal(val, a.src_addr)
     assert_equal(val, a.dst_addr)
 
+    config_no_warn('object-group ip address my_addrgroup_ipv4')
+    config_no_warn('object-group ipv6 address my_addrgroup_ipv6')
     %w(ipv4 ipv6).each do |afi|
       val = "addrgroup my_addrgroup_#{afi}"
       a = ace_helper(afi, src_addr: val, dst_addr: val)
       assert_equal(val, a.src_addr)
       assert_equal(val, a.dst_addr)
     end
+    config_no_warn('no object-group ip address my_addrgroup_ipv4')
+    config_no_warn('no object-group ipv6 address my_addrgroup_ipv6')
   end
 
   def test_ports
+    config_no_warn('object-group ip port my_pg')
     %w(ipv4 ipv6).each do |afi|
       ['eq 2', 'neq 2', 'gt 2', 'lt 2',
        'portgroup my_pg'].each do |val|
@@ -129,6 +136,7 @@ class TestAce < CiscoTestCase
         assert_equal(val, a.dst_port)
       end
     end
+    config_no_warn('no object-group ip port my_pg')
   end
 
   def test_dscp

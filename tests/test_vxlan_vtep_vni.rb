@@ -178,7 +178,7 @@ class TestVxlanVtepVni < CiscoTestCase
 
   def test_peer_list
     vni = VxlanVtepVni.new('nve1', '6000')
-    if validate_property_excluded?('vxlan_vtep_vni', 'ingress_replication')
+    if validate_property_excluded?('vxlan_vtep_vni', 'peer_list')
       assert_raises(Cisco::UnsupportedError) { vni.peer_list = ['1.1.1.1'] }
       return
     end
@@ -246,6 +246,7 @@ class TestVxlanVtepVni < CiscoTestCase
       return
     end
 
+    skip_incompat_version?('vxlan_vtep_vni', 'suppress_uuc')
     # Test: Check suppress_uuc is not configured.
     refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
 
