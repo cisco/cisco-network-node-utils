@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'node'
+require_relative 'node_util'
 
 module Cisco
   # NtpAuthKey - node utility class for NTP authentication-key management
