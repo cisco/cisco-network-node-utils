@@ -51,7 +51,7 @@ module Cisco
     # Regexp to match various link bundle interface variants
     PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
 
-    attr_reader :name
+    attr_reader :name, :state_default
 
     def initialize(name, instantiate=true)
       fail TypeError unless name.is_a?(String)
@@ -60,6 +60,13 @@ module Cisco
       @smr = config_get('interface', 'stp_mst_range')
       @svr = config_get('interface', 'stp_vlan_range')
       @match_found = false
+      # Keep track of default vs non-default state for
+      # interfaces that cannot be created/destroyed.
+      @state_default = nil
+      # Track ethernet but not sub-interfaces
+      if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
+        @state_default = default?
+      end
       create if instantiate
     end
 
