@@ -148,7 +148,7 @@ module Cisco
     end
 
     def destroy
-      if @name[/ethernet/]
+      if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
         config_set('interface', 'default', name: @name)
       else
         config_set('interface', 'destroy', name: @name)
