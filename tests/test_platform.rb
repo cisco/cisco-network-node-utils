@@ -110,7 +110,7 @@ class TestPlatform < CiscoTestCase
   end
 
   def test_uptime
-    s = @device.cmd('sh ver').scan(/uptime is (.*)/).flatten.first
+    s = @device.cmd('sh system uptime').scan(/Kernel uptime:\s+(.*)/).flatten.first
     # compare without seconds
     assert_equal(s.gsub(/\d+ sec/, ''), Platform.uptime.gsub(/\d+ sec/, ''))
   end

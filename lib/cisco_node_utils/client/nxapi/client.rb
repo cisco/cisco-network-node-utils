@@ -69,7 +69,7 @@ class Cisco::Client::NXAPI < Cisco::Client
     @address = @http.address
 
     # Make sure we can actually connect to the socket
-    get(command: 'show hostname')
+    # get(command: 'show hostname')
   end
 
   def self.validate_args(**kwargs)
