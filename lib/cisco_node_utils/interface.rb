@@ -595,6 +595,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_info_trust=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_info_trust',
                  name:  @name, state: state ? '' : 'no')
@@ -609,6 +610,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_src_addr_hsrp=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_src_addr_hsrp',
                  name:  @name, state: state ? '' : 'no')
@@ -627,8 +629,9 @@ module Cisco
 
     def ipv4_dhcp_relay_src_intf=(val)
       state = val == default_ipv4_dhcp_relay_src_intf ? 'no' : ''
-      intf = val == default_ipv4_dhcp_relay_src_intf ? '' : val
+      return false if state == 'no' && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state.empty?
+      intf = val == default_ipv4_dhcp_relay_src_intf ? '' : val
       config_set('interface', 'ipv4_dhcp_relay_src_intf',
                  name:  @name, state: state, intf: intf)
     end
@@ -642,6 +645,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_subnet_broadcast=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_subnet_broadcast',
                  name:  @name, state: state ? '' : 'no')
@@ -656,6 +660,7 @@ module Cisco
     end
 
     def ipv4_dhcp_smart_relay=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_smart_relay',
                  name:  @name, state: state ? '' : 'no')
@@ -804,8 +809,9 @@ module Cisco
 
     def ipv6_dhcp_relay_src_intf=(val)
       state = val == default_ipv6_dhcp_relay_src_intf ? 'no' : ''
-      intf = val == default_ipv6_dhcp_relay_src_intf ? '' : val
+      return false if state == 'no' && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state.empty?
+      intf = val == default_ipv6_dhcp_relay_src_intf ? '' : val
       config_set('interface', 'ipv6_dhcp_relay_src_intf',
                  name:  @name, state: state, intf: intf)
     end
@@ -1848,6 +1854,7 @@ module Cisco
       # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
       no_cmd = (vtp_set) ? '' : 'no'
+      return false unless Feature.vtp_enabled? && no_cmd == ''
       config_set('interface', 'vtp', name: @name, state: no_cmd)
     end
 
