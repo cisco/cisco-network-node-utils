@@ -18,8 +18,11 @@ all_interfaces:
   multiple:
   ios_xr:
     get_command: 'show running all-interfaces'
+    get_value: '/^interface (.*)/'
+  nexus:
+    get_command: "show running-config interface | section '^interface'"
+    get_value: '/(.*)/'
   get_context: ~
-  get_value: '/^interface (.*)/'
 
 bfd_echo:
   _exclude: [ios_xr]

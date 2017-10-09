@@ -53,7 +53,7 @@ module Cisco
 
     attr_reader :name, :state_default
 
-    def initialize(name, instantiate=true)
+    def initialize(name, instantiate=true, default_state=false)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       @name = name.downcase
@@ -65,7 +65,7 @@ module Cisco
       @state_default = nil
       # Track ethernet but not sub-interfaces
       if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
-        @state_default = default?
+        @state_default = default_state
       end
       create if instantiate
     end
@@ -79,10 +79,14 @@ module Cisco
       intf_list = config_get('interface', 'all_interfaces')
       return hash if intf_list.nil?
 
+      intf_list = intf_list.to_s.split('interface')
       intf_list.each do |id|
-        id = id.downcase
+        int_data = id.delete('"').split(',').select { |f| /\S+/.match(f) }
+        id = int_data[0].strip.downcase
+        next if id[/\[/]
         next if opt && filter(opt, id)
-        hash[id] = Interface.new(id, false)
+        default_state = int_data.size > 1 ? false : true
+        hash[id] = Interface.new(id, false, default_state)
       end
       hash
     end
