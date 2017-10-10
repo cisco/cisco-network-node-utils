@@ -38,7 +38,7 @@ module Cisco
 
     def self.interfaces
       hash = {}
-      intf_list = config_get('interface', 'all_interfaces')
+      intf_list = config_get('interface_portchannel', 'all_interfaces')
       return hash if intf_list.nil?
 
       intf_list.each do |id|
