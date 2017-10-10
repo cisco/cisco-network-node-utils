@@ -1857,8 +1857,9 @@ module Cisco
     def switchport_vtp=(vtp_set)
       # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
+      return false if !vtp_set && !Feature.vtp_enabled?
+      Feature.vtp_enable if vtp_set
       no_cmd = (vtp_set) ? '' : 'no'
-      return false unless Feature.vtp_enabled? && no_cmd == ''
       config_set('interface', 'vtp', name: @name, state: no_cmd)
     end
 

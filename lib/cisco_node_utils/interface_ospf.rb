@@ -53,7 +53,7 @@ module Cisco
       fail TypeError unless ospf_name.is_a?(String) || ospf_name.nil?
       ints = {}
 
-      intf_list = config_get('interface', 'all_interfaces')
+      intf_list = config_get('interface_ospf', 'all_interfaces')
       return ints if intf_list.nil?
       intf_list.each do |name|
         match = config_get('interface_ospf', 'area', name)
