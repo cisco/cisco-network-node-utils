@@ -79,12 +79,21 @@ module Cisco
       intf_list = config_get('interface', 'all_interfaces')
       return hash if intf_list.nil?
 
-      intf_list = intf_list.to_s.split('interface')
+      # Massage intf_list data into an array that is easy
+      # to work with.
+      intf_list.collect! { |x| x.strip || x }
+      intf_list.delete('')
+      intf_list = intf_list.join(' ').split('interface')
+      intf_list.delete('')
+
       intf_list.each do |id|
-        int_data = id.delete('"').split(',').select { |f| /\S+/.match(f) }
-        id = int_data[0].strip.downcase
-        next if id[/\[/]
+        int_data = id.strip.split(' ')
+        next if int_data[0].nil?
+        id = int_data[0].downcase
         next if opt && filter(opt, id)
+        # If there are any additional options associated
+        # with this interface then it's in a non-default
+        # state.
         default_state = int_data.size > 1 ? false : true
         hash[id] = Interface.new(id, false, default_state)
       end
