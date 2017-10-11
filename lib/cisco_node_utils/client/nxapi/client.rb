@@ -67,9 +67,6 @@ class Cisco::Client::NXAPI < Cisco::Client
     # also used as the default config by firefox.
     @http.read_timeout = 300
     @address = @http.address
-
-    # Make sure we can actually connect to the socket
-    get(command: 'show hostname')
   end
 
   def self.validate_args(**kwargs)
