@@ -152,9 +152,6 @@ module Cisco
     def create
       feature_vlan_set(true) if @name[/(vlan|bdi)/i]
       config_set('interface', 'create', name: @name)
-      if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
-        self.description = 'Managed by Puppet'
-      end
     rescue Cisco::CliError
       # Some XR platforms do not support channel-group configuration
       # on some OS versions. Since this is an OS version difference and not
