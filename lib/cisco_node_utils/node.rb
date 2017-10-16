@@ -372,6 +372,15 @@ module Cisco
             return prod.concat('-F') unless prod[/-F/]
           end
         end
+      when /N3K/
+        if @cmd_ref
+          ver = os_version
+        else
+          ver = get(command:     'show version',
+                    data_format: :nxapi_structured)['kickstart_ver_str']
+        end
+        # Append -F for fretta platform.
+        return 'N9K-F' if ver[/7.0\(3\)F/]
       end
       prod
     end
