@@ -380,7 +380,7 @@ module Cisco
                     data_format: :nxapi_structured)['kickstart_ver_str']
         end
         # Append -F for fretta platform.
-        return 'N9K-F' if ver[/7.0\(3\)F/]
+        return 'N9k-F' if ver[/7.0\(3\)F/]
       end
       prod
     end
