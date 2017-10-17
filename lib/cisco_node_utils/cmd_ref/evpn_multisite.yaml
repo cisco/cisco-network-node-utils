@@ -1,0 +1,22 @@
+# evpn_vni.yaml
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running"
+  get_context:
+    - '/^evpn multisite border-gateway <multisiteid>$/'
+  set_context:
+    - 'evpn multisite border-gateway <multisiteid>'
+
+delay_restore:
+  get_context: ['/^evpn multisite border-gateway <multisiteid>$/']
+  get_value: '/^delay-restore\s+time\s+(\d+)$/'
+  set_context: ['evpn multisite border-gateway <multisiteid>']
+  set_value: "<state> delay-restore time <time>"
+
+router:
+  get_command: "show running"
+  context: ~
+  get_value: 'evpn multisite border-gateway ([\d.]+)'
+  set_value: "<state> evpn multisite border-gateway <multisiteid>"
