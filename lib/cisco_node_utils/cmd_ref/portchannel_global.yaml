@@ -46,10 +46,10 @@ load_balance_type:
   N6k: *load_balance_type_ethernet
   N7k: &load_balance_type_asymmetric
     default_only: "asymmetric"
-  N9k-F: &load_balance_type_no_hash
-    default_only: "no_hash"
   N9k: &load_balance_type_symmetry
     default_only: "symmetry"
+  N9k-F: &load_balance_type_no_hash
+    default_only: "no_hash"
 
 load_defer:
   _exclude: [N3k, N5k, N6k, N9k-F, N9k]
