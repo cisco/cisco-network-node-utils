@@ -3,11 +3,7 @@
 _exclude: [ios_xr]
 
 _template:
-  get_command: "show running"
-  get_context:
-    - '/^evpn multisite border-gateway <multisiteid>$/'
-  set_context:
-    - 'evpn multisite border-gateway <multisiteid>'
+  get_command: "show running-config"
 
 delay_restore:
   get_context: ['/^evpn multisite border-gateway <multisiteid>$/']
@@ -15,8 +11,7 @@ delay_restore:
   set_context: ['evpn multisite border-gateway <multisiteid>']
   set_value: "<state> delay-restore time <time>"
 
-router:
-  get_command: "show running"
+multisite:
   context: ~
   get_value: 'evpn multisite border-gateway ([\d.]+)'
   set_value: "<state> evpn multisite border-gateway <multisiteid>"
