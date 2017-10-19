@@ -143,6 +143,8 @@ class TestNodeExt < CiscoTestCase
   def test_get_product_id
     # N9K Fretta product_id gets a '-F' appended so remove it for this check
     if Utils.image_version?(/7.0.3.F/)
+      skip('Test Not supported on this platform') if
+        /N9k-3-F/ =~ node.product_id
       chassis = node.product_id.sub('-F', '')
     else
       chassis = node.product_id
