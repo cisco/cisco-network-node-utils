@@ -1,0 +1,18 @@
+# evpn_stormcontrol.yaml
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running-config"
+
+broadcast:
+  get_value: 'evpn storm-control broadcast level ([\d.]+)'
+  set_value: "<state> evpn storm-control broadcast level <level>"
+
+multicast:
+  get_value: 'evpn storm-control multicast level ([\d.]+)'
+  set_value: "<state> evpn storm-control multicast level <level>"
+
+unicast:
+  get_value: 'evpn storm-control unicast level ([\d.]+)'
+  set_value: "<state> evpn storm-control unicast level <level>"
