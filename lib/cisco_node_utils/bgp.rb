@@ -414,14 +414,11 @@ module Cisco
     # Nvgen as True With optional 'size <size>
     def event_history_cli
       match = config_get('bgp', 'event_history_cli', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-      end
-      default_event_history_cli
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_cli=(val)
@@ -432,23 +429,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_event_history_cli
-      config_get_default('bgp', 'event_history_cli')
-    end
-
     # event-history detail [ size <size> ]
     # Nvgen as True With optional 'size <size>
     def event_history_detail
       match = config_get('bgp', 'event_history_detail', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-        return 'true'
-      end
-      default_event_history_detail
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return 'true' unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_detail=(val)
@@ -459,22 +448,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_event_history_detail
-      config_get_default('bgp', 'event_history_detail')
-    end
-
     # event-history errors [ size <size> ]
     # Nvgen as True With optional 'size <size>
     def event_history_errors
       match = config_get('bgp', 'event_history_errors', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-      end
-      default_event_history_errors
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_errors=(val)
@@ -485,22 +467,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_event_history_errors
-      config_get_default('bgp', 'event_history_errors')
-    end
-
     # event-history events [ size <size> ]
     # Nvgen as True With optional 'size <size>
     def event_history_events
       match = config_get('bgp', 'event_history_events', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-      end
-      default_event_history_events
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_events=(val)
@@ -511,28 +486,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_event_history_events
-      if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-         node.product_id[/(N5|N6|N7|N9.*-F)/]
-        config_get_default('bgp', 'event_history_events')
-      else
-        config_get('bgp', 'event_history_events_bytes', @get_args)
-      end
-    end
-
     # event-history objstore [ size <size> ]
     # Nvgen as True With optional 'size <size>
     def event_history_objstore
       match = config_get('bgp', 'event_history_objstore', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-        return 'true'
-      end
-      default_event_history_objstore
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return 'true' unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_objstore=(val)
@@ -543,25 +505,15 @@ module Cisco
       set_args_keys_default
     end
 
-    def default_event_history_objstore
-      config_get_default('bgp', 'event_history_objstore')
-    end
-
     # event-history periodic [ size <size> ]
     # Nvgen as True With optional 'size <size>
     def event_history_periodic
       match = config_get('bgp', 'event_history_periodic', @get_args)
-      if match.is_a?(Array)
-        return 'false' if match[0] == 'no '
-        if match[1]
-          return match[1] if match[1][/\A\d+\z/]
-          return 'size_' + match[1]
-        end
-      else
-        return default_event_history_periodic
-      end
-      return 'true' unless default_event_history_periodic[/size/]
-      default_event_history_periodic
+      return unless match.is_a?(Array)
+      return 'false' if match[0] == 'no '
+      return unless match[1]
+      return match[1] if match[1][/\A\d+\z/]
+      'size_' + match[1]
     end
 
     def event_history_periodic=(val)
@@ -570,15 +522,6 @@ module Cisco
       @set_args[:state] = val[/false/] ? 'no' : ''
       config_set('bgp', 'event_history_periodic', @set_args)
       set_args_keys_default
-    end
-
-    def default_event_history_periodic
-      if Utils.image_version?(/7.0.3.I2|I3|I4/) ||
-         node.product_id[/(N5|N6|N7|N9.*-F)/]
-        config_get_default('bgp', 'event_history_periodic')
-      else
-        config_get('bgp', 'event_history_periodic_bytes', @get_args)
-      end
     end
 
     # Fast External fallover (Getter/Setter/Default)

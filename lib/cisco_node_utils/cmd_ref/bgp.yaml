@@ -152,43 +152,33 @@ event_history_cli:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history cli(?: size (\S+))?$/'
   set_value: '<state> event-history cli <size>'
-  default_value: 'size_small'
 
 event_history_detail:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history detail(?: size (\S+))?$/'
   set_value: '<state> event-history detail <size>'
-  default_value: 'false'
 
 event_history_errors:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N5k, N6k]
+  os_version: 'N7k:8.0; N3k, N9k:7.0.3.I5.1, N9k-F:7.0.3.F3.2'
   get_value: '/^(no )?event-history errors(?: size (\S+))?$/'
   set_value: '<state> event-history errors <size>'
-  default_value: 'size_medium'
 
 event_history_events:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history events(?: size (\S+))?$/'
   set_value: '<state> event-history events <size>'
-  default_value: 'size_small'
-
-event_history_events_bytes:
-  default_only: 'size_large'
 
 event_history_objstore:
   _exclude: [ios_xr]
+  os_version: 'N7k:8.0; N3k, N9k:7.0.3.I5.1, N9k-F:7.0.3.F3.2'
   get_value: '/^(no )?event-history objstore(?: size (\S+))?$/'
   set_value: '<state> event-history objstore <size>'
-  default_value: 'false'
 
 event_history_periodic:
   _exclude: [ios_xr]
   get_value: '/^(no )?event-history periodic(?: size (\S+))?$/'
   set_value: '<state> event-history periodic <size>'
-  default_value: 'size_small'
-
-event_history_periodic_bytes:
-  default_only: 'false'
 
 fast_external_fallover:
   kind: boolean
