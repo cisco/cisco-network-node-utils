@@ -7,6 +7,11 @@ _template:
   get_context: ['/^interface %s$/i']
   set_context: ["interface %s"]
 
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
 bfd_per_link:
   kind: boolean
   get_value: '/^bfd per-link$/'

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1835,6 +1835,28 @@ class TestInterface < CiscoTestCase
     assert_raises(ArgumentError) { lb.load_interval_counter_3_delay = 100 }
     subif.destroy
     lb.destroy
+  end
+
+  def test_default_physical
+    name = interfaces[0]
+    int = Interface.new(name)
+    int.switchport_mode = :disabled
+
+    # Verify l3 -> default
+    int.description = 'default_pysical'
+    int.ipv4_addr_mask_set('192.168.0.1', '24')
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
+
+    # Verify l2 trunk -> default
+    int.switchport_mode = :access
+    int.switchport_autostate_exclude = true
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
   end
 
   def test_purge_config

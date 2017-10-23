@@ -1,6 +1,6 @@
 # March 2015, Alex Hunsberger
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ module Cisco
       fail TypeError unless ospf_name.is_a?(String) || ospf_name.nil?
       ints = {}
 
-      intf_list = config_get('interface', 'all_interfaces')
+      intf_list = config_get('interface_ospf', 'all_interfaces')
       return ints if intf_list.nil?
       intf_list.each do |name|
         match = config_get('interface_ospf', 'area', name)
