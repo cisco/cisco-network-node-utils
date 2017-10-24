@@ -1,6 +1,6 @@
-# December 2015, Andi Shen
+# October 2017, Rahul Shenoy
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ module Cisco
       Feature.nv_overlay_enable
     end
 
-    def multisite
+    def self.multisite
       config_get('evpn_multisite', 'multisite')
     end
 

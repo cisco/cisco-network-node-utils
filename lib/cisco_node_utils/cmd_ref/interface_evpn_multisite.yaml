@@ -1,0 +1,12 @@
+# interface_evpn_multisite
+---
+_exclude: [ios_xr]
+
+_template:
+  get_command: "show running"
+  context:
+    - "interface <interface>"
+
+evpn_multisite:
+  get_value: '/^evpn multisite (\S+)$/'
+  set_value: "<state> evpn multisite <tracking>"

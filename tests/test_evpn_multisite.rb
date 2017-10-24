@@ -1,8 +1,8 @@
-# Evpn Vni Unit Tests
+# Evpn Multisite Unit Tests
 #
-# Andi Shen, December, 2015
+# Rahul Shenoy, October, 2017
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/evpn_multisite'
 
-# TestEvpnVni - Minitest for EvpnVni class
+# TestEvpnMultisite - Minitest for EvpnMultisite class
 class TestEvpnMultisite < CiscoTestCase
   @skip_unless_supported = 'evpn_multisite'
 
@@ -34,11 +34,11 @@ class TestEvpnMultisite < CiscoTestCase
 
   def test_create_and_destroy
     ms = EvpnMultisite.new(100)
-    ms_id = ms.multisite
+    ms_id = EvpnMultisite.multisite
     assert_equal('100', ms_id,
                  'Error: failed to create multisite border-gateway 100')
     ms.destroy
-    ms_id = ms.multisite
+    ms_id = EvpnMultisite.multisite
     assert_nil(ms_id, 'Error: failed to destroy multisite border-gateway 100')
   end
 
@@ -56,12 +56,12 @@ class TestEvpnMultisite < CiscoTestCase
   def test_update_multisiteid
     ms = EvpnMultisite.new(100)
     ms.delay_restore = 50
-    assert_equal('100', ms.multisite,
+    assert_equal('100', EvpnMultisite.multisite,
                  'Error: failed to create multisite border-gateway 100')
     assert_equal('50', ms.delay_restore,
                  'multisite border-gateway delay_restore should be 50')
     ms.multisite = 200
-    assert_equal('200', ms.multisite,
+    assert_equal('200', EvpnMultisite.multisite,
                  'Error: failed to create multisite border-gateway 200')
     assert_equal('50', ms.delay_restore,
                  'multisite border-gateway delay_restore should be 50')
