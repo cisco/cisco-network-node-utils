@@ -4,7 +4,7 @@
 #
 # Richard Wellum, August, 2015
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -170,7 +170,7 @@ class TestBgpAF < CiscoTestCase
       # triggers a version check below.
       if expect == :runtime
         case Platform.image_version
-        when /8.0|8.1|F3.2/
+        when /8.0|8.1|8.2|F3.2/
           expect = :success
         when /I5.2|I5.3|I6/
           expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
