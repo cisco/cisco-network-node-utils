@@ -1837,6 +1837,28 @@ class TestInterface < CiscoTestCase
     lb.destroy
   end
 
+  def test_default_physical
+    name = interfaces[0]
+    int = Interface.new(name)
+    int.switchport_mode = :disabled
+
+    # Verify l3 -> default
+    int.description = 'default_pysical'
+    int.ipv4_addr_mask_set('192.168.0.1', '24')
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
+
+    # Verify l2 trunk -> default
+    int.switchport_mode = :access
+    int.switchport_autostate_exclude = true
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
+  end
+
   def test_purge_config
     name = interfaces[0]
     int = Interface.new(name)

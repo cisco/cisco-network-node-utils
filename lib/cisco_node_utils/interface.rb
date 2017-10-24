@@ -1,6 +1,6 @@
 # November 2015, Chris Van Heuveln
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,15 +51,22 @@ module Cisco
     # Regexp to match various link bundle interface variants
     PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
 
-    attr_reader :name
+    attr_reader :name, :state_default
 
-    def initialize(name, instantiate=true)
+    def initialize(name, instantiate=true, default_state=false)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       @name = name.downcase
       @smr = config_get('interface', 'stp_mst_range')
       @svr = config_get('interface', 'stp_vlan_range')
       @match_found = false
+      # Keep track of default vs non-default state for
+      # interfaces that cannot be created/destroyed.
+      @state_default = nil
+      # Track ethernet but not sub-interfaces
+      if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
+        @state_default = default_state
+      end
       create if instantiate
     end
 
@@ -72,10 +79,23 @@ module Cisco
       intf_list = config_get('interface', 'all_interfaces')
       return hash if intf_list.nil?
 
+      # Massage intf_list data into an array that is easy
+      # to work with.
+      intf_list.collect! { |x| x.strip || x }
+      intf_list.delete('')
+      intf_list = intf_list.join(' ').split('interface')
+      intf_list.delete('')
+
       intf_list.each do |id|
-        id = id.downcase
+        int_data = id.strip.split(' ')
+        next if int_data[0].nil?
+        id = int_data[0].downcase
         next if opt && filter(opt, id)
-        hash[id] = Interface.new(id, false)
+        # If there are any additional options associated
+        # with this interface then it's in a non-default
+        # state.
+        default_state = int_data.size > 1 ? false : true
+        hash[id] = Interface.new(id, false, default_state)
       end
       hash
     end
@@ -141,7 +161,16 @@ module Cisco
     end
 
     def destroy
-      config_set('interface', 'destroy', name: @name)
+      if @name[/ethernet/] && !@name[/ethernet.*\.\d+/]
+        config_set('interface', 'default', name: @name)
+      else
+        config_set('interface', 'destroy', name: @name)
+      end
+    end
+
+    def default?
+      state = config_get('interface', 'default', name: @name)
+      state.nil? ? true : false
     end
 
     def pvlan_enable
@@ -579,6 +608,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_info_trust=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_info_trust',
                  name:  @name, state: state ? '' : 'no')
@@ -593,6 +623,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_src_addr_hsrp=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_src_addr_hsrp',
                  name:  @name, state: state ? '' : 'no')
@@ -611,8 +642,9 @@ module Cisco
 
     def ipv4_dhcp_relay_src_intf=(val)
       state = val == default_ipv4_dhcp_relay_src_intf ? 'no' : ''
-      intf = val == default_ipv4_dhcp_relay_src_intf ? '' : val
+      return false if state == 'no' && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state.empty?
+      intf = val == default_ipv4_dhcp_relay_src_intf ? '' : val
       config_set('interface', 'ipv4_dhcp_relay_src_intf',
                  name:  @name, state: state, intf: intf)
     end
@@ -626,6 +658,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_subnet_broadcast=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_relay_subnet_broadcast',
                  name:  @name, state: state ? '' : 'no')
@@ -640,6 +673,7 @@ module Cisco
     end
 
     def ipv4_dhcp_smart_relay=(state)
+      return false if !state && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state
       config_set('interface', 'ipv4_dhcp_smart_relay',
                  name:  @name, state: state ? '' : 'no')
@@ -788,8 +822,9 @@ module Cisco
 
     def ipv6_dhcp_relay_src_intf=(val)
       state = val == default_ipv6_dhcp_relay_src_intf ? 'no' : ''
-      intf = val == default_ipv6_dhcp_relay_src_intf ? '' : val
+      return false if state == 'no' && !Feature.dhcp_enabled?
       Feature.dhcp_enable if state.empty?
+      intf = val == default_ipv6_dhcp_relay_src_intf ? '' : val
       config_set('interface', 'ipv6_dhcp_relay_src_intf',
                  name:  @name, state: state, intf: intf)
     end
@@ -1831,6 +1866,8 @@ module Cisco
     def switchport_vtp=(vtp_set)
       # TODO: throw UnsupportedError instead of returning false?
       return false unless switchport_vtp_mode_capable?
+      return false if !vtp_set && !Feature.vtp_enabled?
+      Feature.vtp_enable if vtp_set
       no_cmd = (vtp_set) ? '' : 'no'
       config_set('interface', 'vtp', name: @name, state: no_cmd)
     end
