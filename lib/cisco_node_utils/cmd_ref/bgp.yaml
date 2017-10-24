@@ -170,7 +170,7 @@ event_history_events:
   set_value: '<state> event-history events <size>'
 
 event_history_objstore:
-  _exclude: [ios_xr]
+  _exclude: [ios_xr, N5k, N6k]
   os_version: 'N7k:8.0; N3k, N9k:7.0.3.I5.1, N9k-F:7.0.3.F3.2'
   get_value: '/^(no )?event-history objstore(?: size (\S+))?$/'
   set_value: '<state> event-history objstore <size>'
