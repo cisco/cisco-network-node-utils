@@ -146,6 +146,13 @@ prefix_list_out:
   set_value: '<state> prefix-list <str> out'
   default_value: ''
 
+rewrite_rt_asn:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^rewrite-rt-asn$/'
+  set_value: '<state> rewrite-rt-asn'
+  default_value: false
+
 route_map_in:
   kind: string
   default_value: ''
