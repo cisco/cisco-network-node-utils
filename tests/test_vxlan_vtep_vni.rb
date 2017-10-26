@@ -15,6 +15,7 @@
 require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/vxlan_vtep'
 require_relative '../lib/cisco_node_utils/vxlan_vtep_vni'
+require_relative '../lib/cisco_node_utils/evpn_multisite'
 
 include Cisco
 
@@ -257,5 +258,32 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Default
     vni.suppress_uuc = vni.default_suppress_uuc
     refute(vni.suppress_uuc, 'suppress_uuc should be disabled')
+  end
+
+  def test_multisite_ingress_replication
+    vni = VxlanVtepVni.new('nve1', '6000')
+    ms = EvpnMultisite.new(100)
+
+    # Test: Default
+    vni.multisite_ingress_replication =
+      vni.default_multisite_ingress_replication
+    refute(vni.multisite_ingress_replication,
+          'multisite ingress-replication should be disabled')
+
+    # Test: Enable multisite_ingress_replication
+    vni.multisite_ingress_replication = true
+    assert(vni.multisite_ingress_replication,
+           'multisite ingress-replication should be enabled')
+
+    # Test: Disable multisite_ingress_replication
+    vni.multisite_ingress_replication = false
+    refute(vni.multisite_ingress_replication,
+          'multisite ingress-replication should be disabled')
+
+    ms.destroy
+    # Test: enabling multisite ingress-replication without a multisite bg errors
+    assert_raises(Cisco::CliError) do
+      vni.multisite_ingress_replication = true
+    end
   end
 end

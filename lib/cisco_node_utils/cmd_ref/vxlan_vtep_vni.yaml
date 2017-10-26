@@ -27,6 +27,12 @@ multicast_group:
   set_value: '<state> mcast-group <ip_start> <ip_end>'
   default_value: ''
 
+multisite_ingress_replication:
+  kind: boolean
+  get_value: '/^multisite ingress-replication$/'
+  set_value: '<state> multisite ingress-replication'
+  default_value: false
+
 peer_list:
   _exclude: [N5k, N6k, N7k]
   multiple:
