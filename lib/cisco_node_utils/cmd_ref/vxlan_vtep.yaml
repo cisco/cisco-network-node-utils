@@ -38,6 +38,11 @@ mt_lite_support:
     # this feature is always off on these platforms and cannot be changed
     default_only: false
 
+multisite_bg_intf:
+    get_value: '/^multisite border\-gateway interface (\S+)$/'
+    set_value: '<state> multisite border-gateway interface <lpbk_intf>'
+    default_value: ''
+
 shutdown:
   kind: boolean
   get_value: '/^no shutdown$/'
