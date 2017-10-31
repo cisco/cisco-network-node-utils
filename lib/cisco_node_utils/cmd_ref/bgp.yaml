@@ -282,7 +282,7 @@ nsr:
   set_value: '<state> nsr'
 
 process_initialized:
-  _exclude: [ios_xr, N3k, N7k, N9k]
+  _exclude: [ios_xr, N3k, N3k-F, N7k, N9k, N9k-F]
   # bgp process initialization state
   kind: boolean
   context: ~

@@ -1338,7 +1338,8 @@ class TestRouteMap < CiscoTestCase
 
   def test_extcommunity_rt
     # bug CSCvc92395 on fretta and n9k
-    skip('platform not supported for this test') if product_tag[/n9k/]
+    skip('platform not supported for this test') if
+      product_tag[/n9k/] || product_tag[/n3k-f/]
     rm = create_route_map
     assert_equal(rm.default_set_extcommunity_rt_additive,
                  rm.set_extcommunity_rt_additive)
