@@ -16,7 +16,7 @@ destroy:
   set_value: "no vlan %s"
 
 fabric_control:
-  _exclude: [N3k, N5k, N6k, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
   kind: boolean
   get_command: "show running-config vlan"
   get_context: ['/^vlan <vlan>/']
@@ -30,6 +30,7 @@ mapped_vni:
   N3k: &mapped_vni_n3_8_9k
     get_command: 'show running vlan'
   N9k-F: *mapped_vni_n3_8_9k
+  N3k-F: *mapped_vni_n3_8_9k
   N9k: *mapped_vni_n3_8_9k
   N5k: &mapped_vni_n5_6k
     get_command: 'show running vlan 1-4094'
@@ -50,7 +51,7 @@ mapped_vni_requires_nv_overlay:
     default_only: false
 
 mode:
-  _exclude: [N3k, N9k, N9k-F]
+  _exclude: [N3k, N3k-F, N9k, N9k-F]
   multiple: true
   get_command: "show vlan"
   # TBD: 'show vlan' is problematic and should be converted to use show run
@@ -70,7 +71,7 @@ name:
   set_value: "%s name %s ; end"
 
 pvlan_association:
-  _exclude: [N9k-F]
+  _exclude: [N3k-F, N9k-F]
   multiple: true
   get_command: "show vlan private-vlan"
   get_value: '/^<id>\s+(\d+)/'
@@ -79,7 +80,7 @@ pvlan_association:
   default_value: []
 
 pvlan_type:
-  _exclude: [N9k-F]
+  _exclude: [N3k-F, N9k-F]
   kind: string
   get_command: 'show vlan private-vlan type'
   get_value: '/^<id>\s+(\S+)/'

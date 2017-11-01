@@ -8,6 +8,7 @@ _template:
     get_context: ["TABLE_snmp_community", "ROW_snmp_community"]
   N9k: *template_structured
   N9k-F: *template_structured
+  N3k-F: *template_structured
 
 acl:
   N3k: &acl_structured_get
@@ -16,6 +17,7 @@ acl:
     set_value: "<state> snmp-server community <name> use-acl <acl>"
   N9k: *acl_structured_get
   N9k-F: *acl_structured_get
+  N3k-F: *acl_structured_get
   ios_xr:
     get_command: "show running snmp"
     get_value: '/^snmp-server community <name> IPv4 (.*)$/'
@@ -34,6 +36,7 @@ all_communities:
     get_value: 'community_name'
   N9k: *all_structured
   N9k-F: *all_structured
+  N3k-F: *all_structured
   N5k: &all_cli
     get_command: "show running snmp all"
     get_value: '/^snmp-server community (\S+) /'
@@ -57,6 +60,7 @@ group:
     get_value: ["community_name <name>", "grouporaccess", '/^(?:Community groupname:\s+)?(\S+)/']
   N9k: *group_structured_get
   N9k-F: *group_structured_get
+  N3k-F: *group_structured_get
   ios_xr: &group_cli_based_get
     kind: string
     get_command: "show running snmp all"

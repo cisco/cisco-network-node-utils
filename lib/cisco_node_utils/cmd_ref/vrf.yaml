@@ -76,6 +76,7 @@ vni: # TBD Should this move to the vni provider as vrf_vni?
     set_value: '<state> vni <id>'
     default_value: false
   N9k-F: *vni9k
+  N3k-F: *vni9k
 
 vpn_id:
   _exclude: [nexus]
