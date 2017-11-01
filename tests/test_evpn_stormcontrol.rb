@@ -26,11 +26,11 @@ class TestEvpnStormcontrol < CiscoTestCase
   def setup
     # Ensure we are starting with a clean slate for each test.
     super
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
     config('no evpn storm-control broadcast level 50')
     config('no evpn storm-control multicast level 50')
     config('no evpn storm-control unicast level 50')
-  rescue RuntimeError => e
-    hardware_supports_feature?(e.message)
   end
 
   def test_create_and_destroy

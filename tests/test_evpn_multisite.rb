@@ -27,9 +27,9 @@ class TestEvpnMultisite < CiscoTestCase
     # Disable feature nv overlay before each test to
     # ensure we are starting with a clean slate for each test.
     super
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
     config('no feature nv overlay')
-  rescue RuntimeError => e
-    hardware_supports_feature?(e.message)
   end
 
   def test_create_and_destroy

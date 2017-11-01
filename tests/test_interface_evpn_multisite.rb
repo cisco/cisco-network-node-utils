@@ -22,10 +22,13 @@ require_relative '../lib/cisco_node_utils/evpn_multisite'
 
 # TestInterfaceEvpnMultisite - Minitest for InterfaceEvpnMultisite class
 class TestInterfaceEvpnMultisite < CiscoTestCase
+  @skip_unless_supported = 'interface_evpn_multisite'
 
   def setup
     # ensure we are starting with a clean slate for each test.
     super
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
     interface_ethernet_default(interfaces[0])
   end
 

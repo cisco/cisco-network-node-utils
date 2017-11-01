@@ -184,10 +184,11 @@ class TestVxlanVtep < CiscoTestCase
   end
 
   def test_multisite_bg_interface
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
     vtep = VxlanVtep.new('nve1')
 
     # Set multisite_bg_interface to non-default value
-    # Should Error when no 'evpn multisite border-gateway' set
     val = 'loopback55'
     ms = EvpnMultisite.new(100)
     vtep.multisite_bg_interface = val

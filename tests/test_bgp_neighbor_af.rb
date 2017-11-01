@@ -749,6 +749,8 @@ class TestBgpNeighborAF < CiscoTestCase
   end
 
   def test_rewrite_rt_asn
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
     af_args = @@matrix[:evpn]
     # clean_af needs true since rewrite_rt_asn is ebgp only
     af, dbg = clean_af(af_args, true)

@@ -28,6 +28,7 @@ multicast_group:
   default_value: ''
 
 multisite_ingress_replication:
+  _exclude: [N5k, N6k, N7k, N9k-F]
   kind: boolean
   get_value: '/^multisite ingress-replication$/'
   set_value: '<state> multisite ingress-replication'

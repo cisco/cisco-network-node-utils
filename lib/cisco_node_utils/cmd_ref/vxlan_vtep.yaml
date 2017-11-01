@@ -39,6 +39,7 @@ mt_lite_support:
     default_only: false
 
 multisite_bg_intf:
+    _exclude: [N5k, N6k, N7k, N9k-F]
     get_value: '/^multisite border\-gateway interface (\S+)$/'
     set_value: '<state> multisite border-gateway interface <lpbk_intf>'
     default_value: ''

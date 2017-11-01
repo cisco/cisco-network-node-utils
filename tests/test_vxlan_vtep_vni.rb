@@ -261,6 +261,9 @@ class TestVxlanVtepVni < CiscoTestCase
   end
 
   def test_multisite_ingress_replication
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
+
     vni = VxlanVtepVni.new('nve1', '6000')
     ms = EvpnMultisite.new(100)
 
