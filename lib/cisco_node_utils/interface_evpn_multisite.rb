@@ -40,7 +40,7 @@ module Cisco
     end
 
     def tracking
-      config_get('interface_evpn_multisite','evpn_multisite', @get_args)
+      config_get('interface_evpn_multisite', 'evpn_multisite', @get_args)
     end
   end # class
 end # module

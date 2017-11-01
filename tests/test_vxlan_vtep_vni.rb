@@ -271,7 +271,7 @@ class TestVxlanVtepVni < CiscoTestCase
     vni.multisite_ingress_replication =
       vni.default_multisite_ingress_replication
     refute(vni.multisite_ingress_replication,
-          'multisite ingress-replication should be disabled')
+           'multisite ingress-replication should be disabled')
 
     # Test: Enable multisite_ingress_replication
     vni.multisite_ingress_replication = true
@@ -281,7 +281,7 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Disable multisite_ingress_replication
     vni.multisite_ingress_replication = false
     refute(vni.multisite_ingress_replication,
-          'multisite ingress-replication should be disabled')
+           'multisite ingress-replication should be disabled')
 
     ms.destroy
     # Test: enabling multisite ingress-replication without a multisite bg errors

@@ -26,7 +26,7 @@ module Cisco
     def initialize(stormcontrol_type, level, instantiate=true)
       err_msg = 'storm control type must be one of the following:' \
                 ' broadcast, multicast or unicast'
-      type_list = ['broadcast', 'multicast', 'unicast']
+      type_list = %w(broadcast multicast unicast)
       fail ArgumentError, err_msg unless type_list.include?(stormcontrol_type)
       @stormcontrol_type = stormcontrol_type
 
@@ -36,7 +36,7 @@ module Cisco
                                          level.is_a?(String)
       @level = level.to_i
       @get_args = @set_args = { stormcontrol_type: @stormcontrol_type,
-                                level: @level }
+                                level:             @level }
       create if instantiate
     end
 
