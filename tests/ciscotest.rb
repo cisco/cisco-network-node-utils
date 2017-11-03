@@ -223,7 +223,7 @@ class CiscoTestCase < TestCase
 
   def skip_legacy_defect?(pattern, msg)
     msg = "Defect in legacy image: [#{msg}]"
-    skip(msg) if system_image.match(Regexp.new(pattern))
+    skip(msg) if Utils.image_version?(Regexp.new(pattern))
   end
 
   def interfaces
