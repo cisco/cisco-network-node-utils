@@ -147,7 +147,7 @@ prefix_list_out:
   default_value: ''
 
 rewrite_rt_asn:
-  _exclude: [ios_xr, N3k, N5k, N6k, N7k, N9k-F]
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
   kind: boolean
   get_value: '/^rewrite-rt-asn$/'
   set_value: '<state> rewrite-rt-asn'

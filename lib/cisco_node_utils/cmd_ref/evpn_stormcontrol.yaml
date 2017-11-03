@@ -1,9 +1,9 @@
 # evpn_stormcontrol.yaml
 ---
-_exclude: [ios_xr, N3k, N5k, N6k, N7k, N9k-F]
+_exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
 
 _template:
-  get_command: "show running-config"
+  get_command: "show running-config | section storm-control"
 
 broadcast:
   get_value: 'evpn storm-control broadcast level ([\d.]+)'

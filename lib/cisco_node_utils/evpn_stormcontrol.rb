@@ -72,8 +72,8 @@ module Cisco
                 " 'Integer' object"
       fail ArgumentError, err_msg unless level.is_a?(Integer) ||
                                          level.is_a?(String)
-      level = level.to_i
-      @set_args[:level] = level
+      @level = level.to_i
+      @set_args[:level] = @level
       @set_args[:state] = ''
       config_stormcontrol
     end

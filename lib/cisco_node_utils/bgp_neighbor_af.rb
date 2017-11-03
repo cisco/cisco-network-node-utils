@@ -762,10 +762,7 @@ module Cisco
     end
 
     def rewrite_rt_asn=(state)
-      if state
-        Feature.nv_overlay_evpn_enable unless
-          Feature.nv_overlay_evpn_enabled?
-      end
+      Feature.nv_overlay_evpn_enable if state
       set_args_keys(state: (state ? '' : 'no'))
       config_set('bgp_neighbor_af', 'rewrite_rt_asn', @set_args)
     end

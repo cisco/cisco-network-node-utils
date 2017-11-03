@@ -34,7 +34,7 @@ module Cisco
     end
 
     def create
-      EvpnMultisite.enable
+      Feature.nv_overlay_enable
       @set_args[:state] = ''
       config_set('evpn_multisite', 'multisite', @set_args)
     end
@@ -42,11 +42,6 @@ module Cisco
     def destroy
       @set_args[:state] = 'no'
       config_set('evpn_multisite', 'multisite', @set_args)
-    end
-
-    # enable feature nv overlay
-    def self.enable
-      Feature.nv_overlay_enable
     end
 
     def self.multisite
@@ -58,8 +53,8 @@ module Cisco
                 " 'Integer' object"
       fail ArgumentError, err_msg unless multisiteid.is_a?(Integer) ||
                                          multisiteid.is_a?(String)
-      multisiteid = multisiteid.to_i
-      @set_args[:multisiteid] = multisiteid
+      @multisiteid = multisiteid.to_i
+      @set_args[:multisiteid] = @multisiteid
       config_set('evpn_multisite', 'multisite', @set_args)
     end
 
