@@ -255,7 +255,8 @@ vrf:
 
 ### Product variants
 
-Various product categories can also be used as keys to subdivide attributes as needed. Supported categories currently include the various Nexus switch product lines (`N3k`, `N5k`, `N6k`. `N7k`, `N9k`). When using one or more product keys in this fashion, you can also use the special key `else` to handle all other products not specifically called out:
+Various product categories can also be used as keys to subdivide attributes as needed. Supported categories currently
+include the various Nexus switch product lines (`N3k`, `N3k-F`, `N5k`, `N6k`. `N7k`, `N9k`, `N9k-F`). When using one or more product keys in this fashion, you can also use the special key `else` to handle all other products not specifically called out:
 
 ```yaml
 # show_version.yaml

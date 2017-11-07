@@ -44,6 +44,7 @@ Platform          | OS     | OS Version           |
 ------------------|--------|----------------------|
 Cisco Nexus N9k   | NX-OS  | 7.0(3)I2(1) and later
 Cisco Nexus N3k   | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N3K-F | NX-OS  | 7.0(3)F3(2) and later
 Cisco Nexus N5k   | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N6k   | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N7k   | NX-OS  | 7.3(0)D1(1) and later

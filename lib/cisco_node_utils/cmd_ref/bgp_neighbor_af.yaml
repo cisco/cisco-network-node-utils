@@ -201,6 +201,7 @@ soft_reconfiguration_in:
     get_value: '/^soft-reconfiguration inbound(?: always)?/'
     set_value: '<state> soft-reconfiguration inbound <always>'
   N3k: *soft_recon_always
+  N3k-F: *soft_recon_always
   N9k-F: *soft_recon_always
   N9k: *soft_recon_always
   else:

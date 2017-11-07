@@ -56,7 +56,7 @@ suppress_arp:
   default_value: false
 
 suppress_uuc:
-  _exclude: [N9k-F, N9k]
+  _exclude: [N3k-F, N9k-F, N9k]
   os_version: 'N7k:8.1.1'
   kind: boolean
   get_value: '/^suppress-unknown-unicast$/'

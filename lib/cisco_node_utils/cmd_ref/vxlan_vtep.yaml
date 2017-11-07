@@ -32,6 +32,7 @@ mt_lite_support:
   N9k: &mt_lite_default
     default_only: true
   N9k-F: *mt_lite_default
+  N3k-F: *mt_lite_default
   N6k: *mt_lite_default
   N5k: *mt_lite_default
   else:
