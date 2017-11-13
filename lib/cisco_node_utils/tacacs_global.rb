@@ -1,8 +1,8 @@
 # Tacacs Global provider class
 
-# TP HONEY et al., June 2014-2016
+# TP HONEY et al., June 2014-2017
 
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@ require_relative 'node_util'
 
 # Tacacs Global configuration management
 module Cisco
-  TACACS_GLOVAL_ENC_NONE = 0
-  TACACS_GLOBAL_ENC_CISCO_TYPE_7 = 7
-  TACACS_GLOBAL_ENC_UNKNOWN = 8
-
   # TacacsGlobal - node utility class for
   class TacacsGlobal < NodeUtil
     attr_reader :name
@@ -92,14 +88,47 @@ module Cisco
     end
 
     def encryption_key_set(key_format, key)
-      key = Utils.add_quotes(key)
-      if key_format == TACACS_GLOBAL_ENC_UNKNOWN
+      # If we get an empty key - remove default if configured
+      if key.nil? || key.to_s.empty?
+        key = self.key
+        return if key.empty?
+        key_format = self.key_format
         config_set('tacacs_server', 'encryption', state: 'no',
                     option: key_format, key: key)
       else
-        config_set('tacacs_server', 'encryption', state: '', option: key_format,
+        key = Utils.add_quotes(key)
+        if key_format.nil? || key_format.to_s.empty?
+          config_set('tacacs_server', 'encryption', state: '', option: '',
                     key: key)
+        else
+          config_set('tacacs_server', 'encryption', state: '',
+                    option: key_format, key: key)
+        end
       end
+    end
+
+    # Get default source interface
+    def default_source_interface
+      config_get_default('tacacs_global', 'source_interface')
+    end
+
+    # Set source interface
+    def source_interface=(name)
+      if name
+        config_set(
+          'tacacs_global', 'source_interface',
+          state: '', source_interface: name)
+      else
+        config_set(
+          'tacacs_global', 'source_interface',
+          state: 'no', source_interface: '')
+      end
+    end
+
+    # Get source interface
+    def source_interface
+      i = config_get('tacacs_global', 'source_interface')
+      i.nil? ? default_source_interface : i.downcase
     end
   end # class
 end # module

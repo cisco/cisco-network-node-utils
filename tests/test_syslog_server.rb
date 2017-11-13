@@ -53,10 +53,9 @@ class TestSyslogServer < CiscoTestCase
     id = '1.2.3.4'
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
-    server = Cisco::SyslogServer.new(id, 2, 'default', true)
+    server = Cisco::SyslogServer.new({ 'name' => id, 'vrf' => 'default' }, true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
-    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
@@ -66,10 +65,9 @@ class TestSyslogServer < CiscoTestCase
     id = '2003::2'
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
-    server = Cisco::SyslogServer.new(id, 2, 'default', true)
+    server = Cisco::SyslogServer.new({ 'name' => id, 'vrf' => 'default' }, true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
-    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
@@ -81,14 +79,13 @@ class TestSyslogServer < CiscoTestCase
     refute_includes(Cisco::SyslogServer.syslogservers, id)
     refute_includes(Cisco::SyslogServer.syslogservers, id2)
 
-    server = Cisco::SyslogServer.new(id, 2, 'default', true)
-    server2 = Cisco::SyslogServer.new(id2, 3, 'default', true)
+    server = Cisco::SyslogServer.new({ 'name' => id, 'vrf' => 'default' }, true)
+    server2 = Cisco::SyslogServer.new({ 'name' => id2, 'vrf' => 'default' },
+                                      true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
-    assert_equal(2, Cisco::SyslogServer.syslogservers[id].level)
     assert_includes(Cisco::SyslogServer.syslogservers, id2)
     assert_equal(server2, Cisco::SyslogServer.syslogservers[id2])
-    assert_equal(3, Cisco::SyslogServer.syslogservers[id2].level)
 
     server.destroy
     server2.destroy
@@ -96,7 +93,7 @@ class TestSyslogServer < CiscoTestCase
     refute_includes(Cisco::SyslogServer.syslogservers, id2)
   end
 
-  def test_create_destroy_single_vrf_ipv4
+  def test_create_options
     if platform == :ios_xr
       config('vrf red')
     else
@@ -104,33 +101,16 @@ class TestSyslogServer < CiscoTestCase
     end
 
     id = '1.2.3.4'
+    options = { 'name' => id, 'level' => '4', 'port' => '2154', 'vrf' => 'red' }
 
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
-    server = Cisco::SyslogServer.new(id, 4, 'red', true)
+    server = Cisco::SyslogServer.new(options, true)
     assert_includes(Cisco::SyslogServer.syslogservers, id)
     assert_equal(server, Cisco::SyslogServer.syslogservers[id])
-    assert_equal(4, Cisco::SyslogServer.syslogservers[id].level)
-
-    server.destroy
-    refute_includes(Cisco::SyslogServer.syslogservers, id)
-  end
-
-  def test_create_destroy_single_vrf_ipv6
-    if platform == :ios_xr
-      config('vrf red')
-    else
-      config('vrf context red')
-    end
-
-    id = '2003::2'
-
-    refute_includes(Cisco::SyslogServer.syslogservers, id)
-
-    server = Cisco::SyslogServer.new(id, 5, 'red', true)
-    assert_includes(Cisco::SyslogServer.syslogservers, id)
-    assert_equal(server, Cisco::SyslogServer.syslogservers[id])
-    assert_equal(5, Cisco::SyslogServer.syslogservers[id].level)
+    assert_equal('4', Cisco::SyslogServer.syslogservers[id].level)
+    assert_equal('2154', Cisco::SyslogServer.syslogservers[id].port)
+    assert_equal('red', Cisco::SyslogServer.syslogservers[id].vrf)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
