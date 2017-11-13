@@ -15,8 +15,9 @@ server:
   multiple: true
   nexus:
     get_command: "show running-config all | include '^logging server'"
-    get_value: '/^logging server (\S+).*/'
-    set_value: '<state> logging server <ip> <level> <vrf>'
+    # Returns <ip>, <level>, <port>, <vrf>
+    get_value: '/^(?:logging server )([^\s]+)(?: (\d+))?(?: port (\d+))?(?: use-vrf (\S+))?/'
+    set_value: '<state> logging server <ip> <level> <port> <vrf>'
   ios_xr:
     get_command: "show running-config logging"
     get_value: '/^logging (\S+).*/'

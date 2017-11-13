@@ -2,7 +2,7 @@
 #
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require 'resolv'
 
 module Cisco
-  # NtpServer - node utility class for NTP Server configuration management
+  # SyslogServer - node utility class for syslog server configuration management
   class SyslogServer < NodeUtil
-    attr_reader :name, :level, :vrf
+    attr_reader :name, :level, :port, :vrf, :severity_level
 
     LEVEL_TO_NUM = { 'emergencies'   => 0,
                      'alerts'        => 1,
@@ -33,45 +34,38 @@ module Cisco
                      'debugging'     => 7 }.freeze
     NUM_TO_LEVEL = LEVEL_TO_NUM.invert.freeze
 
-    def initialize(name,
-                   level=nil,
-                   vrf=nil,
-                   instantiate=true)
-      fail TypeError unless name.is_a?(String)
-      fail TypeError unless name.length > 0
-      @name = name
+    def initialize(opts, instantiate=true)
+      @name = opts['name']
+      @level = opts['level'] || opts['severity_level']
+      @port = opts['port']
+      @vrf = opts['vrf']
+      @severity_level = opts['severity_level'] || opts['level']
 
-      fail TypeError unless level.is_a?(Integer) || level.nil?
-      @level = level
+      hostname_regex = /^(?=.{1,255}$)[0-9A-Za-z]
+      (?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?
+      (?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/x
 
-      fail TypeError unless vrf.is_a?(String) || vrf.nil?
-      @vrf = vrf
+      unless @name =~ Resolv::AddressRegex ||
+             @name =~ hostname_regex
+        fail ArgumentError,
+             "Invalid value '#{@name}' \
+        (Must be valid IPv4/IPv6 address or hostname)"
+      end
 
       create if instantiate
     end
 
     def self.syslogservers
+      keys = %w(name level port vrf severity_level)
       hash = {}
       syslogservers_list = config_get('syslog_server', 'server')
       return hash if syslogservers_list.nil?
 
       syslogservers_list.each do |id|
-        # The YAML regex isn't specific enough for some platforms,
-        # so we have to do further checking.
-        begin
-          IPAddr.new(id)
-        rescue
-          next
-        end
-
-        level = config_get('syslog_server', 'level', id)
-        level = level[0] if level.is_a?(Array)
-        level = LEVEL_TO_NUM[level] if platform == :ios_xr
-
-        vrf = config_get('syslog_server', 'vrf', id)
-        vrf = vrf[0] if vrf.is_a?(Array)
-
-        hash[id] = SyslogServer.new(id, level, vrf, false)
+        value_hash = Hash[keys.zip(id)]
+        value_hash['severity_level'] = value_hash['level']
+        value_hash['vrf'] = 'default' if value_hash['vrf'].nil?
+        hash[id[0]] = SyslogServer.new(value_hash, false)
       end
 
       hash
@@ -92,17 +86,18 @@ module Cisco
         config_set('syslog_server',
                    'server',
                    state: '',
-                   ip:    "#{name}",
-                   level: level.nil? ? '' : "severity #{NUM_TO_LEVEL[level]}",
-                   vrf:   vrf.nil? ? '' : "vrf #{vrf}",
+                   ip:    @name,
+                   level: @level ? "severity #{NUM_TO_LEVEL[@level]}" : '',
+                   vrf:   @vrf ? "vrf #{@vrf}" : '',
                   )
       else
         config_set('syslog_server',
                    'server',
                    state: '',
-                   ip:    "#{name}",
-                   level: level.nil? ? '' : "#{level}",
-                   vrf:   vrf.nil? ? '' : "use-vrf #{vrf}",
+                   ip:    @name,
+                   level: @level ? "#{@level}" : '',
+                   port:  @port ? "port #{@port}" : '',
+                   vrf:   @vrf ? "use-vrf #{@vrf}" : '',
                   )
       end
     end
@@ -113,9 +108,9 @@ module Cisco
           config_set('syslog_server',
                      'server',
                      state: 'no',
-                     ip:    "#{name}",
+                     ip:    @name,
                      level: '',
-                     vrf:   vrf.nil? ? '' : "vrf #{vrf}",
+                     vrf:   @vrf ? "vrf #{@vrf}" : '',
                     )
         else
           warn("#{name} is configured multiple times on the device" \
@@ -125,7 +120,7 @@ module Cisco
             config_set('syslog_server',
                        'server',
                        state: 'no',
-                       ip:    "#{name}",
+                       ip:    @name,
                        level: '',
                        vrf:   "vrf #{dup}",
                       )
@@ -135,8 +130,9 @@ module Cisco
         config_set('syslog_server',
                    'server',
                    state: 'no',
-                   ip:    "#{name}",
+                   ip:    @name,
                    level: '',
+                   port:  '',
                    vrf:   '',
                   )
       end

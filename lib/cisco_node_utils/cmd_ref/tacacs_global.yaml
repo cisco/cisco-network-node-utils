@@ -19,6 +19,13 @@ key_format:
   ios_xr:
     get_command: "show running-config tacacs-server"
 
+source_interface:
+  default_value: ~
+  get_value: '/^ip tacacs source-interface\s+(.*)$/'
+  set_value: '<state> ip tacacs source-interface <source_interface>'
+  nexus:
+    get_command: "show running-config all | include '^ip tacacs source-interface'"
+
 timeout:
   kind: int
   get_value: '/tacacs-server timeout\s+(\d+)/'

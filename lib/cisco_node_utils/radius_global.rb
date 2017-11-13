@@ -2,7 +2,7 @@
 
 # Jonathan Tripathy et al., September 2015
 
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -136,6 +136,30 @@ module Cisco
                    state: '',
                    key:   "#{value}")
       end
+    end
+
+    # Get default source interface
+    def default_source_interface
+      config_get_default('radius_global', 'source_interface')
+    end
+
+    # Set source interface
+    def source_interface=(name)
+      if name
+        config_set(
+          'radius_global', 'source_interface',
+          state: '', source_interface: name)
+      else
+        config_set(
+          'radius_global', 'source_interface',
+          state: 'no', source_interface: '')
+      end
+    end
+
+    # Get source interface
+    def source_interface
+      i = config_get('radius_global', 'source_interface')
+      i.nil? ? default_source_interface : i.downcase
     end
   end # class
 end # module
