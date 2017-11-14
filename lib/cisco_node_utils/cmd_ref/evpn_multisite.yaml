@@ -1,0 +1,17 @@
+# evpn_multisite.yaml
+---
+_exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+
+_template:
+  get_command: "show running-config | section multisite"
+
+delay_restore:
+  get_context: ['/^evpn multisite border-gateway <multisiteid>$/']
+  get_value: '/^delay-restore\s+time\s+(\d+)$/'
+  set_context: ['evpn multisite border-gateway <multisiteid>']
+  set_value: "<state> delay-restore time <time>"
+
+multisite:
+  context: ~
+  get_value: 'evpn multisite border-gateway ([\d.]+)'
+  set_value: "<state> evpn multisite border-gateway <multisiteid>"

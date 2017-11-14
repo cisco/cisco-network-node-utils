@@ -578,4 +578,19 @@ class TestBgpNeighbor < CiscoTestCase
       neighbor.destroy
     end
   end
+
+  def test_peer_type
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
+    %w(default test_vrf).each do |vrf|
+      neighbor = RouterBgpNeighbor.new(ASN, vrf, ADDR)
+      check = ['fabric-border-leaf', 'fabric-external',
+               neighbor.default_peer_type]
+      check.each do |val|
+        neighbor.peer_type = val
+        assert_equal(val, neighbor.peer_type)
+      end
+      neighbor.destroy
+    end
+  end
 end

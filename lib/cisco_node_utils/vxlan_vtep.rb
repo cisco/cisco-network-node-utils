@@ -173,5 +173,22 @@ module Cisco
     def default_shutdown
       config_get_default('vxlan_vtep', 'shutdown')
     end
+
+    def multisite_bg_interface
+      config_get('vxlan_vtep', 'multisite_bg_intf', name: @name)
+    end
+
+    def multisite_bg_interface=(val)
+      set_args = { name: @name }
+      set_args[:state] = val.empty? ? 'no' : ''
+      # 'no multisite border-gateway' doesn't work with interface
+      # defaulting to 'loopback0' still clears any configuration
+      set_args[:lpbk_intf] = val.empty? ? 'loopback0' : val
+      config_set('vxlan_vtep', 'multisite_bg_intf', set_args)
+    end
+
+    def default_multisite_bg_interface
+      config_get_default('vxlan_vtep', 'multisite_bg_intf')
+    end
   end  # Class
 end    # Module

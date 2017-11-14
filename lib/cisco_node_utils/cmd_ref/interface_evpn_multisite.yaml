@@ -1,0 +1,12 @@
+# interface_evpn_multisite
+---
+_exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+
+_template:
+  get_command: "show running interface all"
+  context:
+    - "interface <interface>"
+
+evpn_multisite:
+  get_value: '/^evpn multisite (\S+)$/'
+  set_value: "<state> evpn multisite <tracking>"

@@ -3,6 +3,27 @@ Changelog
 
 ## [Unreleased]
 
+### New feature support
+
+#### Cisco Resources
+* EVPN Multisite
+  * evpn_multisite (@rahushen)
+  * evpn_stormcontrol (@rahushen)
+  * interface_evpn_multisite (@rahushen)
+
+### Added
+* Extend vxlan_vtep with attributes:
+   * `multisite_bg_interface`
+
+* Extend vxlan_vtep_vni with attributes:
+   * `multisite_ingress_replication`
+
+* Extend bgp_neighbor with attributes:
+   * `peer_type`
+
+* Extend bgp_neighbor_af with attributes:
+   * `rewrite_rt_asn`
+
 #### Cisco Resources
 * ObjectGroup
   * object_group (@saichint)
