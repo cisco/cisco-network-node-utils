@@ -688,6 +688,7 @@ module Cisco
     end
 
     def ipv4_forwarding=(state)
+      return if state == ipv4_forwarding
       config_set('interface', 'ipv4_forwarding',
                  name:  @name, state: state ? '' : 'no')
     end
