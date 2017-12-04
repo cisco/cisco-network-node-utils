@@ -226,6 +226,11 @@ class CiscoTestCase < TestCase
     skip(msg) if Utils.image_version?(Regexp.new(pattern))
   end
 
+  def virtual_platform?
+    s = @device.cmd('show version')
+    s[/demo/] ? true : false
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup
