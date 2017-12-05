@@ -227,8 +227,7 @@ class CiscoTestCase < TestCase
   end
 
   def virtual_platform?
-    s = @device.cmd('show version')
-    s[/demo/] ? true : false
+    node.product_id[/N9K-NXOSV|N9K-9000v/] ? true : false
   end
 
   def interfaces
