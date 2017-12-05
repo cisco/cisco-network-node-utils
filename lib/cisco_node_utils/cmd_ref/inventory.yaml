@@ -22,15 +22,24 @@ productid:
     get_value: '/"Rack 0".*\n.*PID: ([^ ,]+)/'
   nexus:
     get_value: ["name \"Chassis\"", "productid"]
+  N5k: &productid5k
+    get_value: ["name Chassis", "productid"]
+  N6k: *productid5k
 
 serialnum:
   ios_xr:
     get_value: '/"Rack 0".*\n.*SN: ([^ ,]+)/'
   nexus:
     get_value: ["name \"Chassis\"", "serialnum"]
+  N5k: &serialnum5k
+    get_value: ["name Chassis", "serialnum"]
+  N6k: *serialnum5k
 
 versionid:
   ios_xr:
     get_value: '/"Rack 0".*\n.*VID: ([^ ,]+)/'
   nexus:
     get_value: ["name \"Chassis\"", "vendorid"]
+  N5k: &vendorid5k
+    get_value: ["name Chassis", "serialnum"]
+  N6k: *vendorid5k

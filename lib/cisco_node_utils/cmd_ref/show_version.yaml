@@ -1,7 +1,15 @@
 # show_version
 ---
 _template:
-  get_command: 'sh hardware'
+  N5k: &template5k
+    get_command: 'sh version'
+  N6k: *template5k
+  N3k: &template3k
+    get_command: 'sh hardware'
+  N7k: *template3k
+  N9k: *template3k
+  N3k-F: *template3k
+  N9k-F: *template3k
   nexus:
     data_format: nxapi_structured
   ios_xr:
