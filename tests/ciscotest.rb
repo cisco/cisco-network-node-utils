@@ -226,6 +226,10 @@ class CiscoTestCase < TestCase
     skip(msg) if Utils.image_version?(Regexp.new(pattern))
   end
 
+  def virtual_platform?
+    node.product_id[/N9K-NXOSV|N9K-9000v/] ? true : false
+  end
+
   def interfaces
     unless @@interfaces
       # Build the platform_info, used for interface lookup

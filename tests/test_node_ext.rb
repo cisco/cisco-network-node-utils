@@ -345,7 +345,8 @@ class TestNodeExt < CiscoTestCase
     assert_output_check(command: 'show version',
                         pattern: /.*\nLast reset.*\n\n?  Reason: (.*)\n/,
                         check:   node.last_reset_reason,
-                        msg:     'Error, Last reset reason does not match')
+                        msg:     'Error, Last reset reason does not match') unless
+      virtual_platform?
   end
 
   def test_get_system_cpu_utilization
