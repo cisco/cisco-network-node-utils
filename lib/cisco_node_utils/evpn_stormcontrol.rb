@@ -65,7 +65,7 @@ module Cisco
     end
 
     def level
-        self.stormcontrol    
+        EvpnStormcontrol.stormcontrol 
     end
 
     def level=(level)
