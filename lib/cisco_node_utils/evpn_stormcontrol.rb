@@ -64,6 +64,10 @@ module Cisco
       hash
     end
 
+    def level
+        self.stormcontrol    
+    end
+
     def level=(level)
       err_msg = "level must be either a 'String' or an" \
                 " 'Integer' object"
