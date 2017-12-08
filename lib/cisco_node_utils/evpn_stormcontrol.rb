@@ -59,13 +59,14 @@ module Cisco
     def self.stormcontrol
       hash = {}
       ['broadcast', 'multicast', 'unicast'].each do |type|
-        hash[type] = config_get('evpn_stormcontrol', type)
+        level = config_get('evpn_stormcontrol', type)
+        hash[type] = EvpnStormcontrol.new(type, level, false) if level
       end
       hash
     end
 
     def level
-        EvpnStormcontrol.stormcontrol 
+      config_get('evpn_stormcontrol', @get_args[:stormcontrol_type])
     end
 
     def level=(level)
