@@ -29,7 +29,6 @@ module Cisco
       fail ArgumentError,
            "This provider only accepts an id of 'default'" \
            unless name.eql?('default')
-      Feature.tacacs_enable unless Feature.tacacs_enabled?
       @name = name
     end
 
@@ -44,6 +43,7 @@ module Cisco
     end
 
     def timeout
+      return nil unless Feature.tacacs_enabled?
       config_get('tacacs_global', 'timeout')
     end
 
@@ -58,11 +58,11 @@ module Cisco
       end
 
       if val.nil?
-        config_set('tacacs_global',
-                   'timeout',
-                   state:   'no',
-                   timeout: timeout)
+        fail ArgumentError, 'timeout cannot be unset if TACACS enabled - ' \
+        "use default value #{default_timeout}" \
+          if Feature.tacacs_enabled?
       else
+        Feature.tacacs_enable
         config_set('tacacs_global',
                    'timeout',
                    state:   '',
@@ -76,6 +76,7 @@ module Cisco
     end
 
     def key
+      return nil unless Feature.tacacs_enabled?
       str = config_get('tacacs_global', 'key')
       return TacacsGlobal.default_key if str.empty?
       str = str[1].strip
@@ -96,6 +97,7 @@ module Cisco
         config_set('tacacs_server', 'encryption', state: 'no',
                     option: key_format, key: key)
       else
+        Feature.tacacs_enable
         key = Utils.add_quotes(key)
         if key_format.nil? || key_format.to_s.empty?
           config_set('tacacs_server', 'encryption', state: '', option: '',
@@ -115,6 +117,7 @@ module Cisco
     # Set source interface
     def source_interface=(name)
       if name
+        Feature.tacacs_enable
         config_set(
           'tacacs_global', 'source_interface',
           state: '', source_interface: name)
@@ -127,6 +130,7 @@ module Cisco
 
     # Get source interface
     def source_interface
+      return nil unless Feature.tacacs_enabled?
       i = config_get('tacacs_global', 'source_interface')
       i.nil? ? default_source_interface : i.downcase
     end
