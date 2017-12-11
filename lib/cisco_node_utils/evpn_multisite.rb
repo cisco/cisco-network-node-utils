@@ -45,6 +45,13 @@ module Cisco
     end
 
     def self.multisite
+      nu_obj = nil
+      ms_id = config_get('evpn_multisite', 'multisite')
+      nu_obj = EvpnMultisite.new(ms_id, false) if ms_id
+      nu_obj
+    end
+
+    def multisite
       config_get('evpn_multisite', 'multisite')
     end
 

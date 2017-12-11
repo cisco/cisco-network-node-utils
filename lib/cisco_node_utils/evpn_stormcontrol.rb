@@ -55,7 +55,7 @@ module Cisco
       config_stormcontrol
     end
 
-    # Creat a hash of all stormcontrol instances
+    # Create a hash of all stormcontrol instances
     def self.stormcontrol
       hash = {}
       ['broadcast', 'multicast', 'unicast'].each do |type|
