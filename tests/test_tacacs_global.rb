@@ -31,7 +31,7 @@ class TestTacacsGlobal < CiscoTestCase
 
   def teardown
     # teardown runs at the end of each test
-    no_tacacs_global
+    no_tacacs_global if platform == :ios_xr
     config_no_warn('no feature tacacs+') if platform == :nexus
     super
   end
@@ -50,7 +50,11 @@ class TestTacacsGlobal < CiscoTestCase
     assert_includes(Cisco::TacacsGlobal.tacacs_global, id)
     assert_equal(global, Cisco::TacacsGlobal.tacacs_global[id])
 
-    # Default timeout
+    # No timeout when TACACS is not enabled
+    assert_nil(global.timeout)
+
+    # Turn on TACACS and verify default Timeout
+    config_no_warn('feature tacacs+') if platform == :nexus
     assert_equal(global.default_timeout, global.timeout)
 
     # Timeout update
@@ -58,9 +62,10 @@ class TestTacacsGlobal < CiscoTestCase
     assert_equal(10, Cisco::TacacsGlobal.tacacs_global[id].timeout)
     assert_equal(10, global.timeout)
 
-    # Remove timeout
-    global.timeout = nil
-    assert_equal(global.default_timeout, global.timeout)
+    # Do not unset timout if TACACS is enabled
+    assert_raises(ArgumentError) do
+      global.timeout = nil
+    end
 
     # Check there is no default key
     assert_equal('', global.key)
