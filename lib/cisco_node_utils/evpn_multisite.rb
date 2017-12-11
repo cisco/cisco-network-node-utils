@@ -41,6 +41,9 @@ module Cisco
 
     def destroy
       @set_args[:state] = 'no'
+      # HACK: set time to a dummy value
+      @set_args[:time] = 30
+      config_set('evpn_multisite', 'delay_restore', @set_args)
       config_set('evpn_multisite', 'multisite', @set_args)
     end
 
@@ -70,8 +73,20 @@ module Cisco
     end
 
     def delay_restore=(time)
-      @set_args[:time] = time
+      # HACK: set a dummy time value when removing the property
+      dummy_time = 30
+      if time == default_delay_restore
+        @set_args[:state] = 'no'
+        @set_args[:time] = dummy_time
+      else
+        @set_args[:time] = time
+        @set_args[:state] = '' unless @set_args[:state]
+      end
       config_set('evpn_multisite', 'delay_restore', @set_args)
+    end
+
+    def default_delay_restore
+      config_get_default('evpn_multisite', 'delay_restore')
     end
   end
 end

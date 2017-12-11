@@ -6,6 +6,7 @@ _template:
   get_command: "show running-config | section multisite"
 
 delay_restore:
+  default_value: ""
   get_context: ['/^evpn multisite border-gateway <multisiteid>$/']
   get_value: '/^delay-restore\s+time\s+(\d+)$/'
   set_context: ['evpn multisite border-gateway <multisiteid>']
