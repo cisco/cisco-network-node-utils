@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require_relative 'node_util'
+require_relative 'interface'
 
 module Cisco
   # node_utils class for interface_evpn_multisite
@@ -25,6 +26,19 @@ module Cisco
       fail TypeError unless interface.is_a?(String)
       @interface = interface.downcase
       @get_args = @set_args = { interface: @interface }
+    end
+
+    def self.interfaces
+      hash = {}
+      intf_list = config_get('interface', 'all_interfaces')
+      return hash if intf_list.nil?
+
+      intf_list.each do |id|
+        id = id.downcase
+        intf = InterfaceEvpnMultisite.new(id, false)
+        hash[id] = intf if intf.tracking
+      end
+      hash
     end
 
     def enable(tracking)
@@ -41,6 +55,19 @@ module Cisco
 
     def tracking
       config_get('interface_evpn_multisite', 'evpn_multisite', @get_args)
+    end
+
+    def tracking=(tracking)
+      if tracking == default_tracking
+        dummy_tracking = 'fabric-tracking'
+        disable(dummy_tracking)
+      else
+        enable(tracking)
+      end
+    end
+
+    def default_tracking
+      config_get_default('interface_evpn_multisite', 'evpn_multisite')
     end
   end # class
 end # module
