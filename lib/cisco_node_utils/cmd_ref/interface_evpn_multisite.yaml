@@ -7,6 +7,11 @@ _template:
   context:
     - "interface <interface>"
 
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
 evpn_multisite:
   get_value: '/^evpn multisite (\S+)$/'
   set_value: "<state> evpn multisite <tracking>"
