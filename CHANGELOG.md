@@ -3,21 +3,7 @@ Changelog
 
 ## [Unreleased]
 
-### New feature support
-
-### Added
-
-### Changed
-
-### Removed
-
-### Issues Addressed
-
-## [v1.8.0]
-
-### New feature support
-
-#### Cisco Resources
+### New Cisco Resources
 * EVPN Multisite
   * evpn_multisite (@rahushen)
   * evpn_stormcontrol (@rahushen)
@@ -35,8 +21,16 @@ Changelog
 
 * Extend bgp_neighbor_af with attributes:
    * `rewrite_rt_asn`
+   
+### Changed
 
-#### Cisco Resources
+### Removed
+
+### Issues Addressed
+
+## [v1.8.0]
+
+### New Cisco Resources
 * ObjectGroup
   * object_group (@saichint)
   * object_group_entry (@saichint)
