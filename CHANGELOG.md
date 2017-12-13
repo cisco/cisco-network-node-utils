@@ -21,7 +21,7 @@ Changelog
 
 * Extend bgp_neighbor_af with attributes:
    * `rewrite_rt_asn`
-   
+
 ### Changed
 
 ### Removed
