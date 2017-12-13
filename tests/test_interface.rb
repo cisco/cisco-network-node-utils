@@ -820,6 +820,10 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_ethernet
+    # negotiate auto is LC dependent configuration.
+    # On some line cards it could fail with error for ex:
+    # Cisco::CliError: [interface ethernet8/1] The command 'no negotiate auto' was rejected with error:
+    # ERROR: Ethernet8/1: requested config change not allowed
     skip_legacy_defect?('7.0.3.I5|7.0.3.F3', 'CSCvd41419')
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)

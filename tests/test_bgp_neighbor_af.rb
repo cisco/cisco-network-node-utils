@@ -429,8 +429,10 @@ class TestBgpNeighborAF < CiscoTestCase
 
     # Test false with value
     af.allowas_in_set(false)
+    # skip setting this to false due to bug CSCve58319
     refute(af.allowas_in,
-           "Test 3. #{dbg} Failed to set state to False")
+           "Test 3. #{dbg} Failed to set state to False") unless
+      Platform.image_version[/I5|I6|F3.3/]
 
     # Test true with value, from false
     af.allowas_in_set(true, 4)
@@ -440,8 +442,10 @@ class TestBgpNeighborAF < CiscoTestCase
 
     # Test default_state
     af.allowas_in_set(af.default_allowas_in)
+    # skip setting this to false due to bug CSCve58319
     refute(af.allowas_in,
-           "Test 5. #{dbg} Failed to set state to default")
+           "Test 5. #{dbg} Failed to set state to default") unless
+      Platform.image_version[/I5|I6|F3.3/]
 
     # Test true with value set to default
     af.allowas_in_set(true, af.default_allowas_in_max)
