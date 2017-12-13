@@ -174,11 +174,11 @@ module Cisco
       config_get_default('vxlan_vtep', 'shutdown')
     end
 
-    def multisite_bg_interface
+    def multisite_border_gateway_interface
       config_get('vxlan_vtep', 'multisite_bg_intf', name: @name)
     end
 
-    def multisite_bg_interface=(val)
+    def multisite_border_gateway_interface=(val)
       set_args = { name: @name }
       set_args[:state] = val.empty? ? 'no' : ''
       # 'no multisite border-gateway' doesn't work with interface
@@ -187,7 +187,7 @@ module Cisco
       config_set('vxlan_vtep', 'multisite_bg_intf', set_args)
     end
 
-    def default_multisite_bg_interface
+    def default_multisite_border_gateway_interface
       config_get_default('vxlan_vtep', 'multisite_bg_intf')
     end
   end  # Class
