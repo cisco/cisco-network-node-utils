@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -629,7 +629,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_speed
-    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
+    skip_legacy_defect?('7.0.3.I5|7.0.3.F3', 'CSCvd41419')
     interface = Interface.new(interfaces[0])
     if validate_property_excluded?('interface', 'speed')
       assert_nil(interface.speed)
@@ -665,7 +665,7 @@ class TestInterface < CiscoTestCase
   end
 
   def test_duplex
-    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
+    skip_legacy_defect?('7.0.3.I5|7.0.3.F3', 'CSCvd41419')
     interface = Interface.new(interfaces[0])
     if validate_property_excluded?('interface', 'duplex')
       assert_nil(interface.duplex)
@@ -820,7 +820,11 @@ class TestInterface < CiscoTestCase
   end
 
   def test_negotiate_auto_ethernet
-    skip_legacy_defect?('7.0.3.I5.2', 'CSCvd41419')
+    # negotiate auto is LC dependent configuration.
+    # On some line cards it could fail with error for ex:
+    # Cisco::CliError: [interface ethernet8/1] The command 'no negotiate auto' was rejected with error:
+    # ERROR: Ethernet8/1: requested config change not allowed
+    skip_legacy_defect?('7.0.3.I5|7.0.3.F3', 'CSCvd41419')
     inf_name = interfaces[0]
     interface = Interface.new(inf_name)
 
@@ -1835,6 +1839,28 @@ class TestInterface < CiscoTestCase
     assert_raises(ArgumentError) { lb.load_interval_counter_3_delay = 100 }
     subif.destroy
     lb.destroy
+  end
+
+  def test_default_physical
+    name = interfaces[0]
+    int = Interface.new(name)
+    int.switchport_mode = :disabled
+
+    # Verify l3 -> default
+    int.description = 'default_pysical'
+    int.ipv4_addr_mask_set('192.168.0.1', '24')
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
+
+    # Verify l2 trunk -> default
+    int.switchport_mode = :access
+    int.switchport_autostate_exclude = true
+    refute(int.default?)
+
+    int.destroy
+    assert(int.default?)
   end
 
   def test_purge_config

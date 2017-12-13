@@ -138,6 +138,9 @@ class TestVpc < CiscoTestCase
     assert(vpc.layer3_peer_routing, 'layer3_peer_routing not getting set')
     vpc.layer3_peer_routing = false
     refute(vpc.layer3_peer_routing, 'layer3_peer_routing not getting disabled')
+    # reset peer gateway
+    vpc.peer_gateway = false
+    assert_equal(vpc.default_peer_gateway, vpc.peer_gateway)
   end
 
   def test_peer_keepalive

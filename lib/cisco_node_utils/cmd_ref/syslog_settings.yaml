@@ -2,8 +2,28 @@
 ---
 _exclude: [ios_xr]
 
+console:
+  default_value: 2
+  get_command: "show running-config all | include 'logging'"
+  # Returns <state> and <severity>
+  get_value: '/^(no)?\s*logging console\s*(\d)?/'
+  set_value: '<state> logging console <severity>'
+
+monitor:
+  default_value: 5
+  get_command: "show running-config all | include 'logging'"
+  # Returns <state> and <severity>
+  get_value: '/^(no)?\s*logging monitor\s*(\d)?/'
+  set_value: '<state> logging monitor <severity>'
+
+source_interface:
+  default_value: ~
+  get_command: "show running-config all | include 'logging'"
+  get_value: '/^logging source-interface\s+(.*)$/'
+  set_value: '<state> logging source-interface <source_interface>'
+
 timestamp:
-  get_command: "show running-config all | include '^logging timestamp'"
+  get_command: "show running-config all | include 'logging'"
   get_value: '/^logging timestamp (.*)$/'
   set_value: '<state> logging timestamp <units>'
   default_value: 'seconds'

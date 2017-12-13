@@ -103,7 +103,7 @@ class TestFeature < CiscoTestCase
   end
 
   def test_fabric_forwarding
-    if node.product_id[/N(3)/]
+    if node.product_id[/N(3)/] && !node.product_id.include?('-F')
       assert_nil(Feature.fabric_forwarding_enabled?)
       assert_raises(Cisco::UnsupportedError) do
         Feature.fabric_forwarding_enable
@@ -126,7 +126,7 @@ class TestFeature < CiscoTestCase
   end
 
   def test_nv_overlay_evpn
-    if node.product_id[/N(3)/]
+    if node.product_id[/N(3)/] && !node.product_id.include?('-F')
       assert_nil(Feature.nv_overlay_evpn_enabled?)
       assert_raises(Cisco::UnsupportedError) { Feature.nv_overlay_evpn_enable }
       return

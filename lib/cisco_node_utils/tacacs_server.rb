@@ -30,11 +30,7 @@ module Cisco
 
     # Check feature enablement
     def self.enabled
-      config_get('tacacs_server', 'feature')
-    rescue Cisco::CliError => e
-      # cmd will syntax reject when feature is not enabled
-      raise unless e.clierror =~ /Syntax error/
-      return false
+      Feature.tacacs_enabled?
     end
 
     # Enable tacacs_server feature

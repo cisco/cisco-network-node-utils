@@ -7,6 +7,11 @@ _template:
   get_context: ['/^interface %s$/i']
   set_context: ["interface %s"]
 
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
 bfd_per_link:
   kind: boolean
   get_value: '/^bfd per-link$/'
@@ -38,6 +43,7 @@ lacp_max_bundle:
     default_value: 16
   N6k: *lacp_max_bundle_16
   N7k: *lacp_max_bundle_16
+  N3k-F: *lacp_max_bundle_32
   N9k-F: *lacp_max_bundle_32
   N9k: *lacp_max_bundle_32
 

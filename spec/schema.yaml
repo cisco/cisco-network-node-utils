@@ -15,7 +15,9 @@ mapping:
           - 'C3064'
           - 'C3132'
           - 'C3172'
+          - 'N35'
           - 'N3k'
+          - 'N3k-F'
           - 'N5k'
           - 'N6k'
           - 'N7k'
@@ -33,6 +35,7 @@ mapping:
       C3132: *base
       C3172: *base
       N3k: *base
+      N3k-F: *base
       N5k: *base
       N6k: *base
       N7k: *base

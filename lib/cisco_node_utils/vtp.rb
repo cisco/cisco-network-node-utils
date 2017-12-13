@@ -32,10 +32,12 @@ module Cisco
 
     # Get vtp domain name
     def self.domain
+      dom_def = config_get_default('vtp', 'domain')
       if Feature.vtp_enabled?
-        config_get('vtp', 'domain')
+        dom = config_get('vtp', 'domain')
+        return dom == '-' ? dom_def : dom
       else
-        config_get_default('vtp', 'domain')
+        dom_def
       end
     end
 

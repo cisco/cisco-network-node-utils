@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ class TestNodeExt < CiscoTestCase
   end
 
   def test_get_product_id
-    # N9K Fretta product_id gets a '-F' appended so remove it for this check
+    # N3|9K Fretta product_id gets a '-F' appended so remove it for this check
     if Utils.image_version?(/7.0.3.F/)
       chassis = node.product_id.sub('-F', '')
     else

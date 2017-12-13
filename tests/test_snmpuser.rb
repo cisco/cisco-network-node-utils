@@ -44,18 +44,26 @@ class TestSnmpUser < CiscoTestCase
 
   def remove_test_users
     SnmpUser.users.values.each do |obj|
-      # Delete users that are in current but also added by these tests.
-      if @@current_users.keys.include?(obj.name) && @test_users.include?(obj.name)
-        obj.destroy
-      # Delete users that are part of test.
-      elsif @test_users.include? obj.name
-        obj.destroy
-      # Do not delete users in current but not in test.
-      elsif @@current_users.keys.include? obj.name
+      begin
+        # Delete users that are in current but also added by these tests.
+        if @@current_users.keys.include?(obj.name) && @test_users.include?(obj.name)
+          obj.destroy
+        # Delete users that are part of test.
+        elsif @test_users.include? obj.name
+          obj.destroy
+        # Do not delete users in current but not in test.
+        elsif @@current_users.keys.include? obj.name
+          next
+        else
+          # Delete if not in current or test.
+          obj.destroy
+        end
+      rescue CliError => e
+        puts e.message
+        puts "retry deleting the user #{obj.name}"
+        config("snmp-server user #{obj.name}")
+        config("no snmp-server user #{obj.name}")
         next
-      else
-        # Delete if not in current or test.
-        obj.destroy
       end
     end
   end

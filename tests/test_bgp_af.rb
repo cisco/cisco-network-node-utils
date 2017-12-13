@@ -4,7 +4,7 @@
 #
 # Richard Wellum, August, 2015
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -124,6 +124,7 @@ class TestBgpAF < CiscoTestCase
     # Tests that are successful even though a rule below says otherwise
     [:next_hop_route_map,            :nexus,  'default', %w(l2vpn evpn),       :success],
     [:additional_paths_send,         :nexus,  'default', %w(l2vpn evpn),       :runtime],
+    [:additional_paths_receive,      :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:additional_paths_selection,    :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:maximum_paths,                 :nexus,  'default', %w(l2vpn evpn),       :runtime],
     [:maximum_paths_ibgp,            :nexus,  'default', %w(l2vpn evpn),       :runtime],
@@ -169,10 +170,17 @@ class TestBgpAF < CiscoTestCase
       # triggers a version check below.
       if expect == :runtime
         case Platform.image_version
-        when /8.0|8.1/
+        when /8.0|8.1|8.2|F3.2/
           expect = :success
+          expect = :runtime if test == :additional_paths_receive && Platform.image_version[/8.0|8.1/]
         when /I5.2|I5.3|I6/
           expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
+        when /I7/
+          expect = :success if test == :maximum_paths ||
+                               test == :maximum_paths_ibgp ||
+                               test == :additional_paths_send ||
+                               test == :additional_paths_receive ||
+                               test == :additional_paths_selection
         else
           expect = :CliError
         end

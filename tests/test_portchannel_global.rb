@@ -45,6 +45,7 @@ class TestPortchannelGlobal < CiscoTestCase
 
   def n3k_in_n3k_mode?
     return unless /N3/ =~ node.product_id
+    return if node.product_id.include?('-F')
     mode = config('show system switch-mode')
     # note: an n3k in n9k mode displays: 'system switch-mode n9k'
     patterns = ['system switch-mode n3k',

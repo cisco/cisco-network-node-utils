@@ -1,7 +1,15 @@
 # show_version
 ---
 _template:
-  get_command: 'sh version'
+  N5k: &template5k
+    get_command: 'sh version'
+  N6k: *template5k
+  N3k: &template3k
+    get_command: 'sh hardware'
+  N7k: *template3k
+  N9k: *template3k
+  N3k-F: *template3k
+  N9k-F: *template3k
   nexus:
     data_format: nxapi_structured
   ios_xr:
@@ -65,9 +73,9 @@ system_image:
     get_value: '/^\s*(\S*)\s*version.*\[Boot image\]$/'
 
 uptime:
-  # TODO: redundant with show_system, uptime?
+  get_command: 'sh system uptime'
   get_data_format: cli
-  get_value: '/uptime is (.*)/'
+  get_value: '/Kernel uptime:\s+(.*)/'
 
 version:
   nexus:

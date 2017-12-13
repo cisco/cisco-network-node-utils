@@ -23,6 +23,13 @@ retransmit:
   ios_xr:
     default_value: 3
 
+source_interface:
+  default_value: ~
+  get_value: '/^ip radius source-interface\s+(.*)$/'
+  set_value: '<state> ip radius source-interface <source_interface>'
+  nexus:
+    get_command: "show running-config all | include '^ip radius source-interface'"
+
 timeout:
   kind: int
   get_value: '/^radius-server timeout (\d+).*/'

@@ -6,6 +6,11 @@ _template:
   get_command: 'show running interface all'
   context: ["interface %s"]
 
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
 area:
   get_value: '/^\s*ip router ospf (\S+) area (\S+)/'
   set_value: "%s ip router ospf %s area %s"
