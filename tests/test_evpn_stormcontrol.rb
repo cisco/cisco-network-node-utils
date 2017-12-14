@@ -35,7 +35,7 @@ class TestEvpnStormcontrol < CiscoTestCase
 
   def test_create_and_destroy
     sc = EvpnStormcontrol.new('broadcast', 50)
-    sc_level = sc.level 
+    sc_level = sc.level
     assert_equal('50', sc_level,
                  'Error: failed to configure evpn storm-control broadcast ' \
                  'level 50')

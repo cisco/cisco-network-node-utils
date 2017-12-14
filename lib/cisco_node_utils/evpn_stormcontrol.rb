@@ -58,7 +58,8 @@ module Cisco
     # Create a hash of all stormcontrol instances
     def self.stormcontrol
       hash = {}
-      ['broadcast', 'multicast', 'unicast'].each do |type|
+      type_list = %w(broadcast multicast unicast)
+      type_list.each do |type|
         level = config_get('evpn_stormcontrol', type)
         hash[type] = EvpnStormcontrol.new(type, level, false) if level
       end
