@@ -191,17 +191,17 @@ class TestVxlanVtep < CiscoTestCase
     # Set multisite_bg_interface to non-default value
     val = 'loopback55'
     ms = EvpnMultisite.new(100)
-    vtep.multisite_bg_interface = val
-    assert_equal(val, vtep.multisite_bg_interface)
+    vtep.multisite_border_gateway_interface = val
+    assert_equal(val, vtep.multisite_border_gateway_interface)
 
-    vtep.multisite_bg_interface = vtep.default_multisite_bg_interface
-    assert_equal(vtep.default_multisite_bg_interface,
-                 vtep.multisite_bg_interface)
+    vtep.multisite_border_gateway_interface = vtep.default_multisite_border_gateway_interface
+    assert_equal(vtep.default_multisite_border_gateway_interface,
+                 vtep.multisite_border_gateway_interface)
 
     # Should Error when no 'evpn multisite border-gateway' set
     ms.destroy
     assert_raises(Cisco::CliError) do
-      vtep.multisite_bg_interface = val
+      vtep.multisite_border_gateway_interface = val
     end
   end
 

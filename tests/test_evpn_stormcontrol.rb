@@ -35,21 +35,21 @@ class TestEvpnStormcontrol < CiscoTestCase
 
   def test_create_and_destroy
     sc = EvpnStormcontrol.new('broadcast', 50)
-    sc_level = EvpnStormcontrol.broadcast
+    sc_level = sc.level 
     assert_equal('50', sc_level,
                  'Error: failed to configure evpn storm-control broadcast ' \
                  'level 50')
     sc.destroy
-    sc_level = EvpnStormcontrol.broadcast
+    sc_level = sc.level
     assert_nil(sc_level, 'Error: failed to destroy storm-control config')
   end
 
   def test_update_level
     sc = EvpnStormcontrol.new('multicast', 50)
-    assert_equal('50', EvpnStormcontrol.multicast,
+    assert_equal('50', sc.level,
                  'Error: multicast storm-control level should be 50')
     sc.level = 51
-    assert_equal('51', EvpnStormcontrol.multicast,
+    assert_equal('51', sc.level,
                  'Error: failed to create multisite border-gateway 200')
     sc.destroy
   end
