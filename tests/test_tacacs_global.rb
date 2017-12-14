@@ -1,7 +1,7 @@
 #
 # Minitest for TacacsGlobal class
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2017 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class TestTacacsGlobal < CiscoTestCase
 
   def teardown
     # teardown runs at the end of each test
-    no_tacacs_global
+    no_tacacs_global if platform == :ios_xr
     config_no_warn('no feature tacacs+') if platform == :nexus
     super
   end
@@ -50,31 +50,55 @@ class TestTacacsGlobal < CiscoTestCase
     assert_includes(Cisco::TacacsGlobal.tacacs_global, id)
     assert_equal(global, Cisco::TacacsGlobal.tacacs_global[id])
 
-    # Default Checking
+    # No timeout when TACACS is not enabled
+    assert_nil(global.timeout)
+
+    # Turn on TACACS and verify default Timeout
+    config_no_warn('feature tacacs+') if platform == :nexus
     assert_equal(global.default_timeout, global.timeout)
 
-    global.timeout = 5
-    assert_equal(5, Cisco::TacacsGlobal.tacacs_global[id].timeout)
-    assert_equal(5, global.timeout)
+    # Timeout update
+    global.timeout = 10
+    assert_equal(10, Cisco::TacacsGlobal.tacacs_global[id].timeout)
+    assert_equal(10, global.timeout)
 
-    # first change
-    key_format = 0
+    # Do not unset timout if TACACS is enabled
+    assert_raises(ArgumentError) do
+      global.timeout = nil
+    end
+
+    # Check there is no default key
+    assert_equal('', global.key)
+
+    # first key change - unencrypted key
     key = 'TEST_NEW'
-    global.encryption_key_set(key_format, key)
-    assert(!global.key.nil?)
-    assert(key_format, global.key_format)
+    global.encryption_key_set(nil, key)
+    # Device encypts key - verify return value
+    assert_equal(7, global.key_format)
+    assert_equal('"WAWY_NZB"', global.key)
 
-    # second change
+    # second key change - modify key to type6
     key_format = 6
-
     # Must use a valid type6 password: CSCvb36266
     key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
     global.encryption_key_set(key_format, key)
-    assert(!global.key.nil?)
-    assert(key_format, global.key_format)
+    assert_equal(key_format, global.key_format)
+    assert_equal("\"#{key}\"", global.key)
 
-    # Setting back to default and re-checking
-    global.timeout = global.default_timeout
-    assert_equal(global.default_timeout, global.timeout)
+    # Remove global key
+    global.encryption_key_set('', '')
+    assert_equal('', global.key)
+
+    # Default source interface
+    assert_nil(global.source_interface)
+
+    # Set source interface
+    interface = 'loopback0'
+    global.source_interface = interface
+    assert_equal(interface, global.source_interface)
+
+    # Remove source interface
+    global.source_interface = nil
+    assert_nil(global.source_interface)
   end
 end

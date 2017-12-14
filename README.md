@@ -50,7 +50,7 @@ Cisco Nexus N6k   | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N7k   | NX-OS  | 7.3(0)D1(1) and later
 Cisco Nexus N9K-F | NX-OS  | 7.0(3)F1(1) and later
 
-Please note: For Cisco Nexus 3k and 9k platforms, a virtual Nexus N9000/N3000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can [download the software on CCO.](https://software.cisco.com/download/release.html?mdfid=286312239&softwareid=282088129&release=7.0(3)I5(2)&relind=AVAILABLE&rellifecycle=&reltype=latest) If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
+Please note: For Cisco Nexus 9k platforms, a virtual Nexus N9000 may be helpful for development and testing. Users with a valid [cisco.com](http://cisco.com) user ID can [download the software on CCO.](https://software.cisco.com/download/release.html?mdfid=286312239&softwareid=282088129&release=7.0(3)I5(2)&relind=AVAILABLE&rellifecycle=&reltype=latest) If you do not have a [cisco.com](http://cisco.com) user ID please register for one at [https://tools.cisco.com/IDREG/guestRegistration](https://tools.cisco.com/IDREG/guestRegistration)
 
 ## <a name="installation">Installation</a>
 

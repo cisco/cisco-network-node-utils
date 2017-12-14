@@ -3,9 +3,7 @@ Changelog
 
 ## [Unreleased]
 
-### New feature support
-
-#### Cisco Resources
+### New Cisco Resources
 * EVPN Multisite
   * evpn_multisite (@rahushen)
   * evpn_stormcontrol (@rahushen)
@@ -13,7 +11,7 @@ Changelog
 
 ### Added
 * Extend vxlan_vtep with attributes:
-   * `multisite_bg_interface`
+   * `multisite_border_gateway_interface`
 
 * Extend vxlan_vtep_vni with attributes:
    * `multisite_ingress_replication`
@@ -22,12 +20,48 @@ Changelog
    * `peer_type`
 
 * Extend bgp_neighbor_af with attributes:
-   * `rewrite_rt_asn`
+   * `rewrite_evpn_rt_asn`
 
-#### Cisco Resources
+### Changed
+
+### Removed
+
+### Issues Addressed
+
+## [v1.8.0]
+
+### New Cisco Resources
 * ObjectGroup
   * object_group (@saichint)
   * object_group_entry (@saichint)
+
+### Added
+* Extend syslog_server with attributes:
+   * `port`
+* Extend syslog_settings with attributes:
+  * `console`
+  * `monitor`
+  * `source_interface`
+* Extend radius_global with attributes:
+   * `source_interface`
+* Extend tacacs_global with attributes:
+  * `source_interface`
+
+### Changed
+* syslog_server initialize now uses options hash
+ * Prior to this release syslog_server accepted positional arguments for name,
+ level, and vrf.  New behavior is to pass attributes as a hash.
+
+ Example:
+ ```
+ options = { 'name' => '1.1.1.1', 'level' => '4', 'port' => '2154',
+             'vrf' => 'red' }
+ Cisco::SyslogServer.new(options, true)
+ ```
+* tacacs_global key removal fixed
+  * Prior to this release key removal was done by passing in a value of 8.  A
+  nil value is now used.  Added intelligence to determine key format
+  automatically for removal.
 
 ## [v1.7.0]
 
@@ -507,6 +541,7 @@ Changelog
 [SimpleCov]: https://github.com/colszowka/simplecov
 
 [Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.8.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.4.1...v1.5.0

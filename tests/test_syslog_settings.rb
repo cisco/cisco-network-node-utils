@@ -24,24 +24,27 @@ class TestSyslogSettings < CiscoTestCase
     return if platform != :nexus
     # setup runs at the beginning of each test
     super
-    no_syslogsettings
+    default_syslogsettings
   end
 
   def teardown
     return if platform != :nexus
     # teardown runs at the end of each test
-    no_syslogsettings
+    default_syslogsettings
     super
   end
 
-  def no_syslogsettings
+  def default_syslogsettings
     # Turn the feature off for a clean test.
-    config('no logging timestamp seconds')
+    config('no logging timestamp seconds',
+           'logging console 2',
+           'logging monitor 5',
+           'no logging source-interface')
   end
 
   # TESTS
 
-  def test_create
+  def test_timestamp
     syslog_setting = Cisco::SyslogSettings.new('default')
 
     if platform == :ios_xr
@@ -62,6 +65,44 @@ class TestSyslogSettings < CiscoTestCase
       assert_equal('milliseconds',
                    syslog_setting.timestamp,
                   )
+      syslog_setting.time_stamp_units = 'seconds'
+      assert_equal('seconds',
+                   syslog_setting.time_stamp_units,
+                  )
     end
+  end
+
+  def test_console
+    syslog_setting = Cisco::SyslogSettings.new('default')
+
+    # Some systems return the value and othesr get it from yaml - normalize
+    assert_equal(syslog_setting.default_console, syslog_setting.console.to_i)
+    assert_equal(2, syslog_setting.console)
+    syslog_setting.console = '1'
+    assert_equal('1', syslog_setting.console)
+    syslog_setting.console = nil
+    assert_equal('unset', syslog_setting.console)
+  end
+
+  def test_monitor
+    syslog_setting = Cisco::SyslogSettings.new('default')
+
+    # Some systems return the value and othesr get it from yaml - normalize
+    assert_equal(syslog_setting.default_monitor, syslog_setting.monitor.to_i)
+    assert_equal('5', syslog_setting.monitor)
+    syslog_setting.monitor = '7'
+    assert_equal('7', syslog_setting.monitor)
+    syslog_setting.monitor = nil
+    assert_equal('unset', syslog_setting.monitor)
+  end
+
+  def test_source_interface
+    syslog_setting = Cisco::SyslogSettings.new('default')
+
+    assert_nil(syslog_setting.source_interface)
+    syslog_setting.source_interface = 'mgmt0'
+    assert_equal('mgmt0', syslog_setting.source_interface)
+    syslog_setting.source_interface = nil
+    assert_nil(syslog_setting.source_interface)
   end
 end
