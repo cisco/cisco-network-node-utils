@@ -34,7 +34,11 @@ module Cisco
     end
 
     def create
-      Feature.nv_overlay_enable
+      # There is an issue with EX platform using
+      # Feature.nv_overlay_enable generating error code '400'
+      # Using config_set for enabling nv overlay
+      config_set('feature', 'nv_overlay', state: '')
+      sleep 1
       @set_args[:state] = ''
       config_set('evpn_multisite', 'multisite', @set_args)
     end
