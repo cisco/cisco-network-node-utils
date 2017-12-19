@@ -185,7 +185,8 @@ module Cisco
       if set_args[:state] == 'no'
         # 'no multisite border-gateway' doesn't work without interface
         # defaulting to 'loopback0' still clears any configuration
-        unless multisite_border_gateway_interface == default_multisite_border_gateway_interface
+        intf = multisite_border_gateway_interface
+        unless intf == default_multisite_border_gateway_interface
           config_set('vxlan_vtep', 'multisite_bg_intf', set_args)
         end
       else
