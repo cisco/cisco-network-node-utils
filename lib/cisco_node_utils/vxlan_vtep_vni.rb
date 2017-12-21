@@ -269,7 +269,15 @@ module Cisco
 
     def multisite_ingress_replication=(state)
       @set_args[:state] = state ? '' : 'no'
-      config_set('vxlan_vtep_vni', 'multisite_ingress_replication', @set_args)
+      if @set_args[:state] == 'no'
+        unless multisite_ingress_replication ==
+               default_multisite_ingress_replication
+          config_set('vxlan_vtep_vni', 'multisite_ingress_replication',
+                     @set_args)
+        end
+      else
+        config_set('vxlan_vtep_vni', 'multisite_ingress_replication', @set_args)
+      end
     end
 
     def default_multisite_ingress_replication
