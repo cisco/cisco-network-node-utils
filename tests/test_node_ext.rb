@@ -333,7 +333,7 @@ class TestNodeExt < CiscoTestCase
     if validate_property_excluded?('show_version', 'last_reset_time')
       assert_nil(node.last_reset_time)
     else
-      refute_nil(node.last_reset_time)
+      refute_nil(node.last_reset_time) unless virtual_platform?
     end
   end
 
