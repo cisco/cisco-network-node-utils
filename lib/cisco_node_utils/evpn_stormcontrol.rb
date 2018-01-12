@@ -55,16 +55,19 @@ module Cisco
       config_stormcontrol
     end
 
-    def self.broadcast
-      config_get('evpn_stormcontrol', 'broadcast')
+    # Create a hash of all stormcontrol instances
+    def self.stormcontrol
+      hash = {}
+      type_list = %w(broadcast multicast unicast)
+      type_list.each do |type|
+        level = config_get('evpn_stormcontrol', type)
+        hash[type] = EvpnStormcontrol.new(type, level, false) if level
+      end
+      hash
     end
 
-    def self.multicast
-      config_get('evpn_stormcontrol', 'multicast')
-    end
-
-    def self.unicast
-      config_get('evpn_stormcontrol', 'unicast')
+    def level
+      config_get('evpn_stormcontrol', @get_args[:stormcontrol_type])
     end
 
     def level=(level)

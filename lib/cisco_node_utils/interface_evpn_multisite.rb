@@ -27,13 +27,26 @@ module Cisco
       @get_args = @set_args = { interface: @interface }
     end
 
+    def self.interfaces
+      hash = {}
+      intf_list = config_get('interface_evpn_multisite', 'all_interfaces')
+      return hash if intf_list.nil?
+
+      intf_list.each do |id|
+        id = id.downcase
+        intf = InterfaceEvpnMultisite.new(id)
+        hash[id] = intf if intf.tracking
+      end
+      hash
+    end
+
     def enable(tracking)
       @set_args[:tracking] = tracking
       @set_args[:state] = ''
       config_set('interface_evpn_multisite', 'evpn_multisite', @set_args)
     end
 
-    def disable(tracking)
+    def disable(tracking='dci-tracking')
       @set_args[:tracking] = tracking
       @set_args[:state] = 'no'
       config_set('interface_evpn_multisite', 'evpn_multisite', @set_args)
@@ -41,6 +54,10 @@ module Cisco
 
     def tracking
       config_get('interface_evpn_multisite', 'evpn_multisite', @get_args)
+    end
+
+    def tracking=(tracking)
+      enable(tracking)
     end
   end # class
 end # module

@@ -34,17 +34,31 @@ module Cisco
     end
 
     def create
-      Feature.nv_overlay_enable
+      # There is an issue with EX platform using
+      # Feature.nv_overlay_enable generating error code '400'
+      # Using config_set for enabling nv overlay
+      config_set('feature', 'nv_overlay', state: '')
+      sleep 1
       @set_args[:state] = ''
       config_set('evpn_multisite', 'multisite', @set_args)
     end
 
     def destroy
       @set_args[:state] = 'no'
+      # HACK: set time to a dummy value
+      @set_args[:time] = 30
+      config_set('evpn_multisite', 'delay_restore', @set_args)
       config_set('evpn_multisite', 'multisite', @set_args)
     end
 
     def self.multisite
+      nu_obj = nil
+      ms_id = config_get('evpn_multisite', 'multisite')
+      nu_obj = EvpnMultisite.new(ms_id, false) if ms_id
+      nu_obj
+    end
+
+    def multisite
       config_get('evpn_multisite', 'multisite')
     end
 
@@ -63,8 +77,20 @@ module Cisco
     end
 
     def delay_restore=(time)
-      @set_args[:time] = time
+      # HACK: set a dummy time value when removing the property
+      dummy_time = 30
+      if time == default_delay_restore
+        @set_args[:state] = 'no'
+        @set_args[:time] = dummy_time
+      else
+        @set_args[:time] = time
+        @set_args[:state] = '' unless @set_args[:state]
+      end
       config_set('evpn_multisite', 'delay_restore', @set_args)
+    end
+
+    def default_delay_restore
+      config_get_default('evpn_multisite', 'delay_restore')
     end
   end
 end

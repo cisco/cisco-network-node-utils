@@ -757,18 +757,24 @@ module Cisco
       config_get_default('bgp_neighbor_af', 'weight')
     end
 
-    def rewrite_rt_asn
-      config_get('bgp_neighbor_af', 'rewrite_rt_asn', @get_args)
+    def rewrite_evpn_rt_asn
+      config_get('bgp_neighbor_af', 'rewrite_evpn_rt_asn', @get_args)
     end
 
-    def rewrite_rt_asn=(state)
+    def rewrite_evpn_rt_asn=(state)
       Feature.nv_overlay_evpn_enable if state
       set_args_keys(state: (state ? '' : 'no'))
-      config_set('bgp_neighbor_af', 'rewrite_rt_asn', @set_args)
+      if @set_args[:state] == 'no'
+        unless rewrite_evpn_rt_asn == default_rewrite_evpn_rt_asn
+          config_set('bgp_neighbor_af', 'rewrite_evpn_rt_asn', @set_args)
+        end
+      else
+        config_set('bgp_neighbor_af', 'rewrite_evpn_rt_asn', @set_args)
+      end
     end
 
-    def default_rewrite_rt_asn
-      config_get_default('bgp_neighbor_af', 'rewrite_rt_asn')
+    def default_rewrite_evpn_rt_asn
+      config_get_default('bgp_neighbor_af', 'rewrite_evpn_rt_asn')
     end
   end
 end

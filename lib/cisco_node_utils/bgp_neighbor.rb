@@ -511,6 +511,7 @@ module Cisco
     def peer_type=(val)
       if val == default_peer_type
         @set_args[:state] = 'no'
+        @set_args[:peer_type] = ''
       else
         Feature.nv_overlay_evpn_enable
         @set_args[:peer_type] = val

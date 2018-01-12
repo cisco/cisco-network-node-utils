@@ -11,7 +11,7 @@ Changelog
 
 ### Added
 * Extend vxlan_vtep with attributes:
-   * `multisite_bg_interface`
+   * `multisite_border_gateway_interface`
 
 * Extend vxlan_vtep_vni with attributes:
    * `multisite_ingress_replication`
@@ -20,7 +20,7 @@ Changelog
    * `peer_type`
 
 * Extend bgp_neighbor_af with attributes:
-   * `rewrite_rt_asn`
+   * `rewrite_evpn_rt_asn`
 
 ### Changed
 

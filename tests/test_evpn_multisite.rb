@@ -34,11 +34,11 @@ class TestEvpnMultisite < CiscoTestCase
 
   def test_create_and_destroy
     ms = EvpnMultisite.new(100)
-    ms_id = EvpnMultisite.multisite
+    ms_id = ms.multisite
     assert_equal('100', ms_id,
                  'Error: failed to create multisite border-gateway 100')
     ms.destroy
-    ms_id = EvpnMultisite.multisite
+    ms_id = ms.multisite
     assert_nil(ms_id, 'Error: failed to destroy multisite border-gateway 100')
   end
 
@@ -56,12 +56,12 @@ class TestEvpnMultisite < CiscoTestCase
   def test_update_multisiteid
     ms = EvpnMultisite.new(100)
     ms.delay_restore = 50
-    assert_equal('100', EvpnMultisite.multisite,
+    assert_equal('100', ms.multisite,
                  'Error: failed to create multisite border-gateway 100')
     assert_equal('50', ms.delay_restore,
                  'multisite border-gateway delay_restore should be 50')
     ms.multisite = 200
-    assert_equal('200', EvpnMultisite.multisite,
+    assert_equal('200', ms.multisite,
                  'Error: failed to create multisite border-gateway 200')
     assert_equal('50', ms.delay_restore,
                  'multisite border-gateway delay_restore should be 50')
