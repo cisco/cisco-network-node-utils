@@ -52,6 +52,13 @@ route_target_both_auto_evpn:
   set_value: '<state> route-target both auto evpn'
   default_value: false
 
+route_target_both_auto_mvpn:
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  kind: boolean
+  get_value: '/^route-target both auto mvpn$/'
+  set_value: '<state> route-target both auto mvpn'
+  default_value: false
+
 route_target_export:
   multiple: true
   default_value: []
@@ -71,6 +78,13 @@ route_target_export_evpn:
   multiple: true
   get_value: '/^route-target export (\S+) evpn$/'
   set_value: '<state> route-target export <community> evpn'
+  default_value: []
+
+route_target_export_mvpn:
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  multiple: true
+  get_value: '/^route-target export (\S+) evpn$/'
+  set_value: '<state> route-target export <community> mvpn'
   default_value: []
 
 route_target_export_stitching:
@@ -103,6 +117,13 @@ route_target_import_evpn:
   multiple: true
   get_value: '/^route-target import (\S+) evpn$/'
   set_value: '<state> route-target import <community> evpn'
+  default_value: []
+
+route_target_import_mvpn:
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  multiple: true
+  get_value: '/^route-target import (\S+) mvpn$/'
+  set_value: '<state> route-target import <community> mvpn'
   default_value: []
 
 route_target_import_stitching:

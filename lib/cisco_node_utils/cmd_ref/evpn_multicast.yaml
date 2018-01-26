@@ -1,0 +1,12 @@
+# evpn_multicast.yaml
+---
+_exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+
+_template:
+  get_command: "show running-config | section advertise"
+
+multicast:
+  context: ~
+  get_value: '^advertise evpn multicast$'
+  set_value: "<state> advertise evpn multicast"
+  default_value: ''
