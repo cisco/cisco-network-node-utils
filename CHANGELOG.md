@@ -9,6 +9,9 @@ Changelog
   * evpn_stormcontrol (@rahushen)
   * interface_evpn_multisite (@rahushen)
 
+* TRM
+  * evpn_multicast (@rahushen)
+
 ### Added
 * Extend vxlan_vtep with attributes:
    * `multisite_border_gateway_interface`
@@ -21,6 +24,16 @@ Changelog
 
 * Extend bgp_neighbor_af with attributes:
    * `rewrite_evpn_rt_asn`
+
+* Extend vrf_af with attributes:
+   * `route_target_both_auto_mvpn`
+   * `route_target_export_mvpn`
+   * `route_target_import_mvpn`
+
+* Extend feature with attributes:
+  * `ngmvpn_enable`
+  * `ngmvpn_disable`
+  * `ngmvpn_enabled?`
 
 ### Changed
 
