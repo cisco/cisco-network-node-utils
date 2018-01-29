@@ -33,7 +33,7 @@ class TestEvpnMulticast < CiscoTestCase
   end
 
   def test_create_and_destroy
-    mc = EvpnMulticast.new()
+    mc = EvpnMulticast.new
     assert_equal('advertise evpn multicast', mc.multicast,
                  'Error: failed to enable evpn multicast')
     assert(Feature.ngmvpn_enabled?,
@@ -44,7 +44,7 @@ class TestEvpnMulticast < CiscoTestCase
   end
 
   def test_multicast
-    mc = EvpnMulticast.new()
+    mc = EvpnMulticast.new
     mc.multicast = false
     assert_equal('', mc.multicast,
                  'Error: failed to disable evpn multicast')

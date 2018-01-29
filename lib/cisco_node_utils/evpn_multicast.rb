@@ -21,14 +21,13 @@ require_relative 'feature'
 module Cisco
   # node_utils class for evpn_multisite
   class EvpnMulticast < NodeUtil
-    
-    def initialize()
+    def initialize
       @get_args = @set_args = {}
       create
     end
 
     def create
-      return unless  multicast == default_multicast
+      return unless multicast == default_multicast
       Feature.ngmvpn_enable
       @set_args[:state] = ''
       config_set('evpn_multicast', 'multicast', @set_args)
@@ -44,11 +43,11 @@ module Cisco
     end
 
     def multicast=(bool)
-      fail TypeError unless !!bool == bool
-      @set_args[:state] = bool ? '':'no'
+      fail TypeError unless [true, false].include?(bool)
+      @set_args[:state] = bool ? '' : 'no'
       if @set_args[:state] == 'no'
         unless multicast == default_multicast
-          config_set('evpn_multicast', 'multicast', @set_args) 
+          config_set('evpn_multicast', 'multicast', @set_args)
         end
       else
         config_set('evpn_multicast', 'multicast', @set_args)

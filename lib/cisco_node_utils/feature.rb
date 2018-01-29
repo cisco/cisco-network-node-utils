@@ -171,13 +171,14 @@ module Cisco
     rescue Cisco::CliError => e
       # cmd will syntax reject when feature is not enabled.
       raise unless e.clierror =~ /Syntax error/
-      return false  
+      return false
     end
 
     def self.ngmvpn_disable
       return unless ngmvpn_enabled?
       config_set('feature', 'ngmvpn', state: 'no')
     end
+
     # ---------------------------
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
