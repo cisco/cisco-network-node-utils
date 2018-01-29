@@ -77,13 +77,16 @@ class TestTacacsGlobal < CiscoTestCase
     assert_equal(7, global.key_format)
     assert_equal('"WAWY_NZB"', global.key)
 
-    # second key change - modify key to type6
-    key_format = 6
-    # Must use a valid type6 password: CSCvb36266
-    key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
-    global.encryption_key_set(key_format, key)
-    assert_equal(key_format, global.key_format)
-    assert_equal("\"#{key}\"", global.key)
+    skip_versions = ['7.0.3.(I2|I3)', '7.0.3.I4.[1-7]']
+    if step_unless_legacy_defect(skip_versions, 'CSCvh72911: Cannot configure tacacs-server key 6')
+      # second key change - modify key to type6
+      key_format = 6
+      # Must use a valid type6 password: CSCvb36266
+      key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
+      global.encryption_key_set(key_format, key)
+      assert_equal(key_format, global.key_format)
+      assert_equal("\"#{key}\"", global.key)
+    end
 
     # Remove global key
     global.encryption_key_set('', '')
