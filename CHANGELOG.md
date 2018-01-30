@@ -11,6 +11,7 @@ Changelog
 
 * TRM
   * evpn_multicast (@rahushen)
+  * ip_multicast (@rahushen)
 
 ### Added
 * Extend vxlan_vtep with attributes:
