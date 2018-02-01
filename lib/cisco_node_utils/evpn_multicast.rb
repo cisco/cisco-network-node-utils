@@ -38,6 +38,10 @@ module Cisco
       config_set('evpn_multicast', 'multicast', @set_args)
     end
 
+    def self.multicast
+      config_get('evpn_multicast', 'multicast')
+    end
+
     def multicast
       config_get('evpn_multicast', 'multicast')
     end
