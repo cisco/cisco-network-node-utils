@@ -1,0 +1,18 @@
+# ip_multicast.yaml
+---
+_exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+
+_template:
+  get_command: "show running-config | section 'ip multicast'"
+
+overlay_distributed_dr:
+  context: ~
+  get_value: '^ip multicast overlay-distributed-dr$'
+  set_value: "<state> ip multicast overlay-distributed-dr"
+  default_value: ''
+
+overlay_spt_only:
+  context: ~
+  get_value: '^ip multicast overlay-spt-only$'
+  set_value: "<state> ip multicast overlay-spt-only"
+  default_value: ''

@@ -120,10 +120,13 @@ class TestVrfAf < CiscoTestCase
     # Common tester for route-target properties. Tests evpn and non-evpn.
     #   route_target_both_auto
     #   route_target_both_auto_evpn
+    #   route_target_both_auto_mvpn
     #   route_target_export
     #   route_target_export_evpn
+    #   route_target_export_mvpn
     #   route_target_import
     #   route_target_import_evpn
+    #   route_target_import_mvpn
     vrf = 'orange'
     v = VrfAF.new(vrf, af)
 
@@ -133,6 +136,9 @@ class TestVrfAf < CiscoTestCase
 
     refute(v.default_route_target_both_auto_evpn,
            'default value for route target both auto evpn should be false')
+
+    refute(v.default_route_target_both_auto_mvpn,
+           'default value for route target both auto mvpn should be false')
 
     if validate_property_excluded?('vrf_af', 'route_target_both_auto')
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
@@ -158,6 +164,20 @@ class TestVrfAf < CiscoTestCase
       v.route_target_both_auto_evpn = false
       refute(v.route_target_both_auto_evpn, "vrf context #{vrf} af #{af}: "\
              'v route-target both auto evpn should be disabled')
+    end
+
+    if validate_property_excluded?('vrf_af', 'route_target_both_auto_mvpn')
+      assert_raises(Cisco::UnsupportedError) do
+        v.route_target_both_auto_mvpn = true
+      end
+    else
+      v.route_target_both_auto_mvpn = true
+      assert(v.route_target_both_auto_mvpn, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto mvpn should be enabled')
+
+      v.route_target_both_auto_mvpn = false
+      refute(v.route_target_both_auto_mvpn, "vrf context #{vrf} af #{af}: "\
+             'v route-target both auto mvpn should be disabled')
     end
 
     opts = [:import, :export]
@@ -197,6 +217,14 @@ class TestVrfAf < CiscoTestCase
       else
         v.send("route_target_#{opt}_evpn=", should)
       end
+      # mvpn
+      if validate_property_excluded?('vrf_af', "route_target_#{opt}_mvpn")
+        assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_mvpn=") do
+          v.send("route_target_#{opt}_mvpn=", should)
+        end
+      else
+        v.send("route_target_#{opt}_mvpn=", should)
+      end
       # stitching
       if platform == :nexus
         assert_raises(Cisco::UnsupportedError,
@@ -221,6 +249,14 @@ class TestVrfAf < CiscoTestCase
       else
         assert_equal(should, result,
                      "#{test_id} : #{af} : route_target_#{opt}_evpn")
+      end
+      # mvpn
+      result = v.send("route_target_#{opt}_mvpn")
+      if validate_property_excluded?('vrf_af', "route_target_#{opt}_mvpn")
+        assert_nil(result)
+      else
+        assert_equal(should, result,
+                     "#{test_id} : #{af} : route_target_#{opt}_mvpn")
       end
       # stitching
       result = v.send("route_target_#{opt}_stitching")
