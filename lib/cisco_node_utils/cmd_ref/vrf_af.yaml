@@ -83,7 +83,7 @@ route_target_export_evpn:
 route_target_export_mvpn:
   _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
   multiple: true
-  get_value: '/^route-target export (\S+) evpn$/'
+  get_value: '/^route-target export (\S+) mvpn$/'
   set_value: '<state> route-target export <community> mvpn'
   default_value: []
 
