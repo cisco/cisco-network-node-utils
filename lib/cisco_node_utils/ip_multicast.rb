@@ -33,7 +33,8 @@ module Cisco
     end
 
     def overlay_distributed_dr
-      config_get('ip_multicast', 'overlay_distributed_dr')
+      val = config_get('ip_multicast', 'overlay_distributed_dr')
+      val.empty? ? false : val
     end
 
     def overlay_distributed_dr=(bool)
@@ -53,7 +54,8 @@ module Cisco
     end
 
     def overlay_spt_only
-      config_get('ip_multicast', 'overlay_spt_only')
+      val = config_get('ip_multicast', 'overlay_spt_only')
+      val.empty? ? false : val
     end
 
     def overlay_spt_only=(bool)
