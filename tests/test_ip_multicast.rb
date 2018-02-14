@@ -58,7 +58,7 @@ class TestIpMulticast < CiscoTestCase
     # unset property
     opts.each do |opt|
       ipm.send("#{opt}=", false)
-      should = ''
+      should = false
       assert_equal(ipm.send("#{opt}"), should, "#{opt} was not unset")
       assert_equal(ipm.send("#{opt}"), ipm.send("default_#{opt}"), "#{opt} doesn't match default")
     end

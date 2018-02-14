@@ -56,7 +56,7 @@ ngmvpn:
   _exclude: [N3k, N3k-F, N5k, N6k, N7k, N9k-F]
   kind: boolean
   get_value: '/^feature ngmvpn$/'
-  set_value: "feature ngmvpn"
+  set_value: "<state> feature ngmvpn"
 
 nv_overlay:
   # N3k - native vxlan support in a future release

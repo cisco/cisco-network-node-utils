@@ -21,15 +21,20 @@ require_relative 'feature'
 module Cisco
   # node_utils class for evpn_multisite
   class IpMulticast < NodeUtil
-    def initialize
+    def initialize(instantiate=true)
       @get_args = @set_args = {}
-      Feature.ngmvpn_enable
+      Feature.ngmvpn_enable if instantiate
     end
 
     def destroy
       @set_args[:state] = 'no'
       config_set('ip_multicast', 'overlay_distributed_dr', @set_args)
       config_set('ip_multicast', 'overlay_spt_only', @set_args)
+      Feature.ngmvpn_disable
+    end
+
+    def ip_multicast
+      Feature.ngmvpn_enabled?
     end
 
     def overlay_distributed_dr
