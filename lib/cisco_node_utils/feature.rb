@@ -163,7 +163,7 @@ module Cisco
     # ---------------------------
     def self.ngmvpn_enable
       return if ngmvpn_enabled?
-      config_set('feature', 'ngmvpn')
+      config_set('feature', 'ngmvpn', state: '')
     end
 
     def self.ngmvpn_enabled?

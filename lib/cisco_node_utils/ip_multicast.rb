@@ -21,7 +21,7 @@ require_relative 'feature'
 module Cisco
   # node_utils class for evpn_multisite
   class IpMulticast < NodeUtil
-    def initialize(instantiate=True)
+    def initialize(instantiate=true)
       @get_args = @set_args = {}
       Feature.ngmvpn_enable if instantiate
     end
