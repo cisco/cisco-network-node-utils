@@ -23,7 +23,7 @@ module Cisco
   class IpMulticast < NodeUtil
     def initialize(instantiate=true)
       @get_args = @set_args = {}
-      Feature.ngmvpn_enable if instantiate
+      enable_features if instantiate
     end
 
     def destroy
@@ -31,6 +31,12 @@ module Cisco
       config_set('ip_multicast', 'overlay_distributed_dr', @set_args)
       config_set('ip_multicast', 'overlay_spt_only', @set_args)
       Feature.ngmvpn_disable
+    end
+
+    def enable_features
+      Feature.nv_overlay_enable
+      Feature.nv_overlay_evpn_enable
+      Feature.ngmvpn_enable
     end
 
     def ip_multicast
