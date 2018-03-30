@@ -301,11 +301,10 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf.name} vrf, default-metric get value mismatch")
 
     skip_versions = ['7.0.3.I7.3']
-    if step_unless_legacy_defect(skip_versions, 'CSCvi74876: Cannot remove default metric')
-      vrf.default_metric = vrf.default_default_metric
-      refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
-      vrf.parent.destroy
-    end
+    return unless step_unless_legacy_defect(skip_versions, 'CSCvi74876: Cannot remove default metric')
+    vrf.default_metric = vrf.default_default_metric
+    refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
+    vrf.parent.destroy
   end
 
   def test_default_metric_multiple_vrf
