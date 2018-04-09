@@ -83,9 +83,10 @@ class CiscoTestCase < TestCase
       @@node.cache_auto = true
       # Record the platform we're running on
       puts "\nNode under test:"
-      puts "  - name  - #{@@node.host_name}"
-      puts "  - type  - #{@@node.product_id}"
-      puts "  - image - #{@@node.system}\n\n"
+      puts "  - name    - #{@@node.host_name}"
+      puts "  - type    - #{@@node.product_id}"
+      puts "  - image   - #{@@node.system}"
+      puts "  - version - #{@@node.os_version}\n\n"
     end
     @@node
   rescue Cisco::AuthenticationFailed
