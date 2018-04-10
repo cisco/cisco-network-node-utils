@@ -1227,6 +1227,7 @@ module Cisco
       if val
         state = ''
       else
+        return unless stp_port_type
         state = 'no'
         val = stp_port_type
       end

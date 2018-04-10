@@ -492,6 +492,13 @@ class TestStpGlobal < CiscoTestCase
     @intf.stp_port_type = @intf.default_stp_port_type
     assert_equal(@intf.default_stp_port_type,
                  @intf.stp_port_type)
+    # Set default again and check. This is needed since
+    # we query the stp_port_type to use with the 'no'
+    # form of the command and false is not a valid
+    # stp_port_type
+    @intf.stp_port_type = @intf.default_stp_port_type
+    assert_equal(@intf.default_stp_port_type,
+                 @intf.stp_port_type)
   end
 
   def test_intf_stp_mst_cost_change
