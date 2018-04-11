@@ -173,7 +173,7 @@ module Cisco
     end
 
     def route_target_both_auto_mvpn=(state)
-      route_target_feature_enable(:require_ngmvpn)
+      route_target_feature_enable(nil, :require_ngmvpn)
       set_args_keys(state: (state ? '' : 'no'))
       config_set('vrf_af', 'route_target_both_auto_mvpn', @set_args)
     end
@@ -220,7 +220,7 @@ module Cisco
     end
 
     def route_target_export_mvpn=(should)
-      route_target_feature_enable(:require_ngmvpn)
+      route_target_feature_enable(nil, :require_ngmvpn)
       route_target_delta(should, route_target_export_mvpn,
                          'route_target_export_mvpn')
     end
@@ -277,7 +277,7 @@ module Cisco
 
     # --------------------------
     def route_target_import_mvpn
-      route_target_feature_enable(:require_ngmvpn)
+      route_target_feature_enable(nil, :require_ngmvpn)
       cmds = config_get('vrf_af', 'route_target_import_mvpn', @get_args)
       cmds.nil? ? nil : cmds.sort
     end
