@@ -29,6 +29,7 @@ module Cisco
     def create
       return unless multicast == default_multicast
       Feature.ngmvpn_enable
+      config_set('feature', 'nv_overlay', state: '')
       @set_args[:state] = ''
       config_set('evpn_multicast', 'multicast', @set_args)
     end
