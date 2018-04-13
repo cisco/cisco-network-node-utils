@@ -261,12 +261,12 @@ module Cisco
 
     # --------------------------
     def route_target_import_evpn
-      route_target_feature_enable(:require_nv_overlay)
       cmds = config_get('vrf_af', 'route_target_import_evpn', @get_args)
       cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import_evpn=(should)
+      route_target_feature_enable(:require_nv_overlay)
       route_target_delta(should, route_target_import_evpn,
                          'route_target_import_evpn')
     end
@@ -277,12 +277,12 @@ module Cisco
 
     # --------------------------
     def route_target_import_mvpn
-      route_target_feature_enable(nil, :require_ngmvpn)
       cmds = config_get('vrf_af', 'route_target_import_mvpn', @get_args)
       cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import_mvpn=(should)
+      route_target_feature_enable(nil, :require_ngmvpn)
       route_target_delta(should, route_target_import_mvpn,
                          'route_target_import_mvpn')
     end
