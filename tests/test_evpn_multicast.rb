@@ -28,15 +28,16 @@ class TestEvpnMulticast < CiscoTestCase
     # Disable feature ngmvpn before each test to
     # ensure we are starting with a clean slate for each test.
     super
-    config('no feature ngmvpn')
-    config('no advertise evpn multicast')
+    skip_incompat_version?('feature', 'ngmvpn')
+    config_no_warn('no feature ngmvpn')
+    config_no_warn('no advertise evpn multicast')
   end
 
   def teardown
     # disable feature ngmvpn and advertise evpn multicast
     # after each test
-    config('no feature ngmvpn')
-    config('no advertise evpn multicast')
+    config_no_warn('no feature ngmvpn')
+    config_no_warn('no advertise evpn multicast')
     super
   end
 

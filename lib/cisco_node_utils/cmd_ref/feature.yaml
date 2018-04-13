@@ -54,6 +54,7 @@ lacp:
 
 ngmvpn:
   _exclude: [N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  os_version: 'N9k:7.0.3.I7.1'
   kind: boolean
   get_value: '/^feature ngmvpn$/'
   set_value: "<state> feature ngmvpn"

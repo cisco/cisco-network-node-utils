@@ -28,12 +28,13 @@ class TestIpMulticast < CiscoTestCase
     # Disable feature ngmvpn before each test to
     # ensure we are starting with a clean slate for each test.
     super
-    config('no feature ngmvpn')
+    skip_incompat_version?('feature', 'ngmvpn')
+    config_no_warn('no feature ngmvpn')
   end
 
   def teardown
     # Disable feature ngmvpn after each test
-    config('no feature ngmvpn')
+    config_no_warn('no feature ngmvpn')
     super
   end
 

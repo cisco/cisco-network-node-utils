@@ -241,6 +241,20 @@ class CiscoTestCase < TestCase
     end
   end
 
+  def step_unless_version_unsupported(pattern)
+    if pattern.is_a?(String)
+      pattern = [pattern]
+    elsif !pattern.is_a?(Array)
+      fail 'Argument: pattern must be a String or Array object'
+    end
+    pattern.each do |pat|
+      if Utils.image_version?(Regexp.new(pat))
+        puts "Skip Step: Feature not supported in this image version: [#{Platform.image_version}]"
+        return false
+      end
+    end
+  end
+
   def virtual_platform?
     node.product_id[/N9K-NXOSV|N9K-9000v/] ? true : false
   end
