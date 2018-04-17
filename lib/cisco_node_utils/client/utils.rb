@@ -151,7 +151,7 @@ class Cisco::Client
           end
           return final
         end
-        fail "No key \"#{filter}\" in #{data}" if data[filter].nil?
+        fail "No key \"#{filter}\" in #{data}" unless data.key?(filter)
         data = data[filter]
       end
     end
