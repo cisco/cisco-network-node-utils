@@ -116,14 +116,21 @@ class TestVrfAf < CiscoTestCase
     vdc_limit_f3_no_intf_needed(:clear)
   end
 
-  def route_target(af)
+  def route_target(af, _test_mvpn=false)
     # Common tester for route-target properties. Tests evpn and non-evpn.
     #   route_target_both_auto
     #   route_target_both_auto_evpn
+    #   route_target_both_auto_mvpn
     #   route_target_export
     #   route_target_export_evpn
+    #   route_target_export_mvpn
     #   route_target_import
     #   route_target_import_evpn
+    #   route_target_import_mvpn
+
+    # mvpn tests are only supported on 7.0.3.I7.1 and later
+    mvpn_skip_versions = ['7.0.3.(I2|I3|I4|I5|I6)']
+
     vrf = 'orange'
     v = VrfAF.new(vrf, af)
 
@@ -133,6 +140,11 @@ class TestVrfAf < CiscoTestCase
 
     refute(v.default_route_target_both_auto_evpn,
            'default value for route target both auto evpn should be false')
+
+    if step_unless_version_unsupported(mvpn_skip_versions)
+      refute(v.default_route_target_both_auto_mvpn,
+             'default value for route target both auto mvpn should be false')
+    end
 
     if validate_property_excluded?('vrf_af', 'route_target_both_auto')
       assert_raises(Cisco::UnsupportedError) { v.route_target_both_auto = true }
@@ -160,6 +172,22 @@ class TestVrfAf < CiscoTestCase
              'v route-target both auto evpn should be disabled')
     end
 
+    if step_unless_version_unsupported(mvpn_skip_versions)
+      if validate_property_excluded?('vrf_af', 'route_target_both_auto_mvpn')
+        assert_raises(Cisco::UnsupportedError) do
+          v.route_target_both_auto_mvpn = true
+        end
+      else
+        v.route_target_both_auto_mvpn = true
+        assert(v.route_target_both_auto_mvpn, "vrf context #{vrf} af #{af}: "\
+               'v route-target both auto mvpn should be enabled')
+
+        v.route_target_both_auto_mvpn = false
+        refute(v.route_target_both_auto_mvpn, "vrf context #{vrf} af #{af}: "\
+               'v route-target both auto mvpn should be disabled')
+      end
+    end
+
     opts = [:import, :export]
 
     # Master list of communities to test against
@@ -185,6 +213,9 @@ class TestVrfAf < CiscoTestCase
   end
 
   def route_target_tester(v, af, opts, should, test_id)
+    # mvpn tests are only supported on 7.0.3.I7.1 and later
+    mvpn_skip_versions = ['7.0.3.(I2|I3|I4|I5|I6)']
+
     # First configure all four property types
     opts.each do |opt|
       # non-evpn
@@ -196,6 +227,16 @@ class TestVrfAf < CiscoTestCase
         end
       else
         v.send("route_target_#{opt}_evpn=", should)
+      end
+      # mvpn
+      if step_unless_version_unsupported(mvpn_skip_versions)
+        if validate_property_excluded?('vrf_af', "route_target_#{opt}_mvpn")
+          assert_raises(Cisco::UnsupportedError, "route_target_#{opt}_mvpn=") do
+            v.send("route_target_#{opt}_mvpn=", should)
+          end
+        else
+          v.send("route_target_#{opt}_mvpn=", should)
+        end
       end
       # stitching
       if platform == :nexus
@@ -221,6 +262,16 @@ class TestVrfAf < CiscoTestCase
       else
         assert_equal(should, result,
                      "#{test_id} : #{af} : route_target_#{opt}_evpn")
+      end
+      # mvpn
+      if step_unless_version_unsupported(mvpn_skip_versions)
+        result = v.send("route_target_#{opt}_mvpn")
+        if validate_property_excluded?('vrf_af', "route_target_#{opt}_mvpn")
+          assert_nil(result)
+        else
+          assert_equal(should, result,
+                       "#{test_id} : #{af} : route_target_#{opt}_mvpn")
+        end
       end
       # stitching
       result = v.send("route_target_#{opt}_stitching")

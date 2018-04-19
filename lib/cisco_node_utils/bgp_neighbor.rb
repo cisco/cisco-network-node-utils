@@ -503,5 +503,25 @@ module Cisco
         fail KeyError
       end
     end
+
+    def default_peer_type
+      config_get_default('bgp_neighbor', 'peer_type')
+    end
+
+    def peer_type=(val)
+      if val == default_peer_type
+        @set_args[:state] = 'no'
+        @set_args[:peer_type] = ''
+      else
+        Feature.nv_overlay_evpn_enable
+        @set_args[:peer_type] = val
+        @set_args[:state] = ''
+      end
+      config_set('bgp_neighbor', 'peer_type', @set_args)
+    end
+
+    def peer_type
+      config_get('bgp_neighbor', 'peer_type', @get_args)
+    end
   end # class
 end # module

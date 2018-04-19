@@ -52,6 +52,13 @@ lacp:
   get_value: '/^feature lacp$/'
   set_value: "feature lacp"
 
+ngmvpn:
+  _exclude: [N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  os_version: 'N9k:7.0.3.I7.1'
+  kind: boolean
+  get_value: '/^feature ngmvpn$/'
+  set_value: "<state> feature ngmvpn"
+
 nv_overlay:
   # N3k - native vxlan support in a future release
   _exclude: [N3k]

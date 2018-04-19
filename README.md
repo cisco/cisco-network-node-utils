@@ -42,8 +42,8 @@ This CiscoNodeUtils gem release supports the following:
 
 Platform          | OS     | OS Version           |
 ------------------|--------|----------------------|
-Cisco Nexus N9k   | NX-OS  | 7.0(3)I2(1) and later
-Cisco Nexus N3k   | NX-OS  | 7.0(3)I2(1) and later
+Cisco Nexus N9k   | NX-OS  | 7.0(3)I2(5) and later
+Cisco Nexus N3k   | NX-OS  | 7.0(3)I2(5) and later
 Cisco Nexus N3K-F | NX-OS  | 7.0(3)F3(2) and later
 Cisco Nexus N5k   | NX-OS  | 7.3(0)N1(1) and later
 Cisco Nexus N6k   | NX-OS  | 7.3(0)N1(1) and later
@@ -91,7 +91,7 @@ An example configuration file (illustrating each of the above scenarios) is prov
 
 The `Client` class provides a low-level interface for communicating with the Cisco network node. It provides the base APIs `create`, `get`, and `set`.
 
-* `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(1) and later, using NX-API.
+* `Cisco::Client::NXAPI` - client for communicating with NX-OS 7.0(3)I2(5) and later, using NX-API.
 
 For a greater level of abstraction, the `Node` class is generally used, but the `Client` classes can be invoked directly if desired.
 
@@ -217,7 +217,7 @@ See [CHANGELOG](CHANGELOG.md) for a list of changes.
 ## <a name="license_info">License Information</a>
 
 
-Copyright (c) 2013-2017 Cisco and/or its affiliates.
+Copyright (c) 2013-2018 Cisco and/or its affiliates.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

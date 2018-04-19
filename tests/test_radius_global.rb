@@ -71,11 +71,13 @@ class TestRadiusGlobal < CiscoTestCase
       assert_match(/#{key}/, global.key)
       assert_match(/#{key}/, Cisco::RadiusGlobal.radius_global[id].key)
       assert_equal(7, global.key_format)
-      # Change to type 6
-      key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
-      global.key_set(key, 6)
-      assert_match(/#{key}/, global.key)
-      assert_equal(6, global.key_format)
+      unless Platform.image_version[/I2|I4/] # legacy defect CSCvb57180
+        # Change to type 6
+        key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
+        global.key_set(key, 6)
+        assert_match(/#{key}/, global.key)
+        assert_equal(6, global.key_format)
+      end
     elsif platform == :ios_xr
       global.key_set('QsEfThUkO', nil)
       assert(!global.key.nil?)

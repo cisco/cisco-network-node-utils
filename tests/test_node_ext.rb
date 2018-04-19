@@ -333,7 +333,7 @@ class TestNodeExt < CiscoTestCase
     if validate_property_excluded?('show_version', 'last_reset_time')
       assert_nil(node.last_reset_time)
     else
-      refute_nil(node.last_reset_time)
+      refute_nil(node.last_reset_time) unless virtual_platform?
     end
   end
 
@@ -345,7 +345,8 @@ class TestNodeExt < CiscoTestCase
     assert_output_check(command: 'show version',
                         pattern: /.*\nLast reset.*\n\n?  Reason: (.*)\n/,
                         check:   node.last_reset_reason,
-                        msg:     'Error, Last reset reason does not match')
+                        msg:     'Error, Last reset reason does not match') unless
+      virtual_platform?
   end
 
   def test_get_system_cpu_utilization

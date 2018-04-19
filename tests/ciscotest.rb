@@ -83,9 +83,10 @@ class CiscoTestCase < TestCase
       @@node.cache_auto = true
       # Record the platform we're running on
       puts "\nNode under test:"
-      puts "  - name  - #{@@node.host_name}"
-      puts "  - type  - #{@@node.product_id}"
-      puts "  - image - #{@@node.system}\n\n"
+      puts "  - name    - #{@@node.host_name}"
+      puts "  - type    - #{@@node.product_id}"
+      puts "  - image   - #{@@node.system}"
+      puts "  - version - #{@@node.os_version}\n\n"
     end
     @@node
   rescue Cisco::AuthenticationFailed
@@ -224,6 +225,38 @@ class CiscoTestCase < TestCase
   def skip_legacy_defect?(pattern, msg)
     msg = "Defect in legacy image: [#{msg}]"
     skip(msg) if Utils.image_version?(Regexp.new(pattern))
+  end
+
+  def step_unless_legacy_defect(pattern, msg)
+    if pattern.is_a?(String)
+      pattern = [pattern]
+    elsif !pattern.is_a?(Array)
+      fail 'Argument: pattern must be a String or Array object'
+    end
+    pattern.each do |pat|
+      if Utils.image_version?(Regexp.new(pat))
+        puts "Skip Step: Defect in legacy image: [#{msg}]"
+        return false
+      end
+    end
+  end
+
+  def step_unless_version_unsupported(pattern)
+    if pattern.is_a?(String)
+      pattern = [pattern]
+    elsif !pattern.is_a?(Array)
+      fail 'Argument: pattern must be a String or Array object'
+    end
+    pattern.each do |pat|
+      if Utils.image_version?(Regexp.new(pat))
+        puts "Skip Step: Feature not supported in this image version: [#{Platform.image_version}]"
+        return false
+      end
+    end
+  end
+
+  def virtual_platform?
+    node.product_id[/N9K-NXOSV|N9K-9000v/] ? true : false
   end
 
   def interfaces

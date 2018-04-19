@@ -751,4 +751,31 @@ class TestBgpNeighborAF < CiscoTestCase
     assert_equal(af.default_weight, af.weight,
                  "Test 3. #{dbg} Failed to remove weight")
   end
+
+  def test_rewrite_evpn_rt_asn
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
+    af_args = @@matrix[:evpn]
+    # clean_af needs true since rewrite_rt_asn is ebgp only
+    af, dbg = clean_af(af_args, true)
+    rewrite_evpn_rt_asn(af, dbg)
+  end
+
+  def rewrite_evpn_rt_asn(af, dbg)
+    # eBGP only
+    af.rewrite_evpn_rt_asn = true
+    assert(af.rewrite_evpn_rt_asn,
+           "Test 1. #{dbg} Did not set true")
+
+    af.rewrite_evpn_rt_asn = false
+    refute(af.rewrite_evpn_rt_asn,
+           "Test 2. #{dbg} Did not set false")
+
+    af.rewrite_evpn_rt_asn = true
+
+    def_val = af.default_rewrite_evpn_rt_asn
+    af.rewrite_evpn_rt_asn = def_val
+    assert_equal(def_val, af.rewrite_evpn_rt_asn,
+                 "Test 3. #{dbg} Did not set to default")
+  end
 end

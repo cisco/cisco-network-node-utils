@@ -16,6 +16,7 @@ require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/feature'
 require_relative '../lib/cisco_node_utils/vxlan_vtep'
 require_relative '../lib/cisco_node_utils/vdc'
+require_relative '../lib/cisco_node_utils/evpn_multisite'
 
 include Cisco
 
@@ -180,6 +181,28 @@ class TestVxlanVtep < CiscoTestCase
     val = vtep.default_source_interface
     vtep.source_interface = val
     assert_equal(val, vtep.source_interface)
+  end
+
+  def test_multisite_bg_interface
+    skip("#{node.product_id} doesn't support this feature") unless
+      node.product_id[/N9K.*EX/]
+    vtep = VxlanVtep.new('nve1')
+
+    # Set multisite_bg_interface to non-default value
+    val = 'loopback55'
+    ms = EvpnMultisite.new(100)
+    vtep.multisite_border_gateway_interface = val
+    assert_equal(val, vtep.multisite_border_gateway_interface)
+
+    vtep.multisite_border_gateway_interface = vtep.default_multisite_border_gateway_interface
+    assert_equal(vtep.default_multisite_border_gateway_interface,
+                 vtep.multisite_border_gateway_interface)
+
+    # Should Error when no 'evpn multisite border-gateway' set
+    ms.destroy
+    assert_raises(Cisco::CliError) do
+      vtep.multisite_border_gateway_interface = val
+    end
   end
 
   def test_source_interface_hold_down_time

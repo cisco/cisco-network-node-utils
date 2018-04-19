@@ -146,6 +146,13 @@ prefix_list_out:
   set_value: '<state> prefix-list <str> out'
   default_value: ''
 
+rewrite_evpn_rt_asn:
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  kind: boolean
+  get_value: '/^rewrite-evpn-rt-asn$/'
+  set_value: '<state> rewrite-evpn-rt-asn'
+  default_value: false
+
 route_map_in:
   kind: string
   default_value: ''

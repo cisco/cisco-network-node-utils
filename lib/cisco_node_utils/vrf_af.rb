@@ -75,16 +75,20 @@ module Cisco
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
-    def route_target_feature_enable(require_nv_overlay=nil)
+    def route_target_feature_enable(require_nv_overlay=nil, require_ngmvpn=nil)
       return unless platform == :nexus
 
       # All NX route-target properties require feature bgp
       Feature.bgp_enable
 
       # Some platforms/versions also require nv overlay for some properties
-      return unless require_nv_overlay
-      Feature.nv_overlay_enable if Feature.nv_overlay_supported?
-      Feature.nv_overlay_evpn_enable if Feature.nv_overlay_evpn_supported?
+      if require_nv_overlay
+        Feature.nv_overlay_enable if Feature.nv_overlay_supported?
+        Feature.nv_overlay_evpn_enable if Feature.nv_overlay_evpn_supported?
+      end
+
+      # ngmvpn feature is required for 'mvpn' enablement
+      Feature.ngmvpn_enable if require_ngmvpn
     end
 
     ########################################################
@@ -164,6 +168,21 @@ module Cisco
     end
 
     # --------------------------
+    def route_target_both_auto_mvpn
+      config_get('vrf_af', 'route_target_both_auto_mvpn', @get_args)
+    end
+
+    def route_target_both_auto_mvpn=(state)
+      route_target_feature_enable(nil, :require_ngmvpn)
+      set_args_keys(state: (state ? '' : 'no'))
+      config_set('vrf_af', 'route_target_both_auto_mvpn', @set_args)
+    end
+
+    def default_route_target_both_auto_mvpn
+      config_get_default('vrf_af', 'route_target_both_auto_mvpn')
+    end
+
+    # --------------------------
     def route_target_export
       cmds = config_get('vrf_af', 'route_target_export', @get_args)
       cmds.nil? ? nil : cmds.sort
@@ -192,6 +211,22 @@ module Cisco
 
     def default_route_target_export_evpn
       config_get_default('vrf_af', 'route_target_export_evpn')
+    end
+
+    # --------------------------
+    def route_target_export_mvpn
+      cmds = config_get('vrf_af', 'route_target_export_mvpn', @get_args)
+      cmds.nil? ? nil : cmds.sort
+    end
+
+    def route_target_export_mvpn=(should)
+      route_target_feature_enable(nil, :require_ngmvpn)
+      route_target_delta(should, route_target_export_mvpn,
+                         'route_target_export_mvpn')
+    end
+
+    def default_route_target_export_mvpn
+      config_get_default('vrf_af', 'route_target_export_mvpn')
     end
 
     # --------------------------
@@ -226,18 +261,34 @@ module Cisco
 
     # --------------------------
     def route_target_import_evpn
-      route_target_feature_enable(:require_nv_overlay)
       cmds = config_get('vrf_af', 'route_target_import_evpn', @get_args)
       cmds.nil? ? nil : cmds.sort
     end
 
     def route_target_import_evpn=(should)
+      route_target_feature_enable(:require_nv_overlay)
       route_target_delta(should, route_target_import_evpn,
                          'route_target_import_evpn')
     end
 
     def default_route_target_import_evpn
       config_get_default('vrf_af', 'route_target_import_evpn')
+    end
+
+    # --------------------------
+    def route_target_import_mvpn
+      cmds = config_get('vrf_af', 'route_target_import_mvpn', @get_args)
+      cmds.nil? ? nil : cmds.sort
+    end
+
+    def route_target_import_mvpn=(should)
+      route_target_feature_enable(nil, :require_ngmvpn)
+      route_target_delta(should, route_target_import_mvpn,
+                         'route_target_import_mvpn')
+    end
+
+    def default_route_target_import_mvpn
+      config_get_default('vrf_af', 'route_target_import_mvpn')
     end
 
     # --------------------------

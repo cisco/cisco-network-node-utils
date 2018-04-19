@@ -25,6 +25,7 @@ When we are considering publishing a new release, all of the following steps mus
 1. Run full minitest regression on [supported platforms.](https://github.com/cisco/cisco-network-node-utils#overview)
     * Fix All Bugs.
     * Make sure proper test case skips are in place for unsupported platforms.
+    * Make sure [yum_package.yaml](../tests/yum_package.yaml) is updated with all versions that need to be tested.
 
 1. Build gem and test it in combination with the latest released Puppet module (using Beaker and demo manifests) to make sure no backward compatibility issues have been introduced.
 

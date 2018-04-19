@@ -1227,8 +1227,9 @@ module Cisco
       if val
         state = ''
       else
+        return unless stp_port_type
         state = 'no'
-        val = ''
+        val = stp_port_type
       end
       config_set('interface', 'stp_port_type', name: @name,
                  state: state, type: val)

@@ -1,9 +1,50 @@
 Changelog
 =========
 
+## [v1.9.0]
+
+### New Cisco Resources
+* EVPN Multisite
+  * evpn_multisite (@rahushen)
+  * evpn_stormcontrol (@rahushen)
+  * interface_evpn_multisite (@rahushen)
+
+* TRM
+  * evpn_multicast (@rahushen)
+  * ip_multicast (@rahushen)
+
+### Added
+* Extend vxlan_vtep with attributes:
+   * `multisite_border_gateway_interface`
+
+* Extend vxlan_vtep_vni with attributes:
+   * `multisite_ingress_replication`
+
+* Extend bgp_neighbor with attributes:
+   * `peer_type`
+
+* Extend bgp_neighbor_af with attributes:
+   * `rewrite_evpn_rt_asn`
+
+* Extend vrf_af with attributes:
+   * `route_target_both_auto_mvpn`
+   * `route_target_export_mvpn`
+   * `route_target_import_mvpn`
+
+* Extend feature with attributes:
+  * `ngmvpn_enable`
+  * `ngmvpn_disable`
+  * `ngmvpn_enabled?`
+
+### Changed
+
+### Removed
+
+### Issues Addressed
+
 ## [v1.8.0]
 
-#### Cisco Resources
+### New Cisco Resources
 * ObjectGroup
   * object_group (@saichint)
   * object_group_entry (@saichint)
@@ -513,6 +554,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.9.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.5.0...v1.6.0

@@ -114,6 +114,13 @@ password_type:
     get_value: '/^password (\d+)/'
     default_value: 0
 
+peer_type:
+  _exclude: [ios_xr, N3k, N3k-F, N5k, N6k, N7k, N9k-F]
+  kind: string
+  get_value: '/^peer-type (\S+)$/'
+  set_value: '<state> peer-type <peer_type>'
+  default_value: ""
+
 remote_as:
   get_value: '/^remote-as (\d*?.?\d+?)$/'
   set_value: '<state> remote-as <remote_as>'

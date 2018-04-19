@@ -31,7 +31,6 @@ class TestFeature < CiscoTestCase
      'no feature bgp',
      'no feature dhcp',
      'no feature fabric forwarding',
-     'no feature-set fex',
      'no feature hsrp',
      'no feature itd',
      'no feature nv overlay',
@@ -42,6 +41,11 @@ class TestFeature < CiscoTestCase
      'no feature vn-segment-vlan-based',
      'no feature vni',
      'no feature vtp'].each { |f| config_no_warn(f) }
+
+    # Special case for 'no feature-set fex'
+    # Some image versions prompt y/n to remove the feature-set.
+    config_no_warn('terminal dont-ask')
+    config_no_warn('no feature-set fex')
   end
 
   ###########
@@ -226,6 +230,7 @@ class TestFeature < CiscoTestCase
 
     # clean
     if Feature.fex_installed?
+      config_no_warn('terminal dont-ask')
       config_no_warn("no #{fs}")
       config_no_warn("no install #{fs}")
     end

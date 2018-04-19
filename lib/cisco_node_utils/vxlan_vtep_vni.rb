@@ -262,5 +262,26 @@ module Cisco
     def default_suppress_uuc
       config_get_default('vxlan_vtep_vni', 'suppress_uuc')
     end
+
+    def multisite_ingress_replication
+      config_get('vxlan_vtep_vni', 'multisite_ingress_replication', @get_args)
+    end
+
+    def multisite_ingress_replication=(state)
+      @set_args[:state] = state ? '' : 'no'
+      if @set_args[:state] == 'no'
+        unless multisite_ingress_replication ==
+               default_multisite_ingress_replication
+          config_set('vxlan_vtep_vni', 'multisite_ingress_replication',
+                     @set_args)
+        end
+      else
+        config_set('vxlan_vtep_vni', 'multisite_ingress_replication', @set_args)
+      end
+    end
+
+    def default_multisite_ingress_replication
+      config_get_default('vxlan_vtep_vni', 'multisite_ingress_replication')
+    end
   end
 end
