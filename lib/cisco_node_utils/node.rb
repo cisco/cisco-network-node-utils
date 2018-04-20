@@ -122,7 +122,10 @@ module Cisco
       value = value.is_a?(Hash) ? [value] : value
       data = nil
       value.each do |row|
-        data = row[data_key] if row[row_key].to_s[/#{row_index}/]
+        if row[row_key].to_s[/#{row_index}/]
+          data = row[data_key]
+          data = data.nil? ? '' : data
+        end
       end
       return value if data.nil?
       if regexp_filter
