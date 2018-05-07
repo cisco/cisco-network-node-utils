@@ -112,20 +112,33 @@ module Cisco
       config_get('vxlan_vtep_vni', 'ingress_replication', @get_args)
     end
 
+    def set_host_reachability(vtep_name, protocol)
+      # This is a helper method for the ingress_replication setter.
+      # In later versions of Nexus, a check was added to make sure
+      # the host_reachability setting is correct for the desired
+      # ingress_replication setting.
+      #
+      case protocol
+      when 'bgp'
+        host_reachability = 'evpn'
+      when 'static'
+        host_reachability = 'flood'
+      else
+        fail "Protocol #{protocol} currently not supported"
+      end
+      VxlanVtep.new(vtep_name).host_reachability = host_reachability
+    end
+
     def remove_add_ingress_replication(protocol)
       # Note: ingress-replication is not supported on all platforms.
       # Use to_s.empty check to also handle nil check.
-      if ingress_replication.to_s.empty?
-        set_args_keys(state: '', protocol: protocol)
-        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
-      else
-        # Sadly, the only way to change between protocols is to
-        # first remove the existing protocol.
+      unless ingress_replication.to_s.empty?
         set_args_keys(state: 'no', protocol: ingress_replication)
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
-        set_args_keys(state: '', protocol: protocol)
-        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       end
+      set_host_reachability(@set_args[:name], protocol)
+      set_args_keys(state: '', protocol: protocol)
+      config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
     end
 
     def ingress_replication=(protocol)
