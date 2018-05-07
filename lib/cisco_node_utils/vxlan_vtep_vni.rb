@@ -132,19 +132,13 @@ module Cisco
     def remove_add_ingress_replication(protocol)
       # Note: ingress-replication is not supported on all platforms.
       # Use to_s.empty check to also handle nil check.
-      if ingress_replication.to_s.empty?
-        set_host_reachability(@set_args[:name], protocol)
-        set_args_keys(state: '', protocol: protocol)
-        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
-      else
-        # Sadly, the only way to change between protocols is to
-        # first remove the existing protocol.
+      unless ingress_replication.to_s.empty?
         set_args_keys(state: 'no', protocol: ingress_replication)
         config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
-        set_host_reachability(@set_args[:name], protocol)
-        set_args_keys(state: '', protocol: protocol)
-        config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
       end
+      set_host_reachability(@set_args[:name], protocol)
+      set_args_keys(state: '', protocol: protocol)
+      config_set('vxlan_vtep_vni', 'ingress_replication', @set_args)
     end
 
     def ingress_replication=(protocol)
