@@ -64,23 +64,27 @@ module Cisco
     end
 
     def overlay_spt_only
-      config_get('ip_multicast', 'overlay_spt_only')
+      result = config_get('ip_multicast', 'overlay_spt_only')
+      result.nil? ? false : result
     end
 
     def overlay_spt_only=(bool)
       fail TypeError unless [true, false].include?(bool)
       @set_args[:state] = bool ? '' : 'no'
-      if @set_args[:state] == 'no'
-        unless overlay_spt_only == default_overlay_spt_only
-          config_set('ip_multicast', 'overlay_spt_only', @set_args)
-        end
-      else
-        config_set('ip_multicast', 'overlay_spt_only', @set_args)
-      end
+      config_set('ip_multicast', 'overlay_spt_only', @set_args)
     end
 
     def default_overlay_spt_only
-      config_get_default('ip_multicast', 'overlay_spt_only')
+      val = config_get_default('ip_multicast', 'overlay_spt_only')
+      # The default value for this property is different for older
+      # Nexus software verions.
+      #
+      # Versions: 7.0(3)I7(1), 7.0(3)I7(2), 7.0(3)I7(3)
+      #   Default State: false
+      #
+      # Versions: 7.0(3)I7(4) and later
+      #   Default State: true
+      node.os_version[/7\.0\(3\)I7\([1-3]\)/] ? !val : val
     end
   end
 end

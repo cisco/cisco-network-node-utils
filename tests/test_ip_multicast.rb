@@ -38,31 +38,40 @@ class TestIpMulticast < CiscoTestCase
     super
   end
 
-  def test_ip_multicast
+  def test_overlay_distributed_dr
     ipm = IpMulticast.new
-    opts = %w(overlay_distributed_dr overlay_spt_only)
 
-    # test defaults
-    opts.each do |opt|
-      have = ipm.send("#{opt}")
-      should = ipm.send("default_#{opt}")
-      assert_equal(have, should, "#{opt} doesn't match the default")
-    end
+    # Test Defaults
+    have = ipm.overlay_distributed_dr
+    should = ipm.default_overlay_distributed_dr
+    assert_equal(have, should, 'overlay_distributed_dr does not match default value')
 
-    # test property set
-    opts.each do |opt|
-      ipm.send("#{opt}=", true)
-      should = 'ip multicast ' + opt.tr('_', '-')
-      assert_equal(ipm.send("#{opt}"), should, "#{opt} was not set")
-    end
+    # Test property set
+    ipm.overlay_distributed_dr = true
+    assert_equal(ipm.overlay_distributed_dr, true, 'overlay_distributed_dr was not set')
 
-    # unset property
-    opts.each do |opt|
-      ipm.send("#{opt}=", false)
-      should = false
-      assert_equal(ipm.send("#{opt}"), should, "#{opt} was not unset")
-      assert_equal(ipm.send("#{opt}"), ipm.send("default_#{opt}"), "#{opt} doesn't match default")
-    end
+    # Test property unset
+    ipm.overlay_distributed_dr = false
+    assert_equal(ipm.overlay_distributed_dr, false, 'overlay_distributed_dr was not unset')
+
+    ipm.destroy
+  end
+
+  def test_overlay_spt_only
+    ipm = IpMulticast.new
+
+    # Test Defaults
+    have = ipm.overlay_spt_only
+    should = ipm.default_overlay_spt_only
+    assert_equal(have, should, 'overlay_spt_only does not match default value')
+
+    # Test property set
+    ipm.overlay_spt_only = true
+    assert_equal(ipm.overlay_spt_only, true, 'overlay_spt_only was not set')
+
+    # Test property unset
+    ipm.overlay_spt_only = false
+    assert_equal(ipm.overlay_spt_only, false, 'overlay_spt_only was not unset')
 
     ipm.destroy
   end

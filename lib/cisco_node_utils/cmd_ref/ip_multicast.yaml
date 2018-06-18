@@ -7,12 +7,16 @@ _template:
 
 overlay_distributed_dr:
   context: ~
+  kind: boolean
   get_value: '^ip multicast overlay-distributed-dr$'
   set_value: "<state> ip multicast overlay-distributed-dr"
   default_value: false
 
 overlay_spt_only:
   context: ~
-  get_value: '^ip multicast overlay-spt-only$'
+  kind: boolean
+  auto_default: false
+  get_command: "show fabric multicast globals"
+  get_value: '^Overlay spt-only:\s+TRUE$'
   set_value: "<state> ip multicast overlay-spt-only"
-  default_value: false
+  default_value: true
