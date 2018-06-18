@@ -65,7 +65,7 @@ module Cisco
 
     def overlay_spt_only
       result = config_get('ip_multicast', 'overlay_spt_only')
-      result = result.nil? ? false : result
+      result.nil? ? false : result
     end
 
     def overlay_spt_only=(bool)

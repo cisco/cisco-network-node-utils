@@ -44,15 +44,15 @@ class TestIpMulticast < CiscoTestCase
     # Test Defaults
     have = ipm.overlay_distributed_dr
     should = ipm.default_overlay_distributed_dr
-    assert_equal(have, should, "overlay_distributed_dr does not match default value")
+    assert_equal(have, should, 'overlay_distributed_dr does not match default value')
 
     # Test property set
     ipm.overlay_distributed_dr = true
-    assert_equal(ipm.overlay_distributed_dr, true, "overlay_distributed_dr was not set")
+    assert_equal(ipm.overlay_distributed_dr, true, 'overlay_distributed_dr was not set')
 
     # Test property unset
     ipm.overlay_distributed_dr = false
-    assert_equal(ipm.overlay_distributed_dr, false, "overlay_distributed_dr was not unset")
+    assert_equal(ipm.overlay_distributed_dr, false, 'overlay_distributed_dr was not unset')
 
     ipm.destroy
   end
@@ -63,15 +63,15 @@ class TestIpMulticast < CiscoTestCase
     # Test Defaults
     have = ipm.overlay_spt_only
     should = ipm.default_overlay_spt_only
-    assert_equal(have, should, "overlay_spt_only does not match default value")
+    assert_equal(have, should, 'overlay_spt_only does not match default value')
 
     # Test property set
     ipm.overlay_spt_only = true
-    assert_equal(ipm.overlay_spt_only, true, "overlay_spt_only was not set")
+    assert_equal(ipm.overlay_spt_only, true, 'overlay_spt_only was not set')
 
     # Test property unset
     ipm.overlay_spt_only = false
-    assert_equal(ipm.overlay_spt_only, false, "overlay_spt_only was not unset")
+    assert_equal(ipm.overlay_spt_only, false, 'overlay_spt_only was not unset')
 
     ipm.destroy
   end
