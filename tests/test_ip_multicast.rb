@@ -39,6 +39,8 @@ class TestIpMulticast < CiscoTestCase
   end
 
   def test_overlay_distributed_dr
+    skip_legacy_defect?('7.0.3.I7.4', 'CSCvk01535')
+
     ipm = IpMulticast.new
 
     # Test Defaults
