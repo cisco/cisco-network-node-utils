@@ -85,6 +85,14 @@ An example configuration file (illustrating each of the above scenarios) is prov
 
 *For security purposes, it is highly recommended that access to this file be restricted to only the owning user (`chmod 0600`).*
 
+Configuration may also be specified at runtime and can be used in the absence of configuration files or to override them.
+
+Example:
+```ruby
+env = { host: '192.168.1.1', port: nil, username: 'admin', password: 'admin123', cookie: nil }
+Cisco::Environment.add_env('default', env)
+```
+
 ## <a name="documentation">Documentation</a>
 
 ### Client
@@ -151,12 +159,18 @@ client2 = Cisco::Client.create('n9k')
 # Warning: Make sure to exclude devices using the 'no_proxy' environment variable
 # to ensure successful remote connections.
 
+# Add runtime configuration for remote device and connect
+env = { host: '192.168.1.1', port: nil, username: 'admin', password: 'admin123', cookie: nil }
+Cisco::Environment.add_env('remote', env)
+client3 = Cisco::Client.create('remote')
+
 # Use connections to get and set device state.
 client1.set(values: 'feature vtp')
 client1.set(values: 'vtp domain mycompany.com')
 puts client1.get(command: 'show vtp status | inc Domain')
 
 puts client2.get(command: 'show version')
+puts client3.get(command: 'show version')
 ```
 
 #### High-level Node API

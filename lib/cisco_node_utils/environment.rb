@@ -1,6 +1,7 @@
+# August 2018
 # March 2016, Glenn F. Matthews
 #
-# Copyright (c) 2016 Cisco and/or its affiliates.
+# Copyright (c) 2016-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,6 +89,12 @@ module Cisco
     rescue Psych::SyntaxError => e
       Cisco::Logger.error("Error loading #{path}: #{e}")
       {}
+    end
+
+    def self.add_env(env_name, env_hash)
+      fail ArgumentError, 'empty environment name' if env_name.empty?
+      fail TypeError, 'invalid environment hash' unless env_hash.is_a?(Hash)
+      @environments[env_name] = env_hash
     end
 
     def self.strings_to_symbols(hash)
