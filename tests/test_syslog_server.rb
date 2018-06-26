@@ -1,7 +1,7 @@
 #
 # Minitest for SyslogServer class
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ class TestSyslogServer < CiscoTestCase
     end
 
     id = '1.2.3.4'
-    options = { 'name' => id, 'level' => '4', 'port' => '2154', 'vrf' => 'red' }
+    options = { 'name' => id, 'level' => '4', 'port' => '2154', 'vrf' => 'red', 'facility' => 'local5' }
 
     refute_includes(Cisco::SyslogServer.syslogservers, id)
 
@@ -111,6 +111,7 @@ class TestSyslogServer < CiscoTestCase
     assert_equal('4', Cisco::SyslogServer.syslogservers[id].level)
     assert_equal('2154', Cisco::SyslogServer.syslogservers[id].port)
     assert_equal('red', Cisco::SyslogServer.syslogservers[id].vrf)
+    assert_equal('local5', Cisco::SyslogServer.syslogservers[id].facility)
 
     server.destroy
     refute_includes(Cisco::SyslogServer.syslogservers, id)
