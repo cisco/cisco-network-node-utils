@@ -6,6 +6,8 @@ Changelog
 ### New Cisco Resources
 
 ### Added
+* Extend syslog_server with attribute:
+   * `facility`
 
 ### Changed
 
