@@ -48,7 +48,7 @@ hosts:
 port:
   default_value: 49
   kind: int
-  get_value: '/^tacacs-server host <ip>.* port (\d+).*$/'
+  get_value: '/^tacacs-server host <ip>\s.*port (\d+).*$/'
   nexus:
     set_value: "tacacs-server host <ip> port <port>"
 
@@ -56,7 +56,7 @@ timeout:
   default_value: 0
   kind: int
   nexus:
-    get_value: '/^tacacs-server host <ip> .*timeout (\d+)/'
+    get_value: '/^tacacs-server host <ip>\s.*timeout (\d+)/'
     set_value: "<state> tacacs-server host <ip> timeout <timeout>"
   ios_xr:
     context: ["tacacs-server host <ip> port <port>"]

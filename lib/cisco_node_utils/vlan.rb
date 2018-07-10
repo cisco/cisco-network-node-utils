@@ -47,7 +47,7 @@ module Cisco
       return hash if vlan_list.nil?
 
       vlan_list.each do |id|
-        hash[id] = Vlan.new(id, false)
+        hash[id.to_s] = Vlan.new(id, false)
       end
       hash
     end
