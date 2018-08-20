@@ -223,8 +223,15 @@ class CiscoTestCase < TestCase
   end
 
   def skip_legacy_defect?(pattern, msg)
+    if pattern.is_a?(String)
+      pattern = [pattern]
+    elsif !pattern.is_a?(Array)
+      fail 'Argument: pattern must be a String or Array object'
+    end
     msg = "Defect in legacy image: [#{msg}]"
-    skip(msg) if Utils.image_version?(Regexp.new(pattern))
+    pattern.each do |pat|
+      skip(msg) if Utils.image_version?(Regexp.new(pat))
+    end
   end
 
   def step_unless_legacy_defect(pattern, msg)
