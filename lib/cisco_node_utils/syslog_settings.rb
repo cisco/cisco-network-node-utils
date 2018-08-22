@@ -126,6 +126,47 @@ module Cisco
                  units: val)
     end
 
+    def logfile_severity_level
+      logfile_severity_level =
+          config_get('syslog_settings', 'logfile_severity_level')
+      if logfile_severity_level.is_a?(Array)
+        if logfile_severity_level[0] == 'no'
+          logfile_severity_level = 'unset'
+        else
+          logfile_severity_level[1]
+        end
+      end
+      logfile_severity_level
+    end
+
+    def logfile_name=(logname, severity, size)
+      if severity
+        config_set(
+          'syslog_settings', 'logfile_name',
+          state: '', logname: logname, severity: severity, size: size)
+      else
+        config_set(
+          'syslog_settings', 'logfile_name',
+          state: 'no', logname: logname, severity: severity, size: size)
+      end
+    end
+
+    def logfile_name
+      logfile_name = config_get('syslog_settings', 'logfile_name')
+      if logfile_name.is_a?(Array)
+        logfile_name = (logfile_name[0] == 'no') ? 'unset' : logfile_name[1]
+      end
+      logfile_name
+    end
+
+    def logfile_size
+      logfile_size = config_get('syslog_settings', 'logfile_size')
+      if logfile_size.is_a?(Array)
+        logfile_size = (logfile_size[0] == 'no') ? 'unset' : logfile_size[1]
+      end
+      logfile_size
+    end
+
     alias_method :time_stamp_units, :timestamp
     alias_method :time_stamp_units=, :timestamp=
   end # class
