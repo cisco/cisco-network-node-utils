@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddr'
 require_relative 'node_util'
 
 module Cisco
@@ -139,6 +140,15 @@ module Cisco
       config_set('acl', cmd, @set_args)
     end
 
+    def valid_ipv6?(addr)
+      begin
+        ret = IPAddr.new(addr.split[0]).ipv6?
+      rescue
+        ret = false
+      end
+      ret
+    end
+
     # PROPERTIES
     # ----------
     def seqno
@@ -182,7 +192,7 @@ module Cisco
       return nil if match.nil? || !match.names.include?('src_addr')
       addr = match[:src_addr]
       # Normalize addr. Some platforms zero_pad ipv6 addrs.
-      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':') if valid_ipv6?(addr)
       addr
     end
 
@@ -205,7 +215,7 @@ module Cisco
       return nil if match.nil? || !match.names.include?('dst_addr')
       addr = match[:dst_addr]
       # Normalize addr. Some platforms zero_pad ipv6 addrs.
-      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':') if valid_ipv6?(addr)
       addr
     end
 
