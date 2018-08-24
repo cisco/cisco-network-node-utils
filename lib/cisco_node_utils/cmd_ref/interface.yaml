@@ -306,6 +306,13 @@ ipv6_dhcp_relay_src_intf:
   set_value: "<state> ipv6 dhcp relay source-interface <intf>"
   default_value: false
 
+ipv6_redirects:
+  _exclude: [ios_xr]
+  kind: boolean
+  get_value: '/^((?:no )?ipv6 redirects)$/'
+  set_value: "<state> ipv6 redirects"
+  default_value: true
+
 load_interval_counter_1_delay:
   _exclude: [ios_xr]
   kind: int

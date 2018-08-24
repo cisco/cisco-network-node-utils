@@ -834,6 +834,21 @@ module Cisco
       config_get_default('interface', 'ipv6_dhcp_relay_src_intf')
     end
 
+    def ipv6_redirects
+      config_get('interface', 'ipv6_redirects', name: @name)
+    end
+
+    def ipv6_redirects=(redirects)
+      check_switchport(:disabled)
+      no_cmd = (redirects ? '' : 'no')
+      config_set('interface', 'ipv6_redirects',
+                 name: @name, state: no_cmd)
+    end
+
+    def default_ipv6_redirects
+      config_get_default('interface', 'ipv6_redirects')
+    end
+
     def feature_lacp?
       config_get('interface', 'feature_lacp')
     end

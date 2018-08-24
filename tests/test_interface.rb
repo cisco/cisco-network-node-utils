@@ -1250,6 +1250,27 @@ class TestInterface < CiscoTestCase
                  'Error: ip redirects default get value mismatch')
   end
 
+  def test_ipv6_redirects
+    interface = create_interface
+    interface.switchport_mode = :disabled if platform == :nexus
+
+    # check default value
+    assert_equal(interface.default_ipv6_redirects, interface.ipv6_redirects,
+                 'Error: ipv6 redirects default get value mismatch')
+
+    # set with value false
+    interface.ipv6_redirects = false
+    assert_equal(interface.ipv6_redirects, false)
+
+    # set with value true
+    interface.ipv6_redirects = true
+    assert_equal(interface.ipv6_redirects, true)
+
+    # get default and set
+    interface.ipv6_redirects = interface.default_ipv6_redirects
+    assert_equal(interface.ipv6_redirects, interface.default_ipv6_redirects)
+  end
+
   def config_from_hash(inttype_h)
     inttype_h.each do |k, v|
       config('feature interface-vlan') if (/^Vlan\d./).match(k.to_s)
