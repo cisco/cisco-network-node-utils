@@ -37,7 +37,7 @@ begin
   os == 'ios_xr' || deps << Gem::Dependency.new('net_http_unix',
                                                 '~> 0.2', '>= 0.2.1')
   # NX-OS doesn't need gRPC
-  os == 'nexus' || deps << Gem::Dependency.new('grpc', '~> 0.12')
+  os == 'nexus' || deps << Gem::Dependency.new('grpc', '~> 1.14.1')
 
   deps.each do |dep|
     installed = dep.matching_specs
