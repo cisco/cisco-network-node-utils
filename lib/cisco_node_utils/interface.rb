@@ -1,6 +1,6 @@
 # November 2015, Chris Van Heuveln
 #
-# Copyright (c) 2015-2017 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -832,6 +832,21 @@ module Cisco
 
     def default_ipv6_dhcp_relay_src_intf
       config_get_default('interface', 'ipv6_dhcp_relay_src_intf')
+    end
+
+    def ipv6_redirects
+      config_get('interface', 'ipv6_redirects', name: @name)
+    end
+
+    def ipv6_redirects=(redirects)
+      check_switchport(:disabled)
+      no_cmd = (redirects ? '' : 'no')
+      config_set('interface', 'ipv6_redirects',
+                 name: @name, state: no_cmd)
+    end
+
+    def default_ipv6_redirects
+      config_get_default('interface', 'ipv6_redirects')
     end
 
     def feature_lacp?

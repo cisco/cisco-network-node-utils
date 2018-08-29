@@ -10,6 +10,8 @@ Changelog
   * `level`
 * Extend syslog_server with attribute:
   * `facility`
+* Extend interface with attributes:
+   * `ipv6_redirects`
 
 ### Changed
 
