@@ -109,8 +109,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
   def test_auth_type_clear
     skip_legacy_defect?('7.3.0.D1.1', 'CSCuh90262: hsrp indentation')
     ihg = create_interface_hsrp_group_ipv4
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
     attrs = {}
     attrs[:authentication_auth_type] = 'cleartext'
     attrs[:authentication_string] = 'Test'
@@ -119,8 +118,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('Test', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
 
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_auth_type] = 'cleartext'
@@ -130,8 +128,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('Test', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_type_md5
@@ -147,8 +144,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('MyMD5Password', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_string] = 'MyMD5Password'
     ihg.authentication_set(attrs)
@@ -157,8 +153,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('MyMD5Password', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_0
@@ -178,8 +173,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('7', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
     ihg = create_interface_hsrp_group_ipv6
     attrs[:authentication_string] = '7'
     ihg.authentication_set(attrs)
@@ -189,8 +183,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('7', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_7
@@ -217,8 +210,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal('12345678901234567890', ihg.authentication_string)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_7_compat_timeout_ipv4
@@ -250,8 +242,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(false, ihg.authentication_compatibility)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_7_compat_timeout_ipv6
@@ -283,8 +274,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(false, ihg.authentication_compatibility)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_0_compat_timeout_ipv4
@@ -315,8 +305,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(3333, ihg.authentication_timeout)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_auth_key_string_enc_0_compat_timeout_ipv6
@@ -347,8 +336,7 @@ class TestInterfaceHsrpGroup < CiscoTestCase
     assert_equal(3333, ihg.authentication_timeout)
     attrs[:authentication_string] = ihg.default_authentication_string
     ihg.authentication_set(attrs)
-    assert_equal(ihg.default_authentication_string,
-                 ihg.authentication_string)
+    assert_nil(ihg.authentication_string)
   end
 
   def test_preempt_ipv4

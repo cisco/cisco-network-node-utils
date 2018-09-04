@@ -18,6 +18,7 @@ Changelog
 ### Removed
 
 ### Issues Addressed
+* Removed default values for authentication in `interface_hsrp_group`
 
 ## [v1.9.0]
 

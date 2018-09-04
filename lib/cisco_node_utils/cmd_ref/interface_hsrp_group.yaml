@@ -23,14 +23,14 @@ authentication_enc_type:
   default_value: '0'
 
 authentication_key_type:
-  default_value: 'key-chain'
+  default_value: ~
 
 authentication_string:
-  default_value: ''
+  default_value: ~
 
 authentication_timeout:
   kind: int
-  default_value: 0
+  default_value: ~
 
 group_name:
   get_value: '/^name (\S+)/'

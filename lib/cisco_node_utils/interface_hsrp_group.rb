@@ -1,7 +1,7 @@
 #
 # October 2016, Sai Chintalapudi
 #
-# Copyright (c) 2016 Cisco and/or its affiliates.
+# Copyright (c) 2016-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -96,6 +96,12 @@ module Cisco
     # authentication md5 key-string ABCXYZ timeout 22
     # authentication md5 key-string 7 12345678901234567890 timeout 22
     # authentication md5 key-string 7 123456789 compatibility timeout 22
+    # if passwd
+    #   req auth_enc_type
+    # if encrypted
+    #   req authentication_key_type, authentication_enc_type
+    #   if key-string
+    #     optional compat and timeout
     def authentication
       hash = {}
       hash[:auth_type] = default_authentication_auth_type
@@ -203,8 +209,13 @@ module Cisco
     end
 
     def authentication_timeout=(val)
-      @set_args[:tval] = val
-      @set_args[:timeout] = 'timeout'
+      if val.nil?
+        @set_args[:tval] = ''
+        @set_args[:timeout] = ''
+      else
+        @set_args[:tval] = val
+        @set_args[:timeout] = 'timeout'
+      end
     end
 
     def default_authentication_timeout
@@ -227,14 +238,14 @@ module Cisco
        :authentication_compatibility,
        :authentication_timeout,
       ].each do |p|
-        send(p.to_s + '=', attrs[p]) unless attrs[p].nil?
+        send(p.to_s + '=', attrs[p])
       end
-      return if @set_args[:passwd] == default_authentication_string
+      return if @set_args[:passwd].nil? || @set_args[:passwd].empty?
       @set_args[:state] = ''
       if @set_args[:authtype] == 'text'
         @set_args[:keytype] = @set_args[:enctype] = ''
         @set_args[:compatible] = @set_args[:timeout] = @set_args[:tval] = ''
-      elsif @set_args[:keytype] == default_authentication_key_type
+      elsif @set_args[:keytype] == 'key-chain'
         @set_args[:enctype] = @set_args[:compatible] = ''
         @set_args[:timeout] = @set_args[:tval] = ''
       end
