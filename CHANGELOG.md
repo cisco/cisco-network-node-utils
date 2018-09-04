@@ -12,6 +12,13 @@ Changelog
   * `facility`
 * Extend interface with attributes:
    * `ipv6_redirects`
+* Added ability to specify environment at run time
+
+Example:
+```ruby
+env = { host: '192.168.1.1', port: nil, username: 'admin', password: 'admin123', cookie: nil }
+Cisco::Environment.add_env('default', env)
+```
 
 ### Changed
 
