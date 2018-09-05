@@ -74,6 +74,8 @@ module Cisco
       remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
+      return icmp_ace_get(str) if str.include?('icmp')
+
       # rubocop:disable Metrics/LineLength
       regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
@@ -92,6 +94,27 @@ module Cisco
                  ' *(?<tcp_option_length>tcp-option-length \d+)?'\
                  ' *(?<redirect>redirect \S+)?'\
                  ' *(?<log>log)?')
+      # rubocop:enable Metrics/LineLength
+      regexp.match(str)
+    end
+
+    # icmp ace getter
+    def icmp_ace_get(str)
+      # rubocop:disable Metrics/LineLength
+      regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
+                 ' *(?<proto>\d+|\S+)'\
+                 ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<redirect>redirect \S+)?'\
+                 ' *(?<dscp>dscp \S+)?'\
+                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
+                 ' *(?<precedence>precedence \S+)?'\
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
+                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
+                 ' *(?<time_range>time-range \S+)?'\
+                 ' *(?<ttl>ttl \d+)?'\
+                 ' *(?<vlan>vlan \d+)?'\
+                 ' *(?<proto_option>\S+)?')
       # rubocop:enable Metrics/LineLength
       regexp.match(str)
     end
@@ -131,6 +154,10 @@ module Cisco
          :tcp_option_length,
          :redirect,
          :log,
+         :proto_option,
+         :set_erspan_dscp,
+         :set_erspan_gre_proto,
+         :vlan,
         ].each do |p|
           attrs[p] = '' if attrs[p].nil?
           send(p.to_s + '=', attrs[p])
@@ -271,6 +298,36 @@ module Cisco
       @set_args[:dscp] = Utils.attach_prefix(dscp, :dscp)
     end
 
+    def vlan
+      Utils.extract_value(ace_get, 'vlan')
+    end
+
+    def vlan=(vlan)
+      @set_args[:vlan] = Utils.attach_prefix(vlan, :vlan)
+    end
+
+    def set_erspan_dscp
+      Utils.extract_value(ace_get, 'set_erspan_dscp', 'set-erspan-dscp')
+    end
+
+    def set_erspan_dscp=(set_erspan_dscp)
+      @set_args[:set_erspan_dscp] = Utils.attach_prefix(set_erspan_dscp,
+                                                        :set_erspan_dscp,
+                                                        'set-erspan-dscp')
+    end
+
+    def set_erspan_gre_proto
+      Utils.extract_value(ace_get, 'set_erspan_gre_proto',
+                          'set-erspan-gre-proto')
+    end
+
+    def set_erspan_gre_proto=(set_erspan_gre_proto)
+      @set_args[:set_erspan_gre_proto] =
+          Utils.attach_prefix(set_erspan_gre_proto,
+                              :set_erspan_gre_proto,
+                              'set-erspan-dscp')
+    end
+
     def time_range
       Utils.extract_value(ace_get, 'time_range', 'time-range')
     end
@@ -320,19 +377,49 @@ module Cisco
     end
 
     def redirect
-      Utils.extract_value(ace_get, 'redirect')
+      if proto == 'icmp'
+        str = config_get('acl', 'ace', @get_args)
+        if str.include?('redirect')
+          nstr = str.sub('redirect', '').strip
+          if nstr.include?('redirect')
+            Utils.extract_value(icmp_ace_get(nstr), 'redirect')
+          else
+            Utils.extract_value(ace_get, 'redirect')
+          end
+        end
+      else
+        Utils.extract_value(ace_get, 'redirect')
+      end
     end
 
     def redirect=(redirect)
       @set_args[:redirect] = Utils.attach_prefix(redirect, :redirect)
     end
 
+    def proto_option
+      str = config_get('acl', 'ace', @get_args)
+      if str.include?('redirect')
+        nstr = str.sub('redirect', '').strip
+        return 'redirect' if nstr.include?('redirect')
+      end
+      match = ace_get
+      return nil unless remark.nil?
+      return false if match.nil?
+      return nil unless proto == 'icmp'
+      return false unless match.names.include?('proto_option')
+      return false if match[:proto_option] == 'log'
+      match[:proto_option]
+    end
+
+    def proto_option=(proto_option)
+      @set_args[:proto_option] = proto_option
+    end
+
     def log
       match = ace_get
       return nil unless remark.nil?
       return false if match.nil?
-      return false unless match.names.include?('log')
-      match[:log] == 'log' ? true : false
+      config_get('acl', 'ace', @get_args).include?('log') ? true : false
     end
 
     def log=(log)

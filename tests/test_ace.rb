@@ -83,7 +83,7 @@ class TestAce < CiscoTestCase
   def test_proto
     %w(ipv4 ipv6).each do |afi|
       # Sampling of proto's
-      %w(ip tcp udp).each do |val|
+      %w(ip tcp udp icmp).each do |val|
         val = 'ipv6' if val[/ip/] && afi[/ipv6/]
         a = ace_helper(afi, proto: val)
         assert_equal(val, a.proto)
@@ -149,6 +149,15 @@ class TestAce < CiscoTestCase
     end
   end
 
+  def test_vlan
+    %w(ipv4 ipv6).each do |afi|
+      %w(10 100).each do |val|
+        a = ace_helper(afi, proto: 'icmp', vlan: val)
+        assert_equal(val, a.vlan)
+      end
+    end
+  end
+
   def test_tcp_flags
     %w(ipv4 ipv6).each do |afi|
       %w(ack fin urg syn psh rst) + [
@@ -185,6 +194,33 @@ class TestAce < CiscoTestCase
       a = ace_helper(afi, log: false)
       refute(a.log)
     end
+  end
+
+  def test_log_proto_option
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
+      a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect', log: true)
+      assert(a.log)
+      a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect', log: false)
+      refute(a.log)
+    end
+  end
+
+  def test_proto_option
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
+      a = ace_helper(afi, proto: 'icmp', proto_option: 'time-exceeded')
+      assert_equal(a.proto_option, 'time-exceeded')
+    end
+  end
+
+  def test_redirect_proto_option
+    afi = 'ipv4'
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true)
+    assert_equal(val, a.redirect)
+    assert_equal('redirect', a.proto_option)
   end
 
   def test_precedence
