@@ -57,7 +57,7 @@ class TestAce < CiscoTestCase
     end
   rescue CliError => e
     skip('This property is not supported on this platform') if
-      e.message[/(Invalid parameter detected|Invalid command)/]
+      e.message[/(Invalid parameter detected|Invalid command|Invalid number)/]
     flunk(e.message)
   end
 
@@ -279,5 +279,19 @@ class TestAce < CiscoTestCase
     skip("This property has a known defect on the platform itself -\n"\
          'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
     assert_equal(val, a.ttl)
+  end
+
+  def test_set_erspan_dscp
+    val = '3'
+    afi = 'ipv4'
+    a = ace_helper(afi, proto: 'icmp', set_erspan_dscp: val)
+    assert_equal(val, a.set_erspan_dscp)
+  end
+
+  def test_set_erspan_gre_proto
+    val = '300'
+    afi = 'ipv4'
+    a = ace_helper(afi, proto: 'icmp', set_erspan_gre_proto: val)
+    assert_equal(val, a.set_erspan_gre_proto)
   end
 end

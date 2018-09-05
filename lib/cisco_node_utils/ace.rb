@@ -325,7 +325,7 @@ module Cisco
       @set_args[:set_erspan_gre_proto] =
           Utils.attach_prefix(set_erspan_gre_proto,
                               :set_erspan_gre_proto,
-                              'set-erspan-dscp')
+                              'set-erspan-gre-proto')
     end
 
     def time_range
