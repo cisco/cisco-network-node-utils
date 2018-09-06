@@ -108,27 +108,27 @@ module Cisco
                  ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
                  ' *(?<proto_option>\S+)?'\
                  ' *(?<precedence>precedence \S+)?'\
-                 ' *(?<redirect>redirect \S+)?'\
                  ' *(?<dscp>dscp \S+)?'\
                  ' *(?<time_range>time-range \S+)?'\
                  ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
                  ' *(?<ttl>ttl \d+)?'\
                  ' *(?<vlan>vlan \d+)?'\
                  ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
-                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?')
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
+                 ' *(?<redirect>redirect \S+)?')
       regexp_no_proto_option = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
                  ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
                  ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
                  ' *(?<precedence>precedence \S+)?'\
-                 ' *(?<redirect>redirect \S+)?'\
                  ' *(?<dscp>dscp \S+)?'\
                  ' *(?<time_range>time-range \S+)?'\
                  ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
                  ' *(?<ttl>ttl \d+)?'\
                  ' *(?<vlan>vlan \d+)?'\
                  ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
-                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?')
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
+                 ' *(?<redirect>redirect \S+)?')
       temp = regexp.match(str)
       po = temp[:proto_option]
       if po.nil?
