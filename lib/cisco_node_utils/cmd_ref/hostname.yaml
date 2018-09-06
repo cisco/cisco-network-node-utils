@@ -1,0 +1,8 @@
+# hostname
+---
+
+name:
+  get_command: "show running-config all | include 'hostname '"
+  get_value: '/^hostname (\S+)$/'
+  set_value: "<state> hostname <name>"
+  default_value: ""

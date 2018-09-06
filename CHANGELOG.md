@@ -17,6 +17,8 @@ Changelog
    * `vlan`
    * `set_erspan_dscp`
    * `set_erspan_gre_proto`
+* Extend network_dns with attributes:
+  * `hostname`
 * Added ability to specify environment at run time
 
 Example:
