@@ -105,18 +105,44 @@ module Cisco
                  ' *(?<proto>\d+|\S+)'\
                  ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
                  ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<proto_option>\S+)?'\
+                 ' *(?<precedence>precedence \S+)?'\
                  ' *(?<redirect>redirect \S+)?'\
                  ' *(?<dscp>dscp \S+)?'\
-                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
-                 ' *(?<precedence>precedence \S+)?'\
-                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
-                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
                  ' *(?<time_range>time-range \S+)?'\
+                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
                  ' *(?<ttl>ttl \d+)?'\
                  ' *(?<vlan>vlan \d+)?'\
-                 ' *(?<proto_option>\S+)?')
+                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?')
+      regexp_no_proto_option = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
+                 ' *(?<proto>\d+|\S+)'\
+                 ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<precedence>precedence \S+)?'\
+                 ' *(?<redirect>redirect \S+)?'\
+                 ' *(?<dscp>dscp \S+)?'\
+                 ' *(?<time_range>time-range \S+)?'\
+                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
+                 ' *(?<ttl>ttl \d+)?'\
+                 ' *(?<vlan>vlan \d+)?'\
+                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?')
+      temp = regexp.match(str)
+      po = temp[:proto_option]
+      if po.nil?
+        return temp
+      elsif po.strip.match(/redirect$/)
+        if str.match(/Ethernet|port-channel/)
+          return temp if check_redirect_repeat(str)
+          return regexp_no_proto_option.match(str)
+        end
+      elsif po.strip.match(/precedence$|dscp$|time-range$|packet-length$|ttl$|vlan$|set-erspan-gre-proto$|set-erspan-dscp$|log$/)
+        return regexp_no_proto_option.match(str)
+      else
+        return temp
+      end
       # rubocop:enable Metrics/LineLength
-      regexp.match(str)
     end
 
     # common ace setter. Put the values you need in a hash and pass it in.
@@ -174,6 +200,12 @@ module Cisco
         ret = false
       end
       ret
+    end
+
+    def check_redirect_repeat(str)
+      return false unless str.include?('redirect')
+      nstr = str.sub('redirect', '').strip
+      nstr.include?('redirect') ? true : false
     end
 
     # PROPERTIES
@@ -377,19 +409,7 @@ module Cisco
     end
 
     def redirect
-      if proto == 'icmp'
-        str = config_get('acl', 'ace', @get_args)
-        if str.include?('redirect')
-          nstr = str.sub('redirect', '').strip
-          if nstr.include?('redirect')
-            Utils.extract_value(icmp_ace_get(nstr), 'redirect')
-          else
-            Utils.extract_value(ace_get, 'redirect')
-          end
-        end
-      else
-        Utils.extract_value(ace_get, 'redirect')
-      end
+      Utils.extract_value(ace_get, 'redirect')
     end
 
     def redirect=(redirect)
@@ -397,11 +417,6 @@ module Cisco
     end
 
     def proto_option
-      str = config_get('acl', 'ace', @get_args)
-      if str.include?('redirect')
-        nstr = str.sub('redirect', '').strip
-        return 'redirect' if nstr.include?('redirect')
-      end
       match = ace_get
       return nil unless remark.nil?
       return false if match.nil?
@@ -416,9 +431,7 @@ module Cisco
     end
 
     def log
-      match = ace_get
       return nil unless remark.nil?
-      return false if match.nil?
       config_get('acl', 'ace', @get_args).include?('log') ? true : false
     end
 

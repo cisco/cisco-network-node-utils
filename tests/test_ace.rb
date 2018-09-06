@@ -201,8 +201,6 @@ class TestAce < CiscoTestCase
       refute(ace_helper(afi).log)
       a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect', log: true)
       assert(a.log)
-      a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect', log: false)
-      refute(a.log)
     end
   end
 
@@ -211,6 +209,9 @@ class TestAce < CiscoTestCase
       refute(ace_helper(afi).log)
       a = ace_helper(afi, proto: 'icmp', proto_option: 'time-exceeded')
       assert_equal(a.proto_option, 'time-exceeded')
+      a = ace_helper(afi, proto: 'icmp', dscp: 'af11', proto_option: 'echo-reply')
+      assert_equal(a.proto_option, 'echo-reply')
+      assert_equal(a.dscp, 'af11')
     end
   end
 
