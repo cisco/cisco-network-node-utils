@@ -74,6 +74,7 @@ module Cisco
       remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
+      # for icmp things are different
       return icmp_ace_get(str) if str.include?('icmp')
 
       # rubocop:disable Metrics/LineLength
@@ -132,11 +133,15 @@ module Cisco
       po = temp[:proto_option]
       if po.nil?
         return temp
+      # redirect can be proto_option or an actual redirect to interface
       elsif po.strip.match(/redirect$/)
         if str.match(/Ethernet|port-channel/)
+          # if proto_option is given as redirect and also redirect to intf
+          # we need to do extra processing
           return temp if check_redirect_repeat(str)
           return regexp_no_proto_option.match(str)
         end
+      # the reserved keywords check
       elsif po.strip.match(/precedence$|dscp$|time-range$|packet-length$|ttl$|vlan$|set-erspan-gre-proto$|set-erspan-dscp$|log$/)
         return regexp_no_proto_option.match(str)
       else
@@ -418,11 +423,15 @@ module Cisco
 
     def proto_option
       match = ace_get
-      return nil unless remark.nil?
-      return false if match.nil?
-      return nil unless proto == 'icmp'
-      return false unless match.names.include?('proto_option')
-      return false if match[:proto_option] == 'log'
+      return nil if match.nil? || proto != 'icmp' || !remark.nil?
+      # fragments is nvgen at a different location than all other
+      # proto_option
+      if config_get('acl', 'ace', @get_args).include?('fragments')
+        return 'fragments'
+      end
+      # log is special case
+      return nil if !match.names.include?('proto_option') ||
+                    match[:proto_option] == 'log'
       match[:proto_option]
     end
 
