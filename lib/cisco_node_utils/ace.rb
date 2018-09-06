@@ -102,6 +102,9 @@ module Cisco
     # icmp ace getter
     def icmp_ace_get(str)
       # rubocop:disable Metrics/LineLength
+      # fragments is nvgen at a different location than all other
+      # proto_option so get rid of it so as not to mess up other fields
+      str.sub!('fragments ', '')
       regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
                  ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
