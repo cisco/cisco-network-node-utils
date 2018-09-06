@@ -2052,8 +2052,14 @@ module Cisco
     end
 
     def purge_config
+      # This getter is only supported on ethernet interfaces
+      return nil unless @name[/ethernet/]
       state = config_get('interface', 'purge_config', name: @name)
-      state.nil? ? true : false
+      state.nil? ? true : default_purge_config
+    end
+
+    def default_purge_config
+      config_get_default('interface', 'purge_config')
     end
   end  # Class
 end    # Module
