@@ -39,7 +39,8 @@ class TestSyslogSettings < CiscoTestCase
     config('no logging timestamp seconds',
            'logging console 2',
            'logging monitor 5',
-           'no logging source-interface')
+           'no logging source-interface',
+           'no logging logfile')
   end
 
   # TESTS
@@ -104,5 +105,19 @@ class TestSyslogSettings < CiscoTestCase
     assert_equal('mgmt0', syslog_setting.source_interface)
     syslog_setting.source_interface = nil
     assert_nil(syslog_setting.source_interface)
+  end
+
+  def test_logfile
+    syslog_setting = Cisco::SyslogSettings.new('default')
+
+    assert_equal('unset', syslog_setting.logfile_name)
+    syslog_setting.send('logfile_name=', 'testlog', 5, 'size 4097')
+    assert_equal('testlog', syslog_setting.logfile_name)
+    assert_equal('5', syslog_setting.logfile_severity_level)
+    assert_equal('4097', syslog_setting.logfile_size)
+    syslog_setting.send('logfile_name=', nil, nil, nil)
+    assert_equal('unset', syslog_setting.logfile_name)
+    assert_nil(syslog_setting.logfile_severity_level)
+    assert_nil(syslog_setting.logfile_size)
   end
 end
