@@ -17,6 +17,13 @@ Changelog
    * `vlan`
    * `set_erspan_dscp`
    * `set_erspan_gre_proto`
+* Added ability to specify environment at run time
+
+Example:
+```ruby
+env = { host: '192.168.1.1', port: nil, username: 'admin', password: 'admin123', cookie: nil }
+Cisco::Environment.add_env('default', env)
+```
 
 ### Changed
 
