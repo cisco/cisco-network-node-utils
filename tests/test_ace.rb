@@ -219,7 +219,7 @@ class TestAce < CiscoTestCase
     afi = 'ipv4'
     val = 'port-channel1,port-channel2'
     a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
-                   redirect: val, log: true)
+                   redirect: val, log: true, set_erspan_dscp: '3', set_erspan_gre_proto: '33')
     assert_equal(val, a.redirect)
     assert_equal('redirect', a.proto_option)
   end
@@ -283,16 +283,22 @@ class TestAce < CiscoTestCase
   end
 
   def test_set_erspan_dscp
-    val = '3'
     afi = 'ipv4'
-    a = ace_helper(afi, proto: 'icmp', set_erspan_dscp: val)
-    assert_equal(val, a.set_erspan_dscp)
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true, set_erspan_dscp: '3', set_erspan_gre_proto: '33')
+    assert_equal('redirect', a.proto_option)
+    assert_equal(val, a.redirect)
+    assert_equal('3', a.set_erspan_dscp)
   end
 
   def test_set_erspan_gre_proto
-    val = '300'
     afi = 'ipv4'
-    a = ace_helper(afi, proto: 'icmp', set_erspan_gre_proto: val)
-    assert_equal(val, a.set_erspan_gre_proto)
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true, set_erspan_gre_proto: '33')
+    assert_equal('redirect', a.proto_option)
+    assert_equal(val, a.redirect)
+    assert_equal('33', a.set_erspan_gre_proto)
   end
 end

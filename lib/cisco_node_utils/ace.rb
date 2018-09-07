@@ -347,7 +347,13 @@ module Cisco
     end
 
     def set_erspan_dscp
-      Utils.extract_value(ace_get, 'set_erspan_dscp', 'set-erspan-dscp')
+      ret = Utils.extract_value(ace_get, 'set_erspan_dscp', 'set-erspan-dscp')
+      return ret if ret
+      # position of set_erspan_dscp is different in older release so check again
+      str = config_get('acl', 'ace', @get_args)
+      sstr = str.split
+      return sstr[sstr.index('set-erspan-dscp') + 1] if
+        sstr.include?('set-erspan-dscp')
     end
 
     def set_erspan_dscp=(set_erspan_dscp)
@@ -357,8 +363,15 @@ module Cisco
     end
 
     def set_erspan_gre_proto
-      Utils.extract_value(ace_get, 'set_erspan_gre_proto',
-                          'set-erspan-gre-proto')
+      ret = Utils.extract_value(ace_get, 'set_erspan_gre_proto',
+                                'set-erspan-gre-proto')
+      return ret if ret
+      # position of set_erspan_gre_proto is different in older release
+      # so check again
+      str = config_get('acl', 'ace', @get_args)
+      sstr = str.split
+      return sstr[sstr.index('set-erspan-gre-proto') + 1] if
+        sstr.include?('set-erspan-gre-proto')
     end
 
     def set_erspan_gre_proto=(set_erspan_gre_proto)
