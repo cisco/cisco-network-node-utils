@@ -9,6 +9,22 @@ console:
   get_value: '/^(no)?\s*logging console\s*(\d)?/'
   set_value: '<state> logging console <severity>'
 
+logfile_name:
+  get_command: "show running-config all | include 'logging'"
+  # Returns <state> and <name>
+  get_value: '/^(no)?\s*logging logfile\s(\S*)\s*?/'
+  set_value: '<state> logging logfile <logname> <severity> <size>'
+
+logfile_severity_level:
+  get_command: "show running-config all | include 'logging'"
+  # Returns <state> and <severity>
+  get_value: '/^(no)?\s*logging logfile\s\S*\s*(\d)?/'
+
+logfile_size:
+  get_command: "show running-config all | include 'logging'"
+  # Returns <state> and <size>
+  get_value: '/^(no)?\s*logging logfile.*size\s(\d*)/'
+
 monitor:
   default_value: 5
   get_command: "show running-config all | include 'logging'"

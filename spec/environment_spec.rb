@@ -70,6 +70,37 @@ describe Cisco::Environment do
     end
   end
 
+  describe '.add_env' do
+    it 'rejects empty environment name' do
+      expect { described_class.add_env('', {}) }.to \
+        raise_error(ArgumentError, 'empty environment name')
+    end
+
+    it 'rejects incorrectly typed environment hash' do
+      expect { described_class.add_env('default', 'hash') }.to \
+        raise_error(TypeError, 'invalid environment hash')
+    end
+
+    context 'environment can be loaded by funcion' do
+      expected = {
+        host:     '192.168.1.1',
+        port:     nil,
+        username: 'admin',
+        password: 'admin',
+        cookie:   nil,
+      }
+      it 'can be loaded explicitly by name' do
+        described_class.add_env('test', expected)
+        expect(Cisco::Environment.environment('test')).to eq(expected)
+      end
+
+      it 'can be default' do
+        described_class.add_env('default', expected)
+        expect(Cisco::Environment.environment).to eq(expected)
+      end
+    end
+  end
+
   describe '.environments' do
     before(:each) do
       allow(Cisco::Environment).to receive(:data_from_file).and_return({})
@@ -145,6 +176,82 @@ describe Cisco::Environment do
           username: 'user', # user config
           password: nil, # auto-populated with nil
           cookie:   nil,
+        },
+        'global'  => { # global config
+          host:     nil,
+          port:     nil,
+          username: 'global',
+          password: 'global',
+          cookie:   nil,
+        },
+        'user'    => { # user config
+          host:     nil,
+          port:     nil,
+          username: 'user',
+          password: 'user',
+          cookie:   nil,
+        },
+      )
+    end
+
+    it 'loaded file can be overridden by add_env' do
+      expect(Cisco::Environment).to receive(:data_from_file).with(
+        '/etc/cisco_node_utils.yaml').and_return(global_config)
+      expect(Cisco::Environment).to receive(:data_from_file).with(
+        '~/cisco_node_utils.yaml').and_return(user_config)
+      expect(Cisco::Environment.environments).to eq(
+        'default' => {
+          host:     '127.0.0.1', # global config
+          port:     57_799, # user overrides global
+          username: 'user', # user config
+          password: nil, # auto-populated with nil
+          cookie:   nil,
+        },
+        'global'  => { # global config
+          host:     nil,
+          port:     nil,
+          username: 'global',
+          password: 'global',
+          cookie:   nil,
+        },
+        'user'    => { # user config
+          host:     nil,
+          port:     nil,
+          username: 'user',
+          password: 'user',
+          cookie:   nil,
+        },
+      )
+      added_env = {
+        host:     '192.168.1.1',
+        port:     nil,
+        username: 'admin',
+        password: 'admin',
+        cookie:   nil,
+      }
+      overide_defult = {
+        host:     '192.168.2.2',
+        port:     nil,
+        username: 'overridden',
+        password: 'overridden',
+        cookie:   nil,
+      }
+      described_class.add_env('added', added_env)
+      described_class.add_env('default', overide_defult)
+      expect(Cisco::Environment.environments).to eq(
+        'added'   => { # added by method
+          host:     '192.168.1.1',
+          port:     nil,
+          username: 'admin',
+          password: 'admin',
+          cookie:   nil,
+        },
+        'default' => {
+          host:     '192.168.2.2', # method overrides files
+          port:     nil, # method overrides files
+          username: 'overridden', # method overrides files
+          password: 'overridden', # method overrides files
+          cookie:   nil, # auto-popuplated with nil
         },
         'global'  => { # global config
           host:     nil,
