@@ -74,7 +74,7 @@ module Cisco
       remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
-      # for icmp things are different
+      # specialized icmp protocol handling
       return icmp_ace_get(str) if str.include?('icmp')
 
       # rubocop:disable Metrics/LineLength
