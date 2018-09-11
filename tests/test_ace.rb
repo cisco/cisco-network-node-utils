@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ class TestAce < CiscoTestCase
     end
   rescue CliError => e
     skip('This property is not supported on this platform') if
-      e.message[/(Invalid parameter detected|Invalid command)/]
+      e.message[/(Invalid parameter detected|Invalid command|Invalid number)/]
     flunk(e.message)
   end
 
@@ -83,7 +83,7 @@ class TestAce < CiscoTestCase
   def test_proto
     %w(ipv4 ipv6).each do |afi|
       # Sampling of proto's
-      %w(ip tcp udp).each do |val|
+      %w(ip tcp udp icmp).each do |val|
         val = 'ipv6' if val[/ip/] && afi[/ipv6/]
         a = ace_helper(afi, proto: val)
         assert_equal(val, a.proto)
@@ -149,6 +149,15 @@ class TestAce < CiscoTestCase
     end
   end
 
+  def test_vlan
+    %w(ipv4 ipv6).each do |afi|
+      %w(10 100).each do |val|
+        a = ace_helper(afi, proto: 'icmp', vlan: val)
+        assert_equal(val, a.vlan)
+      end
+    end
+  end
+
   def test_tcp_flags
     %w(ipv4 ipv6).each do |afi|
       %w(ack fin urg syn psh rst) + [
@@ -185,6 +194,34 @@ class TestAce < CiscoTestCase
       a = ace_helper(afi, log: false)
       refute(a.log)
     end
+  end
+
+  def test_log_proto_option
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
+      a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect', log: true)
+      assert(a.log)
+    end
+  end
+
+  def test_proto_option
+    %w(ipv4 ipv6).each do |afi|
+      refute(ace_helper(afi).log)
+      a = ace_helper(afi, proto: 'icmp', proto_option: 'time-exceeded')
+      assert_equal(a.proto_option, 'time-exceeded')
+      a = ace_helper(afi, proto: 'icmp', dscp: 'af11', proto_option: 'echo-reply')
+      assert_equal(a.proto_option, 'echo-reply')
+      assert_equal(a.dscp, 'af11')
+    end
+  end
+
+  def test_redirect_proto_option
+    afi = 'ipv4'
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true, set_erspan_dscp: '3', set_erspan_gre_proto: '33')
+    assert_equal(val, a.redirect)
+    assert_equal('redirect', a.proto_option)
   end
 
   def test_precedence
@@ -243,5 +280,25 @@ class TestAce < CiscoTestCase
     skip("This property has a known defect on the platform itself -\n"\
          'CSCuy47463: access-list ttl does not nvgen') if a.ttl.nil?
     assert_equal(val, a.ttl)
+  end
+
+  def test_set_erspan_dscp
+    afi = 'ipv4'
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true, set_erspan_dscp: '3', set_erspan_gre_proto: '33')
+    assert_equal('redirect', a.proto_option)
+    assert_equal(val, a.redirect)
+    assert_equal('3', a.set_erspan_dscp)
+  end
+
+  def test_set_erspan_gre_proto
+    afi = 'ipv4'
+    val = 'port-channel1,port-channel2'
+    a = ace_helper(afi, proto: 'icmp', proto_option: 'redirect',
+                   redirect: val, log: true, set_erspan_gre_proto: '33')
+    assert_equal('redirect', a.proto_option)
+    assert_equal(val, a.redirect)
+    assert_equal('33', a.set_erspan_gre_proto)
   end
 end

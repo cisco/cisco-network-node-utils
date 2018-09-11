@@ -12,6 +12,11 @@ Changelog
   * `facility`
 * Extend interface with attributes:
    * `ipv6_redirects`
+* Extend ace with attributes:
+   * `proto_option`
+   * `vlan`
+   * `set_erspan_dscp`
+   * `set_erspan_gre_proto`
 * Added ability to specify environment at run time
 
 Example:
