@@ -258,7 +258,7 @@ ipv4_proxy_arp:
 ipv4_redirects_loopback:
   kind: boolean
   nexus:
-    default_only: false
+    default_only: ~
   ios_xr:
     get_value: '/^((?:no )?ipv4 redirects)$/'
     set_value: "<state> ipv4 redirects"

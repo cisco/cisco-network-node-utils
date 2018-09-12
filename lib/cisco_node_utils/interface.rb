@@ -276,6 +276,7 @@ module Cisco
     end
 
     def fabric_forwarding_anycast_gateway=(state)
+      return if fabric_forwarding_anycast_gateway == state
       no_cmd = (state ? '' : 'no')
       config_set('interface',
                  'fabric_forwarding_anycast_gateway',
@@ -326,7 +327,7 @@ module Cisco
     end
 
     def hsrp_delay_minimum
-      return nil unless switchport_mode == :disabled
+      return nil if switchport_mode != :disabled || @name[/loop/i]
       minimum, _reload = hsrp_delay
       minimum.nil? ? default_hsrp_delay_minimum : minimum
     end
@@ -344,7 +345,7 @@ module Cisco
     end
 
     def hsrp_delay_reload
-      return nil unless switchport_mode == :disabled
+      return nil if switchport_mode != :disabled || @name[/loop/i]
       _minimum, reload = hsrp_delay
       reload.nil? ? default_hsrp_delay_reload : reload
     end
@@ -416,7 +417,7 @@ module Cisco
     end
 
     def hsrp_version
-      return nil unless switchport_mode == :disabled
+      return nil if switchport_mode != :disabled || @name[/loop/i]
       config_get('interface', 'hsrp_version', name: @name)
     end
 
@@ -608,6 +609,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_info_trust
+      return nil if @name[/loop/i] || switchport_mode != :disabled
       config_get('interface', 'ipv4_dhcp_relay_info_trust', name: @name)
     end
 
@@ -658,6 +660,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_subnet_broadcast
+      return nil if @name[/loop/i] || switchport_mode != :disabled
       config_get('interface', 'ipv4_dhcp_relay_subnet_broadcast', name: @name)
     end
 
@@ -673,6 +676,7 @@ module Cisco
     end
 
     def ipv4_dhcp_smart_relay
+      return nil if @name[/loop/i] || switchport_mode != :disabled
       config_get('interface', 'ipv4_dhcp_smart_relay', name: @name)
     end
 
@@ -702,6 +706,7 @@ module Cisco
     end
 
     def ipv4_pim_sparse_mode
+      return nil unless switchport_mode == :disabled
       config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
     end
 
@@ -717,6 +722,7 @@ module Cisco
     end
 
     def ipv4_proxy_arp
+      return nil if @name[/loop/i] || switchport_mode != :disabled
       config_get('interface', 'ipv4_proxy_arp', name: @name)
     end
 
@@ -740,6 +746,7 @@ module Cisco
     end
 
     def ipv4_redirects
+      return nil unless switchport_mode == :disabled
       config_get('interface', ipv4_redirects_lookup_string, name: @name)
     end
 
@@ -839,6 +846,7 @@ module Cisco
     end
 
     def ipv6_redirects
+      return nil if @name[/loop/i] || switchport_mode != :disabled
       config_get('interface', 'ipv6_redirects', name: @name)
     end
 
@@ -932,6 +940,7 @@ module Cisco
     end
 
     def mtu=(val)
+      return if mtu == val
       check_switchport(:disabled)
       config_set('interface', mtu_lookup_string,
                  name: @name, state: '', mtu: val)
@@ -942,6 +951,7 @@ module Cisco
     end
 
     def speed
+      return nil if @name[/loop|vlan/i]
       config_get('interface', 'speed', name: @name)
     end
 
@@ -954,6 +964,7 @@ module Cisco
     end
 
     def duplex
+      return nil if @name[/loop|vlan/i]
       config_get('interface', 'duplex', name: @name)
     end
 
@@ -977,6 +988,7 @@ module Cisco
     end
 
     def negotiate_auto
+      return nil if @name[/loop|vlan/]
       config_get('interface', negotiate_auto_lookup_string, name: @name)
     end
 
@@ -1051,10 +1063,12 @@ module Cisco
     end
 
     def storm_control_broadcast
+      return nil if @name[/loop|vlan/i]
       config_get('interface', 'storm_control_broadcast', name: @name)
     end
 
     def storm_control_broadcast=(val)
+      return if val == storm_control_broadcast
       state = val == default_storm_control_broadcast ? 'no' : ''
       level = val == default_storm_control_broadcast ? '' : val
       config_set('interface', 'storm_control_broadcast',
@@ -1066,10 +1080,12 @@ module Cisco
     end
 
     def storm_control_multicast
+      return nil if @name[/loop|vlan/i]
       config_get('interface', 'storm_control_multicast', name: @name)
     end
 
     def storm_control_multicast=(val)
+      return if val == storm_control_broadcast
       state = val == default_storm_control_multicast ? 'no' : ''
       level = val == default_storm_control_multicast ? '' : val
       config_set('interface', 'storm_control_multicast',
@@ -1081,10 +1097,12 @@ module Cisco
     end
 
     def storm_control_unicast
+      return nil if @name[/loop|vlan/i]
       config_get('interface', 'storm_control_unicast', name: @name)
     end
 
     def storm_control_unicast=(val)
+      return if val == storm_control_broadcast
       state = val == default_storm_control_unicast ? 'no' : ''
       level = val == default_storm_control_unicast ? '' : val
       config_set('interface', 'storm_control_unicast',
@@ -1135,6 +1153,7 @@ module Cisco
     end
 
     def stp_cost
+      return nil if switchport_mode == :disabled
       cost = config_get('interface', 'stp_cost', name: @name)
       cost == 'auto' ? cost : cost.to_i
     end
@@ -1169,6 +1188,7 @@ module Cisco
     end
 
     def stp_link_type
+      return nil if switchport_mode == :disabled
       config_get('interface', 'stp_link_type', name: @name)
     end
 
@@ -1182,6 +1202,7 @@ module Cisco
     end
 
     def stp_port_priority
+      return nil if switchport_mode == :disabled
       config_get('interface', 'stp_port_priority', name: @name)
     end
 
@@ -1313,6 +1334,7 @@ module Cisco
 
     # switchport_autostate_exclude is exclusive to switchport interfaces
     def switchport_autostate_exclude
+      return nil if switchport_mode == :disabled
       config_get('interface',
                  'switchport_autostate_exclude', name: @name)
     end
@@ -1403,6 +1425,7 @@ module Cisco
     end
 
     def switchport_trunk_allowed_vlan
+      return nil if switchport_mode == :disabled
       vlans = config_get('interface', 'switchport_trunk_allowed_vlan',
                          name: @name)
       vlans = vlans.join(',') if vlans.is_a?(Array)
@@ -1425,6 +1448,7 @@ module Cisco
     end
 
     def switchport_trunk_native_vlan
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_trunk_native_vlan', name: @name)
     end
 
@@ -1461,6 +1485,7 @@ module Cisco
     # --------------------------
     # <state> switchport mode private-vlan host
     def switchport_pvlan_host
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_pvlan_host', name: @name)
     end
 
@@ -1477,6 +1502,7 @@ module Cisco
     # --------------------------
     # <state> switchport mode private-vlan promiscuous
     def switchport_pvlan_promiscuous
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_pvlan_promiscuous', name: @name)
     end
 
@@ -1669,6 +1695,7 @@ module Cisco
     # --------------------------
     # <state> switchport mode private-vlan trunk promiscuous
     def switchport_pvlan_trunk_promiscuous
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_pvlan_trunk_promiscuous', name: @name)
     end
 
@@ -1685,6 +1712,7 @@ module Cisco
     # --------------------------
     # <state> switchport mode private-vlan trunk secondary
     def switchport_pvlan_trunk_secondary
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_pvlan_trunk_secondary', name: @name)
     end
 
@@ -1703,6 +1731,7 @@ module Cisco
     # Note that range is handled as a string because the entire range is
     # replaced instead of individually adding or removing vlans from the range.
     def switchport_pvlan_trunk_allowed_vlan
+      return nil if switchport_mode == :disabled
       vlans = config_get('interface', 'switchport_pvlan_trunk_allowed_vlan',
                          name: @name)
       vlans = vlans.join(',') if vlans.is_a?(Array)
@@ -1727,6 +1756,7 @@ module Cisco
     # --------------------------
     # <state> switchport trunk native vlan <vlan>
     def switchport_pvlan_trunk_native_vlan
+      return nil if switchport_mode == :disabled
       config_get('interface', 'switchport_pvlan_trunk_native_vlan', name: @name)
     end
 
@@ -1990,6 +2020,7 @@ module Cisco
     end
 
     def vpc_peer_link
+      return nil unless @name[/port-channel/i] && switchport_mode != :disabled
       config_get('interface', 'vpc_peer_link', name: @name)
     end
 
