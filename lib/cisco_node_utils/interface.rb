@@ -192,6 +192,7 @@ module Cisco
     # are left untouched.
 
     def access_vlan
+      return nil if switchport_mode == :disabled
       config_get('interface', 'access_vlan', name: @name)
     end
 
@@ -325,6 +326,7 @@ module Cisco
     end
 
     def hsrp_delay_minimum
+      return nil unless switchport_mode == :disabled
       minimum, _reload = hsrp_delay
       minimum.nil? ? default_hsrp_delay_minimum : minimum
     end
@@ -342,6 +344,7 @@ module Cisco
     end
 
     def hsrp_delay_reload
+      return nil unless switchport_mode == :disabled
       _minimum, reload = hsrp_delay
       reload.nil? ? default_hsrp_delay_reload : reload
     end
@@ -413,6 +416,7 @@ module Cisco
     end
 
     def hsrp_version
+      return nil unless switchport_mode == :disabled
       config_get('interface', 'hsrp_version', name: @name)
     end
 
