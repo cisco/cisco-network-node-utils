@@ -2025,6 +2025,7 @@ module Cisco
     end
 
     def vpc_peer_link=(state)
+      return if vpc_peerlink == state
       no_cmd = (state ? '' : 'no')
       config_set('interface', 'vpc_peer_link', name: @name, state: no_cmd)
     end
