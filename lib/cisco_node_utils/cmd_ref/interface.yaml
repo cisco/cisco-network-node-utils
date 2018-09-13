@@ -127,7 +127,7 @@ hsrp_mac_refresh:
   kind: int
   get_value: '/^hsrp mac-refresh (\d+)$/'
   set_value: '<state> hsrp mac-refresh <timeout>'
-  default_value: false
+  default_value: ~
 
 hsrp_use_bia:
   _exclude: [ios_xr, N5k, N6k]
@@ -137,7 +137,7 @@ hsrp_use_bia:
   # optional match to get the whole config
   get_value: '/^hsrp use-bia(?:\s+\S+\s+\S+)?$/'
   set_value: '<state> hsrp use-bia<scope>'
-  default_value: false
+  default_value: ~
 
 hsrp_version:
   _exclude: [ios_xr, N5k, N6k]
@@ -211,7 +211,7 @@ ipv4_dhcp_relay_src_intf:
   _exclude: [ios_xr]
   get_value: '/^ip dhcp relay source-interface (.*)$/'
   set_value: "<state> ip dhcp relay source-interface <intf>"
-  default_value: false
+  default_value: ~
 
 ipv4_dhcp_relay_subnet_broadcast:
   _exclude: [ios_xr]
@@ -258,7 +258,7 @@ ipv4_proxy_arp:
 ipv4_redirects_loopback:
   kind: boolean
   nexus:
-    default_only: false
+    default_only: ~
   ios_xr:
     get_value: '/^((?:no )?ipv4 redirects)$/'
     set_value: "<state> ipv4 redirects"
@@ -304,7 +304,7 @@ ipv6_dhcp_relay_src_intf:
   _exclude: [ios_xr]
   get_value: '/^ipv6 dhcp relay source-interface (.*)$/'
   set_value: "<state> ipv6 dhcp relay source-interface <intf>"
-  default_value: false
+  default_value: ~
 
 ipv6_redirects:
   _exclude: [ios_xr]
@@ -336,7 +336,7 @@ load_interval_counter_3_delay:
   kind: int
   get_value: '/^load-interval counter 3 (\d+)$/'
   set_value: "<state> load-interval counter 3 <delay>"
-  default_value: false
+  default_value: ~
 
 mtu_loopback:
   kind: boolean
@@ -384,6 +384,7 @@ purge_config:
   set_value:   "default interface <name>"
   get_command: "show running interface"
   get_value:   '/(.*)/'
+  default_value: ~
 
 pvlan_any:
   multiple:
@@ -469,13 +470,13 @@ stp_bpdufilter:
   kind: string
   get_value: '/^spanning-tree bpdufilter (.*)$/'
   set_value: "<state> spanning-tree bpdufilter <filter>"
-  default_value: false
+  default_value: ~
 
 stp_bpduguard:
   kind: string
   get_value: '/^spanning-tree bpduguard (.*)$/'
   set_value: "<state> spanning-tree bpduguard <guard>"
-  default_value: false
+  default_value: ~
 
 stp_cost:
   kind: string
@@ -487,7 +488,7 @@ stp_guard:
   kind: string
   get_value: '/^spanning-tree guard (.*)$/'
   set_value: "<state> spanning-tree guard <guard>"
-  default_value: false
+  default_value: ~
 
 stp_link_type:
   kind: string
@@ -524,7 +525,7 @@ stp_port_type:
   get_command: "show running interface"
   get_value: '/^spanning-tree port type (.*)$/'
   set_value: "<state> spanning-tree port type <type>"
-  default_value: false
+  default_value: ~
 
 stp_vlan_cost:
   multiple:
@@ -632,7 +633,7 @@ switchport_pvlan_trunk_allowed_vlan:
   multiple: true
   get_value: '/^switchport private-vlan trunk allowed vlan (?:add )?(\S+)$/'
   set_value: "switchport private-vlan trunk allowed vlan <range>"
-  default_value: 'none'
+  default_value: none
 
 switchport_pvlan_trunk_association:
   _exclude: [ios_xr, N3k, N3k-F, N9k-F]
@@ -735,7 +736,7 @@ vpc_id:
   kind: int
   get_value: '/^vpc (\d+)$/'
   set_value: '<state> vpc <id>'
-  default_value: false
+  default_value: ~
 
 vpc_peer_link:
   kind: boolean

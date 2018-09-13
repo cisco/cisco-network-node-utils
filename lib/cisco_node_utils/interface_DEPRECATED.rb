@@ -65,6 +65,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_host
+      return nil if switchport_mode == :disabled
       mode = config_get('DEPRECATED',
                         'switchport_mode_private_vlan_host',
                         name: @name)
@@ -299,6 +300,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_promiscuous
+      return nil if switchport_mode == :disabled
       config_get('DEPRECATED',
                  'switchport_mode_private_vlan_trunk_promiscuous',
                  name: @name)
@@ -331,6 +333,7 @@ module Cisco
     end
 
     def switchport_mode_private_vlan_trunk_secondary
+      return nil if switchport_mode == :disabled
       config_get('DEPRECATED',
                  'switchport_mode_private_vlan_trunk_secondary',
                  name: @name)
@@ -361,6 +364,7 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_allowed_vlan
+      return nil if switchport_mode == :disabled
       result = config_get('DEPRECATED',
                           'switchport_private_vlan_trunk_allowed_vlan',
                           name: @name)
@@ -400,6 +404,7 @@ module Cisco
     end
 
     def switchport_private_vlan_trunk_native_vlan
+      return nil if switchport_mode == :disabled
       config_get('DEPRECATED',
                  'switchport_private_vlan_trunk_native_vlan',
                  name: @name)
