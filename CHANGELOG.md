@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## [Unreleased]
+## [v1.10.0]
 
 ### New Cisco Resources
 
@@ -587,7 +587,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
-[Unreleased]: https://github.com/cisco/cisco-network-node-utils/compare/master...develop
+[v1.10.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.6.0...v1.7.0
