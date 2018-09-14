@@ -62,7 +62,10 @@ packet_size:
     # the n3|9k behavior when the issue is resolved.
     default_value: 0
   N6k: *n5k_default_packet_size
-  N7k: *n5k_default_packet_size
+  # On recent versions, packet size is fixed,
+  # so this change will take care of the fix but
+  # it could still fail in the older versions.
+  N7k: *n3k_default_packet_size
   # On recent versions, packet size is fixed,
   # so this change will take care of the fix but
   # it could still fail in the older versions.
