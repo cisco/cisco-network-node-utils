@@ -175,7 +175,7 @@ class TestBgpAF < CiscoTestCase
           expect = :runtime if test == :additional_paths_receive && Platform.image_version[/8.0|8.1/]
         when /I5.2|I5.3|I6/
           expect = :success if test == :maximum_paths || test == :maximum_paths_ibgp
-        when /I7/
+        when /I7|9\.2/
           expect = :success if test == :maximum_paths ||
                                test == :maximum_paths_ibgp ||
                                test == :additional_paths_send ||

@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'ipaddr'
 require_relative 'node_util'
 
 module Cisco
@@ -73,6 +74,9 @@ module Cisco
       remark = Regexp.new('(?<seqno>\d+) remark (?<remark>.*)').match(str)
       return remark unless remark.nil?
 
+      # specialized icmp protocol handling
+      return icmp_ace_get(str) if str.include?('icmp')
+
       # rubocop:disable Metrics/LineLength
       regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
                  ' *(?<proto>\d+|\S+)'\
@@ -93,6 +97,60 @@ module Cisco
                  ' *(?<log>log)?')
       # rubocop:enable Metrics/LineLength
       regexp.match(str)
+    end
+
+    # icmp ace getter
+    def icmp_ace_get(str)
+      # rubocop:disable Metrics/LineLength
+      # fragments is nvgen at a different location than all other
+      # proto_option so get rid of it so as not to mess up other fields
+      str.sub!('fragments ', '')
+      regexp = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
+                 ' *(?<proto>\d+|\S+)'\
+                 ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<proto_option>\S+)?'\
+                 ' *(?<precedence>precedence \S+)?'\
+                 ' *(?<dscp>dscp \S+)?'\
+                 ' *(?<time_range>time-range \S+)?'\
+                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
+                 ' *(?<ttl>ttl \d+)?'\
+                 ' *(?<vlan>vlan \d+)?'\
+                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
+                 ' *(?<redirect>redirect \S+)?')
+      regexp_no_proto_option = Regexp.new('(?<seqno>\d+) (?<action>\S+)'\
+                 ' *(?<proto>\d+|\S+)'\
+                 ' *(?<src_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<dst_addr>any|host \S+|[:\.0-9a-fA-F]+ [:\.0-9a-fA-F]+|[:\.0-9a-fA-F]+\/\d+|addrgroup \S+)'\
+                 ' *(?<precedence>precedence \S+)?'\
+                 ' *(?<dscp>dscp \S+)?'\
+                 ' *(?<time_range>time-range \S+)?'\
+                 ' *(?<packet_length>packet-length (range \d+ \d+|(lt|eq|gt|neq) \d+))?'\
+                 ' *(?<ttl>ttl \d+)?'\
+                 ' *(?<vlan>vlan \d+)?'\
+                 ' *(?<set_erspan_gre_proto>set-erspan-gre-proto \d+)?'\
+                 ' *(?<set_erspan_dscp>set-erspan-dscp \d+)?'\
+                 ' *(?<redirect>redirect \S+)?')
+      temp = regexp.match(str)
+      po = temp[:proto_option]
+      if po.nil?
+        return temp
+      # redirect can be proto_option or an actual redirect to interface
+      elsif po.strip.match(/redirect$/)
+        if str.match(/Ethernet|port-channel/)
+          # if proto_option is given as redirect and also redirect to intf
+          # we need to do extra processing
+          return temp if check_redirect_repeat(str)
+          return regexp_no_proto_option.match(str)
+        end
+      # the reserved keywords check
+      elsif po.strip.match(/precedence$|dscp$|time-range$|packet-length$|ttl$|vlan$|set-erspan-gre-proto$|set-erspan-dscp$|log$/)
+        return regexp_no_proto_option.match(str)
+      else
+        return temp
+      end
+      # rubocop:enable Metrics/LineLength
     end
 
     # common ace setter. Put the values you need in a hash and pass it in.
@@ -130,6 +188,10 @@ module Cisco
          :tcp_option_length,
          :redirect,
          :log,
+         :proto_option,
+         :set_erspan_dscp,
+         :set_erspan_gre_proto,
+         :vlan,
         ].each do |p|
           attrs[p] = '' if attrs[p].nil?
           send(p.to_s + '=', attrs[p])
@@ -137,6 +199,21 @@ module Cisco
         @get_args = @set_args
       end
       config_set('acl', cmd, @set_args)
+    end
+
+    def valid_ipv6?(addr)
+      begin
+        ret = IPAddr.new(addr.split[0]).ipv6?
+      rescue
+        ret = false
+      end
+      ret
+    end
+
+    def check_redirect_repeat(str)
+      return false unless str.include?('redirect')
+      nstr = str.sub('redirect', '').strip
+      nstr.include?('redirect') ? true : false
     end
 
     # PROPERTIES
@@ -182,7 +259,7 @@ module Cisco
       return nil if match.nil? || !match.names.include?('src_addr')
       addr = match[:src_addr]
       # Normalize addr. Some platforms zero_pad ipv6 addrs.
-      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':') if valid_ipv6?(addr)
       addr
     end
 
@@ -205,7 +282,7 @@ module Cisco
       return nil if match.nil? || !match.names.include?('dst_addr')
       addr = match[:dst_addr]
       # Normalize addr. Some platforms zero_pad ipv6 addrs.
-      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':')
+      addr.gsub!(/^0*/, '').gsub!(/:0*/, ':') if valid_ipv6?(addr)
       addr
     end
 
@@ -259,6 +336,49 @@ module Cisco
 
     def dscp=(dscp)
       @set_args[:dscp] = Utils.attach_prefix(dscp, :dscp)
+    end
+
+    def vlan
+      Utils.extract_value(ace_get, 'vlan')
+    end
+
+    def vlan=(vlan)
+      @set_args[:vlan] = Utils.attach_prefix(vlan, :vlan)
+    end
+
+    def set_erspan_dscp
+      ret = Utils.extract_value(ace_get, 'set_erspan_dscp', 'set-erspan-dscp')
+      return ret if ret
+      # position of set_erspan_dscp is different in older release so check again
+      str = config_get('acl', 'ace', @get_args)
+      sstr = str.split
+      return sstr[sstr.index('set-erspan-dscp') + 1] if
+        sstr.include?('set-erspan-dscp')
+    end
+
+    def set_erspan_dscp=(set_erspan_dscp)
+      @set_args[:set_erspan_dscp] = Utils.attach_prefix(set_erspan_dscp,
+                                                        :set_erspan_dscp,
+                                                        'set-erspan-dscp')
+    end
+
+    def set_erspan_gre_proto
+      ret = Utils.extract_value(ace_get, 'set_erspan_gre_proto',
+                                'set-erspan-gre-proto')
+      return ret if ret
+      # position of set_erspan_gre_proto is different in older release
+      # so check again
+      str = config_get('acl', 'ace', @get_args)
+      sstr = str.split
+      return sstr[sstr.index('set-erspan-gre-proto') + 1] if
+        sstr.include?('set-erspan-gre-proto')
+    end
+
+    def set_erspan_gre_proto=(set_erspan_gre_proto)
+      @set_args[:set_erspan_gre_proto] =
+          Utils.attach_prefix(set_erspan_gre_proto,
+                              :set_erspan_gre_proto,
+                              'set-erspan-gre-proto')
     end
 
     def time_range
@@ -317,12 +437,27 @@ module Cisco
       @set_args[:redirect] = Utils.attach_prefix(redirect, :redirect)
     end
 
-    def log
+    def proto_option
       match = ace_get
+      return nil if match.nil? || proto != 'icmp' || !remark.nil?
+      # fragments is nvgen at a different location than all other
+      # proto_option
+      if config_get('acl', 'ace', @get_args).include?('fragments')
+        return 'fragments'
+      end
+      # log is special case
+      return nil if !match.names.include?('proto_option') ||
+                    match[:proto_option] == 'log'
+      match[:proto_option]
+    end
+
+    def proto_option=(proto_option)
+      @set_args[:proto_option] = proto_option
+    end
+
+    def log
       return nil unless remark.nil?
-      return false if match.nil?
-      return false unless match.names.include?('log')
-      match[:log] == 'log' ? true : false
+      config_get('acl', 'ace', @get_args).include?('log') ? true : false
     end
 
     def log=(log)

@@ -1,0 +1,10 @@
+# syslog_facility
+---
+_exclude: [ios_xr]
+
+facility:
+  multiple: true
+  get_command: "show running-config | include '^logging level'"
+  # Returns <facility>, <level>
+  get_value: '/^(?:logging level)\s+(.*)\s+([0-7])/'
+  set_value: '<state> logging level <facility> <level>'

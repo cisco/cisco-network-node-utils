@@ -1,8 +1,9 @@
 # Syslog Server provider class
 #
+# June 2018
 # Jonathan Tripathy et al., September 2015
 #
-# Copyright (c) 2014-2017 Cisco and/or its affiliates.
+# Copyright (c) 2014-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +23,7 @@ require 'resolv'
 module Cisco
   # SyslogServer - node utility class for syslog server configuration management
   class SyslogServer < NodeUtil
-    attr_reader :name, :level, :port, :vrf, :severity_level
+    attr_reader :name, :level, :port, :vrf, :severity_level, :facility
 
     LEVEL_TO_NUM = { 'emergencies'   => 0,
                      'alerts'        => 1,
@@ -40,6 +41,7 @@ module Cisco
       @port = opts['port']
       @vrf = opts['vrf']
       @severity_level = opts['severity_level'] || opts['level']
+      @facility = opts['facility']
 
       hostname_regex = /^(?=.{1,255}$)[0-9A-Za-z]
       (?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?
@@ -56,7 +58,7 @@ module Cisco
     end
 
     def self.syslogservers
-      keys = %w(name level port vrf severity_level)
+      keys = %w(name level port vrf facility severity_level)
       hash = {}
       syslogservers_list = config_get('syslog_server', 'server')
       return hash if syslogservers_list.nil?
@@ -65,6 +67,7 @@ module Cisco
         value_hash = Hash[keys.zip(id)]
         value_hash['severity_level'] = value_hash['level']
         value_hash['vrf'] = 'default' if value_hash['vrf'].nil?
+        value_hash['facility'] = 'local7' if value_hash['facility'].nil?
         hash[id[0]] = SyslogServer.new(value_hash, false)
       end
 
@@ -93,11 +96,12 @@ module Cisco
       else
         config_set('syslog_server',
                    'server',
-                   state: '',
-                   ip:    @name,
-                   level: @level ? "#{@level}" : '',
-                   port:  @port ? "port #{@port}" : '',
-                   vrf:   @vrf ? "use-vrf #{@vrf}" : '',
+                   state:    '',
+                   ip:       @name,
+                   level:    @level ? "#{@level}" : '',
+                   port:     @port ? "port #{@port}" : '',
+                   vrf:      @vrf ? "use-vrf #{@vrf}" : '',
+                   facility: @facility ? "facility #{@facility}" : '',
                   )
       end
     end
@@ -129,11 +133,12 @@ module Cisco
       else
         config_set('syslog_server',
                    'server',
-                   state: 'no',
-                   ip:    @name,
-                   level: '',
-                   port:  '',
-                   vrf:   '',
+                   state:    'no',
+                   ip:       @name,
+                   level:    '',
+                   port:     '',
+                   vrf:      '',
+                   facility: '',
                   )
       end
     end

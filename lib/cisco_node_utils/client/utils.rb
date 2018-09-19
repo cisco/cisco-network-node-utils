@@ -111,16 +111,26 @@ class Cisco::Client
       return input.map { |item| to_regexp(item) }
     else
       # The string might be explicitly formatted as a regexp
-      if input[0] == '/' && input[-1] == '/'
-        # '/foo/' => %r{foo}
-        return Regexp.new(input[1..-2])
-      elsif input[0] == '/' && input[-2..-1] == '/i'
-        # '/foo/i' => %r{foo}i
-        return Regexp.new(input[1..-3], Regexp::IGNORECASE)
-      else
-        # 'foo' => %r{^foo$}i
-        return Regexp.new("^#{input}$", Regexp::IGNORECASE)
+      # Dynamically handle modifiers
+      input.match(%r{(?<regex>^\/.*\/)(?<options>[imx]*)?}) do |m|
+        options = []
+        m['options'].each_char do |c|
+          case c
+          when 'i'
+            options << Regexp::IGNORECASE
+          when 'm'
+            options << Regexp::MULTILINE
+          when 'x'
+            options << Regexp::EXTENDED
+          end
+        end
+        return Regexp.new(m['regex'][1..-2], options.reduce(:|))
       end
+      # otherwise this value is a regular string
+      # convert to case insensitive regex
+      # 'foo' => %r{^foo$}i
+      return Regexp.new("^#{input}$", Regexp::IGNORECASE)
+
     end
   end
 
@@ -151,7 +161,7 @@ class Cisco::Client
           end
           return final
         end
-        fail "No key \"#{filter}\" in #{data}" if data[filter].nil?
+        fail "No key \"#{filter}\" in #{data}" unless data.key?(filter)
         data = data[filter]
       end
     end

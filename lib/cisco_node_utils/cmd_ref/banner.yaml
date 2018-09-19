@@ -1,0 +1,7 @@
+# banner
+---
+motd:
+  default_value: "User Access Verification\n"
+  get_command: 'show banner motd'
+  get_value: '/^.*$/m'
+  set_value: '<state> banner motd <motd>'

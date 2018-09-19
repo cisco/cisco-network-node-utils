@@ -1,6 +1,39 @@
 Changelog
 =========
 
+## [v1.10.0]
+
+### New Cisco Resources
+
+### Added
+* Added syslog_facility with attribute:
+  * `level`
+* Extend syslog_server with attribute:
+  * `facility`
+* Extend interface with attributes:
+   * `ipv6_redirects`
+* Extend ace with attributes:
+   * `proto_option`
+   * `vlan`
+   * `set_erspan_dscp`
+   * `set_erspan_gre_proto`
+* Extend network_dns with attributes:
+  * `hostname`
+* Added ability to specify environment at run time
+
+Example:
+```ruby
+env = { host: '192.168.1.1', port: nil, username: 'admin', password: 'admin123', cookie: nil }
+Cisco::Environment.add_env('default', env)
+```
+
+### Changed
+
+### Removed
+
+### Issues Addressed
+* Removed default values for authentication in `interface_hsrp_group`
+
 ## [v1.9.0]
 
 ### New Cisco Resources
@@ -554,6 +587,7 @@ Changelog
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v1.10.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.6.0...v1.7.0

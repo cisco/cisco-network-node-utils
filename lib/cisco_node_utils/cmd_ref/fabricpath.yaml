@@ -82,7 +82,7 @@ loadbalance_multicast_has_vlan:
   _exclude: [N5k, N6k]
   kind: boolean
   auto_default: false
-  get_command: "show fabricpath load-balance | begin Ftag"
+  get_command: "show fabricpath load-balance | begin ignore-case Ftag"
   get_value: '/^Use VLAN: TRUE/'
   default_value: true
 
@@ -93,7 +93,7 @@ loadbalance_multicast_reset:
 loadbalance_multicast_rotate:
   _exclude: [N5k, N6k]
   kind: int
-  get_command: "show fabricpath load-balance | begin Ftag"
+  get_command: "show fabricpath load-balance | begin ignore-case Ftag"
   get_value: '/^Rotate amount: (\d+)/'
   # default_value: n/a. The default rotate amount is randomized to avoid polarization.
 

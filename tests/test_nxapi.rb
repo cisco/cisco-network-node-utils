@@ -34,11 +34,19 @@ class TestNxapi < TestCase
 
   def setup
     super
+    @device.cmd('configure terminal')
+    @device.cmd('feature nxapi')
+    @device.cmd('nxapi http port 80')
+    @device.cmd('end')
     @product_id = Cisco::Node.new.product_id if @product_id.nil?
     cleanup
   end
 
   def teardown
+    @device.cmd('configure terminal')
+    @device.cmd('feature nxapi')
+    @device.cmd('nxapi http port 80')
+    @device.cmd('end')
     cleanup
     super
   end
@@ -179,10 +187,6 @@ class TestNxapi < TestCase
     assert_raises Cisco::ConnectionRefused do
       client.set(values: 'interface loopback41')
     end
-  ensure
-    @device.cmd('configure terminal')
-    @device.cmd('feature nxapi')
-    @device.cmd('end')
   end
 
   def test_unauthorized
