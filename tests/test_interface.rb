@@ -346,6 +346,8 @@ class TestInterface < CiscoTestCase
     # Validate the collection
     inttype_h.each_value do |v|
       interface = v[:interface]
+      next if interface.name[/vlan|loopback/]
+      interface.switchport_mode = :access
 
       assert_equal(v[:access_vlan], interface.access_vlan,
                    'Error: Access vlan value not correct')
@@ -353,6 +355,7 @@ class TestInterface < CiscoTestCase
       # get_default check
       assert_equal(v[:default_access_vlan], interface.default_access_vlan,
                    'Error: Access vlan, default,  value not correct')
+      interface.switchport_mode = :disabled
     end
   end
 
@@ -856,8 +859,7 @@ class TestInterface < CiscoTestCase
     config("interface #{int}")
     interface = Interface.new(int)
 
-    assert_equal(interface.negotiate_auto, ref.default_value,
-                 "Error: #{int} negotiate auto value mismatch")
+    assert_nil(interface.negotiate_auto)
 
     assert_raises(Cisco::UnsupportedError) do
       interface.negotiate_auto = true
@@ -1328,8 +1330,6 @@ class TestInterface < CiscoTestCase
         default_shutdown:    true,
         switchport:          :disabled,
         default_switchport:  :disabled,
-        access_vlan:         DEFAULT_IF_ACCESS_VLAN,
-        default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
         vrf_new:             'test2',
         default_vrf:         DEFAULT_IF_VRF,
       }
@@ -1362,8 +1362,6 @@ class TestInterface < CiscoTestCase
       default_shutdown:    false,
       switchport:          platform == :ios_xr ? nil : :disabled,
       default_switchport:  platform == :ios_xr ? nil : :disabled,
-      access_vlan:         DEFAULT_IF_ACCESS_VLAN,
-      default_access_vlan: DEFAULT_IF_ACCESS_VLAN,
       vrf_new:             'test2',
       default_vrf:         DEFAULT_IF_VRF,
     }
@@ -1411,12 +1409,12 @@ class TestInterface < CiscoTestCase
       validate_interfaces_not_empty
       validate_get_switchport(inttype_h)
       validate_description(inttype_h)
-      validate_get_access_vlan(inttype_h) unless platform == :ios_xr
       validate_ipv4_address(inttype_h)
       validate_ipv4_proxy_arp(inttype_h)
       validate_ipv4_redirects(inttype_h)
       validate_interface_shutdown(inttype_h)
       validate_vrf(inttype_h)
+      validate_get_access_vlan(inttype_h) unless platform == :ios_xr
       config(*cfg)
       interface_ethernet_default(interfaces[1])
     rescue Minitest::Assertion

@@ -1085,7 +1085,7 @@ module Cisco
     end
 
     def storm_control_multicast=(val)
-      return if val == storm_control_broadcast
+      return if val == storm_control_multicast
       state = val == default_storm_control_multicast ? 'no' : ''
       level = val == default_storm_control_multicast ? '' : val
       config_set('interface', 'storm_control_multicast',
@@ -1102,7 +1102,7 @@ module Cisco
     end
 
     def storm_control_unicast=(val)
-      return if val == storm_control_broadcast
+      return if val == storm_control_unicast
       state = val == default_storm_control_unicast ? 'no' : ''
       level = val == default_storm_control_unicast ? '' : val
       config_set('interface', 'storm_control_unicast',

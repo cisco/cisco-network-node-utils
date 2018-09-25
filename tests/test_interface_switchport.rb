@@ -80,11 +80,7 @@ class TestSwitchport < TestInterfaceSwitchport
 
   def test_access_vlan_sw_disabled
     interface.switchport_mode = :disabled
-    if platform == :ios_xr
-      assert_nil(interface.access_vlan)
-    else
-      assert_equal(DEFAULT_IF_ACCESS_VLAN, interface.access_vlan)
-    end
+    assert_nil(interface.access_vlan)
   end
 
   def test_access_vlan_sw_trunk
