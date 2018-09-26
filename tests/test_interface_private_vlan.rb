@@ -88,6 +88,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     assert_equal(i.default_switchport_pvlan_host,
                  i.switchport_pvlan_host)
 
@@ -96,6 +97,7 @@ class TestInterfacePVlan < CiscoTestCase
 
     i.switchport_pvlan_host = false
     refute(i.switchport_pvlan_host)
+    i.switchport_mode = :disabled
   end
 
   def test_sw_pvlan_promiscuous
@@ -107,6 +109,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     assert_equal(i.default_switchport_pvlan_promiscuous,
                  i.switchport_pvlan_promiscuous)
 
@@ -115,6 +118,7 @@ class TestInterfacePVlan < CiscoTestCase
 
     i.switchport_pvlan_promiscuous = false
     refute(i.switchport_pvlan_promiscuous)
+    i.switchport_mode = :disabled
   end
 
   def test_sw_pvlan_trunk_promiscuous
@@ -126,6 +130,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     assert_equal(i.default_switchport_pvlan_trunk_promiscuous,
                  i.switchport_pvlan_trunk_promiscuous)
 
@@ -134,6 +139,7 @@ class TestInterfacePVlan < CiscoTestCase
 
     i.switchport_pvlan_trunk_promiscuous = false
     refute(i.switchport_pvlan_trunk_promiscuous)
+    i.switchport_mode = :disabled
   end
 
   def test_sw_pvlan_trunk_secondary
@@ -145,6 +151,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     assert_equal(i.default_switchport_pvlan_trunk_secondary,
                  i.switchport_pvlan_trunk_secondary)
 
@@ -153,6 +160,7 @@ class TestInterfacePVlan < CiscoTestCase
 
     i.switchport_pvlan_trunk_secondary = false
     refute(i.switchport_pvlan_trunk_secondary)
+    i.switchport_mode = :disabled
   end
 
   # Helper to setup vlan associations
@@ -309,6 +317,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     default = i.default_switchport_pvlan_trunk_allowed_vlan
     assert_equal(default, i.switchport_pvlan_trunk_allowed_vlan)
 
@@ -325,6 +334,7 @@ class TestInterfacePVlan < CiscoTestCase
     vlans = '500-528,530,532,534,587,590-593,597-598,600,602,604'
     i.switchport_pvlan_trunk_allowed_vlan = vlans
     assert_equal(vlans, i.switchport_pvlan_trunk_allowed_vlan)
+    i.switchport_mode = :disabled
   end
 
   def test_sw_pvlan_trunk_native_vlan
@@ -336,6 +346,7 @@ class TestInterfacePVlan < CiscoTestCase
       return
     end
 
+    i.switchport_mode = :access
     default = i.default_switchport_pvlan_trunk_native_vlan
     assert_equal(default, i.switchport_pvlan_trunk_native_vlan)
 
@@ -344,5 +355,6 @@ class TestInterfacePVlan < CiscoTestCase
 
     i.switchport_pvlan_trunk_native_vlan = default
     assert_equal(default, i.switchport_pvlan_trunk_native_vlan)
+    i.switchport_mode = :disabled
   end
 end
