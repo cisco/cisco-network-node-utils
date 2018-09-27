@@ -358,20 +358,13 @@ module Cisco
     def prod_qualifier(prod, inventory)
       case prod
       when /N9K/
-        # Two datapoints are used to determine if the current n9k
+        # one datapoint is used to determine if the current n9k
         # platform is a fretta based n9k or non-fretta.
         #
-        # 1) Image Version == 7.0(3)F*
-        # 2) Fabric Module == N9K-C9*-FM-R
-        if @cmd_ref
-          ver = os_version
-        else
-          ver = get(command:     'show version',
-                    data_format: :nxapi_structured)['kickstart_ver_str']
-        end
-        # Append -F for fretta platform.
+        # Fabric Module == N9K-C9*-FM-R
         inventory.each do |row|
-          if row['productid'][/N9K-C9...-FM-R/] && ver[/7.0\(3\)F/]
+          if row['productid'][/FM-R/]
+            # Append -F for fretta platform.
             return prod.concat('-F') unless prod[/-F/]
           end
         end
