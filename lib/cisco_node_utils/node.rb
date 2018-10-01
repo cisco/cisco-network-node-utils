@@ -361,7 +361,7 @@ module Cisco
         # one datapoint is used to determine if the current n9k
         # platform is a fretta based n9k or non-fretta.
         #
-        # Fabric Module == N9K-C9*-FM-R
+        # Module == *FM-R
         inventory.each do |row|
           if row['productid'][/FM-R/]
             # Append -F for fretta platform.
@@ -369,14 +369,16 @@ module Cisco
           end
         end
       when /N3K/
-        if @cmd_ref
-          ver = os_version
-        else
-          ver = get(command:     'show version',
-                    data_format: :nxapi_structured)['kickstart_ver_str']
+        # one datapoint is used to determine if the current n3k
+        # platform is a fretta based n3k or non-fretta.
+        #
+        # Module == *-R
+        inventory.each do |row|
+          if row['productid'][/-R/]
+            # Append -F for fretta platform.
+            return prod.concat('-F') unless prod[/-F/]
+          end
         end
-        # Append -F for fretta platform.
-        return prod.concat('-F') if ver[/7.0\(3\)F/] && !prod[/-F/]
       end
       prod
     end
