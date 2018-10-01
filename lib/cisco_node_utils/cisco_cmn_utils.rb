@@ -113,6 +113,14 @@ module Cisco
       return true if Platform.chassis['pid'][ver_regexp]
     end
 
+    def self.fretta?
+      require_relative 'platform'
+      Platform.slots.each do |_x, row|
+        return true if row['pid'][/-R/]
+      end
+      false
+    end
+
     # Helper utility method for ip/prefix format networks.
     # For ip/prefix format '1.1.1.1/24' or '2000:123:38::34/64',
     # we need to mask the address using the prefix length so that they
