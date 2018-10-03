@@ -410,12 +410,13 @@ class TestInterfaceSwVtp < TestInterfaceSwitchport
 
   def setup
     super
-    skip('VTP is not supported on IOS XR') if platform == :ios_xr
+    skip('VTP is not supported on IOS XR or fretta') if
+      platform == :ios_xr || product_tag[/n(3|9)k-f/]
     @vtp = Vtp.new(true)
   end
 
   def teardown
-    vtp.destroy unless platform == :ios_xr
+    vtp.destroy unless platform == :ios_xr || product_tag[/n(3|9)k-f/]
     super
   end
 

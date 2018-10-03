@@ -1,6 +1,6 @@
 # vtp
 ---
-_exclude: [ios_xr]
+_exclude: [ios_xr, N3k-F, N9k-F]
 
 # VTP behaves differently across the various Nexus platforms and as a
 # result it's not currently possible to use a single 'show running'
