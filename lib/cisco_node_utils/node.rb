@@ -357,20 +357,9 @@ module Cisco
 
     def prod_qualifier(prod, inventory)
       case prod
-      when /N9K/
-        # one datapoint is used to determine if the current n9k
-        # platform is a fretta based n9k or non-fretta.
-        #
-        # Module == *FM-R
-        inventory.each do |row|
-          if row['productid'][/FM-R/]
-            # Append -F for fretta platform.
-            return prod.concat('-F') unless prod[/-F/]
-          end
-        end
-      when /N3K/
-        # one datapoint is used to determine if the current n3k
-        # platform is a fretta based n3k or non-fretta.
+      when /N(3|9)K/
+        # one datapoint is used to determine if the current n9k/n3k
+        # platform is a fretta based or non-fretta.
         #
         # Module == *-R
         inventory.each do |row|
