@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require_relative 'basetest'
+require_relative 'ciscotest'
 require_relative '../lib/cisco_node_utils/node'
 
 # TestNxapi - NXAPI client unit tests
-class TestNxapi < TestCase
+class TestNxapi < CiscoTestCase
   @@client = nil # rubocop:disable Style/ClassVars
 
   def self.runnable_methods
@@ -207,12 +207,22 @@ class TestNxapi < TestCase
 
   def test_unsupported
     # Add a method to the NXAPI that sends a request of invalid type
-    def client.hello
-      req('hello', 'world')
-    end
+    if !product_tag[/n(3|9)k-f/]
+      def client.hello
+        req('hello', 'world')
+      end
 
-    assert_raises Cisco::RequestNotSupported do
-      client.hello
+      assert_raises Cisco::RequestNotSupported do
+        client.hello
+      end
+    else
+      def client.hello
+        req('hello', 'world')
+      end
+
+      assert_raises Cisco::ClientError do
+        client.hello
+      end
     end
   end
 
