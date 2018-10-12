@@ -142,7 +142,7 @@ class TestNodeExt < CiscoTestCase
 
   def test_get_product_id
     # N3|9K Fretta product_id gets a '-F' appended so remove it for this check
-    if Utils.image_version?(/7.0.3.F/)
+    if product_tag[/n(3|9)k-f/]
       chassis = node.product_id.sub('-F', '')
     else
       chassis = node.product_id
