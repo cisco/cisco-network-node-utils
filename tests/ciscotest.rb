@@ -550,7 +550,7 @@ class CiscoTestCase < TestCase
     when /N3K-C35/
       tag = 'n35'
     when /N3/
-      tag = Utils.image_version?(/7.0.3.F/) ? 'n3k-f' : 'n3k'
+      tag = Utils.fretta? ? 'n3k-f' : 'n3k'
     when /N5/
       tag = 'n5k'
     when /N6/
@@ -558,7 +558,7 @@ class CiscoTestCase < TestCase
     when /N7/
       tag = 'n7k'
     when /N9/
-      tag = Utils.image_version?(/7.0.3.F/) ? 'n9k-f' : 'n9k'
+      tag = Utils.fretta? ? 'n9k-f' : 'n9k'
     else
       fail "Unrecognized product_id: #{@product_id}"
     end

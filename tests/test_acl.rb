@@ -169,7 +169,7 @@ class TestAcl < CiscoTestCase
   end
 
   def test_fragments
-    if node.product_id[/N(5|6)/]
+    if product_tag[/n(3k-f|5k|6k|9k-f)/]
       a = Acl.new('ipv4', 'acl_fragments')
       assert_nil(a.fragments)
       assert_nil(a.default_fragments)
