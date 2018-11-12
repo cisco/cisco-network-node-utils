@@ -8,6 +8,11 @@ Changelog
 ### Added
 * Extend vxlan_vtep_vni with attribute:
   * `suppress_arp_disable`
+* Extend vxlan_vtep with attributes:
+  * `global_suppress_arp`
+  * `global_ingress_replication_bgp`
+  * `global_mcast_group_l2`
+  * `global_mcast_group_l3`
 
 ### Changed
 
