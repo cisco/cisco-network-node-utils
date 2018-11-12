@@ -33,6 +33,7 @@ class TestVxlanVtep < CiscoTestCase
     vdc_limit_f3_no_intf_needed(:set)
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
+    config_no_warn('nv overlay evpn')
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
@@ -231,5 +232,81 @@ class TestVxlanVtep < CiscoTestCase
     val = vtep.default_source_interface_hold_down_time
     vtep.source_interface_hold_down_time = val
     assert_equal(val, vtep.source_interface_hold_down_time)
+  end
+
+  def test_global_ingress_replication_bgp
+    skip_incompat_version?('vxlan_vtep', 'global_ingress_replication_bgp')
+
+    vtep = VxlanVtep.new('nve1')
+    vtep.host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep', 'global_ingress_replication_bgp')
+      assert_raises(Cisco::UnsupportedError) { vtep.global_ingress_replication_bgp = true }
+      return
+    end
+
+    # Test: Check global_ingress_replication_bgp is not configured.
+    refute(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be disabled')
+
+    # Test: Enable global_ingress_replication_bgp
+    vtep.global_ingress_replication_bgp = true
+    assert(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be enabled')
+    # Test: Default
+    vtep.global_ingress_replication_bgp = vtep.default_global_ingress_replication_bgp
+    refute(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be disabled')
+  end
+
+  def test_global_suppress_arp
+    skip_incompat_version?('vxlan_vtep', 'global_suppress_arp')
+
+    vtep = VxlanVtep.new('nve1')
+    vtep.host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep', 'global_suppress_arp')
+      assert_raises(Cisco::UnsupportedError) { vtep.global_suppress_arp = true }
+      return
+    end
+
+    # Test: Check global_suppress_arp is not configured.
+    refute(vtep.global_suppress_arp, 'global_suppress_arp should be disabled')
+
+    # Test: Enable global_suppress_arp
+    vtep.global_suppress_arp = true
+    assert(vtep.global_suppress_arp, 'global_suppress_arp should be enabled')
+    # Test: Default
+    vtep.global_suppress_arp = vtep.default_global_suppress_arp
+    refute(vtep.global_suppress_arp, 'global_suppress_arp should be disabled')
+  end
+
+  def test_global_mcast_group_l2
+    vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'global_mcast_group_l2')
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.global_mcast_group_l2 = '225.1.1.1'
+      end
+      return
+    end
+    skip_incompat_version?('vxlan_vtep', 'global_mcast_group_l2')
+
+    assert_equal(vtep.global_mcast_group_l2, vtep.default_global_mcast_group_l2)
+    vtep.global_mcast_group_l2 = '225.1.1.1'
+    assert_equal('225.1.1.1', vtep.global_mcast_group_l2)
+    vtep.global_mcast_group_l2 = vtep.default_global_mcast_group_l2
+    assert_equal(vtep.global_mcast_group_l2, vtep.default_global_mcast_group_l2)
+  end
+
+  def test_global_mcast_group_l3
+    vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'global_mcast_group_l3')
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.global_mcast_group_l3 = '225.1.1.1'
+      end
+      return
+    end
+    skip_incompat_version?('vxlan_vtep', 'global_mcast_group_l3')
+
+    assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
+    vtep.global_mcast_group_l3 = '225.1.1.1'
+    assert_equal('225.1.1.1', vtep.global_mcast_group_l3)
+    vtep.global_mcast_group_l3 = vtep.default_global_mcast_group_l3
+    assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
   end
 end

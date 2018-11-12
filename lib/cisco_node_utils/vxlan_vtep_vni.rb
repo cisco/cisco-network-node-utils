@@ -262,7 +262,7 @@ module Cisco
     end
 
     def suppress_arp_disable=(state)
-      if state == true
+      if state
         set_args_keys(state: '')
         # Host reachability must be enabled for this property
         unless VxlanVtep.new(@name).host_reachability == 'evpn'
