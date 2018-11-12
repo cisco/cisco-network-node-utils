@@ -55,6 +55,13 @@ suppress_arp:
   set_value: '<state> suppress-arp'
   default_value: false
 
+suppress_arp_disable:
+  _exclude: [N3k, N3k-F, N5k, N6k, N7k]
+  os_version: 'N9k, N9k-F:9.2'
+  get_value: '/^suppress-arp disable$/'
+  set_value: '<state> suppress-arp disable'
+  default_value: ~
+
 suppress_uuc:
   _exclude: [N3k-F, N9k-F, N9k]
   os_version: 'N7k:8.1.1'

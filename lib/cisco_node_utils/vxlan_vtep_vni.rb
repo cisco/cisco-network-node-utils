@@ -252,6 +252,35 @@ module Cisco
       config_get_default('vxlan_vtep_vni', 'suppress_arp')
     end
 
+    def suppress_arp_disable
+      # suppress_arp_disable is really a boolean kind, however,
+      # since the get is looking for a string with 'disable'
+      # we have to treat it as string first and then massage it
+      # to boolean
+      str = config_get('vxlan_vtep_vni', 'suppress_arp_disable', @get_args)
+      str.nil? ? false : true
+    end
+
+    def suppress_arp_disable=(state)
+      if state == true
+        set_args_keys(state: '')
+        # Host reachability must be enabled for this property
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
+        config_set('vxlan_vtep_vni', 'suppress_arp_disable', @set_args)
+      else
+        set_args_keys(state: 'no')
+        # Remove suppress-arp-disable only if it is configured.
+        config_set('vxlan_vtep_vni', 'suppress_arp_disable', @set_args) if
+        suppress_arp_disable
+      end
+    end
+
+    def default_suppress_arp_disable
+      config_get_default('vxlan_vtep_vni', 'suppress_arp_disable')
+    end
+
     def suppress_uuc
       config_get('vxlan_vtep_vni', 'suppress_uuc', @get_args)
     end
