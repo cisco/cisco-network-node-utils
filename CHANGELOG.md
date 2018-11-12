@@ -1,6 +1,20 @@
 Changelog
 =========
 
+## [v1.11.0]
+
+### New Cisco Resources
+
+### Added
+* Extend vxlan_vtep_vni with attribute:
+  * `suppress_arp_disable`
+
+### Changed
+
+### Removed
+
+### Issues Addressed
+
 ## [v1.10.0]
 
 ### New Cisco Resources
