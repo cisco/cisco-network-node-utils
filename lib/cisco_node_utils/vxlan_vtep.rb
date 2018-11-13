@@ -3,7 +3,7 @@
 #
 # November 2015, Deepak Cherian
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -235,6 +235,8 @@ module Cisco
         unless VxlanVtep.new(@name).host_reachability == 'evpn'
           fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
         end
+        Feature.nv_overlay_evpn_enable if
+        Feature.nv_overlay_evpn_supported? && !Feature.nv_overlay_evpn_enabled?
         config_set('vxlan_vtep', 'global_suppress_arp', set_args)
       else
         set_args[:state] = 'no'

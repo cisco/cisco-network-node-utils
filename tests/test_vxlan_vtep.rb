@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ class TestVxlanVtep < CiscoTestCase
     vdc_limit_f3_no_intf_needed(:set)
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
-    config_no_warn('nv overlay evpn')
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end
 
