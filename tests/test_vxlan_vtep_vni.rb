@@ -30,7 +30,6 @@ class TestVxlanVtepVni < CiscoTestCase
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
-    config_no_warn('nv overlay evpn')
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
   end

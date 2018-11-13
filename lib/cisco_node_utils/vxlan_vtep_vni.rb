@@ -268,6 +268,8 @@ module Cisco
         unless VxlanVtep.new(@name).host_reachability == 'evpn'
           fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
         end
+        Feature.nv_overlay_evpn_enable if
+        Feature.nv_overlay_evpn_supported? && !Feature.nv_overlay_evpn_enabled?
         config_set('vxlan_vtep_vni', 'suppress_arp_disable', @set_args)
       else
         set_args_keys(state: 'no')
