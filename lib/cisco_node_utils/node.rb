@@ -237,6 +237,11 @@ module Cisco
       @instance ||= new
     end
 
+    # Allow instance cache to be reset
+    def self.reset_instance
+      @instance = nil
+    end
+
     def initialize
       @client = Cisco::Client.create
       @cmd_ref = nil

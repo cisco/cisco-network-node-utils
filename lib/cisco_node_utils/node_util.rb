@@ -21,7 +21,7 @@ module Cisco
   # NodeUtil - generic functionality for node utility subclasses to use
   class NodeUtil
     def self.node
-      @node ||= Cisco::Node.instance
+      Cisco::Node.instance
     end
 
     def node
