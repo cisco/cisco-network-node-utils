@@ -1,6 +1,14 @@
 Changelog
 =========
 
+## [Unreleased]
+
+### Added
+  * `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.
+
+### Removed
+  * Removed cache in `node_util.node`, which gave every inheriting class it's own cache.
+
 ## [v1.10.0]
 
 ### New Cisco Resources
