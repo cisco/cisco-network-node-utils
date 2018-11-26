@@ -3,7 +3,7 @@
 #
 # November 2015 Michael G Wiebe
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -250,6 +250,37 @@ module Cisco
 
     def default_suppress_arp
       config_get_default('vxlan_vtep_vni', 'suppress_arp')
+    end
+
+    def suppress_arp_disable
+      # suppress_arp_disable is really a boolean kind, however,
+      # since the get is looking for a string with 'disable'
+      # we have to treat it as string first and then massage it
+      # to boolean
+      str = config_get('vxlan_vtep_vni', 'suppress_arp_disable', @get_args)
+      str.nil? ? false : true
+    end
+
+    def suppress_arp_disable=(state)
+      if state
+        set_args_keys(state: '')
+        # Host reachability must be enabled for this property
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
+        Feature.nv_overlay_evpn_enable if
+        Feature.nv_overlay_evpn_supported? && !Feature.nv_overlay_evpn_enabled?
+        config_set('vxlan_vtep_vni', 'suppress_arp_disable', @set_args)
+      else
+        set_args_keys(state: 'no')
+        # Remove suppress-arp-disable only if it is configured.
+        config_set('vxlan_vtep_vni', 'suppress_arp_disable', @set_args) if
+        suppress_arp_disable
+      end
+    end
+
+    def default_suppress_arp_disable
+      config_get_default('vxlan_vtep_vni', 'suppress_arp_disable')
     end
 
     def suppress_uuc

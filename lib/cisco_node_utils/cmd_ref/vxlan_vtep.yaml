@@ -12,6 +12,36 @@ all_interfaces:
   get_context: ~
   get_value: '/^interface (.*)$/'
 
+global_ingress_replication_bgp:
+  _exclude: [N3k-F, N5k, N6k, N7k, N9k-F]
+  os_version: 'N9k:9.2'
+  kind: boolean
+  get_value: '/^global ingress-replication protocol bgp$/'
+  set_value: '<state> global ingress-replication protocol bgp'
+  default_value: false
+
+global_mcast_group_l2:
+  _exclude: [N3k-F, N5k, N6k, N7k]
+  os_version: 'N9k, N9k-F:9.2'
+  get_value: '/^global mcast-group (\S+) L2$/'
+  set_value: '<state> global mcast-group <ip> L2'
+  default_value: ~
+
+global_mcast_group_l3:
+  _exclude: [N3k-F, N5k, N6k, N7k, N9k-F]
+  os_version: 'N9k:9.2'
+  get_value: '/^global mcast-group (\S+) L3$/'
+  set_value: '<state> global mcast-group <ip> L3'
+  default_value: ~
+
+global_suppress_arp:
+  _exclude: [N3k-F, N5k, N6k, N7k]
+  os_version: 'N9k, N9k-F:9.2'
+  kind: boolean
+  get_value: '/^global suppress-arp$/'
+  set_value: '<state> global suppress-arp'
+  default_value: false
+
 host_reachability:
   get_value: '/^host-reachability protocol (\S+)/'
   set_value: '<state> host-reachability protocol <proto>'

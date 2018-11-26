@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -235,6 +235,34 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
+  end
+
+  def test_suppress_arp_disable
+    skip_incompat_version?('vxlan_vtep_vni', 'suppress_arp_disable')
+    vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+
+    if validate_property_excluded?('vxlan_vtep_vni', 'suppress_arp_disable')
+      assert_raises(Cisco::UnsupportedError) { vni.suppress_arp_disable = true }
+      return
+    end
+
+    # Test: Check suppress_arp_disable is not configured.
+    refute(vni.suppress_arp_disable, 'suppress_arp_disable should be disabled')
+
+    begin
+      # Test: Enable suppress_arp_disable
+      vni.suppress_arp_disable = true
+      assert(vni.suppress_arp_disable, 'suppress_arp_disable should be enabled')
+    rescue CliError => e
+      msg = 'TCAM reconfiguration required followed by reload' \
+        " Skipping test case.\n#{e}"
+      skip(msg) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
+
+    # Test: Default
+    vni.suppress_arp_disable = vni.default_suppress_arp_disable
+    refute(vni.suppress_arp_disable, 'suppress_arp_disable should be disabled')
   end
 
   def test_suppress_uuc

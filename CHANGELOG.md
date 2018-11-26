@@ -3,11 +3,24 @@ Changelog
 
 ## [Unreleased]
 
+### New Cisco Resources
+
 ### Added
-  * `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.
+* `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.
+* Extend vxlan_vtep_vni with attribute:
+  * `suppress_arp_disable`
+* Extend vxlan_vtep with attributes:
+  * `global_suppress_arp`
+  * `global_ingress_replication_bgp`
+  * `global_mcast_group_l2`
+  * `global_mcast_group_l3`
 
 ### Removed
   * Removed cache in `node_util.node`, which gave every inheriting class it's own cache.
+
+### Changed
+
+### Removed
 
 ## [v1.10.0]
 
