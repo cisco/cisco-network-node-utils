@@ -309,7 +309,7 @@ module Cisco
     # match source-protocol tcp udp
     def match_src_proto
       str = config_get('route_map', 'match_src_proto', @get_args)
-      str.empty? ? default_match_src_proto : str.split
+      str.empty? ? default_match_src_proto : str.split.sort
     end
 
     def match_src_proto=(list)
