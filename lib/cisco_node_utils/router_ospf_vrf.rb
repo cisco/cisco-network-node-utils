@@ -41,11 +41,7 @@ module Cisco
       @router = router
       @name = name
       @parent = {}
-      if @name == 'default'
-        @get_args = @set_args = { name: @router }
-      else
-        @get_args = @set_args = { name: @router, vrf: @name }
-      end
+      set_args_keys_default
 
       create if instantiate
     end
@@ -86,6 +82,24 @@ module Cisco
     def delete_set_args_keys(list)
       list.each { |key| @set_args.delete(key) }
     end
+
+    #
+    # Helper methods to delete @set_args hash keys
+    #
+    def set_args_keys_default
+      keys = { name: @router }
+      keys[:vrf] = @name unless @name == 'default'
+      @get_args = @set_args = keys
+    end
+
+    def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
+      set_args_keys_default
+      @set_args = @get_args.merge!(hash) unless hash.empty?
+    end
+
+    ########################################################
+    #                      PROPERTIES                      #
+    ########################################################
 
     def auto_cost
       match = config_get('ospf', 'auto_cost', @get_args)
@@ -166,6 +180,36 @@ module Cisco
 
     def default_log_adjacency
       config_get_default('ospf', 'log_adjacency')
+    end
+
+    #
+    # Redistribute
+    #
+
+    # Build an array of all redistribute commands currently on the device
+    def redistribute
+      c = config_get('ospf', 'redistribute', @get_args)
+      c.nil? ? nil : c.each(&:compact!).sort
+    end
+
+    # redistribute setter.
+    # Process a hash of redistribute commands from delta_add_remove().
+    def redistribute=(should)
+      delta_hash = Utils.delta_add_remove(should, redistribute)
+      return if delta_hash.values.flatten.empty?
+      [:add, :remove].each do |action|
+        Cisco::Logger.debug("redistribute delta #{@get_args}\n #{action}: " \
+                            "#{delta_hash[action]}")
+        delta_hash[action].each do |protocol, route_map|
+          state = (action == :add) ? '' : 'no'
+          set_args_keys(state: state, protocol: protocol, route_map: route_map)
+          config_set('ospf', 'redistribute', @set_args)
+        end
+      end
+    end
+
+    def default_redistribute
+      config_get_default('ospf', 'redistribute')
     end
 
     def router_id
