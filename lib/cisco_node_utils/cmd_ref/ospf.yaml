@@ -39,6 +39,13 @@ process_initialized:
   get_command: "show ip ospf stat"
   get_value: '/^No SAP is registered/' # Ospf is not initialized when seen
 
+redistribute:
+  # no support yet for redistribute maximum-prefix
+  multiple: true
+  get_value: '/^redistribute (\S+ ?\S+?) route-map (\S+)$/'
+  set_value: '<state> redistribute <protocol> route-map <route_map>'
+  default_value: []
+
 router:
   multiple: true
   get_command: "show running ospf"

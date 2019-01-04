@@ -6,6 +6,8 @@ Changelog
 ### New Cisco Resources
 
 ### Added
+* Extend router_ospf_vrf with attribute:
+   * `redistribute`
 * `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.
 * Extend vxlan_vtep_vni with attribute:
   * `suppress_arp_disable`

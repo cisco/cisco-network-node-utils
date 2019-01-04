@@ -32,6 +32,67 @@ class TestRouterOspfVrf < CiscoTestCase
     super
   end
 
+  def test_redistribute
+    routers = %w(alpha beta)
+    vrfs = %w(default zed)
+    routers.each do |rtr|
+      vrfs.each do |vrf|
+        dbg = sprintf('[RTR %s VRF %s]', rtr, vrf)
+        af = RouterOspfVrf.new(rtr, vrf)
+        redistribute_cmd(af, dbg)
+      end
+    end
+  end
+
+  def redistribute_cmd(af, dbg)
+    # rubocop:disable Style/WordArray
+    # Initial 'should' state
+    master = [['direct',  'rm_direct'],
+              ['lisp',    'rm_lisp'],
+              ['static',  'rm_static'],
+              ['eigrp 1', 'rm_eigrp'],
+              ['isis 2',  'rm_isis'],
+              ['ospf 3',   'rm_ospf'],
+              ['rip 4',   'rm_rip'],
+              ['bgp 5',   'rm_bgp']]
+    # rubocop:enable Style/WordArray
+
+    # Test: Add all protocols w/route-maps when no cmds are present
+    should = master.clone
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 1. From empty, to all protocols")
+
+    # Test: remove half of the protocols
+    should.shift(4)
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 2. Remove half of the protocols")
+
+    # Test: restore the removed protocols
+    should = master.clone
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 3. Restore the removed protocols")
+
+    # Test: Change route-maps on existing commands
+    should = master.map { |prot_only, rm| [prot_only, "#{rm}_2"] }
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 4. Change route-maps on existing commands")
+
+    # Test: 'default'
+    should = af.default_redistribute
+    af.redistribute = should
+    result = af.redistribute
+    assert_equal(should.sort, result.sort,
+                 "#{dbg} Test 5. 'Default'")
+  end
+
   def assert_match_vrf_line(routername, vrfname, cmd=nil)
     match_vrf_line(routername, vrfname, cmd, true)
   end
