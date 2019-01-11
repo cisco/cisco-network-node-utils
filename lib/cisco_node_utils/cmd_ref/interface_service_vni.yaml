@@ -11,6 +11,11 @@ _template:
     - 'interface <name>'
     - 'service instance <sid> vni'
 
+all_interfaces:
+  multiple:
+  get_context: ~
+  get_value: '/^interface (.*)/'
+
 all_service_vni_ids:
   multiple:
   get_context:

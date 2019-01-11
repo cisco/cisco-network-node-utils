@@ -36,7 +36,7 @@ module Cisco
 
     def self.svc_vni_ids
       hash = {}
-      intf_list = config_get('interface', 'all_interfaces')
+      intf_list = config_get('interface_service_vni', 'all_interfaces')
       return hash if intf_list.nil?
 
       intf_list.each do |intf|
