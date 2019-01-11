@@ -12,25 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace for Cisco-specific code
-module Cisco
-  # Namespace for Cisco Client shim
-  class Client
-  end
+require_relative 'client'
+
+# Fail gracefully if submodule dependencies are not met
+begin
+  require 'net/ssh/telnet'
+rescue LoadError => e
+  raise unless e.message =~ /-- net\/ssh\/telnet/
+  # If grpc is not installed, raise an error that client understands.
+  raise LoadError, "Unable to load net/ssh/telnet -- #{e}"
 end
 
-require_relative 'client/client'
-
-# Try to load known extensions
-extensions = ['client/ssh',
-              'client/nxapi',
-              'client/grpc',
-             ]
-extensions.each do |ext|
-  begin
-    require_relative ext
-  rescue LoadError => e
-    # ignore missing client-(grpc|nxapi), they're not always required
-    raise unless e.message =~ /#{Regexp.escape(ext)}/
-  end
+# Namespace for Cisco SSH specific code
+class Cisco::Client::SSH < Cisco::Client
 end
+
+# Auto-load all Ruby files in the subdirectory
+Dir.glob(__dir__ + '/ssh/*.rb') { |file| require file }
