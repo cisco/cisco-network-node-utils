@@ -6,6 +6,9 @@ Changelog
 ### New Cisco Resources
 
 ### Added
+* Extend nxapi client for https support
+   * `use_ssl` will be true when `transport` is `https`
+   * now makes use of `port` for custom nxapi ports
 * Extend router_ospf_vrf with attribute:
    * `redistribute`
 * `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.

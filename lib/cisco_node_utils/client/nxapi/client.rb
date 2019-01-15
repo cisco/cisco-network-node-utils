@@ -2,7 +2,7 @@
 #
 # November 2014, Glenn F. Matthews
 #
-# Copyright (c) 2014-2016 Cisco and/or its affiliates.
+# Copyright (c) 2014-2019 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,7 +60,11 @@ class Cisco::Client::NXAPI < Cisco::Client
     else
       # Remote connection. This is primarily expected
       # when running e.g. from a Unix server as part of Minitest.
-      @http = Net::HTTP.new(@host)
+      @transport = kwargs[:transport] || 'http'
+      @verify_mode = kwargs[:verify_mode] || 'none'
+      @port.nil? ? @port = '' : @port = ":#{@port}"
+      uri = URI.parse("#{@transport}://#{@host}#{@port}")
+      @http = Net::HTTP.new(uri.host, uri.port)
     end
     # The default read time out is 60 seconds, which may be too short for
     # scaled configuration to apply. Change it to 300 seconds, which is
@@ -205,14 +209,18 @@ class Cisco::Client::NXAPI < Cisco::Client
     request = build_http_request(type, command)
 
     # send the request and get the response
-    debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
+    debug("Sending #{@transport} request to NX-API at #{@http.address}:\n" \
           "#{request.to_hash}\n#{request.body}")
     read_timeout_check(request)
     tries = 2
     begin
-      # Explicitly use http to avoid EOFError
-      # http://stackoverflow.com/a/23080693
-      @http.use_ssl = false
+      if @transport == 'https'
+        debug('Setting use_ssl to true')
+        @http.use_ssl = true
+        @http.verify_mode = handle_verify_mode(@verify_mode)
+      else
+        @http.use_ssl = false
+      end
       response = @http.request(request)
     rescue Errno::ECONNREFUSED, Errno::ECONNRESET
       emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
@@ -267,6 +275,32 @@ class Cisco::Client::NXAPI < Cisco::Client
     request
   end
   private :build_http_request
+
+  # Returns the OpenSSL verify mode based on the verify_mode arguments
+  #
+  # @raise if verify_mode param is not `peer`, `client-once`, `fail-no-peer`
+  #        or `none`
+  #
+  # @param String verify mode to use
+  #
+  # @return OpenSSL::SSL verification mode
+  def handle_verify_mode(verify_mode)
+    case verify_mode
+    when 'peer'
+      OpenSSL::SSL::VERIFY_PEER
+    when 'client-once'
+      OpenSSL::SSL::VERIFY_CLIENT_ONCE
+    when 'fail-no-peer'
+      OpenSSL::SSL::VERIFY_FAIL_IF_NO_PEER_CERT
+    when 'none'
+      OpenSSL::SSL::VERIFY_NONE
+    else
+      fail "#{verify_mode} is not a valid mode, " \
+            'valid modes are: "none", "peer", ' \
+            '"client-once", "fail-no-peer"'
+    end
+  end
+  private :handle_verify_mode
 
   def handle_http_response(response)
     debug("HTTP Response: #{response.message}\n#{response.body}")
