@@ -331,7 +331,7 @@ class TestBgpAF < CiscoTestCase
 
     # Validate the collection
     routers.each do |asn, vrfs|
-      assert((asn.kind_of? Fixnum),
+      assert((asn.kind_of? Integer),
              'Error: Autonomous number must be a fixed number')
       refute_empty(vrfs, 'Error: Collection is empty')
 

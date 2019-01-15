@@ -21,6 +21,7 @@ Changelog
   * Removed cache in `node_util.node`, which gave every inheriting class it's own cache.
 
 ### Changed
+  * Removed deprecated `Fixnum` and set minimum Ruby version to 2.4.1
 
 ### Removed
 

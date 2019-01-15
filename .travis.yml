@@ -4,11 +4,12 @@ sudo: false
 language: ruby
 cache: bundler
 rvm:
-  - 2.2.2
-  - 2.1.6
-  - 2.0.0-p648 # specify non-clang version of ruby
+  - 2.5.1
+  - 2.4.4
+  - 2.4.1
 before_install:
- - gem install bundler -v '< 2'
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
 
 script:
  - bundle exec rake

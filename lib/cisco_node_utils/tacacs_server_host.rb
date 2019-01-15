@@ -156,7 +156,7 @@ module Cisco
     end
 
     def encryption_key_set(enctype, password)
-      fail TypeError unless enctype.is_a? Fixnum
+      fail TypeError unless enctype.is_a? Integer
       fail ArgumentError if password && ![TACACS_SERVER_ENC_NONE,
                                           TACACS_SERVER_ENC_CISCO_TYPE_7,
                                           TACACS_SERVER_ENC_UNKNOWN,
@@ -195,7 +195,7 @@ module Cisco
     end
 
     def timeout=(t)
-      fail TypeError unless t.is_a? Fixnum
+      fail TypeError unless t.is_a? Integer
       return if t == timeout
 
       config_set('tacacs_server_host',
