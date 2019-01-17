@@ -170,6 +170,9 @@ class TestBgpAF < CiscoTestCase
       # triggers a version check below.
       if expect == :runtime
         case Platform.image_version
+        when /7\.3/
+          expect = :success if test == :additional_paths_send ||
+                               test == :additional_paths_receive
         when /8.0|8.1|8.2|8.3|F3.2/
           expect = :success
           expect = :runtime if test == :additional_paths_receive && Platform.image_version[/8.0|8.1/]
