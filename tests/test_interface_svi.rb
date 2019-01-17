@@ -195,7 +195,7 @@ class TestSvi < CiscoTestCase
 
   def test_sys_def_svi_autostate
     skip_autostate_test?
-    skip_legacy_defect?('8.0.1|8.1.1', 'CSC: Behavior change after helsinki')
+    skip_legacy_defect?('8.0.1|8.1.1|8\.3', 'CSC: Behavior change after helsinki')
     interface = Interface.new(interfaces[0])
 
     system_default_svi_autostate('no ')
