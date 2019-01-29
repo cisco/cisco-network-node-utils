@@ -66,7 +66,7 @@ class TestRadiusGlobal < CiscoTestCase
                  2)
 
     if platform == :nexus
-      key = '44444444'
+      key = '44444444 72'
       global.key_set(key, nil)
       assert_match(/#{key}/, global.key)
       assert_match(/#{key}/, Cisco::RadiusGlobal.radius_global[id].key)
