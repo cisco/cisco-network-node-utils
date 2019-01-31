@@ -79,8 +79,7 @@ module Cisco
       return nil unless Feature.tacacs_enabled?
       str = config_get('tacacs_global', 'key')
       return TacacsGlobal.default_key if str.empty?
-      str = str[1].strip
-      Utils.add_quotes(str)
+      str[1].strip.gsub(/\"/, '')
     end
 
     # Get default encryption password
