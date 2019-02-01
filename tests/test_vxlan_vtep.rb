@@ -268,7 +268,11 @@ class TestVxlanVtep < CiscoTestCase
     refute(vtep.global_suppress_arp, 'global_suppress_arp should be disabled')
 
     # Test: Enable global_suppress_arp
-    vtep.global_suppress_arp = true
+    begin
+      vtep.global_suppress_arp = true
+    rescue CliError => e
+      skip(e.to_s) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
     assert(vtep.global_suppress_arp, 'global_suppress_arp should be enabled')
     # Test: Default
     vtep.global_suppress_arp = vtep.default_global_suppress_arp
@@ -303,7 +307,13 @@ class TestVxlanVtep < CiscoTestCase
     skip_incompat_version?('vxlan_vtep', 'global_mcast_group_l3')
 
     assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
-    vtep.global_mcast_group_l3 = '225.1.1.1'
+
+    begin
+      # global_mcast_group_l3 is only supported on certain vxlan capable N9ks
+      vtep.global_mcast_group_l3 = '225.1.1.1'
+    rescue CliError => e
+      skip(e.to_s) if /TRM not supported on this platform/.match(e.to_s)
+    end
     assert_equal('225.1.1.1', vtep.global_mcast_group_l3)
     vtep.global_mcast_group_l3 = vtep.default_global_mcast_group_l3
     assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
