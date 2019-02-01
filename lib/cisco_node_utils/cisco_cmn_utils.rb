@@ -370,7 +370,7 @@ module Cisco
     end # merge_range
 
     def self.add_quotes(value)
-      return value if image_version?(/7.3.[0-1]/)
+      return value if image_version?(/7.3.[0-1]/) || value.nil?
       value = "'#{value}'" unless
         value.start_with?('"', "'") && value.end_with?('"', "'")
       value
