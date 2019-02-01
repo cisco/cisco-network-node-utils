@@ -66,8 +66,8 @@ class TestRadiusGlobal < CiscoTestCase
                  2)
 
     if platform == :nexus
-      key = '44444444'
-      global.key_set(key, nil)
+      key = 'aaaAAAGGTTYTYY 44444444 72'
+      global.key_set(key, 7)
       assert_match(/#{key}/, global.key)
       assert_match(/#{key}/, Cisco::RadiusGlobal.radius_global[id].key)
       assert_equal(7, global.key_format)
@@ -93,6 +93,7 @@ class TestRadiusGlobal < CiscoTestCase
     assert_nil(global.key)
 
     # Default source interface
+    global.source_interface = global.default_source_interface
     assert_nil(global.source_interface)
 
     # Set source interface

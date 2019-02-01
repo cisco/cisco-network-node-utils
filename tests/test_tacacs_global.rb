@@ -76,7 +76,6 @@ class TestTacacsGlobal < CiscoTestCase
     # Device encypts key - verify return value
     assert_equal(7, global.key_format)
     key = 'WAWY_NZB'
-    key = "\"#{key}\"" unless Platform.image_version[/7\.3/]
     assert_equal(key, global.key)
 
     skip_versions = ['7.0.3.(I2|I3)', '7.0.3.I4.[1-7]']
@@ -88,7 +87,6 @@ class TestTacacsGlobal < CiscoTestCase
       global.encryption_key_set(key_format, key)
       assert_equal(key_format, global.key_format)
 
-      key = "\"#{key}\"" unless Platform.image_version[/7\.3/]
       assert_equal(key, global.key)
     end
 
