@@ -172,7 +172,6 @@ module Cisco
 
     def ipv4_src_intf
       intf = config_get('dhcp_relay_global', 'ipv4_src_intf')
-      # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
     end
