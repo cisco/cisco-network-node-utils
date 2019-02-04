@@ -12,6 +12,7 @@ mapping:
           - 'ios_xr'
           - 'nexus'
           # Product IDs
+          - 'C3048'
           - 'C3064'
           - 'C3132'
           - 'C3172'
@@ -31,6 +32,7 @@ mapping:
       # Platform and product filters
       ios_xr: *base
       nexus: *base
+      C3048: *base
       C3064: *base
       C3132: *base
       C3172: *base

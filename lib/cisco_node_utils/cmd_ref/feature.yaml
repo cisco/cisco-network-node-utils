@@ -32,7 +32,7 @@ fabric_forwarding:
   set_value: "feature fabric forwarding"
 
 fex:
-  _exclude: [C3064, C3132, N5k, N6k, N3k-F, N9k-F]
+  _exclude: [C3048, C3064, C3132, N5k, N6k, N3k-F, N9k-F]
   get_command: "show feature-set"
   get_value: '/^fex[\s\d]+(\w+)/'
   set_value: "<state> feature-set fex"
