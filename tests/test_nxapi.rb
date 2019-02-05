@@ -161,7 +161,7 @@ class TestNxapi < CiscoTestCase
     cmd = { command:     'show snmp internal globals',
             data_format: :nxapi_structured }
     if @product_id[/N(5|6)/]
-      assert_empty(client.get(cmd))
+      assert_empty(client.get(cmd).to_s)
     else
       assert_raises(Cisco::RequestNotSupported) { client.get(cmd) }
     end
