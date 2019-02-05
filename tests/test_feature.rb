@@ -84,6 +84,8 @@ class TestFeature < CiscoTestCase
 
     # Return testbed to pre-clean state
     config("no feature #{feat_str}") unless pre_clean_enabled
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   ###################
