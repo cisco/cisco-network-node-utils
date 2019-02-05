@@ -156,6 +156,7 @@ class CiscoTestCase < TestCase
   def hardware_supports_feature?(message)
     patterns = ['Hardware is not capable of supporting',
                 'is unsupported on this node',
+                'Feature NOT supported on this Platform',
                ]
     skip('Skip test: Feature is unsupported on this device') if
       message[Regexp.union(patterns)]

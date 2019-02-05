@@ -183,7 +183,8 @@ module Cisco
     def self.nv_overlay_enable
       # Note: vdc platforms restrict this feature to F3 or newer linecards
       return if nv_overlay_enabled?
-      config_set('feature', 'nv_overlay', state: '')
+      result = config_set('feature', 'nv_overlay', state: '')
+      cli_error_check(result)
       sleep 1
     end
 
@@ -311,14 +312,18 @@ module Cisco
       # instead just displays a STDOUT error message; thus NXAPI does not detect
       # the failure and we must catch it by inspecting the "body" hash entry
       # returned by NXAPI. This cli behavior is unlikely to change soon.
+      patterns = [
+        'Hardware is not capable of supporting',
+        'is unsupported on this node',
+        'Feature NOT supported on this Platform'
+      ]
       fail result[2]['body'] if
         result[2].is_a?(Hash) &&
-        /Hardware is not capable of supporting/.match(result[2]['body'].to_s)
+        result[2]['body'].to_s[Regexp.union(patterns)]
 
       # Some test environments get result as a string instead of a hash
       fail result if
-        result.is_a?(String) &&
-        /Hardware is not capable of supporting/.match(result)
+        result.is_a?(String) && result[Regexp.union(patterns)]
     end
 
     # ---------------------------
