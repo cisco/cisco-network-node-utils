@@ -315,7 +315,7 @@ module Cisco
       patterns = [
         'Hardware is not capable of supporting',
         'is unsupported on this node',
-        'Feature NOT supported on this Platform'
+        'Feature NOT supported on this Platform',
       ]
       fail result[2]['body'] if
         result[2].is_a?(Hash) &&
