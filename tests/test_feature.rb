@@ -185,7 +185,7 @@ class TestFeature < CiscoTestCase
       config_no_warn('no feature nv overlay')
       vdc_limit_f3_no_intf_needed(:set)
     end
-    Feature.vni_enable
+    feature('vni')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
