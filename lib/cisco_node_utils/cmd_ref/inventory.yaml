@@ -41,5 +41,5 @@ versionid:
   nexus:
     get_value: ["name \"Chassis\"", "vendorid"]
   N5k: &vendorid5k
-    get_value: ["name Chassis", "serialnum"]
+    get_value: ["name Chassis", "vendorid"]
   N6k: *vendorid5k

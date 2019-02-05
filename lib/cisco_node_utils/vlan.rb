@@ -229,7 +229,7 @@ module Cisco
       Feature.vn_segment_vlan_based_enable
       # Remove the existing mapping first as cli doesn't support overwriting.
       config_set('vlan', 'mapped_vni', vlan: @vlan_id,
-                         state: 'no', vni: vni)
+                         state: 'no', vni: vni) unless mapped_vni.to_s.empty?
       # Configure the new mapping
       state = vni == default_mapped_vni ? 'no' : ''
       config_set('vlan', 'mapped_vni', vlan: @vlan_id,
