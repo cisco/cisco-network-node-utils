@@ -178,14 +178,14 @@ class TestFeature < CiscoTestCase
   end
 
   def test_vni
-    if node.product_id[/N(5|6)/]
-      Feature.nv_overlay_enable
-    else
+    # 7k: 'feature vni'; All others: 'feature vn-segment-vlan-based'.
+    # Dependencies: 5/6k: feature-set fabricpath; 3/9k: feature nv overlay
+    if node.product_id[/N7/]
       # vni can't be removed if nv overlay is present
       config_no_warn('no feature nv overlay')
       vdc_limit_f3_no_intf_needed(:set)
     end
-    feature('vni')
+    Feature.vni_enable
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
