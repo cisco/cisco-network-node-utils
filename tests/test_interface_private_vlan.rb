@@ -196,6 +196,9 @@ class TestInterfacePVlan < CiscoTestCase
   end
 
   def test_sw_pvlan_trunk_association
+    # N6k trunk association does not update primary-secondary associations automatically
+    skip('Test behavior not supported on device') if node.product_id[/N(5|6)/]
+
     # Supports multiple instances of [[pri, sec], [pri2, sec2]]
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_trunk_association')
@@ -254,6 +257,9 @@ class TestInterfacePVlan < CiscoTestCase
   end
 
   def test_sw_pvlan_mapping_trunk
+    # N6k mapping trunk does not update primary-secondary associations automatically
+    skip('Test behavior not supported on device') if node.product_id[/N(5|6)/]
+
     if validate_property_excluded?('interface',
                                    'switchport_pvlan_mapping_trunk')
       assert_raises(Cisco::UnsupportedError) do
@@ -269,7 +275,6 @@ class TestInterfacePVlan < CiscoTestCase
     assert_equal([['2', '4-8,10-11']], i.switchport_pvlan_mapping_trunk)
 
     # Same primary, but change range
-
     i.switchport_pvlan_mapping_trunk = ['2', '11,4-6,8']
     assert_equal([['2', '4-6,8,11']], i.switchport_pvlan_mapping_trunk)
 

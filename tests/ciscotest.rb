@@ -214,6 +214,12 @@ class CiscoTestCase < TestCase
       Gem::Version.new(lim) < Gem::Version.new(ver)
   end
 
+  def skip_if_UnsupportedCmdRef(feature_name, attribute_name) # rubocop:disable Style/MethodName
+    # Check if attr is excluded by the cmd_ref yaml
+    skip("UnsupportedCmdRef attribute: '#{attribute_name}'") if
+      cmd_ref.lookup(feature_name, attribute_name).is_a?(UnsupportedCmdRef)
+  end
+
   def skip_nexus_i2_image?
     skip("This property is not supported on Nexus 'I2' images") if
       Utils.nexus_i2_image
