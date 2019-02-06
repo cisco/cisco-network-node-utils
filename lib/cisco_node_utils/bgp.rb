@@ -827,7 +827,7 @@ module Cisco
       # explicit values when removing the rd command. These restrictions are
       # not not needed in I3 and newer images.
       Feature.nv_overlay_evpn_enable if
-        Utils.nexus_i2_image || node.product_id[/N7/]
+        Utils.nexus_i2_image || node.product_id[/N[567]/]
 
       if rd == default_route_distinguisher
         return if route_distinguisher.empty?
