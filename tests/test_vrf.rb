@@ -222,6 +222,8 @@ class TestVrf < CiscoTestCase
     assert_empty(v.route_distinguisher,
                  'v route_distinguisher should *NOT* be configured')
     v.destroy
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def test_vpn_id
