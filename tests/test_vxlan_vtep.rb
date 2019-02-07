@@ -24,9 +24,11 @@ include Cisco
 class TestVxlanVtep < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+  @@feature_unsupported = false # rubocop:disable Style/ClassVars
 
   def setup
     super
+    skip('setup: Feature is unsupported on this device') if @@feature_unsupported
     skip('Platform does not support MT-full or MT-lite') unless
       VxlanVtep.mt_full_support || VxlanVtep.mt_lite_support
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
@@ -34,6 +36,10 @@ class TestVxlanVtep < CiscoTestCase
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  rescue RuntimeError => e
+    # Skip locally to shortcut the dependencies above for the next test
+    @@feature_unsupported = hardware_supports_feature?(e.message, status_only: true) # rubocop:disable Style/ClassVars
+    @@feature_unsupported ? skip(e.message) : raise(e.message)
   end
 
   def teardown
