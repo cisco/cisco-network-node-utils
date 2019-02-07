@@ -153,13 +153,16 @@ class CiscoTestCase < TestCase
   # Some NXOS hardware is not capable of supporting certain features even
   # though the platform family in general includes support. In these cases
   # the NU feature setter will raise a RuntimeError.
-  def hardware_supports_feature?(message)
+  # Default behavior is to skip/flunk.
+  def hardware_supports_feature?(message, status_only: false)
     patterns = ['Hardware is not capable of supporting',
                 'is unsupported on this node',
                 'Feature NOT supported on this Platform',
                ]
-    skip('Skip test: Feature is unsupported on this device') if
-      message[Regexp.union(patterns)]
+    if message[Regexp.union(patterns)]
+      return true if status_only
+      skip('Skip test: Feature is unsupported on this device')
+    end
     flunk(message)
   end
 

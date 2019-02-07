@@ -23,15 +23,21 @@ include Cisco
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+  @@feature_unsupported = false # rubocop:disable Style/ClassVars
 
   def setup
     super
+    skip('setup: Feature is unsupported on this device') if @@feature_unsupported
     vdc_limit_f3_no_intf_needed(:set) if VxlanVtep.mt_full_support
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  rescue RuntimeError => e
+    # Skip locally to shortcut the dependencies above for the next test
+    @@feature_unsupported = hardware_supports_feature?(e.message, status_only: true) # rubocop:disable Style/ClassVars
+    @@feature_unsupported ? skip(e.message) : raise(e.message)
   end
 
   def teardown
