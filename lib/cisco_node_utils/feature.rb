@@ -80,6 +80,27 @@ module Cisco
       config_get('feature', 'fabric')
     end
 
+    # ---------------------------
+    def self.fabricpath_enable
+      # install feature-set and enable it
+      return if fabricpath_enabled?
+      config_set('feature', 'fabricpath', state: 'install') unless
+        fabricpath_installed?
+      config_set('feature', 'fabricpath', state: '')
+    end
+
+    def self.fabricpath_enabled?
+      config_get('feature', 'fabricpath') =~ /^enabled/
+    end
+
+    def self.fabricpath_installed?
+      config_get('feature', 'fabricpath') !~ /^uninstalled/
+    end
+
+    def self.fabricpath_supported?
+      config_get('feature', 'fabricpath')
+    end
+
     #  ---------------------------
     def self.fabric_forwarding_enable
       return if fabric_forwarding_enabled?
