@@ -143,8 +143,7 @@ module Cisco
     def encryption_password
       str = config_get('tacacs_server', 'encryption_password')
       return TacacsServer.default_encryption_password if str.empty?
-      str = str[1].strip
-      Utils.add_quotes(str)
+      str[1].strip
     end
 
     # Get default encryption password
