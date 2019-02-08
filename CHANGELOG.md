@@ -25,8 +25,6 @@ Changelog
 
 ### Changed
 
-### Removed
-
 ## [v1.10.0]
 
 ### New Cisco Resources
