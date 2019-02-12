@@ -597,7 +597,11 @@ class TestInterfaceOspf < CiscoTestCase
           msg:     "Error: ip router ospf #{name} area #{hv[:area]} "\
                    "not found under #{ifname}")
 
-        assert_equal(hv[:bfd], interface.bfd, 'Error: get bfd failed')
+        if hv[:bfd].nil?
+          assert_nil(interface.bfd, 'Error: get bfd is not nil')
+        else
+          assert_equal(hv[:bfd], interface.bfd, 'Error: get bfd failed')
+        end
         assert_equal(hv[:cost], interface.cost, 'Error: get cost failed')
         assert_equal(hv[:hello], interface.hello_interval,
                      'Error: get hello interval failed')
