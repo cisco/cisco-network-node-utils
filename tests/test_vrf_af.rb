@@ -210,6 +210,8 @@ class TestVrfAf < CiscoTestCase
     should = v.default_route_target_import
     route_target_tester(v, af, opts, should, 'Test 4')
     v.destroy
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   def route_target_tester(v, af, opts, should, test_id)

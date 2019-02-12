@@ -21,7 +21,7 @@ bfd:
   # no config at all so need to grab the optional
   # match to get the whole config for checking
   # the mode
-  get_value: '/^\s*ip ospf bfd *(?:\S+)?$/'
+  get_value: '/^\s*ip ospf bfd *(?:\S*)$/'
   set_value: '%s ip ospf bfd %s'
   default_value: ~
 
