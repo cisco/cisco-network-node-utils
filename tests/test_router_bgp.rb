@@ -55,7 +55,8 @@ def setup_default
 end
 
 def setup_vrf
-  @asnum = 99
+  # nexus does not support multiple BGP instances; VRF AS must be same as default AS
+  @asnum = platform == :nexus ? 55 : 99
   @vrf = 'yamllll'
   create_bgp_vrf(@asnum, @vrf)
 end
@@ -256,24 +257,18 @@ class TestRouterBgp < CiscoTestCase
   end
 
   def test_nsr
+    skip_if_UnsupportedCmdRef('bgp', 'nsr')
     nsr(setup_default)
     nsr(setup_vrf)
   end
 
   def nsr(bgp)
-    if (platform == :nexus) || (platform == :ios_xr && !@vrf[/default/])
-      if platform == :nexus
-        assert_nil(bgp.default_nsr,
-                   'default bgp nsr should be nil on Nexus')
-        assert_nil(bgp.nsr,
-                   'bgp nsr should be nil on Nexus')
-      else
-        assert_nil(bgp.default_nsr,
-                   'default bgp nsr should return nil on XR with non-default' \
-                   ' vrf')
-        assert_nil(bgp.nsr,
-                   'bgp nsr should return nil on XR with non-default vrf')
-      end
+    if platform == :ios_xr && !@vrf[/default/]
+      assert_nil(bgp.default_nsr,
+                 'default bgp nsr should return nil on XR with non-default' \
+                 ' vrf')
+      assert_nil(bgp.nsr,
+                 'bgp nsr should return nil on XR with non-default vrf')
       assert_raises(Cisco::UnsupportedError) do
         bgp.nsr = true
       end
@@ -1100,6 +1095,7 @@ class TestRouterBgp < CiscoTestCase
       assert_nil(bgp.reconnect_interval,
                  'reconnect_interval should return nil on XR')
     else
+      skip_if_UnsupportedCmdRef('bgp', 'reconnect_interval')
       skip_incompat_version?('bgp', 'reconnect_interval')
       assert_equal(bgp.default_reconnect_interval, bgp.reconnect_interval,
                    "reconnect_interval should be set to default value of '60'")

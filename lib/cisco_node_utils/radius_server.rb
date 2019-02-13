@@ -372,8 +372,7 @@ module Cisco
       return if val.nil? || val.empty?
       index = val.index('auth-port')
       val = val[0..index - 2] unless index.nil?
-      val = val.strip
-      Utils.add_quotes(val)
+      val.strip
     end
 
     def key_set(value, format)

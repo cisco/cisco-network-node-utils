@@ -84,6 +84,8 @@ class TestFeature < CiscoTestCase
 
     # Return testbed to pre-clean state
     config("no feature #{feat_str}") unless pre_clean_enabled
+  rescue RuntimeError => e
+    hardware_supports_feature?(e.message)
   end
 
   ###################
@@ -171,20 +173,22 @@ class TestFeature < CiscoTestCase
 
   def test_vn_segment_vlan_based
     vxlan_linecard?
-    Feature.nv_overlay_enable unless node.product_id[/N3/]
+    Feature.fabricpath_enable if node.product_id[/N(5|6)/]
+    Feature.nv_overlay_enable unless node.product_id[/N(3|5|6)/]
     feature('vn_segment_vlan_based')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
   end
 
   def test_vni
-    if node.product_id[/N(5|6)/]
-      Feature.nv_overlay_enable
-    else
+    # 7k: 'feature vni'; All others: 'feature vn-segment-vlan-based'.
+    # Dependencies: 5/6k: feature-set fabricpath; 3/9k: feature nv overlay
+    if node.product_id[/N7/]
       # vni can't be removed if nv overlay is present
       config_no_warn('no feature nv overlay')
       vdc_limit_f3_no_intf_needed(:set)
     end
+    Feature.fabricpath_enable if node.product_id[/N(5|6)/]
     feature('vni')
   rescue RuntimeError => e
     hardware_supports_feature?(e.message)
@@ -218,6 +222,28 @@ class TestFeature < CiscoTestCase
 
     Feature.fabric_enable
     assert(Feature.fabric_enabled?, "(#{fs}) is not enabled")
+  end
+
+  def test_feature_set_fabricpath
+    if node.product_id[/N(3|8|9)/]
+      assert_nil(Feature.fabricpath_enabled?)
+      assert_raises(Cisco::UnsupportedError) { Feature.fabricpath_enable }
+      return
+    end
+    vdc_limit_f3_no_intf_needed(:set)
+    fs = 'feature-set fabricpath'
+    # Get current state of the feature-set
+    feature_set_installed = Feature.fabricpath_installed?
+
+    config("no #{fs} ; no install #{fs}") if feature_set_installed
+    refute_show_match(
+      command: "show running | i '^install #{fs}$'",
+      pattern: /^install #{fs}$/,
+      msg:     "(#{fs}) is still configured",
+    )
+
+    Feature.fabricpath_enable
+    assert(Feature.fabricpath_enabled?, "(#{fs}) is not enabled")
   end
 
   def test_feature_set_fex

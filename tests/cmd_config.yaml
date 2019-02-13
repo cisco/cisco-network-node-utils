@@ -12,7 +12,6 @@ nexus:
             feature hsrp
             feature lacp
             feature dhcp
-            feature vtp
 
   feature-disable:
     command: |
@@ -25,7 +24,6 @@ nexus:
             no feature hsrp
             no feature lacp
             no feature dhcp
-            no feature vtp
     nvgen: false
 
   feature-snmp-comm-acl-ro:

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ include Cisco
 class TestVxlanVtep < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+  @@feature_unsupported = false # rubocop:disable Style/ClassVars
 
   def setup
     super
+    skip('setup: Feature is unsupported on this device') if @@feature_unsupported
     skip('Platform does not support MT-full or MT-lite') unless
       VxlanVtep.mt_full_support || VxlanVtep.mt_lite_support
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
@@ -34,6 +36,10 @@ class TestVxlanVtep < CiscoTestCase
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  rescue RuntimeError => e
+    # Skip locally to shortcut the dependencies above for the next test
+    @@feature_unsupported = hardware_supports_feature?(e.message, status_only: true) # rubocop:disable Style/ClassVars
+    @@feature_unsupported ? skip(e.message) : raise(e.message)
   end
 
   def teardown
@@ -231,5 +237,91 @@ class TestVxlanVtep < CiscoTestCase
     val = vtep.default_source_interface_hold_down_time
     vtep.source_interface_hold_down_time = val
     assert_equal(val, vtep.source_interface_hold_down_time)
+  end
+
+  def test_global_ingress_replication_bgp
+    skip_incompat_version?('vxlan_vtep', 'global_ingress_replication_bgp')
+
+    vtep = VxlanVtep.new('nve1')
+    vtep.host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep', 'global_ingress_replication_bgp')
+      assert_raises(Cisco::UnsupportedError) { vtep.global_ingress_replication_bgp = true }
+      return
+    end
+
+    # Test: Check global_ingress_replication_bgp is not configured.
+    refute(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be disabled')
+
+    # Test: Enable global_ingress_replication_bgp
+    vtep.global_ingress_replication_bgp = true
+    assert(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be enabled')
+    # Test: Default
+    vtep.global_ingress_replication_bgp = vtep.default_global_ingress_replication_bgp
+    refute(vtep.global_ingress_replication_bgp, 'global_ingress_replication_bgp should be disabled')
+  end
+
+  def test_global_suppress_arp
+    skip_incompat_version?('vxlan_vtep', 'global_suppress_arp')
+
+    vtep = VxlanVtep.new('nve1')
+    vtep.host_reachability = 'evpn'
+    if validate_property_excluded?('vxlan_vtep', 'global_suppress_arp')
+      assert_raises(Cisco::UnsupportedError) { vtep.global_suppress_arp = true }
+      return
+    end
+
+    # Test: Check global_suppress_arp is not configured.
+    refute(vtep.global_suppress_arp, 'global_suppress_arp should be disabled')
+
+    # Test: Enable global_suppress_arp
+    begin
+      vtep.global_suppress_arp = true
+    rescue CliError => e
+      skip(e.to_s) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
+    assert(vtep.global_suppress_arp, 'global_suppress_arp should be enabled')
+    # Test: Default
+    vtep.global_suppress_arp = vtep.default_global_suppress_arp
+    refute(vtep.global_suppress_arp, 'global_suppress_arp should be disabled')
+  end
+
+  def test_global_mcast_group_l2
+    vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'global_mcast_group_l2')
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.global_mcast_group_l2 = '225.1.1.1'
+      end
+      return
+    end
+    skip_incompat_version?('vxlan_vtep', 'global_mcast_group_l2')
+
+    assert_equal(vtep.global_mcast_group_l2, vtep.default_global_mcast_group_l2)
+    vtep.global_mcast_group_l2 = '225.1.1.1'
+    assert_equal('225.1.1.1', vtep.global_mcast_group_l2)
+    vtep.global_mcast_group_l2 = vtep.default_global_mcast_group_l2
+    assert_equal(vtep.global_mcast_group_l2, vtep.default_global_mcast_group_l2)
+  end
+
+  def test_global_mcast_group_l3
+    vtep = VxlanVtep.new('nve1')
+    if validate_property_excluded?('vxlan_vtep', 'global_mcast_group_l3')
+      assert_raises(Cisco::UnsupportedError) do
+        vtep.global_mcast_group_l3 = '225.1.1.1'
+      end
+      return
+    end
+    skip_incompat_version?('vxlan_vtep', 'global_mcast_group_l3')
+
+    assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
+
+    begin
+      # global_mcast_group_l3 is only supported on certain vxlan capable N9ks
+      vtep.global_mcast_group_l3 = '225.1.1.1'
+    rescue CliError => e
+      skip(e.to_s) if /TRM not supported on this platform/.match(e.to_s)
+    end
+    assert_equal('225.1.1.1', vtep.global_mcast_group_l3)
+    vtep.global_mcast_group_l3 = vtep.default_global_mcast_group_l3
+    assert_equal(vtep.global_mcast_group_l3, vtep.default_global_mcast_group_l3)
   end
 end

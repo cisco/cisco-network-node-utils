@@ -237,6 +237,11 @@ module Cisco
       @instance ||= new
     end
 
+    # Allow instance cache to be reset
+    def self.reset_instance
+      @instance = nil
+    end
+
     def initialize
       @client = Cisco::Client.create
       @cmd_ref = nil
@@ -357,33 +362,17 @@ module Cisco
 
     def prod_qualifier(prod, inventory)
       case prod
-      when /N9K/
-        # Two datapoints are used to determine if the current n9k
-        # platform is a fretta based n9k or non-fretta.
+      when /N(3|9)K/
+        # one datapoint is used to determine if the current n9k/n3k
+        # platform is a fretta based or non-fretta.
         #
-        # 1) Image Version == 7.0(3)F*
-        # 2) Fabric Module == N9K-C9*-FM-R
-        if @cmd_ref
-          ver = os_version
-        else
-          ver = get(command:     'show version',
-                    data_format: :nxapi_structured)['kickstart_ver_str']
-        end
-        # Append -F for fretta platform.
+        # Module == *-R
         inventory.each do |row|
-          if row['productid'][/N9K-C9...-FM-R/] && ver[/7.0\(3\)F/]
+          if row['productid'][/-R/]
+            # Append -F for fretta platform.
             return prod.concat('-F') unless prod[/-F/]
           end
         end
-      when /N3K/
-        if @cmd_ref
-          ver = os_version
-        else
-          ver = get(command:     'show version',
-                    data_format: :nxapi_structured)['kickstart_ver_str']
-        end
-        # Append -F for fretta platform.
-        return prod.concat('-F') if ver[/7.0\(3\)F/] && !prod[/-F/]
       end
       prod
     end

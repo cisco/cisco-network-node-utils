@@ -31,8 +31,14 @@ fabric_forwarding:
   get_value: '/^feature fabric forwarding$/'
   set_value: "feature fabric forwarding"
 
+fabricpath:
+  _exclude: [N3k, N3k-F, N9k-F, N9k]
+  get_command: "show feature-set"
+  get_value: '/^fabricpath[\s\d]+(\w+)/'
+  set_value: "<state> feature-set fabricpath"
+
 fex:
-  _exclude: [C3064, C3132, N5k, N6k, N3k-F, N9k-F]
+  _exclude: [C3048, C3064, C3132, N5k, N6k, N3k-F, N9k-F]
   get_command: "show feature-set"
   get_value: '/^fex[\s\d]+(\w+)/'
   set_value: "<state> feature-set fex"
@@ -113,6 +119,7 @@ vni:
     set_value: 'feature vn-segment-vlan-based'
 
 vtp:
+  _exclude: [N3k-F, N9k-F]
   kind: boolean
   get_value: '/^feature vtp$/'
   set_value: "<state> feature vtp"

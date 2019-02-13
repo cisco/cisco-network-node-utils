@@ -147,8 +147,7 @@ module Cisco
       return str if str.nil? || str.empty?
       index = str.index('port')
       str = str[0..index - 2] unless index.nil?
-      str = str.strip
-      Utils.add_quotes(str)
+      str.strip
     end
 
     def self.default_encryption_password

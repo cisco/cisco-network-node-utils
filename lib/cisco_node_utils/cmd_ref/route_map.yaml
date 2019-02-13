@@ -361,7 +361,7 @@ set_distance_local:
 
 # there is more than one space before delete on some platforms
 set_extcomm_list:
-  get_value: '/^set extcomm-list (\S+)(?:\s+)? delete$/'
+  get_value: '/^set extcomm-list (\S+)\s+delete$/'
   set_value: "<state> set extcomm-list <list> delete"
   default_value: false
 

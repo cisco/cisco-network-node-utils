@@ -71,7 +71,7 @@ class TestUpgrade < CiscoTestCase
 
   def test_image_version
     version = Upgrade.image_version
-    assert_match(/^\d.\d\(\d\)\S+\(\S+\)$/, version)
+    assert_match(/^\d.\d\(\d(?:.\d+)?\)(?:\S+\(\S+\))?$/, version)
   end
 
   def test_box_online

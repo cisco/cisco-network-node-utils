@@ -172,7 +172,6 @@ module Cisco
 
     def ipv4_src_intf
       intf = config_get('dhcp_relay_global', 'ipv4_src_intf')
-      # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
     end
@@ -207,10 +206,7 @@ module Cisco
     def ipv4_sub_option_circuit_id_string
       str = config_get('dhcp_relay_global', 'ipv4_sub_option_circuit_id_string')
       # Normalize by removing white space and add quotes
-      if str
-        str.strip!
-        str = Utils.add_quotes(str)
-      end
+      str.strip! if str.kind_of?(String)
       str
     end
 

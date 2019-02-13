@@ -1,6 +1,30 @@
 Changelog
 =========
 
+## [v2.0.0]
+
+### New Cisco Resources
+
+### Added
+* Extend nxapi client for https support
+   * `use_ssl` will be true when `transport` is `https`
+   * now makes use of `port` for custom nxapi ports
+* Extend router_ospf_vrf with attribute:
+   * `redistribute`
+* `reset_instance` method to node. Allows a single instance of nodeutils to reset the environment cache.
+* Extend vxlan_vtep_vni with attribute:
+  * `suppress_arp_disable`
+* Extend vxlan_vtep with attributes:
+  * `global_suppress_arp`
+  * `global_ingress_replication_bgp`
+  * `global_mcast_group_l2`
+  * `global_mcast_group_l3`
+
+### Removed
+  * Removed cache in `node_util.node`, which gave every inheriting class it's own cache.
+
+### Changed
+
 ## [v1.10.0]
 
 ### New Cisco Resources
@@ -587,6 +611,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v2.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.10.0...v2.0.0
 [v1.10.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.8.0...v1.9.0
 [v1.8.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.7.0...v1.8.0

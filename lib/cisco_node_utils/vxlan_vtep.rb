@@ -3,7 +3,7 @@
 #
 # November 2015, Deepak Cherian
 #
-# Copyright (c) 2015-2016 Cisco and/or its affiliates.
+# Copyright (c) 2015-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -181,10 +181,10 @@ module Cisco
     def multisite_border_gateway_interface=(val)
       set_args = { name: @name }
       set_args[:state] = val.empty? ? 'no' : ''
-      set_args[:lpbk_intf] = val.empty? ? 'loopback0' : val
+      # rubocop:disable LineLength
+      set_args[:lpbk_intf] = val.empty? ? multisite_border_gateway_interface : val
+      # rubocop:enable LineLength
       if set_args[:state] == 'no'
-        # 'no multisite border-gateway' doesn't work without interface
-        # defaulting to 'loopback0' still clears any configuration
         intf = multisite_border_gateway_interface
         unless intf == default_multisite_border_gateway_interface
           config_set('vxlan_vtep', 'multisite_bg_intf', set_args)
@@ -196,6 +196,91 @@ module Cisco
 
     def default_multisite_border_gateway_interface
       config_get_default('vxlan_vtep', 'multisite_bg_intf')
+    end
+
+    def global_ingress_replication_bgp
+      config_get('vxlan_vtep', 'global_ingress_replication_bgp', name: @name)
+    end
+
+    def global_ingress_replication_bgp=(state)
+      set_args = { name: @name }
+      if state
+        set_args[:state] = ''
+        # Host reachability must be enabled for this property
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
+        config_set('vxlan_vtep', 'global_ingress_replication_bgp', set_args)
+      else
+        set_args[:state] = 'no'
+        config_set('vxlan_vtep',
+                   'global_ingress_replication_bgp', set_args) if
+                   global_ingress_replication_bgp
+      end
+    end
+
+    def default_global_ingress_replication_bgp
+      config_get_default('vxlan_vtep', 'global_ingress_replication_bgp')
+    end
+
+    def global_suppress_arp
+      config_get('vxlan_vtep', 'global_suppress_arp', name: @name)
+    end
+
+    def global_suppress_arp=(state)
+      set_args = { name: @name }
+      if state
+        set_args[:state] = ''
+        # Host reachability must be enabled for this property
+        unless VxlanVtep.new(@name).host_reachability == 'evpn'
+          fail "Dependency: vxlan_vtep host_reachability must be 'evpn'."
+        end
+        Feature.nv_overlay_evpn_enable if
+        Feature.nv_overlay_evpn_supported? && !Feature.nv_overlay_evpn_enabled?
+        config_set('vxlan_vtep', 'global_suppress_arp', set_args)
+      else
+        set_args[:state] = 'no'
+        config_set('vxlan_vtep',
+                   'global_suppress_arp', set_args) if global_suppress_arp
+      end
+    end
+
+    def default_global_suppress_arp
+      config_get_default('vxlan_vtep', 'global_suppress_arp')
+    end
+
+    def global_mcast_group_l2
+      config_get('vxlan_vtep', 'global_mcast_group_l2', name: @name)
+    end
+
+    def global_mcast_group_l2=(val)
+      if val
+        set_args = { name: @name, ip: val, state: '' }
+      else
+        set_args = { name: @name, ip: '', state: 'no' }
+      end
+      config_set('vxlan_vtep', 'global_mcast_group_l2', set_args)
+    end
+
+    def default_global_mcast_group_l2
+      config_get_default('vxlan_vtep', 'global_mcast_group_l2')
+    end
+
+    def global_mcast_group_l3
+      config_get('vxlan_vtep', 'global_mcast_group_l3', name: @name)
+    end
+
+    def global_mcast_group_l3=(val)
+      if val
+        set_args = { name: @name, ip: val, state: '' }
+      else
+        set_args = { name: @name, ip: '', state: 'no' }
+      end
+      config_set('vxlan_vtep', 'global_mcast_group_l3', set_args)
+    end
+
+    def default_global_mcast_group_l3
+      config_get_default('vxlan_vtep', 'global_mcast_group_l3')
     end
   end  # Class
 end    # Module

@@ -75,7 +75,8 @@ class TestTacacsGlobal < CiscoTestCase
     global.encryption_key_set(nil, key)
     # Device encypts key - verify return value
     assert_equal(7, global.key_format)
-    assert_equal('"WAWY_NZB"', global.key)
+    key = 'WAWY_NZB'
+    assert_equal(key, global.key)
 
     skip_versions = ['7.0.3.(I2|I3)', '7.0.3.I4.[1-7]']
     if step_unless_legacy_defect(skip_versions, 'CSCvh72911: Cannot configure tacacs-server key 6')
@@ -85,7 +86,8 @@ class TestTacacsGlobal < CiscoTestCase
       key = 'JDYkqyIFWeBvzpljSfWmRZrmRSRE8'
       global.encryption_key_set(key_format, key)
       assert_equal(key_format, global.key_format)
-      assert_equal("\"#{key}\"", global.key)
+
+      assert_equal(key, global.key)
     end
 
     # Remove global key

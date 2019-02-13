@@ -153,12 +153,16 @@ class CiscoTestCase < TestCase
   # Some NXOS hardware is not capable of supporting certain features even
   # though the platform family in general includes support. In these cases
   # the NU feature setter will raise a RuntimeError.
-  def hardware_supports_feature?(message)
+  # Default behavior is to skip/flunk.
+  def hardware_supports_feature?(message, status_only: false)
     patterns = ['Hardware is not capable of supporting',
                 'is unsupported on this node',
+                'Feature NOT supported on this Platform',
                ]
-    skip('Skip test: Feature is unsupported on this device') if
-      message[Regexp.union(patterns)]
+    if message[Regexp.union(patterns)]
+      return true if status_only
+      skip('Skip test: Feature is unsupported on this device')
+    end
     flunk(message)
   end
 
@@ -211,6 +215,12 @@ class CiscoTestCase < TestCase
     ver << 'a' if lim[-1, 1] =~ /[[:alpha:]]/
     skip("The #{feature} #{property} property is only supported on OS version #{over} or later on #{pid}") if
       Gem::Version.new(lim) < Gem::Version.new(ver)
+  end
+
+  def skip_if_UnsupportedCmdRef(feature_name, attribute_name) # rubocop:disable Style/MethodName
+    # Check if attr is excluded by the cmd_ref yaml
+    skip("UnsupportedCmdRef attribute: '#{attribute_name}'") if
+      cmd_ref.lookup(feature_name, attribute_name).is_a?(UnsupportedCmdRef)
   end
 
   def skip_nexus_i2_image?
@@ -550,7 +560,7 @@ class CiscoTestCase < TestCase
     when /N3K-C35/
       tag = 'n35'
     when /N3/
-      tag = Utils.image_version?(/7.0.3.F/) ? 'n3k-f' : 'n3k'
+      tag = Utils.fretta? ? 'n3k-f' : 'n3k'
     when /N5/
       tag = 'n5k'
     when /N6/
@@ -558,7 +568,7 @@ class CiscoTestCase < TestCase
     when /N7/
       tag = 'n7k'
     when /N9/
-      tag = Utils.image_version?(/7.0.3.F/) ? 'n9k-f' : 'n9k'
+      tag = Utils.fretta? ? 'n9k-f' : 'n9k'
     else
       fail "Unrecognized product_id: #{@product_id}"
     end

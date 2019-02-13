@@ -85,6 +85,38 @@ class TestCase < Minitest::Test
     self.class.password
   end
 
+  def self.telnet_port
+    Cisco::Environment.environment[:telnet_port] || 23
+  end
+
+  def telnet_port
+    self.class.telnet_port
+  end
+
+  def self.port
+    Cisco::Environment.environment[:port] || address.split(':')[1]
+  end
+
+  def port
+    self.class.port
+  end
+
+  def self.transport
+    Cisco::Environment.environment[:transport] || 'http'
+  end
+
+  def transport
+    self.class.transport
+  end
+
+  def self.verify_mode
+    Cisco::Environment.environment[:verify_mode] || 'none'
+  end
+
+  def verify_mode
+    self.class.verify_mode
+  end
+
   def setup
     # Hack - populate environment from user-entered values from basetest.rb
     if Cisco::Environment.environments.empty?
@@ -92,13 +124,17 @@ class TestCase < Minitest::Test
         attr_writer :environments
       end
       Cisco::Environment.environments['default'] = {
-        host:     address.split(':')[0],
-        port:     address.split(':')[1],
-        username: username,
-        password: password,
+        host:        address.split(':')[0],
+        port:        port,
+        telnet_port: telnet_port,
+        transport:   transport,
+        verify_mode: verify_mode,
+        username:    username,
+        password:    password,
       }
     end
     @device = Net::Telnet.new('Host'    => address.split(':')[0],
+                              'Port'    => telnet_port,
                               'Timeout' => 240,
                               # NX-OS has a space after '#', IOS XR does not
                               'Prompt'  => /[$%#>] *\z/n,

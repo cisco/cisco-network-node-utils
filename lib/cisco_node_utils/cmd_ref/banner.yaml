@@ -1,7 +1,11 @@
 # banner
 ---
 motd:
-  default_value: "User Access Verification\n"
+  N5k: &N6000
+    default_value: "Nexus 6000 Switch\n"
+  N6k: *N6000
+  else:
+    default_value: "User Access Verification\n"
   get_command: 'show banner motd'
   get_value: '/^.*$/m'
   set_value: '<state> banner motd <motd>'

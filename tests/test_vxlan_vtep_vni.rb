@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cisco and/or its affiliates.
+# Copyright (c) 2013-2018 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,15 +23,21 @@ include Cisco
 class TestVxlanVtepVni < CiscoTestCase
   @skip_unless_supported = 'vxlan_vtep_vni'
   @@pre_clean_needed = true # rubocop:disable Style/ClassVars
+  @@feature_unsupported = false # rubocop:disable Style/ClassVars
 
   def setup
     super
+    skip('setup: Feature is unsupported on this device') if @@feature_unsupported
     vdc_limit_f3_no_intf_needed(:set) if VxlanVtep.mt_full_support
     Interface.interfaces(:nve).each { |_nve, obj| obj.destroy }
     feature_cleanup if @@pre_clean_needed
     Feature.nv_overlay_enable
     config_no_warn('feature vn-segment-vlan-based') if VxlanVtep.mt_lite_support
     @@pre_clean_needed = false # rubocop:disable Style/ClassVars
+  rescue RuntimeError => e
+    # Skip locally to shortcut the dependencies above for the next test
+    @@feature_unsupported = hardware_supports_feature?(e.message, status_only: true) # rubocop:disable Style/ClassVars
+    @@feature_unsupported ? skip(e.message) : raise(e.message)
   end
 
   def teardown
@@ -235,6 +241,34 @@ class TestVxlanVtepVni < CiscoTestCase
     # Test: Default
     vni.suppress_arp = vni.default_suppress_arp
     refute(vni.suppress_arp, 'suppress_arp should be disabled')
+  end
+
+  def test_suppress_arp_disable
+    skip_incompat_version?('vxlan_vtep_vni', 'suppress_arp_disable')
+    vni = VxlanVtepVni.new('nve1', '6000')
+    VxlanVtep.new('nve1').host_reachability = 'evpn'
+
+    if validate_property_excluded?('vxlan_vtep_vni', 'suppress_arp_disable')
+      assert_raises(Cisco::UnsupportedError) { vni.suppress_arp_disable = true }
+      return
+    end
+
+    # Test: Check suppress_arp_disable is not configured.
+    refute(vni.suppress_arp_disable, 'suppress_arp_disable should be disabled')
+
+    begin
+      # Test: Enable suppress_arp_disable
+      vni.suppress_arp_disable = true
+      assert(vni.suppress_arp_disable, 'suppress_arp_disable should be enabled')
+    rescue CliError => e
+      msg = 'TCAM reconfiguration required followed by reload' \
+        " Skipping test case.\n#{e}"
+      skip(msg) if /ERROR: Please configure TCAM/.match(e.to_s)
+    end
+
+    # Test: Default
+    vni.suppress_arp_disable = vni.default_suppress_arp_disable
+    refute(vni.suppress_arp_disable, 'suppress_arp_disable should be disabled')
   end
 
   def test_suppress_uuc
