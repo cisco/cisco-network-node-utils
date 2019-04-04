@@ -1,6 +1,16 @@
 Changelog
 =========
 
+## Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
+### Issues Addressed
+
 ## [v2.0.0]
 
 ### New Cisco Resources
