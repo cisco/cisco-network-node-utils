@@ -40,7 +40,7 @@ module Cisco
       return {} if pkgs.nil?
       pkgs.each { |p| pkg_hsh[p[0]] = p[1].downcase }
     rescue RuntimeError => e
-      # best effort
+      raise unless e.message[/Invalid command/]
     ensure
       pkg_hsh
     end
