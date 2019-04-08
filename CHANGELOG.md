@@ -10,6 +10,7 @@ Changelog
 ### Removed
 
 ### Issues Addressed
+* `facter` may raise when `show install patches` in some environments
 
 ## [v2.0.0]
 
