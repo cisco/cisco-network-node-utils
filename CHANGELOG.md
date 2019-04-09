@@ -1,13 +1,7 @@
 Changelog
 =========
 
-## Unreleased
-
-### Added
-
-### Changed
-
-### Removed
+## [v2.0.1]
 
 ### Issues Addressed
 * `facter` may raise when `show install patches` in some environments
@@ -622,6 +616,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v2.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.10.0...v2.0.0
 [v1.10.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.8.0...v1.9.0
