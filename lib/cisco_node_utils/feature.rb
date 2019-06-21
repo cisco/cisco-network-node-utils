@@ -369,7 +369,8 @@ module Cisco
           filt_slots.include? intf[/\d+/]
         end
       rescue CliError
-        filt_intfs = []      end
+        filt_intfs = []
+      end
       filt_intfs
     end
   end
