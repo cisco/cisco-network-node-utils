@@ -1,6 +1,6 @@
 # January 2016, Robert W Gries
 #
-# Copyright (c) 2015-2017 Cisco and/or its affiliates.
+# Copyright (c) 2015-2019 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -363,10 +363,13 @@ module Cisco
       # get the slot numbers only into filtered slots array
       filt_slots = slots.keys.map { |key| key[/\d+/] }
       # now filter interfaces in the vdc based on compatible slots
-      vdc = Vdc.new(Vdc.default_vdc_name)
-      filt_intfs = vdc.interface_membership.select do |intf|
-        filt_slots.include? intf[/\d+/]
-      end
+      begin
+        vdc = Vdc.new(Vdc.default_vdc_name)
+        filt_intfs = vdc.interface_membership.select do |intf|
+          filt_slots.include? intf[/\d+/]
+        end
+      rescue CliError
+        filt_intfs = []      end
       filt_intfs
     end
   end
