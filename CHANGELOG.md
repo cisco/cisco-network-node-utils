@@ -1,6 +1,11 @@
 Changelog
 =========
 
+## [v2.0.2]
+
+### Issues Addressed
+* Fixes `Error: Could not retrieve local facts: [Cisco::Vdc]` on some N7k platforms
+
 ## [v2.0.1]
 
 ### Issues Addressed
@@ -616,6 +621,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v2.0.2]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.1...v2.0.2
 [v2.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.10.0...v2.0.0
 [v1.10.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.9.0...v1.10.0
