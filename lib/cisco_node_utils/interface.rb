@@ -134,11 +134,11 @@ module Cisco
     #
     def self.capabilities(intf, mode=:hash)
       array = []
-    begin
-      array = config_get('interface', 'capabilities', name: intf)
-    rescue CliError
-      # ignore invalid intf names; just return empty array/hash
-    end
+      begin
+        array = config_get('interface', 'capabilities', name: intf)
+      rescue CliError => e
+        raise unless e.clierror[/Invalid command/]
+      end
       return array if mode == :raw
       hash = {}
       if array
