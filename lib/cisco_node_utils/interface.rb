@@ -133,7 +133,12 @@ module Cisco
     # {"Model"=>"N7K-M132XP-12L", "Type"=>"10Gbase-SR", "Speed"=>"10,100,1000"}
     #
     def self.capabilities(intf, mode=:hash)
+      array = []
+    begin
       array = config_get('interface', 'capabilities', name: intf)
+    rescue CliError
+      # ignore invalid intf names; just return empty array/hash
+    end
       return array if mode == :raw
       hash = {}
       if array
