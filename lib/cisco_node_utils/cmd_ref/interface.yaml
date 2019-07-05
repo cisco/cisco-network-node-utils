@@ -3,9 +3,9 @@
 _template:
   context: ["interface <name>"]
   ios_xr:
-    get_command: "show running interface"
+    get_command: "show running interface <name>"
   nexus:
-    get_command: "show running interface all"
+    get_command: "show running interface <name> all"
 
 access_vlan:
   _exclude: [ios_xr]
@@ -20,7 +20,7 @@ all_interfaces:
     get_command: 'show running all-interfaces'
     get_value: '/^interface (.*)/'
   nexus:
-    get_command: "show running-config interface | section '^interface'"
+    get_command: "show running-config interface <name> | section '^interface'"
     get_value: '/(.*)/'
   get_context: ~
 
@@ -35,7 +35,7 @@ capabilities:
   _exclude: [ios_xr]
   multiple:
   get_context: ["<name>"]
-  get_command: "show interface capabilities"
+  get_command: "show interface <name> capabilities"
   get_value: '/(.*)/'
   default_value: [] # :raw default
 
@@ -498,14 +498,14 @@ stp_link_type:
 
 stp_mst_cost:
   multiple:
-  get_command: "show running interface"
+  get_command: "show running interface <name>"
   get_value: '/^spanning-tree mst (.*) cost (.*)$/'
   set_value: "<state> spanning-tree mst <range> cost <val>"
   default_value: []
 
 stp_mst_port_priority:
   multiple:
-  get_command: "show running interface"
+  get_command: "show running interface <name>"
   get_value: '/^spanning-tree mst (.*) port-priority (.*)$/'
   set_value: "<state> spanning-tree mst <range> port-priority <val>"
   default_value: []
@@ -522,21 +522,21 @@ stp_port_priority:
 
 stp_port_type:
   kind: string
-  get_command: "show running interface"
+  get_command: "show running interface <name>"
   get_value: '/^spanning-tree port type (.*)$/'
   set_value: "<state> spanning-tree port type <type>"
   default_value: ~
 
 stp_vlan_cost:
   multiple:
-  get_command: "show running interface"
+  get_command: "show running interface <name>"
   get_value: '/^spanning-tree vlan (.*) cost (.*)$/'
   set_value: "<state> spanning-tree vlan <range> cost <val>"
   default_value: []
 
 stp_vlan_port_priority:
   multiple:
-  get_command: "show running interface"
+  get_command: "show running interface <name>"
   get_value: '/^spanning-tree vlan (.*) port-priority (.*)$/'
   set_value: "<state> spanning-tree vlan <range> port-priority <val>"
   default_value: []

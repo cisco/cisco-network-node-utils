@@ -74,9 +74,10 @@ module Cisco
       "interface #{name}"
     end
 
-    def self.interfaces(opt=nil)
+    def self.interfaces(opt=nil, single_intf=nil)
       hash = {}
-      intf_list = config_get('interface', 'all_interfaces')
+      single_intf ||= ''
+      intf_list = config_get('interface', 'all_interfaces', name: single_intf)
       return hash if intf_list.nil?
 
       # Massage intf_list data into an array that is easy
