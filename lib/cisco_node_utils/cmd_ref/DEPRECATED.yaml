@@ -8,7 +8,7 @@
 _template:
   context: ["interface <name>"]
   nexus:
-    get_command: "show running interface <name> all"
+    get_command: "show running interface <show_name> all"
 
 private_vlan_any:
   # DEPRECATED (REMOVING WITH RELEASE 2.0.0). USE 'pvlan_any'
