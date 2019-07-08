@@ -35,7 +35,7 @@ capabilities:
   _exclude: [ios_xr]
   multiple:
   get_context: ["<name>"]
-  get_command: "show interface <show_name> capabilities"
+  get_command: "show interface <name> capabilities"
   get_value: '/(.*)/'
   default_value: [] # :raw default
 

@@ -62,7 +62,7 @@ module Cisco
       # @show_name is used for get_command: keys; allows callers to limit
       # show command to a single interface
       @name = name.downcase
-      @get_args = { name: @name, show_name: nil}
+      @get_args = { name: @name, show_name: nil }
       @smr = config_get('interface', 'stp_mst_range')
       @svr = config_get('interface', 'stp_vlan_range')
       @match_found = false
@@ -84,11 +84,12 @@ module Cisco
       hash = {}
       single_intf ||= ''
       begin
-        intf_list = config_get('interface', 'all_interfaces', show_name: single_intf)
+        intf_list = config_get('interface', 'all_interfaces',
+                               show_name: single_intf)
       rescue CliError => e
         # ignore logical interfaces that may not exist yet;
         # invalid interface types should still raise
-        raise unless single_intf and e.clierror[/Invalid range/]
+        raise unless single_intf && e.clierror[/Invalid range/]
       end
       return hash if intf_list.nil?
 
@@ -122,7 +123,8 @@ module Cisco
     def self.filter(filter, id, single_intf)
       case filter
       when :pvlan_any
-        return false if config_get('interface', 'pvlan_any', name: id, show_name: single_intf)
+        return false if config_get('interface', 'pvlan_any',
+                                   name: id, show_name: single_intf)
 
       else
         # Just a basic pattern filter (:ethernet, :loopback, etc)
@@ -149,7 +151,7 @@ module Cisco
     def self.capabilities(intf, mode=:hash)
       array = []
       begin
-        array = config_get('interface', 'capabilities', @get_args)
+        array = config_get('interface', 'capabilities', name: intf)
       rescue CliError => e
         raise unless e.clierror[/Invalid command/]
       end
@@ -1445,7 +1447,8 @@ module Cisco
 
     def switchport_trunk_allowed_vlan
       return nil if switchport_mode == :disabled
-      vlans = config_get('interface', 'switchport_trunk_allowed_vlan', @get_args)
+      vlans = config_get('interface', 'switchport_trunk_allowed_vlan',
+                         @get_args)
       vlans = vlans.join(',') if vlans.is_a?(Array)
       vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
       vlans
@@ -1750,7 +1753,8 @@ module Cisco
     # replaced instead of individually adding or removing vlans from the range.
     def switchport_pvlan_trunk_allowed_vlan
       return nil if switchport_mode == :disabled
-      vlans = config_get('interface', 'switchport_pvlan_trunk_allowed_vlan', @get_args)
+      vlans = config_get('interface', 'switchport_pvlan_trunk_allowed_vlan',
+                         @get_args)
       vlans = vlans.join(',') if vlans.is_a?(Array)
       vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
       vlans

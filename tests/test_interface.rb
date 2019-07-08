@@ -176,7 +176,7 @@ class TestInterface < CiscoTestCase
 
     # Verify raise when bad interface name
     assert_raises(Cisco::CliError,
-                  "Did not raise CliError when invalid single_intf specified") do
+                  'Did not raise CliError when invalid single_intf specified') do
       Interface.interfaces(nil, 'MongoEthernet1/356')
     end
 
@@ -184,48 +184,48 @@ class TestInterface < CiscoTestCase
     Interface.new('loopback100').destroy
     no_loopback = Interface.interfaces(nil, 'loopback100')
     assert_empty(no_loopback,
-                 "Return value should be empty hash when non existent loopback")
+                 'Return value should be empty hash when non existent loopback')
 
     # Verify single_intf usage
     intf = interfaces[0]
     one = Interface.interfaces(nil, intf)
     assert_equal(one.keys.length, 1,
-                 "Invalid number of keys returned, should be 1")
+                 'Invalid number of keys returned, should be 1')
     assert_equal(one[intf].get_args[:show_name], intf,
-                 ":show_name should be intf name when intf specified")
+                 ':show_name should be intf name when intf specified')
 
-    # Verify "all" interfaces returned
+    # Verify 'all' interfaces returned
     all = Interface.interfaces
     assert_operator(all.keys.length, :>, 1,
-                 "Invalid number of keys returned, should exceed 1")
+                    'Invalid number of keys returned, should exceed 1')
     assert_empty(all[intf].get_args[:show_name],
-                 ":show_name should be empty string when intf is nil")
+                 ':show_name should be empty string when intf is nil')
 
     # Verify filter operations
     eth_count = all.keys.join.scan(/ethernet/).count
     filtered = Interface.interfaces(:ethernet)
     assert_equal(filtered.keys.length, eth_count,
-                 "filter returned invalid number of ethernet interfaces")
+                 'filter returned invalid number of ethernet interfaces')
 
     filtered = Interface.interfaces(:mgmt)
     assert_equal(filtered.keys.length, 1,
-                 "filter returned invalid number of mgmt interfaces")
+                 'filter returned invalid number of mgmt interfaces')
     assert_equal(filtered.keys[0], 'mgmt0',
-                 "filter returned incorrect interface name")
+                 'filter returned incorrect interface name')
 
     filtered = Interface.interfaces(:mgmt, intf)
     assert_empty(filtered,
-                 "mgmt filter returned interface when it should be an empty hash")
+                 'mgmt filter returned interface when it should be an empty hash')
 
     filtered = Interface.interfaces(:invalid_intf_pattern)
     assert_empty(filtered,
-                 "invalid filter returned interface when it should be an empty hash")
+                 'invalid filter returned interface when it should be an empty hash')
 
     filtered = Interface.interfaces(:ethernet, intf)
     assert_equal(filtered.keys.length, 1,
-                 "Invalid number of keys returned by ethernet filter with intf specified")
+                 'Invalid number of keys returned by ethernet filter with intf specified')
     assert_equal(filtered.keys[0], intf,
-                 "filter returned incorrect interface name")
+                 'filter returned incorrect interface name')
   end
 
   # Helper to get valid speeds for port
