@@ -52,11 +52,17 @@ module Cisco
     PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
 
     attr_reader :name, :state_default
+    attr_accessor :get_args
 
     def initialize(name, instantiate=true, default_state=false)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
+
+      # @name is used for context: keys only
+      # @show_name is used for get_command: keys; allows callers to limit
+      # show command to a single interface
       @name = name.downcase
+      @get_args = { name: @name, show_name: nil }
       @smr = config_get('interface', 'stp_mst_range')
       @svr = config_get('interface', 'stp_vlan_range')
       @match_found = false
@@ -74,9 +80,17 @@ module Cisco
       "interface #{name}"
     end
 
-    def self.interfaces(opt=nil)
+    def self.interfaces(opt=nil, single_intf=nil)
       hash = {}
-      intf_list = config_get('interface', 'all_interfaces')
+      single_intf ||= ''
+      begin
+        intf_list = config_get('interface', 'all_interfaces',
+                               show_name: single_intf)
+      rescue CliError => e
+        # ignore logical interfaces that may not exist yet;
+        # invalid interface types should still raise
+        raise unless single_intf && e.clierror[/Invalid range/]
+      end
       return hash if intf_list.nil?
 
       # Massage intf_list data into an array that is easy
@@ -90,12 +104,13 @@ module Cisco
         int_data = id.strip.split(' ')
         next if int_data[0].nil?
         id = int_data[0].downcase
-        next if opt && filter(opt, id)
+        next if opt && filter(opt, id, single_intf)
         # If there are any additional options associated
         # with this interface then it's in a non-default
         # state.
         default_state = int_data.size > 1 ? false : true
         hash[id] = Interface.new(id, false, default_state)
+        hash[id].get_args[:show_name] = single_intf
       end
       hash
     end
@@ -103,11 +118,13 @@ module Cisco
     # General-purpose filter for Interface.interfaces().
     # filter: This may be overloaded in the future to allow a hash of filters.
     #     id: The interface name
+    # single_intf: needed for get_command: <show_name>
     # Return: true if the interface should be filtered out, false to keep it.
-    def self.filter(filter, id)
+    def self.filter(filter, id, single_intf)
       case filter
       when :pvlan_any
-        return false if config_get('interface', 'pvlan_any', name: id)
+        return false if config_get('interface', 'pvlan_any',
+                                   name: id, show_name: single_intf)
 
       else
         # Just a basic pattern filter (:ethernet, :loopback, etc)
@@ -132,7 +149,12 @@ module Cisco
     # {"Model"=>"N7K-M132XP-12L", "Type"=>"10Gbase-SR", "Speed"=>"10,100,1000"}
     #
     def self.capabilities(intf, mode=:hash)
-      array = config_get('interface', 'capabilities', name: intf)
+      array = []
+      begin
+        array = config_get('interface', 'capabilities', name: intf)
+      rescue CliError => e
+        raise unless e.clierror[/Invalid command/]
+      end
       return array if mode == :raw
       hash = {}
       if array
@@ -169,7 +191,7 @@ module Cisco
     end
 
     def default?
-      state = config_get('interface', 'default', name: @name)
+      state = config_get('interface', 'default', @get_args)
       state.nil? ? true : false
     end
 
@@ -193,7 +215,7 @@ module Cisco
 
     def access_vlan
       return nil if switchport_mode == :disabled
-      config_get('interface', 'access_vlan', name: @name)
+      config_get('interface', 'access_vlan', @get_args)
     end
 
     def access_vlan=(vlan)
@@ -207,7 +229,7 @@ module Cisco
     def bfd_echo
       return nil unless Feature.bfd_enabled?
       return nil if @name[/loop/i]
-      config_get('interface', 'bfd_echo', name: @name)
+      config_get('interface', 'bfd_echo', @get_args)
     end
 
     def bfd_echo=(val)
@@ -227,7 +249,7 @@ module Cisco
     end
 
     def description
-      config_get('interface', 'description', name: @name)
+      config_get('interface', 'description', @get_args)
     end
 
     def description=(desc)
@@ -246,7 +268,7 @@ module Cisco
     end
 
     def encapsulation_dot1q
-      config_get('interface', 'encapsulation_dot1q', name: @name)
+      config_get('interface', 'encapsulation_dot1q', @get_args)
     end
 
     def encapsulation_dot1q=(val)
@@ -272,7 +294,7 @@ module Cisco
     end
 
     def fabric_forwarding_anycast_gateway
-      config_get('interface', 'fabric_forwarding_anycast_gateway', name: @name)
+      config_get('interface', 'fabric_forwarding_anycast_gateway', @get_args)
     end
 
     def fabric_forwarding_anycast_gateway=(state)
@@ -298,7 +320,7 @@ module Cisco
     end
 
     def hsrp_bfd
-      config_get('interface', 'hsrp_bfd', name: @name)
+      config_get('interface', 'hsrp_bfd', @get_args)
     end
 
     def hsrp_bfd=(val)
@@ -318,7 +340,7 @@ module Cisco
     # hsrp delay minimum and reload are in the same CLI
     # hsrp delay minimum 0 reload 0
     def hsrp_delay
-      match = config_get('interface', 'hsrp_delay', name: @name)
+      match = config_get('interface', 'hsrp_delay', @get_args)
       match.nil? ? default_hsrp_delay : match.collect(&:to_i)
     end
 
@@ -363,7 +385,7 @@ module Cisco
     end
 
     def hsrp_mac_refresh
-      config_get('interface', 'hsrp_mac_refresh', name: @name)
+      config_get('interface', 'hsrp_mac_refresh', @get_args)
     end
 
     def hsrp_mac_refresh=(val)
@@ -379,7 +401,7 @@ module Cisco
     end
 
     def hsrp_use_bia
-      match = config_get('interface', 'hsrp_use_bia', name: @name)
+      match = config_get('interface', 'hsrp_use_bia', @get_args)
       return default_hsrp_use_bia unless match
       match.include?('scope') ? :use_bia_intf : :use_bia
     end
@@ -418,7 +440,7 @@ module Cisco
 
     def hsrp_version
       return nil if switchport_mode != :disabled || @name[/loop/i]
-      config_get('interface', 'hsrp_version', name: @name)
+      config_get('interface', 'hsrp_version', @get_args)
     end
 
     def hsrp_version=(val)
@@ -431,7 +453,7 @@ module Cisco
     end
 
     def ipv4_acl_in
-      config_get('interface', 'ipv4_acl_in', name: @name)
+      config_get('interface', 'ipv4_acl_in', @get_args)
     end
 
     def ipv4_acl_in=(val)
@@ -452,7 +474,7 @@ module Cisco
     end
 
     def ipv4_acl_out
-      config_get('interface', 'ipv4_acl_out', name: @name)
+      config_get('interface', 'ipv4_acl_out', @get_args)
     end
 
     def ipv4_acl_out=(val)
@@ -494,7 +516,7 @@ module Cisco
     end
 
     def ipv4_addr_mask
-      val = config_get('interface', 'ipv4_addr_mask', name: @name)
+      val = config_get('interface', 'ipv4_addr_mask', @get_args)
       if val && platform == :ios_xr
         # IOS XR reports address as <address> <bitmask> [secondary] but we
         # want <address>/<length> [secondary]
@@ -569,7 +591,7 @@ module Cisco
     end
 
     def ipv4_arp_timeout
-      config_get('interface', ipv4_arp_timeout_lookup_string, name: @name)
+      config_get('interface', ipv4_arp_timeout_lookup_string, @get_args)
     end
 
     def ipv4_arp_timeout=(timeout)
@@ -585,7 +607,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_addr
-      config_get('interface', 'ipv4_dhcp_relay_addr', name: @name)
+      config_get('interface', 'ipv4_dhcp_relay_addr', @get_args)
     end
 
     def ipv4_dhcp_relay_addr=(list)
@@ -610,7 +632,7 @@ module Cisco
 
     def ipv4_dhcp_relay_info_trust
       return nil if @name[/loop/i] || switchport_mode != :disabled
-      config_get('interface', 'ipv4_dhcp_relay_info_trust', name: @name)
+      config_get('interface', 'ipv4_dhcp_relay_info_trust', @get_args)
     end
 
     def ipv4_dhcp_relay_info_trust=(state)
@@ -625,7 +647,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_src_addr_hsrp
-      config_get('interface', 'ipv4_dhcp_relay_src_addr_hsrp', name: @name)
+      config_get('interface', 'ipv4_dhcp_relay_src_addr_hsrp', @get_args)
     end
 
     def ipv4_dhcp_relay_src_addr_hsrp=(state)
@@ -640,7 +662,7 @@ module Cisco
     end
 
     def ipv4_dhcp_relay_src_intf
-      intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', name: @name)
+      intf = config_get('interface', 'ipv4_dhcp_relay_src_intf', @get_args)
       # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
@@ -661,7 +683,7 @@ module Cisco
 
     def ipv4_dhcp_relay_subnet_broadcast
       return nil if @name[/loop/i] || switchport_mode != :disabled
-      config_get('interface', 'ipv4_dhcp_relay_subnet_broadcast', name: @name)
+      config_get('interface', 'ipv4_dhcp_relay_subnet_broadcast', @get_args)
     end
 
     def ipv4_dhcp_relay_subnet_broadcast=(state)
@@ -677,7 +699,7 @@ module Cisco
 
     def ipv4_dhcp_smart_relay
       return nil if @name[/loop/i] || switchport_mode != :disabled
-      config_get('interface', 'ipv4_dhcp_smart_relay', name: @name)
+      config_get('interface', 'ipv4_dhcp_smart_relay', @get_args)
     end
 
     def ipv4_dhcp_smart_relay=(state)
@@ -692,7 +714,7 @@ module Cisco
     end
 
     def ipv4_forwarding
-      config_get('interface', 'ipv4_forwarding', name: @name)
+      config_get('interface', 'ipv4_forwarding', @get_args)
     end
 
     def ipv4_forwarding=(state)
@@ -707,7 +729,7 @@ module Cisco
 
     def ipv4_pim_sparse_mode
       return nil unless switchport_mode == :disabled
-      config_get('interface', 'ipv4_pim_sparse_mode', name: @name)
+      config_get('interface', 'ipv4_pim_sparse_mode', @get_args)
     end
 
     def ipv4_pim_sparse_mode=(state)
@@ -723,7 +745,7 @@ module Cisco
 
     def ipv4_proxy_arp
       return nil if @name[/loop/i] || switchport_mode != :disabled
-      config_get('interface', 'ipv4_proxy_arp', name: @name)
+      config_get('interface', 'ipv4_proxy_arp', @get_args)
     end
 
     def ipv4_proxy_arp=(proxy_arp)
@@ -747,7 +769,7 @@ module Cisco
 
     def ipv4_redirects
       return nil unless switchport_mode == :disabled
-      config_get('interface', ipv4_redirects_lookup_string, name: @name)
+      config_get('interface', ipv4_redirects_lookup_string, @get_args)
     end
 
     def ipv4_redirects=(redirects)
@@ -762,7 +784,7 @@ module Cisco
     end
 
     def ipv6_acl_in
-      config_get('interface', 'ipv6_acl_in', name: @name)
+      config_get('interface', 'ipv6_acl_in', @get_args)
     end
 
     def ipv6_acl_in=(val)
@@ -782,7 +804,7 @@ module Cisco
     end
 
     def ipv6_acl_out
-      config_get('interface', 'ipv6_acl_out', name: @name)
+      config_get('interface', 'ipv6_acl_out', @get_args)
     end
 
     def ipv6_acl_out=(val)
@@ -802,7 +824,7 @@ module Cisco
     end
 
     def ipv6_dhcp_relay_addr
-      config_get('interface', 'ipv6_dhcp_relay_addr', name: @name)
+      config_get('interface', 'ipv6_dhcp_relay_addr', @get_args)
     end
 
     def ipv6_dhcp_relay_addr=(list)
@@ -826,7 +848,7 @@ module Cisco
     end
 
     def ipv6_dhcp_relay_src_intf
-      intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', name: @name)
+      intf = config_get('interface', 'ipv6_dhcp_relay_src_intf', @get_args)
       # Normalize by downcasing and removing white space
       intf = intf.downcase.delete(' ') if intf
       intf
@@ -847,7 +869,7 @@ module Cisco
 
     def ipv6_redirects
       return nil if @name[/loop/i] || switchport_mode != :disabled
-      config_get('interface', 'ipv6_redirects', name: @name)
+      config_get('interface', 'ipv6_redirects', @get_args)
     end
 
     def ipv6_redirects=(redirects)
@@ -872,7 +894,7 @@ module Cisco
 
     def load_interval_counter_1_delay
       return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
-      config_get('interface', 'load_interval_counter_1_delay', name: @name)
+      config_get('interface', 'load_interval_counter_1_delay', @get_args)
     end
 
     def load_interval_counter_1_delay=(val)
@@ -894,7 +916,7 @@ module Cisco
 
     def load_interval_counter_2_delay
       return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
-      config_get('interface', 'load_interval_counter_2_delay', name: @name)
+      config_get('interface', 'load_interval_counter_2_delay', @get_args)
     end
 
     def load_interval_counter_2_delay=(val)
@@ -910,7 +932,7 @@ module Cisco
 
     def load_interval_counter_3_delay
       return nil if @name[/loop/] || @name[/ethernet.*\S+\.\d+$/]
-      config_get('interface', 'load_interval_counter_3_delay', name: @name)
+      config_get('interface', 'load_interval_counter_3_delay', @get_args)
     end
 
     def load_interval_counter_3_delay=(val)
@@ -936,7 +958,7 @@ module Cisco
     end
 
     def mtu
-      config_get('interface', mtu_lookup_string, name: @name)
+      config_get('interface', mtu_lookup_string, @get_args)
     end
 
     def mtu=(val)
@@ -952,7 +974,7 @@ module Cisco
 
     def speed
       return nil if @name[/loop|vlan/i]
-      config_get('interface', 'speed', name: @name)
+      config_get('interface', 'speed', @get_args)
     end
 
     def speed=(val)
@@ -965,7 +987,7 @@ module Cisco
 
     def duplex
       return nil if @name[/loop|vlan/i]
-      config_get('interface', 'duplex', name: @name)
+      config_get('interface', 'duplex', @get_args)
     end
 
     def duplex=(val)
@@ -989,7 +1011,7 @@ module Cisco
 
     def negotiate_auto
       return nil if @name[/loop|vlan/]
-      config_get('interface', negotiate_auto_lookup_string, name: @name)
+      config_get('interface', negotiate_auto_lookup_string, @get_args)
     end
 
     def negotiate_auto=(negotiate_auto)
@@ -1003,7 +1025,7 @@ module Cisco
     end
 
     def shutdown
-      config_get('interface', 'shutdown', name: @name)
+      config_get('interface', 'shutdown', @get_args)
     end
 
     def shutdown=(state)
@@ -1045,7 +1067,7 @@ module Cisco
     end
 
     def pim_bfd
-      config_get('interface', 'pim_bfd', name: @name)
+      config_get('interface', 'pim_bfd', @get_args)
     end
 
     def pim_bfd=(val)
@@ -1064,7 +1086,7 @@ module Cisco
 
     def storm_control_broadcast
       return nil if @name[/loop|vlan/i]
-      config_get('interface', 'storm_control_broadcast', name: @name)
+      config_get('interface', 'storm_control_broadcast', @get_args)
     end
 
     def storm_control_broadcast=(val)
@@ -1081,7 +1103,7 @@ module Cisco
 
     def storm_control_multicast
       return nil if @name[/loop|vlan/i]
-      config_get('interface', 'storm_control_multicast', name: @name)
+      config_get('interface', 'storm_control_multicast', @get_args)
     end
 
     def storm_control_multicast=(val)
@@ -1098,7 +1120,7 @@ module Cisco
 
     def storm_control_unicast
       return nil if @name[/loop|vlan/i]
-      config_get('interface', 'storm_control_unicast', name: @name)
+      config_get('interface', 'storm_control_unicast', @get_args)
     end
 
     def storm_control_unicast=(val)
@@ -1114,7 +1136,7 @@ module Cisco
     end
 
     def stp_bpdufilter
-      config_get('interface', 'stp_bpdufilter', name: @name)
+      config_get('interface', 'stp_bpdufilter', @get_args)
     end
 
     def stp_bpdufilter=(val)
@@ -1134,7 +1156,7 @@ module Cisco
     end
 
     def stp_bpduguard
-      config_get('interface', 'stp_bpduguard', name: @name)
+      config_get('interface', 'stp_bpduguard', @get_args)
     end
 
     def stp_bpduguard=(val)
@@ -1154,7 +1176,7 @@ module Cisco
 
     def stp_cost
       return nil if switchport_mode == :disabled
-      cost = config_get('interface', 'stp_cost', name: @name)
+      cost = config_get('interface', 'stp_cost', @get_args)
       cost == 'auto' ? cost : cost.to_i
     end
 
@@ -1168,7 +1190,7 @@ module Cisco
     end
 
     def stp_guard
-      config_get('interface', 'stp_guard', name: @name)
+      config_get('interface', 'stp_guard', @get_args)
     end
 
     def stp_guard=(val)
@@ -1189,7 +1211,7 @@ module Cisco
 
     def stp_link_type
       return nil if switchport_mode == :disabled
-      config_get('interface', 'stp_link_type', name: @name)
+      config_get('interface', 'stp_link_type', @get_args)
     end
 
     def stp_link_type=(val)
@@ -1203,7 +1225,7 @@ module Cisco
 
     def stp_port_priority
       return nil if switchport_mode == :disabled
-      config_get('interface', 'stp_port_priority', name: @name)
+      config_get('interface', 'stp_port_priority', @get_args)
     end
 
     def stp_port_priority=(val)
@@ -1222,7 +1244,7 @@ module Cisco
     # array: [['0,2-4,6,8-12', '1000'], ['4000-4020', '2568']]
     #
     def stp_mst_cost
-      config_get('interface', 'stp_mst_cost', name: @name)
+      config_get('interface', 'stp_mst_cost', @get_args)
     end
 
     def stp_mst_cost=(list)
@@ -1244,7 +1266,7 @@ module Cisco
     # array: [['0,2-4,6,8-12', '64'], ['4000-4020', '160']]
     #
     def stp_mst_port_priority
-      config_get('interface', 'stp_mst_port_priority', name: @name)
+      config_get('interface', 'stp_mst_port_priority', @get_args)
     end
 
     def stp_mst_port_priority=(list)
@@ -1260,7 +1282,7 @@ module Cisco
     end
 
     def stp_port_type
-      config_get('interface', 'stp_port_type', name: @name)
+      config_get('interface', 'stp_port_type', @get_args)
     end
 
     def stp_port_type=(val)
@@ -1286,7 +1308,7 @@ module Cisco
     # array: [['1-4,6,8-12', '1000'], ['3000-3960', '2568']]
     #
     def stp_vlan_cost
-      config_get('interface', 'stp_vlan_cost', name: @name)
+      config_get('interface', 'stp_vlan_cost', @get_args)
     end
 
     def stp_vlan_cost=(list)
@@ -1308,7 +1330,7 @@ module Cisco
     # array: [['1-4,6,8-12', '64'], ['3000-3960', '160']]
     #
     def stp_vlan_port_priority
-      config_get('interface', 'stp_vlan_port_priority', name: @name)
+      config_get('interface', 'stp_vlan_port_priority', @get_args)
     end
 
     def stp_vlan_port_priority=(list)
@@ -1325,7 +1347,7 @@ module Cisco
 
     def switchport
       # This is "switchport", not "switchport mode"
-      config_get('interface', 'switchport', name: @name)
+      config_get('interface', 'switchport', @get_args)
     end
 
     def switchport_enable(val=true)
@@ -1335,8 +1357,7 @@ module Cisco
     # switchport_autostate_exclude is exclusive to switchport interfaces
     def switchport_autostate_exclude
       return nil if switchport_mode == :disabled
-      config_get('interface',
-                 'switchport_autostate_exclude', name: @name)
+      config_get('interface', 'switchport_autostate_exclude', @get_args)
     end
 
     def switchport_autostate_exclude=(val)
@@ -1367,7 +1388,7 @@ module Cisco
 
     def switchport_mode
       return nil if platform == :ios_xr
-      mode = config_get('interface', switchport_mode_lookup_string, name: @name)
+      mode = config_get('interface', switchport_mode_lookup_string, @get_args)
 
       return mode.nil? ? :disabled : IF_SWITCHPORT_MODE.key(mode)
 
@@ -1427,7 +1448,7 @@ module Cisco
     def switchport_trunk_allowed_vlan
       return nil if switchport_mode == :disabled
       vlans = config_get('interface', 'switchport_trunk_allowed_vlan',
-                         name: @name)
+                         @get_args)
       vlans = vlans.join(',') if vlans.is_a?(Array)
       vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
       vlans
@@ -1449,7 +1470,7 @@ module Cisco
 
     def switchport_trunk_native_vlan
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_trunk_native_vlan', name: @name)
+      config_get('interface', 'switchport_trunk_native_vlan', @get_args)
     end
 
     def switchport_trunk_native_vlan=(val)
@@ -1486,7 +1507,7 @@ module Cisco
     # <state> switchport mode private-vlan host
     def switchport_pvlan_host
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_pvlan_host', name: @name)
+      config_get('interface', 'switchport_pvlan_host', @get_args)
     end
 
     def switchport_pvlan_host=(state)
@@ -1503,7 +1524,7 @@ module Cisco
     # <state> switchport mode private-vlan promiscuous
     def switchport_pvlan_promiscuous
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_pvlan_promiscuous', name: @name)
+      config_get('interface', 'switchport_pvlan_promiscuous', @get_args)
     end
 
     def switchport_pvlan_promiscuous=(state)
@@ -1520,7 +1541,7 @@ module Cisco
     # <state> switchport private-vlan host-association <pri> <sec>
     # Note this is NOT a multiple, unlike trunk association.
     def switchport_pvlan_host_association
-      config_get('interface', 'switchport_pvlan_host_association', name: @name)
+      config_get('interface', 'switchport_pvlan_host_association', @get_args)
     end
 
     # Input: An array of primary and secondary vlans: ['44', '244']
@@ -1541,7 +1562,7 @@ module Cisco
     # --------------------------
     # <state> switchport private-vlan mapping <primary> <vlan>
     def switchport_pvlan_mapping
-      config_get('interface', 'switchport_pvlan_mapping', name: @name)
+      config_get('interface', 'switchport_pvlan_mapping', @get_args)
     end
 
     # Input: An array of primary vlan and range of vlans: ['44', '3-4,6']
@@ -1605,7 +1626,7 @@ module Cisco
     # --------------------------
     # <state> switchport private-vlan mapping trunk <primary> <vlan>
     def switchport_pvlan_mapping_trunk
-      config_get('interface', 'switchport_pvlan_mapping_trunk', name: @name)
+      config_get('interface', 'switchport_pvlan_mapping_trunk', @get_args)
     end
 
     # Input: A nested array of primary vlan and range of vlans:
@@ -1656,7 +1677,7 @@ module Cisco
     # <state> switchport private-vlan association trunk <pri> <sec>
     # Supports multiple.
     def switchport_pvlan_trunk_association
-      config_get('interface', 'switchport_pvlan_trunk_association', name: @name)
+      config_get('interface', 'switchport_pvlan_trunk_association', @get_args)
     end
 
     # Input: A nested array of primary and secondary vlans:
@@ -1696,7 +1717,7 @@ module Cisco
     # <state> switchport mode private-vlan trunk promiscuous
     def switchport_pvlan_trunk_promiscuous
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_pvlan_trunk_promiscuous', name: @name)
+      config_get('interface', 'switchport_pvlan_trunk_promiscuous', @get_args)
     end
 
     def switchport_pvlan_trunk_promiscuous=(state)
@@ -1713,7 +1734,7 @@ module Cisco
     # <state> switchport mode private-vlan trunk secondary
     def switchport_pvlan_trunk_secondary
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_pvlan_trunk_secondary', name: @name)
+      config_get('interface', 'switchport_pvlan_trunk_secondary', @get_args)
     end
 
     def switchport_pvlan_trunk_secondary=(state)
@@ -1733,7 +1754,7 @@ module Cisco
     def switchport_pvlan_trunk_allowed_vlan
       return nil if switchport_mode == :disabled
       vlans = config_get('interface', 'switchport_pvlan_trunk_allowed_vlan',
-                         name: @name)
+                         @get_args)
       vlans = vlans.join(',') if vlans.is_a?(Array)
       vlans = Utils.normalize_range_array(vlans, :string) unless vlans == 'none'
       vlans
@@ -1757,7 +1778,7 @@ module Cisco
     # <state> switchport trunk native vlan <vlan>
     def switchport_pvlan_trunk_native_vlan
       return nil if switchport_mode == :disabled
-      config_get('interface', 'switchport_pvlan_trunk_native_vlan', name: @name)
+      config_get('interface', 'switchport_pvlan_trunk_native_vlan', @get_args)
     end
 
     def switchport_pvlan_trunk_native_vlan=(vlan)
@@ -1775,7 +1796,7 @@ module Cisco
     # <state> private-vlan mapping <range>  # ex. range = ['2-4,9']
     # Always returns an array.
     def pvlan_mapping
-      range = config_get('interface', 'pvlan_mapping', name: @name)
+      range = config_get('interface', 'pvlan_mapping', @get_args)
       return default_pvlan_mapping if range.nil?
       range.empty? ? range : [range.delete(' ')]
     end
@@ -1828,7 +1849,7 @@ module Cisco
     end
 
     def vlan_mapping
-      match = config_get('interface', 'vlan_mapping', name: @name)
+      match = config_get('interface', 'vlan_mapping', @get_args)
       match.each(&:compact!) unless match.nil?
       match
     end
@@ -1860,7 +1881,7 @@ module Cisco
     end
 
     def vlan_mapping_enable
-      config_get('interface', 'vlan_mapping_enable', name: @name)
+      config_get('interface', 'vlan_mapping_enable', @get_args)
     end
 
     def vlan_mapping_enable=(state)
@@ -1911,7 +1932,7 @@ module Cisco
 
     def switchport_vtp
       return nil unless switchport_vtp_mode_capable?
-      config_get('interface', 'vtp', name: @name)
+      config_get('interface', 'vtp', @get_args)
     end
 
     def switchport_vtp=(vtp_set)
@@ -1931,7 +1952,7 @@ module Cisco
     # svi_autostate is exclusive to svi interfaces
     def svi_autostate
       return nil unless @name[/^vlan/i]
-      config_get('interface', 'svi_autostate', name: @name)
+      config_get('interface', 'svi_autostate', @get_args)
     end
 
     def svi_autostate=(val)
@@ -1959,7 +1980,7 @@ module Cisco
     # svi_management is exclusive to svi interfaces
     def svi_management
       return nil unless @name[/^vlan/i]
-      config_get('interface', 'svi_management', name: @name)
+      config_get('interface', 'svi_management', @get_args)
     end
 
     def svi_management=(val)
@@ -2002,7 +2023,7 @@ module Cisco
     end
 
     def vpc_id
-      config_get('interface', 'vpc_id', name: @name)
+      config_get('interface', 'vpc_id', @get_args)
     end
 
     def vpc_id=(num)
@@ -2021,7 +2042,7 @@ module Cisco
 
     def vpc_peer_link
       return nil unless @name[/port-channel/i] && switchport_mode != :disabled
-      config_get('interface', 'vpc_peer_link', name: @name)
+      config_get('interface', 'vpc_peer_link', @get_args)
     end
 
     def vpc_peer_link=(state)
@@ -2035,7 +2056,7 @@ module Cisco
     end
 
     def vrf
-      config_get('interface', 'vrf', name: @name)
+      config_get('interface', 'vrf', @get_args)
     end
 
     def vrf=(v)
@@ -2090,7 +2111,7 @@ module Cisco
     def purge_config
       # This getter is only supported on ethernet interfaces
       return nil unless @name[/ethernet/]
-      state = config_get('interface', 'purge_config', name: @name)
+      state = config_get('interface', 'purge_config', @get_args)
       state.nil? ? true : default_purge_config
     end
 

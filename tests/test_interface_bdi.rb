@@ -26,8 +26,8 @@ class TestInterfaceBdi < CiscoTestCase
   def self.runnable_methods
     # We don't have a separate YAML file to key off, so we check platform
     return super if node.product_id[/N7/]
-    remove_method :setup
-    remove_method :teardown
+    remove_method :setup if instance_methods(false).include?(:setup)
+    remove_method :teardown if instance_methods(false).include?(:teardown)
     [:unsupported]
   end
 
