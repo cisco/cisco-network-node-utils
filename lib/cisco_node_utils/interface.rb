@@ -229,7 +229,7 @@ module Cisco
     def bfd_echo
       return nil unless Feature.bfd_enabled?
       return nil if @name[/loop/i]
-      config_get('interface', 'bfd_echo', name: @name)
+      config_get('interface', 'bfd_echo', @get_args)
     end
 
     def bfd_echo=(val)
