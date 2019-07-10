@@ -23,53 +23,62 @@ require_relative 'interface'
 module Cisco
   # InterfaceOspf - node utility class for per-interface OSPF config management
   class InterfaceOspf < NodeUtil
-    attr_reader :interface, :ospf_name
+    attr_reader :intf_name, :ospf_name, :area
+    attr_accessor :get_args
 
-    def initialize(int_name, ospf_name, area, create=true)
-      fail TypeError unless int_name.is_a? String
+    def initialize(intf_name, ospf_name, area, create=true)
+      fail TypeError unless intf_name.is_a? String
       fail TypeError unless ospf_name.is_a? String
       fail TypeError unless area.is_a? String
-      fail ArgumentError unless int_name.length > 0
+      fail ArgumentError unless intf_name.length > 0
       fail ArgumentError unless ospf_name.length > 0
       fail ArgumentError unless area.length > 0
 
       # normalize
-      int_name = int_name.downcase
-      @interface = Interface.interfaces[int_name]
-      fail "interface #{int_name} does not exist" if @interface.nil?
+      @intf_name = intf_name.downcase
+      fail "interface #{@intf_name} does not exist" if
+        Interface.interfaces[@intf_name].nil?
 
       @ospf_name = ospf_name
+      @area = area
+      @get_args = { name: intf_name, show_name: nil }
+      set_args_keys_default
 
       return unless create
       Feature.ospf_enable
+      self.area = area
+    end
 
-      config_set('interface_ospf', 'area', @interface.name,
-                 '', @ospf_name, area)
+    def set_args_keys_default
+      @set_args = { name: @intf_name, ospf_name: @ospf_name, area: @area }
     end
 
     # can't re-use Interface.interfaces because we need to filter based on
     # "ip router ospf <name>", which Interface doesn't retrieve
-    def self.interfaces(ospf_name=nil)
+    def self.interfaces(ospf_name=nil, single_intf=nil)
       fail TypeError unless ospf_name.is_a?(String) || ospf_name.nil?
       ints = {}
-
-      intf_list = config_get('interface_ospf', 'all_interfaces')
+      single_intf ||= ''
+      intf_list = config_get('interface_ospf', 'all_interfaces',
+                             show_name: single_intf)
       return ints if intf_list.nil?
       intf_list.each do |name|
-        match = config_get('interface_ospf', 'area', name)
+        # Find interfaces with 'ip router ospf <name> area <area>'
+        match = config_get('interface_ospf', 'area',
+                           name: name, show_name: single_intf)
         next if match.nil?
-        # ip router ospf <name> area <area>
         ospf = match[0]
         area = match[1]
         next unless ospf_name.nil? || ospf == ospf_name
         int = name.downcase
         ints[int] = InterfaceOspf.new(int, ospf, area, false)
+        ints[int].get_args[:show_name] = single_intf
       end
       ints
     end
 
     def area
-      match = config_get('interface_ospf', 'area', @interface.name)
+      match = config_get('interface_ospf', 'area', @get_args)
       return nil if match.nil?
       val = match[1]
       # Coerce numeric area to the expected dot-decimal format.
@@ -78,20 +87,20 @@ module Cisco
     end
 
     def area=(a)
-      config_set('interface_ospf', 'area', @interface.name,
-                 '', @ospf_name, a)
+      config_set('interface_ospf', 'area',
+                 @set_args.merge!(state: '', area: a))
+      set_args_keys_default
     end
 
     def destroy
-      config_set('interface_ospf', 'area', @interface.name,
-                 'no', @ospf_name, area)
+      config_set('interface_ospf', 'area', @set_args.merge!(state: 'no'))
+      set_args_keys_default
       # Reset everything else back to default as well:
       self.message_digest = default_message_digest
       message_digest_key_set(default_message_digest_key_id, '', '', '')
       self.cost = default_cost
-      self.hello_interval = default_hello_interval
-      config_set('interface_ospf', 'dead_interval',
-                 @interface.name, 'no', '')
+      destroy_hello_interval
+      destroy_dead_interval
       self.bfd = default_bfd
       self.mtu_ignore = default_mtu_ignore
       self.priority = default_priority
@@ -106,15 +115,14 @@ module Cisco
     end
 
     def message_digest
-      config_get('interface_ospf', 'message_digest', @interface.name)
+      config_get('interface_ospf', 'message_digest', @get_args)
     end
 
-    # interface %s
-    #   %s ip ospf authentication message-digest
     def message_digest=(enable)
       return if enable == message_digest
-      config_set('interface_ospf', 'message_digest', @interface.name,
-                 enable ? '' : 'no')
+      @set_args[:state] = (enable ? '' : 'no')
+      config_set('interface_ospf', 'message_digest', @set_args)
+      set_args_keys_default
     end
 
     def default_message_digest_key_id
@@ -122,7 +130,7 @@ module Cisco
     end
 
     def message_digest_key_id
-      config_get('interface_ospf', 'message_digest_key_id', @interface.name)
+      config_get('interface_ospf', 'message_digest_key_id', @get_args)
     end
 
     def default_message_digest_algorithm_type
@@ -132,7 +140,7 @@ module Cisco
 
     def message_digest_algorithm_type
       match = config_get('interface_ospf', 'message_digest_alg_type',
-                         @interface.name)
+                         @get_args)
       match.to_sym
     end
 
@@ -143,101 +151,120 @@ module Cisco
 
     def message_digest_encryption_type
       match = config_get('interface_ospf', 'message_digest_enc_type',
-                         @interface.name)
+                         @get_args)
       Encryption.cli_to_symbol(match)
     end
 
     def message_digest_password
-      config_get('interface_ospf', 'message_digest_password', @interface.name)
+      config_get('interface_ospf', 'message_digest_password', @get_args)
     end
 
     def default_message_digest_password
       config_get_default('interface_ospf', 'message_digest_password')
     end
 
-    # interface %s
-    #   %s ip ospf message-digest-key %d %s %d %s
     def message_digest_key_set(keyid, algtype, enctype, enc)
       current_keyid = message_digest_key_id
       if keyid == default_message_digest_key_id && current_keyid != keyid
-        config_set('interface_ospf', 'message_digest_key_set',
-                   @interface.name, 'no', current_keyid,
-                   '', '', '')
+        @set_args.merge!(state:   'no',
+                         keyid:   current_keyid,
+                         algtype: '',
+                         enctype: '',
+                         enc:     '')
+        config_set('interface_ospf', 'message_digest_key_set', @set_args)
       elsif keyid != default_message_digest_key_id
         fail TypeError unless enc.is_a?(String)
         fail ArgumentError unless enc.length > 0
         enctype = Encryption.symbol_to_cli(enctype)
-        config_set('interface_ospf', 'message_digest_key_set',
-                   @interface.name, '', keyid, algtype, enctype, enc)
+        @set_args.merge!(state:   '',
+                         keyid:   current_keyid,
+                         algtype: algtype,
+                         enctype: enctype,
+                         enc:     enc)
+        config_set('interface_ospf', 'message_digest_key_set', @set_args)
       end
+      set_args_keys_default
     end
 
     def cost
-      config_get('interface_ospf', 'cost', @interface.name)
+      config_get('interface_ospf', 'cost', @get_args)
     end
 
     def default_cost
       config_get_default('interface_ospf', 'cost')
     end
 
-    # interface %s
-    #   ip ospf cost %d
     def cost=(c)
       if c == default_cost
-        config_set('interface_ospf', 'cost', @interface.name, 'no', '')
+        @set_args.merge!(state: 'no', cost: '')
       else
-        config_set('interface_ospf', 'cost', @interface.name, '', c)
+        @set_args.merge!(state: '', cost: c)
       end
+      config_set('interface_ospf', 'cost', @set_args)
+      set_args_keys_default
     end
 
     def hello_interval
-      config_get('interface_ospf', 'hello_interval', @interface.name)
+      config_get('interface_ospf', 'hello_interval', @get_args)
     end
 
     def default_hello_interval
       config_get_default('interface_ospf', 'hello_interval')
     end
 
-    # interface %s
-    #   ip ospf hello-interval %d
     def hello_interval=(interval)
-      config_set('interface_ospf', 'hello_interval',
-                 @interface.name, '', interval.to_i)
+      # Previous behavior always sets interval and ignores 'no' cmd
+      @set_args.merge!(state: '', interval: interval.to_i)
+      config_set('interface_ospf', 'hello_interval', @set_args)
+      set_args_keys_default
+    end
+
+    def destroy_hello_interval
+      # Helper to remove cli completely
+      @set_args.merge!(state: 'no', interval: '')
+      config_set('interface_ospf', 'hello_interval', @set_args)
+      set_args_keys_default
     end
 
     def dead_interval
-      config_get('interface_ospf', 'dead_interval', @interface.name)
+      config_get('interface_ospf', 'dead_interval', @get_args)
     end
 
     def default_dead_interval
       config_get_default('interface_ospf', 'dead_interval')
     end
 
-    # interface %s
-    #   ip ospf dead-interval %d
     def dead_interval=(interval)
-      config_set('interface_ospf', 'dead_interval',
-                 @interface.name, '', interval.to_i)
+      # Previous behavior always sets interval and ignores 'no' cmd
+      @set_args.merge!(state: '', interval: interval.to_i)
+      config_set('interface_ospf', 'dead_interval', @set_args)
+      set_args_keys_default
+    end
+
+    def destroy_dead_interval
+      # Helper to remove cli completely
+      @set_args.merge!(state: 'no', interval: '')
+      config_set('interface_ospf', 'dead_interval', @set_args)
+      set_args_keys_default
     end
 
     # CLI can be either of the following or none
     # ip ospf bfd
     # ip ospf bfd disable
     def bfd
-      val = config_get('interface_ospf', 'bfd', @interface.name)
+      val = config_get('interface_ospf', 'bfd', @get_args)
       return if val.nil?
       val.include?('disable') ? false : true
     end
 
-    # interface %s
-    #   %s ip ospf bfd %s
     def bfd=(val)
       return if val == bfd
       Feature.bfd_enable
       state = (val == default_bfd) ? 'no' : ''
       disable = val ? '' : 'disable'
-      config_set('interface_ospf', 'bfd', @interface.name,
-                 state, disable)
+      config_set('interface_ospf', 'bfd',
+                 @set_args.merge!(state: state, disable: disable))
+      set_args_keys_default
     end
 
     def default_bfd
@@ -245,7 +272,7 @@ module Cisco
     end
 
     def default_network_type
-      case @interface.name
+      case @intf_name
       when /loopback/i
         lookup = 'network_type_loopback_default'
       else
@@ -255,14 +282,13 @@ module Cisco
     end
 
     def mtu_ignore
-      config_get('interface_ospf', 'mtu_ignore', @interface.name)
+      config_get('interface_ospf', 'mtu_ignore', @get_args)
     end
 
-    # interface %s
-    #   %s ip ospf mtu-ignore
     def mtu_ignore=(enable)
-      config_set('interface_ospf', 'mtu_ignore', @interface.name,
-                 enable ? '' : 'no')
+      @set_args[:state] = enable ? '' : 'no'
+      config_set('interface_ospf', 'mtu_ignore', @set_args)
+      set_args_keys_default
     end
 
     def default_mtu_ignore
@@ -270,20 +296,21 @@ module Cisco
     end
 
     def network_type
-      type = config_get('interface_ospf', 'network_type', @interface.name)
+      type = config_get('interface_ospf', 'network_type', @get_args)
       return 'p2p' if type == 'point-to-point'
       return default_network_type if type.nil?
       type
     end
 
-    # interface %s
-    #   %s ip ospf network %s
     def network_type=(type)
-      no_cmd = (type == default_network_type) ? 'no' : ''
-      network = (type == default_network_type) ? '' : type
-      network = 'point-to-point' if type.to_s == 'p2p'
-      config_set('interface_ospf', 'network_type', @interface.name,
-                 no_cmd, network)
+      if type == default_network_type
+        @set_args.merge!(state: 'no', network_type: '')
+      else
+        network = 'point-to-point' if type.to_s == 'p2p'
+        @set_args.merge!(state: '', network_type: network)
+      end
+      config_set('interface_ospf', 'network_type', @set_args)
+      set_args_keys_default
     end
 
     def default_passive_interface
@@ -291,28 +318,28 @@ module Cisco
     end
 
     def passive_interface
-      config_get('interface_ospf', 'passive_interface', @interface.name)
+      config_get('interface_ospf', 'passive_interface', @get_args)
     end
 
-    # interface %s
-    #   %s ip ospf passive-interface
     def passive_interface=(enable)
       fail TypeError unless enable == true || enable == false
-      config_set('interface_ospf', 'passive_interface', @interface.name,
-                 enable ? '' : 'no')
+      @set_args[:state] = enable ? '' : 'no'
+      config_set('interface_ospf', 'passive_interface', @set_args)
+      set_args_keys_default
     end
 
     def priority
-      config_get('interface_ospf', 'priority', @interface.name)
+      config_get('interface_ospf', 'priority', @get_args)
     end
 
-    # interface %s
-    #   ip ospf priority %d
     def priority=(val)
-      no_cmd = (val == default_priority) ? 'no' : ''
-      pri = (val == default_priority) ? '' : val
-      config_set('interface_ospf', 'priority',
-                 @interface.name, no_cmd, pri)
+      if val == default_priority
+        @set_args.merge!(state: 'no', priority: '')
+      else
+        @set_args.merge!(state: '', priority: val)
+      end
+      config_set('interface_ospf', 'priority', @set_args)
+      set_args_keys_default
     end
 
     def default_priority
@@ -320,14 +347,13 @@ module Cisco
     end
 
     def shutdown
-      config_get('interface_ospf', 'shutdown', @interface.name)
+      config_get('interface_ospf', 'shutdown', @get_args)
     end
 
-    # interface %s
-    #   %s ip ospf shutdown
-    def shutdown=(state)
-      config_set('interface_ospf', 'shutdown', @interface.name,
-                 state ? '' : 'no')
+    def shutdown=(enable)
+      @set_args[:state] = enable ? '' : 'no'
+      config_set('interface_ospf', 'shutdown', @set_args)
+      set_args_keys_default
     end
 
     def default_shutdown
@@ -335,16 +361,17 @@ module Cisco
     end
 
     def transmit_delay
-      config_get('interface_ospf', 'transmit_delay', @interface.name)
+      config_get('interface_ospf', 'transmit_delay', @get_args)
     end
 
-    # interface %s
-    #   ip ospf transmit-delay %d
     def transmit_delay=(val)
-      no_cmd = (val == default_transmit_delay) ? 'no' : ''
-      delay = (val == default_transmit_delay) ? '' : val
-      config_set('interface_ospf', 'transmit_delay',
-                 @interface.name, no_cmd, delay)
+      if val == default_transmit_delay
+        @set_args.merge!(state: 'no', delay: '')
+      else
+        @set_args.merge!(state: '', delay: val)
+      end
+      config_set('interface_ospf', 'transmit_delay', @set_args)
+      set_args_keys_default
     end
 
     def default_transmit_delay
