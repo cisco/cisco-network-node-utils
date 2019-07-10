@@ -61,6 +61,47 @@ class TestInterfaceOspf < CiscoTestCase
     InterfaceOspf.new(ifname, routerospf.name, area)
   end
 
+  # Test InterfaceOspf.interfaces class method api
+  def test_interfaces_api
+    intf = interfaces[0]
+    intf2 = interfaces[1]
+
+    # Verify single_intf usage when no ospf config on intf
+    none = InterfaceOspf.interfaces(nil, intf)
+    assert_equal(none.keys.length, 0,
+                 'Invalid number of keys returned, should be 0')
+
+    # Verify single_intf usage when ospf config present on intf
+    InterfaceOspf.new(intf, 'ospf_test', '0')
+    one = InterfaceOspf.interfaces(nil, intf)
+    assert_equal(one.keys.length, 1,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(one[intf].get_args[:show_name], intf,
+                 ':show_name should be intf name when intf specified')
+
+    # Verify 'all' interfaces returned
+    Interface.new(intf2)
+    InterfaceOspf.new(intf2, 'ospf_test', '0')
+    all = InterfaceOspf.interfaces
+    assert_operator(all.keys.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].get_args[:show_name],
+                 ':show_name should be empty string when intf2 is nil')
+
+    # Test with ospf_name parameter specified
+    all = InterfaceOspf.interfaces('ospf_test')
+    assert_operator(all.keys.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].get_args[:show_name],
+                 ':show_name should be empty string when intf2 is nil')
+
+    one = InterfaceOspf.interfaces('ospf_test', intf2)
+    assert_equal(one.keys.length, 1,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(one[intf2].get_args[:show_name], intf2,
+                 ':show_name should be intf2 name when intf2 specified')
+  end
+
   def test_get_set_area
     # setup a loopback to use
     config('interface loopback12')
@@ -209,7 +250,7 @@ class TestInterfaceOspf < CiscoTestCase
     pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
     assert_show_match(command: show_cmd(ifname),
                       pattern: pattern)
-    assert_equal(ifname.downcase, interface.interface.name,
+    assert_equal(ifname.downcase, interface.intf_name,
                  'Error: interface name get value mismatch ')
     assert_equal(area, interface.area,
                  'Error: area get value mismatch ')
@@ -471,7 +512,7 @@ class TestInterfaceOspf < CiscoTestCase
     ifname = interfaces[2]
     area = '1.1.1.1'
     interface1 = create_interfaceospf(ospf, ifname, area)
-    assert_equal(ifname.downcase, interface1.interface.name,
+    assert_equal(ifname.downcase, interface1.intf_name,
                  "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                  'not configured')
 
@@ -483,7 +524,7 @@ class TestInterfaceOspf < CiscoTestCase
 
     # check other interface association still exist.
     assert_show_match(
-      command: show_cmd(interface.interface.name),
+      command: show_cmd(interface.intf_name),
       pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
       msg:     "'ip router ospf #{ospf.name} default area' not configured")
   end
