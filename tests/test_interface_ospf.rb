@@ -77,7 +77,7 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(one.keys.length, 1,
                  'Invalid number of keys returned, should be 1')
     assert_equal(one[intf].get_args[:show_name], intf,
-                 ':show_name should be intf name when intf specified')
+                 ':show_name should be intf name when single_intf param specified')
 
     # Verify 'all' interfaces returned
     Interface.new(intf2)
@@ -86,20 +86,20 @@ class TestInterfaceOspf < CiscoTestCase
     assert_operator(all.keys.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
     assert_empty(all[intf2].get_args[:show_name],
-                 ':show_name should be empty string when intf2 is nil')
+                 ':show_name should be empty string when single_intf param is nil')
 
     # Test with ospf_name parameter specified
     all = InterfaceOspf.interfaces('ospf_test')
     assert_operator(all.keys.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
     assert_empty(all[intf2].get_args[:show_name],
-                 ':show_name should be empty string when intf2 is nil')
+                 ':show_name should be empty string when single_intf param is nil')
 
     one = InterfaceOspf.interfaces('ospf_test', intf2)
     assert_equal(one.keys.length, 1,
                  'Invalid number of keys returned, should be 1')
     assert_equal(one[intf2].get_args[:show_name], intf2,
-                 ':show_name should be intf2 name when intf2 specified')
+                 ':show_name should be intf2 name when single_intf param specified')
   end
 
   def test_get_set_area
