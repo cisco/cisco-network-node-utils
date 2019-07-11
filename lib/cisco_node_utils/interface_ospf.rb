@@ -26,7 +26,7 @@ module Cisco
     attr_reader :intf_name, :ospf_name, :area
     attr_accessor :get_args
 
-    def initialize(intf_name, ospf_name, area, create=true)
+    def initialize(intf_name, ospf_name, area, create=true, single_intf=nil)
       fail TypeError unless intf_name.is_a? String
       fail TypeError unless ospf_name.is_a? String
       fail TypeError unless area.is_a? String
@@ -36,12 +36,12 @@ module Cisco
 
       # normalize
       @intf_name = intf_name.downcase
+      @show_name = single_intf ||= ''
       fail "interface #{@intf_name} does not exist" if
-        Interface.interfaces[@intf_name].nil?
-
+        Interface.interfaces(nil, single_intf)[@intf_name].nil?
       @ospf_name = ospf_name
       @area = area
-      @get_args = { name: intf_name, show_name: nil }
+      @get_args = { name: intf_name, show_name: @show_name }
       set_args_keys_default
 
       return unless create
@@ -71,8 +71,7 @@ module Cisco
         area = match[1]
         next unless ospf_name.nil? || ospf == ospf_name
         int = name.downcase
-        ints[int] = InterfaceOspf.new(int, ospf, area, false)
-        ints[int].get_args[:show_name] = single_intf
+        ints[int] = InterfaceOspf.new(int, ospf, area, false, single_intf)
       end
       ints
     end

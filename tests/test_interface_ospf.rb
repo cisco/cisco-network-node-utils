@@ -100,6 +100,14 @@ class TestInterfaceOspf < CiscoTestCase
                  'Invalid number of keys returned, should be 1')
     assert_equal(one[intf2].get_args[:show_name], intf2,
                  ':show_name should be intf2 name when single_intf param specified')
+
+    # Test non-existent loopback raises fail
+    if Interface.interfaces(nil, 'loopback543').any?
+      Interface.new('loopback543', false).destroy
+    end
+    assert_raises(RuntimeError) do
+      InterfaceOspf.new('loopback543', 'ospf_test', '0', false)
+    end
   end
 
   def test_get_set_area
