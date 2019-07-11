@@ -22,6 +22,7 @@ module Cisco
   # Interface - node utility class for general interface config management
   class InterfaceChannelGroup < NodeUtil
     attr_reader :name
+    attr_accessor :get_args, :show_name
 
     def initialize(name)
       validate_args(name)
@@ -31,14 +32,18 @@ module Cisco
       "interface_channel_group #{name}"
     end
 
-    def self.interfaces
+    def self.interfaces(single_intf=nil)
       hash = {}
-      all = config_get('interface_channel_group', 'all_interfaces')
+      single_intf ||= ''
+      all = config_get('interface_channel_group', 'all_interfaces',
+                       show_name: single_intf)
       return hash if all.nil?
 
       all.each do |id|
         id = id.downcase
         hash[id] = InterfaceChannelGroup.new(id)
+        hash[id].show_name = single_intf
+        hash[id].get_args[:show_name] = single_intf
       end
       hash
     end
@@ -53,7 +58,7 @@ module Cisco
     end
 
     def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
-      @get_args = { name: @name }
+      @get_args = { name: @name, show_name: @show_name }
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 
