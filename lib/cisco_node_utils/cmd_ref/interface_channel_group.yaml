@@ -5,7 +5,7 @@ _template:
   ios_xr:
     get_command: "show running interface"
   nexus:
-    get_command: "show running interface all"
+    get_command: "show running interface <show_name> all"
 
 all_interfaces:
   multiple:
