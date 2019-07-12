@@ -8,6 +8,27 @@ Changelog
 ### Changed
 
 ### Removed
+* Deprecated `vlan` private-vlan properties:
+
+| Removed |
+|:---|
+| `private_vlan_association`                      |
+| `private_vlan_type`                             |
+
+* Deprecated `interface` private-vlan properties
+
+| Removed |
+|:---|
+| `private_vlan_mapping`                          |
+| `switchport_mode_private_vlan_host`             |
+| `switchport_mode_private_vlan_host_association` |
+| `switchport_mode_private_vlan_host_promiscous`  |
+| `switchport_mode_private_vlan_trunk_promiscuous`|
+| `switchport_mode_private_vlan_trunk_secondary`  |
+| `switchport_private_vlan_association_trunk`     |
+| `switchport_private_vlan_mapping_trunk`         |
+| `switchport_private_vlan_trunk_allowed_vlan`    |
+| `switchport_private_vlan_trunk_native_vlan`     |
 
 ### Issues Addressed
 

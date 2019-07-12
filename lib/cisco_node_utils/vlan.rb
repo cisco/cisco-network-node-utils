@@ -19,14 +19,13 @@ require_relative 'node_util'
 require_relative 'interface'
 require_relative 'fabricpath_global'
 require_relative 'feature'
-require_relative 'vlan_DEPRECATED'
 
 # Add some Vlan-specific constants to the Cisco namespace
 module Cisco
   VLAN_NAME_SIZE = 33
 
   # Vlan - node utility class for VLAN configuration management
-  class Vlan < Cisco::VlanDeprecated
+  class Vlan < NodeUtil
     attr_reader :vlan_id
 
     def initialize(vlan_id, instantiate=true)
