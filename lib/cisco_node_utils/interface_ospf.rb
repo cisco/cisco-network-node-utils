@@ -98,8 +98,8 @@ module Cisco
       self.message_digest = default_message_digest
       message_digest_key_set(default_message_digest_key_id, '', '', '')
       self.cost = default_cost
-      destroy_hello_interval
-      destroy_dead_interval
+      destroy_interval('hello_interval')
+      destroy_interval('dead_interval')
       self.bfd = default_bfd
       self.mtu_ignore = default_mtu_ignore
       self.priority = default_priority
@@ -218,10 +218,10 @@ module Cisco
       set_args_keys_default
     end
 
-    def destroy_hello_interval
+    def destroy_interval(prop)
       # Helper to remove cli completely
       @set_args.merge!(state: 'no', interval: '')
-      config_set('interface_ospf', 'hello_interval', @set_args)
+      config_set('interface_ospf', prop, @set_args)
       set_args_keys_default
     end
 
@@ -236,13 +236,6 @@ module Cisco
     def dead_interval=(interval)
       # Previous behavior always sets interval and ignores 'no' cmd
       @set_args.merge!(state: '', interval: interval.to_i)
-      config_set('interface_ospf', 'dead_interval', @set_args)
-      set_args_keys_default
-    end
-
-    def destroy_dead_interval
-      # Helper to remove cli completely
-      @set_args.merge!(state: 'no', interval: '')
       config_set('interface_ospf', 'dead_interval', @set_args)
       set_args_keys_default
     end

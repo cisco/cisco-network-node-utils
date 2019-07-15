@@ -369,6 +369,14 @@ class TestInterfaceOspf < CiscoTestCase
     interface.hello_interval = interface.default_hello_interval
     refute_show_match(pattern: /\s+ip ospf hello-interval(.*)/,
                       msg:     'Error: default hello-interval set failed')
+
+    # Test destroy_interval helper method
+    interface.hello_interval = interval
+    interface.destroy_interval('hello_interval')
+    refute_show_match(
+      command: show_cmd(interface.intf_name),
+      pattern: /\s+ip ospf hello-interval/,
+      msg:     'ip ospf hello-interval not removed')
   end
 
   def test_dead_inv
@@ -403,6 +411,14 @@ class TestInterfaceOspf < CiscoTestCase
     assert_show_match(
       pattern: /^\s+ip ospf dead-interval #{interface.default_dead_interval}/,
       msg:     'Error: default dead-interval set failed')
+
+    # Test destroy_interval helper method
+    interface.dead_interval = interval
+    interface.destroy_interval('dead_interval')
+    refute_show_match(
+      command: show_cmd(interface.intf_name),
+      pattern: /\s+ip ospf dead-interval/,
+      msg:     'ip ospf dead-interval not removed')
   end
 
   def test_bfd
