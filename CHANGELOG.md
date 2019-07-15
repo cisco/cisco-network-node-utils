@@ -8,27 +8,27 @@ Changelog
 ### Changed
 
 ### Removed
-* Deprecated `vlan` private-vlan properties:
+- Removal of deprecated `interface` `private-vlan` properties.
 
-| Removed |
-|:---|
-| `private_vlan_association`                      |
-| `private_vlan_type`                             |
+| Deprecated/Removed Name | New Name |
+|:---|:---|
+| `private_vlan_mapping`                          | `pvlan_mapping`
+| `switchport_mode_private_vlan_host`             | `switchport_pvlan_host`, `switchport_pvlan_promiscuous`,
+| `switchport_mode_private_vlan_host_association` | `switchport_pvlan_host_association`
+| `switchport_mode_private_vlan_host_promiscous`  | `switchport_pvlan_mapping`
+| `switchport_mode_private_vlan_trunk_promiscuous`| `switchport_pvlan_trunk_promiscuous`
+| `switchport_mode_private_vlan_trunk_secondary`  | `switchport_pvlan_trunk_secondary`
+| `switchport_private_vlan_association_trunk`     | `switchport_pvlan_trunk_association`
+| `switchport_private_vlan_mapping_trunk`         | `switchport_pvlan_mapping_trunk`
+| `switchport_private_vlan_trunk_allowed_vlan`    | `switchport_pvlan_trunk_allowed_vlan`
+| `switchport_private_vlan_trunk_native_vlan`     | `switchport_pvlan_trunk_native_vlan`
 
-* Deprecated `interface` private-vlan properties
+- Removal of deprecated `vlan` `private-vlan` properties.
 
-| Removed |
-|:---|
-| `private_vlan_mapping`                          |
-| `switchport_mode_private_vlan_host`             |
-| `switchport_mode_private_vlan_host_association` |
-| `switchport_mode_private_vlan_host_promiscous`  |
-| `switchport_mode_private_vlan_trunk_promiscuous`|
-| `switchport_mode_private_vlan_trunk_secondary`  |
-| `switchport_private_vlan_association_trunk`     |
-| `switchport_private_vlan_mapping_trunk`         |
-| `switchport_private_vlan_trunk_allowed_vlan`    |
-| `switchport_private_vlan_trunk_native_vlan`     |
+| Deprecated/Removed Name | New Name |
+|:---|:---|
+| `private_vlan_association` | `pvlan_association`
+| `private_vlan_type`        | `pvlan_type`
 
 ### Issues Addressed
 
