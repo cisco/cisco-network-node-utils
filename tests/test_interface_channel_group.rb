@@ -31,6 +31,26 @@ class TestInterfaceChanGrp < CiscoTestCase
     interface_cleanup(@intf.name)
   end
 
+  # Test InterfaceChannelGroup.interfaces class method api
+  def test_interfaces_api
+    intf = interfaces[0]
+    intf2 = interfaces[1]
+
+    # Verify single_intf usage
+    one = InterfaceChannelGroup.interfaces(intf)
+    assert_equal(one.keys.length, 1,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(one[intf].get_args[:show_name], intf,
+                 ':show_name should be intf name when single_intf param specified')
+
+    # Verify 'all' interfaces
+    all = InterfaceChannelGroup.interfaces
+    assert_operator(all.keys.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].get_args[:show_name],
+                 ':show_name should be empty string when single_intf param is nil')
+  end
+
   def test_channel_group
     skip if platform == :nexus
     i = @intf
