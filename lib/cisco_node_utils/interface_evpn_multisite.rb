@@ -20,6 +20,7 @@ module Cisco
   # node_utils class for interface_evpn_multisite
   class InterfaceEvpnMultisite < NodeUtil
     attr_reader :interface, :tracking
+    attr_accessor :get_args, :show_name
 
     def initialize(interface)
       fail TypeError unless interface.is_a?(String)
@@ -27,14 +28,18 @@ module Cisco
       @get_args = @set_args = { interface: @interface }
     end
 
-    def self.interfaces
+    def self.interfaces(single_intf=nil)
       hash = {}
-      intf_list = config_get('interface_evpn_multisite', 'all_interfaces')
+      single_intf ||= ''
+      intf_list = config_get('interface_evpn_multisite', 'all_interfaces',
+                             show_name: single_intf)
       return hash if intf_list.nil?
 
       intf_list.each do |id|
         id = id.downcase
         intf = InterfaceEvpnMultisite.new(id)
+        intf.show_name = single_intf
+        intf.get_args[:show_name] = single_intf
         hash[id] = intf if intf.tracking
       end
       hash
