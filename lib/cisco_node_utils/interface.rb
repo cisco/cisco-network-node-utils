@@ -71,6 +71,10 @@ module Cisco
       "interface #{name}"
     end
 
+    def self.interface_count
+      config_get('interface', 'all_count').to_i
+    end
+
     def self.interfaces(opt=nil, single_intf=nil)
       hash = {}
       single_intf ||= ''
