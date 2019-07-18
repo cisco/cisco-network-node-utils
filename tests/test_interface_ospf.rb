@@ -62,7 +62,7 @@ class TestInterfaceOspf < CiscoTestCase
   end
 
   # Test InterfaceOspf.interfaces class method api
-  def test_interfaces_api
+  def test_interface_apis
     intf = interfaces[0]
     intf2 = interfaces[1]
 
