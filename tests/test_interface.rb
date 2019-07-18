@@ -171,9 +171,8 @@ class TestInterface < CiscoTestCase
     interface.destroy
   end
 
-  def test_interface_apis
-    assert_equal(Interface.interface_count, interface_count,
-                 'Interface.interface_count did not return the expected count')
+  def test_interfaces_api
+    # Test Interface.interfaces class method api
 
     # Verify raise when bad interface name
     assert_raises(Cisco::CliError,

@@ -14,11 +14,6 @@ access_vlan:
   set_value: "switchport access vlan <vlan>"
   default_value: 1
 
-all_count:
-  get_context: ~
-  get_command: "show running interface | incl ^interface | count"
-  get_value: '/\d+/'
-
 all_interfaces:
   multiple:
   ios_xr:
