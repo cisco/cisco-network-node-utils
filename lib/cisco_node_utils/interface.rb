@@ -84,7 +84,8 @@ module Cisco
       rescue CliError => e
         # ignore logical interfaces that may not exist yet;
         # invalid interface types should still raise
-        raise unless single_intf && e.clierror[/Invalid range/]
+        raise unless single_intf &&
+          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface format/])
       end
       return hash if intf_list.nil?
 
