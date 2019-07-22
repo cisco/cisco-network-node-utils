@@ -88,12 +88,16 @@ module Cisco
       end
       return hash if intf_list.nil?
 
-      # Massage intf_list data into an array that is easy
-      # to work with.
+      # Massage intf_list data into an array that is easy to work with.
+      # Use a MARKER to hide pesky 'interface' substrings
       intf_list.collect! { |x| x.strip || x }
       intf_list.delete('')
+      intf_list.collect! { |x| (x.sub('interface', '~!MARKER!~') unless
+        x[/^interface /]) || x }
       intf_list = intf_list.join(' ').split('interface')
       intf_list.delete('')
+      # Restore 'interface' substrings
+      intf_list.collect! { |x| x.sub('~!MARKER!~', 'interface') }
 
       intf_list.each do |id|
         int_data = id.strip.split(' ')
