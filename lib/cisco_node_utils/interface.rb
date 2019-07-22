@@ -18,7 +18,6 @@ require_relative 'cisco_cmn_utils'
 require_relative 'node_util'
 require_relative 'vrf'
 require_relative 'overlay_global'
-require_relative 'interface_DEPRECATED'
 
 # Cisco provider module
 module Cisco
@@ -31,16 +30,8 @@ module Cisco
     fabricpath: 'fabricpath',
   }
 
-  # REMOVE THIS HASH WITH RELEASE 2.0.0
-  IF_DEPRECATED = {
-    host:        'host',
-    promiscuous: 'promiscuous',
-    secondary:   'secondary',
-  }
-  IF_SWITCHPORT_MODE.merge!(IF_DEPRECATED)
-
   # Interface - node utility class for general interface config management
-  class Interface < Cisco::InterfaceDeprecated
+  class Interface < NodeUtil
     # Regexp to match various Ethernet interface variants:
     #                       Ethernet
     #                GigabitEthernet
@@ -78,6 +69,10 @@ module Cisco
 
     def to_s
       "interface #{name}"
+    end
+
+    def self.interface_count
+      config_get('interface', 'all_count').to_i
     end
 
     def self.interfaces(opt=nil, single_intf=nil)
