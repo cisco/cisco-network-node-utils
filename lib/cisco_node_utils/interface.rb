@@ -92,8 +92,7 @@ module Cisco
       # Use a MARKER to hide pesky 'interface' substrings
       intf_list.collect! { |x| x.strip || x }
       intf_list.delete('')
-      intf_list.collect! { |x| (x.sub('interface', '~!MARKER!~') unless
-        x[/^interface /]) || x }
+      intf_list.collect! { |x| (x.sub('interface', '~!MARKER!~') unless x[/^interface /]) || x } # rubocop:disable Metrics/LineLength
       intf_list = intf_list.join(' ').split('interface')
       intf_list.delete('')
       # Restore 'interface' substrings
