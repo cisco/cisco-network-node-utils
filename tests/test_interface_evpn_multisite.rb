@@ -60,6 +60,14 @@ class TestInterfaceEvpnMultisite < CiscoTestCase
                     'Invalid number of keys returned, should exceed 1')
     assert_empty(all[intf2].get_args[:show_name],
                  ':show_name should be empty string when single_intf param is nil')
+
+    # Test non-existent interface does NOT raise when calling interfaces
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
+    no_intf = InterfaceEvpnMultisite.interfaces('loopback543')
+    assert_empty(no_intf,
+                 'InterfaceEvpnMultisite.interfaces hash should be empty')
+
     ms.destroy
   end
 

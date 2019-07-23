@@ -31,8 +31,16 @@ module Cisco
     def self.interfaces(single_intf=nil)
       hash = {}
       single_intf ||= ''
-      intf_list = config_get('interface_evpn_multisite', 'all_interfaces',
-                             show_name: single_intf)
+      begin
+        intf_list = config_get('interface_evpn_multisite', 'all_interfaces',
+                               show_name: single_intf)
+      rescue CliError => e
+        # ignore logical interfaces that may not exist yet;
+        # invalid interface types should still raise
+        raise unless
+          single_intf &&
+          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface/])
+      end
       return hash if intf_list.nil?
 
       intf_list.each do |id|
