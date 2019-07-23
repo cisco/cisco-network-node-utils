@@ -37,12 +37,13 @@ class TestInterfaceEvpnMultisite < CiscoTestCase
   end
 
   # Test InterfaceEvpnMultisite.interfaces class method api
-  def test_interfaces_api
+  def test_interface_apis
     # setup
     ms = EvpnMultisite.new(100)
     intf = interfaces[0]
     intf2 = interfaces[1]
-    for i in [intf, intf2] do
+    interface_ethernet_default(intf2)
+    [intf, intf2].each do |i|
       InterfaceEvpnMultisite.new(i).enable('dci-tracking')
     end
 
