@@ -37,8 +37,8 @@ class TestNodeExt < CiscoTestCase
     node.client.set(context: ['interface loopback0'], values: ['shutdown'])
     node.client.set(values: ['interface loopback1', 'no shutdown'])
 
-    result = node.config_get('interface', 'shutdown', name: 'loopback1',
-                             show_name: 'loopback1')
+    result = node.config_get('interface', 'shutdown',
+                             name: 'loopback1', show_name: 'loopback1')
     refute(result)
   end
 
