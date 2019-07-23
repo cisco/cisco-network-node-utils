@@ -79,7 +79,7 @@ module Cisco
     ########################################################
 
     def description
-      config_get('interface', 'description', name: @name)
+      config_get('interface', 'description', name: @name, show_name: @name)
     end
 
     def description=(desc)
