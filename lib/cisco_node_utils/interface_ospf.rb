@@ -162,24 +162,24 @@ module Cisco
       config_get_default('interface_ospf', 'message_digest_password')
     end
 
-    def message_digest_key_set(keyid, algtype, enctype, enc)
+    def message_digest_key_set(keyid, algtype, enctype, password)
       current_keyid = message_digest_key_id
       if keyid == default_message_digest_key_id && current_keyid != keyid
-        @set_args.merge!(state:   'no',
-                         keyid:   current_keyid,
-                         algtype: '',
-                         enctype: '',
-                         enc:     '')
+        @set_args.merge!(state:    'no',
+                         keyid:    current_keyid,
+                         algtype:  '',
+                         enctype:  '',
+                         password: '')
         config_set('interface_ospf', 'message_digest_key_set', @set_args)
       elsif keyid != default_message_digest_key_id
-        fail TypeError unless enc.is_a?(String)
-        fail ArgumentError unless enc.length > 0
+        fail TypeError unless password.is_a?(String)
+        fail ArgumentError unless password.length > 0
         enctype = Encryption.symbol_to_cli(enctype)
-        @set_args.merge!(state:   '',
-                         keyid:   current_keyid,
-                         algtype: algtype,
-                         enctype: enctype,
-                         enc:     enc)
+        @set_args.merge!(state:    '',
+                         keyid:    current_keyid,
+                         algtype:  algtype,
+                         enctype:  enctype,
+                         password: password)
         config_set('interface_ospf', 'message_digest_key_set', @set_args)
       end
       set_args_keys_default

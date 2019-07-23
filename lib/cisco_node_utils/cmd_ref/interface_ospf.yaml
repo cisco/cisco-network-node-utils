@@ -63,7 +63,7 @@ message_digest_key_id:
   default_value: 0
 
 message_digest_key_set:
-  set_value: '<state> ip ospf message-digest-key <keyid> <algtype> <enctype> <enc>'
+  set_value: '<state> ip ospf message-digest-key <keyid> <algtype> <enctype> <password>'
 
 message_digest_password:
   default_value: ~
