@@ -59,8 +59,16 @@ module Cisco
       fail TypeError unless ospf_name.is_a?(String) || ospf_name.nil?
       ints = {}
       single_intf ||= ''
-      intf_list = config_get('interface_ospf', 'all_interfaces',
-                             show_name: single_intf)
+      begin
+        intf_list = config_get('interface_ospf', 'all_interfaces',
+                               show_name: single_intf)
+      rescue CliError => e
+        # ignore logical interfaces that may not exist yet;
+        # invalid interface types should still raise
+        raise unless
+          single_intf &&
+          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface/])
+      end
       return ints if intf_list.nil?
       intf_list.each do |name|
         # Find interfaces with 'ip router ospf <name> area <area>'

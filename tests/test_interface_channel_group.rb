@@ -32,7 +32,7 @@ class TestInterfaceChanGrp < CiscoTestCase
   end
 
   # Test InterfaceChannelGroup.interfaces class method api
-  def test_interfaces_api
+  def test_interface_apis
     intf = interfaces[0]
     intf2 = interfaces[1]
 
@@ -49,6 +49,12 @@ class TestInterfaceChanGrp < CiscoTestCase
                     'Invalid number of keys returned, should exceed 1')
     assert_empty(all[intf2].get_args[:show_name],
                  ':show_name should be empty string when single_intf param is nil')
+
+    # Test non-existent loopback does NOT raise when calling interfaces
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
+    one = InterfaceChannelGroup.interfaces('loopback543')
+    assert_empty(one, 'InterfaceChannelGroup.interfaces hash should be empty')
   end
 
   def test_channel_group

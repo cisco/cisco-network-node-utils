@@ -101,13 +101,16 @@ class TestInterfaceOspf < CiscoTestCase
     assert_equal(one[intf2].get_args[:show_name], intf2,
                  ':show_name should be intf2 name when single_intf param specified')
 
-    # Test non-existent loopback raises fail
-    if Interface.interfaces(nil, 'loopback543').any?
-      Interface.new('loopback543', false).destroy
-    end
+    # Test non-existent loopback raises fail when calling initialize
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
     assert_raises(RuntimeError) do
       InterfaceOspf.new('loopback543', 'ospf_test', '0', false)
     end
+
+    # Test non-existent loopback does NOT raise when calling interfaces
+    one = InterfaceOspf.interfaces('ospf_test', 'loopback543')
+    assert_empty(one, 'InterfaceOspf.interfaces hash should be empty')
   end
 
   def test_get_set_area

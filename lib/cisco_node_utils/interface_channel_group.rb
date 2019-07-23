@@ -35,8 +35,16 @@ module Cisco
     def self.interfaces(single_intf=nil)
       hash = {}
       single_intf ||= ''
-      all = config_get('interface_channel_group', 'all_interfaces',
-                       show_name: single_intf)
+      begin
+        all = config_get('interface_channel_group', 'all_interfaces',
+                         show_name: single_intf)
+      rescue CliError => e
+        # ignore logical interfaces that may not exist yet;
+        # invalid interface types should still raise
+        raise unless
+          single_intf &&
+          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface/])
+      end
       return hash if all.nil?
 
       all.each do |id|
