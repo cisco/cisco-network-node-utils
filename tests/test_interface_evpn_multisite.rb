@@ -36,6 +36,33 @@ class TestInterfaceEvpnMultisite < CiscoTestCase
     config("default interface #{intf}")
   end
 
+  # Test InterfaceEvpnMultisite.interfaces class method api
+  def test_interface_apis
+    # setup
+    ms = EvpnMultisite.new(100)
+    intf = interfaces[0]
+    intf2 = interfaces[1]
+    interface_ethernet_default(intf2)
+    [intf, intf2].each do |i|
+      InterfaceEvpnMultisite.new(i).enable('dci-tracking')
+    end
+
+    # Verify single_intf usage
+    one = InterfaceEvpnMultisite.interfaces(intf)
+    assert_equal(one.keys.length, 1,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(one[intf].get_args[:show_name], intf,
+                 ':show_name should be intf name when single_intf param specified')
+
+    # Verify 'all' interfaces
+    all = InterfaceEvpnMultisite.interfaces
+    assert_operator(all.keys.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].get_args[:show_name],
+                 ':show_name should be empty string when single_intf param is nil')
+    ms.destroy
+  end
+
   def test_enable_disable
     interface = interfaces[0]
     intf_ms = InterfaceEvpnMultisite.new(interface)
