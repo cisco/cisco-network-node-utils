@@ -89,7 +89,6 @@ module Cisco
         ref.hash['get_value'] = get_args[:value]
         ref.hash['drill_down'] = true
         get_args[:value] = nil
-        cache_flush
       end
       [get_args, ref]
     end
@@ -343,21 +342,22 @@ module Cisco
       if @cmd_ref
         prod = config_get('inventory', 'productid')
         all  = config_get('inventory', 'all')
-        prod_qualifier(prod, all)
+        id = prod_qualifier(prod, all)
       else
         # We use this function to *find* the appropriate CommandReference
         if @client.platform == :nexus
           entries = get(command:     'show inventory',
                         data_format: :nxapi_structured)
           prod = entries['TABLE_inv']['ROW_inv'][0]['productid']
-          prod_qualifier(prod, entries['TABLE_inv']['ROW_inv'])
+          id = prod_qualifier(prod, entries['TABLE_inv']['ROW_inv'])
         elsif @client.platform == :ios_xr
           # No support for structured output for this command yet
           output = get(command:     'show inventory',
                        data_format: :cli)
-          return /NAME: .*\nPID: (\S+)/.match(output)[1]
+          id = /NAME: .*\nPID: (\S+)/.match(output)[1]
         end
       end
+      return id
     end
 
     def prod_qualifier(prod, inventory)
