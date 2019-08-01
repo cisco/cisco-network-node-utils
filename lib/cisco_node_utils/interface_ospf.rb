@@ -63,11 +63,9 @@ module Cisco
         intf_list = config_get('interface_ospf', 'all_interfaces',
                                show_name: single_intf)
       rescue CliError => e
-        # ignore logical interfaces that may not exist yet;
-        # invalid interface types should still raise
-        raise unless
-          single_intf &&
-          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface/])
+        raise unless single_intf
+        # ignore logical interfaces that do not exist
+        debug 'InterfaceOspf.interfaces ignoring CliError => ' + e.to_s
       end
       return ints if intf_list.nil?
       intf_list.each do |name|

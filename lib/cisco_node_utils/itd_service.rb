@@ -377,7 +377,7 @@ module Cisco
       # for boolean we need to do this
       send('load_bal_enable=', false) if attrs[:load_bal_enable] == ''
       @get_args = @set_args
-      config_set('itd_service', 'load_balance', @set_args)
+      config_set('itd_service', 'load_balance', @set_args) if lb_get
       set_args_keys_default
     end
 
