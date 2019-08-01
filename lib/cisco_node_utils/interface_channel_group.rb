@@ -39,11 +39,9 @@ module Cisco
         all = config_get('interface_channel_group', 'all_interfaces',
                          show_name: single_intf)
       rescue CliError => e
-        # ignore logical interfaces that may not exist yet;
-        # invalid interface types should still raise
-        raise unless
-          single_intf &&
-          (e.clierror[/Invalid range/] || e.clierror[/Invalid interface/])
+        raise unless single_intf
+        # ignore logical interfaces that do not exist
+        debug 'InterfaceChannelGroup.interfaces ignoring CliError => ' + e.to_s
       end
       return hash if all.nil?
 
