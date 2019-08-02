@@ -5,6 +5,8 @@ _exclude: [ios_xr]
 _template:
   context: ['interface <name>']
   get_command: 'show running interface <show_name> all'
+    N7k:
+      get_command: "show running interface all | section '^interface <show_name>'"
 
 all_interfaces:
   multiple:
