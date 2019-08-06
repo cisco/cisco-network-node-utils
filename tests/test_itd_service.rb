@@ -51,7 +51,7 @@ class TestItdSvc < CiscoTestCase
   def test_access_list
     skip_nexus_i2_image?
     itd = ItdService.new('new_group')
-    config 'ip access-list include'
+    config 'ip access-list include ; permit ip any any'
     config 'ip access-list exclude'
     itd.access_list = 'include'
     itd.exclude_access_list = 'exclude'
