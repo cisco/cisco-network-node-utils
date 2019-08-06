@@ -6,6 +6,8 @@ _template:
     get_command: "show running interface <name>"
   nexus:
     get_command: "show running interface <show_name> all"
+    N7k:
+      get_command: "show running interface all | section '^interface <show_name>'"
 
 access_vlan:
   _exclude: [ios_xr]
