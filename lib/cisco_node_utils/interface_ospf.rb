@@ -182,7 +182,7 @@ module Cisco
         fail ArgumentError unless password.length > 0
         enctype = Encryption.symbol_to_cli(enctype)
         @set_args.merge!(state:    '',
-                         keyid:    current_keyid,
+                         keyid:    keyid,
                          algtype:  algtype,
                          enctype:  enctype,
                          password: password)
