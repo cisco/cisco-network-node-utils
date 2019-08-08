@@ -42,10 +42,9 @@ module Cisco
     # Regexp to match various link bundle interface variants
     PORTCHANNEL = Regexp.new('(port-channel|Bundle-Ether)', Regexp::IGNORECASE)
 
-    attr_reader :name, :state_default
-    attr_accessor :get_args
+    attr_reader :name, :state_default, :show_name
 
-    def initialize(name, instantiate=true, default_state=false)
+    def initialize(name, instantiate=true, default_state=false, show_name=nil)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
 
@@ -53,7 +52,8 @@ module Cisco
       # @show_name is used for get_command: keys; allows callers to limit
       # show command to a single interface
       @name = name.downcase
-      @get_args = { name: @name, show_name: nil }
+      @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
+      @get_args = { name: @name, show_name: @show_name }
       @smr = config_get('interface', 'stp_mst_range')
       @svr = config_get('interface', 'stp_vlan_range')
       @match_found = false
@@ -75,14 +75,14 @@ module Cisco
       config_get('interface', 'all_count').to_i
     end
 
-    def self.interfaces(opt=nil, single_intf=nil)
+    def self.interfaces(opt=nil, show_name=nil)
       hash = {}
-      single_intf ||= ''
+      show_name = Utils.normalize_intf_pattern(show_name)
       begin
         intf_list = config_get('interface', 'all_interfaces',
-                               show_name: single_intf)
+                               show_name: show_name)
       rescue CliError => e
-        raise unless single_intf
+        raise unless show_name
         # ignore logical interfaces that do not exist
         debug 'Interface.interfaces ignoring CliError => ' + e.to_s
       end
@@ -102,13 +102,12 @@ module Cisco
         int_data = id.strip.split(' ')
         next if int_data[0].nil?
         id = int_data[0].downcase
-        next if opt && filter(opt, id, single_intf)
+        next if opt && filter(opt, id, show_name)
         # If there are any additional options associated
         # with this interface then it's in a non-default
         # state.
         default_state = int_data.size > 1 ? false : true
-        hash[id] = Interface.new(id, false, default_state)
-        hash[id].get_args[:show_name] = single_intf
+        hash[id] = Interface.new(id, false, default_state, show_name)
       end
       hash
     end
@@ -116,13 +115,13 @@ module Cisco
     # General-purpose filter for Interface.interfaces().
     # filter: This may be overloaded in the future to allow a hash of filters.
     #     id: The interface name
-    # single_intf: needed for get_command: <show_name>
+    # show_name: needed for get_command: <show_name>
     # Return: true if the interface should be filtered out, false to keep it.
-    def self.filter(filter, id, single_intf)
+    def self.filter(filter, id, show_name)
       case filter
       when :pvlan_any
         return false if config_get('interface', 'pvlan_any',
-                                   name: id, show_name: single_intf)
+                                   name: id, show_name: show_name)
 
       else
         # Just a basic pattern filter (:ethernet, :loopback, etc)

@@ -415,5 +415,29 @@ module Cisco
       prefix = prop.to_s if prefix.nil?
       val.to_s.empty? ? val : "#{prefix} #{val}"
     end
+
+    # Helper utility to normalize interface names to be filtered.
+    # This is only a problem on N7k which has to use a section filter
+    # due to a show run int bug (no 'all' keyword for some interfaces).
+    def self.normalize_intf_pattern(show_name)
+      return '' if show_name.nil? || show_name.empty?
+      require_relative 'platform'
+      return show_name unless Platform.hardware_type[/Nexus7/]
+      intf = show_name.downcase
+      case intf
+      when /ethernet/
+        intf.sub!(/ethernet/, 'Ethernet')
+      when /loopback/
+        intf.sub!(/loopback/, 'loopback')
+      when /port-channel/
+        intf.sub!(/port-channel/, 'port-channel')
+      when /vlan/
+        intf.sub!(/vlan/, 'Vlan')
+      else
+        # wildcard the first char of the name
+        intf.sub!(/./, '.')
+      end
+      intf
+    end
   end # class Utils
 end   # module Cisco
