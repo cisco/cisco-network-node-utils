@@ -47,19 +47,19 @@ class TestInterfaceEvpnMultisite < CiscoTestCase
       InterfaceEvpnMultisite.new(i).enable('dci-tracking')
     end
 
-    # Verify single_intf usage
+    # Verify show_name usage
     one = InterfaceEvpnMultisite.interfaces(intf)
-    assert_equal(one.keys.length, 1,
+    assert_equal(1, one.length,
                  'Invalid number of keys returned, should be 1')
-    assert_equal(one[intf].get_args[:show_name], intf,
-                 ':show_name should be intf name when single_intf param specified')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when show_name param specified')
 
     # Verify 'all' interfaces
     all = InterfaceEvpnMultisite.interfaces
-    assert_operator(all.keys.length, :>, 1,
+    assert_operator(all.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
-    assert_empty(all[intf2].get_args[:show_name],
-                 ':show_name should be empty string when single_intf param is nil')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
 
     # Test non-existent interface does NOT raise when calling interfaces
     Interface.new('loopback543', false).destroy if
