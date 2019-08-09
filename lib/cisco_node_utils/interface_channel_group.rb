@@ -21,25 +21,24 @@ require_relative 'feature'
 module Cisco
   # Interface - node utility class for general interface config management
   class InterfaceChannelGroup < NodeUtil
-    attr_reader :name
-    attr_accessor :get_args, :show_name
+    attr_reader :name, :show_name
 
-    def initialize(name)
-      validate_args(name)
+    def initialize(name, show_name=nil)
+      validate_args(name, show_name)
     end
 
     def to_s
       "interface_channel_group #{name}"
     end
 
-    def self.interfaces(single_intf=nil)
+    def self.interfaces(show_name=nil)
       hash = {}
-      single_intf ||= ''
+      show_name = Utils.normalize_intf_pattern(show_name)
       begin
         all = config_get('interface_channel_group', 'all_interfaces',
-                         show_name: single_intf)
+                         show_name: show_name)
       rescue CliError => e
-        raise unless single_intf
+        raise unless show_name
         # ignore logical interfaces that do not exist
         debug 'InterfaceChannelGroup.interfaces ignoring CliError => ' + e.to_s
       end
@@ -47,19 +46,18 @@ module Cisco
 
       all.each do |id|
         id = id.downcase
-        hash[id] = InterfaceChannelGroup.new(id)
-        hash[id].show_name = single_intf
-        hash[id].get_args[:show_name] = single_intf
+        hash[id] = InterfaceChannelGroup.new(id, show_name)
       end
       hash
     end
 
-    def validate_args(name)
+    def validate_args(name, show_name)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       fail "channel_group is not supported on #{name}" unless
         name[/Ethernet/i]
       @name = name.downcase
+      @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
       set_args_keys
     end
 

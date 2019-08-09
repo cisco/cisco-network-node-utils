@@ -172,6 +172,18 @@ class TestInterface < CiscoTestCase
   end
 
   def test_interface_apis
+    # N7K: verify show_name pattern
+    {
+      'etherNET1/1.42' => 'Ethernet1/1.42$',
+      'LOOPback23'     => 'loopback23$',
+      'Port-Channel19' => 'port-channel19$',
+      'MONGOsonet12'   => '.ongosonet12$',
+    }.each do |k, v|
+      assert_equal(v, Utils.normalize_intf_pattern(k),
+                   "pattern should be #{v}")
+    end if node.product_id[/N7/]
+
+    # Verify intf counter
     assert_equal(Interface.interface_count, interface_count,
                  'Interface.interface_count did not return the expected count')
 
@@ -181,7 +193,7 @@ class TestInterface < CiscoTestCase
     assert_empty(no_loopback,
                  'Return value should be empty hash when non existent loopback')
 
-    # Verify single_intf usage
+    # Verify show_name usage
     intf = interfaces[0]
     one = Interface.interfaces(nil, intf)
     assert_equal(1, one.length,

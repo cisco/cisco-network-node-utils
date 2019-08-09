@@ -66,40 +66,40 @@ class TestInterfaceOspf < CiscoTestCase
     intf = interfaces[0]
     intf2 = interfaces[1]
 
-    # Verify single_intf usage when no ospf config on intf
+    # Verify show_name usage when no ospf config on intf
     none = InterfaceOspf.interfaces(nil, intf)
-    assert_equal(none.keys.length, 0,
+    assert_equal(0, none.length,
                  'Invalid number of keys returned, should be 0')
 
-    # Verify single_intf usage when ospf config present on intf
+    # Verify show_name usage when ospf config present on intf
     InterfaceOspf.new(intf, 'ospf_test', '0')
     one = InterfaceOspf.interfaces(nil, intf)
-    assert_equal(one.keys.length, 1,
+    assert_equal(1, one.length,
                  'Invalid number of keys returned, should be 1')
-    assert_equal(one[intf].get_args[:show_name], intf,
-                 ':show_name should be intf name when single_intf param specified')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when show_name param specified')
 
     # Verify 'all' interfaces returned
     Interface.new(intf2)
     InterfaceOspf.new(intf2, 'ospf_test', '0')
     all = InterfaceOspf.interfaces
-    assert_operator(all.keys.length, :>, 1,
+    assert_operator(all.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
-    assert_empty(all[intf2].get_args[:show_name],
-                 ':show_name should be empty string when single_intf param is nil')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
 
     # Test with ospf_name parameter specified
     all = InterfaceOspf.interfaces('ospf_test')
-    assert_operator(all.keys.length, :>, 1,
+    assert_operator(all.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
-    assert_empty(all[intf2].get_args[:show_name],
-                 ':show_name should be empty string when single_intf param is nil')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
 
     one = InterfaceOspf.interfaces('ospf_test', intf2)
-    assert_equal(one.keys.length, 1,
+    assert_equal(one.length, 1,
                  'Invalid number of keys returned, should be 1')
-    assert_equal(one[intf2].get_args[:show_name], intf2,
-                 ':show_name should be intf2 name when single_intf param specified')
+    assert_equal(Utils.normalize_intf_pattern(intf2), one[intf2].show_name,
+                 ':show_name should be intf2 name when show_name param specified')
 
     # Test non-existent loopback raises fail when calling initialize
     Interface.new('loopback543', false).destroy if

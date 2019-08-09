@@ -23,10 +23,9 @@ require_relative 'interface'
 module Cisco
   # InterfaceOspf - node utility class for per-interface OSPF config management
   class InterfaceOspf < NodeUtil
-    attr_reader :intf_name, :ospf_name, :area
-    attr_accessor :get_args
+    attr_reader :intf_name, :ospf_name, :area, :show_name
 
-    def initialize(intf_name, ospf_name, area, create=true, single_intf=nil)
+    def initialize(intf_name, ospf_name, area, create=true, show_name=nil)
       fail TypeError unless intf_name.is_a? String
       fail TypeError unless ospf_name.is_a? String
       fail TypeError unless area.is_a? String
@@ -36,9 +35,9 @@ module Cisco
 
       # normalize
       @intf_name = intf_name.downcase
-      @show_name = single_intf ||= ''
+      @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
       fail "interface #{@intf_name} does not exist" if
-        Interface.interfaces(nil, single_intf)[@intf_name].nil?
+        Interface.interfaces(nil, @show_name)[@intf_name].nil?
       @ospf_name = ospf_name
       @area = area
       @get_args = { name: intf_name, show_name: @show_name }
@@ -55,15 +54,15 @@ module Cisco
 
     # can't re-use Interface.interfaces because we need to filter based on
     # "ip router ospf <name>", which Interface doesn't retrieve
-    def self.interfaces(ospf_name=nil, single_intf=nil)
+    def self.interfaces(ospf_name=nil, show_name=nil)
       fail TypeError unless ospf_name.is_a?(String) || ospf_name.nil?
       ints = {}
-      single_intf ||= ''
+      show_name = Utils.normalize_intf_pattern(show_name)
       begin
         intf_list = config_get('interface_ospf', 'all_interfaces',
-                               show_name: single_intf)
+                               show_name: show_name)
       rescue CliError => e
-        raise unless single_intf
+        raise unless show_name
         # ignore logical interfaces that do not exist
         debug 'InterfaceOspf.interfaces ignoring CliError => ' + e.to_s
       end
@@ -71,13 +70,13 @@ module Cisco
       intf_list.each do |name|
         # Find interfaces with 'ip router ospf <name> area <area>'
         match = config_get('interface_ospf', 'area',
-                           name: name, show_name: single_intf)
+                           name: name, show_name: show_name)
         next if match.nil?
         ospf = match[0]
         area = match[1]
         next unless ospf_name.nil? || ospf == ospf_name
         int = name.downcase
-        ints[int] = InterfaceOspf.new(int, ospf, area, false, single_intf)
+        ints[int] = InterfaceOspf.new(int, ospf, area, false, show_name)
       end
       ints
     end
