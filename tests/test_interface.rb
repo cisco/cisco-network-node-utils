@@ -187,12 +187,6 @@ class TestInterface < CiscoTestCase
     assert_equal(Interface.interface_count, interface_count,
                  'Interface.interface_count did not return the expected count')
 
-    # Verify raise when bad interface name
-    assert_raises(Cisco::CliError,
-                  'Did not raise CliError when invalid single_intf specified') do
-      Interface.interfaces(nil, 'MongoEthernet1/356')
-    end
-
     # Verify raise rescued when loopback does not exist ('Invalid range' rescued)
     Interface.new('loopback100').destroy
     no_loopback = Interface.interfaces(nil, 'loopback100')
@@ -202,28 +196,28 @@ class TestInterface < CiscoTestCase
     # Verify show_name usage
     intf = interfaces[0]
     one = Interface.interfaces(nil, intf)
-    assert_equal(one.keys.length, 1,
+    assert_equal(1, one.length,
                  'Invalid number of keys returned, should be 1')
-    assert_equal(one[intf].get_args[:show_name], intf,
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
                  ':show_name should be intf name when intf specified')
 
     # Verify 'all' interfaces returned
     all = Interface.interfaces
-    assert_operator(all.keys.length, :>, 1,
+    assert_operator(all.length, :>, 1,
                     'Invalid number of keys returned, should exceed 1')
-    assert_empty(all[intf].get_args[:show_name],
+    assert_empty(all[intf].show_name,
                  ':show_name should be empty string when intf is nil')
 
     # Verify filter operations
     eth_count = all.keys.join.scan(/ethernet/).count
     filtered = Interface.interfaces(:ethernet)
-    assert_equal(filtered.keys.length, eth_count,
+    assert_equal(eth_count, filtered.length,
                  'filter returned invalid number of ethernet interfaces')
 
     filtered = Interface.interfaces(:mgmt)
-    assert_equal(filtered.keys.length, 1,
+    assert_equal(1, filtered.length,
                  'filter returned invalid number of mgmt interfaces')
-    assert_equal(filtered.keys[0], 'mgmt0',
+    assert_equal('mgmt0', filtered.keys[0],
                  'filter returned incorrect interface name')
 
     filtered = Interface.interfaces(:mgmt, intf)
@@ -235,9 +229,9 @@ class TestInterface < CiscoTestCase
                  'invalid filter returned interface when it should be an empty hash')
 
     filtered = Interface.interfaces(:ethernet, intf)
-    assert_equal(filtered.keys.length, 1,
+    assert_equal(1, filtered.length,
                  'Invalid number of keys returned by ethernet filter with intf specified')
-    assert_equal(filtered.keys[0], intf,
+    assert_equal(intf, filtered.keys[0],
                  'filter returned incorrect interface name')
   end
 
