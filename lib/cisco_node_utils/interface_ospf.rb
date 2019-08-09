@@ -37,7 +37,7 @@ module Cisco
       @intf_name = intf_name.downcase
       @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
       fail "interface #{@intf_name} does not exist" if
-        Interface.interfaces(nil, @show_name)[@intf_name].nil?
+        Interface.interfaces(nil, @intf_name)[@intf_name].nil?
       @ospf_name = ospf_name
       @area = area
       @get_args = { name: intf_name, show_name: @show_name }

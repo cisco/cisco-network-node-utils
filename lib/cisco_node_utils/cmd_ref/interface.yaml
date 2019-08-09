@@ -28,6 +28,8 @@ all_interfaces:
     get_value: '/^interface (.*)/'
   nexus:
     get_command: "show running-config interface <show_name> | section '^interface'"
+    N7k:
+      get_command: "show running interface all | section '^interface <show_name>'"
     get_value: '/(.*)/'
   get_context: ~
 
