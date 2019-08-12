@@ -35,13 +35,15 @@ module Cisco
     # Ex: { 'n3000-uk9.6.0.2.U1.1.CSCaa12345.bin' => 'inactive committed',
     #       'n3000-uk9.6.0.2.U1.1.CSCaa12346.bin' => 'active', }
     def self.packages
+      pkgs = []
       pkg_hsh = {}
-      pkgs = config_get('images', 'packages')
+      begin
+        pkgs = config_get('images', 'packages')
+      rescue RuntimeError => e
+        raise unless e.message[/Invalid command/]
+      end
       return {} if pkgs.nil?
       pkgs.each { |p| pkg_hsh[p[0]] = p[1].downcase }
-    rescue RuntimeError => e
-      raise unless e.message[/Invalid command/]
-    ensure
       pkg_hsh
     end
 
