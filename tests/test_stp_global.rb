@@ -233,6 +233,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_get_set_mst_priorities
+    skip("#{node.product_id} doesn't support this feature") if
+      node.product_id[/N9K.*EX/]
     global = StpGlobal.new('default')
     global.mode = 'mst'
     global.mst_priority = global.default_mst_priority
@@ -392,6 +394,8 @@ class TestStpGlobal < CiscoTestCase
   end
 
   def test_get_set_vlan_priorities
+    skip("#{node.product_id} doesn't support this feature") if
+      node.product_id[/N9K.*EX/]
     global = StpGlobal.new('default')
     global.vlan_priority = global.default_vlan_priority
     global.vlan_root_priority = global.default_vlan_root_priority

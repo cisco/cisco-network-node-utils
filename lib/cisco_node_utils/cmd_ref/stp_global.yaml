@@ -7,7 +7,7 @@ _template:
   get_command: "show running-config spanning-tree"
 
 bd_designated_priority:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) designated priority (.*)$/'
@@ -49,7 +49,7 @@ bd_range:
   default_only: "2-3967"
 
 bd_root_priority:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^bridge-domain (.*) root priority (.*)$/'
@@ -107,6 +107,7 @@ mode:
   default_value: "rapid-pvst"
 
 mst_designated_priority:
+  _exclude: [N9k-EX]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^mst (.*) designated priority (.*)$/'
@@ -177,6 +178,7 @@ mst_revision:
   default_value: 0
 
 mst_root_priority:
+  _exclude: [N9k-EX]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^mst (.*) root priority (.*)$/'
@@ -191,6 +193,7 @@ pathcost:
   default_value: "short"
 
 vlan_designated_priority:
+  _exclude: [N9k-EX]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^vlan (.*) designated priority (.*)$/'
@@ -227,6 +230,7 @@ vlan_range:
   default_only: "1-3967"
 
 vlan_root_priority:
+  _exclude: [N9k-EX]
   multiple:
   get_context: ['/^spanning-tree pseudo-information$/']
   get_value: '/^vlan (.*) root priority (.*)$/'
