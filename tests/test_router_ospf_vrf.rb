@@ -248,7 +248,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_raises(ArgumentError) do
       RouterOspfVrf.new('testOspf', '')
     end
-    routerospf.destroy
   end
 
   def test_create_valid
@@ -259,7 +258,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(ospfname, vrfname)
     assert_equal(vrfname, vrf.name,
                  "Error: #{vrfname} vrf, create failed")
-    vrf.parent.destroy
   end
 
   def test_get_parent_name
@@ -267,7 +265,6 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf = create_routerospfvrf(routerospf.name)
     assert_equal(routerospf.name, vrf.parent.name,
                  'Error: Parent value is not correct')
-    routerospf.destroy
   end
 
   def test_get_name
@@ -276,7 +273,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line('green', vrfname)
     assert_equal(vrfname, vrf.name,
                  "Error: #{vrfname} vrf, name get value mismatch")
-    vrf.parent.destroy
   end
 
   def test_destroy
@@ -286,7 +282,6 @@ class TestRouterOspfVrf < CiscoTestCase
       vrf.destroy
     end
     assert_match_vrf_line(vrf.parent.name, vrfname)
-    vrf.parent.destroy
   end
 
   def test_auto_cost
@@ -298,7 +293,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(vrf.parent.name, vrf.name, pattern)
     assert_equal(auto_cost_value, vrf.auto_cost,
                  'Error: auto-cost, get value mismatch')
-    vrf.parent.destroy
   end
 
   def test_auto_cost_multiple_vrf
@@ -321,7 +315,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(auto_cost_value, vrf1.auto_cost,
                  "Error: #{vrf1.name} vrf, auto-cost get value mismatch")
-    routerospf.destroy
   end
 
   def test_get_default_auto_cost
@@ -332,7 +325,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  'Error: default auto-cost get value mismatch')
     assert_equal(auto_cost_value, vrf.auto_cost,
                  'Error: auto-cost get value default mismatch')
-    vrf.parent.destroy
   end
 
   def test_bfd
@@ -349,7 +341,6 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf1.bfd = vrf1.default_bfd
     assert_equal(vrf.default_bfd, vrf.bfd)
     assert_equal(vrf1.default_bfd, vrf1.bfd)
-    routerospf.destroy
   end
 
   def test_default_metric
@@ -365,7 +356,6 @@ class TestRouterOspfVrf < CiscoTestCase
     return unless step_unless_legacy_defect(skip_versions, 'CSCvi74876: Cannot remove default metric')
     vrf.default_metric = vrf.default_default_metric
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
-    vrf.parent.destroy
   end
 
   def test_default_metric_multiple_vrf
@@ -388,7 +378,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(metric, vrf1.default_metric,
                  "Error: #{vrf1.name} vrf, default-metric get value mismatch")
 
-    routerospf.destroy
   end
 
   def test_log_adjacency_changes
@@ -413,7 +402,6 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.log_adjacency = vrf.default_log_adjacency
     pattern = /\s+log-adjacency-changes(.*)/
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
-    vrf.parent.destroy
   end
 
   def test_log_adjacency_multiple_vrf
@@ -434,7 +422,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(:detail, vrf1.log_adjacency,
                  "Error: #{vrf1.name} vrf, log-adjacency get value mismatch")
 
-    routerospf.destroy
   end
 
   def test_log_adjacency_multiple_vrf_2
@@ -454,7 +441,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf_default.name} vrf_default, " \
                  'log-adjacency get value mismatch')
 
-    routerospf.destroy
   end
 
   def test_router_id
@@ -468,7 +454,6 @@ class TestRouterOspfVrf < CiscoTestCase
 
     vrf.router_id = vrf.default_router_id
     refute_match_vrf_line(vrf.parent.name, vrf.name, pattern)
-    vrf.parent.destroy
   end
 
   def test_router_id_multiple_vrf
@@ -492,7 +477,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(id, vrf1.router_id,
                  "Error: #{vrf1.name} vrf, router-id get value mismatch")
 
-    routerospf.destroy
   end
 
   def test_timer_throttle_lsa
@@ -505,7 +489,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(lsa, vrf.timer_throttle_lsa,
                  "Error: #{vrf.name} vrf, timer throttle lsa " \
                  'get values mismatch')
-    vrf.parent.destroy
   end
 
   def test_timer_throttle_lsa_multiple_vrf
@@ -530,7 +513,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf1.name} vrf, timer throttle lsa " \
                  'get values mismatch')
 
-    routerospf.destroy
   end
 
   def test_get_default_timer_throttle_lsa
@@ -548,7 +530,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  'Error: default timer throttle lsa hold not correct')
     assert_equal(lsa[2], vrf.default_timer_throttle_lsa_max,
                  'Error: default timer throttle lsa max not correct')
-    vrf.parent.destroy
   end
 
   def test_timer_throttle_spf
@@ -561,7 +542,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(spf, vrf.timer_throttle_spf,
                  "Error: #{vrf.name} vrf, timer throttle spf " \
                  'get values mismatch')
-    vrf.parent.destroy
   end
 
   def test_timer_throttle_spf_multiple_vrf
@@ -586,7 +566,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf1.name} vrf, timer throttle spf " \
                  'get values mismatch')
 
-    routerospf.destroy
   end
 
   def test_get_default_timer_throttle_spf
@@ -607,7 +586,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(spf[2], vrf.timer_throttle_spf_max,
                  "Error: #{vrf.name} vrf, " \
                  'default timer throttle max not correct')
-    vrf.parent.destroy
   end
 
   def test_create_valid_destroy_default
@@ -621,7 +599,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_raises(RuntimeError) do
       vrf.destroy
     end
-    routerospf.destroy
   end
 
   # rubocop:disable Style/AlignHash
@@ -693,7 +670,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf.name} vrf, hold timer throttle lsa not correct")
     assert_equal(5001, vrf.timer_throttle_lsa_max,
                  "Error: #{vrf.name} vrf, max timer throttle lsa not correct")
-    vrf.parent.destroy
   end
 
   def test_timer_throttle_spf_start_hold_max
@@ -705,7 +681,6 @@ class TestRouterOspfVrf < CiscoTestCase
                  "Error: #{vrf.name} vrf, hold timer throttle spf not correct")
     assert_equal(5001, vrf.timer_throttle_spf_max,
                  "Error: #{vrf.name} vrf, max timer throttle spf not correct")
-    vrf.parent.destroy
   end
 
   def test_noninstantiated
@@ -717,6 +692,5 @@ class TestRouterOspfVrf < CiscoTestCase
     vrf.router_id
     vrf.timer_throttle_lsa
     vrf.timer_throttle_spf
-    routerospf.destroy
   end
 end

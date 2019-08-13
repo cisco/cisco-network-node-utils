@@ -150,7 +150,7 @@ module Cisco
       begin
         array = config_get('interface', 'capabilities', name: intf)
       rescue CliError => e
-        raise unless e.clierror[/Invalid command/]
+        raise unless e.clierror[/(Invalid command|Cmd exec error)/]
       end
       return array if mode == :raw
       hash = {}
