@@ -244,7 +244,7 @@ class TestRouterOspfVrf < CiscoTestCase
   end
 
   def test_create_name_zero_length
-    routerospf = RouterOspf.new('testOspf')
+    RouterOspf.new('testOspf')
     assert_raises(ArgumentError) do
       RouterOspfVrf.new('testOspf', '')
     end
@@ -377,7 +377,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(metric, vrf1.default_metric,
                  "Error: #{vrf1.name} vrf, default-metric get value mismatch")
-
   end
 
   def test_log_adjacency_changes
@@ -421,7 +420,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(:detail, vrf1.log_adjacency,
                  "Error: #{vrf1.name} vrf, log-adjacency get value mismatch")
-
   end
 
   def test_log_adjacency_multiple_vrf_2
@@ -440,7 +438,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(:none, vrf_default.log_adjacency,
                  "Error: #{vrf_default.name} vrf_default, " \
                  'log-adjacency get value mismatch')
-
   end
 
   def test_router_id
@@ -476,7 +473,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_match_vrf_line(routerospf.name, vrf1.name, pattern)
     assert_equal(id, vrf1.router_id,
                  "Error: #{vrf1.name} vrf, router-id get value mismatch")
-
   end
 
   def test_timer_throttle_lsa
@@ -512,7 +508,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(lsa, vrf1.timer_throttle_lsa,
                  "Error: #{vrf1.name} vrf, timer throttle lsa " \
                  'get values mismatch')
-
   end
 
   def test_get_default_timer_throttle_lsa
@@ -565,7 +560,6 @@ class TestRouterOspfVrf < CiscoTestCase
     assert_equal(spf, vrf1.timer_throttle_spf,
                  "Error: #{vrf1.name} vrf, timer throttle spf " \
                  'get values mismatch')
-
   end
 
   def test_get_default_timer_throttle_spf
@@ -684,7 +678,7 @@ class TestRouterOspfVrf < CiscoTestCase
   end
 
   def test_noninstantiated
-    routerospf = create_routerospf
+    create_routerospf
     vrf = RouterOspfVrf.new('absent', 'absent', false)
     vrf.auto_cost
     vrf.default_metric
