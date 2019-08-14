@@ -1,7 +1,7 @@
 Changelog
 =========
 
-## Unreleased
+## [v2.1.0]
 
 ### Added
 
@@ -34,6 +34,8 @@ Changelog
    * `purge_config`
 
 ### Issues Addressed
+
+- [Very slow execution when managing interfaces #496](https://github.com/cisco/cisco-network-puppet-module/issues/496)
 
 ## [v2.0.2]
 
@@ -655,6 +657,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v2.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.2...v2.1.0
 [v2.0.2]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.1...v2.0.2
 [v2.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.10.0...v2.0.0
