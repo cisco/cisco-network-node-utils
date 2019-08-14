@@ -101,7 +101,7 @@ class TestItdSvc < CiscoTestCase
     # The next-hop setting as part of the ingress_interface
     # is not needed for n9k and in the latest images is not
     # even supported by the cli.
-    if Platform.image_version[/9.\d+/]
+    if Platform.image_version[/9\.\d+/]
       next_hop1 = ''
       next_hop2 = ''
       next_hop3 = ''
