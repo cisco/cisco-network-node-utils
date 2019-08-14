@@ -450,7 +450,7 @@ module Cisco
         when 'N9k'
           # For non-fretta n9k platforms we need to
           # match everything except the trailing -F
-          Regexp.new /^N9...(?!.*-F|.*-EX)/
+          /^N9...(?!.*-F|.*-EX)/
         when 'N9k-EX'
           # For fretta n9k we need to include the trailing -F
           /^N9.*-EX$/
