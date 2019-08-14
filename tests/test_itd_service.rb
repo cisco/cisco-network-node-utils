@@ -98,9 +98,21 @@ class TestItdSvc < CiscoTestCase
     intf = interfaces[0].dup
     new_intf = Interface.new(interfaces[0])
     new_intf.switchport_mode = :disabled
-    ii = [['vlan 2', '1.1.1.1'],
-          [intf.insert(8, ' '), '2.2.2.2'],
-          ['port-channel 100', '3.3.3.3']]
+    # The next-hop setting as part of the ingress_interface
+    # is not needed for n9k and in the latest images is not
+    # even supported by the cli.
+    if Platform.image_version[/9.\d+/]
+      next_hop1 = ''
+      next_hop2 = ''
+      next_hop3 = ''
+    else
+      next_hop1 = '1.1.1.1'
+      next_hop2 = '2.2.2.2'
+      next_hop3 = '3.3.3.3'
+    end
+    ii = [['vlan 2', next_hop1],
+          [intf.insert(8, ' '), next_hop2],
+          ['port-channel 100', next_hop3]]
     itd.ingress_interface = ii
     assert_equal(itd.ingress_interface, ii)
     ii = [['vlan 2', ''],
