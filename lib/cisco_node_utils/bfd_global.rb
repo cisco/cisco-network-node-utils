@@ -147,7 +147,7 @@ module Cisco
 
     def ipv4_slow_timer=(val)
       # Only set the value if it's not already configured and default
-      return if (val == default_ipv4_slow_timer && val == ipv4_slow_timer)
+      return if val == default_ipv4_slow_timer && val == ipv4_slow_timer
       set_args_keys(timer: val,
                     state: val == default_ipv4_slow_timer ? 'no' : '')
       config_set('bfd_global', 'ipv4_slow_timer', @set_args)
@@ -163,7 +163,7 @@ module Cisco
 
     def ipv6_slow_timer=(val)
       # Only set the value if it's not already configured and default
-      return if (val == default_ipv6_slow_timer && val == ipv6_slow_timer)
+      return if val == default_ipv6_slow_timer && val == ipv6_slow_timer
       set_args_keys(timer: val,
                     state: val == default_ipv6_slow_timer ? 'no' : '')
       config_set('bfd_global', 'ipv6_slow_timer', @set_args)
