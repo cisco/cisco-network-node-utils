@@ -16,35 +16,35 @@ bd_designated_priority:
   default_value: []
 
 bd_forward_time:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) forward-time (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> forward-time <val>"
   default_value: []
 
 bd_hello_time:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) hello-time (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> hello-time <val>"
   default_value: []
 
 bd_max_age:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) max-age (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> max-age <val>"
   default_value: []
 
 bd_priority:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   multiple:
   get_value: '/^spanning-tree bridge-domain (.*) priority (.*)$/'
   set_value: "<state> spanning-tree bridge-domain <range> priority <val>"
   default_value: []
 
 bd_range:
-  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k]
+  _exclude: [N3k, N5k, N6k, N3k-F, N9k-F, N9k-EX, N9k]
   kind: string
   default_only: "2-3967"
 

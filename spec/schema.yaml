@@ -23,6 +23,7 @@ mapping:
           - 'N6k'
           - 'N7k'
           - 'N9k'
+          - 'N9k-EX'
           - 'N9k-F'
 
   =: &base # default rule - apply to all properties

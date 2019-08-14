@@ -10,6 +10,7 @@ _template:
   N9k: *template3k
   N3k-F: *template3k
   N9k-F: *template3k
+  N9k-EX: *template5k
   nexus:
     data_format: nxapi_structured
   ios_xr:

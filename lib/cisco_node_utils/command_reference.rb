@@ -438,7 +438,7 @@ module Cisco
     end
 
     KNOWN_PLATFORMS = %w(C3048 C3064 C3132 C3172 N35 N3k N3k-F N5k N6k N7k N9k
-                         N9k-F XRv9k)
+                         N9k-F N9k-EX XRv9k)
 
     def self.platform_to_filter(platform)
       if KNOWN_PLATFORMS.include?(platform)
@@ -450,7 +450,10 @@ module Cisco
         when 'N9k'
           # For non-fretta n9k platforms we need to
           # match everything except the trailing -F
-          /^N9...(?!.*-F)/
+          Regexp.new /^N9...(?!.*-F|.*-EX)/
+        when 'N9k-EX'
+          # For fretta n9k we need to include the trailing -F
+          /^N9.*-EX$/
         when 'N9k-F'
           # For fretta n9k we need to include the trailing -F
           /^N9.*-F$/
