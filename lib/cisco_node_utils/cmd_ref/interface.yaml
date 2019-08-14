@@ -386,15 +386,6 @@ pim_bfd:
   set_value: "<state> ip pim bfd-instance"
   default_value: false
 
-purge_config:
-  _exclude: [ios_xr]
-  multiple:
-  set_context: ~
-  set_value:   "default interface <name>"
-  get_command: "show running interface"
-  get_value:   '/(.*)/'
-  default_value: ~
-
 pvlan_any:
   multiple:
   get_value: '/switchport private-vlan/'

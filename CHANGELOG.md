@@ -30,6 +30,9 @@ Changelog
 | `private_vlan_association` | `pvlan_association`
 | `private_vlan_type`        | `pvlan_type`
 
+- Removed interface attribute:
+   * `purge_config`
+
 ### Issues Addressed
 
 ## [v2.0.2]
