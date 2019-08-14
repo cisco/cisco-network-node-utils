@@ -1955,17 +1955,4 @@ class TestInterface < CiscoTestCase
     int.destroy
     assert(int.default?)
   end
-
-  def test_purge_config
-    name = interfaces[0]
-    int = Interface.new(name)
-    int.switchport_mode = :disabled
-
-    int.description = 'destroy_pysical'
-    int.ipv4_addr_mask_set('192.168.0.1', '24')
-    refute(int.purge_config)
-
-    int.purge_config = true
-    assert(int.purge_config)
-  end
 end

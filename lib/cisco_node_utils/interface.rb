@@ -2096,24 +2096,5 @@ module Cisco
         end
       end
     end
-
-    def purge_config=(val)
-      return unless val
-      fail ArgumentError,
-           'purge_config is only supported on Ethernet interfaces' unless
-        @name[/ethernet/]
-      config_set('interface', 'purge_config', name: @name) if val
-    end
-
-    def purge_config
-      # This getter is only supported on ethernet interfaces
-      return nil unless @name[/ethernet/]
-      state = config_get('interface', 'purge_config', @get_args)
-      state.nil? ? true : default_purge_config
-    end
-
-    def default_purge_config
-      config_get_default('interface', 'purge_config')
-    end
   end  # Class
 end    # Module
