@@ -61,6 +61,58 @@ class TestInterfaceOspf < CiscoTestCase
     InterfaceOspf.new(ifname, routerospf.name, area)
   end
 
+  # Test InterfaceOspf.interfaces class method api
+  def test_interface_apis
+    intf = interfaces[0]
+    intf2 = interfaces[1]
+
+    # Verify show_name usage when no ospf config on intf
+    none = InterfaceOspf.interfaces(nil, intf)
+    assert_equal(0, none.length,
+                 'Invalid number of keys returned, should be 0')
+
+    # Verify show_name usage when ospf config present on intf
+    InterfaceOspf.new(intf, 'ospf_test', '0')
+    one = InterfaceOspf.interfaces(nil, intf)
+    assert_equal(1, one.length,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when show_name param specified')
+
+    # Verify 'all' interfaces returned
+    Interface.new(intf2)
+    InterfaceOspf.new(intf2, 'ospf_test', '0')
+    all = InterfaceOspf.interfaces
+    assert_operator(all.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
+
+    # Test with ospf_name parameter specified
+    all = InterfaceOspf.interfaces('ospf_test')
+    assert_operator(all.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
+
+    one = InterfaceOspf.interfaces('ospf_test', intf2)
+    assert_equal(one.length, 1,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(Utils.normalize_intf_pattern(intf2), one[intf2].show_name,
+                 ':show_name should be intf2 name when show_name param specified')
+
+    # Test non-existent loopback raises fail when calling initialize
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
+    assert_raises(RuntimeError) do
+      InterfaceOspf.new('loopback543', 'ospf_test', '0', false)
+    end
+
+    # Test non-existent loopback does NOT raise when calling interfaces
+    one = InterfaceOspf.interfaces('ospf_test', 'loopback543')
+    assert_empty(one, 'InterfaceOspf.interfaces hash should be empty')
+  end
+
   def test_get_set_area
     # setup a loopback to use
     config('interface loopback12')
@@ -209,7 +261,7 @@ class TestInterfaceOspf < CiscoTestCase
     pattern = (/\s+ip router ospf #{ospf.name} area #{area}/)
     assert_show_match(command: show_cmd(ifname),
                       pattern: pattern)
-    assert_equal(ifname.downcase, interface.interface.name,
+    assert_equal(ifname.downcase, interface.intf_name,
                  'Error: interface name get value mismatch ')
     assert_equal(area, interface.area,
                  'Error: area get value mismatch ')
@@ -320,6 +372,14 @@ class TestInterfaceOspf < CiscoTestCase
     interface.hello_interval = interface.default_hello_interval
     refute_show_match(pattern: /\s+ip ospf hello-interval(.*)/,
                       msg:     'Error: default hello-interval set failed')
+
+    # Test destroy_interval helper method
+    interface.hello_interval = interval
+    interface.destroy_interval('hello_interval')
+    refute_show_match(
+      command: show_cmd(interface.intf_name),
+      pattern: /\s+ip ospf hello-interval/,
+      msg:     'ip ospf hello-interval not removed')
   end
 
   def test_dead_inv
@@ -354,6 +414,14 @@ class TestInterfaceOspf < CiscoTestCase
     assert_show_match(
       pattern: /^\s+ip ospf dead-interval #{interface.default_dead_interval}/,
       msg:     'Error: default dead-interval set failed')
+
+    # Test destroy_interval helper method
+    interface.dead_interval = interval
+    interface.destroy_interval('dead_interval')
+    refute_show_match(
+      command: show_cmd(interface.intf_name),
+      pattern: /\s+ip ospf dead-interval/,
+      msg:     'ip ospf dead-interval not removed')
   end
 
   def test_bfd
@@ -471,7 +539,7 @@ class TestInterfaceOspf < CiscoTestCase
     ifname = interfaces[2]
     area = '1.1.1.1'
     interface1 = create_interfaceospf(ospf, ifname, area)
-    assert_equal(ifname.downcase, interface1.interface.name,
+    assert_equal(ifname.downcase, interface1.intf_name,
                  "Error: 'ip router ospf #{ospf.name} area #{area}' " \
                  'not configured')
 
@@ -483,7 +551,7 @@ class TestInterfaceOspf < CiscoTestCase
 
     # check other interface association still exist.
     assert_show_match(
-      command: show_cmd(interface.interface.name),
+      command: show_cmd(interface.intf_name),
       pattern: /\s+ip router ospf #{ospf.name} area #{interface.area}/,
       msg:     "'ip router ospf #{ospf.name} default area' not configured")
   end

@@ -376,6 +376,14 @@ module Cisco
       end
       # for boolean we need to do this
       send('load_bal_enable=', false) if attrs[:load_bal_enable] == ''
+      if Platform.image_version[/9.3\(1\)/] && @set_args[:state] == 'no'
+        # In the 9.3(1) release image, the load_balance config cannot
+        # be removed using 'no load-balance'.  It requires a valid
+        # parameter but it can be any parameter, even if not configured.
+        # For this version only we send the following command to
+        # remove load-balance config: 'no load-balance mask-position 0'
+        @set_args[:mask] = 'mask-position 0'
+      end
       @get_args = @set_args
       config_set('itd_service', 'load_balance', @set_args)
       set_args_keys_default

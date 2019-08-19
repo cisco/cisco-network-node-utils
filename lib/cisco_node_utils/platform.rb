@@ -35,13 +35,15 @@ module Cisco
     # Ex: { 'n3000-uk9.6.0.2.U1.1.CSCaa12345.bin' => 'inactive committed',
     #       'n3000-uk9.6.0.2.U1.1.CSCaa12346.bin' => 'active', }
     def self.packages
+      pkgs = []
       pkg_hsh = {}
-      pkgs = config_get('images', 'packages')
+      begin
+        pkgs = config_get('images', 'packages')
+      rescue RuntimeError => e
+        raise unless e.message[/Invalid command/]
+      end
       return {} if pkgs.nil?
       pkgs.each { |p| pkg_hsh[p[0]] = p[1].downcase }
-    rescue RuntimeError => e
-      raise unless e.message[/Invalid command/]
-    ensure
       pkg_hsh
     end
 
@@ -103,7 +105,7 @@ module Cisco
     #       'vid'   => 'V02',
     #       'sn'    => 'SAL1812NTBP' }
     def self.chassis
-      node.cache_flush # TODO: investigate why this is needed
+      # node.cache_flush # TODO: investigate why this is needed
       all = config_get('inventory', 'chassis')
       return nil if all.nil?
 
@@ -126,36 +128,18 @@ module Cisco
     #                     'sn'    => 'SAL1812NTBP' },
     #       'Slot 2' => { ... }}
     def self.inventory_of(type)
-      node.cache_flush # TODO: investigate why this is needed
       inv = config_get('inventory', 'all')
       inv_hsh = {}
       return inv_hsh if inv.nil?
-      if platform == :ios_xr
-        # XR gets a string so we have to process it directly
-        inv_arr = inv.scan(
-          /NAME:\s+"(#{type}[^"]*)",\s+
-           DESCR:\s+"([^"]*)"\s*
-           \n
-           PID:\s+(\S+)\s*,\s+
-           VID:\s+(\S+)\s*,\s+
-           SN:\s+(\S+)\s*/x).flatten
-        inv_arr.each do |entry|
-          inv_hsh[entry[0]] = { 'descr' => entry[1],
-                                'pid'   => entry[2],
-                                'vid'   => entry[3],
-                                'sn'    => entry[4] }
-        end
-      else
-        # Nexus gets structured output
-        inv.select! { |x| x['name'].include? type }
-        return inv_hsh if inv.empty?
-        # match desired output format
-        inv.each do |s|
-          inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
-                                             'pid'   => s['productid'],
-                                             'vid'   => s['vendorid'],
-                                             'sn'    => s['serialnum'] }
-        end
+      # Nexus gets structured output
+      inv_copy = inv.select { |x| x['name'].include? type }
+      return inv_hsh if inv_copy.empty?
+      # match desired output format
+      inv_copy.each do |s|
+        inv_hsh[s['name'].tr('"', '')] = { 'descr' => s['desc'].tr('"', ''),
+                                           'pid'   => s['productid'],
+                                           'vid'   => s['vendorid'],
+                                           'sn'    => s['serialnum'] }
       end
       inv_hsh
     end

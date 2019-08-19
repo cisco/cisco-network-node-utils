@@ -21,39 +21,48 @@ require_relative 'feature'
 module Cisco
   # Interface - node utility class for general interface config management
   class InterfaceChannelGroup < NodeUtil
-    attr_reader :name
+    attr_reader :name, :show_name
 
-    def initialize(name)
-      validate_args(name)
+    def initialize(name, show_name=nil)
+      validate_args(name, show_name)
     end
 
     def to_s
       "interface_channel_group #{name}"
     end
 
-    def self.interfaces
+    def self.interfaces(show_name=nil)
       hash = {}
-      all = config_get('interface_channel_group', 'all_interfaces')
+      show_name = Utils.normalize_intf_pattern(show_name)
+      begin
+        all = config_get('interface_channel_group', 'all_interfaces',
+                         show_name: show_name)
+      rescue CliError => e
+        raise unless show_name
+        # ignore logical interfaces that do not exist
+        debug 'InterfaceChannelGroup.interfaces ignoring CliError => ' + e.to_s
+      end
       return hash if all.nil?
 
       all.each do |id|
         id = id.downcase
-        hash[id] = InterfaceChannelGroup.new(id)
+        hash[id] = InterfaceChannelGroup.new(id, show_name)
       end
       hash
     end
 
-    def validate_args(name)
+    def validate_args(name, show_name)
       fail TypeError unless name.is_a?(String)
       fail ArgumentError unless name.length > 0
       fail "channel_group is not supported on #{name}" unless
         name[/Ethernet/i]
       @name = name.downcase
+      @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
       set_args_keys
     end
 
     def set_args_keys(hash={}) # rubocop:disable Style/AccessorMethodName
-      @get_args = { name: @name }
+      @get_args = { name: @name, show_name: @show_name }
       @set_args = @get_args.merge!(hash) unless hash.empty?
     end
 

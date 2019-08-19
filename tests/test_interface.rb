@@ -161,6 +161,80 @@ class TestInterface < CiscoTestCase
     end
   end
 
+  def test_non_existent_intf
+    # pre-clean: remove intf if it exists
+    Interface.new('loopback100').destroy
+
+    # Create from non-exist
+    interface = Interface.new('loopback100')
+    refute_nil(interface.name)
+    interface.destroy
+  end
+
+  def test_interface_apis
+    # N7K: verify show_name pattern
+    {
+      'etherNET1/1.42' => 'Ethernet1/1.42$',
+      'LOOPback23'     => 'loopback23$',
+      'Port-Channel19' => 'port-channel19$',
+      'MONGOsonet12'   => '.ongosonet12$',
+    }.each do |k, v|
+      assert_equal(v, Utils.normalize_intf_pattern(k),
+                   "pattern should be #{v}")
+    end if node.product_id[/N7/]
+
+    # Verify intf counter
+    assert_equal(Interface.interface_count, interface_count,
+                 'Interface.interface_count did not return the expected count')
+
+    # Verify raise rescued when loopback does not exist ('Invalid range' rescued)
+    Interface.new('loopback100').destroy
+    no_loopback = Interface.interfaces(nil, 'loopback100')
+    assert_empty(no_loopback,
+                 'Return value should be empty hash when non existent loopback')
+
+    # Verify show_name usage
+    intf = interfaces[0]
+    one = Interface.interfaces(nil, intf)
+    assert_equal(1, one.length,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when intf specified')
+
+    # Verify 'all' interfaces returned
+    all = Interface.interfaces
+    assert_operator(all.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf].show_name,
+                 ':show_name should be empty string when intf is nil')
+
+    # Verify filter operations
+    eth_count = all.keys.join.scan(/ethernet/).count
+    filtered = Interface.interfaces(:ethernet)
+    assert_equal(eth_count, filtered.length,
+                 'filter returned invalid number of ethernet interfaces')
+
+    filtered = Interface.interfaces(:mgmt)
+    assert_equal(1, filtered.length,
+                 'filter returned invalid number of mgmt interfaces')
+    assert_equal('mgmt0', filtered.keys[0],
+                 'filter returned incorrect interface name')
+
+    filtered = Interface.interfaces(:mgmt, intf)
+    assert_empty(filtered,
+                 'mgmt filter returned interface when it should be an empty hash')
+
+    filtered = Interface.interfaces(:invalid_intf_pattern)
+    assert_empty(filtered,
+                 'invalid filter returned interface when it should be an empty hash')
+
+    filtered = Interface.interfaces(:ethernet, intf)
+    assert_equal(1, filtered.length,
+                 'Invalid number of keys returned by ethernet filter with intf specified')
+    assert_equal(intf, filtered.keys[0],
+                 'filter returned incorrect interface name')
+  end
+
   # Helper to get valid speeds for port
   def capable_speed_values(interface)
     speed_capa = Interface.capabilities(interface.name)['Speed']
@@ -1880,18 +1954,5 @@ class TestInterface < CiscoTestCase
 
     int.destroy
     assert(int.default?)
-  end
-
-  def test_purge_config
-    name = interfaces[0]
-    int = Interface.new(name)
-    int.switchport_mode = :disabled
-
-    int.description = 'destroy_pysical'
-    int.ipv4_addr_mask_set('192.168.0.1', '24')
-    refute(int.purge_config)
-
-    int.purge_config = true
-    assert(int.purge_config)
   end
 end

@@ -31,23 +31,30 @@ class TestInterfaceChanGrp < CiscoTestCase
     interface_cleanup(@intf.name)
   end
 
-  def test_channel_group
-    skip if platform == :nexus
-    i = @intf
-    group = 200
-    i.channel_group = group
-    assert_equal(group, i.channel_group)
+  # Test InterfaceChannelGroup.interfaces class method api
+  def test_interface_apis
+    intf = interfaces[0]
+    intf2 = interfaces[1]
 
-    group = 201
-    i.channel_group = group
-    assert_equal(group, i.channel_group)
+    # Verify show_name usage
+    one = InterfaceChannelGroup.interfaces(intf)
+    assert_equal(1, one.length,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when show_name param specified')
 
-    group = i.default_channel_group
-    i.channel_group = group
-    assert_equal(group, i.channel_group)
-  rescue Cisco::UnsupportedError => e
-    # Some platforms only support channel-group with certain software versions
-    skip(e.to_s)
+    # Verify 'all' interfaces
+    all = InterfaceChannelGroup.interfaces
+    assert_operator(all.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
+
+    # Test non-existent loopback does NOT raise when calling interfaces
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
+    one = InterfaceChannelGroup.interfaces('loopback543')
+    assert_empty(one, 'InterfaceChannelGroup.interfaces hash should be empty')
   end
 
   def test_channel_group_mode

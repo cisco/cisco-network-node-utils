@@ -1,6 +1,42 @@
 Changelog
 =========
 
+## [v2.1.0]
+
+### Added
+
+### Changed
+
+### Removed
+- Removal of deprecated `interface` `private-vlan` properties.
+
+| Deprecated/Removed Name | New Name |
+|:---|:---|
+| `private_vlan_mapping`                          | `pvlan_mapping`
+| `switchport_mode_private_vlan_host`             | `switchport_pvlan_host`, `switchport_pvlan_promiscuous`,
+| `switchport_mode_private_vlan_host_association` | `switchport_pvlan_host_association`
+| `switchport_mode_private_vlan_host_promiscous`  | `switchport_pvlan_mapping`
+| `switchport_mode_private_vlan_trunk_promiscuous`| `switchport_pvlan_trunk_promiscuous`
+| `switchport_mode_private_vlan_trunk_secondary`  | `switchport_pvlan_trunk_secondary`
+| `switchport_private_vlan_association_trunk`     | `switchport_pvlan_trunk_association`
+| `switchport_private_vlan_mapping_trunk`         | `switchport_pvlan_mapping_trunk`
+| `switchport_private_vlan_trunk_allowed_vlan`    | `switchport_pvlan_trunk_allowed_vlan`
+| `switchport_private_vlan_trunk_native_vlan`     | `switchport_pvlan_trunk_native_vlan`
+
+- Removal of deprecated `vlan` `private-vlan` properties.
+
+| Deprecated/Removed Name | New Name |
+|:---|:---|
+| `private_vlan_association` | `pvlan_association`
+| `private_vlan_type`        | `pvlan_type`
+
+- Removed interface attribute:
+   * `purge_config`
+
+### Issues Addressed
+
+- [Very slow execution when managing interfaces #496](https://github.com/cisco/cisco-network-puppet-module/issues/496)
+
 ## [v2.0.2]
 
 ### Issues Addressed
@@ -621,6 +657,7 @@ Cisco::Environment.add_env('default', env)
 [git-flow]: https://github.com/petervanderdoes/gitflow-avh
 [SimpleCov]: https://github.com/colszowka/simplecov
 
+[v2.1.0]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.2...v2.1.0
 [v2.0.2]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.1...v2.0.2
 [v2.0.1]: https://github.com/cisco/cisco-network-node-utils/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/cisco/cisco-network-node-utils/compare/v1.10.0...v2.0.0

@@ -192,6 +192,9 @@ class TestPortchannelGlobal < CiscoTestCase
     skip('Test not supported on this platform') if n3k_in_n3k_mode? ||
       validate_property_excluded?('portchannel_global', 'symmetry')
     # rubocop:enable Style/MultilineOperationIndentation
+    # TBD: concat not supported; add N9k-EX to allowed platforms list and
+    # use proper _exclude tags
+    skip('TBD: Limited support for N9k-EX') if node.product_id[/N9K.*EX/]
 
     global = create_portchannel_global
     global.send(:port_channel_load_balance=,

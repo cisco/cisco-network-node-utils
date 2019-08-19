@@ -19,22 +19,31 @@ require_relative 'node_util'
 module Cisco
   # node_utils class for interface_evpn_multisite
   class InterfaceEvpnMultisite < NodeUtil
-    attr_reader :interface, :tracking
+    attr_reader :interface, :show_name, :tracking
 
-    def initialize(interface)
+    def initialize(interface, show_name=nil)
       fail TypeError unless interface.is_a?(String)
       @interface = interface.downcase
-      @get_args = @set_args = { interface: @interface }
+      @show_name = show_name.nil? ? '' : Utils.normalize_intf_pattern(show_name)
+      @get_args = @set_args = { interface: @interface, show_name: @show_name }
     end
 
-    def self.interfaces
+    def self.interfaces(show_name=nil)
       hash = {}
-      intf_list = config_get('interface_evpn_multisite', 'all_interfaces')
+      show_name = Utils.normalize_intf_pattern(show_name)
+      begin
+        intf_list = config_get('interface_evpn_multisite', 'all_interfaces',
+                               show_name: show_name)
+      rescue CliError => e
+        raise unless show_name
+        # ignore logical interfaces that do not exist
+        debug 'InterfaceEvpnMultisite.interfaces ignoring CliError => ' + e.to_s
+      end
       return hash if intf_list.nil?
 
       intf_list.each do |id|
         id = id.downcase
-        intf = InterfaceEvpnMultisite.new(id)
+        intf = InterfaceEvpnMultisite.new(id, show_name)
         hash[id] = intf if intf.tracking
       end
       hash

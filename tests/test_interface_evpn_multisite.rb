@@ -36,6 +36,41 @@ class TestInterfaceEvpnMultisite < CiscoTestCase
     config("default interface #{intf}")
   end
 
+  # Test InterfaceEvpnMultisite.interfaces class method api
+  def test_interface_apis
+    # setup
+    ms = EvpnMultisite.new(100)
+    intf = interfaces[0]
+    intf2 = interfaces[1]
+    interface_ethernet_default(intf2)
+    [intf, intf2].each do |i|
+      InterfaceEvpnMultisite.new(i).enable('dci-tracking')
+    end
+
+    # Verify show_name usage
+    one = InterfaceEvpnMultisite.interfaces(intf)
+    assert_equal(1, one.length,
+                 'Invalid number of keys returned, should be 1')
+    assert_equal(Utils.normalize_intf_pattern(intf), one[intf].show_name,
+                 ':show_name should be intf name when show_name param specified')
+
+    # Verify 'all' interfaces
+    all = InterfaceEvpnMultisite.interfaces
+    assert_operator(all.length, :>, 1,
+                    'Invalid number of keys returned, should exceed 1')
+    assert_empty(all[intf2].show_name,
+                 ':show_name should be empty string when show_name param is nil')
+
+    # Test non-existent interface does NOT raise when calling interfaces
+    Interface.new('loopback543', false).destroy if
+      Interface.interfaces(nil, 'loopback543').any?
+    no_intf = InterfaceEvpnMultisite.interfaces('loopback543')
+    assert_empty(no_intf,
+                 'InterfaceEvpnMultisite.interfaces hash should be empty')
+
+    ms.destroy
+  end
+
   def test_enable_disable
     interface = interfaces[0]
     intf_ms = InterfaceEvpnMultisite.new(interface)

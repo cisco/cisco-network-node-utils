@@ -37,7 +37,8 @@ class TestNodeExt < CiscoTestCase
     node.client.set(context: ['interface loopback0'], values: ['shutdown'])
     node.client.set(values: ['interface loopback1', 'no shutdown'])
 
-    result = node.config_get('interface', 'shutdown', name: 'loopback1')
+    result = node.config_get('interface', 'shutdown',
+                             name: 'loopback1', show_name: 'loopback1')
     refute(result)
   end
 
@@ -143,8 +144,10 @@ class TestNodeExt < CiscoTestCase
   def test_get_product_id
     # N3|9K Fretta product_id gets a '-F' appended so remove it for this check
     if product_tag[/n(3|9)k-f/]
+      node.client.cache_flush
       chassis = node.product_id.sub('-F', '')
     else
+      node.client.cache_flush
       chassis = node.product_id
     end
     assert_output_check(command: 'show inventory',

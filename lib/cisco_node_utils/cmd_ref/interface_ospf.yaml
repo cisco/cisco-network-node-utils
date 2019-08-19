@@ -3,8 +3,10 @@
 _exclude: [ios_xr]
 
 _template:
-  get_command: 'show running interface all'
-  context: ["interface %s"]
+  context: ['interface <name>']
+  get_command: 'show running interface <show_name> all'
+  N7k:
+    get_command: "show running interface all | section '^interface <show_name>'"
 
 all_interfaces:
   multiple:
@@ -13,7 +15,7 @@ all_interfaces:
 
 area:
   get_value: '/^\s*ip router ospf (\S+) area (\S+)/'
-  set_value: "%s ip router ospf %s area %s"
+  set_value: '<state> ip router ospf <ospf_name> area <area>'
 
 bfd:
   # the config can be 'ip ospf bfd' or
@@ -22,31 +24,31 @@ bfd:
   # match to get the whole config for checking
   # the mode
   get_value: '/^\s*ip ospf bfd *(?:\S*)$/'
-  set_value: '%s ip ospf bfd %s'
+  set_value: '<state> ip ospf bfd <disable>'
   default_value: ~
 
 cost:
   kind: int
   get_value: '/^\s*ip ospf cost (\d+)/'
-  set_value: "%s ip ospf cost %s"
+  set_value: '<state> ip ospf cost <cost>'
   default_value: 0
 
 dead_interval:
   kind: int
   get_value: '/^\s*ip ospf dead-interval (\d+)/'
-  set_value: "%s ip ospf dead-interval %s"
+  set_value: '<state> ip ospf dead-interval <interval>'
   default_value: 40
 
 hello_interval:
   kind: int
   get_value: '/^\s*ip ospf hello-interval (\d+)/'
-  set_value: "%s ip ospf hello-interval %s"
+  set_value: '<state> ip ospf hello-interval <interval>'
   default_value: 10
 
 message_digest:
   kind: boolean
   get_value: '/^\s*ip ospf authentication message-digest/'
-  set_value: "%s ip ospf authentication message-digest"
+  set_value: '<state> ip ospf authentication message-digest'
   default_value: false
 
 message_digest_alg_type:
@@ -63,7 +65,7 @@ message_digest_key_id:
   default_value: 0
 
 message_digest_key_set:
-  set_value: "%s ip ospf message-digest-key %s %s %s %s"
+  set_value: '<state> ip ospf message-digest-key <keyid> <algtype> <enctype> <password>'
 
 message_digest_password:
   default_value: ~
@@ -72,12 +74,12 @@ message_digest_password:
 mtu_ignore:
   kind: boolean
   get_value: '/^\s*ip ospf mtu-ignore/'
-  set_value: "%s ip ospf mtu-ignore"
+  set_value: '<state> ip ospf mtu-ignore'
   default_value: false
 
 network_type:
   get_value: '/^\s*ip ospf network (\S+)$/'
-  set_value: "%s ip ospf network %s"
+  set_value: '<state> ip ospf network <network_type>'
 
 network_type_default:
   default_value: 'broadcast'
@@ -88,23 +90,23 @@ network_type_loopback_default:
 passive_interface:
   kind: boolean
   get_value: '/^\s*ip ospf passive-interface/'
-  set_value: "%s ip ospf passive-interface"
+  set_value: '<state> ip ospf passive-interface'
   default_value: false
 
 priority:
   kind: int
   get_value: '/^\s*ip ospf priority (\d+)/'
-  set_value: "%s ip ospf priority %s"
+  set_value: '<state> ip ospf priority <priority>'
   default_value: 1
 
 shutdown:
   kind: boolean
   get_value: '/^\s*ip ospf shutdown/'
-  set_value: "%s ip ospf shutdown"
+  set_value: '<state> ip ospf shutdown'
   default_value: false
 
 transmit_delay:
   kind: int
   get_value: '/^\s*ip ospf transmit-delay (\d+)/'
-  set_value: "%s ip ospf transmit-delay %s"
+  set_value: '<state> ip ospf transmit-delay <delay>'
   default_value: 1
