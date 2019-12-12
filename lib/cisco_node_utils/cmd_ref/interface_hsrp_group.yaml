@@ -3,10 +3,13 @@
 _exclude: [ios_xr, N5k, N6k]
 
 _template:
-  get_command: "show running hsrp | no-more"
+  get_command: "show running hsrp"
   context:
     - "interface <name>"
     - "hsrp <group> <iptype>"
+
+all_hsrp:
+  get_context: ~
 
 authentication:
   get_value: '/^authentication (.*)$/'
@@ -73,7 +76,7 @@ mac_addr:
   default_value: false
 
 preempt:
-  get_command: "show running hsrp all | no-more"
+  get_command: "show running hsrp all"
   get_value: '/^preempt delay minimum (\d+) reload (\d+) sync (\d+)/'
   set_value: '<state> preempt <delay> <minimum> <minval> <reload> <relval> <sync> <syncval>'
   default_value: false
