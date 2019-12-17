@@ -46,7 +46,7 @@ module Cisco
 
     def self.default_vdc_name
       vdc = config_get('vdc', 'default_vdc_name')
-      fail RuntimeError if vdc.nil?
+      fail RuntimeError , 'default vdc not found, platform may not support vdc' if vdc.nil?
       vdc
     end
 
